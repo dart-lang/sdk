@@ -158,15 +158,18 @@ function isolate$processWorkerMessage(sender, e) {
   var msg = e.data;
   switch (msg.command) {
     case 'start':
-      isolate$log("starting worker: " + msg.id + " " + msg.runner);
+      isolate$log("starting worker: " + msg.id + " " + msg.factoryName);
       isolate$initializeWorker(msg.id);
-      var runnerObject = (isolate$globalThis[msg.runner])();
+      var runnerObject = (isolate$globalThis[msg.factoryName])();
       var serializedReplyTo = msg.replyTo;
       isolate$IsolateEvent.enqueue(new isolate$Isolate(), function() {
         var replyTo = isolate$deserializeMessage(serializedReplyTo);
         native__IsolateJsUtil__startIsolate(runnerObject, replyTo);
       });
       isolate$runEventLoop();
+      break;
+    case 'spawn-worker':
+      isolate$spawnWorker(msg.factoryName, msg.replyPort);
       break;
     case 'message':
       isolate$sendMessage(msg.workerId, msg.isolateId, msg.portId,
@@ -364,12 +367,19 @@ var isolate$thisScript = function() {
 }();
 
 function isolate$startWorker(runnable, replyPort) {
-  if (isolate$inWorker) {
-    isolate$mainWorker.postMessage("Unimplemented nested spawn.");
-    throw "Unimplemented";
-  }
   var factory = runnable.getIsolateFactory();
   var factoryName = factory.name;
+  var serializedReplyPort = isolate$serializeMessage(replyPort);
+  if (isolate$inWorker) {
+    isolate$mainWorker.postMessage({ command: 'spawn-worker',
+                                     factoryName: factoryName,
+                                     replyPort: serializedReplyPort } );
+  } else {
+    isolate$spawnWorker(factoryName, serializedReplyPort);
+  }
+}
+
+function isolate$spawnWorker(factoryName, serializedReplyPort) {
   var worker = new Worker(isolate$thisScript);
   worker.onmessage = function(e) {
     isolate$processWorkerMessage(worker, e);
@@ -380,8 +390,8 @@ function isolate$startWorker(runnable, replyPort) {
   isolate$workerRegistry.register(workerId, worker);
   worker.postMessage({ command: 'start',
                        id: workerId,
-                       replyTo: isolate$serializeMessage(replyPort),
-                       runner: factoryName });
+                       replyTo: serializedReplyPort,
+                       factoryName: factoryName });
 }
 
 function native_SendPortImpl__sendNow(message, replyTo) {
