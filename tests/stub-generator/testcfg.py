@@ -19,6 +19,9 @@ class DartStubTestCase(testing.StandardTestCase):
     self.mode = mode
     self.arch = arch
 
+  def IsBatchable(self):
+    return False
+
   def GetStubs(self):
     source = self.GetSource()
     stub_classes = utils.ParseTestOptions(test.ISOLATE_STUB_PATTERN, source,
