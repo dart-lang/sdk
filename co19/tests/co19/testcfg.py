@@ -2,12 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a 
 # BSD-style license that can be found in the LICENSE file.
 
+
 import os
+from os.path import join, exists
 import re
+
 import test
 import utils
-
-from os.path import join, exists
 
 
 class Error(Exception):

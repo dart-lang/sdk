@@ -4,11 +4,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import os
+from os.path import join, exists
 import re
+
 import test
 import utils
 
-from os.path import join, exists
+
 
 class JUnitTestCase(test.TestCase):
   def __init__(self, path, context, classnames, mode, arch):

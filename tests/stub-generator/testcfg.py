@@ -6,13 +6,14 @@ import os
 import re
 import shutil
 import tempfile
+
 import test
-import testing
+from testing import test_case,test_configuration
 import utils
 
 from os.path import join, exists, isdir
 
-class DartStubTestCase(testing.StandardTestCase):
+class DartStubTestCase(test_case.StandardTestCase):
   def __init__(self, context, path, filename, mode, arch):
     super(DartStubTestCase, self).__init__(context, path, filename, mode, arch)
     self.filename = filename
@@ -71,7 +72,7 @@ class DartStubTestCase(testing.StandardTestCase):
     return command
 
 
-class DartStubTestConfiguration(testing.StandardTestConfiguration):
+class DartStubTestConfiguration(test_configuration.StandardTestConfiguration):
   def __init__(self, context, root):
     super(DartStubTestConfiguration, self).__init__(context, root)
 

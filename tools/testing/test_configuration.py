@@ -12,67 +12,19 @@ import run
 import sys
 import tempfile
 
+from testing import test_case
 import test
 import utils
 
 from os.path import join, exists, basename
 
-import utils # This is tools.utils
+import utils
 
 class Error(Exception):
   pass
 
 class TestConfigurationError(Error):
   pass
-
-class StandardTestCase(test.TestCase):
-  def __init__(self, context, path, filename, mode, arch):
-    super(StandardTestCase, self).__init__(context, path)
-    self.filename = filename
-    self.mode = mode
-    self.arch = arch
-    self.run_arch = run.GetArchitecture(self.arch, self.mode, self.filename)
-    for flag in context.flags:
-      self.run_arch.vm_options.append(flag)
-
-  def IsNegative(self):
-    return self.GetName().endswith("NegativeTest")
-
-  def GetLabel(self):
-    return "%s%s %s" % (self.mode, self.arch, '/'.join(self.path))
-
-  def GetCommand(self):
-    return self.run_arch.GetRunCommand();
-
-  def GetName(self):
-    return self.path[-1]
-
-  def GetPath(self):
-    return os.path.dirname(self.filename)
-
-  def GetSource(self):
-    return file(self.filename).read()
-
-
-class MultiTestCase(StandardTestCase):
-
-  def __init__(self, context, path, filename, kind, mode, arch):
-    super(MultiTestCase, self).__init__(context, path, filename, mode, arch)
-    self.kind = kind
-
-  def GetCommand(self):
-    return self.run_arch.GetRunCommand(
-      fatal_static_type_errors=(self.kind == 'static type error'));
-
-  def IsNegative(self):
-    if self.kind == 'compile-time error':
-      return True
-    if self.kind == 'runtime error':
-      return False
-    if self.kind == 'static type error':
-      return self.run_arch.HasFatalTypeErrors()
-    return False
-
 
 class StandardTestConfiguration(test.TestConfiguration):
   LEGAL_KINDS = set(['compile-time error',
@@ -106,7 +58,7 @@ class StandardTestConfiguration(test.TestConfiguration):
       if tags:
         return []
       else:
-        return [BrowserTestCase(
+        return [test_case.BrowserTestCase(
             self.context, test_path, filename, False, mode, arch)]
     else:
       tests = []
@@ -115,18 +67,11 @@ class StandardTestConfiguration(test.TestConfiguration):
           kind, test_source = tags[tag]
           if not self.Contains(path, test_path + [tag]):
             continue
-          tests.append(MultiTestCase(self.context,
-                                     test_path + [tag],
-                                     test_source,
-                                     kind,
-                                     mode,
-                                     arch))
+          tests.append(test_case.MultiTestCase(self.context,
+              test_path + [tag], test_source, kind, mode, arch))
       else:
-        tests.append(StandardTestCase(self.context,
-                                      test_path,
-                                      filename,
-                                      mode,
-                                      arch))
+        tests.append(test_case.StandardTestCase(self.context,
+            test_path, filename, mode, arch))
       return tests
 
   def ListTests(self, current_path, path, mode, arch):
@@ -201,12 +146,15 @@ class StandardTestConfiguration(test.TestConfiguration):
     tests['none'] = ('', test_filename)
     return tests
 
-class BrowserTestCase(StandardTestCase):
+class BrowserTestCase(test_case.StandardTestCase):
   def __init__(self, context, path, filename,
                fatal_static_type_errors, mode, arch):
-    super(BrowserTestCase, self).__init__(context, path, filename, mode, arch)
+    super(test_case.BrowserTestCase, self).__init__(context, path, filename, mode, arch)
     self.fatal_static_type_errors = fatal_static_type_errors
 
+  def IsBatchable(self):
+    return True
+      
   def Run(self):
     command = self.run_arch.GetCompileCommand(self.fatal_static_type_errors)
     if command != None:
@@ -253,49 +201,14 @@ class BrowserTestConfiguration(StandardTestConfiguration):
         test_path = current_path + relative + [os.path.splitext(f)[0]]
         if not self.Contains(path, test_path):
           continue
-        tests.append(BrowserTestCase(self.context,
-                                     test_path,
-                                     join(root, f),
-                                     self.fatal_static_type_errors,
-                                     mode,
-                                     arch))
+        tests.append(test_case.BrowserTestCase(self.context,
+            test_path, join(root, f), self.fatal_static_type_errors, mode,
+            arch))
     atexit.register(lambda: self._cleanup(tests))
     return tests
 
   def IsTest(self, name):
     return name.endswith('_tests.dart')
-
-
-class CompilationTestCase(test.TestCase):
-  """ Run the dartc compiler on a given top level dart file """  
-  def __init__(self, path, context, filename, mode, arch):
-    super(CompilationTestCase, self).__init__(context, path)
-    self.filename = filename
-    self.mode = mode
-    self.arch = arch
-    self.run_arch = run.GetArchitecture(self.arch, self.mode,
-                                        self.filename)
-    self.temp_dir = tempfile.mkdtemp(prefix='dartc-output-')
-
-  def IsNegative(self):
-    return False
-
-  def GetLabel(self):
-    return "%s/%s %s" % (self.mode, self.arch, '/'.join(self.path))
-
-  def GetCommand(self):
-    cmd = self.context.GetDartC(self.mode, self.arch);
-    cmd += self.context.flags
-    cmd += ['-check-only', 
-            '-fatal-type-errors',
-            '-Werror',
-            '-out', self.temp_dir,
-            self.filename]
-
-    return cmd
-
-  def GetName(self):
-    return self.path[-1]
 
 
 class CompilationTestConfiguration(test.TestConfiguration):
@@ -324,7 +237,7 @@ class CompilationTestConfiguration(test.TestConfiguration):
           if ((not self.Contains(path, test_path)) 
               or (not self.IsTest(test_dart_file))):
             continue
-          tests.append(CompilationTestCase(test_path,
+          tests.append(test_case.CompilationTestCase(test_path,
                                            self.context,
                                            test_dart_file,
                                            mode,
@@ -359,7 +272,3 @@ class CompilationTestConfiguration(test.TestConfiguration):
     if not utils.Daemonize(): return
     os.execlp('rm', *(['rm', '-rf'] + [t.temp_dir for t in tests]))
     raise
-
-
-def GetConfiguration(context, root):
-  return CompilationTestConfiguration(context, root)

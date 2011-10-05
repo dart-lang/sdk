@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import testing
+from testing import test_configuration
 
 def GetConfiguration(context, root):
-  return testing.StandardTestConfiguration(context, root)
+  return test_configuration.StandardTestConfiguration(context, root)

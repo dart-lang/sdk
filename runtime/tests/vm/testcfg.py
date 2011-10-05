@@ -3,9 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import os
-import test
-
 from os.path import join, exists
+
+import test
 
 class VmTestCase(test.TestCase):
   def __init__(self, path, context, mode, arch, flags):
