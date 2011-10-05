@@ -466,9 +466,6 @@ function $intern(o, type_args) {
   return o;
 }
 
-/** @const */
-var $Dart$MapLiteralType = LinkedHashMapImplementation$Dart;
-
 function $Dart$MapLiteralFactory() {
   return native__CoreJsUtil__newMapLiteral();
 }
