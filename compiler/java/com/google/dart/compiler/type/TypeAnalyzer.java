@@ -96,6 +96,7 @@ import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
 import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -657,7 +658,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitMethodInvocation(DartMethodInvocation node) {
       String name = node.getFunctionNameString();
       Element element = (Element) node.getTargetSymbol();
-      if (element != null && element.getModifiers().isStatic()) {
+      if (element != null && (element.getModifiers().isStatic()
+                              || Elements.isTopLevel(element))) {
         return checkInvocation(node, node, name, element.getType());
       }
       Type receiver = nonVoidTypeOf(node.getTarget());
@@ -1021,7 +1023,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
       Element element = node.getTargetSymbol();
-      if (element != null && element.getModifiers().isStatic()) {
+      if (element != null && (element.getModifiers().isStatic()
+                              || Elements.isTopLevel(element))) {
         return element.getType();
       }
       DartNode qualifier = node.getQualifier();

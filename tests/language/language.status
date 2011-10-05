@@ -63,24 +63,8 @@ Switch3NegativeTest: Crash           # Bug 5318228
 
 
 [ $arch == dartc || $arch == chromium ]
-Prefix1NegativeTest: Skip # Bug 5406175
-Prefix2NegativeTest: Skip # Bug 5406175
-Prefix3NegativeTest: Skip # Bug 5406175
-Prefix4NegativeTest: Skip # Bug 5406175
-Prefix5NegativeTest: Skip # Bug 5406175
-Prefix6NegativeTest: Skip # Bug 5406175
-Prefix7NegativeTest: Skip # Bug 5406175
-Prefix8NegativeTest: Skip # Bug 5406175
-Prefix9NegativeTest: Skip # Bug 5406175
-Prefix10NegativeTest: Skip # Bug 5406175
-Prefix11NegativeTest: Skip # Bug 5406175
-Prefix12NegativeTest: Skip # Bug 5406175
-PrefixTest: Skip # Bug 5406175
-Prefix10Test: Skip # Bug 5406175
-Prefix11Test: Skip # Bug 5406175
-Prefix12Test: Skip # Bug 5406175
-LibraryPrefixesTest: Skip # Bug 5406175
-TopLevelNonPrefixedLibraryTest: Skip # Bug 5406175
+Prefix11NegativeTest: Fail # Bug 5406175
+Prefix12NegativeTest: Fail,Crash # Bug 5406175
 DefaultFactoryTest: Fail    # Bug 5009110
 FunctionTypeParameterNegativeTest: Fail # Bug 4568007
 ImplicitScopeTest: FAIL              # Nested statements can be declarations
@@ -169,6 +153,25 @@ TopLevelPrefixedLibraryTest: Fail     # Bug 5145731
 TopLevelEntryTest: Fail               # Bug 5145731
 PrivateTest: Fail                     # Bug 5145731
 Private3Test: Fail                    # Bug 5145731
+
+Prefix1NegativeTest: Skip # Bug 5406175
+Prefix2NegativeTest: Skip # Bug 5406175
+Prefix3NegativeTest: Skip # Bug 5406175
+Prefix4NegativeTest: Skip # Bug 5406175
+Prefix5NegativeTest: Skip # Bug 5406175
+Prefix6NegativeTest: Skip # Bug 5406175
+Prefix7NegativeTest: Skip # Bug 5406175
+Prefix8NegativeTest: Skip # Bug 5406175
+Prefix9NegativeTest: Skip # Bug 5406175
+Prefix10NegativeTest: Skip # Bug 5406175
+Prefix11NegativeTest: Skip # Bug 5406175
+Prefix12NegativeTest: Skip # Bug 5406175
+PrefixTest: Crash,Fail # Bug 5406175
+Prefix10Test: Crash,Fail # Bug 5406175
+Prefix11Test: Crash,Fail # Bug 5406175
+Prefix12Test: Crash,Fail # Bug 5406175
+LibraryPrefixesTest: Fail # Bug 5406175
+TopLevelNonPrefixedLibraryTest: Fail # Bug 5406175
 
 [ $arch == chromium && $mode == release ]
 Instanceof2Test: Fail, Pass # Bug 5275232

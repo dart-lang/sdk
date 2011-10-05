@@ -2431,6 +2431,8 @@ public class GenerateJavascriptAST {
             mangledName = mangler.mangleMethod((MethodElement) element, unitLibrary);
             if (element.getModifiers().isStatic()) {
               qualifier = referenceName(element.getEnclosingElement(), x.getTarget());
+            } else if (Elements.isTopLevel(element)) {
+              qualifier = null;
             } else {
               qualifier = (JsExpression) generate(x.getTarget());
             }

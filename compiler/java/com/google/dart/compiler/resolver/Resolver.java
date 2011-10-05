@@ -776,10 +776,17 @@ public class Resolver {
           }
           break;
         }
+
+        case LIBRARY:
+          // Library prefix, lookup the element in the reference library.
+          element = ((LibraryElement) target).getScope().findElement(x.getFunctionNameString());
+          if (element == null) {
+            diagnoseErrorInMethodInvocation(x, null, null);
+          }
+          break;
       }
 
       checkInvocationTarget(x, currentMethod, target);
-      // TODO(ngeoffray): handle library prefix
       visit(x.getArgs());
       return recordElement(x, element);
     }
