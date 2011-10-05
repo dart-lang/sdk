@@ -1374,11 +1374,10 @@ UNIT_TEST_CASE(NullReceiver) {
     Dart_Handle function_name = Dart_NewString("toString");
     const int number_of_arguments = 0;
     Dart_Handle null_receiver = Api::NewLocalHandle(Object::Handle());
-    Dart_Handle dart_arguments[0];
     Dart_Result result = Dart_InvokeDynamic(null_receiver,
                                             function_name,
                                             number_of_arguments,
-                                            dart_arguments);
+                                            NULL);
     EXPECT(Dart_IsValidResult(result));
     Dart_Handle retobj = Dart_GetResult(result);
     EXPECT(Dart_IsString(retobj));
