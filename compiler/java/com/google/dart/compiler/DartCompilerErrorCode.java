@@ -33,6 +33,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),
   CANNOT_RESOLVE_METHOD("cannot resolve method %s"),
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method %s"),
+  CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
+      "super type %s does not have a default constructor"),
   CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected."),
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),

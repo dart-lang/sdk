@@ -209,4 +209,11 @@ public class Elements {
   public static Element voidElement() {
     return VoidElement.getInstance();
   }
+
+  /**
+   * Returns true if the class needs an implicit default constructor.
+   */
+  public static boolean needsImplicitDefaultConstructor(ClassElement classElement) {
+    return !classElement.isObject() && classElement.getConstructors().isEmpty();
+  }
 }
