@@ -84,6 +84,9 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   // TODO: The type of value should be Collection<String>. See http://b/5392897
   void set classes(value);
 
+  Map<String, String> get data();
+  void set data(Map<String, String> value);
+
   int get clientHeight();
 
   int get clientLeft();
