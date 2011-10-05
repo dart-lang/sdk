@@ -7,11 +7,11 @@
 class ProcessStdoutTest {
 
   static void testExit() {
-    Process process = new Process("./process_test",
+    Process process = new Process("out/Debug_ia32//process_test",
                                    const ["0", "1", "99", "0"]);
     final int BUFFERSIZE = 10;
     final int STARTCHAR = 65;
-    Array<int> buffer = new Array<int>(BUFFERSIZE);
+    List<int> buffer = new List<int>(BUFFERSIZE);
     for (int i = 0; (i < BUFFERSIZE - 1); i++) {
       buffer[i] = STARTCHAR + i;
     }
@@ -22,7 +22,7 @@ class ProcessStdoutTest {
 
     process.start();
 
-    Array<int> readBuffer = new Array<int>(BUFFERSIZE);
+    List<int> readBuffer = new List<int>(BUFFERSIZE);
 
     void dataWritten() {
       print("data written");

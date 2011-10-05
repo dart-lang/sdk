@@ -7,7 +7,8 @@
 class ProcessSegfaultTest {
 
   static void testExit() {
-    Process process = new Process("./process_test", const ["0", "0", "1", "1"]);
+    Process process = new Process("out/Debug_ia32/process_test",
+                                  const ["0", "0", "1", "1"]);
 
     void exitHandler(int exitCode) {
       process.close();

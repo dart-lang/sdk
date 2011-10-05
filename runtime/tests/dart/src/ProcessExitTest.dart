@@ -7,7 +7,7 @@
 class ProcessExitTest {
 
   static void testExit() {
-    Process process = new Process("./process_test",
+    Process process = new Process("out/Debug_ia32/process_test",
                                   const ["0", "0", "99", "0"]);
 
     void exitHandler(int exitCode) {

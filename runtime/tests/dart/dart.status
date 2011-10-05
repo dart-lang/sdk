@@ -4,10 +4,24 @@
 
 prefix dart
 
-[ $arch == ia32 || $arch == dartium ]
-# Process tests which are pending process changes.
-Process*: Skip
+[ $arch == ia32]
 ManyEchoServerTest: Skip        # Bug 5103754
+
+
+[ $arch == ia32 && $mode == release]
+# Currently process tests are bound to debug mode.
+Process*: Skip
+
+
+[ $arch == ia32 && $system == macos]
+# Currently process tests are not working on Mac OS.
+Process*: Skip
+
+
+[ $arch == ia32 && $system == win32]
+# Windows implementation of Process is still pending.
+Process*: Skip
+EchoServerStreamReadUntilTest: Skip        # Bug 5414270
 
 
 [ $arch == dartium ]
@@ -15,6 +29,7 @@ ManyEchoServerTest: Skip        # Bug 5103754
 EchoServerTest: Skip  # Uses Socket
 EchoServerStreamTest: Skip # Uses Socket
 EchoServerStreamReadUntilTest: Skip # Uses Socket
+ManyEchoServerTest: Skip # Uses Socket
 SocketCloseTest: Skip # Uses Socket
 SocketExceptionTest: Skip # Uses Socket
 FileTest: Skip
@@ -24,6 +39,7 @@ TimerRepeatTest: Skip # Uses EventHandler
 MultipleTimerTest: Skip # Uses EventHandler
 TimerCancelTest: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
+Process*: Skip # Uses Process
 
 
 [ $arch == dartc || $arch == chromium ]
