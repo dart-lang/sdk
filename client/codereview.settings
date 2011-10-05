@@ -1,4 +1,0 @@
-# This file is used by gcl to get repository specific information.
-CODE_REVIEW_SERVER: https://chromereviews.googleplex.com
-VIEW_VC: https://code.google.com/p/dart/source/detail?r=
-CC_LIST: reviews@dartlang.org
