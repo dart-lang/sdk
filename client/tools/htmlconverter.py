@@ -24,6 +24,7 @@ sys.path.append(TOOLS_PATH)
 import utils
 
 DART_MIME_TYPE = "application/dart"
+LIBRARY_PATTERN = "^#library\(.*\);"
 IMPORT_SOURCE_PATTERN = "(#import|#source)(\(['\"])([^'\"]*)(['\"]\);)"
 
 DARTC_INLINE_CODE_ADDITIONAL_IMPORTS = """
@@ -37,13 +38,7 @@ ENTRY_POINT = """
 #import('dart:dom');
 #import('%s', prefix: 'original');
 main() {
-  // Ensure the code starts on DOM content loaded.
-  if (document.readyState == "interactive" ||
-      document.readyState == "complete") {
-    original.main();
-  } else {
-    window.addEventListener('DOMContentLoaded', (e) => original.main(), false);
-  }
+  window.addEventListener('DOMContentLoaded', (e) => original.main(), false);
 }
 """
 
@@ -99,7 +94,7 @@ class DartCompiler(object):
 
         # We will import the source file to emulate in JS that code is run after
         # DOMContentLoaded. We need a #library to ensure #import won't fail:
-        if not '#library' in contents:
+        if not re.search(LIBRARY_PATTERN, contents, re.MULTILINE):
           def repl(matchobj):
             path = matchobj.group(3)
             if path.startswith('dart:'):
