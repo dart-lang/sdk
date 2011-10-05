@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import os
+import subprocess
+import sys
+
+import utils
+
+# Figure out the full path to the real dashc from the cwd.
+scriptPath = os.path.dirname(__file__)
+buildRoot = utils.GetBuildRoot(utils.GuessOS())
+dashcPath = os.path.join(scriptPath, "../compiler", buildRoot,
+    "Debug/ant-out/dist/bin/dashc")
+
+args = [dashcPath] + sys.argv[1:]
+sys.exit(subprocess.call(args))
