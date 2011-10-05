@@ -1,0 +1,2 @@
+This directory is a placeholder for the eventual Dart compiler.
+The Dart compiler consists of among others a Dart front-end, a Dart->JS backend, a Dart->Dart backend, tree-shaking tools, minification tools.

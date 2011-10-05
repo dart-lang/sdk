@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="cases"/>
+	<classpathentry kind="src" path="jscomp"/>
+	<classpathentry kind="src" path="suites"/>
+	<classpathentry kind="src" path="imported"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/dartc"/>
+	<classpathentry kind="var" path="DART_TRUNK/third_party/args4j/2.0.12/args4j-2.0.12.jar" sourcepath="/DART_TRUNK/third_party/args4j/2.0.12/args4j-2.0.12-src.jar"/>
+	<classpathentry kind="var" path="DART_TRUNK/third_party/junit/v4_8_2/junit.jar"/>
+	<classpathentry kind="var" path="DART_TRUNK/third_party/guava/r09/guava-r09.jar"/>
+	<classpathentry kind="var" path="DART_TRUNK/third_party/rhino/1_7R3/js.jar" sourcepath="/DART_TRUNK/third_party/rhino/1_7R3/rhino1_7R3-sources.zip"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/closure-compiler"/>
+	<classpathentry kind="var" path="DART_TRUNK/third_party/closure_compiler_src/lib/protobuf-java.jar"/>
+	<classpathentry kind="output" path="output"/>
+</classpath>

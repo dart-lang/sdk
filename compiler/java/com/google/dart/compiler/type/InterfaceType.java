@@ -1,0 +1,41 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+package com.google.dart.compiler.type;
+
+import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.Element;
+
+import java.util.List;
+
+/**
+ * An interface type.
+ */
+public interface InterfaceType extends Type {
+  @Override
+  InterfaceType subst(List<? extends Type> arguments,
+                      List<? extends Type> parameters);
+
+  @Override
+  ClassElement getElement();
+
+  List<? extends Type> getArguments();
+
+  boolean isRaw();
+
+  /**
+   * @return Whether type args for this interface instance is of type DYNAMIC.
+   */
+  boolean hasDynamicTypeArgs();
+
+  InterfaceType asRawType();
+
+  Member lookupMember(String name);
+
+  interface Member {
+    InterfaceType getHolder();
+    Element getElement();
+    Type getType();
+  }
+}
