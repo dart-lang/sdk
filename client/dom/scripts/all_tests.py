@@ -18,7 +18,6 @@ if __name__ == '__main__':
       'database_test',
       'databasebuilder_test',
       'emitter_test',
-      'dartrenderer_test',
       'dartgenerator_test',
       'multiemitter_test'])
   unittest.TextTestRunner().run(suite)

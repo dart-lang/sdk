@@ -223,7 +223,7 @@ ACTUAL:
     file_name1 = self._create_input('input1.idl', '''
       module M {
         interface I {
-          [ImplementationFunction=foo] int member(int a);
+          [ImplementationFunction=foo] int member(in int a);
         };
       };''')
     self._builder.import_idl_file(file_name1,
@@ -232,18 +232,18 @@ ACTUAL:
     file_name2 = self._create_input('input2.idl', '''
       module M {
         interface I {
-          [DartName=bar] int member(int a);
+          [DartName=bar] int member(in int a);
         };
       };''')
     self._builder.import_idl_file(file_name2,
       DatabaseBuilderOptions(source='2nd',
         idl_syntax=idlparser.FREMONTCUT_SYNTAX))
-    self._builder.set_same_signatures({'int': 'long'})
     self._builder.merge_imported_interfaces()
     self._db.Save()
     self._assert_content_equals('I.idl', '''
       @1st(module=M) @2nd(module=M) interface I {
-        @1st @2nd [DartName=bar, ImplementationFunction=foo] int member(in t a);
+        /* Operations */
+        @1st @2nd [DartName=bar, ImplementationFunction=foo] int member(in int a);
       };''')
 
   def test_supplemental(self):

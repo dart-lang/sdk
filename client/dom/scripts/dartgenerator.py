@@ -5,7 +5,6 @@
 
 """This module generates Dart APIs from the IDL database."""
 
-import dartrenderer
 import emitter
 import idlnode
 import logging
