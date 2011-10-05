@@ -48,14 +48,17 @@ static intptr_t GetHandlerPort(Dart_Handle handle) {
 
 void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t dir = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
-  bool recursive = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
-  Dart_Port dir_handler_port = GetHandlerPort(Dart_GetNativeArgument(args, 3));
-  Dart_Port file_handler_port = GetHandlerPort(Dart_GetNativeArgument(args, 4));
-  Dart_Port done_handler_port = GetHandlerPort(Dart_GetNativeArgument(args, 5));
+  Dart_Handle path = Dart_GetNativeArgument(args, 1);
+  intptr_t dir = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
+  bool recursive = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
+  Dart_Port dir_handler_port = GetHandlerPort(Dart_GetNativeArgument(args, 4));
+  Dart_Port file_handler_port = GetHandlerPort(Dart_GetNativeArgument(args, 5));
+  Dart_Port done_handler_port = GetHandlerPort(Dart_GetNativeArgument(args, 6));
   Dart_Port dir_error_handler_port =
-      GetHandlerPort(Dart_GetNativeArgument(args, 6));
-  Directory::List(dir,
+      GetHandlerPort(Dart_GetNativeArgument(args, 7));
+  ASSERT(Dart_IsString(path));
+  Directory::List(DartUtils::GetStringValue(path),
+                  dir,
                   recursive,
                   dir_handler_port,
                   file_handler_port,

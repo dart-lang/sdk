@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Directory factory DirectoryImpl {
+interface Directory factory _Directory {
   /**
    * Creates a directory object. The path is either a full path or
    * relative to the directory in which the Dart VM was

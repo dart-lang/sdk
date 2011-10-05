@@ -12,7 +12,8 @@ class Directory {
  public:
   static bool Open(const char* path, intptr_t* dir);
   static bool Close(intptr_t dir);
-  static void List(intptr_t dir,
+  static void List(const char* path,
+                   intptr_t dir,
                    bool recursive,
                    Dart_Port dir_handler,
                    Dart_Port file_handler,

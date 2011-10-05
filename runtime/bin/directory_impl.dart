@@ -7,14 +7,13 @@ class DirectoryException {
   final String message;
 }
 
+class _Directory implements Directory {
 
-class DirectoryImpl implements Directory {
-
-  DirectoryImpl.open(String dir) {
+  _Directory.open(String this._dir) {
     _id = 0;
     _closed = false;
     _listing = false;
-    if (!_open(dir)) {
+    if (!_open(_dir)) {
       _closed = true;
       throw new DirectoryException("Error: could not open directory");
     }
@@ -41,6 +40,7 @@ class DirectoryImpl implements Directory {
   }
 
   void list([bool recursive = false]) {
+    // TODO(ager): Spawn an isolate to make the listing an async operation.
     if (_closed) {
       throw new DirectoryException("Error: directory closed");
     }
@@ -48,7 +48,8 @@ class DirectoryImpl implements Directory {
       throw new DirectoryException("Error: listing already in progress");
     }
     _listing = true;
-    _list(_id,
+    _list(_dir,
+          _id,
           recursive,
           _dirHandler,
           _fileHandler,
@@ -112,7 +113,8 @@ class DirectoryImpl implements Directory {
   // Native code binding.
   bool _open(String dir) native "Directory_Open";
   bool _close(int id) native "Directory_Close";
-  void _list(int id,
+  void _list(String dir,
+             int id,
              bool recursive,
              ReceivePort dirHandler,
              ReceivePort fileHandler,
@@ -124,6 +126,7 @@ class DirectoryImpl implements Directory {
   ReceivePort _doneHandler;
   ReceivePort _dirErrorHandler;
 
+  String _dir;
   int _id;
   bool _closed;
   bool _listing;
