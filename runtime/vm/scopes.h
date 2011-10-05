@@ -25,6 +25,7 @@ class LocalVariable : public ZoneAllocated {
       type_(type),
       is_final_(false),
       is_captured_(false),
+      is_invisible_(false),
       index_(LocalVariable::kUnitializedIndex_) {
     ASSERT(type.IsZoneHandle());
     ASSERT(type.IsFinalized());
@@ -59,6 +60,10 @@ class LocalVariable : public ZoneAllocated {
     index_ = index;
   }
 
+  void set_invisible(bool value) {
+    is_invisible_ = value;
+  }
+
  private:
   static const int kUnitializedIndex_ = INT_MIN;
 
@@ -71,9 +76,11 @@ class LocalVariable : public ZoneAllocated {
   bool is_final_;  // If true, this variable is readonly.
   bool is_captured_;  // If true, this variable lives in the context, otherwise
                       // in the stack frame.
+  bool is_invisible_;
   int index_;  // Allocation index in words relative to frame pointer (if not
                // captured), or relative to the context pointer (if captured).
 
+  friend class LocalScope;
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
 };
 

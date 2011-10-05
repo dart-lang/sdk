@@ -108,17 +108,19 @@ LangGuideTest/02_Language_Constructs/02_3_Interface_Injection/A01/t04: Skip
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A03/t02: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A06/t03: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A06/t04: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A13/t01: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t02: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A02/t01: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_8_Static_Methods/A02/t02: Fail # Bug 5371433
 LibTest/core/Array/length/Array/length/A01/t02: Fail # Bug 5371433
 LibTest/core/Date/Date/Date/A01/t03: Fail # Bug 5371433
+
+
+# The illegal constructor initializer in this test does not get compiled.
+# This test does fail as it's supposed to when invoked with the --compile_all flag.
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Skip
+
 
 # Following tests define a main with an argument, per new specification
 # we do not pass any argument to main.

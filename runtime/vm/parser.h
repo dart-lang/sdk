@@ -258,7 +258,7 @@ class Parser : ValueObject {
 
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
   void CaptureReceiver();
-  AstNode* LoadReceiver();
+  AstNode* LoadReceiver(intptr_t token_index);
   AstNode* CallGetter(intptr_t token_index,
                       AstNode* object,
                       const String& name);

@@ -1024,7 +1024,7 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
              String::Handle(current_class().Name()).ToCString());
   }
   // 'this' parameter is the first argument to super call.
-  AstNode* implicit_argument = LoadReceiver();
+  AstNode* implicit_argument = LoadReceiver(supercall_pos);
   ArgumentListNode* arguments =
       ParseActualParameters(implicit_argument, kAllowConst);
   // Resolve the function.
@@ -1068,7 +1068,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
     ErrorMsg("class '%s' does not have a superclass",
              String::Handle(current_class().Name()).ToCString());
   }
-  AstNode* implicit_argument = LoadReceiver();
+  AstNode* implicit_argument = LoadReceiver(field_pos);
 
   const String& getter_name =
       String::ZoneHandle(Field::GetterName(field_name));
@@ -1144,8 +1144,11 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   }
   // 'this' parameter is the first argument to super class constructor.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
+  // 'this' parameter must not be accessible to the other super call arguments.
+  receiver->set_invisible(true);
   ArgumentListNode* arguments =
       ParseActualParameters(implicit_argument, kAllowConst);
+  receiver->set_invisible(false);
   // Resolve the constructor.
   const Function& super_ctor = Function::ZoneHandle(
       super_class.LookupConstructor(ctor_name));
@@ -1171,10 +1174,11 @@ AstNode* Parser::ParseInitializer(const Class& cls, LocalVariable* receiver) {
   const String& field_name = *ExpectIdentifier("field name expected");
   ExpectToken(Token::kASSIGN);
 
-  // TODO(5412278): Need to check or ensure that the initializer expression
-  // does not have access to the instance fields of the object.
   const bool saved_mode = SetAllowFunctionLiterals(false);
+  // "this" must not be accessible in initializer expressions.
+  receiver->set_invisible(true);
   AstNode* init_expr = ParseConditionalExpr();
+  receiver->set_invisible(false);
   SetAllowFunctionLiterals(saved_mode);
   Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
   if (field.IsNull()) {
@@ -3114,7 +3118,7 @@ void Parser::CaptureReceiver() {
 }
 
 
-AstNode* Parser::LoadReceiver() {
+AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   // A nested function may access 'this', referring to the receiver of the
   // outermost enclosing function.
   // We should not be loading the receiver from a static scope.
@@ -3123,7 +3127,7 @@ AstNode* Parser::LoadReceiver() {
   const bool kTestOnly = false;
   LocalVariable* receiver = LookupReceiver(current_block_->scope, kTestOnly);
   if (receiver == NULL) {
-    ErrorMsg("illegal access to 'this'");
+    ErrorMsg(token_pos, "illegal access to 'this'");
   }
   return new LoadLocalNode(token_index_, *receiver);
 }
@@ -5355,7 +5359,7 @@ AstNode* Parser::ParsePostfixExpr() {
                      name.ToCString());
           } else {
             // Treat as call to unresolved (instance) method.
-            AstNode* receiver = LoadReceiver();
+            AstNode* receiver = LoadReceiver(primary->token_index());
             selector = ParseInstanceCall(receiver, name);
           }
         } else {
@@ -5383,7 +5387,7 @@ AstNode* Parser::ParsePostfixExpr() {
                        "from static function",
                        func_name.ToCString());
             }
-            selector = ParseInstanceCall(LoadReceiver(), func_name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos), func_name);
           }
         } else if (primary->primary().IsString()) {
           // Primary is an unresolved name.
@@ -5394,7 +5398,7 @@ AstNode* Parser::ParsePostfixExpr() {
                      name.ToCString());
           } else {
             // Treat as call to unresolved (instance) method.
-            AstNode* receiver = LoadReceiver();
+            AstNode* receiver = LoadReceiver(primary->token_index());
             selector = ParseInstanceCall(receiver, name);
           }
         } else if (primary->primary().IsClass()) {
@@ -5428,7 +5432,7 @@ AstNode* Parser::ParsePostfixExpr() {
                      ident.ToCString());
           } else {
             // Treat as call to unresolved (instance) field.
-            AstNode* receiver = LoadReceiver();
+            AstNode* receiver = LoadReceiver(primary->token_index());
             postfix_expr = ParseInstanceFieldAccess(receiver, ident);
           }
         } else if (left->AsPrimaryNode()->primary().IsFunction()) {
@@ -5450,7 +5454,7 @@ AstNode* Parser::ParsePostfixExpr() {
                        "illegal use of method '%s'",
                        funcname.ToCString());
             }
-            AstNode* receiver = LoadReceiver();
+            AstNode* receiver = LoadReceiver(primary->token_index());
             postfix_expr = ParseInstanceFieldAccess(receiver, funcname);
           }
         }
@@ -5709,7 +5713,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     if (!field.IsNull()) {
       if (node != NULL) {
         CheckInstanceFieldAccess(ident_pos, ident);
-        *node = CallGetter(ident_pos, LoadReceiver(), ident);
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
       }
       return true;
     }
@@ -5729,7 +5733,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
       if (node != NULL) {
         CheckInstanceFieldAccess(ident_pos, ident);
         ASSERT(Type::Handle(func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(), ident);
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
       }
       return true;
     }
@@ -5753,7 +5757,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // when we try to invoke the getter.
         CheckInstanceFieldAccess(ident_pos, ident);
         ASSERT(Type::Handle(func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(), ident);
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
       }
       return true;
     }
@@ -5900,7 +5904,7 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
                  ident.ToCString());
       } else {
         // Treat as call to unresolved instance field.
-        var_or_field = CallGetter(ident_pos, LoadReceiver(), ident);
+        var_or_field = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
       }
     } else if (primary->primary().IsFunction()) {
       ErrorMsg(ident_pos, "illegal reference to method '%s'",

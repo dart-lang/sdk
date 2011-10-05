@@ -186,7 +186,7 @@ SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
 LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   for (intptr_t i = 0; i < variables_.length(); i++) {
     LocalVariable* var = variables_[i];
-    if (var->name().Equals(name)) {
+    if (var->name().Equals(name) && !var->is_invisible_) {
       return var;
     }
   }
