@@ -442,11 +442,6 @@ public class GenerateJavascriptAST {
         for (Element element : classElement.getMembers()) {
           classMembers.add(element);
         }
-        
-        if (Elements.needsImplicitDefaultConstructor(classElement)) {
-          addImplicitDefaultConstructor(x, classElement, classMembers);
-        }
-        
         for (Element member : classMembers) {
           switch(ElementKind.of(member)) {
             case METHOD: {
@@ -494,19 +489,6 @@ public class GenerateJavascriptAST {
       currentHolder = previousHolder;
 
       return null;
-    }
-
-    private void addImplicitDefaultConstructor(DartClass x, ClassElement classElement, 
-        List<Element> classElementMembers) {
-      for (DartNode member : x.getMembers()) {
-        if (member instanceof DartMethodDefinition) {
-          DartMethodDefinition method = (DartMethodDefinition) member;
-          MethodElement symbol = method.getSymbol();
-          if (symbol.isConstructor() && "".equals(symbol.getName())) {
-            classElementMembers.add(symbol);
-          }
-        }
-      }
     }
 
     /**
@@ -864,6 +846,12 @@ public class GenerateJavascriptAST {
         Iterator<DartInitializer> iterator = initializers.iterator();
         Iterator<DartField> fieldIterator = fieldInitializers.iterator();
 
+        if (hasConstructorInvocation) {
+          // skip the super call
+          DartInitializer first = iterator.next();
+          assert first.isInvocation();
+        }
+
         List<JsStatement> jsInitializers = initFunction.getBody().getStatements();
 
         // Do the field inline initializers first. If there are any assignments in the initializer
@@ -873,19 +861,14 @@ public class GenerateJavascriptAST {
           jsInitializers.add(initializer.makeStmt());
         }
 
-        DartInvocation initInvocation = null;
         while (iterator.hasNext()) {
-          DartInitializer initializer = iterator.next();
-          if (!initializer.isInvocation()) {
-            jsInitializers.add((JsStatement) generate(initializer));
-          } else {
-            initInvocation = (DartInvocation) initializer.getValue();
-          }
+          jsInitializers.add((JsStatement) generate(iterator.next()));
         }
 
         if (hasConstructorInvocation) {
           // Call the super initializer function in the initializer.
           // Compute the super constructor initializer to call.
+          DartInvocation initInvocation = (DartInvocation) initializers.get(0).getValue();
           ConstructorElement superElement = (ConstructorElement) initInvocation.getSymbol();
           // TODO(floitsch): it would be better if we had a js-name and not just a string.
           // This way the debugging information would be better.
@@ -947,11 +930,10 @@ public class GenerateJavascriptAST {
       // If there are initializers, populate the initializer function.
       List<DartInitializer> initializers = constructor.getInitializers();
       if (!initializers.isEmpty()) {
-        for (DartInitializer init : initializers) {
-          if (init.isInvocation()) {
-            JsExprStmt statement = (JsExprStmt) generate(init);
-            return (JsInvocation) statement.getExpression();
-          }  
+        DartInitializer firstInit = initializers.get(0);
+        if (firstInit.isInvocation()) {
+          JsExprStmt statement = (JsExprStmt) generate(firstInit);
+          return (JsInvocation) statement.getExpression();
         }
       }
       return null;
@@ -2159,6 +2141,10 @@ public class GenerateJavascriptAST {
       return expr;
     }
 
+    private JsNameRef nameref(JsName qualifier, String prop) {
+      return AstUtil.newNameRef(qualifier.makeRef(), prop);
+    }
+
     private JsBinaryOperation assign(JsNameRef op1, JsExpression op2) {
       return AstUtil.newAssignment(op1, op2);
     }
@@ -2169,6 +2155,14 @@ public class GenerateJavascriptAST {
 
     private JsBinaryOperation or(JsExpression op1, JsExpression op2) {
       return new JsBinaryOperation(JsBinaryOperator.OR, op1, op2);
+    }
+
+    private JsPrefixOperation not(JsExpression op1) {
+      return new JsPrefixOperation(JsUnaryOperator.NOT, op1);
+    }
+
+    private JsBinaryOperation and(JsExpression op1, JsExpression op2) {
+      return new JsBinaryOperation(JsBinaryOperator.AND, op1, op2);
     }
 
     private JsNumberLiteral number(double num) {
@@ -3034,23 +3028,14 @@ public class GenerateJavascriptAST {
       // Must use SuperClass.call(this, ...) to get the correct 'this' context in the callee:
       //   <super-class>.<name>$Constructor.call(this, ...).
       ConstructorElement element = (ConstructorElement) x.getSymbol();
-      Element classElement;
-      String elementName;
-      if (element == null) {
-        classElement = ((ClassElement) currentHolder).getSupertype().getElement();
-        elementName = classElement.getName();
-      } else {
-        classElement = element.getEnclosingElement();
-        elementName = element.getName();
-      }
-      
       // TODO(floitsch): it would be good, if we could get a js-name instead of just a string.
       // This way the debugging information would be better.
       // We need to generate the JsName (for the initializer/factory) once only and store it
       // in some hashtable. Then instead of reusing the mangler, we should reuse those JsNames.
       // The debugging information would then contain a link from the property-access to the
       // constructor. Without JsName the debugger just assumes we access some random property.
-      String name = mangler.mangleConstructor(elementName, unitLibrary);
+      String name = mangler.mangleConstructor(element.getName(), unitLibrary);
+      Element classElement = element.getEnclosingElement();
       JsNameRef constructorRef = AstUtil.newNameRef(getJsName(classElement).makeRef(), name);
       return generateInvocation(x, constructorRef, true, null, element);
     }

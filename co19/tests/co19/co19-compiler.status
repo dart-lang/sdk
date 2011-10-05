@@ -131,7 +131,6 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A02/t02:
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A02/t03: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A02/t04: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A03/t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A03/t02: Fail # Bug 5371670. This will no longer valid due to language spec changes. 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A06/t04: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A13/t01: Fail # Bug 5371670.
@@ -217,6 +216,7 @@ LibTest/core/Set/every/Set/every/A01/t04: Skip
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A05/t01: Fail
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/A02/t04: Skip # Times out.
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/A02/t02: Fail

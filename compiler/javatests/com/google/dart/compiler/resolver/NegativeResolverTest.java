@@ -66,15 +66,15 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   public void testConstSuperNegativeTest1() {
-    checkNumErrors("ConstSuperNegativeTest1.dart", 0);
+    checkNumErrors("ConstSuperNegativeTest1.dart", 1);
   }
 
   public void testConstSuperNegativeTest2() {
     checkNumErrors("ConstSuperNegativeTest2.dart", 1);
   }
 
-  public void testConstSuperTest() {
-    checkNumErrors("ConstSuperTest.dart", 0);
+  public void testConstSuperNegativeTest3() {
+    checkNumErrors("ConstSuperNegativeTest3.dart", 1);
   }
 
   public void testParameterInitializerNegativeTest1() {

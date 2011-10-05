@@ -237,49 +237,9 @@ public class Resolver {
       }
 
       checkRedirectConstructorCycle(classElement.getConstructors(), context);
-      if (Elements.needsImplicitDefaultConstructor(classElement)) {
-        checkImplicitDefaultDefaultSuperInvocation(cls, classElement);
-      }
-      
       context = previousContext;
       currentHolder = previousHolder;
       return classElement;
-    }
-
-
-    /**
-     * Returns <code>true</code> if the {@link ClassElement} has an implicit or a declared
-     * default constructor.
-     */
-    boolean hasDefaultConstructor(ClassElement classElement) {
-      if (Elements.needsImplicitDefaultConstructor(classElement)) {
-        return true;
-      }
-      
-      ConstructorElement defaultCtor = Elements.lookupConstructor(classElement, "");
-      if (defaultCtor != null) {
-        return defaultCtor.getParameters().isEmpty();
-      }
-      
-      return false;
-    }
-    
-    private void checkImplicitDefaultDefaultSuperInvocation(DartClass cls, 
-        ClassElement classElement) {
-      assert (Elements.needsImplicitDefaultConstructor(classElement));
-
-      InterfaceType supertype = classElement.getSupertype();
-      if (supertype != null) {
-        ClassElement superElement = supertype.getElement();
-        if (!superElement.isDynamic()) {
-          ConstructorElement superCtor = Elements.lookupConstructor(superElement, "");
-          if (superCtor != null && !superCtor.getParameters().isEmpty()) {
-            resolutionError(cls.getName(),
-                DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
-                cls.getSuperclass());
-          }
-        }
-      }
     }
 
     private Element resolve(DartNode node) {
@@ -872,27 +832,11 @@ public class Resolver {
         }
       });
 
-      
       if (ElementKind.of(element).equals(ElementKind.CLASS)) {
-        // Check for default constructor or implicit default constructor
-        ClassElement classElement = (ClassElement) element;
-        element = Elements.lookupConstructor(classElement, "");
-        if (element == null) {
-          // Check that the class needs an implicit ctor and no extra args are passed
-          if (Elements.needsImplicitDefaultConstructor(classElement) && x.getArgs().isEmpty()) {
-            InterfaceType defaultClass = classElement.getDefaultClass();
-            if (defaultClass != null) {
-              classElement = defaultClass.getElement();
-              element = Elements.lookupConstructor(classElement, "");
-            }
-            
-            if (element == null) {
-              return recordElement(x, element);
-            }
-          }
-        }
+        // Just calling the unnamed constructor.
+        element = Elements.lookupConstructor(((ClassElement) element), "");
       }
-      
+
       // If there is a default implementation, lookup the constructor in the
       // default class.
       ConstructorElement constructor = checkIsConstructor(x, element);
@@ -906,15 +850,7 @@ public class Resolver {
           // If the constructor hasn't been found, try the constructor of the default class.
           // TODO(ngeoffray): check earlier if the default class implements the interface.
           element = Elements.lookupConstructor(defaultClass, constructor.getName());
-          if (element == null && Elements.needsImplicitDefaultConstructor(defaultClass)) {
-            /*
-             *  Record the element and prevent checkIsConstructor from reporting errors below
-             *  since we know that w don't have an element.
-             */
-            return recordElement(x, element);
-          }
         }
-        
         // Will check that element is not null.
         constructor = checkIsConstructor(x, element);
       }
@@ -1170,30 +1106,17 @@ public class Resolver {
     }
 
     private void checkConstructor(DartMethodDefinition node,
-                                  ConstructorElement superCall) {
+                                  ConstructorElement superCall,
+                                  boolean firstIsSuper) {
       ClassElement currentClass = (ClassElement) currentHolder;
-      if (superCall == null) {
-        // Look for a default constructor in our super type
-        InterfaceType supertype = currentClass.getSupertype();
-        if (supertype != null) {
-          superCall = Elements.lookupConstructor(supertype.getElement(), "");
-        }
-      }
-      
       if ((superCall == null)
           && !currentClass.isObject()
           && !currentClass.isObjectChild()) {
-        InterfaceType supertype = currentClass.getSupertype();
-        if (supertype != null) {
-          ClassElement superElement = supertype.getElement();
-          if (superElement != null) {
-            if (!hasDefaultConstructor(superElement)) {
-              resolutionError(node, 
-                  DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR, 
-                  superElement.getName());
-            }
-          }
-        }
+        resolutionError(node, DartCompilerErrorCode.CONSTRUCTOR_MUST_CALL_SUPER);
+      } else if (!firstIsSuper
+          && !currentClass.isObject()
+          && !currentClass.isObjectChild()) {
+        resolutionError(node, DartCompilerErrorCode.SUPER_CALL_MUST_BE_FIRST);
       } else if ((superCall != null)
           && node.getModifiers().isConstant()
           && !superCall.getModifiers().isConstant()) {
@@ -1257,17 +1180,22 @@ public class Resolver {
 
     private void resolveInitializers(DartMethodDefinition node) {
       assert null != node;
+      Element firstElement = null;
+      DartNode firstNode = null;
       Iterator<DartInitializer> initializers = node.getInitializers().iterator();
-      ConstructorElement constructorElement = null;
-      while (initializers.hasNext()) {
-        DartInitializer initializer = initializers.next();
-        Element element = resolve(initializer);
-        if (ElementKind.of(element) == ElementKind.CONSTRUCTOR) {
-          constructorElement = (ConstructorElement) element;
-        }
+      if (initializers.hasNext()) {
+       firstNode = initializers.next();
+       firstElement = resolve(firstNode);
       }
-      
-      checkConstructor(node, constructorElement);
+      while (initializers.hasNext()) {
+       resolve(initializers.next());
+      }
+      boolean firstIsConstructorInvocation =
+        ElementKind.of(firstElement).equals(ElementKind.CONSTRUCTOR);
+      if (firstElement != null && !firstIsConstructorInvocation) {
+        firstElement = null;
+      }
+      checkConstructor(node, (ConstructorElement) firstElement, firstIsConstructorInvocation);
     }
 
     private void resolutionError(DartNode node, DartCompilerErrorCode errorCode,

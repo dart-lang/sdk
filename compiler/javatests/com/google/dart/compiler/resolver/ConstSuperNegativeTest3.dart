@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// expect no failures - Sub.A omits call to const super, but one will be added
+// expect one failure - Sub.A omits call to const super.
 
 class Base {
   const Base(a);
