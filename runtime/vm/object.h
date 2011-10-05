@@ -31,10 +31,12 @@ class LocalScope;
  public:  /* NOLINT */                                                         \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
   void operator=(Raw##object* value) {                                         \
+    NoGCScope no_gc;                                                           \
     initializeHandle(this, value);                                             \
   }                                                                            \
   bool Is##object() const { return true; }                                     \
   void operator^=(RawObject* value) {                                          \
+    NoGCScope no_gc;                                                           \
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
   }                                                                            \
@@ -42,11 +44,13 @@ class LocalScope;
     return Handle(object::null());                                             \
   }                                                                            \
   static object& Handle(Raw##object* raw_ptr) {                                \
+    NoGCScope no_gc;                                                           \
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle());      \
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
   static object& CheckedHandle(RawObject* raw_ptr) {                           \
+    NoGCScope no_gc;                                                           \
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle());      \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
@@ -58,11 +62,13 @@ class LocalScope;
     return ZoneHandle(object::null());                                         \
   }                                                                            \
   static object& ZoneHandle(Raw##object* raw_ptr) {                            \
+    NoGCScope no_gc;                                                           \
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateZoneHandle());  \
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
   static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
+    NoGCScope no_gc;                                                           \
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateZoneHandle());  \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
@@ -80,6 +86,7 @@ class LocalScope;
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
+    NoGCScope no_gc;                                                           \
     if (raw_ptr != Object::null()) {                                           \
       obj->SetRaw(raw_ptr);                                                    \
     } else {                                                                   \
@@ -143,7 +150,10 @@ class Object {
   virtual ~Object() { }
 
   RawObject* raw() const { return raw_; }
-  void operator=(RawObject* value) { SetRaw(value); }
+  void operator=(RawObject* value) {
+    NoGCScope no_gc;
+    SetRaw(value);
+  }
 
   inline RawClass* clazz() const;
   static intptr_t class_offset() { return OFFSET_OF(RawObject, class_); }
@@ -179,6 +189,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static Object& Handle(RawObject* raw_ptr) {
+    NoGCScope no_gc;
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle());
     obj->SetRaw(raw_ptr);
     return *obj;
@@ -189,6 +200,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static Object& ZoneHandle(RawObject* raw_ptr) {
+    NoGCScope no_gc;
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle());
     obj->SetRaw(raw_ptr);
     return *obj;
@@ -2685,6 +2697,7 @@ RawClass* Object::clazz() const {
 
 
 void Object::SetRaw(RawObject* value) {
+  NoGCScope no_gc;
   raw_ = value;
   uword raw_value = reinterpret_cast<uword>(value);
   if ((raw_value & kSmiTagMask) == kSmiTag) {
