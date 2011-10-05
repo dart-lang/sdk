@@ -1,0 +1,47 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import fnmatch
+import glob
+import os
+import subprocess
+import sys
+
+ROOT = os.path.abspath(os.path.dirname(sys.argv[0]))
+
+def flatten(iterable):
+  it = iter(iterable)
+  for e in it:
+    if isinstance(e, (list, tuple)):
+      for f in flatten(e):
+        yield f
+    else:
+        yield e
+
+def thisJar(file):
+  return [os.path.join(ROOT, file)]
+
+def allJars(directory):
+  matches = []
+  for path, dirs, files in os.walk(os.path.join(ROOT, directory)):
+    for file in fnmatch.filter(files, '*.jar'):
+      matches.append(os.path.join(ROOT, path, file))
+  return matches
+
+def classpath(libs):
+  return ':'.join(flatten(libs))
+
+def main():
+  cp = classpath([ allJars('runtime') ])
+  subprocess.call(['java',
+    # TODO(knorton): Make this configurable.
+    '-Xmx512M',
+    '-Dlogback.configurationFile=%s' % os.path.join(ROOT, 'runtime', 'logback.xml'),
+    '-classpath', cp,
+    'com.google.dart.fling.Fling'] + sys.argv[1:])
+
+if __name__ == '__main__':
+  main()

@@ -1,0 +1,155 @@
+#!/usr/bin/python
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import idlnode
+import idlparser
+import logging.config
+import sys
+import unittest
+
+
+class IDLNodeTestCase(unittest.TestCase):
+
+  def _run_test(self, syntax, content, expected):
+    """Utility run tests and prints extra contextual information.
+
+    Args:
+      syntax -- IDL grammar to use (either idlparser.WEBKIT_SYNTAX,
+        WEBIDL_SYNTAX or FREMONTCUT_SYNTAX). If None, will run
+        multiple tests, each with a different syntax.
+      content -- input text for the parser.
+      expected -- expected parse result.
+    """
+    if syntax is None:
+      self._run_test(idlparser.WEBIDL_SYNTAX, content, expected)
+      self._run_test(idlparser.WEBKIT_SYNTAX, content, expected)
+      self._run_test(idlparser.FREMONTCUT_SYNTAX, content, expected)
+      return
+
+    actual = None
+    error = None
+    ast = None
+    parseResult = None
+    try:
+      parser = idlparser.IDLParser(syntax)
+      ast = parser.parse(content)
+      node = idlnode.IDLFile(ast)
+      actual = node.to_dict() if node else None
+    except SyntaxError, e:
+      error = e
+      pass
+    if actual == expected:
+      return
+    else:
+      msg = '''
+SYNTAX  : %s
+CONTENT :
+%s
+EXPECTED:
+%s
+ACTUAL  :
+%s
+ERROR   : %s
+AST   :
+%s
+      ''' % (syntax, content, expected, actual, error, ast)
+      self.fail(msg)
+
+  def test_empty_module(self):
+    self._run_test(
+      None,
+      'module TestModule {};',
+      {'modules': [{'id': 'TestModule'}]})
+
+  def test_empty_interface(self):
+    self._run_test(
+      None,
+      'module TestModule { interface Interface1 {}; };',
+      {'modules': [{'interfaces': [{'id': 'Interface1'}], 'id': 'TestModule'}]})
+
+  def test_gcc_preprocessor(self):
+    self._run_test(
+      idlparser.WEBKIT_SYNTAX,
+      '#if 1\nmodule TestModule {};\n#endif\n',
+      {'modules': [{'id': 'TestModule'}]})
+
+  def test_extended_attributes(self):
+    self._run_test(
+      idlparser.WEBKIT_SYNTAX,
+      'module M { interface [ExAt1, ExAt2] I {};};',
+      {'modules': [{'interfaces': [{'id': 'I', 'ext_attrs': {'ExAt1': None, 'ExAt2': None}}], 'id': 'M'}]})
+
+  def test_implements_statement(self):
+    self._run_test(
+      idlparser.WEBIDL_SYNTAX,
+      'module M { X implements Y; };',
+      {'modules': [{'implementsStatements': [{'implementor': {'id': 'X'}, 'implemented': {'id': 'Y'}}], 'id': 'M'}]})
+
+  def test_attributes(self):
+    self._run_test(
+      idlparser.WEBIDL_SYNTAX,
+      '''interface I {
+        attribute long a1;
+        readonly attribute DOMString a2;
+        attribute any a3;
+      };''',
+      {'interfaces': [{'attributes': [{'type': {'id': 'long'}, 'id': 'a1'}, {'type': {'id': 'DOMString'}, 'is_read_only': True, 'id': 'a2'}, {'type': {'id': 'any'}, 'id': 'a3'}], 'id': 'I'}]})
+
+  def test_operations(self):
+    self._run_test(
+      idlparser.WEBIDL_SYNTAX,
+      '''interface I {
+        [ExAttr] t1 op1();
+        t2 op2(in int arg1, in long arg2);
+        getter any item(in long index);
+        stringifier name();
+      };''',
+      {'interfaces': [{'operations': [{'type': {'id': 't1'}, 'id': 'op1', 'ext_attrs': {'ExAttr': None}}, {'type': {'id': 't2'}, 'id': 'op2', 'arguments': [{'type': {'id': 'int'}, 'id': 'arg1'}, {'type': {'id': 'long'}, 'id': 'arg2'}]}, {'specials': ['getter'], 'type': {'id': 'any'}, 'id': 'item', 'arguments': [{'type': {'id': 'long'}, 'id': 'index'}]}, {'is_stringifier': True, 'type': {'id': 'name'}}], 'id': 'I'}]})
+
+  def test_constants(self):
+    self._run_test(
+      None,
+      '''interface I {
+        const long c1 = 0;
+        const long c2 = 1;
+        const long c3 = 0x01;
+        const long c4 = 10;
+        const boolean b1 = false;
+        const boolean b2 = true;
+      };''',
+      {'interfaces': [{'id': 'I', 'constants': [{'type': {'id': 'long'}, 'id': 'c1', 'value': '0'}, {'type': {'id': 'long'}, 'id': 'c2', 'value': '1'}, {'type': {'id': 'long'}, 'id': 'c3', 'value': '0x01'}, {'type': {'id': 'long'}, 'id': 'c4', 'value': '10'}, {'type': {'id': 'boolean'}, 'id': 'b1', 'value': 'false'}, {'type': {'id': 'boolean'}, 'id': 'b2', 'value': 'true'}]}]})
+
+  def test_annotations(self):
+    self._run_test(
+      idlparser.FREMONTCUT_SYNTAX,
+      '@Ano1 @Ano2() @Ano3(x=1) @Ano4(x,y=2) interface I {};',
+      {'interfaces': [{'id': 'I', 'annotations': {'Ano4': {'y': '2', 'x': None}, 'Ano1': {}, 'Ano2': {}, 'Ano3': {'x': '1'}}}]})
+    self._run_test(
+      idlparser.FREMONTCUT_SYNTAX,
+      '''interface I : @Ano1 J {
+        @Ano2 attribute int someAttr;
+        @Ano3 void someOp();
+        @Ano3 const int someConst = 0;
+      };''',
+      {'interfaces': [{'operations': [{'type': {'id': 'void'}, 'id': 'someOp', 'annotations': {'Ano3': {}}}], 'attributes': [{'type': {'id': 'int'}, 'id': 'someAttr', 'annotations': {'Ano2': {}}}], 'parents': [{'type': {'id': 'J'}, 'annotations': {'Ano1': {}}}], 'id': 'I', 'constants': [{'type': {'id': 'int'}, 'annotations': {'Ano3': {}}, 'value': '0', 'id': 'someConst'}]}]})
+
+  def test_inheritance(self):
+    self._run_test(
+      None,
+      'interface Shape {}; interface Rectangle : Shape {}; interface Square : Rectangle, Shape {};',
+      {'interfaces': [{'id': 'Shape'}, {'parents': [{'type': {'id': 'Shape'}}], 'id': 'Rectangle'}, {'parents': [{'type': {'id': 'Rectangle'}}, {'type': {'id': 'Shape'}}], 'id': 'Square'}]})
+
+  def test_snippets(self):
+    self._run_test(
+      idlparser.FREMONTCUT_SYNTAX,
+      '''interface I {
+        snippet {bla bla bla bla};
+      };''',
+      {'interfaces': [{'id': 'I', 'snippets': [{'text': 'bla bla bla bla'}]}]})
+
+if __name__ == "__main__":
+  logging.config.fileConfig("logging.conf")
+  if __name__ == '__main__':
+    unittest.main()

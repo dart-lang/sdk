@@ -1,0 +1,31 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+typedef void Test();
+
+/**
+ * Commandline-runner for JSON unit tests.
+ */
+class CmdJsonTest {
+  List<Test> _tests;
+
+  CmdJsonTest() : _tests = new List<Test>() {}
+
+  void addTest(Test test) {
+    _tests.add(test);
+  }
+
+  void run() {
+    setUpTestSuite();
+    for (final test in _tests) { test(); }
+  }
+
+  void setUpTestSuite() {
+    JsonTest.setUpTestSuite(this);
+  }
+
+  static void main(List args) {
+    new CmdJsonTest().run();
+  }
+}

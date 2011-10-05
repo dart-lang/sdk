@@ -1,0 +1,10 @@
+library {
+  import = [
+    '../../../../html/html.lib',
+    '../../../../json/dart_json.lib'
+  ]
+  source = [
+    'Common.dart',
+    'Runner.dart'
+  ]
+}

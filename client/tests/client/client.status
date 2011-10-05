@@ -1,0 +1,32 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix client
+
+[ $arch == dartium ]
+samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
+
+[ $arch == chromium && $mode == release ]
+layout/layout_tests: Fail          # Bug 5400902
+
+
+[ $arch == chromium ]
+
+
+# 'client' tests import the DOM library, so they only make sense in
+# a browser environment,
+[ $arch == dartc ]
+*: Skip
+
+[ $arch == ia32 ]
+*: Skip
+
+[ $arch == x64 ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == arm ]
+*: Skip

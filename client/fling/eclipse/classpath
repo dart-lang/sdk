@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/java/test"/>
+	<classpathentry kind="src" path="src/java/core"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="@ROOT_DIR@/third_party/deftserver/0.4.0-SNAPSHOT/activation-1.1.1.jar"/>
+	<classpathentry kind="lib" path="@ROOT_DIR@/third_party/deftserver/0.4.0-SNAPSHOT/deft-0.4.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="@ROOT_DIR@/third_party/deftserver/0.4.0-SNAPSHOT/logback-classic-0.9.28.jar"/>
+	<classpathentry kind="lib" path="@ROOT_DIR@/third_party/deftserver/0.4.0-SNAPSHOT/logback-core-0.9.28.jar"/>
+	<classpathentry kind="lib" path="@ROOT_DIR@/third_party/deftserver/0.4.0-SNAPSHOT/slf4j-api-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="@BUILD_DIR@/compiler/lib/closure-compiler.jar"/>
+	<classpathentry exported="true" kind="lib" path="@BUILD_DIR@/compiler/lib/dartc.jar"/>
+	<classpathentry exported="true" kind="lib" path="@BUILD_DIR@/compiler/lib/args4j/2.0.12/args4j-2.0.12.jar"/>
+	<classpathentry exported="true" kind="lib" path="@BUILD_DIR@/compiler/lib/guava/r09/guava-r09.jar"/>
+	<classpathentry exported="true" kind="lib" path="@BUILD_DIR@/compiler/lib/json/r2_20080312/json.jar"/>
+	<classpathentry exported="true" kind="lib" path="@BUILD_DIR@/compiler/lib/rhino/1_7R3/js.jar"/>
+	<classpathentry kind="output" path="out/classes"/>
+</classpath>

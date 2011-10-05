@@ -1,0 +1,63 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+<project name="fling" default="build">
+  <property name="build.dir" location="out" />
+  <property name="fling.dir" location="${build.dir}/fling" />
+  <property name="root.dir" location="../.." />
+
+  <target name="setup-eclipse">
+    <copy file="eclipse/classpath" toFile=".classpath">
+      <filterset>
+        <filter token="BUILD_DIR" value="${build.dir}" />
+        <filter token="ROOT_DIR" value="${root.dir}" />
+      </filterset>
+    </copy>
+    <copy file="eclipse/project" tofile=".project" />
+    <copy todir=".">
+      <fileset dir="eclipse" includes="settings/*" />
+      <filtermapper>
+        <replacestring from="settings" to=".settings" />
+      </filtermapper>
+    </copy>
+  </target>
+
+  <target name="build">
+    <mkdir dir="${fling.dir}/classes" />
+    <mkdir dir="${fling.dir}/fling" />
+
+    <!-- Copy the dist template directory -->
+    <copy todir="${fling.dir}/fling">
+      <fileset dir="dist" />
+    </copy>
+
+    <!-- Copy all deps into runtime -->
+    <copy todir="${fling.dir}/fling/runtime" flatten="true">
+      <fileset dir="../../third_party/deftserver" includes="**/*.jar" />
+      <fileset dir="../../third_party/guava" includes="**/*.jar" />
+      <fileset dir="${build.dir}/compiler/lib" includes="**/*.jar" />
+    </copy>
+
+    <!-- Build fling.jar -->
+    <javac srcdir="src/java/core" destdir="${fling.dir}/classes" source="1.6">
+      <classpath>
+        <fileset dir="${fling.dir}/fling/runtime" includes="*.jar" />
+      </classpath>
+    </javac>
+    <copy todir="${fling.dir}/classes">
+      <fileset dir="src/java/core" includes="**/*.js" />
+    </copy>
+    <jar destfile="${fling.dir}/fling/runtime/fling.jar">
+      <fileset dir="${fling.dir}/classes" />
+    </jar>
+
+    <chmod file="${fling.dir}/fling/fling" perm="555" />
+  </target>
+
+  <target name="clean">
+    <delete dir="${fling.dir}" />
+    <delete file=".classpath" />
+    <delete file=".project" />
+    <delete dir=".settings" />
+  </target>
+</project>
