@@ -1,0 +1,63 @@
+# Generated build files (runhooks)
+Makefile
+*.Makefile
+*.mk
+*.xcodeproj
+xcodebuild
+/compiler/*sources.gypi
+/compiler/*sources.xml
+/client/build.gypi
+/client/dart_server.*
+
+# Stuff the appengine server needs copied locally from third_party
+/client/samples/swarm/appengine/httplib2/
+/client/samples/swarm/appengine/oauth2client/
+
+# Build output directories
+out/
+war/
+bin/
+client/outcode/
+
+# Swarm sample app output directory
+/client/outcode
+
+# Generated dom idl database
+/client/dom/database
+
+# Not sure what creates this
+fixed_length_file_out
+
+# third_party deps from svn
+third_party/gyp/
+third_party/v8/
+third_party/closure_compiler_src/
+/co19/tests/co19/src/
+third_party/pyparsing/
+third_party/appengine-python/
+
+# Built by chromebot and downloaded from Google Storage
+client/tests/dartium
+
+# Compiled python binaries
+*.pyc
+third_party/gsutil/*/gsutilc
+
+# temporary vim files
+*.swo
+*.swp
+
+/compiler/eclipse.workspace/tests/output/
+/compiler/eclipse.workspace/dartc/output/
+/compiler/eclipse.workspace/rhino/output/
+/compiler/eclipse.workspace/tests/output/
+/corelib/tests/corelib/src/generated/
+/corelib/tests/stub-generator/src/generated/
+
+# Fling generated files
+/client/fling/.classpath
+/client/fling/.project
+/client/fling/.settings
+
+# Generated test files.
+/generated_tests/
