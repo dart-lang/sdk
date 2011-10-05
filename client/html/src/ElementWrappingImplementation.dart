@@ -544,12 +544,12 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _ptr.insertAdjacentText(where, text);
   }
 
-  Element queryOne(String selectors) {
+  Element query(String selectors) {
     // TODO(jacobr): scope fix.
     return LevelDom.wrapElement(_ptr.querySelector(selectors));
   }
 
-  ElementList query(String selectors) {
+  ElementList queryAll(String selectors) {
     // TODO(jacobr): scope fix.
     return new FrozenElementList._wrap(_ptr.querySelectorAll(selectors));
   }

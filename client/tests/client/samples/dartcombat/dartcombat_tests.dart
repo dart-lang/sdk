@@ -51,7 +51,7 @@ class DartCombatTests extends UnitTestSuite {
 
   void testParallelShoot() {
     // player 2 is configured to make parallel super shots towards player 1
-    var p1OwnBoard = document.queryOne("#p1own");
+    var p1OwnBoard = document.query("#p1own");
 
     // add a boat of length 4 using mousedown/mousemove/mouseup
     var startCell = p1OwnBoard.nodes[0].nodes[4].nodes[2];
@@ -78,14 +78,14 @@ class DartCombatTests extends UnitTestSuite {
     _expectShotSequence(expectedShots, p1OwnBoard, 1);
 
     // hit the boat from the enemy side.
-    var p2EnemyBoard = document.queryOne("#p2enemy");
+    var p2EnemyBoard = document.query("#p2enemy");
     var hitCell = p2EnemyBoard.nodes[0].nodes[4].nodes[3];
     doMouseEvent("click", hitCell);
   }
 
   void testSerialShoot() {
     // player 1 is configured to make serial super shots towards player 2
-    var p2OwnBoard = document.queryOne("#p2own");
+    var p2OwnBoard = document.query("#p2own");
 
     // add a boat of length 4 using mousedown/mousemove/mouseup
     var startCell = p2OwnBoard.nodes[0].nodes[3].nodes[8];
@@ -113,7 +113,7 @@ class DartCombatTests extends UnitTestSuite {
     _expectShotSequence(expectedShots, p2OwnBoard, 2);
 
     // hit the boat from the enemy side.
-    var p1EnemyBoard = document.queryOne("#p1enemy");
+    var p1EnemyBoard = document.query("#p1enemy");
     var hitCell = p1EnemyBoard.nodes[0].nodes[4].nodes[8];
     doMouseEvent("click", hitCell);
   }

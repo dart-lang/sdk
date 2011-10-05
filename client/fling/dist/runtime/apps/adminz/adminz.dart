@@ -125,7 +125,7 @@ class Adminz {
   static String _getPrefix(Window window) {
     Document document = window.document;
     String name = '/Adminz.app';
-    NodeList items = document.query('script');
+    NodeList items = document.queryAll('script');
     for (int i = 0, n = items.length; i < n; ++i) {
       ScriptElement s = items[i];
       String src = s.src;

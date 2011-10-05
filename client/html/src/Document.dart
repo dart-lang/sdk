@@ -50,7 +50,7 @@ interface Document extends Element /*, common.NodeSelector */ {
 
   StyleSheetList get styleSheets();
 
-  // TODO(jacobr): should this be removed? Users could write document.queryOne("title").text instead.
+  // TODO(jacobr): should this be removed? Users could write document.query("title").text instead.
   String get title();
 
   void set title(String value);

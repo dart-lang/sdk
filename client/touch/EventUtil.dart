@@ -38,7 +38,7 @@ class EventUtil {
    * nothing. For most browsers this will cause the keyboard to be dismissed.
    */
   static void blurFocusedElement() {
-    Element focusedEl = document.queryOne("*:focus");
+    Element focusedEl = document.query("*:focus");
     if (focusedEl != null) {
       focusedEl.blur();
     }

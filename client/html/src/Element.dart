@@ -188,9 +188,9 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   void insertAdjacentText([String where, String text]);
 
-  Element queryOne(String selectors);
+  Element query(String selectors);
 
-  ElementList query(String selectors);
+  ElementList queryAll(String selectors);
 
   void scrollByLines([int lines]);
 

@@ -5,8 +5,8 @@ class Main {
     // Try to force real results.
     var ret;
     window.on.load.add((Event evt) {
-      Element elem = document.queryOne('#test1');
-      Element a = document.queryOne('a');
+      Element elem = document.query('#test1');
+      Element a = document.query('a');
 
       new Suite('dom-attr')
         .test('getAttribute', void _() {

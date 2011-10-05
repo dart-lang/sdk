@@ -6,7 +6,7 @@ interface DocumentFragment extends Node factory DocumentFragmentWrappingImplemen
  
   DocumentFragment();
 
-  Element queryOne(String selectors);
+  Element query(String selectors);
 
-  ElementList query(String selectors);
+  ElementList queryAll(String selectors);
 }

@@ -60,7 +60,7 @@ void addGridStyles(String width, String height, [String margin = '']) {
 }
 
 void _addColorStyles() {
-  final grid = document.body.queryOne('#grid');
+  final grid = document.body.query('#grid');
   final colors = const [ 'darkred', 'darkorange', 'darkgoldenrod',
                          'darkgreen', 'darkblue', 'darkviolet'];
   int c = 0;
@@ -125,7 +125,7 @@ class MockView extends View {
 
 
 void printMetrics(String example) {
-  final node = document.body.queryOne('#grid');
+  final node = document.body.query('#grid');
   String exampleId = example.split(' ')[0];
   final sb = new StringBuffer();
   sb.add('void testSpecExample${exampleId}() {\n');

@@ -10,11 +10,11 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
 	    _rawDocument.createDocumentFragment());
   }
 
-  Element queryOne(String selectors) {
+  Element query(String selectors) {
     return LevelDom.wrapElement(_ptr.querySelector(selectors));
   }
 
-  ElementList query(String selectors) {
+  ElementList queryAll(String selectors) {
     return LevelDom.wrapElementList(_ptr.querySelectorAll(selectors));
   }
 }

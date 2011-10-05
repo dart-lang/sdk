@@ -66,7 +66,7 @@ class GridLayoutTests extends UnitTestSuite {
 
     for (String name in expected.getKeys()) {
       final values = expected[name];
-      final node = document.body.queryOne('#$name');
+      final node = document.body.query('#$name');
       Expect.isNotNull(node);
       Expect.equals(values[0], node.offsetLeft);
       Expect.equals(values[1], node.offsetTop);

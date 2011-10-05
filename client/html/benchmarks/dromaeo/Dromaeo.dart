@@ -65,7 +65,7 @@ class SuiteController {
     // to .innerHTML update above.
     _element = div.nodes.first;
 
-    document.queryOne('#main').nodes.add(div);
+    document.query('#main').nodes.add(div);
   }
 
   DivElement _createDiv(String clazz) {
@@ -97,8 +97,8 @@ class Dromaeo {
 
   run() {
     // TODO(antonm): create Re-run tests href.
-    document.queryOne('#overview').elements.first.innerHTML = 'DOM Core Tests';
-    _css(document.queryOne('#tests'), 'display', 'none');
+    document.query('#overview').elements.first.innerHTML = 'DOM Core Tests';
+    _css(document.query('#tests'), 'display', 'none');
     for (SuiteDescription suite in Suites.SUITE_DESCRIPTIONS) {
       final iframe = document.createElement('iframe');
       _css(iframe, 'height', '1px');
@@ -123,11 +123,11 @@ class Dromaeo {
       final mins = (estimatedTimeSecs / 60).floor().toInt();
       final secs = (estimatedTimeSecs - mins * 60).round().toInt();
       final secsAsString = (secs < 10 ? '0' : '') + secs;
-      document.queryOne('#left').innerHTML = '${mins}:${secsAsString}';
+      document.query('#left').innerHTML = '${mins}:${secsAsString}';
 
       final elapsed = totalTimeSecs - estimatedTimeSecs;
       final percent = (100 * elapsed / totalTimeSecs).toStringAsFixed(2);
-      _css(document.queryOne('#timebar'), 'width', '${percent}%');
+      _css(document.query('#timebar'), 'width', '${percent}%');
     }
 
     Function loading, running, done;
