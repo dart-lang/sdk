@@ -1,0 +1,624 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+#
+# Set of GDB macros that aid in debugging dart internal data structures
+# in a non intrusive manner (no need to execute code and hence can be
+# used in a corefile or after a crash when debugging inside gdb).
+#
+# include this file into your gdb session using "source tools/gdb-macros"
+# The command "help user-defined" dumps all the extended commands available
+# for debugging the dart VM once this file is included.
+#
+
+#
+# ==============
+# Generic macros
+# ==============
+#
+define bi
+  set $SHOW_CONTEXT = 1
+  break * $arg0
+end
+document bi
+Set a breakpoint on address
+Usage: bi addr
+end
+
+# Enable break points.
+define be
+  enable $arg0
+end
+document be
+Enable breakpoint #
+Usage: be num
+end
+
+# Disable break points.
+define bd
+  disable $arg0
+end
+document bd
+Disable breakpoint #
+Usage: bd num
+end
+
+# Print frame information.
+define stack
+  info frame
+  info stack
+  info args
+  info locals
+end
+document stack
+Print stack details
+end
+
+
+#
+# ====================================
+# Object type and contents dump macros
+# ====================================
+#
+define printrawtype
+  if $argc == 1
+    set $raw_object = (uword)$arg0
+    if ($raw_object & dart::kSmiTagMask) == dart::kHeapObjectTag
+      set $raw_object = $raw_object - dart::kHeapObjectTag
+      set $raw_class = (uword)(((dart::RawObject*)$raw_object)->class_) - dart::kHeapObjectTag
+      set $type = ((dart::RawClass*)$raw_class)->instance_kind_
+      print $type
+    else
+      printf "dart::kSmi\n"
+    end
+  else
+    printf "Usage: printrawtype <address of rawobject>\n"
+  end
+end
+document printrawtype
+Print the type of specified raw object
+end
+
+define printtype
+  if $argc == 1
+    set $handle = $arg0
+    printrawtype $handle.raw_
+  else
+    printf "Usage: printtype <handle reference>\n"
+  end
+end
+document printtype
+Print the type of object pointed to by the handle
+end
+
+define printname
+  if $argc == 1
+    # TODO(asiva): Need to deal with generic strings.
+    set $raw_onebytestring = (dart::RawOneByteString*)((uword)$arg0 - dart::kHeapObjectTag)
+    set $length = (uword)($raw_onebytestring->length_) >> dart::kSmiTagMask
+    set $offset = sizeof(dart::RawOneByteString)
+    while $length > 0
+      printf "%c", *((char*)((uword)$raw_onebytestring + $offset))
+      set $offset = $offset + 1
+      set $length = $length - 1
+    end
+    printf "\n"
+  else
+    printf "Null\n"
+  end
+end
+
+define printfunctions
+  if $argc == 1
+    set $raw_array = (dart::RawArray*)((uword)$arg0 - dart::kHeapObjectTag)
+    set $index = 0
+    while $index < (uword)$raw_array->length_ >> dart::kSmiTagMask
+      set $temp = *(dart::RawObject*)((uword)$raw_array + \
+                                 sizeof(dart::RawArray) +  \
+                                 ($index * sizeof(dart::RawObject*)))
+      set $temp = (uword)$temp - dart::kHeapObjectTag
+      printrawfunction $temp
+      set $index = $index + 1
+    end
+  else
+    printf "Null\n"
+  end
+end
+
+define printfields
+  if $argc == 1
+    set $raw_array = (dart::RawArray*)((uword)$arg0 - dart::kHeapObjectTag)
+    set $index = 0
+    while $index < (uword)$raw_array->length_ >> dart::kSmiTagMask
+      set $temp = *(dart::RawObject*)((uword)$raw_array + \
+                                 sizeof(dart::RawArray) +  \
+                                 ($index * sizeof(dart::RawObject*)))
+      set $temp = (uword)$temp - dart::kHeapObjectTag
+      printrawfield $temp
+      set $index = $index + 1
+    end
+  else
+    printf "Null\n"
+  end
+end
+
+define printinterfaces
+  if $argc == 1
+    set $raw_array = (dart::RawArray*)((uword)$arg0 - dart::kHeapObjectTag)
+    set $index = 0
+    while $index < (uword)$raw_array->length_ >> dart::kSmiTagMask
+      set $temp = *(dart::RawObject*)((uword)$raw_array + \
+                                 sizeof(dart::RawArray) +  \
+                                 ($index * sizeof(dart::RawObject*)))
+      set $raw_class = (dart::RawClass*)((uword)$temp - dart::kHeapObjectTag)
+      printname $raw_class->name_
+      set $index = $index + 1
+    end
+  else
+    printf "Null\n"
+  end
+end
+
+define printrawclazz
+  if $argc == 1
+    set $raw_class = (dart::RawClass*)$arg0
+    set $is_interface = (uword)$raw_class->is_interface_
+    if ($is_interface)
+      printf "Interface Name : "
+    else
+      printf "Class Name : "
+    end
+    printname $raw_class->name_
+    printf "\nMethods :\n"
+    printfunctions $raw_class->functions_
+    printf "\nFields :\n"
+    printfields $raw_class->fields_
+    printf "\nInterfaces :\n"
+    printinterfaces $raw_class->interfaces_
+    set $raw_closure_function = (uword)$raw_class->closure_function_
+    if ($raw_closure_function != dart::Object::null())
+      printf "\nClosure Function :\n"
+      printrawfunction $raw_closure_function
+    end
+    printf "\n"
+  else
+    printf "Usage: printrawclazz <address of rawobject>\n"
+  end
+end
+document printrawclazz
+Print contents of RawClass
+end
+
+define printrawfunction
+  if $argc == 1
+    set $raw_function = (dart::RawFunction*)$arg0
+    printf "Name : "
+    printname $raw_function->name_
+    set $raw_code = (uword)$raw_function->code_
+    printf "Code : \n"
+    if ($raw_code == dart::Object::null())
+      printf "  not been generated yet\n"
+    else
+      printrawcode $raw_code
+    end
+  else
+    printf "Usage: printrawfunction <address of rawobject>\n"
+  end
+end
+document printrawfunction
+Print contents of RawFunction
+end
+
+define printrawfield
+  if $argc == 1
+    set $raw_field = (dart::RawField*)$arg0
+    printf "Name : "
+    printname $raw_field->name_
+    printf "Value : "
+    printrawobject (uword)$raw_field->value_
+  else
+    printf "Usage: printrawfield <address of rawfield>\n"
+  end
+end
+document printrawfield
+Print contents of RawField
+end
+
+define printrawscript
+  if $argc == 1
+    set $raw_script = (dart::RawScript*)$arg0
+    printf "printrawscript is not implemented yet\n"
+  else
+    printf "Usage: printrawscript <address of rawobject>\n"
+  end
+end
+document printrawscript
+Print contents of RawScript
+end
+
+define printrawcode
+  if $argc == 1
+    set $raw_code = (dart::RawCode*)$arg0
+    set $instrs = (uword)$raw_code->instructions_ - dart::kHeapObjectTag
+    printrawinstructions $instrs
+    set $start = (uword)$raw_code + sizeof(dart::RawCode)
+    printf "Pointer Offsets :\n"
+    x/x $start, $start + $raw_code->pointer_offsets_length_
+  else
+    printf "Usage: printrawcode <address of rawobject>\n"
+  end
+end
+document printrawcode
+Print contents of RawCode
+end
+
+define printrawinstructions
+  if $argc == 1
+    set $raw_instrs = (dart::RawInstructions*)$arg0
+    set $size = $raw_instrs->size_
+    set $alignment = 16
+    set $headersize = (sizeof(dart::RawInstructions) + $alignment -1) & -$alignment
+    set $start = (uword)$raw_instrs + \
+                 (($headersize + $alignment - 1) &  -$alignment)
+    printf "code_ = %p\n", $raw_instrs->code_
+    printf "size_ = %d\n", $raw_instrs->size_
+    disassemble $start, $start + ($size - $headersize)
+  else
+    printf "Usage: printrawinstructions <address of rawobject>\n"
+  end
+end
+document printrawinstructions
+Print contents of RawInstructions
+end
+
+define printrawinstance
+  if $argc == 1
+    set $raw_instance = (dart::RawInstance*)$arg0
+    set $raw_class = (uword)((dart::RawObject*)$raw_instance)->class_ - dart::kHeapObjectTag
+    printf "Instance of class "
+    printname ((dart::RawClass*)$raw_class)->name_
+  else
+    printf "Usage: printrawinstance <address of rawobject>\n"
+  end
+end
+document printrawinstance
+Print contents of RawInstance
+end
+
+define printrawinteger
+  if $argc == 1
+    set $raw_integer = (dart::RawInteger*)$arg0
+    printf "printrawinteger is not implemented yet\n"
+  else
+    printf "Usage: printrawinteger <address of rawobject>\n"
+  end
+end
+document printrawinteger
+Print contents of RawInteger
+end
+
+define printrawdouble
+  if $argc == 1
+    set $raw_double = (dart::RawDouble*)$arg0
+    printf "printrawdouble is not implemented yet\n"
+  else
+    printf "Usage: printrawdouble <address of rawobject>\n"
+  end
+end
+document printrawdouble
+Print contents of RawDouble
+end
+
+define printrawstring
+  if $argc == 1
+    set $raw_string = (dart::RawString*)$arg0
+    printf "printrawstring is not implemented yet\n"
+  else
+    printf "Usage: printrawstring <address of rawobject>\n"
+  end
+end
+document printrawstring
+Print contents of RawString
+end
+
+define printrawonebytestring
+  if $argc == 1
+    set $raw_onebytestring = (dart::RawOneByteString*)$arg0
+    set $length = (uword)($raw_onebytestring->length_) >> dart::kSmiTagMask
+    printf "Length = %d\n", $length
+    printf "Hash = %d\n", $raw_onebytestring->hash_
+    set $offset = sizeof(dart::RawOneByteString)
+    while $length > 0
+      printf "%c", *((char*)((uword)$raw_onebytestring + $offset))
+      set $offset = $offset + 1
+      set $length = $length - 1
+    end
+    printf "\n"
+  else
+    printf "Usage: printrawonebytestring <address of rawobject>\n"
+  end
+end
+document printrawonebytestring
+Print contents of RawString
+end
+
+# TODO(asiva): This function can be called recursively when we are
+# printing other objects so we need to save and restore variables.
+define printrawarray
+  if $argc == 1
+    set $raw_array = (dart::RawArray*)$arg0
+    printf "Array Length = %d\n", (uword)$raw_array->length_ >> dart::kSmiTagMask
+    set $index = 0
+    while $index < (uword)$raw_array->length_ >> dart::kSmiTagMask
+      printf "Element %d:\n", $index
+      set $temp = *(dart::RawObject*)((uword)$raw_array + \
+                                      sizeof(dart::RawArray) +  \
+                                      ($index * sizeof(dart::RawObject*)))
+      printrawobject $temp
+      set $index = $index + 1
+    end
+  else
+    printf "Usage: printrawarray <address of rawobject>\n"
+  end
+end
+document printrawarray
+Print contents of RawArray
+end
+
+define printrawclosure
+  if $argc == 1
+    set $raw_closure = (dart::RawClosure*)$arg0
+    printf "class_ = %p\n", $raw_closure->class_
+    printf "context_ = %p\n", $raw_closure->context_
+  else
+    printf "Usage: printrawclosure <address of rawobject>\n"
+  end
+end
+document printrawclosure
+Print contents of RawClosure
+end
+
+define printrawcontext
+  if $argc == 1
+    set $raw_context = (dart::RawContext*)$arg0
+    printf "parent_ = %p\n", $raw_context->parent_
+    printf "isolate_ = %p\n", $raw_context->isolate_
+    printf "num_variables_ = %d\n", $raw_context->num_variables_
+    set $index = 0
+    while $index < (uword)$raw_context->num_variables_
+      printf "Variable %d:\n", $index
+      set $temp = *(dart::RawObject*)((uword)$raw_context + \
+                                      sizeof(dart::RawContext) +  \
+                                      ($index * sizeof(dart::RawObject*)))
+      printrawobject $temp
+      set $index = $index + 1
+    end
+  else
+    printf "Usage: printrawcontext <address of rawobject>\n"
+  end
+end
+document printrawcontext
+Print contents of RawContext
+end
+
+define printrawcontextscope
+  if $argc == 1
+    set $raw_context_scope = (dart::RawContext*)$arg0
+    printf "num_variables_ = %d\n", $raw_context_scope->num_variables_
+  else
+    printf "Usage: printrawcontextscope <address of rawobject>\n"
+  end
+end
+document printrawcontextscope
+Print contents of RawContextScope
+end
+
+# TODO(asiva): This function can be called recursively when we are
+# printing other objects so we need to save and restore variables.
+define printrawobject
+  if $argc == 1
+    set $raw_object = (uword)$arg0
+    if ($raw_object & dart::kSmiTagMask) == dart::kHeapObjectTag
+      set $raw_object = (uword)$raw_object - dart::kHeapObjectTag
+      set $raw_class = (uword)((dart::RawObject*)$raw_object)->class_ - dart::kHeapObjectTag
+      set $type = ((dart::RawClass*)$raw_class)->instance_kind_
+      set $type_found = false
+      if $type == dart::kClass
+        printrawclazz $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kFunction
+        printrawfunction $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kScript
+        printrawscript $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kCode
+        printrawcode $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kInstructions
+        printrawinstructions $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kInstance
+        printrawinstance $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kNumber
+        printf "dump of RawNumber is not implemented yet\n"
+        set $type_found = true
+      end
+      if $type == dart::kInteger
+        printrawinteger $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kDouble
+        printrawdouble $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kString
+        printrawstring $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kOneByteString
+        printrawonebytestring $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kArray
+        printrawarray $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kClosure
+        printrawclosure $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kContext
+        printrawcontext $raw_object
+        set $type_found = true
+      end
+      if $type == dart::kContextScope
+        printrawcontextscope $raw_object
+        set $type_found = true
+      end
+      if $type_found == false
+        printf "unknown type %d\n", $type
+      end
+    else
+      print (uword)$raw_object >> dart::kSmiTagMask
+    end
+  else
+    printf "Usage: printrawobject <address of rawobject>\n"
+  end
+end
+document printrawobject
+Print contents of specified raw object
+end
+
+define printobject
+  if $argc == 1
+    set $handle = $arg0
+    set $raw_object = $handle.raw_
+    printrawobject $raw_object
+  else
+    printf "Usage: printobject <handle reference>\n"
+  end
+end
+document printobject
+Print contents of object pointed to by the handle
+end
+
+
+#
+# =================================
+# Zone and Handle monitoring macros
+# =================================
+#
+
+
+#
+# ===================
+# Generic dump macros
+# ===================
+#
+# Print as ascii characters.
+define ascii_char
+  set $_c=*(unsigned char *)($arg0)
+  if ( $_c < 0x20 || $_c > 0x7E )
+    printf "."
+  else
+    printf "%c", $_c
+  end
+end
+document ascii_char
+Print the ASCII value of arg0 or '.' if value is unprintable
+end
+
+# Hex dump (eight individual characters).
+define hex_quad
+  printf "%02X %02X %02X %02X  %02X %02X %02X %02X",                  \
+         *(unsigned char*)($arg0), *(unsigned char*)($arg0 + 1),      \
+         *(unsigned char*)($arg0 + 2), *(unsigned char*)($arg0 + 3),  \
+         *(unsigned char*)($arg0 + 4), *(unsigned char*)($arg0 + 5),  \
+         *(unsigned char*)($arg0 + 6), *(unsigned char*)($arg0 + 7)
+end
+document hex_quad
+Print eight hexadecimal bytes starting at arg0
+end
+
+# 16 byte hex dump.
+define hexdump
+  printf "%08X : ", $arg0
+  hex_quad $arg0
+  printf " - "
+  hex_quad ($arg0+8)
+  printf " "
+  ascii_char ($arg0)
+  ascii_char ($arg0+1)
+  ascii_char ($arg0+2)
+  ascii_char ($arg0+3)
+  ascii_char ($arg0+4)
+  ascii_char ($arg0+5)
+  ascii_char ($arg0+6)
+  ascii_char ($arg0+7)
+  ascii_char ($arg0+8)
+  ascii_char ($arg0+9)
+  ascii_char ($arg0+0xA)
+  ascii_char ($arg0+0xB)
+  ascii_char ($arg0+0xC)
+  ascii_char ($arg0+0xD)
+  ascii_char ($arg0+0xE)
+  ascii_char ($arg0+0xF)
+  printf "\n"
+end
+document hexdump
+Display a 16-byte hex/ASCII dump of arg0
+end
+
+# data dump.
+define ddump
+  printf "[%04X:%08X]------------------------", $ds, $data_addr
+  printf "---------------------------------[ data]\n"
+  set $_count=0
+  while ( $_count < $arg0 )
+    set $_i=($_count*0x10)
+    hexdump ($data_addr+$_i)
+    set $_count++
+  end
+end
+document ddump
+Display $arg0 lines of hexdump for address $data_addr
+end
+
+define dd
+  set $data_addr=$arg0
+  ddump 0x10
+end
+document dd
+Display 16 lines of a hex dump for $arg0
+end
+
+define ddx
+  x/10x $arg0
+end
+document ddx
+Display 16 lines of a hex dump for $arg0
+end
+
+define ddi
+  x/10i $arg0
+end
+document ddi
+Display 16 lines of a instructions for $arg0
+end
+
+
+#
+# ===============
+# Init parameters
+# ===============
+#
+set print pretty on
+#set disassembly-flavor intel

@@ -1,0 +1,42 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix dart
+
+[ $arch == ia32 || $arch == dartium ]
+# Process tests which are pending process changes.
+Process*: Skip
+ManyEchoServerTest: Skip        # Bug 5103754
+
+
+[ $arch == dartium ]
+# Server specific tests OK to fail in the browser
+EchoServerTest: Skip  # Uses Socket
+EchoServerStreamTest: Skip # Uses Socket
+EchoServerStreamReadUntilTest: Skip # Uses Socket
+SocketCloseTest: Skip # Uses Socket
+SocketExceptionTest: Skip # Uses Socket
+FileTest: Skip
+ManyEchoServerTest: Skip  # Uses Socket
+TimerTest: Skip # Uses EventHandler
+TimerRepeatTest: Skip # Uses EventHandler
+MultipleTimerTest: Skip # Uses EventHandler
+TimerCancelTest: Skip # Uses EventHandler
+FileInputStreamTest: Skip  # Uses TextFileInputStream.
+
+
+[ $arch == dartc || $arch == chromium ]
+*: Skip
+
+
+[ $arch == x64 ]
+*: Skip
+
+
+[ $arch == arm ]
+*: Skip
+
+
+[ $arch == simarm ]
+*: Skip
