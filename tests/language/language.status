@@ -108,6 +108,7 @@ RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail  # 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 InterfaceFactoryMultiTest: Fail      # Bug 5399939
+ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 
 # Crashes in dartc.
 FunctionTypeAliasTest: Crash  # Bug 4519208.
