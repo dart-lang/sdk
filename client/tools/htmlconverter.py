@@ -24,10 +24,27 @@ sys.path.append(TOOLS_PATH)
 import utils
 
 DART_MIME_TYPE = "application/dart"
+IMPORT_SOURCE_PATTERN = "(#import|#source)(\(['\"])([^'\"]*)(['\"]\);)"
 
-DARTC_INPUT_IMPORTS = """
+DARTC_INLINE_CODE_ADDITIONAL_IMPORTS = """
+#library('inlinedcode');
 #import('dart:dom');
 #import('dart:json');
+"""
+
+ENTRY_POINT = """
+#library('entry');
+#import('dart:dom');
+#import('%s', prefix: 'original');
+main() {
+  // Ensure the code starts on DOM content loaded.
+  if (document.readyState == "interactive" ||
+      document.readyState == "complete") {
+    original.main();
+  } else {
+    window.addEventListener('DOMContentLoaded', (e) => original.main(), false);
+  }
+}
 """
 
 CSS_TEMPLATE = '<style type="text/css">%s</style>'
@@ -76,7 +93,25 @@ class DartCompiler(object):
             "The script body should be empty if src is specified")
       elif src.endswith('.dart'):
         indir = tempfile.mkdtemp()
-        inputfile = src
+        inputfile = abspath(src)
+        with open(inputfile, 'r') as f:
+          contents = f.read();
+
+        # We will import the source file to emulate in JS that code is run after
+        # DOMContentLoaded. We need a #library to ensure #import won't fail:
+        if not '#library' in contents:
+          def repl(matchobj):
+            path = matchobj.group(3)
+            if path.startswith('dart:'):
+              return matchobj.group(0)
+            return (matchobj.group(1) + matchobj.group(2)
+                    + abspath(path) + matchobj.group(4))
+          contents = re.sub(IMPORT_SOURCE_PATTERN, repl, contents)
+          inputfile = join(indir, 'code.dart')
+          with open(inputfile, 'w') as f:
+            f.write("#library('code');")
+            f.write(contents)
+
       else:
         raise ConverterException("invalid file type:" + src)
     else:
@@ -86,18 +121,23 @@ class DartCompiler(object):
         return ''
 
       indir = tempfile.mkdtemp()
+
       inputfile = join(indir, 'code.dart')
       with open(inputfile, 'w') as f:
-        f.write(DARTC_INPUT_IMPORTS)
+        f.write(DARTC_INLINE_CODE_ADDITIONAL_IMPORTS)
         f.write(body)
 
-    status, out, err = execute(self.compileCommand(inputfile, outdir),
+    wrappedfile = join(indir, 'entry.dart')
+    with open(wrappedfile, 'w') as f:
+      f.write(ENTRY_POINT % inputfile)
+
+    status, out, err = execute(self.compileCommand(wrappedfile, outdir),
                                self.verbose)
     if status:
       raise ConverterException()
 
     # Inline the compiled code in the page
-    with open(self.outputFileName(inputfile, outdir), 'r') as f:
+    with open(self.outputFileName(wrappedfile, outdir), 'r') as f:
       res = f.read()
 
     # Cleanup
@@ -107,9 +147,9 @@ class DartCompiler(object):
     return CHROMIUM_SCRIPT_TEMPLATE % res
 
   def compileCommand(self, inputfile, outdir):
-    cmd = [abspath(join(CLIENT_PATH,
+    cmd = [abspath(join(DART_PATH,
         # TODO(sigmund): support also mode = release
-        utils.GetBuildRoot(utils.GuessOS(), 'debug', 'dartc'),
+        utils.GetBuildRoot(utils.GuessOS(), 'debug', 'ia32'),
         'dartc')), '-noincremental', '-out', outdir]
     if self.optimize:
       cmd.append('-optimize')
@@ -125,14 +165,20 @@ class DartCompiler(object):
 def execute(cmd, verbose=False):
   """Execute a command in a subprocess. """
   if verbose: print 'Executing: ' + ' '.join(cmd)
-  pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  output, err = pipe.communicate()
-  if pipe.returncode != 0:
-    print 'Execution failed: ' + output + '\n' + err
-  if verbose or pipe.returncode != 0:
-    print output
-    print err
-  return pipe.returncode, output, err
+  try:
+    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, err = pipe.communicate()
+    if pipe.returncode != 0:
+      print 'Execution failed: ' + output + '\n' + err
+    if verbose or pipe.returncode != 0:
+      print output
+      print err
+    return pipe.returncode, output, err
+  except Exception as e:
+    print 'Exception when executing: ' + ' '.join(cmd)
+    print e
+    return 1, None, None
+
 
 def convertPath(project_path, prefix_path):
   """ Convert a project path (whose root corresponds to the current working
@@ -311,6 +357,7 @@ class DartToDartHTMLConverter(DartHTMLConverter):
           self.outdir,
           convertPath(attrDic['src'], self.prefix_path)],
           self.verbose)
+
       if status:
         raise ConverterException('calling copy_dart.py')
 

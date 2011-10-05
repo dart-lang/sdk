@@ -59,6 +59,7 @@ TEST2_HTML = """
 """
 
 TEST2_DART = """
+#library('test2');
 #import('dart:dom');
 main() {
   window.alert('test2!');
@@ -132,12 +133,11 @@ TEST4_HTML = """
 
 TEST4_DART = """
 #import('dart:dom');
-#import('dart:json');
 #import('observable/observable.dart');
 
 main() {
   // use imported code
-  var arr = new ObservableArray();
+  var arr = new ObservableList();
   arr.addChangeListener((EventSummary events) {
     var t = ['update', 'add   ',
              'remove', 'global'][events.events[0].type];
@@ -171,6 +171,40 @@ Content-Type: text/plain
 #EOF
 """
 
+TEST5_HTML = """
+<html>
+  <head></head>
+  <body>
+    <script type="application/javascript">
+      if (window.layoutTestController) {
+        window.layoutTestController.dumpAsText();
+      }
+    </script>
+
+    <!-- embed source code -->
+    <script type="application/dart">
+      main() {
+        var element = document.getElementById("test5div");
+        if (element == null) {
+          window.alert("this script shoulnd't be run synchronously");
+        } else {
+          window.alert(element.innerHTML);
+        }
+      }
+    </script>
+    <div id="test5div">this is visible on DOMContentLoaded</div>
+  </body>
+</html>
+"""
+
+TEST5_OUTPUT = """
+ALERT: this is visible on DOMContentLoaded
+Content-Type: text/plain
+this is visible on DOMContentLoaded
+#EOF
+"""
+
+
 FILES = {
     'test_1.html': TEST1_HTML,
 
@@ -184,11 +218,23 @@ FILES = {
 
     'test_4.html': TEST4_HTML,
     'test_4.dart': TEST4_DART,
+
+    'test_5.html': TEST5_HTML,
   }
 
-INPUTS = ['test_1.html', 'test_2.html', 'test_3.html', 'test_4.html']
-OUTPUTS = [TEST1_OUTPUT, TEST2_OUTPUT, TEST3_OUTPUT, TEST4_OUTPUT]
+INPUTS = [
+    'test_1.html',
+    'test_2.html',
+    'test_3.html',
+    'test_4.html',
+    'test_5.html']
 
+OUTPUTS = [
+    TEST1_OUTPUT,
+    TEST2_OUTPUT,
+    TEST3_OUTPUT,
+    TEST4_OUTPUT,
+    TEST5_OUTPUT]
 
 CLIENT_PATH = dirname(dirname(abspath(__file__)))
 RED_COLOR = "\033[31m"
@@ -252,7 +298,7 @@ def deleteInputFiles():
   for filename in FILES:
     os.remove(filename)
 
-def runTest(test, target, verbose):
+def runTest(test, target, verbose, keep_temporary_files):
   inputfile = INPUTS[test]
   suffix = '-js.html' if target == 'chromium' else '-dartium.html'
   outfile = abspath(join('out', inputfile.replace(".html", suffix)))
@@ -273,12 +319,17 @@ def runTest(test, target, verbose):
 
   status = browserRun(
       "... running compiled html in %s" % target, outfile, test, verbose)
-  os.remove(outfile)
+  if not keep_temporary_files:
+    os.remove(outfile)
   return status
 
 def Flags():
   """ Consturcts a parser for extracting flags from the command line. """
   result = optparse.OptionParser()
+  result.add_option("--keep_temporary_files",
+      help="Keep temporary files created for each test",
+      default=False,
+      action="store_true")
   result.add_option("-v", "--verbose",
       help="Print verbose output",
       default=False,
@@ -290,23 +341,38 @@ def Flags():
   result.set_usage("htmlconverter_test.py [--verbose -t chromium,dartium]")
   return result
 
+def shouldRunTest(test, prefixes):
+  if len(prefixes) == 0:
+    return True
+  for a in prefixes:
+    if INPUTS[test].startswith(a):
+      return True
+  return False
+
+
 def main():
   os.chdir(CLIENT_PATH)
   parser = Flags()
   options, args = parser.parse_args()
+  verbose = options.verbose
+  keep_temporary_files = options.keep_temporary_files
 
   createInputFiles()
   for test in range(len(INPUTS)):
-    if 'chromium' in options.target:
-      if runTest(test, 'chromium', options.verbose) != 0:
-        deleteInputFiles()
-        return 1
-    if 'dartium' in options.target:
-      if runTest(test, 'dartium', options.verbose) != 0:
-        deleteInputFiles()
-        return 1
+    if shouldRunTest(test, args):
+      if 'chromium' in options.target:
+        if runTest(test, 'chromium', verbose, keep_temporary_files) != 0:
+          if not keep_temporary_files:
+            deleteInputFiles()
+          return 1
+      if 'dartium' in options.target:
+        if runTest(test, 'dartium', verbose, keep_temporary_files) != 0:
+          if not keep_temporary_files:
+            deleteInputFiles()
+          return 1
 
-  deleteInputFiles()
+  if not keep_temporary_files:
+    deleteInputFiles()
   return 0
 
 

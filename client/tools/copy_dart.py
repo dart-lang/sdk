@@ -89,6 +89,9 @@ def main(outdir = None, *inputs):
 
       seen.add(lib)
 
+      if lib.startswith('dart:'):
+        continue
+
       if (dirname(dirname(lib)).endswith('dom/generated/src')
           or dirname(lib).endswith('dom/src')):
         continue
