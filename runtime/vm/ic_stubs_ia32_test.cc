@@ -246,6 +246,8 @@ TEST_CASE(ICDataTest) {
   const Function& function0 = Function::ZoneHandle(GetDummyTarget("SmiSmi"));
   const Function& function1 = Function::ZoneHandle(GetDummyTarget("SmiDouble"));
   const Function& function2 = Function::ZoneHandle(GetDummyTarget("DoubleSmi"));
+  const Function& function3 =
+      Function::ZoneHandle(GetDummyTarget("DoubleDouble"));
   ic_data.SetCheckAt(0, check0, function0);
   ic_data.SetCheckAt(1, check1, function1);
   ic_data.SetCheckAt(2, check2, function2);
@@ -268,6 +270,20 @@ TEST_CASE(ICDataTest) {
   ic_data.GetCheckAt(2, &test_classes, &test_function);
   EXPECT_EQ(function2.raw(), test_function.raw());
   EXPECT_EQ(true, SameClassArrays(test_classes, check2));
+
+  // Test AddCheck, test new and old data.
+  GrowableArray<const Class*> double_double_classes;
+  double_double_classes.Add(&double_class);
+  double_double_classes.Add(&double_class);
+  ic_data.AddCheck(double_double_classes, function3);
+  EXPECT_EQ(4, ic_data.NumberOfChecks());
+  ic_data.GetCheckAt(3, &test_classes, &test_function);
+  EXPECT_EQ(function3.raw(), test_function.raw());
+  EXPECT_EQ(true, SameClassArrays(test_classes, double_double_classes));
+
+  ic_data.GetCheckAt(1, &test_classes, &test_function);
+  EXPECT_EQ(function1.raw(), test_function.raw());
+  EXPECT_EQ(true, SameClassArrays(test_classes, check1));
 }
 
 

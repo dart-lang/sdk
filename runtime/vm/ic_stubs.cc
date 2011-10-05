@@ -27,7 +27,8 @@ intptr_t ICData::NumberOfChecks() const {
   intptr_t length = data.Length();
   // First element is number of classes (N), followed by a group of elements,
   // each element consisting of N classes + 1 target.
-  return (length - 1) / (number_of_classes + 1);
+  // Subtract the terminating NULL group.
+  return (length - 1) / (number_of_classes + 1) - 1;
 }
 
 
@@ -58,15 +59,34 @@ void ICData::SetCheckAt(intptr_t index,
   intptr_t num_classes = NumberOfClasses();
   intptr_t pos = 1 + (num_classes + 1) * index;
   for (intptr_t i = 0; i < num_classes; i++) {
+    // Null is used as terminating object, do not add it.
+    ASSERT(!classes[i]->IsNull());
+    // Contract says that no null classes may be added.
+    ASSERT(!classes[i]->IsNullClass());
     data.SetAt(pos++, *(classes[i]));
   }
+  ASSERT(!target.IsNull());
+  // Null is used as terminating object, do not add it.
   data.SetAt(pos, target);
 }
 
 
+void ICData::AddCheck(const GrowableArray<const Class*>& classes,
+                      const Function& target) {
+  const Array& data = Array::Handle(ic_stub_.ic_data());
+  ASSERT(classes.length() == NumberOfClasses());
+  intptr_t number_of_checks = NumberOfChecks();
+  intptr_t new_len = data.Length() + classes.length() + 1;
+  const Array& new_data = Array::Handle(Array::Grow(data, new_len, Heap::kOld));
+  ic_stub_.set_ic_data(new_data);
+  SetCheckAt(number_of_checks, classes, target);
+}
+
+
 void ICData::SetICDataArray(intptr_t num_classes, intptr_t num_checks) {
-  intptr_t len = 1 + (num_classes + 1) * num_checks;
-  const Array& ic_data = Array::Handle(Array::New(len));
+  // Add a terminating group to num_checks.
+  intptr_t len = 1 + (num_classes + 1) * (num_checks + 1);
+  const Array& ic_data = Array::Handle(Array::New(len), Heap::kOld);
   ic_data.SetAt(0, Smi::Handle(Smi::New(num_classes)));
   ic_stub_.set_ic_data(ic_data);
 }

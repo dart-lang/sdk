@@ -29,12 +29,14 @@ class RawCode;
 
 // Class that interprets the array stored in ICData::ic_data_.
 // The array format is:
-// - number of arguments checked, i.e.,  number of classes in each check  -> N.
+// - number of arguments checked, i.e.,  N number of classes in each check.
 // - group of checks, each check containing:
 //   - N classes.
-//   - 1 target/function.
-// Whenever first N arguments have the same class, jump to the matching
-// function/target.
+//   - 1 target function.
+// Whenever first N arguments of a dynamic call have the same class as the
+// check, jump to the matching target function.
+// Array is terminated with a null group (all classes and target are NULL).
+// The array does not contain Null-Classes. Null objects cannot be added.
 class ICData : public ValueObject {
  public:
   explicit ICData(const Code& ic_stub);
@@ -56,6 +58,9 @@ class ICData : public ValueObject {
   // Create and set an ic_data array in ic_stub_.
   // Use 'SetCheckAt' to populate the array.
   void SetICDataArray(intptr_t num_classes, intptr_t num_checks);
+
+  void AddCheck(const GrowableArray<const Class*>& classes,
+                const Function& target);
 
   void Print();
 
