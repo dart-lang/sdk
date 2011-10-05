@@ -283,7 +283,7 @@ class ElementAttributeMap implements Map<String, String> {
 
   void clear() {
     final attributes = _element.attributes;
-    for (int i = len = attributes.length - 1; i >= 0; i--) {
+    for (int i = attributes.length - 1; i >= 0; i--) {
       _element.removeAttribute(attributes.item(i).name);
     }
   }
