@@ -952,9 +952,9 @@ DART_EXPORT Dart_Result Dart_InvokeDynamic(Dart_Handle object,
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   if (obj.IsNull()) {
-    RETURN_FAILURE("Null receiver passed in to invoke dynamic");
-  }
-  if (!obj.IsInstance()) {
+    // Let the resolver figure out the correct target.
+    // E.g., (null).toString() should execute correctly.
+  } else if (!obj.IsInstance()) {
     RETURN_FAILURE("Invalid receiver (not instance) passed to invoke dynamic");
   }
   if (function_name == NULL) {
@@ -972,7 +972,8 @@ DART_EXPORT Dart_Result Dart_InvokeDynamic(Dart_Handle object,
                                (number_of_arguments + 1),
                                0));  // Named args not yet supported in API.
   if (function.IsNull()) {
-    OS::PrintErr("Unable to find instance function: %s\n", function_name);
+    // TODO(5415268): Invoke noSuchMethod instead of failing.
+    OS::PrintErr("Unable to find instance function: %s\n", name.ToCString());
     RETURN_FAILURE("Unable to find instance function");
   }
   Dart_Result retval;

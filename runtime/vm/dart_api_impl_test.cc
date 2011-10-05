@@ -1363,6 +1363,41 @@ UNIT_TEST_CASE(InstanceOf) {
   Dart_ShutdownIsolate();
 }
 
+
+UNIT_TEST_CASE(NullReceiver) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  {
+    Zone zone;
+    HandleScope hs;
+
+    Dart_Handle function_name = Dart_NewString("toString");
+    const int number_of_arguments = 0;
+    Dart_Handle null_receiver = Api::NewLocalHandle(Object::Handle());
+    Dart_Handle dart_arguments[0];
+    Dart_Result result = Dart_InvokeDynamic(null_receiver,
+                                            function_name,
+                                            number_of_arguments,
+                                            dart_arguments);
+    EXPECT(Dart_IsValidResult(result));
+    Dart_Handle retobj = Dart_GetResult(result);
+    EXPECT(Dart_IsString(retobj));
+
+    // Should throw a NullPointerException. Disabled due to bug 5415268.
+    /*
+    Dart_Handle function_name2 = Dart_NewString("NoNoNo");
+    result = Dart_InvokeDynamic(null_receiver,
+                                function_name2,
+                                number_of_arguments,
+                                dart_arguments);
+    EXPECT(Dart_IsValidResult(result));
+    retobj = Dart_GetResult(result);
+    EXPECT(Dart_ExceptionOccurred(retobj)); */
+  }
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
 #endif  // TARGET_ARCH_IA32.
 
 }  // namespace dart
