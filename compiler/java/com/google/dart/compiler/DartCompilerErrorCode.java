@@ -136,7 +136,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   MULTIPLE_REST_PARAMETERS("multiple rest parameters"),
   MULTIPLE_SOURCE_LISTS("'source' may be specified only once"),
   NAMED_AND_VARIADIC_PARAMETERS("Cannot have both named and variadic parameters"),
-  NAME_CLASSES_EXISTING_MEMBER("name clashes with another previously defined member"),
+  NAME_CLASSES_EXISTING_MEMBER("name clashes with a previously defined member"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NON_CONST_STATIC_MEMBER_IN_INTERFACE("SyntaxError: non-final static members are not allowed in "
       + "interfaces"),

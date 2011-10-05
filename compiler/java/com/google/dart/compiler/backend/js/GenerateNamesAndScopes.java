@@ -100,7 +100,7 @@ class GenerateNamesAndScopes extends NormalizedVisitor {
       return generateConstructorName(x);
     }
     if (x.getModifiers().isFactory()) {
-      String className = element.getEnclosingElement().getName();
+      String className = ((ConstructorElement) element).getConstructorType().getName();
       String name = translationContext.getMangler().createFactorySyntax(className, element.getName(), unitLibrary);
       JsName jsName = function(x.getSymbol(), name, element.getName(), x.getFunction());
       // Factories are globally accessible.

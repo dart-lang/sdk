@@ -65,7 +65,6 @@ Switch3NegativeTest: Crash           # Bug 5318228
 [ $arch == dartc || $arch == chromium ]
 Prefix11NegativeTest: Fail # Bug 5406175
 Prefix12NegativeTest: Fail,Crash # Bug 5406175
-DefaultFactoryTest: Fail    # Bug 5009110
 FunctionTypeParameterNegativeTest: Fail # Bug 4568007
 ImplicitScopeTest: FAIL              # Nested statements can be declarations
 ResolveTest: FAIL                    # 4254120 (implicit constructors)
@@ -91,7 +90,6 @@ InstFieldInitializerTest: Fail       # Cannot deal with static final values in c
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail  # 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
-InterfaceFactoryMultiTest: Fail      # Bug 5399939
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 
 # Crashes in dartc.

@@ -218,7 +218,6 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t02: Fail
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A16/t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/A02/t04: Skip # Times out.
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/A02/t02: Fail
 LangGuideTest/02_Language_Constructs/02_6_Functions/A04/t01: Fail

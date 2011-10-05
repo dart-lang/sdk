@@ -967,8 +967,7 @@ public class GenerateJavascriptAST {
       // The factory becomes a member of <class> and should therefore be declared in the same
       // scope as all other members.
       String className = element.getConstructorType().getName();
-      String factoryName = mangler.createFactorySyntax(className, constructorName,
-          unitLibrary);
+      String factoryName = mangler.createFactorySyntax(className, constructorName, unitLibrary);
       JsName factoryJsName =
           classMemberScope.declareName(factoryName, factoryName, constructorName);
       // Factories are globally accessible.
@@ -2661,7 +2660,7 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitNewExpression(DartNewExpression x) {
       ConstructorElement element = x.getSymbol();
-      String className = element.getEnclosingElement().getName();
+      String className = element.getConstructorType().getName();
       // TODO(floitsch): We should have a JsNames instead of creating the string representations.
       String name = mangler.createFactorySyntax(className, element.getName(), unitLibrary);
       // We add the class name of the holder of the constructor as a qualifier.

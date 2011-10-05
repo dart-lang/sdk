@@ -421,6 +421,14 @@ public class MemberBuilder {
           return;
         }
 
+        // Both can be constructors, as long as they're for different classes.
+        if (oIsConstructor && eIsConstructor) {
+          if (((ConstructorElement) e).getConstructorType() !=
+              ((ConstructorElement) other).getConstructorType()) {
+            return;
+          }
+        }
+
         boolean eIsOperator = e.getModifiers().isOperator();
         boolean oIsOperator = other.getModifiers().isOperator();
         if (oIsOperator != eIsOperator) {
