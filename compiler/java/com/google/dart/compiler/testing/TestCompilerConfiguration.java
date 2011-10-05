@@ -5,6 +5,7 @@
 package com.google.dart.compiler.testing;
 
 import com.google.dart.compiler.Backend;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.LibrarySource;
@@ -108,5 +109,10 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
       throw new RuntimeException(e);
     }
     return new UrlLibrarySource(systemUri, this.systemLibraryManager);
+  }
+
+  @Override
+  public CompilerOptions getCompilerOptions() {
+    throw new AssertionError();
   }
 }

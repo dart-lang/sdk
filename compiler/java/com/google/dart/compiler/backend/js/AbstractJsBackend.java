@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartClass;
@@ -308,9 +309,13 @@ public abstract class AbstractJsBackend extends AbstractBackend {
         Tracer.canTrace() ? Tracer.start(DartEventType.TRANSLATE_TO_JS, "unit",
             unit.getSourceName()) : null;
 
-    OptimizationStrategy optimizationStrategy = shouldOptimize() ?
-        new BasicOptimizationStrategy(unit, typeProvider) :
-        new NoOptimizationStrategy(unit, typeProvider);
+    CompilerOptions options = context.getCompilerConfiguration().getCompilerOptions();
+    OptimizationStrategy optimizationStrategy;
+    if (shouldOptimize() && !options.disableTypeOptimizations()) {
+      optimizationStrategy = new BasicOptimizationStrategy(unit, typeProvider);
+    } else {
+      optimizationStrategy = new NoOptimizationStrategy(unit, typeProvider);
+    }
 
      try {
       TraceEvent normalizeEvent =

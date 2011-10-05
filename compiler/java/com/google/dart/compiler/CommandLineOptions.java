@@ -38,6 +38,10 @@ public class CommandLineOptions {
         usage = "do not generate output, only analyze")
     private boolean checkOnly = false;
 
+    @Option(name = "--disable-type-optimizations",
+            usage = "Debugging: disable type optimizations")
+    private boolean disableTypeOptimizations = false;
+
     @Option(name = "-documentation-lib",
         usage = "only generate documentation for the given library")
     private String documentationLibrary = null;
@@ -52,6 +56,10 @@ public class CommandLineOptions {
     @Option(name = "-generate-isolate-stubs",
         usage = "classes to generate stubs for, comma-separated")
     private String generateIsolateStubs = null;
+
+    @Option(name = "--human-readable-output",
+            usage = "Debugging: generates human readable javascript output")
+    private boolean generateHumanReadableOutput = false;
 
     @Option(name = "--ignore-unrecognized-flags", usage = "ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
@@ -178,6 +186,14 @@ public class CommandLineOptions {
 
     public boolean isBatch() {
       return batch;
+    }
+
+    public boolean disableTypeOptimizations() {
+      return disableTypeOptimizations;
+    }
+
+    public boolean generateHumanReadableOutput() {
+      return generateHumanReadableOutput;
     }
 
     /**

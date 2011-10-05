@@ -66,7 +66,18 @@ public class ClosureJsBackend extends AbstractJsBackend {
   private long totalJsOutputCharCount;
 
   // Generate "readable" output for debugging
-  private boolean generateHumanReadableOutput = false;
+  private final boolean generateHumanReadableOutput;
+
+  public ClosureJsBackend() {
+    this.generateHumanReadableOutput = false;
+  }
+
+  /**
+   * @param generateHumanReadableOutput - generates human readable javascript output.
+   */
+  public ClosureJsBackend(boolean generateHumanReadableOutput) {
+    this.generateHumanReadableOutput = generateHumanReadableOutput;
+  }
 
   @Override
   public boolean isOutOfDate(DartSource src, DartCompilerContext context) {

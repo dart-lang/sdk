@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 
 import java.io.File;
@@ -99,5 +100,10 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     return delegate.getSystemLibraryFor(importSpec);
+  }
+
+  @Override
+  public CompilerOptions getCompilerOptions() {
+    return delegate.getCompilerOptions();
   }
 }

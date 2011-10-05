@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 
 import java.io.File;
@@ -87,4 +88,10 @@ public interface CompilerConfiguration {
    * Return the system library corresponding to the specified "dart:<libname>" spec.
    */
   LibrarySource getSystemLibraryFor(String importSpec);
+
+  /**
+   * Return {@link CompilerOptions} instance.
+   * @return command line options passed to the compiler.
+   */
+  CompilerOptions getCompilerOptions();
 }

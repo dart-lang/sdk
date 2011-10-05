@@ -53,7 +53,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
       return new DartIsolateStubGenerator(compilerOptions.getIsolateStubClasses(),
                                           compilerOptions.getIsolateStubOutputFile());
     } else if (compilerOptions.shouldOptimize()) {
-      return new ClosureJsBackend();
+      return new ClosureJsBackend(compilerOptions.generateHumanReadableOutput());
     } else {
       return new JavascriptBackend();
     }
@@ -204,5 +204,10 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
       throw new RuntimeException(e);
     }
     return new UrlLibrarySource(systemUri, this.systemLibraryManager);
+  }
+
+  @Override
+  public CompilerOptions getCompilerOptions() {
+    return compilerOptions;
   }
 }
