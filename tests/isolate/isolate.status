@@ -1,0 +1,51 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix isolate
+
+[ $arch == dartium ]
+ConstructorTest: Fail   # Bug 5246195
+MandelIsolateTest: Fail # Bug 5246195
+SpawnTest: Fail         # Bug 5246195
+MessageTest: Fail       # Bug 5246195
+IsolateComplexMessagesTest: Fail # Bug 5246195
+CountTest: Fail         # Bug 5246195
+PromiseBasedTest: Fail  # Bug 5246195
+StaticStateTest: Fail   # Bug 5246195
+RequestReplyTest: Crash, Fail # Bug 5395487
+CrossIsolateMessageTest: Fail  # Bug 5246195
+
+
+[ $arch == ia32 ]
+Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
+
+[ $arch == dartium || $arch == ia32 || $arch == x64 || $arch == simarm || $arch == arm ]
+SerializationTest: Skip  # DartC test (uses coreimpl).
+
+[ $arch == chromium && $arch == release ]
+ConstructorTest: Fail            # Bug 5382463
+SpawnTest: Fail                  # Bug 5382463
+IsolateComplexMessagesTest: Fail # Bug 5382463
+CountTest: Fail               # Bug 5401734
+PromiseBasedTest: Fail        # Bug 5401734
+MintMakerPromiseTest: Fail    # Bug 5401734
+MintMakerTest: Fail           # Bug 5401734
+RequestReplyTest: Fail        # Bug 5401734
+StaticStateTest: Fail         # Bug 5401734
+
+[ $arch == chromium ]
+MandelIsolateTest: Skip     # Bug 5353937.
+
+[ $arch == dartc ]
+MintMakerPromiseTest: Fail # Bug 5283149.
+MintMakerTest: Fail        # Bug 5283149.
+
+[ $arch == x64 ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == arm ]
+*: Skip

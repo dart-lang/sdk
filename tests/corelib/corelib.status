@@ -1,0 +1,40 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix corelib
+
+[ $arch == ia32 || $arch == dartium ]
+UnicodeTest: Fail # Bug 5163868
+
+
+[ $arch == ia32 ]
+
+
+[ $arch == dartc || $arch == chromium ]
+ConstListLiteralTest: Fail # Bug 3341367
+CoreRuntimeTypesTest: Fail # Bug 5196164
+StringTest: Fail           # Bug 5196164
+
+
+[ $arch == chromium || $arch == dartium ]
+# Bug 5293748
+SortTest: Skip
+ListSortTest: Skip
+
+[ $arch == chromium ]
+# Bug 5275717
+MapTest: Fail
+SplayTreeTest: Fail
+QueueTest: Fail
+ExceptionImplementationTest: Fail
+
+
+[ $arch == x64 ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == arm ]
+*: Skip

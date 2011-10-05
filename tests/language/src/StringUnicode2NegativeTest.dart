@@ -1,0 +1,17 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class StringUnicode2NegativeTest {
+
+  static testMain() {
+    // \u{X*} should have 1-6 hex digits
+    String str = "Foo\u{}Bar";
+    str = "Foo\u{000000000}Bar";
+    str = "Foo\u{DEAF!}Bar";
+  }
+}
+
+main() {
+  StringUnicode2NegativeTest.testMain();
+}
