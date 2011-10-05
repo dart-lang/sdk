@@ -2687,11 +2687,13 @@ public class GenerateJavascriptAST {
       if (typeParams != null && typeParams.size() != 0) {
         JsArrayLiteral arr = new JsArrayLiteral();
         for (Type t : typeParams) {
-          String typeName = "";
+          JsExpression typeName;
           if (t.getKind() != TypeKind.DYNAMIC) {
-            typeName = getJsName(t.getElement()).getShortIdent();
+            typeName = rtt.getRTTClassId((ClassElement)t.getElement());
+          } else {
+            typeName = string("");
           }
-          arr.getExpressions().add(string(typeName));
+          arr.getExpressions().add(typeName);
         }
         intern.getArguments().add(arr);
       }

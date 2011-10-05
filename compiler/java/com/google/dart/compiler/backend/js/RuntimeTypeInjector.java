@@ -50,6 +50,7 @@ import com.google.dart.compiler.backend.js.ast.JsProgram;
 import com.google.dart.compiler.backend.js.ast.JsReturn;
 import com.google.dart.compiler.backend.js.ast.JsScope;
 import com.google.dart.compiler.backend.js.ast.JsStatement;
+import com.google.dart.compiler.backend.js.ast.JsStringLiteral;
 import com.google.dart.compiler.backend.js.ast.JsThisRef;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -357,10 +358,16 @@ public class RuntimeTypeInjector {
     globalBlock.getStatements().add(fnDecl.makeStmt());
   }
 
-  private JsExpression getRTTClassId(ClassElement classElement) {
+  static JsExpression getRTTClassId(TranslationContext translationContext,
+                                    ClassElement classElement) {
     JsName classJsName = translationContext.getNames().getName(classElement);
     JsProgram program = translationContext.getProgram();
-    return program.getStringLiteral(classJsName.getShortIdent());
+    JsStringLiteral clsid = program.getStringLiteral(classJsName.getShortIdent());
+    return call(null, nameref(null, "$cls"), clsid);
+  }
+
+  JsExpression getRTTClassId(ClassElement classElement) {
+    return getRTTClassId(translationContext, classElement);
   }
 
   private JsNameRef getRTTLookupMethodName(ClassElement classElement) {

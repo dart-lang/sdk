@@ -19,8 +19,8 @@ function RTT(classkey, typekey, typeargs) {
   // Add self
   this.implementedTypes[classkey] = this;
   // Add Object
-  if (classkey != 'Object') {
-    this.implementedTypes['Object'] = RTT.objectType;
+  if (classkey != $cls('Object')) {
+    this.implementedTypes[$cls('Object')] = RTT.objectType;
   }
 }
 
@@ -93,7 +93,7 @@ RTT.getNativeTypeInfo = function(value) {
  * @return {RTT} The RTT information object
  */
 RTT.create = function(name, implementsSupplier, typeArgs) {
-  if (name == "Object") return RTT.objectType;
+  if (name == $cls("Object")) return RTT.objectType;
   var typekey = RTT.getTypeKey(name, typeArgs);
   var rtt = RTT.types[typekey];
   if (rtt) {
@@ -183,18 +183,25 @@ RTT.getTypeArgsFor = function(o, classkey) {
 // Base types for runtime type information
 
 /** @type {!RTT} */
-RTT.objectType = new RTT('Object');
+RTT.objectType = new RTT($cls('Object'));
 RTT.objectType.implementedBy = function(o) {return true};
 RTT.objectType.implementedByType = function(o) {return true};
 
 /** @type {!RTT} */
-RTT.dynamicType = new RTT('Dynamic');
+RTT.dynamicType = new RTT($cls('Dynamic'));
 RTT.dynamicType.implementedBy = function(o) {return true};
 RTT.dynamicType.implementedByType = function(o) {return true};
 
 /** @type {!RTT} */
-RTT.placeholderType = new RTT('');
+RTT.placeholderType = new RTT($cls('::'));
 RTT.placeholderType.implementedBy = function(o) {return true};
 RTT.placeholderType.implementedByType = function(o) {return true};
 
-
+/** 
+ * @param {string} cls 
+ * @return {string}
+ * @consistentIdGenerator 
+ */
+function $cls(cls) {
+  return "cls:" + cls;
+}
