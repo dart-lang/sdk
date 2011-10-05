@@ -424,7 +424,7 @@ function isolate$doOneEventLoopIteration() {
       // This should only trigger when running on the command-line.
       // We don't want this check to execute in the browser where the isolate
       // might still be alive due to DOM callbacks.
-      throw Error("Program exited with open ReceivePorts.");
+      // throw Error("Program exited with open ReceivePorts.");
     }
     return STOP_LOOP;
   } else {

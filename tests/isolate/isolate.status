@@ -39,10 +39,6 @@ StaticStateTest: Fail         # Bug 5401734
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
 
-[ $arch == dartc ]
-MintMakerPromiseTest: Fail # Bug 5283149.
-MintMakerTest: Fail        # Bug 5283149.
-
 [ $arch == x64 ]
 *: Skip
 

@@ -10,7 +10,6 @@ MintMakerPromiseWithStubsTest: Fail # Bug 5384756
 
 [ $arch == dartc ]
 MintMakerFullyIsolatedTest: Fail  # Bug 5344878
-MintMakerPromiseWithStubsTest: Fail # Bug 5283149
 
 [ $arch == x64 ]
 *: Skip
