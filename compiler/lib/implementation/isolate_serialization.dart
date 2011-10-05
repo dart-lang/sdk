@@ -96,20 +96,17 @@ class Copier extends MessageTraverser {
   }
 
   SendPort visitSendPort(SendPortImpl port) {
-    // No need to copy the sendport.
-    return port;
+    return new SendPortImpl(port._workerId,
+                            port._isolateId,
+                            port._receivePortId);
   }
 
   SendPort visitReceivePort(ReceivePortImpl port) {
-    // TODO(floitsch): should we instead call toFreshSendPort? to be certain
-    // that objects are not shared.
-    return port.toSendPort();
+    return port._toNewSendPort();
   }
 
   SendPort visitReceivePortSingleShot(ReceivePortSingleShotImpl port) {
-    // TODO(floitsch): should we instead call toFreshSendPort? to be certain
-    // that objects are not shared.
-    return port.toSendPort();
+    return port._toNewSendPort();
   }
 }
 

@@ -93,6 +93,14 @@ class ReceivePortImpl implements ReceivePort {
   }
 
   SendPort toSendPort() {
+    return _toNewSendPort();
+  }
+
+  /**
+   * Returns a fresh [SendPort]. The implementation is not allowed to cache
+   * existing ports.
+   */
+  SendPort _toNewSendPort() {
     return new SendPortImpl(_currentWorkerId(), _currentIsolateId(), _id);
   }
 
@@ -122,24 +130,32 @@ class ReceivePortImpl implements ReceivePort {
 
 class ReceivePortSingleShotImpl implements ReceivePort {
 
-  ReceivePortSingleShotImpl() : port_ = new ReceivePortImpl() { }
+  ReceivePortSingleShotImpl() : _port = new ReceivePortImpl() { }
 
   void receive(void callback(var message, SendPort replyTo)) {
-    port_.receive((var message, SendPort replyTo) {
-      port_.close();
+    _port.receive((var message, SendPort replyTo) {
+      _port.close();
       callback(message, replyTo);
     });
   }
 
   void close() {
-    port_.close();
+    _port.close();
   }
 
   SendPort toSendPort() {
-    return port_.toSendPort();
+    return _toNewSendPort();
   }
 
-  final ReceivePortImpl port_;
+  /**
+   * Returns a fresh [SendPort]. The implementation is not allowed to cache
+   * existing ports.
+   */
+  SendPort _toNewSendPort() {
+    return _port._toNewSendPort();
+  }
+
+  final ReceivePortImpl _port;
 
 }
 
