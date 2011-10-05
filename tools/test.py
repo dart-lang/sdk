@@ -220,6 +220,7 @@ class BatchTester(object):
   def RunThread(self, batch_cmd, thread_number):
     """A thread started to feed a single TestRunner."""
     try:
+      runner = None
       while not self.terminate and not self.work_queue.empty():
         runner = subprocess.Popen(batch_cmd,
                                   stdin=subprocess.PIPE,
@@ -229,7 +230,7 @@ class BatchTester(object):
         self.FeedTestRunner(runner, thread_number)
         if self.last_activity.has_key(thread_number):
           del self.last_activity[thread_number]
-        
+
         # cleanup
         self.EndRunner(runner)
 
@@ -239,7 +240,7 @@ class BatchTester(object):
     finally:
       if self.last_activity.has_key(thread_number):
         del self.last_activity[thread_number]
-      self.EndRunner(runner)
+      if runner: self.EndRunner(runner)
 
   def EndRunner(self, runner):
     """ Cleans up a single runner, killing the child if necessary"""
@@ -251,7 +252,7 @@ class BatchTester(object):
       for (found_runner, thread_number) in self.runners.items():
         if runner == found_runner:
           del self.runners[thread_number]
-          break          
+          break
     try:
       runner.communicate();
     except ValueError:
