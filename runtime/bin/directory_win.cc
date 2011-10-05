@@ -14,7 +14,8 @@ bool Directory::Close(intptr_t dir) {
   return false;
 }
 
-void Directory::List(intptr_t dir,
+void Directory::List(const char* path,
+                     intptr_t dir,
                      bool recursive,
                      Dart_Port dir_handler,
                      Dart_Port file_handler,
