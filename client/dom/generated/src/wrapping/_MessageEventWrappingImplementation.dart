@@ -26,7 +26,7 @@ class _MessageEventWrappingImplementation extends _EventWrappingImplementation i
   DOMWindow get source() { return _get__MessageEvent_source(this); }
   static DOMWindow _get__MessageEvent_source(var _this) native;
 
-  void initMessageEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String dataArg = null, String originArg = null, String lastEventIdArg = null, DOMWindow sourceArg = null, MessagePort messagePort = null) {
+  void initMessageEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String dataArg = null, String originArg = null, String lastEventIdArg = null, DOMWindow sourceArg = null, MessagePort messagePort = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

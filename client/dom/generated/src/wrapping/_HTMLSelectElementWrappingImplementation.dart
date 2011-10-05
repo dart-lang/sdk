@@ -86,7 +86,7 @@ class _HTMLSelectElementWrappingImplementation extends _HTMLElementWrappingImple
   bool get willValidate() { return _get__HTMLSelectElement_willValidate(this); }
   static bool _get__HTMLSelectElement_willValidate(var _this) native;
 
-  void add(HTMLElement element = null, HTMLElement before = null) {
+  void add([HTMLElement element = null, HTMLElement before = null]) {
     if (element === null) {
       if (before === null) {
         _add(this);
@@ -112,7 +112,7 @@ class _HTMLSelectElementWrappingImplementation extends _HTMLElementWrappingImple
   }
   static bool _checkValidity(receiver) native;
 
-  Node item(int index = null) {
+  Node item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {
@@ -122,7 +122,7 @@ class _HTMLSelectElementWrappingImplementation extends _HTMLElementWrappingImple
   static Node _item(receiver) native;
   static Node _item_2(receiver, index) native;
 
-  Node namedItem(String name = null) {
+  Node namedItem([String name = null]) {
     if (name === null) {
       return _namedItem(this);
     } else {

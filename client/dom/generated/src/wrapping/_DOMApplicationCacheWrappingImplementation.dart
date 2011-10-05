@@ -62,7 +62,7 @@ class _DOMApplicationCacheWrappingImplementation extends DOMWrapperBase implemen
   int get status() { return _get__DOMApplicationCache_status(this); }
   static int _get__DOMApplicationCache_status(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -79,7 +79,7 @@ class _DOMApplicationCacheWrappingImplementation extends DOMWrapperBase implemen
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

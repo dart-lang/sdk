@@ -145,7 +145,7 @@ class _HTMLTextAreaElementWrappingImplementation extends _HTMLElementWrappingImp
   }
   static void _setCustomValidity(receiver, error) native;
 
-  void setSelectionRange(int start = null, int end = null, String direction = null) {
+  void setSelectionRange([int start = null, int end = null, String direction = null]) {
     if (start === null) {
       if (end === null) {
         if (direction === null) {

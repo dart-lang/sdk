@@ -11,7 +11,7 @@ class _FileEntryWrappingImplementation extends _EntryWrappingImplementation impl
     return new _FileEntryWrappingImplementation();
   }
 
-  void createWriter(FileWriterCallback successCallback, ErrorCallback errorCallback = null) {
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
     if (errorCallback === null) {
       _createWriter(this, successCallback);
       return;
@@ -23,7 +23,7 @@ class _FileEntryWrappingImplementation extends _EntryWrappingImplementation impl
   static void _createWriter(receiver, successCallback) native;
   static void _createWriter_2(receiver, successCallback, errorCallback) native;
 
-  void file(FileCallback successCallback, ErrorCallback errorCallback = null) {
+  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
     if (errorCallback === null) {
       _file(this, successCallback);
       return;

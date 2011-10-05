@@ -74,7 +74,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void closePath();
 
-  ImageData createImageData(var imagedata_OR_sw, num sh = null);
+  ImageData createImageData(var imagedata_OR_sw, [num sh]);
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1);
 
@@ -82,15 +82,15 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1);
 
-  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null);
+  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
 
-  void drawImageFromRect(HTMLImageElement image, num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null);
+  void drawImageFromRect(HTMLImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]);
 
   void fill();
 
   void fillRect(num x, num y, num width, num height);
 
-  void fillText(String text, num x, num y, num maxWidth = null);
+  void fillText(String text, num x, num y, [num maxWidth]);
 
   ImageData getImageData(num sx, num sy, num sw, num sh);
 
@@ -102,7 +102,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void moveTo(num x, num y);
 
-  void putImageData(ImageData imagedata, num dx, num dy, num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null);
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y);
 
@@ -120,7 +120,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setCompositeOperation(String compositeOperation);
 
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null);
+  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setFillStyle(var color_OR_gradient_OR_pattern);
 
@@ -132,9 +132,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setMiterLimit(num limit);
 
-  void setShadow(num width, num height, num blur, var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null);
+  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null);
+  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setStrokeStyle(var color_OR_gradient_OR_pattern);
 
@@ -142,9 +142,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void stroke();
 
-  void strokeRect(num x, num y, num width, num height, num lineWidth = null);
+  void strokeRect(num x, num y, num width, num height, [num lineWidth]);
 
-  void strokeText(String text, num x, num y, num maxWidth = null);
+  void strokeText(String text, num x, num y, [num maxWidth]);
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy);
 

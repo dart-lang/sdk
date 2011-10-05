@@ -6,5 +6,5 @@
 
 interface XPathExpression {
 
-  XPathResult evaluate(Node contextNode = null, int type = null, XPathResult inResult = null);
+  XPathResult evaluate([Node contextNode, int type, XPathResult inResult]);
 }

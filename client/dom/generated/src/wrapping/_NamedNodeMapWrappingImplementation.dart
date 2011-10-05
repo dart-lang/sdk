@@ -86,7 +86,7 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
     return new _FixedSizeListIterator<Node>(this);
   }
 
-  Node getNamedItem(String name = null) {
+  Node getNamedItem([String name = null]) {
     if (name === null) {
       return _getNamedItem(this);
     } else {
@@ -96,7 +96,7 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
   static Node _getNamedItem(receiver) native;
   static Node _getNamedItem_2(receiver, name) native;
 
-  Node getNamedItemNS(String namespaceURI = null, String localName = null) {
+  Node getNamedItemNS([String namespaceURI = null, String localName = null]) {
     if (namespaceURI === null) {
       if (localName === null) {
         return _getNamedItemNS(this);
@@ -114,7 +114,7 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
   static Node _getNamedItemNS_2(receiver, namespaceURI) native;
   static Node _getNamedItemNS_3(receiver, namespaceURI, localName) native;
 
-  Node item(int index = null) {
+  Node item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {
@@ -124,7 +124,7 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
   static Node _item(receiver) native;
   static Node _item_2(receiver, index) native;
 
-  Node removeNamedItem(String name = null) {
+  Node removeNamedItem([String name = null]) {
     if (name === null) {
       return _removeNamedItem(this);
     } else {
@@ -134,7 +134,7 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
   static Node _removeNamedItem(receiver) native;
   static Node _removeNamedItem_2(receiver, name) native;
 
-  Node removeNamedItemNS(String namespaceURI = null, String localName = null) {
+  Node removeNamedItemNS([String namespaceURI = null, String localName = null]) {
     if (namespaceURI === null) {
       if (localName === null) {
         return _removeNamedItemNS(this);
@@ -152,7 +152,7 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
   static Node _removeNamedItemNS_2(receiver, namespaceURI) native;
   static Node _removeNamedItemNS_3(receiver, namespaceURI, localName) native;
 
-  Node setNamedItem(Node node = null) {
+  Node setNamedItem([Node node = null]) {
     if (node === null) {
       return _setNamedItem(this);
     } else {
@@ -162,7 +162,7 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
   static Node _setNamedItem(receiver) native;
   static Node _setNamedItem_2(receiver, node) native;
 
-  Node setNamedItemNS(Node node = null) {
+  Node setNamedItemNS([Node node = null]) {
     if (node === null) {
       return _setNamedItemNS(this);
     } else {

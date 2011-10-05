@@ -14,7 +14,7 @@ class _Uint8ArrayWrappingImplementation extends _ArrayBufferViewWrappingImplemen
   int get length() { return _get__Uint8Array_length(this); }
   static int _get__Uint8Array_length(var _this) native;
 
-  Uint8Array subarray(int start = null, int end = null) {
+  Uint8Array subarray([int start = null, int end = null]) {
     if (start === null) {
       if (end === null) {
         return _subarray(this);

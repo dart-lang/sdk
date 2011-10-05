@@ -11,7 +11,7 @@ class _WebKitBlobBuilderWrappingImplementation extends DOMWrapperBase implements
     return new _WebKitBlobBuilderWrappingImplementation();
   }
 
-  void append(var blob_OR_value, String endings = null) {
+  void append(var blob_OR_value, [String endings = null]) {
     if (blob_OR_value is Blob) {
       if (endings === null) {
         _append(this, blob_OR_value);
@@ -34,7 +34,7 @@ class _WebKitBlobBuilderWrappingImplementation extends DOMWrapperBase implements
   static void _append_2(receiver, blob_OR_value) native;
   static void _append_3(receiver, blob_OR_value, endings) native;
 
-  Blob getBlob(String contentType = null) {
+  Blob getBlob([String contentType = null]) {
     if (contentType === null) {
       return _getBlob(this);
     } else {

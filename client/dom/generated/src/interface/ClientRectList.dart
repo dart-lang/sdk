@@ -8,5 +8,5 @@ interface ClientRectList {
 
   int get length();
 
-  ClientRect item(int index = null);
+  ClientRect item([int index]);
 }

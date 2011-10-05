@@ -8,5 +8,5 @@ interface PopStateEvent extends Event {
 
   Object get state();
 
-  void initPopStateEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, Object stateArg = null);
+  void initPopStateEvent([String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg]);
 }

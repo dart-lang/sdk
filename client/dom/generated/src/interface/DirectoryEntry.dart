@@ -8,9 +8,9 @@ interface DirectoryEntry extends Entry {
 
   DirectoryReader createReader();
 
-  void getDirectory(String path, WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null);
+  void getDirectory(String path, [WebKitFlags flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void getFile(String path, WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null);
+  void getFile(String path, [WebKitFlags flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void removeRecursively(VoidCallback successCallback = null, ErrorCallback errorCallback = null);
+  void removeRecursively([VoidCallback successCallback, ErrorCallback errorCallback]);
 }

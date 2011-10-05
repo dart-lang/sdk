@@ -6,5 +6,5 @@
 
 interface MediaQueryListListener {
 
-  void queryChanged(MediaQueryList list = null);
+  void queryChanged([MediaQueryList list]);
 }

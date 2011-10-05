@@ -18,7 +18,7 @@ interface Clipboard {
 
   DataTransferItems get items();
 
-  void clearData(String type = null);
+  void clearData([String type]);
 
   void getData(String type);
 

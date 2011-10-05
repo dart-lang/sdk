@@ -23,7 +23,7 @@ class _HTMLOptionsCollectionWrappingImplementation extends _HTMLCollectionWrappi
   void set selectedIndex(int value) { _set__HTMLOptionsCollection_selectedIndex(this, value); }
   static void _set__HTMLOptionsCollection_selectedIndex(var _this, int value) native;
 
-  void remove(int index = null) {
+  void remove([int index = null]) {
     if (index === null) {
       _remove(this);
       return;

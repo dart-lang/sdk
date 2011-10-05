@@ -14,7 +14,7 @@ class _DeviceMotionEventWrappingImplementation extends _EventWrappingImplementat
   num get interval() { return _get__DeviceMotionEvent_interval(this); }
   static num _get__DeviceMotionEvent_interval(var _this) native;
 
-  void initDeviceMotionEvent(String type = null, bool bubbles = null, bool cancelable = null) {
+  void initDeviceMotionEvent([String type = null, bool bubbles = null, bool cancelable = null]) {
     if (type === null) {
       if (bubbles === null) {
         if (cancelable === null) {

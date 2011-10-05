@@ -462,29 +462,29 @@ interface Window extends EventTarget {
 
   DOMWindow get window();
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void alert(String message = null);
+  void alert([String message]);
 
-  String atob(String string = null);
+  String atob([String string]);
 
   void blur();
 
-  String btoa(String string = null);
+  String btoa([String string]);
 
   void captureEvents();
 
-  void clearInterval(int handle = null);
+  void clearInterval([int handle]);
 
-  void clearTimeout(int handle = null);
+  void clearTimeout([int handle]);
 
   void close();
 
-  bool confirm(String message = null);
+  bool confirm([String message]);
 
   FileReader createFileReader();
 
-  WebKitCSSMatrix createWebKitCSSMatrix(String cssValue = null);
+  WebKitCSSMatrix createWebKitCSSMatrix([String cssValue]);
 
   WebKitPoint createWebKitPoint(num x, num y);
 
@@ -492,11 +492,11 @@ interface Window extends EventTarget {
 
   bool dispatchEvent(Event evt);
 
-  bool find(String string = null, bool caseSensitive = null, bool backwards = null, bool wrap = null, bool wholeWord = null, bool searchInFrames = null, bool showDialog = null);
+  bool find([String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog]);
 
   void focus();
 
-  CSSStyleDeclaration getComputedStyle(Element element = null, String pseudoElement = null);
+  CSSStyleDeclaration getComputedStyle([Element element, String pseudoElement]);
 
   DOMSelection getSelection();
 
@@ -506,17 +506,17 @@ interface Window extends EventTarget {
 
   void moveTo(num x, num y);
 
-  DOMWindow open(String url, String name, String options = null);
+  DOMWindow open(String url, String name, [String options]);
 
-  void postMessage(String message, var messagePort_OR_targetOrigin, String targetOrigin = null);
+  void postMessage(String message, var messagePort_OR_targetOrigin, [String targetOrigin]);
 
   void print();
 
-  String prompt(String message = null, String defaultValue = null);
+  String prompt([String message, String defaultValue]);
 
   void releaseEvents();
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void resizeBy(num x, num y);
 
@@ -530,19 +530,19 @@ interface Window extends EventTarget {
 
   int setInterval(TimeoutHandler handler, int timeout);
 
-  int setTimeout(TimeoutHandler handler = null, int timeout = null);
+  int setTimeout([TimeoutHandler handler, int timeout]);
 
-  Object showModalDialog(String url, Object dialogArgs = null, String featureArgs = null);
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
 
   void stop();
 
   void webkitCancelRequestAnimationFrame(int id);
 
-  WebKitPoint webkitConvertPointFromNodeToPage(Node node = null, WebKitPoint p = null);
+  WebKitPoint webkitConvertPointFromNodeToPage([Node node, WebKitPoint p]);
 
-  WebKitPoint webkitConvertPointFromPageToNode(Node node = null, WebKitPoint p = null);
+  WebKitPoint webkitConvertPointFromPageToNode([Node node, WebKitPoint p]);
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element = null);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element]);
 }
 
 interface DOMWindow extends Window {

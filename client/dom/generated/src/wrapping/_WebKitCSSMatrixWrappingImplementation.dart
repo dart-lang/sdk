@@ -148,7 +148,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   }
   static WebKitCSSMatrix _inverse(receiver) native;
 
-  WebKitCSSMatrix multiply(WebKitCSSMatrix secondMatrix = null) {
+  WebKitCSSMatrix multiply([WebKitCSSMatrix secondMatrix = null]) {
     if (secondMatrix === null) {
       return _multiply(this);
     } else {
@@ -158,7 +158,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   static WebKitCSSMatrix _multiply(receiver) native;
   static WebKitCSSMatrix _multiply_2(receiver, secondMatrix) native;
 
-  WebKitCSSMatrix rotate(num rotX = null, num rotY = null, num rotZ = null) {
+  WebKitCSSMatrix rotate([num rotX = null, num rotY = null, num rotZ = null]) {
     if (rotX === null) {
       if (rotY === null) {
         if (rotZ === null) {
@@ -185,7 +185,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   static WebKitCSSMatrix _rotate_3(receiver, rotX, rotY) native;
   static WebKitCSSMatrix _rotate_4(receiver, rotX, rotY, rotZ) native;
 
-  WebKitCSSMatrix rotateAxisAngle(num x = null, num y = null, num z = null, num angle = null) {
+  WebKitCSSMatrix rotateAxisAngle([num x = null, num y = null, num z = null, num angle = null]) {
     if (x === null) {
       if (y === null) {
         if (z === null) {
@@ -223,7 +223,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   static WebKitCSSMatrix _rotateAxisAngle_4(receiver, x, y, z) native;
   static WebKitCSSMatrix _rotateAxisAngle_5(receiver, x, y, z, angle) native;
 
-  WebKitCSSMatrix scale(num scaleX = null, num scaleY = null, num scaleZ = null) {
+  WebKitCSSMatrix scale([num scaleX = null, num scaleY = null, num scaleZ = null]) {
     if (scaleX === null) {
       if (scaleY === null) {
         if (scaleZ === null) {
@@ -250,7 +250,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   static WebKitCSSMatrix _scale_3(receiver, scaleX, scaleY) native;
   static WebKitCSSMatrix _scale_4(receiver, scaleX, scaleY, scaleZ) native;
 
-  void setMatrixValue(String string = null) {
+  void setMatrixValue([String string = null]) {
     if (string === null) {
       _setMatrixValue(this);
       return;
@@ -262,7 +262,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   static void _setMatrixValue(receiver) native;
   static void _setMatrixValue_2(receiver, string) native;
 
-  WebKitCSSMatrix skewX(num angle = null) {
+  WebKitCSSMatrix skewX([num angle = null]) {
     if (angle === null) {
       return _skewX(this);
     } else {
@@ -272,7 +272,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   static WebKitCSSMatrix _skewX(receiver) native;
   static WebKitCSSMatrix _skewX_2(receiver, angle) native;
 
-  WebKitCSSMatrix skewY(num angle = null) {
+  WebKitCSSMatrix skewY([num angle = null]) {
     if (angle === null) {
       return _skewY(this);
     } else {
@@ -287,7 +287,7 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   }
   static String _toString(receiver) native;
 
-  WebKitCSSMatrix translate(num x = null, num y = null, num z = null) {
+  WebKitCSSMatrix translate([num x = null, num y = null, num z = null]) {
     if (x === null) {
       if (y === null) {
         if (z === null) {

@@ -26,7 +26,7 @@ class _FileReaderSyncWrappingImplementation extends DOMWrapperBase implements Fi
   }
   static String _readAsDataURL(receiver, blob) native;
 
-  String readAsText(Blob blob, String encoding = null) {
+  String readAsText(Blob blob, [String encoding = null]) {
     if (encoding === null) {
       return _readAsText(this, blob);
     } else {

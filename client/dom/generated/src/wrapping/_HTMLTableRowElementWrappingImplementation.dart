@@ -50,7 +50,7 @@ class _HTMLTableRowElementWrappingImplementation extends _HTMLElementWrappingImp
   void set vAlign(String value) { _set__HTMLTableRowElement_vAlign(this, value); }
   static void _set__HTMLTableRowElement_vAlign(var _this, String value) native;
 
-  void deleteCell(int index = null) {
+  void deleteCell([int index = null]) {
     if (index === null) {
       _deleteCell(this);
       return;
@@ -62,7 +62,7 @@ class _HTMLTableRowElementWrappingImplementation extends _HTMLElementWrappingImp
   static void _deleteCell(receiver) native;
   static void _deleteCell_2(receiver, index) native;
 
-  HTMLElement insertCell(int index = null) {
+  HTMLElement insertCell([int index = null]) {
     if (index === null) {
       return _insertCell(this);
     } else {

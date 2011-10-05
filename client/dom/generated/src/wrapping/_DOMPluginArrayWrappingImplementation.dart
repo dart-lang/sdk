@@ -14,7 +14,7 @@ class _DOMPluginArrayWrappingImplementation extends DOMWrapperBase implements DO
   int get length() { return _get__DOMPluginArray_length(this); }
   static int _get__DOMPluginArray_length(var _this) native;
 
-  DOMPlugin item(int index = null) {
+  DOMPlugin item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {
@@ -24,7 +24,7 @@ class _DOMPluginArrayWrappingImplementation extends DOMWrapperBase implements DO
   static DOMPlugin _item(receiver) native;
   static DOMPlugin _item_2(receiver, index) native;
 
-  DOMPlugin namedItem(String name = null) {
+  DOMPlugin namedItem([String name = null]) {
     if (name === null) {
       return _namedItem(this);
     } else {
@@ -34,7 +34,7 @@ class _DOMPluginArrayWrappingImplementation extends DOMWrapperBase implements DO
   static DOMPlugin _namedItem(receiver) native;
   static DOMPlugin _namedItem_2(receiver, name) native;
 
-  void refresh(bool reload = null) {
+  void refresh([bool reload = null]) {
     if (reload === null) {
       _refresh(this);
       return;

@@ -11,7 +11,7 @@ class _XPathExpressionWrappingImplementation extends DOMWrapperBase implements X
     return new _XPathExpressionWrappingImplementation();
   }
 
-  XPathResult evaluate(Node contextNode = null, int type = null, XPathResult inResult = null) {
+  XPathResult evaluate([Node contextNode = null, int type = null, XPathResult inResult = null]) {
     if (contextNode === null) {
       if (type === null) {
         if (inResult === null) {

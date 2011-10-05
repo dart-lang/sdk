@@ -14,7 +14,7 @@ class _DatabaseSyncWrappingImplementation extends DOMWrapperBase implements Data
   String get version() { return _get__DatabaseSync_version(this); }
   static String _get__DatabaseSync_version(var _this) native;
 
-  void changeVersion(String oldVersion, String newVersion, SQLTransactionSyncCallback callback = null) {
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) {
     if (callback === null) {
       _changeVersion(this, oldVersion, newVersion);
       return;

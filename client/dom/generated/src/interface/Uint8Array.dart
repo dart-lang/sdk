@@ -10,5 +10,5 @@ interface Uint8Array extends ArrayBufferView {
 
   int get length();
 
-  Uint8Array subarray(int start = null, int end = null);
+  Uint8Array subarray([int start, int end]);
 }

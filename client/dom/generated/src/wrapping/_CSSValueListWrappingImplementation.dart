@@ -14,7 +14,7 @@ class _CSSValueListWrappingImplementation extends _CSSValueWrappingImplementatio
   int get length() { return _get__CSSValueList_length(this); }
   static int _get__CSSValueList_length(var _this) native;
 
-  CSSValue item(int index = null) {
+  CSSValue item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {

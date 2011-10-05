@@ -12,9 +12,9 @@ interface WebKitCSSKeyframesRule extends CSSRule {
 
   void set name(String value);
 
-  void deleteRule(String key = null);
+  void deleteRule([String key]);
 
-  WebKitCSSKeyframeRule findRule(String key = null);
+  WebKitCSSKeyframeRule findRule([String key]);
 
-  void insertRule(String rule = null);
+  void insertRule([String rule]);
 }

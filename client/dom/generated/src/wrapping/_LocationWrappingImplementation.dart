@@ -62,7 +62,7 @@ class _LocationWrappingImplementation extends DOMWrapperBase implements Location
   void set search(String value) { _set__Location_search(this, value); }
   static void _set__Location_search(var _this, String value) native;
 
-  void assign(String url = null) {
+  void assign([String url = null]) {
     if (url === null) {
       _assign(this);
       return;
@@ -85,7 +85,7 @@ class _LocationWrappingImplementation extends DOMWrapperBase implements Location
   }
   static void _reload(receiver) native;
 
-  void replace(String url = null) {
+  void replace([String url = null]) {
     if (url === null) {
       _replace(this);
       return;

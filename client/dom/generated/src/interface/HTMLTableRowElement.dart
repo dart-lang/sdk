@@ -32,7 +32,7 @@ interface HTMLTableRowElement extends HTMLElement {
 
   void set vAlign(String value);
 
-  void deleteCell(int index = null);
+  void deleteCell([int index]);
 
-  HTMLElement insertCell(int index = null);
+  HTMLElement insertCell([int index]);
 }

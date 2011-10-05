@@ -14,7 +14,7 @@ class _ClientRectListWrappingImplementation extends DOMWrapperBase implements Cl
   int get length() { return _get__ClientRectList_length(this); }
   static int _get__ClientRectList_length(var _this) native;
 
-  ClientRect item(int index = null) {
+  ClientRect item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {

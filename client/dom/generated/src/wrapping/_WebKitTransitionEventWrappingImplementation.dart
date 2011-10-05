@@ -17,7 +17,7 @@ class _WebKitTransitionEventWrappingImplementation extends _EventWrappingImpleme
   String get propertyName() { return _get__WebKitTransitionEvent_propertyName(this); }
   static String _get__WebKitTransitionEvent_propertyName(var _this) native;
 
-  void initWebKitTransitionEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String propertyNameArg = null, num elapsedTimeArg = null) {
+  void initWebKitTransitionEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String propertyNameArg = null, num elapsedTimeArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

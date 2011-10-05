@@ -14,7 +14,7 @@ class _TextWrappingImplementation extends _CharacterDataWrappingImplementation i
   String get wholeText() { return _get__Text_wholeText(this); }
   static String _get__Text_wholeText(var _this) native;
 
-  Text replaceWholeText(String content = null) {
+  Text replaceWholeText([String content = null]) {
     if (content === null) {
       return _replaceWholeText(this);
     } else {
@@ -24,7 +24,7 @@ class _TextWrappingImplementation extends _CharacterDataWrappingImplementation i
   static Text _replaceWholeText(receiver) native;
   static Text _replaceWholeText_2(receiver, content) native;
 
-  Text splitText(int offset = null) {
+  Text splitText([int offset = null]) {
     if (offset === null) {
       return _splitText(this);
     } else {

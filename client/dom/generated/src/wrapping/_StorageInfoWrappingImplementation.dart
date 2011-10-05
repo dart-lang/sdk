@@ -11,7 +11,7 @@ class _StorageInfoWrappingImplementation extends DOMWrapperBase implements Stora
     return new _StorageInfoWrappingImplementation();
   }
 
-  void queryUsageAndQuota(int storageType, StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null) {
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) {
     if (usageCallback === null) {
       if (errorCallback === null) {
         _queryUsageAndQuota(this, storageType);
@@ -32,7 +32,7 @@ class _StorageInfoWrappingImplementation extends DOMWrapperBase implements Stora
   static void _queryUsageAndQuota_2(receiver, storageType, usageCallback) native;
   static void _queryUsageAndQuota_3(receiver, storageType, usageCallback, errorCallback) native;
 
-  void requestQuota(int storageType, int newQuotaInBytes, StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null) {
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) {
     if (quotaCallback === null) {
       if (errorCallback === null) {
         _requestQuota(this, storageType, newQuotaInBytes);

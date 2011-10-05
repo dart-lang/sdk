@@ -8,5 +8,5 @@ interface PageTransitionEvent extends Event {
 
   bool get persisted();
 
-  void initPageTransitionEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, bool persisted = null);
+  void initPageTransitionEvent([String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted]);
 }

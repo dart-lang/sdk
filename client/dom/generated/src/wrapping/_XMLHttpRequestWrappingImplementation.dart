@@ -92,7 +92,7 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   }
   static void _abort(receiver) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -119,7 +119,7 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   }
   static String _getResponseHeader(receiver, header) native;
 
-  void open(String method, String url, bool async, String user = null, String password = null) {
+  void open(String method, String url, bool async, [String user = null, String password = null]) {
     if (user === null) {
       if (password === null) {
         _open(this, method, url, async);
@@ -146,7 +146,7 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   }
   static void _overrideMimeType(receiver, override) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;
@@ -158,7 +158,7 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   static void _removeEventListener(receiver, type, listener) native;
   static void _removeEventListener_2(receiver, type, listener, useCapture) native;
 
-  void send(var data = null) {
+  void send([var data = null]) {
     if (data === null) {
       _send(this);
       return;

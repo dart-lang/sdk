@@ -8,5 +8,5 @@ interface CustomEvent extends Event {
 
   Object get detail();
 
-  void initCustomEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, Object detailArg = null);
+  void initCustomEvent([String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg]);
 }

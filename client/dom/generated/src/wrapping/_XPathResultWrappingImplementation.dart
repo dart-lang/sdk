@@ -37,7 +37,7 @@ class _XPathResultWrappingImplementation extends DOMWrapperBase implements XPath
   }
   static Node _iterateNext(receiver) native;
 
-  Node snapshotItem(int index = null) {
+  Node snapshotItem([int index = null]) {
     if (index === null) {
       return _snapshotItem(this);
     } else {

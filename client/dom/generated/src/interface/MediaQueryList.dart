@@ -10,7 +10,7 @@ interface MediaQueryList {
 
   String get media();
 
-  void addListener(MediaQueryListListener listener = null);
+  void addListener([MediaQueryListListener listener]);
 
-  void removeListener(MediaQueryListListener listener = null);
+  void removeListener([MediaQueryListListener listener]);
 }

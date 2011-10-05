@@ -20,7 +20,7 @@ class _CSSStyleSheetWrappingImplementation extends _StyleSheetWrappingImplementa
   CSSRuleList get rules() { return _get__CSSStyleSheet_rules(this); }
   static CSSRuleList _get__CSSStyleSheet_rules(var _this) native;
 
-  int addRule(String selector = null, String style = null, int index = null) {
+  int addRule([String selector = null, String style = null, int index = null]) {
     if (selector === null) {
       if (style === null) {
         if (index === null) {
@@ -47,7 +47,7 @@ class _CSSStyleSheetWrappingImplementation extends _StyleSheetWrappingImplementa
   static int _addRule_3(receiver, selector, style) native;
   static int _addRule_4(receiver, selector, style, index) native;
 
-  void deleteRule(int index = null) {
+  void deleteRule([int index = null]) {
     if (index === null) {
       _deleteRule(this);
       return;
@@ -59,7 +59,7 @@ class _CSSStyleSheetWrappingImplementation extends _StyleSheetWrappingImplementa
   static void _deleteRule(receiver) native;
   static void _deleteRule_2(receiver, index) native;
 
-  int insertRule(String rule = null, int index = null) {
+  int insertRule([String rule = null, int index = null]) {
     if (rule === null) {
       if (index === null) {
         return _insertRule(this);
@@ -77,7 +77,7 @@ class _CSSStyleSheetWrappingImplementation extends _StyleSheetWrappingImplementa
   static int _insertRule_2(receiver, rule) native;
   static int _insertRule_3(receiver, rule, index) native;
 
-  void removeRule(int index = null) {
+  void removeRule([int index = null]) {
     if (index === null) {
       _removeRule(this);
       return;

@@ -30,13 +30,13 @@ interface Notification extends EventTarget {
 
   void set replaceId(String value);
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void cancel();
 
   bool dispatchEvent(Event evt);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void show();
 }

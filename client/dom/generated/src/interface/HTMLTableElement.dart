@@ -66,11 +66,11 @@ interface HTMLTableElement extends HTMLElement {
 
   void deleteCaption();
 
-  void deleteRow(int index = null);
+  void deleteRow([int index]);
 
   void deleteTFoot();
 
   void deleteTHead();
 
-  HTMLElement insertRow(int index = null);
+  HTMLElement insertRow([int index]);
 }

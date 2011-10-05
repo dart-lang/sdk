@@ -59,7 +59,7 @@ class _MouseEventWrappingImplementation extends _UIEventWrappingImplementation i
   int get y() { return _get__MouseEvent_y(this); }
   static int _get__MouseEvent_y(var _this) native;
 
-  void initMouseEvent(String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, int detail = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null, int button = null, EventTarget relatedTarget = null) {
+  void initMouseEvent([String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, int detail = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null, int button = null, EventTarget relatedTarget = null]) {
     if (type === null) {
       if (canBubble === null) {
         if (cancelable === null) {

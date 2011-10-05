@@ -14,7 +14,7 @@ class _DOMMimeTypeArrayWrappingImplementation extends DOMWrapperBase implements 
   int get length() { return _get__DOMMimeTypeArray_length(this); }
   static int _get__DOMMimeTypeArray_length(var _this) native;
 
-  DOMMimeType item(int index = null) {
+  DOMMimeType item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {
@@ -24,7 +24,7 @@ class _DOMMimeTypeArrayWrappingImplementation extends DOMWrapperBase implements 
   static DOMMimeType _item(receiver) native;
   static DOMMimeType _item_2(receiver, index) native;
 
-  DOMMimeType namedItem(String name = null) {
+  DOMMimeType namedItem([String name = null]) {
     if (name === null) {
       return _namedItem(this);
     } else {

@@ -6,5 +6,5 @@
 
 interface XMLSerializer {
 
-  String serializeToString(Node node = null);
+  String serializeToString([Node node]);
 }

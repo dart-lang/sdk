@@ -11,7 +11,7 @@ class _DirectoryReaderWrappingImplementation extends DOMWrapperBase implements D
     return new _DirectoryReaderWrappingImplementation();
   }
 
-  void readEntries(EntriesCallback successCallback, ErrorCallback errorCallback = null) {
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
     if (errorCallback === null) {
       _readEntries(this, successCallback);
       return;

@@ -8,7 +8,7 @@ interface DOMMimeTypeArray {
 
   int get length();
 
-  DOMMimeType item(int index = null);
+  DOMMimeType item([int index]);
 
-  DOMMimeType namedItem(String name = null);
+  DOMMimeType namedItem([String name]);
 }

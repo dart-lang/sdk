@@ -26,7 +26,7 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   String get name() { return _get__Entry_name(this); }
   static String _get__Entry_name(var _this) native;
 
-  void copyTo(DirectoryEntry parent, String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (name === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -57,7 +57,7 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static void _copyTo_3(receiver, parent, name, successCallback) native;
   static void _copyTo_4(receiver, parent, name, successCallback, errorCallback) native;
 
-  void getMetadata(MetadataCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void getMetadata([MetadataCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _getMetadata(this);
@@ -78,7 +78,7 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static void _getMetadata_2(receiver, successCallback) native;
   static void _getMetadata_3(receiver, successCallback, errorCallback) native;
 
-  void getParent(EntryCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _getParent(this);
@@ -99,7 +99,7 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static void _getParent_2(receiver, successCallback) native;
   static void _getParent_3(receiver, successCallback, errorCallback) native;
 
-  void moveTo(DirectoryEntry parent, String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (name === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -130,7 +130,7 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static void _moveTo_3(receiver, parent, name, successCallback) native;
   static void _moveTo_4(receiver, parent, name, successCallback, errorCallback) native;
 
-  void remove(VoidCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void remove([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _remove(this);

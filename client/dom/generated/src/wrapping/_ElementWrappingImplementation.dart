@@ -353,7 +353,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   }
   static void _focus(receiver) native;
 
-  String getAttribute(String name = null) {
+  String getAttribute([String name = null]) {
     if (name === null) {
       return _getAttribute(this);
     } else {
@@ -363,7 +363,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static String _getAttribute(receiver) native;
   static String _getAttribute_2(receiver, name) native;
 
-  String getAttributeNS(String namespaceURI = null, String localName = null) {
+  String getAttributeNS([String namespaceURI = null, String localName = null]) {
     if (namespaceURI === null) {
       if (localName === null) {
         return _getAttributeNS(this);
@@ -381,7 +381,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static String _getAttributeNS_2(receiver, namespaceURI) native;
   static String _getAttributeNS_3(receiver, namespaceURI, localName) native;
 
-  Attr getAttributeNode(String name = null) {
+  Attr getAttributeNode([String name = null]) {
     if (name === null) {
       return _getAttributeNode(this);
     } else {
@@ -391,7 +391,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static Attr _getAttributeNode(receiver) native;
   static Attr _getAttributeNode_2(receiver, name) native;
 
-  Attr getAttributeNodeNS(String namespaceURI = null, String localName = null) {
+  Attr getAttributeNodeNS([String namespaceURI = null, String localName = null]) {
     if (namespaceURI === null) {
       if (localName === null) {
         return _getAttributeNodeNS(this);
@@ -419,7 +419,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   }
   static ClientRectList _getClientRects(receiver) native;
 
-  NodeList getElementsByClassName(String name = null) {
+  NodeList getElementsByClassName([String name = null]) {
     if (name === null) {
       return _getElementsByClassName(this);
     } else {
@@ -429,7 +429,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static NodeList _getElementsByClassName(receiver) native;
   static NodeList _getElementsByClassName_2(receiver, name) native;
 
-  NodeList getElementsByTagName(String name = null) {
+  NodeList getElementsByTagName([String name = null]) {
     if (name === null) {
       return _getElementsByTagName(this);
     } else {
@@ -439,7 +439,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static NodeList _getElementsByTagName(receiver) native;
   static NodeList _getElementsByTagName_2(receiver, name) native;
 
-  NodeList getElementsByTagNameNS(String namespaceURI = null, String localName = null) {
+  NodeList getElementsByTagNameNS([String namespaceURI = null, String localName = null]) {
     if (namespaceURI === null) {
       if (localName === null) {
         return _getElementsByTagNameNS(this);
@@ -462,7 +462,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   }
   static bool _hasAttribute(receiver, name) native;
 
-  bool hasAttributeNS(String namespaceURI = null, String localName = null) {
+  bool hasAttributeNS([String namespaceURI = null, String localName = null]) {
     if (namespaceURI === null) {
       if (localName === null) {
         return _hasAttributeNS(this);
@@ -490,7 +490,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   }
   static NodeList _querySelectorAll(receiver, selectors) native;
 
-  void removeAttribute(String name = null) {
+  void removeAttribute([String name = null]) {
     if (name === null) {
       _removeAttribute(this);
       return;
@@ -508,7 +508,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   }
   static void _removeAttributeNS(receiver, namespaceURI, localName) native;
 
-  Attr removeAttributeNode(Attr oldAttr = null) {
+  Attr removeAttributeNode([Attr oldAttr = null]) {
     if (oldAttr === null) {
       return _removeAttributeNode(this);
     } else {
@@ -518,7 +518,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static Attr _removeAttributeNode(receiver) native;
   static Attr _removeAttributeNode_2(receiver, oldAttr) native;
 
-  void scrollByLines(int lines = null) {
+  void scrollByLines([int lines = null]) {
     if (lines === null) {
       _scrollByLines(this);
       return;
@@ -530,7 +530,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static void _scrollByLines(receiver) native;
   static void _scrollByLines_2(receiver, lines) native;
 
-  void scrollByPages(int pages = null) {
+  void scrollByPages([int pages = null]) {
     if (pages === null) {
       _scrollByPages(this);
       return;
@@ -542,7 +542,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static void _scrollByPages(receiver) native;
   static void _scrollByPages_2(receiver, pages) native;
 
-  void scrollIntoView(bool alignWithTop = null) {
+  void scrollIntoView([bool alignWithTop = null]) {
     if (alignWithTop === null) {
       _scrollIntoView(this);
       return;
@@ -554,7 +554,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static void _scrollIntoView(receiver) native;
   static void _scrollIntoView_2(receiver, alignWithTop) native;
 
-  void scrollIntoViewIfNeeded(bool centerIfNeeded = null) {
+  void scrollIntoViewIfNeeded([bool centerIfNeeded = null]) {
     if (centerIfNeeded === null) {
       _scrollIntoViewIfNeeded(this);
       return;
@@ -566,7 +566,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static void _scrollIntoViewIfNeeded(receiver) native;
   static void _scrollIntoViewIfNeeded_2(receiver, centerIfNeeded) native;
 
-  void setAttribute(String name = null, String value = null) {
+  void setAttribute([String name = null, String value = null]) {
     if (name === null) {
       if (value === null) {
         _setAttribute(this);
@@ -587,7 +587,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static void _setAttribute_2(receiver, name) native;
   static void _setAttribute_3(receiver, name, value) native;
 
-  void setAttributeNS(String namespaceURI = null, String qualifiedName = null, String value = null) {
+  void setAttributeNS([String namespaceURI = null, String qualifiedName = null, String value = null]) {
     if (namespaceURI === null) {
       if (qualifiedName === null) {
         if (value === null) {
@@ -618,7 +618,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static void _setAttributeNS_3(receiver, namespaceURI, qualifiedName) native;
   static void _setAttributeNS_4(receiver, namespaceURI, qualifiedName, value) native;
 
-  Attr setAttributeNode(Attr newAttr = null) {
+  Attr setAttributeNode([Attr newAttr = null]) {
     if (newAttr === null) {
       return _setAttributeNode(this);
     } else {
@@ -628,7 +628,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static Attr _setAttributeNode(receiver) native;
   static Attr _setAttributeNode_2(receiver, newAttr) native;
 
-  Attr setAttributeNodeNS(Attr newAttr = null) {
+  Attr setAttributeNodeNS([Attr newAttr = null]) {
     if (newAttr === null) {
       return _setAttributeNodeNS(this);
     } else {
@@ -638,7 +638,7 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   static Attr _setAttributeNodeNS(receiver) native;
   static Attr _setAttributeNodeNS_2(receiver, newAttr) native;
 
-  bool webkitMatchesSelector(String selectors = null) {
+  bool webkitMatchesSelector([String selectors = null]) {
     if (selectors === null) {
       return _webkitMatchesSelector(this);
     } else {

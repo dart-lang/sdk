@@ -8,7 +8,7 @@ interface DataTransferItems {
 
   int get length();
 
-  void add(String data = null, String type = null);
+  void add([String data, String type]);
 
   void clear();
 

@@ -270,69 +270,69 @@ interface Document extends Node, NodeSelector {
 
   void set xmlVersion(String value);
 
-  Node adoptNode(Node source = null);
+  Node adoptNode([Node source]);
 
-  Range caretRangeFromPoint(int x = null, int y = null);
+  Range caretRangeFromPoint([int x, int y]);
 
-  Attr createAttribute(String name = null);
+  Attr createAttribute([String name]);
 
-  Attr createAttributeNS(String namespaceURI = null, String qualifiedName = null);
+  Attr createAttributeNS([String namespaceURI, String qualifiedName]);
 
-  CDATASection createCDATASection(String data = null);
+  CDATASection createCDATASection([String data]);
 
   CSSStyleDeclaration createCSSStyleDeclaration();
 
-  Comment createComment(String data = null);
+  Comment createComment([String data]);
 
   DocumentFragment createDocumentFragment();
 
-  Element createElement(String tagName = null);
+  Element createElement([String tagName]);
 
-  Element createElementNS(String namespaceURI = null, String qualifiedName = null);
+  Element createElementNS([String namespaceURI, String qualifiedName]);
 
-  EntityReference createEntityReference(String name = null);
+  EntityReference createEntityReference([String name]);
 
-  Event createEvent(String eventType = null);
+  Event createEvent([String eventType]);
 
-  NodeIterator createNodeIterator(Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null);
+  NodeIterator createNodeIterator([Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences]);
 
-  ProcessingInstruction createProcessingInstruction(String target = null, String data = null);
+  ProcessingInstruction createProcessingInstruction([String target, String data]);
 
   Range createRange();
 
-  Text createTextNode(String data = null);
+  Text createTextNode([String data]);
 
-  TreeWalker createTreeWalker(Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null);
+  TreeWalker createTreeWalker([Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences]);
 
-  Element elementFromPoint(int x = null, int y = null);
+  Element elementFromPoint([int x, int y]);
 
-  bool execCommand(String command = null, bool userInterface = null, String value = null);
+  bool execCommand([String command, bool userInterface, String value]);
 
   Object getCSSCanvasContext(String contextId, String name, int width, int height);
 
-  Element getElementById(String elementId = null);
+  Element getElementById([String elementId]);
 
-  NodeList getElementsByClassName(String tagname = null);
+  NodeList getElementsByClassName([String tagname]);
 
-  NodeList getElementsByName(String elementName = null);
+  NodeList getElementsByName([String elementName]);
 
-  NodeList getElementsByTagName(String tagname = null);
+  NodeList getElementsByTagName([String tagname]);
 
-  NodeList getElementsByTagNameNS(String namespaceURI = null, String localName = null);
+  NodeList getElementsByTagNameNS([String namespaceURI, String localName]);
 
-  CSSStyleDeclaration getOverrideStyle(Element element = null, String pseudoElement = null);
+  CSSStyleDeclaration getOverrideStyle([Element element, String pseudoElement]);
 
-  Node importNode(Node importedNode = null, bool deep = null);
+  Node importNode([Node importedNode, bool deep]);
 
-  bool queryCommandEnabled(String command = null);
+  bool queryCommandEnabled([String command]);
 
-  bool queryCommandIndeterm(String command = null);
+  bool queryCommandIndeterm([String command]);
 
-  bool queryCommandState(String command = null);
+  bool queryCommandState([String command]);
 
-  bool queryCommandSupported(String command = null);
+  bool queryCommandSupported([String command]);
 
-  String queryCommandValue(String command = null);
+  String queryCommandValue([String command]);
 
   Element querySelector(String selectors);
 

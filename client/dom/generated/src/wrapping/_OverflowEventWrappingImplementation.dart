@@ -20,7 +20,7 @@ class _OverflowEventWrappingImplementation extends _EventWrappingImplementation 
   bool get verticalOverflow() { return _get__OverflowEvent_verticalOverflow(this); }
   static bool _get__OverflowEvent_verticalOverflow(var _this) native;
 
-  void initOverflowEvent(int orient = null, bool horizontalOverflow = null, bool verticalOverflow = null) {
+  void initOverflowEvent([int orient = null, bool horizontalOverflow = null, bool verticalOverflow = null]) {
     if (orient === null) {
       if (horizontalOverflow === null) {
         if (verticalOverflow === null) {

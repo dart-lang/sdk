@@ -53,7 +53,7 @@ class _WebSocketWrappingImplementation extends DOMWrapperBase implements WebSock
   int get readyState() { return _get__WebSocket_readyState(this); }
   static int _get__WebSocket_readyState(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -65,7 +65,7 @@ class _WebSocketWrappingImplementation extends DOMWrapperBase implements WebSock
   static void _addEventListener(receiver, type, listener) native;
   static void _addEventListener_2(receiver, type, listener, useCapture) native;
 
-  void close(int code = null, String reason = null) {
+  void close([int code = null, String reason = null]) {
     if (code === null) {
       if (reason === null) {
         _close(this);
@@ -91,7 +91,7 @@ class _WebSocketWrappingImplementation extends DOMWrapperBase implements WebSock
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

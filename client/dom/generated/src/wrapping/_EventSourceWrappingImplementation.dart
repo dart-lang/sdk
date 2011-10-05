@@ -35,7 +35,7 @@ class _EventSourceWrappingImplementation extends DOMWrapperBase implements Event
   int get readyState() { return _get__EventSource_readyState(this); }
   static int _get__EventSource_readyState(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -58,7 +58,7 @@ class _EventSourceWrappingImplementation extends DOMWrapperBase implements Event
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

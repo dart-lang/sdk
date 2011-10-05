@@ -36,5 +36,5 @@ interface WheelEvent extends UIEvent {
 
   int get y();
 
-  void initWheelEvent(int wheelDeltaX = null, int wheelDeltaY = null, DOMWindow view = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null);
+  void initWheelEvent([int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey]);
 }

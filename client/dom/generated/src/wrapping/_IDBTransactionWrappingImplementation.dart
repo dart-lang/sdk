@@ -41,7 +41,7 @@ class _IDBTransactionWrappingImplementation extends DOMWrapperBase implements ID
   }
   static void _abort(receiver) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -63,7 +63,7 @@ class _IDBTransactionWrappingImplementation extends DOMWrapperBase implements ID
   }
   static IDBObjectStore _objectStore(receiver, name) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

@@ -14,7 +14,7 @@ class _CSSRuleListWrappingImplementation extends DOMWrapperBase implements CSSRu
   int get length() { return _get__CSSRuleList_length(this); }
   static int _get__CSSRuleList_length(var _this) native;
 
-  CSSRule item(int index = null) {
+  CSSRule item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {

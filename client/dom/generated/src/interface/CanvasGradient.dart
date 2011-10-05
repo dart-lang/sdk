@@ -6,5 +6,5 @@
 
 interface CanvasGradient {
 
-  void addColorStop(num offset = null, String color = null);
+  void addColorStop([num offset, String color]);
 }

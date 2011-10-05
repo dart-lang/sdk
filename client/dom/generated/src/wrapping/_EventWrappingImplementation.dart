@@ -50,7 +50,7 @@ class _EventWrappingImplementation extends DOMWrapperBase implements Event {
   String get type() { return _get__Event_type(this); }
   static String _get__Event_type(var _this) native;
 
-  void initEvent(String eventTypeArg = null, bool canBubbleArg = null, bool cancelableArg = null) {
+  void initEvent([String eventTypeArg = null, bool canBubbleArg = null, bool cancelableArg = null]) {
     if (eventTypeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

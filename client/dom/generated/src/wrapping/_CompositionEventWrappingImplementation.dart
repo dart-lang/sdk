@@ -14,7 +14,7 @@ class _CompositionEventWrappingImplementation extends _UIEventWrappingImplementa
   String get data() { return _get__CompositionEvent_data(this); }
   static String _get__CompositionEvent_data(var _this) native;
 
-  void initCompositionEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, DOMWindow viewArg = null, String dataArg = null) {
+  void initCompositionEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, DOMWindow viewArg = null, String dataArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

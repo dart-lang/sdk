@@ -6,9 +6,9 @@
 
 interface XPathEvaluator {
 
-  XPathExpression createExpression(String expression = null, XPathNSResolver resolver = null);
+  XPathExpression createExpression([String expression, XPathNSResolver resolver]);
 
-  XPathNSResolver createNSResolver(Node nodeResolver = null);
+  XPathNSResolver createNSResolver([Node nodeResolver]);
 
-  XPathResult evaluate(String expression = null, Node contextNode = null, XPathNSResolver resolver = null, int type = null, XPathResult inResult = null);
+  XPathResult evaluate([String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult]);
 }

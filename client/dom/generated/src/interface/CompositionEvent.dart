@@ -8,5 +8,5 @@ interface CompositionEvent extends UIEvent {
 
   String get data();
 
-  void initCompositionEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, DOMWindow viewArg = null, String dataArg = null);
+  void initCompositionEvent([String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg]);
 }

@@ -22,7 +22,7 @@ interface IDBDatabase {
 
   String get version();
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close();
 
@@ -32,7 +32,7 @@ interface IDBDatabase {
 
   bool dispatchEvent(Event evt);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   IDBVersionChangeRequest setVersion(String version);
 }

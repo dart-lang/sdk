@@ -20,7 +20,7 @@ class _DeviceOrientationEventWrappingImplementation extends _EventWrappingImplem
   num get gamma() { return _get__DeviceOrientationEvent_gamma(this); }
   static num _get__DeviceOrientationEvent_gamma(var _this) native;
 
-  void initDeviceOrientationEvent(String type = null, bool bubbles = null, bool cancelable = null, num alpha = null, num beta = null, num gamma = null) {
+  void initDeviceOrientationEvent([String type = null, bool bubbles = null, bool cancelable = null, num alpha = null, num beta = null, num gamma = null]) {
     if (type === null) {
       if (bubbles === null) {
         if (cancelable === null) {

@@ -8,9 +8,9 @@ interface Database {
 
   String get version();
 
-  void changeVersion(String oldVersion, String newVersion, SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null);
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 
-  void readTransaction(SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null);
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 
-  void transaction(SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null);
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 }

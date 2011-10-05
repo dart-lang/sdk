@@ -38,7 +38,7 @@ class _UIEventWrappingImplementation extends _EventWrappingImplementation implem
   int get which() { return _get__UIEvent_which(this); }
   static int _get__UIEvent_which(var _this) native;
 
-  void initUIEvent(String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, int detail = null) {
+  void initUIEvent([String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, int detail = null]) {
     if (type === null) {
       if (canBubble === null) {
         if (cancelable === null) {

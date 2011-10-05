@@ -11,7 +11,7 @@ class _DOMParserWrappingImplementation extends DOMWrapperBase implements DOMPars
     return new _DOMParserWrappingImplementation();
   }
 
-  Document parseFromString(String str = null, String contentType = null) {
+  Document parseFromString([String str = null, String contentType = null]) {
     if (str === null) {
       if (contentType === null) {
         return _parseFromString(this);

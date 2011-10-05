@@ -16,5 +16,5 @@ interface StorageEvent extends Event {
 
   String get url();
 
-  void initStorageEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String keyArg = null, String oldValueArg = null, String newValueArg = null, String urlArg = null, Storage storageAreaArg = null);
+  void initStorageEvent([String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg]);
 }

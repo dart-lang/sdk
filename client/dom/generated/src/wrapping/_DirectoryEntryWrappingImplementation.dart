@@ -16,7 +16,7 @@ class _DirectoryEntryWrappingImplementation extends _EntryWrappingImplementation
   }
   static DirectoryReader _createReader(receiver) native;
 
-  void getDirectory(String path, WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void getDirectory(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (flags === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -47,7 +47,7 @@ class _DirectoryEntryWrappingImplementation extends _EntryWrappingImplementation
   static void _getDirectory_3(receiver, path, flags, successCallback) native;
   static void _getDirectory_4(receiver, path, flags, successCallback, errorCallback) native;
 
-  void getFile(String path, WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void getFile(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (flags === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -78,7 +78,7 @@ class _DirectoryEntryWrappingImplementation extends _EntryWrappingImplementation
   static void _getFile_3(receiver, path, flags, successCallback) native;
   static void _getFile_4(receiver, path, flags, successCallback, errorCallback) native;
 
-  void removeRecursively(VoidCallback successCallback = null, ErrorCallback errorCallback = null) {
+  void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _removeRecursively(this);

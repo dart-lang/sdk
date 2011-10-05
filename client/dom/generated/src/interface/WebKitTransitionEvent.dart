@@ -10,5 +10,5 @@ interface WebKitTransitionEvent extends Event {
 
   String get propertyName();
 
-  void initWebKitTransitionEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String propertyNameArg = null, num elapsedTimeArg = null);
+  void initWebKitTransitionEvent([String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg]);
 }

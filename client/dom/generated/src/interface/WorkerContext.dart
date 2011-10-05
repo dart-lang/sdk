@@ -22,11 +22,11 @@ interface WorkerGlobalScope {
 
   DOMURL get webkitURL();
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void clearInterval(int handle = null);
+  void clearInterval([int handle]);
 
-  void clearTimeout(int handle = null);
+  void clearTimeout([int handle]);
 
   void close();
 
@@ -34,7 +34,7 @@ interface WorkerGlobalScope {
 
   void importScripts();
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   int setInterval(TimeoutHandler handler, int timeout);
 

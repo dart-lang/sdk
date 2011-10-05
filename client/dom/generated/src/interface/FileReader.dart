@@ -52,5 +52,5 @@ interface FileReader factory _FileReaderFactoryProvider {
 
   void readAsDataURL(Blob blob);
 
-  void readAsText(Blob blob, String encoding = null);
+  void readAsText(Blob blob, [String encoding]);
 }

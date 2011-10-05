@@ -24,5 +24,5 @@ interface UIEvent extends Event {
 
   int get which();
 
-  void initUIEvent(String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, int detail = null);
+  void initUIEvent([String type, bool canBubble, bool cancelable, DOMWindow view, int detail]);
 }

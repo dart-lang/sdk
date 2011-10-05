@@ -12,5 +12,5 @@ interface ErrorEvent extends Event {
 
   String get message();
 
-  void initErrorEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String messageArg = null, String filenameArg = null, int linenoArg = null);
+  void initErrorEvent([String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg]);
 }

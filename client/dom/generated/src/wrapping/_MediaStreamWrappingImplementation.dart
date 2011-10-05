@@ -26,7 +26,7 @@ class _MediaStreamWrappingImplementation extends DOMWrapperBase implements Media
   MediaStreamTrackList get tracks() { return _get__MediaStream_tracks(this); }
   static MediaStreamTrackList _get__MediaStream_tracks(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -43,7 +43,7 @@ class _MediaStreamWrappingImplementation extends DOMWrapperBase implements Media
   }
   static bool _dispatchEvent(receiver, event) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

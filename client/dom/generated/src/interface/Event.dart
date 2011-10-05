@@ -70,7 +70,7 @@ interface Event {
 
   String get type();
 
-  void initEvent(String eventTypeArg = null, bool canBubbleArg = null, bool cancelableArg = null);
+  void initEvent([String eventTypeArg, bool canBubbleArg, bool cancelableArg]);
 
   void preventDefault();
 

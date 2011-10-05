@@ -10,7 +10,7 @@ interface Worker extends AbstractWorker {
 
   void set onmessage(EventListener value);
 
-  void postMessage(String message, MessagePort messagePort = null);
+  void postMessage(String message, [MessagePort messagePort]);
 
   void terminate();
 }

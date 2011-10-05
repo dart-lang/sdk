@@ -20,7 +20,7 @@ class _CharacterDataWrappingImplementation extends _NodeWrappingImplementation i
   int get length() { return _get__CharacterData_length(this); }
   static int _get__CharacterData_length(var _this) native;
 
-  void appendData(String data = null) {
+  void appendData([String data = null]) {
     if (data === null) {
       _appendData(this);
       return;
@@ -32,7 +32,7 @@ class _CharacterDataWrappingImplementation extends _NodeWrappingImplementation i
   static void _appendData(receiver) native;
   static void _appendData_2(receiver, data) native;
 
-  void deleteData(int offset = null, int length = null) {
+  void deleteData([int offset = null, int length = null]) {
     if (offset === null) {
       if (length === null) {
         _deleteData(this);
@@ -53,7 +53,7 @@ class _CharacterDataWrappingImplementation extends _NodeWrappingImplementation i
   static void _deleteData_2(receiver, offset) native;
   static void _deleteData_3(receiver, offset, length) native;
 
-  void insertData(int offset = null, String data = null) {
+  void insertData([int offset = null, String data = null]) {
     if (offset === null) {
       if (data === null) {
         _insertData(this);
@@ -74,7 +74,7 @@ class _CharacterDataWrappingImplementation extends _NodeWrappingImplementation i
   static void _insertData_2(receiver, offset) native;
   static void _insertData_3(receiver, offset, data) native;
 
-  void replaceData(int offset = null, int length = null, String data = null) {
+  void replaceData([int offset = null, int length = null, String data = null]) {
     if (offset === null) {
       if (length === null) {
         if (data === null) {
@@ -105,7 +105,7 @@ class _CharacterDataWrappingImplementation extends _NodeWrappingImplementation i
   static void _replaceData_3(receiver, offset, length) native;
   static void _replaceData_4(receiver, offset, length, data) native;
 
-  String substringData(int offset = null, int length = null) {
+  String substringData([int offset = null, int length = null]) {
     if (offset === null) {
       if (length === null) {
         return _substringData(this);

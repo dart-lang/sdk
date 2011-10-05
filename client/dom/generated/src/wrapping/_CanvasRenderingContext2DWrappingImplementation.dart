@@ -137,7 +137,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static void _closePath(receiver) native;
 
-  ImageData createImageData(var imagedata_OR_sw, num sh = null) {
+  ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
     if (imagedata_OR_sw is ImageData) {
       if (sh === null) {
         return _createImageData(this, imagedata_OR_sw);
@@ -175,7 +175,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static CanvasGradient _createRadialGradient(receiver, x0, y0, r0, x1, y1, r1) native;
 
-  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null) {
+  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
     if (canvas_OR_image is HTMLImageElement) {
       if (sw_OR_width === null) {
         if (height_OR_sh === null) {
@@ -246,7 +246,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   static void _drawImage_5(receiver, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native;
   static void _drawImage_6(receiver, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native;
 
-  void drawImageFromRect(HTMLImageElement image, num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null) {
+  void drawImageFromRect(HTMLImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
     if (sx === null) {
       if (sy === null) {
         if (sw === null) {
@@ -391,7 +391,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static void _fillRect(receiver, x, y, width, height) native;
 
-  void fillText(String text, num x, num y, num maxWidth = null) {
+  void fillText(String text, num x, num y, [num maxWidth = null]) {
     if (maxWidth === null) {
       _fillText(this, text, x, y);
       return;
@@ -430,7 +430,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static void _moveTo(receiver, x, y) native;
 
-  void putImageData(ImageData imagedata, num dx, num dy, num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null) {
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
     if (dirtyX === null) {
       if (dirtyY === null) {
         if (dirtyWidth === null) {
@@ -497,7 +497,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static void _setCompositeOperation(receiver, compositeOperation) native;
 
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null) {
+  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
     if (c_OR_color_OR_grayLevel_OR_r is String) {
       if (alpha_OR_g_OR_m === null) {
         if (b_OR_y === null) {
@@ -603,7 +603,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static void _setMiterLimit(receiver, limit) native;
 
-  void setShadow(num width, num height, num blur, var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null) {
+  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
     if (c_OR_color_OR_grayLevel_OR_r === null) {
       if (alpha_OR_g_OR_m === null) {
         if (b_OR_y === null) {
@@ -678,7 +678,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   static void _setShadow_6(receiver, width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native;
   static void _setShadow_7(receiver, width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native;
 
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null) {
+  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
     if (c_OR_color_OR_grayLevel_OR_r is String) {
       if (alpha_OR_g_OR_m === null) {
         if (b_OR_y === null) {
@@ -772,7 +772,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static void _stroke(receiver) native;
 
-  void strokeRect(num x, num y, num width, num height, num lineWidth = null) {
+  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) {
     if (lineWidth === null) {
       _strokeRect(this, x, y, width, height);
       return;
@@ -784,7 +784,7 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   static void _strokeRect(receiver, x, y, width, height) native;
   static void _strokeRect_2(receiver, x, y, width, height, lineWidth) native;
 
-  void strokeText(String text, num x, num y, num maxWidth = null) {
+  void strokeText(String text, num x, num y, [num maxWidth = null]) {
     if (maxWidth === null) {
       _strokeText(this, text, x, y);
       return;

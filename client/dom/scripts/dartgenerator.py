@@ -557,6 +557,25 @@ class DartGenerator(object):
       else:
         return '%s %s' % (type, name)
 
+    def FormatArgs(args, is_interface):
+      required = []
+      optional = []
+      for (name, type, default) in args:
+        if default:
+          if is_interface:
+            optional.append((name, type, None))
+          else:
+            optional.append((name, type, default))
+        else:
+          if optional:
+            raise Exception('Optional arguments cannot precede required ones: '
+                            + str(args))
+          required.append((name, type, None))
+      argtexts = map(FormatArg, required)
+      if optional:
+        argtexts.append('[' + ', '.join(map(FormatArg, optional)) + ']')
+      return ', '.join(argtexts)
+
     args = map(lambda *args: DartArg(args),
                *(op.arguments for op in operations))
 
@@ -567,7 +586,8 @@ class DartGenerator(object):
     info.js_name = operations[0].ext_attrs.get('ImplementationFunction',
                                                info.declared_name)
     info.type_name = operations[0].type.id   # TODO: widen.
-    info.arg_declarations = map(FormatArg, args)
+    info.arg_interface_declaration = FormatArgs(args, True)
+    info.arg_implementation_declaration = FormatArgs(args, False)
     info.arg_infos = args
     return info
 
@@ -1049,7 +1069,7 @@ class DartInterfaceGenerator(object):
                                '  $TYPE $NAME($ARGS);\n',
                                TYPE=info.type_name,
                                NAME=info.name,
-                               ARGS=', '.join(info.arg_declarations))
+                               ARGS=info.arg_interface_declaration)
 
 
 # Given a sorted sequence of type identifiers, return an appropriate type
@@ -1319,7 +1339,7 @@ class WrappingInterfaceGenerator(object):
         '  }\n',
         TYPE=info.type_name,
         NAME=info.name,
-        ARGS=', '.join(info.arg_declarations))
+        ARGS=info.arg_implementation_declaration)
 
     # Process in order of ascending number of arguments to ensure missing
     # optional arguments are processed early.

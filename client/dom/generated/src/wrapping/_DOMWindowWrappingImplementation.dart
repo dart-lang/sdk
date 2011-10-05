@@ -695,7 +695,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   DOMWindow get window() { return _get__DOMWindow_window(this); }
   static DOMWindow _get__DOMWindow_window(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -707,7 +707,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static void _addEventListener(receiver, type, listener) native;
   static void _addEventListener_2(receiver, type, listener, useCapture) native;
 
-  void alert(String message = null) {
+  void alert([String message = null]) {
     if (message === null) {
       _alert(this);
       return;
@@ -719,7 +719,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static void _alert(receiver) native;
   static void _alert_2(receiver, message) native;
 
-  String atob(String string = null) {
+  String atob([String string = null]) {
     if (string === null) {
       return _atob(this);
     } else {
@@ -735,7 +735,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _blur(receiver) native;
 
-  String btoa(String string = null) {
+  String btoa([String string = null]) {
     if (string === null) {
       return _btoa(this);
     } else {
@@ -751,7 +751,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _captureEvents(receiver) native;
 
-  void clearInterval(int handle = null) {
+  void clearInterval([int handle = null]) {
     if (handle === null) {
       _clearInterval(this);
       return;
@@ -763,7 +763,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static void _clearInterval(receiver) native;
   static void _clearInterval_2(receiver, handle) native;
 
-  void clearTimeout(int handle = null) {
+  void clearTimeout([int handle = null]) {
     if (handle === null) {
       _clearTimeout(this);
       return;
@@ -781,7 +781,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _close(receiver) native;
 
-  bool confirm(String message = null) {
+  bool confirm([String message = null]) {
     if (message === null) {
       return _confirm(this);
     } else {
@@ -796,7 +796,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static FileReader _createFileReader(receiver) native;
 
-  WebKitCSSMatrix createWebKitCSSMatrix(String cssValue = null) {
+  WebKitCSSMatrix createWebKitCSSMatrix([String cssValue = null]) {
     if (cssValue === null) {
       return _createWebKitCSSMatrix(this);
     } else {
@@ -821,7 +821,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  bool find(String string = null, bool caseSensitive = null, bool backwards = null, bool wrap = null, bool wholeWord = null, bool searchInFrames = null, bool showDialog = null) {
+  bool find([String string = null, bool caseSensitive = null, bool backwards = null, bool wrap = null, bool wholeWord = null, bool searchInFrames = null, bool showDialog = null]) {
     if (string === null) {
       if (caseSensitive === null) {
         if (backwards === null) {
@@ -910,7 +910,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _focus(receiver) native;
 
-  CSSStyleDeclaration getComputedStyle(Element element = null, String pseudoElement = null) {
+  CSSStyleDeclaration getComputedStyle([Element element = null, String pseudoElement = null]) {
     if (element === null) {
       if (pseudoElement === null) {
         return _getComputedStyle(this);
@@ -950,7 +950,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _moveTo(receiver, x, y) native;
 
-  DOMWindow open(String url, String name, String options = null) {
+  DOMWindow open(String url, String name, [String options = null]) {
     if (options === null) {
       return _open(this, url, name);
     } else {
@@ -960,7 +960,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static DOMWindow _open(receiver, url, name) native;
   static DOMWindow _open_2(receiver, url, name, options) native;
 
-  void postMessage(String message, var messagePort_OR_targetOrigin, String targetOrigin = null) {
+  void postMessage(String message, var messagePort_OR_targetOrigin, [String targetOrigin = null]) {
     if (messagePort_OR_targetOrigin is String) {
       if (targetOrigin === null) {
         _postMessage(this, message, messagePort_OR_targetOrigin);
@@ -983,7 +983,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _print(receiver) native;
 
-  String prompt(String message = null, String defaultValue = null) {
+  String prompt([String message = null, String defaultValue = null]) {
     if (message === null) {
       if (defaultValue === null) {
         return _prompt(this);
@@ -1007,7 +1007,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _releaseEvents(receiver) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;
@@ -1054,7 +1054,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static int _setInterval(receiver, handler, timeout) native;
 
-  int setTimeout(TimeoutHandler handler = null, int timeout = null) {
+  int setTimeout([TimeoutHandler handler = null, int timeout = null]) {
     if (handler === null) {
       if (timeout === null) {
         return _setTimeout(this);
@@ -1072,7 +1072,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static int _setTimeout_2(receiver, handler) native;
   static int _setTimeout_3(receiver, handler, timeout) native;
 
-  Object showModalDialog(String url, Object dialogArgs = null, String featureArgs = null) {
+  Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) {
     if (dialogArgs === null) {
       if (featureArgs === null) {
         return _showModalDialog(this, url);
@@ -1102,7 +1102,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _webkitCancelRequestAnimationFrame(receiver, id) native;
 
-  WebKitPoint webkitConvertPointFromNodeToPage(Node node = null, WebKitPoint p = null) {
+  WebKitPoint webkitConvertPointFromNodeToPage([Node node = null, WebKitPoint p = null]) {
     if (node === null) {
       if (p === null) {
         return _webkitConvertPointFromNodeToPage(this);
@@ -1120,7 +1120,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static WebKitPoint _webkitConvertPointFromNodeToPage_2(receiver, node) native;
   static WebKitPoint _webkitConvertPointFromNodeToPage_3(receiver, node, p) native;
 
-  WebKitPoint webkitConvertPointFromPageToNode(Node node = null, WebKitPoint p = null) {
+  WebKitPoint webkitConvertPointFromPageToNode([Node node = null, WebKitPoint p = null]) {
     if (node === null) {
       if (p === null) {
         return _webkitConvertPointFromPageToNode(this);
@@ -1138,7 +1138,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static WebKitPoint _webkitConvertPointFromPageToNode_2(receiver, node) native;
   static WebKitPoint _webkitConvertPointFromPageToNode_3(receiver, node, p) native;
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element = null) {
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element = null]) {
     if (element === null) {
       return _webkitRequestAnimationFrame(this, callback);
     } else {

@@ -42,13 +42,13 @@ interface WebSocket extends EventTarget {
 
   int get readyState();
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void close(int code = null, String reason = null);
+  void close([int code, String reason]);
 
   bool dispatchEvent(Event evt);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool send(String data);
 }

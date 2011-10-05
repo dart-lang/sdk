@@ -32,7 +32,7 @@ class _KeyboardEventWrappingImplementation extends _UIEventWrappingImplementatio
   bool get shiftKey() { return _get__KeyboardEvent_shiftKey(this); }
   static bool _get__KeyboardEvent_shiftKey(var _this) native;
 
-  bool getModifierState(String keyIdentifierArg = null) {
+  bool getModifierState([String keyIdentifierArg = null]) {
     if (keyIdentifierArg === null) {
       return _getModifierState(this);
     } else {
@@ -42,7 +42,7 @@ class _KeyboardEventWrappingImplementation extends _UIEventWrappingImplementatio
   static bool _getModifierState(receiver) native;
   static bool _getModifierState_2(receiver, keyIdentifierArg) native;
 
-  void initKeyboardEvent(String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, String keyIdentifier = null, int keyLocation = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null, bool altGraphKey = null) {
+  void initKeyboardEvent([String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, String keyIdentifier = null, int keyLocation = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null, bool altGraphKey = null]) {
     if (type === null) {
       if (canBubble === null) {
         if (cancelable === null) {

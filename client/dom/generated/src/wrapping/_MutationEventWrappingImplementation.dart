@@ -26,7 +26,7 @@ class _MutationEventWrappingImplementation extends _EventWrappingImplementation 
   Node get relatedNode() { return _get__MutationEvent_relatedNode(this); }
   static Node _get__MutationEvent_relatedNode(var _this) native;
 
-  void initMutationEvent(String type = null, bool canBubble = null, bool cancelable = null, Node relatedNode = null, String prevValue = null, String newValue = null, String attrName = null, int attrChange = null) {
+  void initMutationEvent([String type = null, bool canBubble = null, bool cancelable = null, Node relatedNode = null, String prevValue = null, String newValue = null, String attrName = null, int attrChange = null]) {
     if (type === null) {
       if (canBubble === null) {
         if (cancelable === null) {

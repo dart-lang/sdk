@@ -22,5 +22,5 @@ interface MutationEvent extends Event {
 
   Node get relatedNode();
 
-  void initMutationEvent(String type = null, bool canBubble = null, bool cancelable = null, Node relatedNode = null, String prevValue = null, String newValue = null, String attrName = null, int attrChange = null);
+  void initMutationEvent([String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange]);
 }

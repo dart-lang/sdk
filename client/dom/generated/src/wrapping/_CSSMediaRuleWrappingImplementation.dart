@@ -17,7 +17,7 @@ class _CSSMediaRuleWrappingImplementation extends _CSSRuleWrappingImplementation
   MediaList get media() { return _get__CSSMediaRule_media(this); }
   static MediaList _get__CSSMediaRule_media(var _this) native;
 
-  void deleteRule(int index = null) {
+  void deleteRule([int index = null]) {
     if (index === null) {
       _deleteRule(this);
       return;
@@ -29,7 +29,7 @@ class _CSSMediaRuleWrappingImplementation extends _CSSRuleWrappingImplementation
   static void _deleteRule(receiver) native;
   static void _deleteRule_2(receiver, index) native;
 
-  int insertRule(String rule = null, int index = null) {
+  int insertRule([String rule = null, int index = null]) {
     if (rule === null) {
       if (index === null) {
         return _insertRule(this);

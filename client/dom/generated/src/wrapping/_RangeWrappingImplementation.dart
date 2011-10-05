@@ -42,7 +42,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   }
   static Range _cloneRange(receiver) native;
 
-  void collapse(bool toStart = null) {
+  void collapse([bool toStart = null]) {
     if (toStart === null) {
       _collapse(this);
       return;
@@ -59,7 +59,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   }
   static int _compareBoundaryPoints(receiver) native;
 
-  int compareNode(Node refNode = null) {
+  int compareNode([Node refNode = null]) {
     if (refNode === null) {
       return _compareNode(this);
     } else {
@@ -69,7 +69,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static int _compareNode(receiver) native;
   static int _compareNode_2(receiver, refNode) native;
 
-  int comparePoint(Node refNode = null, int offset = null) {
+  int comparePoint([Node refNode = null, int offset = null]) {
     if (refNode === null) {
       if (offset === null) {
         return _comparePoint(this);
@@ -87,7 +87,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static int _comparePoint_2(receiver, refNode) native;
   static int _comparePoint_3(receiver, refNode, offset) native;
 
-  DocumentFragment createContextualFragment(String html = null) {
+  DocumentFragment createContextualFragment([String html = null]) {
     if (html === null) {
       return _createContextualFragment(this);
     } else {
@@ -109,7 +109,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   }
   static void _detach(receiver) native;
 
-  void expand(String unit = null) {
+  void expand([String unit = null]) {
     if (unit === null) {
       _expand(this);
       return;
@@ -126,7 +126,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   }
   static DocumentFragment _extractContents(receiver) native;
 
-  void insertNode(Node newNode = null) {
+  void insertNode([Node newNode = null]) {
     if (newNode === null) {
       _insertNode(this);
       return;
@@ -138,7 +138,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _insertNode(receiver) native;
   static void _insertNode_2(receiver, newNode) native;
 
-  bool intersectsNode(Node refNode = null) {
+  bool intersectsNode([Node refNode = null]) {
     if (refNode === null) {
       return _intersectsNode(this);
     } else {
@@ -148,7 +148,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static bool _intersectsNode(receiver) native;
   static bool _intersectsNode_2(receiver, refNode) native;
 
-  bool isPointInRange(Node refNode = null, int offset = null) {
+  bool isPointInRange([Node refNode = null, int offset = null]) {
     if (refNode === null) {
       if (offset === null) {
         return _isPointInRange(this);
@@ -166,7 +166,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static bool _isPointInRange_2(receiver, refNode) native;
   static bool _isPointInRange_3(receiver, refNode, offset) native;
 
-  void selectNode(Node refNode = null) {
+  void selectNode([Node refNode = null]) {
     if (refNode === null) {
       _selectNode(this);
       return;
@@ -178,7 +178,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _selectNode(receiver) native;
   static void _selectNode_2(receiver, refNode) native;
 
-  void selectNodeContents(Node refNode = null) {
+  void selectNodeContents([Node refNode = null]) {
     if (refNode === null) {
       _selectNodeContents(this);
       return;
@@ -190,7 +190,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _selectNodeContents(receiver) native;
   static void _selectNodeContents_2(receiver, refNode) native;
 
-  void setEnd(Node refNode = null, int offset = null) {
+  void setEnd([Node refNode = null, int offset = null]) {
     if (refNode === null) {
       if (offset === null) {
         _setEnd(this);
@@ -211,7 +211,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _setEnd_2(receiver, refNode) native;
   static void _setEnd_3(receiver, refNode, offset) native;
 
-  void setEndAfter(Node refNode = null) {
+  void setEndAfter([Node refNode = null]) {
     if (refNode === null) {
       _setEndAfter(this);
       return;
@@ -223,7 +223,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _setEndAfter(receiver) native;
   static void _setEndAfter_2(receiver, refNode) native;
 
-  void setEndBefore(Node refNode = null) {
+  void setEndBefore([Node refNode = null]) {
     if (refNode === null) {
       _setEndBefore(this);
       return;
@@ -235,7 +235,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _setEndBefore(receiver) native;
   static void _setEndBefore_2(receiver, refNode) native;
 
-  void setStart(Node refNode = null, int offset = null) {
+  void setStart([Node refNode = null, int offset = null]) {
     if (refNode === null) {
       if (offset === null) {
         _setStart(this);
@@ -256,7 +256,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _setStart_2(receiver, refNode) native;
   static void _setStart_3(receiver, refNode, offset) native;
 
-  void setStartAfter(Node refNode = null) {
+  void setStartAfter([Node refNode = null]) {
     if (refNode === null) {
       _setStartAfter(this);
       return;
@@ -268,7 +268,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _setStartAfter(receiver) native;
   static void _setStartAfter_2(receiver, refNode) native;
 
-  void setStartBefore(Node refNode = null) {
+  void setStartBefore([Node refNode = null]) {
     if (refNode === null) {
       _setStartBefore(this);
       return;
@@ -280,7 +280,7 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   static void _setStartBefore(receiver) native;
   static void _setStartBefore_2(receiver, refNode) native;
 
-  void surroundContents(Node newParent = null) {
+  void surroundContents([Node newParent = null]) {
     if (newParent === null) {
       _surroundContents(this);
       return;

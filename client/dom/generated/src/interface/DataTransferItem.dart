@@ -12,5 +12,5 @@ interface DataTransferItem {
 
   Blob getAsFile();
 
-  void getAsString(StringCallback callback = null);
+  void getAsString([StringCallback callback]);
 }

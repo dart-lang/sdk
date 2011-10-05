@@ -23,7 +23,7 @@ class _IDBCursorWrappingImplementation extends DOMWrapperBase implements IDBCurs
   IDBAny get source() { return _get__IDBCursor_source(this); }
   static IDBAny _get__IDBCursor_source(var _this) native;
 
-  void continueFunction(IDBKey key = null) {
+  void continueFunction([IDBKey key = null]) {
     if (key === null) {
       _continueFunction(this);
       return;

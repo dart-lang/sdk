@@ -610,7 +610,7 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static void _stencilOpSeparate(receiver, face, fail, zfail, zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, int format = null, int type = null, ArrayBufferView pixels = null) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format = null, int type = null, ArrayBufferView pixels = null]) {
     if (border_OR_canvas_OR_image_OR_pixels is ImageData) {
       if (format === null) {
         if (type === null) {
@@ -667,7 +667,7 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static void _texParameteri(receiver, target, pname, param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, int type = null, ArrayBufferView pixels = null) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type = null, ArrayBufferView pixels = null]) {
     if (canvas_OR_format_OR_image_OR_pixels is ImageData) {
       if (type === null) {
         if (pixels === null) {

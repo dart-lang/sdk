@@ -38,5 +38,5 @@ interface MouseEvent extends UIEvent {
 
   int get y();
 
-  void initMouseEvent(String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, int detail = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null, int button = null, EventTarget relatedTarget = null);
+  void initMouseEvent([String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget]);
 }

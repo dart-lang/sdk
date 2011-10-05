@@ -110,7 +110,7 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   void set webkitdropzone(String value) { _set__HTMLElement_webkitdropzone(this, value); }
   static void _set__HTMLElement_webkitdropzone(var _this, String value) native;
 
-  Element insertAdjacentElement(String where = null, Element element = null) {
+  Element insertAdjacentElement([String where = null, Element element = null]) {
     if (where === null) {
       if (element === null) {
         return _insertAdjacentElement(this);
@@ -128,7 +128,7 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   static Element _insertAdjacentElement_2(receiver, where) native;
   static Element _insertAdjacentElement_3(receiver, where, element) native;
 
-  void insertAdjacentHTML(String where = null, String html = null) {
+  void insertAdjacentHTML([String where = null, String html = null]) {
     if (where === null) {
       if (html === null) {
         _insertAdjacentHTML(this);
@@ -149,7 +149,7 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   static void _insertAdjacentHTML_2(receiver, where) native;
   static void _insertAdjacentHTML_3(receiver, where, html) native;
 
-  void insertAdjacentText(String where = null, String text = null) {
+  void insertAdjacentText([String where = null, String text = null]) {
     if (where === null) {
       if (text === null) {
         _insertAdjacentText(this);

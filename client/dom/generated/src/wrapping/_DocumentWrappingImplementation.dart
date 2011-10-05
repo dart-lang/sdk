@@ -407,7 +407,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   void set xmlVersion(String value) { _set__Document_xmlVersion(this, value); }
   static void _set__Document_xmlVersion(var _this, String value) native;
 
-  Node adoptNode(Node source = null) {
+  Node adoptNode([Node source = null]) {
     if (source === null) {
       return _adoptNode(this);
     } else {
@@ -417,7 +417,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Node _adoptNode(receiver) native;
   static Node _adoptNode_2(receiver, source) native;
 
-  Range caretRangeFromPoint(int x = null, int y = null) {
+  Range caretRangeFromPoint([int x = null, int y = null]) {
     if (x === null) {
       if (y === null) {
         return _caretRangeFromPoint(this);
@@ -435,7 +435,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Range _caretRangeFromPoint_2(receiver, x) native;
   static Range _caretRangeFromPoint_3(receiver, x, y) native;
 
-  Attr createAttribute(String name = null) {
+  Attr createAttribute([String name = null]) {
     if (name === null) {
       return _createAttribute(this);
     } else {
@@ -445,7 +445,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Attr _createAttribute(receiver) native;
   static Attr _createAttribute_2(receiver, name) native;
 
-  Attr createAttributeNS(String namespaceURI = null, String qualifiedName = null) {
+  Attr createAttributeNS([String namespaceURI = null, String qualifiedName = null]) {
     if (namespaceURI === null) {
       if (qualifiedName === null) {
         return _createAttributeNS(this);
@@ -463,7 +463,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Attr _createAttributeNS_2(receiver, namespaceURI) native;
   static Attr _createAttributeNS_3(receiver, namespaceURI, qualifiedName) native;
 
-  CDATASection createCDATASection(String data = null) {
+  CDATASection createCDATASection([String data = null]) {
     if (data === null) {
       return _createCDATASection(this);
     } else {
@@ -478,7 +478,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static CSSStyleDeclaration _createCSSStyleDeclaration(receiver) native;
 
-  Comment createComment(String data = null) {
+  Comment createComment([String data = null]) {
     if (data === null) {
       return _createComment(this);
     } else {
@@ -493,7 +493,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static DocumentFragment _createDocumentFragment(receiver) native;
 
-  Element createElement(String tagName = null) {
+  Element createElement([String tagName = null]) {
     if (tagName === null) {
       return _createElement(this);
     } else {
@@ -503,7 +503,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Element _createElement(receiver) native;
   static Element _createElement_2(receiver, tagName) native;
 
-  Element createElementNS(String namespaceURI = null, String qualifiedName = null) {
+  Element createElementNS([String namespaceURI = null, String qualifiedName = null]) {
     if (namespaceURI === null) {
       if (qualifiedName === null) {
         return _createElementNS(this);
@@ -521,7 +521,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Element _createElementNS_2(receiver, namespaceURI) native;
   static Element _createElementNS_3(receiver, namespaceURI, qualifiedName) native;
 
-  EntityReference createEntityReference(String name = null) {
+  EntityReference createEntityReference([String name = null]) {
     if (name === null) {
       return _createEntityReference(this);
     } else {
@@ -531,7 +531,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static EntityReference _createEntityReference(receiver) native;
   static EntityReference _createEntityReference_2(receiver, name) native;
 
-  Event createEvent(String eventType = null) {
+  Event createEvent([String eventType = null]) {
     if (eventType === null) {
       return _createEvent(this);
     } else {
@@ -541,7 +541,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Event _createEvent(receiver) native;
   static Event _createEvent_2(receiver, eventType) native;
 
-  NodeIterator createNodeIterator(Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null) {
+  NodeIterator createNodeIterator([Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null]) {
     if (root === null) {
       if (whatToShow === null) {
         if (filter === null) {
@@ -579,7 +579,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static NodeIterator _createNodeIterator_4(receiver, root, whatToShow, filter) native;
   static NodeIterator _createNodeIterator_5(receiver, root, whatToShow, filter, expandEntityReferences) native;
 
-  ProcessingInstruction createProcessingInstruction(String target = null, String data = null) {
+  ProcessingInstruction createProcessingInstruction([String target = null, String data = null]) {
     if (target === null) {
       if (data === null) {
         return _createProcessingInstruction(this);
@@ -602,7 +602,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static Range _createRange(receiver) native;
 
-  Text createTextNode(String data = null) {
+  Text createTextNode([String data = null]) {
     if (data === null) {
       return _createTextNode(this);
     } else {
@@ -612,7 +612,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Text _createTextNode(receiver) native;
   static Text _createTextNode_2(receiver, data) native;
 
-  TreeWalker createTreeWalker(Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null) {
+  TreeWalker createTreeWalker([Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null]) {
     if (root === null) {
       if (whatToShow === null) {
         if (filter === null) {
@@ -650,7 +650,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static TreeWalker _createTreeWalker_4(receiver, root, whatToShow, filter) native;
   static TreeWalker _createTreeWalker_5(receiver, root, whatToShow, filter, expandEntityReferences) native;
 
-  Element elementFromPoint(int x = null, int y = null) {
+  Element elementFromPoint([int x = null, int y = null]) {
     if (x === null) {
       if (y === null) {
         return _elementFromPoint(this);
@@ -668,7 +668,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Element _elementFromPoint_2(receiver, x) native;
   static Element _elementFromPoint_3(receiver, x, y) native;
 
-  bool execCommand(String command = null, bool userInterface = null, String value = null) {
+  bool execCommand([String command = null, bool userInterface = null, String value = null]) {
     if (command === null) {
       if (userInterface === null) {
         if (value === null) {
@@ -700,7 +700,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static Object _getCSSCanvasContext(receiver, contextId, name, width, height) native;
 
-  Element getElementById(String elementId = null) {
+  Element getElementById([String elementId = null]) {
     if (elementId === null) {
       return _getElementById(this);
     } else {
@@ -710,7 +710,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Element _getElementById(receiver) native;
   static Element _getElementById_2(receiver, elementId) native;
 
-  NodeList getElementsByClassName(String tagname = null) {
+  NodeList getElementsByClassName([String tagname = null]) {
     if (tagname === null) {
       return _getElementsByClassName(this);
     } else {
@@ -720,7 +720,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static NodeList _getElementsByClassName(receiver) native;
   static NodeList _getElementsByClassName_2(receiver, tagname) native;
 
-  NodeList getElementsByName(String elementName = null) {
+  NodeList getElementsByName([String elementName = null]) {
     if (elementName === null) {
       return _getElementsByName(this);
     } else {
@@ -730,7 +730,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static NodeList _getElementsByName(receiver) native;
   static NodeList _getElementsByName_2(receiver, elementName) native;
 
-  NodeList getElementsByTagName(String tagname = null) {
+  NodeList getElementsByTagName([String tagname = null]) {
     if (tagname === null) {
       return _getElementsByTagName(this);
     } else {
@@ -740,7 +740,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static NodeList _getElementsByTagName(receiver) native;
   static NodeList _getElementsByTagName_2(receiver, tagname) native;
 
-  NodeList getElementsByTagNameNS(String namespaceURI = null, String localName = null) {
+  NodeList getElementsByTagNameNS([String namespaceURI = null, String localName = null]) {
     if (namespaceURI === null) {
       if (localName === null) {
         return _getElementsByTagNameNS(this);
@@ -758,7 +758,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static NodeList _getElementsByTagNameNS_2(receiver, namespaceURI) native;
   static NodeList _getElementsByTagNameNS_3(receiver, namespaceURI, localName) native;
 
-  CSSStyleDeclaration getOverrideStyle(Element element = null, String pseudoElement = null) {
+  CSSStyleDeclaration getOverrideStyle([Element element = null, String pseudoElement = null]) {
     if (element === null) {
       if (pseudoElement === null) {
         return _getOverrideStyle(this);
@@ -776,7 +776,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static CSSStyleDeclaration _getOverrideStyle_2(receiver, element) native;
   static CSSStyleDeclaration _getOverrideStyle_3(receiver, element, pseudoElement) native;
 
-  Node importNode(Node importedNode = null, bool deep = null) {
+  Node importNode([Node importedNode = null, bool deep = null]) {
     if (importedNode === null) {
       if (deep === null) {
         return _importNode(this);
@@ -794,7 +794,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static Node _importNode_2(receiver, importedNode) native;
   static Node _importNode_3(receiver, importedNode, deep) native;
 
-  bool queryCommandEnabled(String command = null) {
+  bool queryCommandEnabled([String command = null]) {
     if (command === null) {
       return _queryCommandEnabled(this);
     } else {
@@ -804,7 +804,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static bool _queryCommandEnabled(receiver) native;
   static bool _queryCommandEnabled_2(receiver, command) native;
 
-  bool queryCommandIndeterm(String command = null) {
+  bool queryCommandIndeterm([String command = null]) {
     if (command === null) {
       return _queryCommandIndeterm(this);
     } else {
@@ -814,7 +814,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static bool _queryCommandIndeterm(receiver) native;
   static bool _queryCommandIndeterm_2(receiver, command) native;
 
-  bool queryCommandState(String command = null) {
+  bool queryCommandState([String command = null]) {
     if (command === null) {
       return _queryCommandState(this);
     } else {
@@ -824,7 +824,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static bool _queryCommandState(receiver) native;
   static bool _queryCommandState_2(receiver, command) native;
 
-  bool queryCommandSupported(String command = null) {
+  bool queryCommandSupported([String command = null]) {
     if (command === null) {
       return _queryCommandSupported(this);
     } else {
@@ -834,7 +834,7 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   static bool _queryCommandSupported(receiver) native;
   static bool _queryCommandSupported_2(receiver, command) native;
 
-  String queryCommandValue(String command = null) {
+  String queryCommandValue([String command = null]) {
     if (command === null) {
       return _queryCommandValue(this);
     } else {

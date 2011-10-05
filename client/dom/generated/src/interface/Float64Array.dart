@@ -10,5 +10,5 @@ interface Float64Array extends ArrayBufferView {
 
   int get length();
 
-  Float64Array subarray(int start = null, int end = null);
+  Float64Array subarray([int start, int end]);
 }

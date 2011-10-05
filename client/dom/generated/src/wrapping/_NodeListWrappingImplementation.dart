@@ -86,7 +86,7 @@ class _NodeListWrappingImplementation extends DOMWrapperBase implements NodeList
     return new _FixedSizeListIterator<Node>(this);
   }
 
-  Node item(int index = null) {
+  Node item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {

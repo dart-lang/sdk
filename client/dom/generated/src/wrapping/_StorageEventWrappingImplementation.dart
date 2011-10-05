@@ -26,7 +26,7 @@ class _StorageEventWrappingImplementation extends _EventWrappingImplementation i
   String get url() { return _get__StorageEvent_url(this); }
   static String _get__StorageEvent_url(var _this) native;
 
-  void initStorageEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String keyArg = null, String oldValueArg = null, String newValueArg = null, String urlArg = null, Storage storageAreaArg = null) {
+  void initStorageEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String keyArg = null, String oldValueArg = null, String newValueArg = null, String urlArg = null, Storage storageAreaArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

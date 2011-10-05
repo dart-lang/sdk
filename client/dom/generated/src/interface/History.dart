@@ -12,9 +12,9 @@ interface History {
 
   void forward();
 
-  void go(int distance = null);
+  void go([int distance]);
 
-  void pushState(Object data, String title, String url = null);
+  void pushState(Object data, String title, [String url]);
 
-  void replaceState(Object data, String title, String url = null);
+  void replaceState(Object data, String title, [String url]);
 }

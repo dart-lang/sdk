@@ -6,5 +6,5 @@
 
 interface XPathNSResolver {
 
-  String lookupNamespaceURI(String prefix = null);
+  String lookupNamespaceURI([String prefix]);
 }

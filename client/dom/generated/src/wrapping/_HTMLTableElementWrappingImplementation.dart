@@ -110,7 +110,7 @@ class _HTMLTableElementWrappingImplementation extends _HTMLElementWrappingImplem
   }
   static void _deleteCaption(receiver) native;
 
-  void deleteRow(int index = null) {
+  void deleteRow([int index = null]) {
     if (index === null) {
       _deleteRow(this);
       return;
@@ -134,7 +134,7 @@ class _HTMLTableElementWrappingImplementation extends _HTMLElementWrappingImplem
   }
   static void _deleteTHead(receiver) native;
 
-  HTMLElement insertRow(int index = null) {
+  HTMLElement insertRow([int index = null]) {
     if (index === null) {
       return _insertRow(this);
     } else {

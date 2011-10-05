@@ -28,33 +28,33 @@ interface Selection {
 
   String get type();
 
-  void addRange(Range range = null);
+  void addRange([Range range]);
 
-  void collapse(Node node = null, int index = null);
+  void collapse([Node node, int index]);
 
   void collapseToEnd();
 
   void collapseToStart();
 
-  bool containsNode(Node node = null, bool allowPartial = null);
+  bool containsNode([Node node, bool allowPartial]);
 
   void deleteFromDocument();
 
   void empty();
 
-  void extend(Node node = null, int offset = null);
+  void extend([Node node, int offset]);
 
-  Range getRangeAt(int index = null);
+  Range getRangeAt([int index]);
 
-  void modify(String alter = null, String direction = null, String granularity = null);
+  void modify([String alter, String direction, String granularity]);
 
   void removeAllRanges();
 
-  void selectAllChildren(Node node = null);
+  void selectAllChildren([Node node]);
 
-  void setBaseAndExtent(Node baseNode = null, int baseOffset = null, Node extentNode = null, int extentOffset = null);
+  void setBaseAndExtent([Node baseNode, int baseOffset, Node extentNode, int extentOffset]);
 
-  void setPosition(Node node = null, int offset = null);
+  void setPosition([Node node, int offset]);
 }
 
 interface DOMSelection extends Selection {

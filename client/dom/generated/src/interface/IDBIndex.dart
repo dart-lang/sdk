@@ -18,7 +18,7 @@ interface IDBIndex {
 
   IDBRequest getKey(IDBKey key);
 
-  IDBRequest openCursor(IDBKeyRange range = null, int direction = null);
+  IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest openKeyCursor(IDBKeyRange range = null, int direction = null);
+  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
 }

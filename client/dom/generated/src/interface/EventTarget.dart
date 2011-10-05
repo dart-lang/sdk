@@ -6,11 +6,11 @@
 
 interface EventTarget {
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event event);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   // void addEventListener(String type, EventListener listener);
 }

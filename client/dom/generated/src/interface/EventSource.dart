@@ -28,11 +28,11 @@ interface EventSource extends EventTarget {
 
   int get readyState();
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close();
 
   bool dispatchEvent(Event evt);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }

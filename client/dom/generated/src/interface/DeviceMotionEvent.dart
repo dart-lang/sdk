@@ -8,5 +8,5 @@ interface DeviceMotionEvent extends Event {
 
   num get interval();
 
-  void initDeviceMotionEvent(String type = null, bool bubbles = null, bool cancelable = null);
+  void initDeviceMotionEvent([String type, bool bubbles, bool cancelable]);
 }

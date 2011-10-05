@@ -40,11 +40,11 @@ interface Location {
 
   void set search(String value);
 
-  void assign(String url = null);
+  void assign([String url]);
 
   String getParameter(String name);
 
   void reload();
 
-  void replace(String url = null);
+  void replace([String url]);
 }

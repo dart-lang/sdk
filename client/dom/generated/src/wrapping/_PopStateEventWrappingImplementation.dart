@@ -14,7 +14,7 @@ class _PopStateEventWrappingImplementation extends _EventWrappingImplementation 
   Object get state() { return _get__PopStateEvent_state(this); }
   static Object _get__PopStateEvent_state(var _this) native;
 
-  void initPopStateEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, Object stateArg = null) {
+  void initPopStateEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, Object stateArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

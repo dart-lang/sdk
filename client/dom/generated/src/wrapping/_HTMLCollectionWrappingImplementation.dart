@@ -91,7 +91,7 @@ class _HTMLCollectionWrappingImplementation extends DOMWrapperBase implements HT
   }
   static Node _item(receiver, index) native;
 
-  Node namedItem(String name = null) {
+  Node namedItem([String name = null]) {
     if (name === null) {
       return _namedItem(this);
     } else {

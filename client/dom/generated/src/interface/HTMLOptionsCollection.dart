@@ -14,5 +14,5 @@ interface HTMLOptionsCollection extends HTMLCollection {
 
   void set selectedIndex(int value);
 
-  void remove(int index = null);
+  void remove([int index]);
 }

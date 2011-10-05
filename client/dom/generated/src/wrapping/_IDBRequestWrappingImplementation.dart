@@ -41,7 +41,7 @@ class _IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBReq
   String get webkitErrorMessage() { return _get__IDBRequest_webkitErrorMessage(this); }
   static String _get__IDBRequest_webkitErrorMessage(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -58,7 +58,7 @@ class _IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBReq
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

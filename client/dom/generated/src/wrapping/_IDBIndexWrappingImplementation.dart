@@ -33,7 +33,7 @@ class _IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex
   }
   static IDBRequest _getKey(receiver, key) native;
 
-  IDBRequest openCursor(IDBKeyRange range = null, int direction = null) {
+  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
     if (range === null) {
       if (direction === null) {
         return _openCursor(this);
@@ -51,7 +51,7 @@ class _IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex
   static IDBRequest _openCursor_2(receiver, range) native;
   static IDBRequest _openCursor_3(receiver, range, direction) native;
 
-  IDBRequest openKeyCursor(IDBKeyRange range = null, int direction = null) {
+  IDBRequest openKeyCursor([IDBKeyRange range = null, int direction = null]) {
     if (range === null) {
       if (direction === null) {
         return _openKeyCursor(this);

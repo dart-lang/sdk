@@ -11,7 +11,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
     return new _DataViewWrappingImplementation();
   }
 
-  num getFloat32(int byteOffset, bool littleEndian = null) {
+  num getFloat32(int byteOffset, [bool littleEndian = null]) {
     if (littleEndian === null) {
       return _getFloat32(this, byteOffset);
     } else {
@@ -21,7 +21,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static num _getFloat32(receiver, byteOffset) native;
   static num _getFloat32_2(receiver, byteOffset, littleEndian) native;
 
-  num getFloat64(int byteOffset, bool littleEndian = null) {
+  num getFloat64(int byteOffset, [bool littleEndian = null]) {
     if (littleEndian === null) {
       return _getFloat64(this, byteOffset);
     } else {
@@ -31,7 +31,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static num _getFloat64(receiver, byteOffset) native;
   static num _getFloat64_2(receiver, byteOffset, littleEndian) native;
 
-  int getInt16(int byteOffset, bool littleEndian = null) {
+  int getInt16(int byteOffset, [bool littleEndian = null]) {
     if (littleEndian === null) {
       return _getInt16(this, byteOffset);
     } else {
@@ -41,7 +41,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static int _getInt16(receiver, byteOffset) native;
   static int _getInt16_2(receiver, byteOffset, littleEndian) native;
 
-  int getInt32(int byteOffset, bool littleEndian = null) {
+  int getInt32(int byteOffset, [bool littleEndian = null]) {
     if (littleEndian === null) {
       return _getInt32(this, byteOffset);
     } else {
@@ -56,7 +56,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   }
   static Object _getInt8(receiver) native;
 
-  int getUint16(int byteOffset, bool littleEndian = null) {
+  int getUint16(int byteOffset, [bool littleEndian = null]) {
     if (littleEndian === null) {
       return _getUint16(this, byteOffset);
     } else {
@@ -66,7 +66,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static int _getUint16(receiver, byteOffset) native;
   static int _getUint16_2(receiver, byteOffset, littleEndian) native;
 
-  int getUint32(int byteOffset, bool littleEndian = null) {
+  int getUint32(int byteOffset, [bool littleEndian = null]) {
     if (littleEndian === null) {
       return _getUint32(this, byteOffset);
     } else {
@@ -81,7 +81,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   }
   static Object _getUint8(receiver) native;
 
-  void setFloat32(int byteOffset, num value, bool littleEndian = null) {
+  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) {
     if (littleEndian === null) {
       _setFloat32(this, byteOffset, value);
       return;
@@ -93,7 +93,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static void _setFloat32(receiver, byteOffset, value) native;
   static void _setFloat32_2(receiver, byteOffset, value, littleEndian) native;
 
-  void setFloat64(int byteOffset, num value, bool littleEndian = null) {
+  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) {
     if (littleEndian === null) {
       _setFloat64(this, byteOffset, value);
       return;
@@ -105,7 +105,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static void _setFloat64(receiver, byteOffset, value) native;
   static void _setFloat64_2(receiver, byteOffset, value, littleEndian) native;
 
-  void setInt16(int byteOffset, int value, bool littleEndian = null) {
+  void setInt16(int byteOffset, int value, [bool littleEndian = null]) {
     if (littleEndian === null) {
       _setInt16(this, byteOffset, value);
       return;
@@ -117,7 +117,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static void _setInt16(receiver, byteOffset, value) native;
   static void _setInt16_2(receiver, byteOffset, value, littleEndian) native;
 
-  void setInt32(int byteOffset, int value, bool littleEndian = null) {
+  void setInt32(int byteOffset, int value, [bool littleEndian = null]) {
     if (littleEndian === null) {
       _setInt32(this, byteOffset, value);
       return;
@@ -135,7 +135,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   }
   static void _setInt8(receiver) native;
 
-  void setUint16(int byteOffset, int value, bool littleEndian = null) {
+  void setUint16(int byteOffset, int value, [bool littleEndian = null]) {
     if (littleEndian === null) {
       _setUint16(this, byteOffset, value);
       return;
@@ -147,7 +147,7 @@ class _DataViewWrappingImplementation extends _ArrayBufferViewWrappingImplementa
   static void _setUint16(receiver, byteOffset, value) native;
   static void _setUint16_2(receiver, byteOffset, value, littleEndian) native;
 
-  void setUint32(int byteOffset, int value, bool littleEndian = null) {
+  void setUint32(int byteOffset, int value, [bool littleEndian = null]) {
     if (littleEndian === null) {
       _setUint32(this, byteOffset, value);
       return;

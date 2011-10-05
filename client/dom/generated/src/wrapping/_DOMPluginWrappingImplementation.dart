@@ -23,7 +23,7 @@ class _DOMPluginWrappingImplementation extends DOMWrapperBase implements DOMPlug
   String get name() { return _get__DOMPlugin_name(this); }
   static String _get__DOMPlugin_name(var _this) native;
 
-  DOMMimeType item(int index = null) {
+  DOMMimeType item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {
@@ -33,7 +33,7 @@ class _DOMPluginWrappingImplementation extends DOMWrapperBase implements DOMPlug
   static DOMMimeType _item(receiver) native;
   static DOMMimeType _item_2(receiver, index) native;
 
-  DOMMimeType namedItem(String name = null) {
+  DOMMimeType namedItem([String name = null]) {
     if (name === null) {
       return _namedItem(this);
     } else {

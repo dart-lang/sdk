@@ -14,7 +14,7 @@ class _DatabaseWrappingImplementation extends DOMWrapperBase implements Database
   String get version() { return _get__Database_version(this); }
   static String _get__Database_version(var _this) native;
 
-  void changeVersion(String oldVersion, String newVersion, SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null) {
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
     if (callback === null) {
       if (errorCallback === null) {
         if (successCallback === null) {
@@ -45,7 +45,7 @@ class _DatabaseWrappingImplementation extends DOMWrapperBase implements Database
   static void _changeVersion_3(receiver, oldVersion, newVersion, callback, errorCallback) native;
   static void _changeVersion_4(receiver, oldVersion, newVersion, callback, errorCallback, successCallback) native;
 
-  void readTransaction(SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null) {
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
     if (errorCallback === null) {
       if (successCallback === null) {
         _readTransaction(this, callback);
@@ -66,7 +66,7 @@ class _DatabaseWrappingImplementation extends DOMWrapperBase implements Database
   static void _readTransaction_2(receiver, callback, errorCallback) native;
   static void _readTransaction_3(receiver, callback, errorCallback, successCallback) native;
 
-  void transaction(SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null) {
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
     if (errorCallback === null) {
       if (successCallback === null) {
         _transaction(this, callback);

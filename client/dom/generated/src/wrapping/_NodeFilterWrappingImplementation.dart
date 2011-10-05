@@ -11,7 +11,7 @@ class _NodeFilterWrappingImplementation extends DOMWrapperBase implements NodeFi
     return new _NodeFilterWrappingImplementation();
   }
 
-  int acceptNode(Node n = null) {
+  int acceptNode([Node n = null]) {
     if (n === null) {
       return _acceptNode(this);
     } else {

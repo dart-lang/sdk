@@ -20,5 +20,5 @@ interface TouchEvent extends UIEvent {
 
   TouchList get touches();
 
-  void initTouchEvent(TouchList touches = null, TouchList targetTouches = null, TouchList changedTouches = null, String type = null, DOMWindow view = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null);
+  void initTouchEvent([TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey]);
 }

@@ -56,7 +56,7 @@ class _WheelEventWrappingImplementation extends _UIEventWrappingImplementation i
   int get y() { return _get__WheelEvent_y(this); }
   static int _get__WheelEvent_y(var _this) native;
 
-  void initWheelEvent(int wheelDeltaX = null, int wheelDeltaY = null, DOMWindow view = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null) {
+  void initWheelEvent([int wheelDeltaX = null, int wheelDeltaY = null, DOMWindow view = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null]) {
     if (wheelDeltaX === null) {
       if (wheelDeltaY === null) {
         if (view === null) {

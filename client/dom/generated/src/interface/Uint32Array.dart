@@ -10,5 +10,5 @@ interface Uint32Array extends ArrayBufferView {
 
   int get length();
 
-  Uint32Array subarray(int start = null, int end = null);
+  Uint32Array subarray([int start, int end]);
 }

@@ -92,7 +92,7 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
     return new _FixedSizeListIterator<String>(this);
   }
 
-  void appendMedium(String newMedium = null) {
+  void appendMedium([String newMedium = null]) {
     if (newMedium === null) {
       _appendMedium(this);
       return;
@@ -104,7 +104,7 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
   static void _appendMedium(receiver) native;
   static void _appendMedium_2(receiver, newMedium) native;
 
-  void deleteMedium(String oldMedium = null) {
+  void deleteMedium([String oldMedium = null]) {
     if (oldMedium === null) {
       _deleteMedium(this);
       return;
@@ -116,7 +116,7 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
   static void _deleteMedium(receiver) native;
   static void _deleteMedium_2(receiver, oldMedium) native;
 
-  String item(int index = null) {
+  String item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {

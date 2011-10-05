@@ -8,5 +8,5 @@ interface NodeList extends List<Node> {
 
   int get length();
 
-  Node item(int index = null);
+  Node item([int index]);
 }

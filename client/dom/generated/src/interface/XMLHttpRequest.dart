@@ -71,7 +71,7 @@ interface XMLHttpRequest extends EventTarget factory _XMLHttpRequestFactoryProvi
 
   void abort();
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event evt);
 
@@ -79,13 +79,13 @@ interface XMLHttpRequest extends EventTarget factory _XMLHttpRequestFactoryProvi
 
   String getResponseHeader(String header);
 
-  void open(String method, String url, bool async, String user = null, String password = null);
+  void open(String method, String url, bool async, [String user, String password]);
 
   void overrideMimeType(String override);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void send(var data = null);
+  void send([var data]);
 
   void setRequestHeader(String header, String value);
 }

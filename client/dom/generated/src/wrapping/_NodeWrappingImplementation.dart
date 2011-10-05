@@ -71,7 +71,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   void set textContent(String value) { _set__Node_textContent(this, value); }
   static void _set__Node_textContent(var _this, String value) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -88,7 +88,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   }
   static Node _appendChild(receiver, newChild) native;
 
-  Node cloneNode(bool deep = null) {
+  Node cloneNode([bool deep = null]) {
     if (deep === null) {
       return _cloneNode(this);
     } else {
@@ -98,7 +98,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static Node _cloneNode(receiver) native;
   static Node _cloneNode_2(receiver, deep) native;
 
-  int compareDocumentPosition(Node other = null) {
+  int compareDocumentPosition([Node other = null]) {
     if (other === null) {
       return _compareDocumentPosition(this);
     } else {
@@ -108,7 +108,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static int _compareDocumentPosition(receiver) native;
   static int _compareDocumentPosition_2(receiver, other) native;
 
-  bool contains(Node other = null) {
+  bool contains([Node other = null]) {
     if (other === null) {
       return _contains(this);
     } else {
@@ -138,7 +138,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   }
   static Node _insertBefore(receiver, newChild, refChild) native;
 
-  bool isDefaultNamespace(String namespaceURI = null) {
+  bool isDefaultNamespace([String namespaceURI = null]) {
     if (namespaceURI === null) {
       return _isDefaultNamespace(this);
     } else {
@@ -148,7 +148,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static bool _isDefaultNamespace(receiver) native;
   static bool _isDefaultNamespace_2(receiver, namespaceURI) native;
 
-  bool isEqualNode(Node other = null) {
+  bool isEqualNode([Node other = null]) {
     if (other === null) {
       return _isEqualNode(this);
     } else {
@@ -158,7 +158,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static bool _isEqualNode(receiver) native;
   static bool _isEqualNode_2(receiver, other) native;
 
-  bool isSameNode(Node other = null) {
+  bool isSameNode([Node other = null]) {
     if (other === null) {
       return _isSameNode(this);
     } else {
@@ -168,7 +168,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static bool _isSameNode(receiver) native;
   static bool _isSameNode_2(receiver, other) native;
 
-  bool isSupported(String feature = null, String version = null) {
+  bool isSupported([String feature = null, String version = null]) {
     if (feature === null) {
       if (version === null) {
         return _isSupported(this);
@@ -186,7 +186,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static bool _isSupported_2(receiver, feature) native;
   static bool _isSupported_3(receiver, feature, version) native;
 
-  String lookupNamespaceURI(String prefix = null) {
+  String lookupNamespaceURI([String prefix = null]) {
     if (prefix === null) {
       return _lookupNamespaceURI(this);
     } else {
@@ -196,7 +196,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static String _lookupNamespaceURI(receiver) native;
   static String _lookupNamespaceURI_2(receiver, prefix) native;
 
-  String lookupPrefix(String namespaceURI = null) {
+  String lookupPrefix([String namespaceURI = null]) {
     if (namespaceURI === null) {
       return _lookupPrefix(this);
     } else {
@@ -217,7 +217,7 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   }
   static Node _removeChild(receiver, oldChild) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

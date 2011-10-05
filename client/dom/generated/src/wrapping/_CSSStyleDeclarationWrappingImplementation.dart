@@ -23,7 +23,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   CSSRule get parentRule() { return _get__CSSStyleDeclaration_parentRule(this); }
   static CSSRule _get__CSSStyleDeclaration_parentRule(var _this) native;
 
-  CSSValue getPropertyCSSValue(String propertyName = null) {
+  CSSValue getPropertyCSSValue([String propertyName = null]) {
     if (propertyName === null) {
       return _getPropertyCSSValue(this);
     } else {
@@ -33,7 +33,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static CSSValue _getPropertyCSSValue(receiver) native;
   static CSSValue _getPropertyCSSValue_2(receiver, propertyName) native;
 
-  String getPropertyPriority(String propertyName = null) {
+  String getPropertyPriority([String propertyName = null]) {
     if (propertyName === null) {
       return _getPropertyPriority(this);
     } else {
@@ -43,7 +43,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static String _getPropertyPriority(receiver) native;
   static String _getPropertyPriority_2(receiver, propertyName) native;
 
-  String getPropertyShorthand(String propertyName = null) {
+  String getPropertyShorthand([String propertyName = null]) {
     if (propertyName === null) {
       return _getPropertyShorthand(this);
     } else {
@@ -53,7 +53,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static String _getPropertyShorthand(receiver) native;
   static String _getPropertyShorthand_2(receiver, propertyName) native;
 
-  String getPropertyValue(String propertyName = null) {
+  String getPropertyValue([String propertyName = null]) {
     if (propertyName === null) {
       return _getPropertyValue(this);
     } else {
@@ -63,7 +63,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static String _getPropertyValue(receiver) native;
   static String _getPropertyValue_2(receiver, propertyName) native;
 
-  bool isPropertyImplicit(String propertyName = null) {
+  bool isPropertyImplicit([String propertyName = null]) {
     if (propertyName === null) {
       return _isPropertyImplicit(this);
     } else {
@@ -73,7 +73,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static bool _isPropertyImplicit(receiver) native;
   static bool _isPropertyImplicit_2(receiver, propertyName) native;
 
-  String item(int index = null) {
+  String item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {
@@ -83,7 +83,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static String _item(receiver) native;
   static String _item_2(receiver, index) native;
 
-  String removeProperty(String propertyName = null) {
+  String removeProperty([String propertyName = null]) {
     if (propertyName === null) {
       return _removeProperty(this);
     } else {
@@ -93,7 +93,7 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static String _removeProperty(receiver) native;
   static String _removeProperty_2(receiver, propertyName) native;
 
-  void setProperty(String propertyName = null, String value = null, String priority = null) {
+  void setProperty([String propertyName = null, String value = null, String priority = null]) {
     if (propertyName === null) {
       if (value === null) {
         if (priority === null) {

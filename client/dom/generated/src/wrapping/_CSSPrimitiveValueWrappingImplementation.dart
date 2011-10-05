@@ -19,7 +19,7 @@ class _CSSPrimitiveValueWrappingImplementation extends _CSSValueWrappingImplemen
   }
   static Counter _getCounterValue(receiver) native;
 
-  num getFloatValue(int unitType = null) {
+  num getFloatValue([int unitType = null]) {
     if (unitType === null) {
       return _getFloatValue(this);
     } else {
@@ -44,7 +44,7 @@ class _CSSPrimitiveValueWrappingImplementation extends _CSSValueWrappingImplemen
   }
   static String _getStringValue(receiver) native;
 
-  void setFloatValue(int unitType = null, num floatValue = null) {
+  void setFloatValue([int unitType = null, num floatValue = null]) {
     if (unitType === null) {
       if (floatValue === null) {
         _setFloatValue(this);
@@ -65,7 +65,7 @@ class _CSSPrimitiveValueWrappingImplementation extends _CSSValueWrappingImplemen
   static void _setFloatValue_2(receiver, unitType) native;
   static void _setFloatValue_3(receiver, unitType, floatValue) native;
 
-  void setStringValue(int stringType = null, String stringValue = null) {
+  void setStringValue([int stringType = null, String stringValue = null]) {
     if (stringType === null) {
       if (stringValue === null) {
         _setStringValue(this);

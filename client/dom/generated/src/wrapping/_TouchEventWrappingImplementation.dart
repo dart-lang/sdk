@@ -32,7 +32,7 @@ class _TouchEventWrappingImplementation extends _UIEventWrappingImplementation i
   TouchList get touches() { return _get__TouchEvent_touches(this); }
   static TouchList _get__TouchEvent_touches(var _this) native;
 
-  void initTouchEvent(TouchList touches = null, TouchList targetTouches = null, TouchList changedTouches = null, String type = null, DOMWindow view = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null) {
+  void initTouchEvent([TouchList touches = null, TouchList targetTouches = null, TouchList changedTouches = null, String type = null, DOMWindow view = null, int screenX = null, int screenY = null, int clientX = null, int clientY = null, bool ctrlKey = null, bool altKey = null, bool shiftKey = null, bool metaKey = null]) {
     if (touches === null) {
       if (targetTouches === null) {
         if (changedTouches === null) {

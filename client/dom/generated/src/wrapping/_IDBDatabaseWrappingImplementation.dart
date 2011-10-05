@@ -35,7 +35,7 @@ class _IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDa
   String get version() { return _get__IDBDatabase_version(this); }
   static String _get__IDBDatabase_version(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -69,7 +69,7 @@ class _IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDa
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

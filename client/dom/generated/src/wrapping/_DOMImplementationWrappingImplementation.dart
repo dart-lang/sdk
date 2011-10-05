@@ -11,7 +11,7 @@ class _DOMImplementationWrappingImplementation extends DOMWrapperBase implements
     return new _DOMImplementationWrappingImplementation();
   }
 
-  CSSStyleSheet createCSSStyleSheet(String title = null, String media = null) {
+  CSSStyleSheet createCSSStyleSheet([String title = null, String media = null]) {
     if (title === null) {
       if (media === null) {
         return _createCSSStyleSheet(this);
@@ -29,7 +29,7 @@ class _DOMImplementationWrappingImplementation extends DOMWrapperBase implements
   static CSSStyleSheet _createCSSStyleSheet_2(receiver, title) native;
   static CSSStyleSheet _createCSSStyleSheet_3(receiver, title, media) native;
 
-  Document createDocument(String namespaceURI = null, String qualifiedName = null, DocumentType doctype = null) {
+  Document createDocument([String namespaceURI = null, String qualifiedName = null, DocumentType doctype = null]) {
     if (namespaceURI === null) {
       if (qualifiedName === null) {
         if (doctype === null) {
@@ -56,7 +56,7 @@ class _DOMImplementationWrappingImplementation extends DOMWrapperBase implements
   static Document _createDocument_3(receiver, namespaceURI, qualifiedName) native;
   static Document _createDocument_4(receiver, namespaceURI, qualifiedName, doctype) native;
 
-  DocumentType createDocumentType(String qualifiedName = null, String publicId = null, String systemId = null) {
+  DocumentType createDocumentType([String qualifiedName = null, String publicId = null, String systemId = null]) {
     if (qualifiedName === null) {
       if (publicId === null) {
         if (systemId === null) {
@@ -83,7 +83,7 @@ class _DOMImplementationWrappingImplementation extends DOMWrapperBase implements
   static DocumentType _createDocumentType_3(receiver, qualifiedName, publicId) native;
   static DocumentType _createDocumentType_4(receiver, qualifiedName, publicId, systemId) native;
 
-  HTMLDocument createHTMLDocument(String title = null) {
+  HTMLDocument createHTMLDocument([String title = null]) {
     if (title === null) {
       return _createHTMLDocument(this);
     } else {
@@ -93,7 +93,7 @@ class _DOMImplementationWrappingImplementation extends DOMWrapperBase implements
   static HTMLDocument _createHTMLDocument(receiver) native;
   static HTMLDocument _createHTMLDocument_2(receiver, title) native;
 
-  bool hasFeature(String feature = null, String version = null) {
+  bool hasFeature([String feature = null, String version = null]) {
     if (feature === null) {
       if (version === null) {
         return _hasFeature(this);

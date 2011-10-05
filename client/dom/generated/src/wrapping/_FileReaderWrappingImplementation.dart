@@ -80,7 +80,7 @@ class _FileReaderWrappingImplementation extends DOMWrapperBase implements FileRe
   }
   static void _readAsDataURL(receiver, blob) native;
 
-  void readAsText(Blob blob, String encoding = null) {
+  void readAsText(Blob blob, [String encoding = null]) {
     if (encoding === null) {
       _readAsText(this, blob);
       return;

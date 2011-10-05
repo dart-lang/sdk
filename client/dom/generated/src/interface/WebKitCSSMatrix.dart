@@ -98,21 +98,21 @@ interface WebKitCSSMatrix factory _WebKitCSSMatrixFactoryProvider {
 
   WebKitCSSMatrix inverse();
 
-  WebKitCSSMatrix multiply(WebKitCSSMatrix secondMatrix = null);
+  WebKitCSSMatrix multiply([WebKitCSSMatrix secondMatrix]);
 
-  WebKitCSSMatrix rotate(num rotX = null, num rotY = null, num rotZ = null);
+  WebKitCSSMatrix rotate([num rotX, num rotY, num rotZ]);
 
-  WebKitCSSMatrix rotateAxisAngle(num x = null, num y = null, num z = null, num angle = null);
+  WebKitCSSMatrix rotateAxisAngle([num x, num y, num z, num angle]);
 
-  WebKitCSSMatrix scale(num scaleX = null, num scaleY = null, num scaleZ = null);
+  WebKitCSSMatrix scale([num scaleX, num scaleY, num scaleZ]);
 
-  void setMatrixValue(String string = null);
+  void setMatrixValue([String string]);
 
-  WebKitCSSMatrix skewX(num angle = null);
+  WebKitCSSMatrix skewX([num angle]);
 
-  WebKitCSSMatrix skewY(num angle = null);
+  WebKitCSSMatrix skewY([num angle]);
 
   String toString();
 
-  WebKitCSSMatrix translate(num x = null, num y = null, num z = null);
+  WebKitCSSMatrix translate([num x, num y, num z]);
 }

@@ -11,7 +11,7 @@ class _MediaQueryListListenerWrappingImplementation extends DOMWrapperBase imple
     return new _MediaQueryListListenerWrappingImplementation();
   }
 
-  void queryChanged(MediaQueryList list = null) {
+  void queryChanged([MediaQueryList list = null]) {
     if (list === null) {
       _queryChanged(this);
       return;

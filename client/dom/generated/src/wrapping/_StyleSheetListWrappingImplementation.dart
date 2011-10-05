@@ -86,7 +86,7 @@ class _StyleSheetListWrappingImplementation extends DOMWrapperBase implements St
     return new _FixedSizeListIterator<StyleSheet>(this);
   }
 
-  StyleSheet item(int index = null) {
+  StyleSheet item([int index = null]) {
     if (index === null) {
       return _item(this);
     } else {

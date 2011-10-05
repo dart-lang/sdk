@@ -11,7 +11,7 @@ class _CanvasGradientWrappingImplementation extends DOMWrapperBase implements Ca
     return new _CanvasGradientWrappingImplementation();
   }
 
-  void addColorStop(num offset = null, String color = null) {
+  void addColorStop([num offset = null, String color = null]) {
     if (offset === null) {
       if (color === null) {
         _addColorStop(this);

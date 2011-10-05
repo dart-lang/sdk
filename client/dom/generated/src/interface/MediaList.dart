@@ -12,9 +12,9 @@ interface MediaList extends List<String> {
 
   void set mediaText(String value);
 
-  void appendMedium(String newMedium = null);
+  void appendMedium([String newMedium]);
 
-  void deleteMedium(String oldMedium = null);
+  void deleteMedium([String oldMedium]);
 
-  String item(int index = null);
+  String item([int index]);
 }

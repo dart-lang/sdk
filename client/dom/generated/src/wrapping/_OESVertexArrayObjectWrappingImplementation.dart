@@ -11,7 +11,7 @@ class _OESVertexArrayObjectWrappingImplementation extends DOMWrapperBase impleme
     return new _OESVertexArrayObjectWrappingImplementation();
   }
 
-  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject = null) {
+  void bindVertexArrayOES([WebGLVertexArrayObjectOES arrayObject = null]) {
     if (arrayObject === null) {
       _bindVertexArrayOES(this);
       return;
@@ -28,7 +28,7 @@ class _OESVertexArrayObjectWrappingImplementation extends DOMWrapperBase impleme
   }
   static WebGLVertexArrayObjectOES _createVertexArrayOES(receiver) native;
 
-  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject = null) {
+  void deleteVertexArrayOES([WebGLVertexArrayObjectOES arrayObject = null]) {
     if (arrayObject === null) {
       _deleteVertexArrayOES(this);
       return;
@@ -40,7 +40,7 @@ class _OESVertexArrayObjectWrappingImplementation extends DOMWrapperBase impleme
   static void _deleteVertexArrayOES(receiver) native;
   static void _deleteVertexArrayOES_2(receiver, arrayObject) native;
 
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject = null) {
+  bool isVertexArrayOES([WebGLVertexArrayObjectOES arrayObject = null]) {
     if (arrayObject === null) {
       return _isVertexArrayOES(this);
     } else {

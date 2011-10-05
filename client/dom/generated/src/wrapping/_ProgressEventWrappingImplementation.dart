@@ -20,7 +20,7 @@ class _ProgressEventWrappingImplementation extends _EventWrappingImplementation 
   int get total() { return _get__ProgressEvent_total(this); }
   static int _get__ProgressEvent_total(var _this) native;
 
-  void initProgressEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, bool lengthComputableArg = null, int loadedArg = null, int totalArg = null) {
+  void initProgressEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, bool lengthComputableArg = null, int loadedArg = null, int totalArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

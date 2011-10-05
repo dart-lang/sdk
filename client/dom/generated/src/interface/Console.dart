@@ -32,7 +32,7 @@ interface Console {
 
   void markTimeline();
 
-  void time(String title = null);
+  void time([String title]);
 
   void timeEnd(String title);
 

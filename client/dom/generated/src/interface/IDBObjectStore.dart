@@ -10,7 +10,7 @@ interface IDBObjectStore {
 
   String get name();
 
-  IDBRequest add(String value, IDBKey key = null);
+  IDBRequest add(String value, [IDBKey key]);
 
   IDBRequest clear();
 
@@ -24,7 +24,7 @@ interface IDBObjectStore {
 
   IDBIndex index(String name);
 
-  IDBRequest openCursor(IDBKeyRange range = null, int direction = null);
+  IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest put(String value, IDBKey key = null);
+  IDBRequest put(String value, [IDBKey key]);
 }

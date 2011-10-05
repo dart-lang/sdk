@@ -17,7 +17,7 @@ class _GeolocationWrappingImplementation extends DOMWrapperBase implements Geolo
   }
   static void _clearWatch(receiver, watchId) native;
 
-  void getCurrentPosition(PositionCallback successCallback, PositionErrorCallback errorCallback = null) {
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
     if (errorCallback === null) {
       _getCurrentPosition(this, successCallback);
       return;
@@ -29,7 +29,7 @@ class _GeolocationWrappingImplementation extends DOMWrapperBase implements Geolo
   static void _getCurrentPosition(receiver, successCallback) native;
   static void _getCurrentPosition_2(receiver, successCallback, errorCallback) native;
 
-  int watchPosition(PositionCallback successCallback, PositionErrorCallback errorCallback = null) {
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
     if (errorCallback === null) {
       return _watchPosition(this, successCallback);
     } else {

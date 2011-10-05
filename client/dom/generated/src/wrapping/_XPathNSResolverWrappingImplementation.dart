@@ -11,7 +11,7 @@ class _XPathNSResolverWrappingImplementation extends DOMWrapperBase implements X
     return new _XPathNSResolverWrappingImplementation();
   }
 
-  String lookupNamespaceURI(String prefix = null) {
+  String lookupNamespaceURI([String prefix = null]) {
     if (prefix === null) {
       return _lookupNamespaceURI(this);
     } else {

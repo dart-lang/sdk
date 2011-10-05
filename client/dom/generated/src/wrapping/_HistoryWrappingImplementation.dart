@@ -26,7 +26,7 @@ class _HistoryWrappingImplementation extends DOMWrapperBase implements History {
   }
   static void _forward(receiver) native;
 
-  void go(int distance = null) {
+  void go([int distance = null]) {
     if (distance === null) {
       _go(this);
       return;
@@ -38,7 +38,7 @@ class _HistoryWrappingImplementation extends DOMWrapperBase implements History {
   static void _go(receiver) native;
   static void _go_2(receiver, distance) native;
 
-  void pushState(Object data, String title, String url = null) {
+  void pushState(Object data, String title, [String url = null]) {
     if (url === null) {
       _pushState(this, data, title);
       return;
@@ -50,7 +50,7 @@ class _HistoryWrappingImplementation extends DOMWrapperBase implements History {
   static void _pushState(receiver, data, title) native;
   static void _pushState_2(receiver, data, title, url) native;
 
-  void replaceState(Object data, String title, String url = null) {
+  void replaceState(Object data, String title, [String url = null]) {
     if (url === null) {
       _replaceState(this, data, title);
       return;

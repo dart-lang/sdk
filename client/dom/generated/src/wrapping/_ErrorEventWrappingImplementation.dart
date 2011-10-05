@@ -20,7 +20,7 @@ class _ErrorEventWrappingImplementation extends _EventWrappingImplementation imp
   String get message() { return _get__ErrorEvent_message(this); }
   static String _get__ErrorEvent_message(var _this) native;
 
-  void initErrorEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String messageArg = null, String filenameArg = null, int linenoArg = null) {
+  void initErrorEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, String messageArg = null, String filenameArg = null, int linenoArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

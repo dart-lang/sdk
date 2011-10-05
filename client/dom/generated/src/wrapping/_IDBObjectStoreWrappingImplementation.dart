@@ -17,7 +17,7 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   String get name() { return _get__IDBObjectStore_name(this); }
   static String _get__IDBObjectStore_name(var _this) native;
 
-  IDBRequest add(String value, IDBKey key = null) {
+  IDBRequest add(String value, [IDBKey key = null]) {
     if (key === null) {
       return _add(this, value);
     } else {
@@ -58,7 +58,7 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   }
   static IDBIndex _index(receiver, name) native;
 
-  IDBRequest openCursor(IDBKeyRange range = null, int direction = null) {
+  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
     if (range === null) {
       if (direction === null) {
         return _openCursor(this);
@@ -76,7 +76,7 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   static IDBRequest _openCursor_2(receiver, range) native;
   static IDBRequest _openCursor_3(receiver, range, direction) native;
 
-  IDBRequest put(String value, IDBKey key = null) {
+  IDBRequest put(String value, [IDBKey key = null]) {
     if (key === null) {
       return _put(this, value);
     } else {

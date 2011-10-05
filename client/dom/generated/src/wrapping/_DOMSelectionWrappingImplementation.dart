@@ -44,7 +44,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   String get type() { return _get__DOMSelection_type(this); }
   static String _get__DOMSelection_type(var _this) native;
 
-  void addRange(Range range = null) {
+  void addRange([Range range = null]) {
     if (range === null) {
       _addRange(this);
       return;
@@ -56,7 +56,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   static void _addRange(receiver) native;
   static void _addRange_2(receiver, range) native;
 
-  void collapse(Node node = null, int index = null) {
+  void collapse([Node node = null, int index = null]) {
     if (node === null) {
       if (index === null) {
         _collapse(this);
@@ -89,7 +89,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   }
   static void _collapseToStart(receiver) native;
 
-  bool containsNode(Node node = null, bool allowPartial = null) {
+  bool containsNode([Node node = null, bool allowPartial = null]) {
     if (node === null) {
       if (allowPartial === null) {
         return _containsNode(this);
@@ -119,7 +119,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   }
   static void _empty(receiver) native;
 
-  void extend(Node node = null, int offset = null) {
+  void extend([Node node = null, int offset = null]) {
     if (node === null) {
       if (offset === null) {
         _extend(this);
@@ -140,7 +140,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   static void _extend_2(receiver, node) native;
   static void _extend_3(receiver, node, offset) native;
 
-  Range getRangeAt(int index = null) {
+  Range getRangeAt([int index = null]) {
     if (index === null) {
       return _getRangeAt(this);
     } else {
@@ -150,7 +150,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   static Range _getRangeAt(receiver) native;
   static Range _getRangeAt_2(receiver, index) native;
 
-  void modify(String alter = null, String direction = null, String granularity = null) {
+  void modify([String alter = null, String direction = null, String granularity = null]) {
     if (alter === null) {
       if (direction === null) {
         if (granularity === null) {
@@ -187,7 +187,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   }
   static void _removeAllRanges(receiver) native;
 
-  void selectAllChildren(Node node = null) {
+  void selectAllChildren([Node node = null]) {
     if (node === null) {
       _selectAllChildren(this);
       return;
@@ -199,7 +199,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   static void _selectAllChildren(receiver) native;
   static void _selectAllChildren_2(receiver, node) native;
 
-  void setBaseAndExtent(Node baseNode = null, int baseOffset = null, Node extentNode = null, int extentOffset = null) {
+  void setBaseAndExtent([Node baseNode = null, int baseOffset = null, Node extentNode = null, int extentOffset = null]) {
     if (baseNode === null) {
       if (baseOffset === null) {
         if (extentNode === null) {
@@ -242,7 +242,7 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   static void _setBaseAndExtent_4(receiver, baseNode, baseOffset, extentNode) native;
   static void _setBaseAndExtent_5(receiver, baseNode, baseOffset, extentNode, extentOffset) native;
 
-  void setPosition(Node node = null, int offset = null) {
+  void setPosition([Node node = null, int offset = null]) {
     if (node === null) {
       if (offset === null) {
         _setPosition(this);

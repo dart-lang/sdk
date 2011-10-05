@@ -56,13 +56,13 @@ interface HTMLSelectElement extends HTMLElement {
 
   bool get willValidate();
 
-  void add(HTMLElement element = null, HTMLElement before = null);
+  void add([HTMLElement element, HTMLElement before]);
 
   bool checkValidity();
 
-  Node item(int index = null);
+  Node item([int index]);
 
-  Node namedItem(String name = null);
+  Node namedItem([String name]);
 
   void remove(int index);
 

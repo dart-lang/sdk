@@ -8,11 +8,11 @@ interface OESVertexArrayObject {
 
   static final int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
-  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject = null);
+  void bindVertexArrayOES([WebGLVertexArrayObjectOES arrayObject]);
 
   WebGLVertexArrayObjectOES createVertexArrayOES();
 
-  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject = null);
+  void deleteVertexArrayOES([WebGLVertexArrayObjectOES arrayObject]);
 
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject = null);
+  bool isVertexArrayOES([WebGLVertexArrayObjectOES arrayObject]);
 }

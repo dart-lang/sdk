@@ -11,7 +11,7 @@ class _DOMFormDataWrappingImplementation extends DOMWrapperBase implements DOMFo
     return new _DOMFormDataWrappingImplementation();
   }
 
-  void append(String name = null, String value = null) {
+  void append([String name = null, String value = null]) {
     if (name === null) {
       if (value === null) {
         _append(this);

@@ -109,7 +109,7 @@ class _HTMLDocumentWrappingImplementation extends _DocumentWrappingImplementatio
   }
   static void _releaseEvents(receiver) native;
 
-  void write(String text = null) {
+  void write([String text = null]) {
     if (text === null) {
       _write(this);
       return;
@@ -121,7 +121,7 @@ class _HTMLDocumentWrappingImplementation extends _DocumentWrappingImplementatio
   static void _write(receiver) native;
   static void _write_2(receiver, text) native;
 
-  void writeln(String text = null) {
+  void writeln([String text = null]) {
     if (text === null) {
       _writeln(this);
       return;

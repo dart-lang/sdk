@@ -230,53 +230,53 @@ interface Element extends Node, NodeSelector, ElementTraversal {
 
   void focus();
 
-  String getAttribute(String name = null);
+  String getAttribute([String name]);
 
-  String getAttributeNS(String namespaceURI = null, String localName = null);
+  String getAttributeNS([String namespaceURI, String localName]);
 
-  Attr getAttributeNode(String name = null);
+  Attr getAttributeNode([String name]);
 
-  Attr getAttributeNodeNS(String namespaceURI = null, String localName = null);
+  Attr getAttributeNodeNS([String namespaceURI, String localName]);
 
   ClientRect getBoundingClientRect();
 
   ClientRectList getClientRects();
 
-  NodeList getElementsByClassName(String name = null);
+  NodeList getElementsByClassName([String name]);
 
-  NodeList getElementsByTagName(String name = null);
+  NodeList getElementsByTagName([String name]);
 
-  NodeList getElementsByTagNameNS(String namespaceURI = null, String localName = null);
+  NodeList getElementsByTagNameNS([String namespaceURI, String localName]);
 
   bool hasAttribute(String name);
 
-  bool hasAttributeNS(String namespaceURI = null, String localName = null);
+  bool hasAttributeNS([String namespaceURI, String localName]);
 
   Element querySelector(String selectors);
 
   NodeList querySelectorAll(String selectors);
 
-  void removeAttribute(String name = null);
+  void removeAttribute([String name]);
 
   void removeAttributeNS(String namespaceURI, String localName);
 
-  Attr removeAttributeNode(Attr oldAttr = null);
+  Attr removeAttributeNode([Attr oldAttr]);
 
-  void scrollByLines(int lines = null);
+  void scrollByLines([int lines]);
 
-  void scrollByPages(int pages = null);
+  void scrollByPages([int pages]);
 
-  void scrollIntoView(bool alignWithTop = null);
+  void scrollIntoView([bool alignWithTop]);
 
-  void scrollIntoViewIfNeeded(bool centerIfNeeded = null);
+  void scrollIntoViewIfNeeded([bool centerIfNeeded]);
 
-  void setAttribute(String name = null, String value = null);
+  void setAttribute([String name, String value]);
 
-  void setAttributeNS(String namespaceURI = null, String qualifiedName = null, String value = null);
+  void setAttributeNS([String namespaceURI, String qualifiedName, String value]);
 
-  Attr setAttributeNode(Attr newAttr = null);
+  Attr setAttributeNode([Attr newAttr]);
 
-  Attr setAttributeNodeNS(Attr newAttr = null);
+  Attr setAttributeNodeNS([Attr newAttr]);
 
-  bool webkitMatchesSelector(String selectors = null);
+  bool webkitMatchesSelector([String selectors]);
 }

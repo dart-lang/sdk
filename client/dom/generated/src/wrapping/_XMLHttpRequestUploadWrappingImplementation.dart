@@ -41,7 +41,7 @@ class _XMLHttpRequestUploadWrappingImplementation extends DOMWrapperBase impleme
   void set onprogress(EventListener value) { _set__XMLHttpRequestUpload_onprogress(this, value); }
   static void _set__XMLHttpRequestUpload_onprogress(var _this, EventListener value) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -58,7 +58,7 @@ class _XMLHttpRequestUploadWrappingImplementation extends DOMWrapperBase impleme
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

@@ -11,7 +11,7 @@ class _XPathEvaluatorWrappingImplementation extends DOMWrapperBase implements XP
     return new _XPathEvaluatorWrappingImplementation();
   }
 
-  XPathExpression createExpression(String expression = null, XPathNSResolver resolver = null) {
+  XPathExpression createExpression([String expression = null, XPathNSResolver resolver = null]) {
     if (expression === null) {
       if (resolver === null) {
         return _createExpression(this);
@@ -29,7 +29,7 @@ class _XPathEvaluatorWrappingImplementation extends DOMWrapperBase implements XP
   static XPathExpression _createExpression_2(receiver, expression) native;
   static XPathExpression _createExpression_3(receiver, expression, resolver) native;
 
-  XPathNSResolver createNSResolver(Node nodeResolver = null) {
+  XPathNSResolver createNSResolver([Node nodeResolver = null]) {
     if (nodeResolver === null) {
       return _createNSResolver(this);
     } else {
@@ -39,7 +39,7 @@ class _XPathEvaluatorWrappingImplementation extends DOMWrapperBase implements XP
   static XPathNSResolver _createNSResolver(receiver) native;
   static XPathNSResolver _createNSResolver_2(receiver, nodeResolver) native;
 
-  XPathResult evaluate(String expression = null, Node contextNode = null, XPathNSResolver resolver = null, int type = null, XPathResult inResult = null) {
+  XPathResult evaluate([String expression = null, Node contextNode = null, XPathNSResolver resolver = null, int type = null, XPathResult inResult = null]) {
     if (expression === null) {
       if (contextNode === null) {
         if (resolver === null) {

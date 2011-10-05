@@ -8,7 +8,7 @@ interface DatabaseSync {
 
   String get version();
 
-  void changeVersion(String oldVersion, String newVersion, SQLTransactionSyncCallback callback = null);
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
 
   void readTransaction(SQLTransactionSyncCallback callback);
 

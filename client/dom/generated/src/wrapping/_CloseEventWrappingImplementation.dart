@@ -20,7 +20,7 @@ class _CloseEventWrappingImplementation extends _EventWrappingImplementation imp
   bool get wasClean() { return _get__CloseEvent_wasClean(this); }
   static bool _get__CloseEvent_wasClean(var _this) native;
 
-  void initCloseEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, bool wasCleanArg = null, int codeArg = null, String reasonArg = null) {
+  void initCloseEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, bool wasCleanArg = null, int codeArg = null, String reasonArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

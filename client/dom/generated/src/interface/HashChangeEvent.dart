@@ -10,5 +10,5 @@ interface HashChangeEvent extends Event {
 
   String get oldURL();
 
-  void initHashChangeEvent(String type = null, bool canBubble = null, bool cancelable = null, String oldURL = null, String newURL = null);
+  void initHashChangeEvent([String type, bool canBubble, bool cancelable, String oldURL, String newURL]);
 }

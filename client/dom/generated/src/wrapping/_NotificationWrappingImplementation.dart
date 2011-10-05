@@ -47,7 +47,7 @@ class _NotificationWrappingImplementation extends DOMWrapperBase implements Noti
   void set replaceId(String value) { _set__Notification_replaceId(this, value); }
   static void _set__Notification_replaceId(var _this, String value) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -70,7 +70,7 @@ class _NotificationWrappingImplementation extends DOMWrapperBase implements Noti
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

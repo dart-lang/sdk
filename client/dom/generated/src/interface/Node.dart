@@ -82,15 +82,15 @@ interface Node extends EventTarget {
 
   void set textContent(String value);
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   Node appendChild(Node newChild);
 
-  Node cloneNode(bool deep = null);
+  Node cloneNode([bool deep]);
 
-  int compareDocumentPosition(Node other = null);
+  int compareDocumentPosition([Node other]);
 
-  bool contains(Node other = null);
+  bool contains([Node other]);
 
   bool dispatchEvent(Event event);
 
@@ -100,23 +100,23 @@ interface Node extends EventTarget {
 
   Node insertBefore(Node newChild, Node refChild);
 
-  bool isDefaultNamespace(String namespaceURI = null);
+  bool isDefaultNamespace([String namespaceURI]);
 
-  bool isEqualNode(Node other = null);
+  bool isEqualNode([Node other]);
 
-  bool isSameNode(Node other = null);
+  bool isSameNode([Node other]);
 
-  bool isSupported(String feature = null, String version = null);
+  bool isSupported([String feature, String version]);
 
-  String lookupNamespaceURI(String prefix = null);
+  String lookupNamespaceURI([String prefix]);
 
-  String lookupPrefix(String namespaceURI = null);
+  String lookupPrefix([String namespaceURI]);
 
   void normalize();
 
   Node removeChild(Node oldChild);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   Node replaceChild(Node newChild, Node oldChild);
 }

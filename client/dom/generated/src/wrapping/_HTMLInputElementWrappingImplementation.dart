@@ -304,7 +304,7 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   }
   static void _setCustomValidity(receiver, error) native;
 
-  void setSelectionRange(int start = null, int end = null, String direction = null) {
+  void setSelectionRange([int start = null, int end = null, String direction = null]) {
     if (start === null) {
       if (end === null) {
         if (direction === null) {
@@ -341,7 +341,7 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   }
   static void _setValueForUser(receiver, value) native;
 
-  void stepDown(int n = null) {
+  void stepDown([int n = null]) {
     if (n === null) {
       _stepDown(this);
       return;
@@ -353,7 +353,7 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   static void _stepDown(receiver) native;
   static void _stepDown_2(receiver, n) native;
 
-  void stepUp(int n = null) {
+  void stepUp([int n = null]) {
     if (n === null) {
       _stepUp(this);
       return;

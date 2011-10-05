@@ -17,7 +17,7 @@ class _WorkerWrappingImplementation extends _AbstractWorkerWrappingImplementatio
   void set onmessage(EventListener value) { _set__Worker_onmessage(this, value); }
   static void _set__Worker_onmessage(var _this, EventListener value) native;
 
-  void postMessage(String message, MessagePort messagePort = null) {
+  void postMessage(String message, [MessagePort messagePort = null]) {
     if (messagePort === null) {
       _postMessage(this, message);
       return;

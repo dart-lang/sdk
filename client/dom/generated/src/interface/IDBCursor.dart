@@ -22,7 +22,7 @@ interface IDBCursor {
 
   IDBAny get source();
 
-  void continueFunction(IDBKey key = null);
+  void continueFunction([IDBKey key]);
 
   IDBRequest delete();
 

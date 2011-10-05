@@ -17,7 +17,7 @@ class _HashChangeEventWrappingImplementation extends _EventWrappingImplementatio
   String get oldURL() { return _get__HashChangeEvent_oldURL(this); }
   static String _get__HashChangeEvent_oldURL(var _this) native;
 
-  void initHashChangeEvent(String type = null, bool canBubble = null, bool cancelable = null, String oldURL = null, String newURL = null) {
+  void initHashChangeEvent([String type = null, bool canBubble = null, bool cancelable = null, String oldURL = null, String newURL = null]) {
     if (type === null) {
       if (canBubble === null) {
         if (cancelable === null) {

@@ -12,11 +12,11 @@ interface CSSStyleSheet extends StyleSheet {
 
   CSSRuleList get rules();
 
-  int addRule(String selector = null, String style = null, int index = null);
+  int addRule([String selector, String style, int index]);
 
-  void deleteRule(int index = null);
+  void deleteRule([int index]);
 
-  int insertRule(String rule = null, int index = null);
+  int insertRule([String rule, int index]);
 
-  void removeRule(int index = null);
+  void removeRule([int index]);
 }

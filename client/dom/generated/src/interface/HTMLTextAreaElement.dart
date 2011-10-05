@@ -90,5 +90,5 @@ interface HTMLTextAreaElement extends HTMLElement {
 
   void setCustomValidity(String error);
 
-  void setSelectionRange(int start = null, int end = null, String direction = null);
+  void setSelectionRange([int start, int end, String direction]);
 }

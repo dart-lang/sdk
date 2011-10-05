@@ -11,7 +11,7 @@ class _EventTargetWrappingImplementation extends DOMWrapperBase implements Event
     return new _EventTargetWrappingImplementation();
   }
 
-  void addEventListener(String type, EventListener listener, bool useCapture = null) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener(this, type, listener);
       return;
@@ -28,7 +28,7 @@ class _EventTargetWrappingImplementation extends DOMWrapperBase implements Event
   }
   static bool _dispatchEvent(receiver, event) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture = null) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);
       return;

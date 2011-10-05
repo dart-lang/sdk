@@ -14,7 +14,7 @@ class _TextEventWrappingImplementation extends _UIEventWrappingImplementation im
   String get data() { return _get__TextEvent_data(this); }
   static String _get__TextEvent_data(var _this) native;
 
-  void initTextEvent(String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, DOMWindow viewArg = null, String dataArg = null) {
+  void initTextEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, DOMWindow viewArg = null, String dataArg = null]) {
     if (typeArg === null) {
       if (canBubbleArg === null) {
         if (cancelableArg === null) {

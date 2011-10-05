@@ -14,7 +14,7 @@ class _DataTransferItemsWrappingImplementation extends DOMWrapperBase implements
   int get length() { return _get__DataTransferItems_length(this); }
   static int _get__DataTransferItems_length(var _this) native;
 
-  void add(String data = null, String type = null) {
+  void add([String data = null, String type = null]) {
     if (data === null) {
       if (type === null) {
         _add(this);
