@@ -402,7 +402,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   ElementWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
   _CssClassSet _cssClassSet;
-  _DataMap _data;
 
   Map<String, String> get attributes() {
     return new ElementAttributeMap._wrap(_ptr);
@@ -421,21 +420,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
-  }
-
-  Map<String, String> get data() {
-    if (_data === null) {
-      _data = new _DataMap(attributes);
-    }
-    return _data;
-  }
-
-  void set data(Map<String, String> value) {
-    Map<String, String> data = this.data;
-    data.clear();
-    for (String key in value.getKeys()) {
-      data[key] = value[key];
-    }
   }
 
   int get clientHeight() => _ptr.clientHeight;

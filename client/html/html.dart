@@ -549,7 +549,6 @@
 #source('src/BodyElement.dart');
 #source('src/BodyElementWrappingImplementation.dart');
 #source('src/CssClassSet.dart');
-#source('src/DataMap.dart');
 #source('src/DocumentFragment.dart');
 #source('src/DocumentFragmentWrappingImplementation.dart');
 #source('src/DocumentWrappingImplementation.dart');
