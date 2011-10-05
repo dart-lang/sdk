@@ -86,7 +86,7 @@ void ICData::AddCheck(const GrowableArray<const Class*>& classes,
 void ICData::SetICDataArray(intptr_t num_classes, intptr_t num_checks) {
   // Add a terminating group to num_checks.
   intptr_t len = 1 + (num_classes + 1) * (num_checks + 1);
-  const Array& ic_data = Array::Handle(Array::New(len), Heap::kOld);
+  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
   ic_data.SetAt(0, Smi::Handle(Smi::New(num_classes)));
   ic_stub_.set_ic_data(ic_data);
 }
