@@ -93,7 +93,7 @@ class BrowserTestCase(StandardTestCase):
       cwd = None
       if self.run_arch.is_web_test: cwd = self.run_arch.temp_dir
       command = command[:1] + self.context.flags + command[1:]
-      test_output = self.RunCommand(command, cwd=cwd)
+      test_output = self.RunCommand(command, cwd=cwd, cleanup=False)
 
       # If errors were found, fail fast and show compile errors:
       if test_output.output.exit_code != 0:

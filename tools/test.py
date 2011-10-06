@@ -429,14 +429,14 @@ class TestCase(object):
   def IsFailureOutput(self, output):
     return output.exit_code != 0
 
-  def RunCommand(self, command, cwd=None):
+  def RunCommand(self, command, cwd=None, cleanup=True):
     full_command = self.context.processor(command)
     try:
       output = Execute(full_command, self.context, self.context.timeout, cwd)
     except OSError as e:
       raise utils.ToolError("%s: %s" % (full_command[0], e.strerror))
     test_output = TestOutput(self, full_command, output)
-    self.Cleanup()
+    if cleanup: self.Cleanup()
     return test_output
 
   def BeforeRun(self):
