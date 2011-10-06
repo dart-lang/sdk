@@ -12,7 +12,8 @@ into JavaScript sections. It also can optimize the HTML to inline code.
 """
 
 from HTMLParser import HTMLParser
-from os.path import abspath, basename, dirname, exists, isabs, join, split
+import os.path
+from os.path import abspath, basename, dirname, exists, isabs, join
 import base64, re, optparse, os, shutil, subprocess, sys, tempfile, codecs
 import urllib2
 
@@ -199,20 +200,6 @@ def encodeImage(rootDir, filename):
             filetype,
             base64.b64encode(f.read()))
 
-def encodeImageUrl(filename):
-  """ Downloads an image and returns a base64 url encoding for it """
-  filetype = filename[-3:]
-  if filetype == 'svg': filetype = 'svg+xml'
-  print 'Downloading ' + filename
-  try:
-    f = urllib2.urlopen(filename)
-  except:
-    return filename
-
-  return 'data:image/%s;charset=utf-8;base64,%s' % (
-          filetype,
-          base64.b64encode(f.read()))
-
 def processCss(filename):
   """ Reads and converts a css file by replacing all image refernces into
       base64 encoded images.
@@ -262,7 +249,7 @@ class DartHTMLConverter(HTMLParser):
       self.dart_inline_code = []
     return True
 
-  def inlineImage(self, attrDic):
+  def convertImage(self, attrDic):
     pass
 
   def starttagHelper(self, tag, attrs, isEnd):
@@ -283,7 +270,7 @@ class DartHTMLConverter(HTMLParser):
       return
 
     elif tag == 'img' and 'src' in attrDic:
-      self.inlineImage(attrDic)
+      self.convertImage(attrDic)
 
     # emit everything else as in the input
     self.output.append('<%s%s%s>' % (
@@ -364,20 +351,71 @@ class DartToDartHTMLConverter(DartHTMLConverter):
       self.output.append(DARTIUM_TO_JS_SCRIPT)
     DartHTMLConverter.handle_endtag(self, tag)
 
+# A data URL for a blank 1x1 PNG.  The PNG's data is from
+#   convert -size 1x1 +set date:create +set date:modify \
+#     xc:'rgba(0,0,0,0)' 1x1.png
+#   base64.b64encode(open('1x1.png').read())
+# (The +set stuff is because just doing "-strip" apparently doesn't work;
+# it leaves several info chunks resulting in a 224-byte PNG.)
+BLANK_IMAGE_BASE64_URL = 'data:image/png;charset=utf-8;base64,%s' % (
+    ('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABEAQAAADljNBBAAAAAmJLR0T//xSrMc0AAAAJc'
+     'EhZcwAAAEgAAABIAEbJaz4AAAAJdnBBZwAAAAEAAAABAMeVX+0AAAANSURBVAjXY2BgYG'
+     'AAAAAFAAFe8yo6AAAAAElFTkSuQmCC'))
+
 class OfflineHTMLConverter(DartHTMLConverter):
-  def __init__(self, prefix_path, outdir, verbose):
+  def __init__(self, prefix_path, outdir, verbose, inline_images):
     # Note: can't use super calls because HTMLParser is not a subclass of object
     DartHTMLConverter.__init__(self, None, prefix_path)
     self.outdir = outdir
     self.verbose = verbose
+    self.inline_images = inline_images  # Inline as data://, vs. use local file.
 
   def compileScript(self, attrDic):
     # do not rewrite the script tag
     return False
 
-  def inlineImage(self, attrDic):
-    attrDic['src'] = encodeImageUrl(attrDic['src'])
+  def downloadImageUrlToEncode(self, url):
+    """ Downloads an image and returns a base64 url encoding for it.
+    May throw if the download fails.
+    """
+    # Don't try to re-encode an image that's already data://.
+    if url.startswith('data:image/'):
+      return url
+    filetype = url[-3:]
+    if filetype == 'svg': filetype = 'svg+xml'
+    if self.verbose:
+      print 'Downloading ' + url
+    f = urllib2.urlopen(url)
 
+    return 'data:image/%s;charset=utf-8;base64,%s' % (
+        filetype,
+        base64.b64encode(f.read()))
+
+  def downloadImageUrlToFile(self, url):
+    """Downloads an image and returns the filename.  May throw if the
+    download fails.
+    """
+    extension = os.path.splitext(url)[1]
+    # mkstemp() happens to work to create a non-temporary, so we use it.
+    filename = tempfile.mkstemp(extension, 'img_', self.prefix_path)[1]
+    if self.verbose:
+      print 'Downloading %s to %s' % (url, filename)
+    writeOut(urllib2.urlopen(url).read(), filename)
+    return os.path.join(self.prefix_path, os.path.basename(filename))
+
+  def downloadImage(self, url):
+    """Downloads an image either to file or to data://, and return the URL."""
+    try:
+      if self.inline_images:
+        return self.downloadImageUrlToEncode(url)
+      else:
+        return self.downloadImageUrlToFile(url)
+    except:
+      print '*** Image download failed: %s' % url
+      return BLANK_IMAGE_BASE64_URL
+
+  def convertImage(self, attrDic):
+    attrDic['src'] = self.downloadImage(attrDic['src'])
 
 def safeMakeDirs(dirname):
   """ Creates a directory and, if necessary its parent directories.
@@ -398,7 +436,7 @@ class ConverterException(Exception):
   pass
 
 def Flags():
-  """ Consturcts a parser for extracting flags from the command line. """
+  """ Constructs a parser for extracting flags from the command line. """
   result = optparse.OptionParser()
   result.add_option("--optimize",
       help="Use optimizer in dartc",
@@ -447,11 +485,14 @@ def convertForChromium(filename, optimize, outfile, verbose):
   converter.close()
   writeOut(converter.getResult(), outfile)
 
-def convertForOffline(filename, outfile, verbose):
+def convertForOffline(filename, outfile, verbose, encode_images):
   """ Converts a file for offline use. """
   with codecs.open(filename, 'r', 'utf-8') as f:
     contents = f.read()
-  converter = OfflineHTMLConverter(dirname(filename), dirname(outfile), verbose)
+  converter = OfflineHTMLConverter(dirname(filename),
+                                   dirname(outfile),
+                                   verbose,
+                                   encode_images)
   converter.feed(contents)
   converter.close()
 
