@@ -1469,6 +1469,11 @@ def Main():
   def DoSkip(case):
     return testing.SKIP in case.outcomes or testing.SLOW in case.outcomes
   cases_to_run = [ c for c in all_cases if not DoSkip(c) ]
+  # Creating test cases may generate temporary files. Make sure
+  # Skipped tests clean up these files.
+  for c in all_cases:
+    if DoSkip(c): c.case.Cleanup()
+
   if len(cases_to_run) == 0:
     print "No tests to run."
     return 0

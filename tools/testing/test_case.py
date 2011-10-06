@@ -51,6 +51,11 @@ class StandardTestCase(test.TestCase):
   def GetSource(self):
     return file(self.filename).read()
 
+  def Cleanup(self):
+    # TODO(ngeoffray): We run out of space on the build bots for these tests if
+    # the temp directories are not removed right after running the test.
+    if not self.context.keep_temporary_files: self.run_arch.Cleanup()
+
 
 class MultiTestCase(StandardTestCase):
 
@@ -77,7 +82,7 @@ class BrowserTestCase(StandardTestCase):
     super(BrowserTestCase, self).__init__(context, path, filename, mode, arch)
     self.fatal_static_type_errors = fatal_static_type_errors
 
-      
+
   def Run(self):
     command = self.run_arch.GetCompileCommand(self.fatal_static_type_errors)
     if command != None:
@@ -92,8 +97,6 @@ class BrowserTestCase(StandardTestCase):
 
       # If errors were found, fail fast and show compile errors:
       if test_output.output.exit_code != 0:
-        if not self.context.keep_temporary_files:
-          self.run_arch.Cleanup()
         return test_output
 
     command = self.run_arch.GetRunCommand();
@@ -103,16 +106,11 @@ class BrowserTestCase(StandardTestCase):
     if self.run_arch.HasFailed(test_output.output.stdout):
       test_output.output.exit_code = 1
 
-    # TODO(ngeoffray): We run out of space on the build bots for these tests if
-    # the temp directories are not removed right after running the test.
-    if not self.context.keep_temporary_files:
-      self.run_arch.Cleanup()
-
     return test_output
 
 
 class CompilationTestCase(test.TestCase):
-  """ Run the dartc compiler on a given top level dart file """  
+  """ Run the dartc compiler on a given top level dart file """
   def __init__(self, path, context, filename, mode, arch):
     super(CompilationTestCase, self).__init__(context, path)
     self.filename = filename
@@ -131,7 +129,7 @@ class CompilationTestCase(test.TestCase):
   def GetCommand(self):
     cmd = self.context.GetDartC(self.mode, self.arch);
     cmd += self.context.flags
-    cmd += ['-check-only', 
+    cmd += ['-check-only',
             '-fatal-type-errors',
             '-Werror',
             '-out', self.temp_dir,

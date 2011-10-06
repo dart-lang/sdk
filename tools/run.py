@@ -285,8 +285,9 @@ class BrowserArchitecture(Architecture):
     return 1
 
   def Cleanup(self):
-    shutil.rmtree(self.temp_dir)
-    self.temp_dir = None
+    if self.temp_dir:
+      shutil.rmtree(self.temp_dir)
+      self.temp_dir = None
 
 
 class ChromiumArchitecture(BrowserArchitecture):
