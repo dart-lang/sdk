@@ -2197,14 +2197,15 @@ class String : public Instance {
   virtual intptr_t Hash() const;
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
-  static intptr_t Hash(const char* characters, intptr_t len);
-  template<typename T>
-  static intptr_t Hash(const T* characters, intptr_t len);
+  static intptr_t Hash(const uint8_t* characters, intptr_t len);
+  static intptr_t Hash(const uint16_t* characters, intptr_t len);
+  static intptr_t Hash(const uint32_t* characters, intptr_t len);
 
   virtual int32_t CharAt(intptr_t index) const;
 
   bool Equals(const String& str, intptr_t begin_index, intptr_t len) const;
-  bool Equals(const char* characters, intptr_t len) const;
+  bool Equals(const char* str) const;
+  bool Equals(const uint8_t* characters, intptr_t len) const;
   bool Equals(const uint16_t* characters, intptr_t len) const;
   bool Equals(const uint32_t* characters, intptr_t len) const;
 
@@ -2219,7 +2220,7 @@ class String : public Instance {
   bool IsSymbol() const;
 
   static RawString* New(const char* str, Heap::Space space = Heap::kNew);
-  static RawString* New(const char* characters,
+  static RawString* New(const uint8_t* characters,
                         intptr_t len,
                         Heap::Space space = Heap::kNew);
   static RawString* New(const uint16_t* characters,
@@ -2229,6 +2230,24 @@ class String : public Instance {
                         intptr_t len,
                         Heap::Space space = Heap::kNew);
   static RawString* New(const String& str, Heap::Space space = Heap::kNew);
+
+  static void Copy(const String& dst,
+                   intptr_t dst_offset,
+                   const uint8_t* characters,
+                   intptr_t len);
+  static void Copy(const String& dst,
+                   intptr_t dst_offset,
+                   const uint16_t* characters,
+                   intptr_t len);
+  static void Copy(const String& dst,
+                   intptr_t dst_offset,
+                   const uint32_t* characters,
+                   intptr_t len);
+  static void Copy(const String& dst,
+                   intptr_t dst_offset,
+                   const String& src,
+                   intptr_t src_offset,
+                   intptr_t len);
 
   static RawString* Concat(const String& str1,
                            const String& str2,
@@ -2289,7 +2308,9 @@ class OneByteString : public String {
     return RoundedAllocationSize(sizeof(RawOneByteString) + len);
   }
 
-  static RawOneByteString* New(const char* characters,
+  static RawOneByteString* New(intptr_t len,
+                               Heap::Space space);
+  static RawOneByteString* New(const uint8_t* characters,
                                intptr_t len,
                                Heap::Space space);
   static RawOneByteString* New(const uint16_t* characters,
@@ -2301,8 +2322,8 @@ class OneByteString : public String {
   static RawOneByteString* New(const OneByteString& str,
                                Heap::Space space);
 
-  static RawOneByteString* Concat(const OneByteString& str1,
-                                  const OneByteString& str2,
+  static RawOneByteString* Concat(const String& str1,
+                                  const String& str2,
                                   Heap::Space space);
   static RawOneByteString* ConcatAll(const Array& strings,
                                      intptr_t len,
@@ -2322,6 +2343,7 @@ class OneByteString : public String {
 
   HEAP_OBJECT_IMPLEMENTATION(OneByteString, String);
   friend class Class;
+  friend class String;
 };
 
 
@@ -2340,6 +2362,8 @@ class TwoByteString : public String {
     return RoundedAllocationSize(sizeof(RawTwoByteString) + (2 * len));
   }
 
+  static RawTwoByteString* New(intptr_t len,
+                               Heap::Space space);
   static RawTwoByteString* New(const uint16_t* characters,
                                intptr_t len,
                                Heap::Space space);
@@ -2369,6 +2393,7 @@ class TwoByteString : public String {
 
   HEAP_OBJECT_IMPLEMENTATION(TwoByteString, String);
   friend class Class;
+  friend class String;
 };
 
 
@@ -2387,6 +2412,8 @@ class FourByteString : public String {
     return RoundedAllocationSize(sizeof(RawFourByteString) + (4 * len));
   }
 
+  static RawFourByteString* New(intptr_t len,
+                                Heap::Space space);
   static RawFourByteString* New(const uint32_t* characters,
                                 intptr_t len,
                                 Heap::Space space);
@@ -2413,6 +2440,7 @@ class FourByteString : public String {
 
   HEAP_OBJECT_IMPLEMENTATION(FourByteString, String);
   friend class Class;
+  friend class String;
 };
 
 

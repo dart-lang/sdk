@@ -4720,8 +4720,10 @@ String* Parser::ExpectIdentifier(const char* msg) {
 
 
 bool Parser::IsLiteral(const char* literal) {
+  const uint8_t* characters = reinterpret_cast<const uint8_t*>(literal);
+  intptr_t len = strlen(literal);
   return (CurrentToken() == Token::kIDENT)
-      && CurrentLiteral()->Equals(literal, strlen(literal));
+      && CurrentLiteral()->Equals(characters, len);
 }
 
 

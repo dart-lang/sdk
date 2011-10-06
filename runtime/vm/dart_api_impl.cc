@@ -588,8 +588,7 @@ DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
                                         intptr_t length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const String& obj = String::Handle(
-      String::New(reinterpret_cast<const char*>(codepoints), length));
+  const String& obj = String::Handle(String::New(codepoints, length));
   return Api::NewLocalHandle(obj);
 }
 
@@ -698,7 +697,7 @@ DART_EXPORT Dart_Result Dart_StringToCString(Dart_Handle object) {
   if (obj.IsString()) {
     const char* string_value = obj.ToCString();
     intptr_t string_length = strlen(string_value);
-    char* result = reinterpret_cast<char*>(malloc(string_length + 1));
+    char* result = reinterpret_cast<char*>(Api::Allocate(string_length + 1));
     if (result == NULL) {
       RETURN_FAILURE("Unable to allocate memory");
     }

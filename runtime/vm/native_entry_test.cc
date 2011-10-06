@@ -29,7 +29,7 @@ Dart_NativeFunction NativeTestEntry_Lookup(const String& name,
   int num_entries = sizeof(TestEntries) / sizeof(struct NativeTestEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeTestEntries* entry = &(TestEntries[i]);
-    if (name.Equals(entry->name_, strlen(entry->name_))) {
+    if (name.Equals(entry->name_)) {
       if (entry->argument_count_ == argument_count) {
         return entry->function_;
       } else {

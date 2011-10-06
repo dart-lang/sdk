@@ -186,6 +186,15 @@ private:                                                                       \
   void* operator new(size_t size);
 
 
+// The expression ARRAY_SIZE(array) is a compile-time constant of type
+// size_t which represents the number of elements of the given
+// array. You should only use ARRAY_SIZE on statically allocated
+// arrays.
+#define ARRAY_SIZE(array)                                       \
+  ((sizeof(array) / sizeof(*(array))) /                         \
+  static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))
+
+
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //

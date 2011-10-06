@@ -159,13 +159,11 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseDouble, 1) {
 
   // Infinity and nan.
   if (IsValidLiteral(tokens, Token::kIDENT, &is_positive, &number_string)) {
-    const char* kNan = "NaN";
-    const char* kInfinity = "Infinity";
-    if (number_string->Equals(kNan, strlen(kNan))) {
+    if (number_string->Equals("NaN")) {
       arguments->SetReturn(Double::Handle(Double::New(NAN)));
       return;
     }
-    if (number_string->Equals(kInfinity, strlen(kInfinity))) {
+    if (number_string->Equals("Infinity")) {
       if (is_positive) {
         arguments->SetReturn(Double::Handle(Double::New(INFINITY)));
       } else {

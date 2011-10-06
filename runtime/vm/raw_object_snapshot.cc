@@ -938,7 +938,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
   // Allocate a one byte character area.
-  char* chars = new char[len];
+  uint8_t* chars = new uint8_t[len];
   for (int i = 0; i < len; i++) {
     chars[i] = reader->Read<uint8_t>();
   }

@@ -430,7 +430,8 @@ TEST_CASE(String) {
   EXPECT_EQ('d', str.CharAt(10));
   EXPECT_EQ('!', str.CharAt(11));
 
-  const char* motto = "Dart's bescht wos je hets gits";
+  const uint8_t* motto =
+      reinterpret_cast<const uint8_t*>("Dart's bescht wos je hets gits");
   const String& str2 = String::Handle(String::New(motto+7, 4));
   EXPECT_EQ(4, str2.Length());
   EXPECT_EQ('b', str2.CharAt(0));
@@ -458,7 +459,7 @@ TEST_CASE(String) {
   EXPECT(empty1.Equals(empty2, 0, 0));
 
   const intptr_t kCharsLen = 8;
-  const char chars[kCharsLen] = { 1, 2, 127, 128, 192, 0, 255, -1 };
+  const uint8_t chars[kCharsLen] = { 1, 2, 127, 128, 192, 0, 255, -1 };
   const String& str8 = String::Handle(String::New(chars, kCharsLen));
   EXPECT_EQ(kCharsLen, str8.Length());
   EXPECT_EQ(1, str8.CharAt(0));
@@ -654,7 +655,7 @@ TEST_CASE(StringConcat) {
     const String& str7 = String::Handle(String::ConcatAll(array3));
     EXPECT(str7.IsOneByteString());
     EXPECT_EQ(6, str7.Length());
-    EXPECT(str7.Equals("oneone", 6));
+    EXPECT(str7.Equals("oneone"));
   }
 
   // Create a string by concatenating non-empty 1-byte strings.
@@ -676,15 +677,14 @@ TEST_CASE(StringConcat) {
     const String& str3 = String::Handle(String::Concat(onestr, threestr));
     EXPECT(str3.IsOneByteString());
     const char* one_three = "onethree";
-    intptr_t one_three_len = strlen(one_three);
-    EXPECT(str3.Equals(one_three, one_three_len));
+    EXPECT(str3.Equals(one_three));
 
     const String& str4 = String::Handle(String::Concat(threestr, onestr));
     EXPECT(str4.IsOneByteString());
     const char* three_one = "threeone";
     intptr_t three_one_len = strlen(three_one);
     EXPECT_EQ(three_one_len, str4.Length());
-    EXPECT(str4.Equals(three_one, three_one_len));
+    EXPECT(str4.Equals(three_one));
 
     // ConcatAll
 
@@ -694,8 +694,9 @@ TEST_CASE(StringConcat) {
     array1.SetAt(1, threestr);
     const String& str5 = String::Handle(String::ConcatAll(array1));
     EXPECT(str5.IsOneByteString());
+    intptr_t one_three_len = strlen(one_three);
     EXPECT_EQ(one_three_len, str5.Length());
-    EXPECT(str5.Equals(one_three, one_three_len));
+    EXPECT(str5.Equals(one_three));
 
     const Array& array2 = Array::Handle(Array::New(2));
     EXPECT_EQ(2, array2.Length());
@@ -704,7 +705,7 @@ TEST_CASE(StringConcat) {
     const String& str6 = String::Handle(String::ConcatAll(array2));
     EXPECT(str6.IsOneByteString());
     EXPECT_EQ(three_one_len, str6.Length());
-    EXPECT(str6.Equals(three_one, three_one_len));
+    EXPECT(str6.Equals(three_one));
 
     const Array& array3 = Array::Handle(Array::New(3));
     EXPECT_EQ(3, array3.Length());
@@ -716,7 +717,7 @@ TEST_CASE(StringConcat) {
     const char* one_three_one = "onethreeone";
     intptr_t one_three_one_len = strlen(one_three_one);
     EXPECT_EQ(one_three_one_len, str7.Length());
-    EXPECT(str7.Equals(one_three_one, one_three_one_len));
+    EXPECT(str7.Equals(one_three_one));
 
     const Array& array4 = Array::Handle(Array::New(3));
     EXPECT_EQ(3, array4.Length());
@@ -728,7 +729,7 @@ TEST_CASE(StringConcat) {
     const char* three_one_three = "threeonethree";
     intptr_t three_one_three_len = strlen(three_one_three);
     EXPECT_EQ(three_one_three_len, str8.Length());
-    EXPECT(str8.Equals(three_one_three, three_one_three_len));
+    EXPECT(str8.Equals(three_one_three));
   }
 
   // Concatenate empty and non-empty 2-byte strings.
@@ -1014,7 +1015,7 @@ TEST_CASE(StringConcat) {
 
   // Concatenate 1-byte strings and 2-byte strings.
   {
-    const char one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
+    const uint8_t one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
     const String& onestr = String::Handle(String::New(one, one_len));
     EXPECT(onestr.IsOneByteString());
@@ -1079,7 +1080,7 @@ TEST_CASE(StringConcat) {
 
   // Concatenate 1-byte strings and 4-byte strings.
   {
-    const char one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
+    const uint8_t one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
     const String& onestr = String::Handle(String::New(one, one_len));
     EXPECT(onestr.IsOneByteString());
@@ -1193,7 +1194,7 @@ TEST_CASE(StringConcat) {
 
   // Concatenate 1-byte, 2-byte and 4-byte strings.
   {
-    const char one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
+    const uint8_t one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
     const String& onestr = String::Handle(String::New(one, one_len));
     EXPECT(onestr.IsOneByteString());
@@ -1261,6 +1262,170 @@ TEST_CASE(StringConcat) {
                                 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t four_one_two_len = sizeof(four_one_two) / sizeof(four_one_two[0]);
     EXPECT(four_one_two_str.Equals(four_one_two, four_one_two_len));
+  }
+}
+
+
+TEST_CASE(StringFromUtf8Literal) {
+  // Create a 1-byte string from a UTF-8 encoded string literal.
+  {
+    const char* src =
+        "\xC2\xA0\xC2\xA1\xC2\xA2\xC2\xA3"
+        "\xC2\xA4\xC2\xA5\xC2\xA6\xC2\xA7"
+        "\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB"
+        "\xC2\xAC\xC2\xAD\xC2\xAE\xC2\xAF"
+        "\xC2\xB0\xC2\xB1\xC2\xB2\xC2\xB3"
+        "\xC2\xB4\xC2\xB5\xC2\xB6\xC2\xB7"
+        "\xC2\xB8\xC2\xB9\xC2\xBA\xC2\xBB"
+        "\xC2\xBC\xC2\xBD\xC2\xBE\xC2\xBF"
+        "\xC3\x80\xC3\x81\xC3\x82\xC3\x83"
+        "\xC3\x84\xC3\x85\xC3\x86\xC3\x87"
+        "\xC3\x88\xC3\x89\xC3\x8A\xC3\x8B"
+        "\xC3\x8C\xC3\x8D\xC3\x8E\xC3\x8F"
+        "\xC3\x90\xC3\x91\xC3\x92\xC3\x93"
+        "\xC3\x94\xC3\x95\xC3\x96\xC3\x97"
+        "\xC3\x98\xC3\x99\xC3\x9A\xC3\x9B"
+        "\xC3\x9C\xC3\x9D\xC3\x9E\xC3\x9F"
+        "\xC3\xA0\xC3\xA1\xC3\xA2\xC3\xA3"
+        "\xC3\xA4\xC3\xA5\xC3\xA6\xC3\xA7"
+        "\xC3\xA8\xC3\xA9\xC3\xAA\xC3\xAB"
+        "\xC3\xAC\xC3\xAD\xC3\xAE\xC3\xAF"
+        "\xC3\xB0\xC3\xB1\xC3\xB2\xC3\xB3"
+        "\xC3\xB4\xC3\xB5\xC3\xB6\xC3\xB7"
+        "\xC3\xB8\xC3\xB9\xC3\xBA\xC3\xBB"
+        "\xC3\xBC\xC3\xBD\xC3\xBE\xC3\xBF";
+    const uint8_t expected[] = {
+      0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7,
+      0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF,
+      0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7,
+      0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF,
+      0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
+      0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF,
+      0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7,
+      0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF,
+      0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7,
+      0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0xEF,
+      0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7,
+      0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF,
+    };
+    const String& str = String::Handle(String::New(src));
+    EXPECT(str.IsOneByteString());
+    intptr_t expected_length = sizeof(expected);
+    EXPECT_EQ(expected_length, str.Length());
+    for (int i = 0; i < str.Length(); ++i) {
+      EXPECT_EQ(expected[i], str.CharAt(i));
+    }
+  }
+
+  // Create a 2-byte string from a UTF-8 encoded string literal.
+  {
+    const char* src =
+        "\xD7\x92\xD7\x9C\xD7\xA2\xD7\x93"
+        "\xD7\x91\xD7\xA8\xD7\x9B\xD7\x94";
+    const uint16_t expected[] = {
+      0x5D2, 0x5DC, 0x5E2, 0x5D3,
+      0x5D1, 0x5E8, 0x5DB, 0x5D4
+    };
+    const String& str = String::Handle(String::New(src));
+    EXPECT(str.IsTwoByteString());
+    intptr_t expected_size = sizeof(expected) / sizeof(expected[0]);
+    EXPECT_EQ(expected_size, str.Length());
+    for (int i = 0; i < str.Length(); ++i) {
+      EXPECT_EQ(expected[i], str.CharAt(i));
+    }
+  }
+
+  // Create a 2-byte string from UTF-8 encoded 1- and 2-byte
+  // characters.
+  {
+    const char* src =
+        "\x0A\x0B\x0D\x0C\x0E\x0F\xC2\xA0"
+        "\xC2\xB0\xC3\x80\xC3\x90\xC3\xA0"
+        "\xC3\xB0\xE0\xA8\x80\xE0\xAC\x80"
+        "\xE0\xB0\x80\xE0\xB4\x80\xE0\xB8"
+        "\x80\xE0\xBC\x80\xEA\x80\x80\xEB"
+        "\x80\x80\xEC\x80\x80\xED\x80\x80"
+        "\xEE\x80\x80\xEF\x80\x80";
+    const intptr_t expected[] = {
+      0x000A, 0x000B, 0x000D, 0x000C, 0x000E, 0x000F, 0x00A0, 0x00B0,
+      0x00C0, 0x00D0, 0x00E0, 0x00F0, 0x0A00, 0x0B00, 0x0C00, 0x0D00,
+      0x0E00, 0x0F00, 0xA000, 0xB000, 0xC000, 0xD000, 0xE000, 0xF000
+    };
+    const String& str = String::Handle(String::New(src));
+    EXPECT(str.IsTwoByteString());
+    intptr_t expected_size = sizeof(expected) / sizeof(expected[0]);
+    EXPECT_EQ(expected_size, str.Length());
+    for (int i = 0; i < str.Length(); ++i) {
+      EXPECT_EQ(expected[i], str.CharAt(i));
+    }
+  }
+
+  // Create a 4-byte string from a UTF-8 string literal.
+  {
+    const char* src =
+        "\xF0\x9D\x91\xA0\xF0\x9D\x91\xA1"
+        "\xF0\x9D\x91\xA2\xF0\x9D\x91\xA3";
+    const intptr_t expected[] = { 0x1D460, 0x1D461, 0x1D462, 0x1D463 };
+    const String& str = String::Handle(String::New(src));
+    EXPECT(str.IsFourByteString());
+    intptr_t expected_size = sizeof(expected) / sizeof(expected[0]);
+    EXPECT_EQ(expected_size, str.Length());
+    for (int i = 0; i < str.Length(); ++i) {
+      EXPECT_EQ(expected[i], str.CharAt(i));
+    }
+  }
+
+  // Create a 4-byte string from UTF-8 encoded 2- and 4-byte
+  // characters.
+  {
+    const char* src =
+        "\xE0\xA8\x80\xE0\xAC\x80\xE0\xB0"
+        "\x80\xE0\xB4\x80\xE0\xB8\x80\xE0"
+        "\xBC\x80\xEA\x80\x80\xEB\x80\x80"
+        "\xEC\x80\x80\xED\x80\x80\xEE\x80"
+        "\x80\xEF\x80\x80\xF0\x9A\x80\x80"
+        "\xF0\x9B\x80\x80\xF0\x9D\x80\x80"
+        "\xF0\x9E\x80\x80\xF0\x9F\x80\x80";
+    const intptr_t expected[] = {
+      0x0A00, 0x0B00, 0x0C00, 0x0D00, 0x0E00, 0x0F00, 0xA000, 0xB000, 0xC000,
+      0xD000, 0xE000, 0xF000, 0x1A000, 0x1B000, 0x1D000, 0x1E000, 0x1F000
+    };
+    const String& str = String::Handle(String::New(src));
+    EXPECT(str.IsFourByteString());
+    intptr_t expected_size = sizeof(expected) / sizeof(expected[0]);
+    EXPECT_EQ(expected_size, str.Length());
+    for (int i = 0; i < str.Length(); ++i) {
+      EXPECT_EQ(expected[i], str.CharAt(i));
+    }
+  }
+
+  // Create a 4-byte string from UTF-8 encoded 1-, 2- and 4-byte
+  // characters.
+  {
+    const char* src =
+        "\x0A\x0B\x0D\x0C\x0E\x0F\xC2\xA0"
+        "\xC2\xB0\xC3\x80\xC3\x90\xC3\xA0"
+        "\xC3\xB0\xE0\xA8\x80\xE0\xAC\x80"
+        "\xE0\xB0\x80\xE0\xB4\x80\xE0\xB8"
+        "\x80\xE0\xBC\x80\xEA\x80\x80\xEB"
+        "\x80\x80\xEC\x80\x80\xED\x80\x80"
+        "\xEE\x80\x80\xEF\x80\x80\xF0\x9A"
+        "\x80\x80\xF0\x9B\x80\x80\xF0\x9D"
+        "\x80\x80\xF0\x9E\x80\x80\xF0\x9F"
+        "\x80\x80";
+    const intptr_t expected[] = {
+      0x000A, 0x000B, 0x000D, 0x000C, 0x000E, 0x000F, 0x00A0, 0x00B0,
+      0x00C0, 0x00D0, 0x00E0, 0x00F0, 0x0A00, 0x0B00, 0x0C00, 0x0D00,
+      0x0E00, 0x0F00, 0xA000, 0xB000, 0xC000, 0xD000, 0xE000, 0xF000,
+      0x1A000, 0x1B000, 0x1D000, 0x1E000, 0x1F000
+    };
+    const String& str = String::Handle(String::New(src));
+    EXPECT(str.IsFourByteString());
+    intptr_t expected_size = sizeof(expected) / sizeof(expected[0]);
+    EXPECT_EQ(expected_size, str.Length());
+    for (int i = 0; i < str.Length(); ++i) {
+      EXPECT_EQ(expected[i], str.CharAt(i));
+    }
   }
 }
 

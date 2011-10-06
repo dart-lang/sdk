@@ -284,22 +284,22 @@ UNIT_TEST_CASE(PersistentHandles) {
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
-      EXPECT(str.Equals(kTestString1, strlen(kTestString1)));
+      EXPECT(str.Equals(kTestString1));
     }
     for (int i = 500; i < 1000; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
-      EXPECT(str.Equals(kTestString2, strlen(kTestString2)));
+      EXPECT(str.Equals(kTestString2));
     }
     for (int i = 1000; i < 1500; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
-      EXPECT(str.Equals(kTestString1, strlen(kTestString1)));
+      EXPECT(str.Equals(kTestString1));
     }
     for (int i = 1500; i < 2000; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
-      EXPECT(str.Equals(kTestString2, strlen(kTestString2)));
+      EXPECT(str.Equals(kTestString2));
     }
   }
   EXPECT(scope == state->top_scope());

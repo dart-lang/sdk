@@ -24,6 +24,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/timer.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -3110,20 +3111,19 @@ void Script::GetTokenLocation(intptr_t token_index,
 
 RawString* Script::GetLine(intptr_t line_number) const {
   const String& src = String::Handle(source());
-  const char* c_str = src.ToCString();
   intptr_t current_line = 1;
   intptr_t line_start = -1;
   intptr_t last_char = -1;
   for (intptr_t ix = 0;
-      (c_str[ix] != '\0') && (current_line <= line_number);
-      ix++) {
+       (ix < src.Length()) && (current_line <= line_number);
+       ix++) {
     if ((current_line == line_number) && (line_start < 0)) {
       line_start = ix;
     }
-    if (c_str[ix] == '\n') {
+    if (src.CharAt(ix) == '\n') {
       current_line++;
-    } else if (c_str[ix] == '\r') {
-      if (c_str[ix + 1] != '\n') {
+    } else if (src.CharAt(ix) == '\r') {
+      if ((ix + 1 != src.Length()) && (src.CharAt(ix + 1) != '\n')) {
         current_line++;
       }
     } else {
@@ -3133,7 +3133,7 @@ RawString* Script::GetLine(intptr_t line_number) const {
   // Guarantee that returned string is never NULL.
   String& line = String::Handle(String::NewSymbol(""));
   if (line_start >= 0) {
-    line = String::New(&c_str[line_start], last_char - line_start + 1);
+    line = String::SubString(src, line_start, last_char - line_start + 1);
   }
   return line.raw();
 }
@@ -3144,14 +3144,15 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(source());
-  const char* lookahead = src.ToCString();
+  intptr_t length = src.Length();
   intptr_t line = 1;
   intptr_t column = 1;
-  const char* snippet_start = NULL;
-  const char* snippet_end = NULL;
-  char c = *lookahead;
-  while (*lookahead != '\0') {
-    if (snippet_start == NULL) {
+  intptr_t lookahead = 0;
+  intptr_t snippet_start = -1;
+  intptr_t snippet_end = -1;
+  char c = src.CharAt(lookahead);
+  while (lookahead != length) {
+    if (snippet_start == -1) {
       if ((line == from_line) && (column == from_column)) {
         snippet_start = lookahead;
       }
@@ -3165,19 +3166,22 @@ RawString* Script::GetSnippet(intptr_t from_line,
     }
     column++;
     lookahead++;
-    // Replace '\r' with '\n' and a sequence of '\r' '\n' with a single '\n'.
-    if (*lookahead == '\r') {
-      c = '\n';
-      if (*(lookahead + 1) == '\n') {
-        lookahead++;
+    if (lookahead != length) {
+      // Replace '\r' with '\n' and a sequence of '\r' '\n' with a single '\n'.
+      if (src.CharAt(lookahead) == '\r') {
+        c = '\n';
+        if (lookahead + 1 != length && src.CharAt(lookahead) == '\n') {
+          lookahead++;
+        }
+      } else {
+        c = src.CharAt(lookahead);
       }
-    } else {
-      c = *lookahead;
     }
   }
   String& snippet = String::Handle();
-  if ((snippet_start != NULL) && (snippet_end != NULL)) {
-    snippet = String::New(snippet_start, snippet_end - snippet_start);
+  if ((snippet_start != -1) && (snippet_end != -1)) {
+    snippet =
+        String::SubString(src, snippet_start, snippet_end - snippet_start);
   }
   return snippet.raw();
 }
@@ -4828,18 +4832,29 @@ intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
 }
 
 
-intptr_t String::Hash(const char* characters, intptr_t len) {
-  return Hash(reinterpret_cast<const uint8_t*>(characters), len);
-}
-
-
 template<typename T>
-intptr_t String::Hash(const T* characters, intptr_t len) {
+static intptr_t HashImpl(const T* characters, intptr_t len) {
+  ASSERT(len >= 0);
   StringHasher hasher;
   for (intptr_t i = 0; i < len; i++) {
     hasher.Add(characters[i]);
   }
   return hasher.Finalize(String::kHashBits);
+}
+
+
+intptr_t String::Hash(const uint8_t* characters, intptr_t len) {
+  return HashImpl(characters, len);
+}
+
+
+intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
+  return HashImpl(characters, len);
+}
+
+
+intptr_t String::Hash(const uint32_t* characters, intptr_t len) {
+  return HashImpl(characters, len);
 }
 
 
@@ -4904,7 +4919,24 @@ bool String::Equals(const String& str,
 }
 
 
-bool String::Equals(const char* characters, intptr_t len) const {
+bool String::Equals(const char* str) const {
+  for (intptr_t i = 0; i < this->Length(); ++i) {
+    if (*str == '\0') {
+      // Lengths don't match.
+      return false;
+    }
+    int32_t ch;
+    intptr_t consumed = Utf8::Decode(str, &ch);
+    if (consumed == 0 || this->CharAt(i) != ch) {
+      return false;
+    }
+    str += consumed;
+  }
+  return true;
+}
+
+
+bool String::Equals(const uint8_t* characters, intptr_t len) const {
   if (len != this->Length()) {
     // Lengths don't match.
     return false;
@@ -5018,12 +5050,33 @@ bool String::IsSymbol() const {
 
 
 RawString* String::New(const char* str, Heap::Space space) {
-  intptr_t len = strlen(str);
-  return OneByteString::New(str, len, space);
+  intptr_t width = 0;
+  intptr_t len = Utf8::CodePointCount(str, &width);
+  if (width == 1) {
+    OneByteString& onestr
+        = OneByteString::Handle(OneByteString::New(len, space));
+    if (len > 0) {
+      NoGCScope no_gc;
+      Utf8::Decode(str, onestr.CharAddr(0), len);
+    }
+    return onestr.raw();
+  } else if (width == 2) {
+    TwoByteString& twostr =
+        TwoByteString::Handle(TwoByteString::New(len, space));
+    NoGCScope no_gc;
+    Utf8::Decode(str, twostr.CharAddr(0), len);
+    return twostr.raw();
+  }
+  ASSERT(width == 4);
+  FourByteString& fourstr =
+      FourByteString::Handle(FourByteString::New(len, space));
+  NoGCScope no_gc;
+  Utf8::Decode(str, fourstr.CharAddr(0), len);
+  return fourstr.raw();
 }
 
 
-RawString* String::New(const char* characters,
+RawString* String::New(const uint8_t* characters,
                        intptr_t len,
                        Heap::Space space) {
   return OneByteString::New(characters, len, space);
@@ -5091,6 +5144,135 @@ RawString* String::New(const String& str, Heap::Space space) {
 }
 
 
+void String::Copy(const String& dst, intptr_t dst_offset,
+                  const uint8_t* characters,
+                  intptr_t len) {
+  ASSERT(dst_offset >= 0);
+  ASSERT(len >= 0);
+  ASSERT(len <= (dst.Length() - dst_offset));
+  if (dst.IsOneByteString()) {
+    OneByteString& onestr = OneByteString::Handle();
+    onestr ^= dst.raw();
+    NoGCScope no_gc;
+    if (len > 0) {
+      memmove(onestr.CharAddr(dst_offset), characters, len);
+    }
+  } else if (dst.IsTwoByteString()) {
+    TwoByteString& twostr = TwoByteString::Handle();
+    twostr ^= dst.raw();
+    NoGCScope no_gc;
+    for (intptr_t i = 0; i < len; ++i) {
+      *twostr.CharAddr(i + dst_offset) = characters[i];
+    }
+  } else {
+    ASSERT(dst.IsFourByteString());
+    FourByteString& fourstr = FourByteString::Handle();
+    fourstr ^= dst.raw();
+    NoGCScope no_gc;
+    for (intptr_t i = 0; i < len; ++i) {
+      *fourstr.CharAddr(i + dst_offset) = characters[i];
+    }
+  }
+}
+
+
+void String::Copy(const String& dst, intptr_t dst_offset,
+                  const uint16_t* characters,
+                  intptr_t len) {
+  ASSERT(dst_offset >= 0);
+  ASSERT(len >= 0);
+  ASSERT(len <= (dst.Length() - dst_offset));
+  if (dst.IsOneByteString()) {
+    OneByteString& onestr = OneByteString::Handle();
+    onestr ^= dst.raw();
+    NoGCScope no_gc;
+    for (intptr_t i = 0; i < len; ++i) {
+      ASSERT(characters[i] <= 0xFF);
+      *onestr.CharAddr(i + dst_offset) = characters[i];
+    }
+  } else if (dst.IsTwoByteString()) {
+    TwoByteString& twostr = TwoByteString::Handle();
+    twostr ^= dst.raw();
+    NoGCScope no_gc;
+    if (len > 0) {
+      memmove(twostr.CharAddr(dst_offset), characters, len * 2);
+    }
+  } else {
+    ASSERT(dst.IsFourByteString());
+    FourByteString& fourstr = FourByteString::Handle();
+    fourstr ^= dst.raw();
+    NoGCScope no_gc;
+    for (intptr_t i = 0; i < len; ++i) {
+      *fourstr.CharAddr(i + dst_offset) = characters[i];
+    }
+  }
+}
+
+
+void String::Copy(const String& dst, intptr_t dst_offset,
+                  const uint32_t* characters,
+                  intptr_t len) {
+  ASSERT(dst_offset >= 0);
+  ASSERT(len >= 0);
+  ASSERT(len <= (dst.Length() - dst_offset));
+  if (dst.IsOneByteString()) {
+    OneByteString& onestr = OneByteString::Handle();
+    onestr ^= dst.raw();
+    NoGCScope no_gc;
+    for (intptr_t i = 0; i < len; ++i) {
+      ASSERT(characters[i] <= 0xFF);
+      *onestr.CharAddr(i + dst_offset) = characters[i];
+    }
+  } else if (dst.IsTwoByteString()) {
+    TwoByteString& twostr = TwoByteString::Handle();
+    twostr ^= dst.raw();
+    NoGCScope no_gc;
+    for (intptr_t i = 0; i < len; ++i) {
+      ASSERT(characters[i] <= 0xFFFF);
+      *twostr.CharAddr(i + dst_offset) = characters[i];
+    }
+  } else {
+    ASSERT(dst.IsFourByteString());
+    FourByteString& fourstr = FourByteString::Handle();
+    fourstr ^= dst.raw();
+    NoGCScope no_gc;
+    if (len > 0) {
+      memmove(fourstr.CharAddr(dst_offset), characters, len * 4);
+    }
+  }
+}
+
+
+void String::Copy(const String& dst, intptr_t dst_offset,
+                  const String& src, intptr_t src_offset,
+                  intptr_t len) {
+  ASSERT(dst_offset >= 0);
+  ASSERT(src_offset >= 0);
+  ASSERT(len >= 0);
+  ASSERT(len <= (dst.Length() - dst_offset));
+  ASSERT(len <= (src.Length() - src_offset));
+  if (len > 0) {
+    if (src.IsOneByteString()) {
+      OneByteString& onestr = OneByteString::Handle();
+      onestr ^= src.raw();
+      NoGCScope no_gc;
+      String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
+    } else if (src.IsTwoByteString()) {
+      TwoByteString& twostr = TwoByteString::Handle();
+      twostr ^= src.raw();
+      NoGCScope no_gc;
+      String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+    } else {
+      ASSERT(src.IsFourByteString());
+      FourByteString& fourstr = FourByteString::Handle();
+      fourstr ^= src.raw();
+      NoGCScope no_gc;
+      String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
+    }
+  }
+}
+
+
 static void GrowSymbolTable(const Array& symbol_table, intptr_t table_size) {
   // TODO(iposva): Avoid exponential growth.
   intptr_t new_table_size = table_size * 2;
@@ -5139,8 +5321,25 @@ static void InsertIntoSymbolTable(const Array& symbol_table,
 
 
 RawString* String::NewSymbol(const char* str) {
-  intptr_t len = strlen(str);
-  return NewSymbol(str, len);
+  intptr_t width = 0;
+  intptr_t len = Utf8::CodePointCount(str, &width);
+  intptr_t size = len * width;
+  Zone* zone = Isolate::Current()->current_zone();
+  if (len == 0) {
+    return String::NewSymbol(reinterpret_cast<uint8_t*>(NULL), 0);
+  } else if (width == 1) {
+    uint8_t* characters = reinterpret_cast<uint8_t*>(zone->Allocate(size));
+    Utf8::Decode(str, characters, len);
+    return NewSymbol(characters, len);
+  } else if (width == 2) {
+    uint16_t* characters = reinterpret_cast<uint16_t*>(zone->Allocate(size));
+    Utf8::Decode(str, characters, len);
+    return NewSymbol(characters, len);
+  }
+  ASSERT(width == 4);
+  uint32_t* characters = reinterpret_cast<uint32_t*>(zone->Allocate(size));
+  Utf8::Decode(str, characters, len);
+  return NewSymbol(characters, len);
 }
 
 
@@ -5175,7 +5374,7 @@ RawString* String::NewSymbol(const T* characters, intptr_t len) {
   return symbol.raw();
 }
 
-template RawString* String::NewSymbol(const char* characters, intptr_t len);
+template RawString* String::NewSymbol(const uint8_t* characters, intptr_t len);
 template RawString* String::NewSymbol(const uint16_t* characters, intptr_t len);
 template RawString* String::NewSymbol(const uint32_t* characters, intptr_t len);
 
@@ -5239,11 +5438,7 @@ RawString* String::Concat(const String& str1,
     is_one_byte_string = false;
   }
   if (is_one_byte_string) {
-    OneByteString& obstr1 = OneByteString::Handle();
-    OneByteString& obstr2 = OneByteString::Handle();
-    obstr1 ^= str1.raw();
-    obstr2 ^= str2.raw();
-    return OneByteString::Concat(obstr1, obstr2, space);
+    return OneByteString::Concat(str1, str2, space);
   } else if (is_two_byte_string) {
     ASSERT(str1.IsTwoByteString() || str2.IsTwoByteString());
     return TwoByteString::Concat(str1, str2, space);
@@ -5318,14 +5513,16 @@ RawString* String::SubString(const String& str,
 
 
 const char* String::ToCString() const {
-  // String is an interface. No instances of String should exist.
-  UNREACHABLE();
-  return "String";
+  intptr_t len = Utf8::Length(*this);
+  Zone* zone = Isolate::Current()->current_zone();
+  char* result = reinterpret_cast<char*>(zone->Allocate(len + 1));
+  Utf8::Encode(*this, result, len);
+  result[len] = 0;
+  return result;
 }
 
 
-RawOneByteString* OneByteString::New(const char* characters,
-                                     intptr_t len,
+RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
 
@@ -5340,10 +5537,16 @@ RawOneByteString* OneByteString::New(const char* characters,
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    if (len > 0) {
-      memmove(result.CharAddr(0), characters, len);
-    }
   }
+  return result.raw();
+}
+
+
+RawOneByteString* OneByteString::New(const uint8_t* characters,
+                                     intptr_t len,
+                                     Heap::Space space) {
+  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  String::Copy(result, 0, characters, len);
   return result.raw();
 }
 
@@ -5351,24 +5554,8 @@ RawOneByteString* OneByteString::New(const char* characters,
 RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
-  OneByteString& result = OneByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      OneByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    for (intptr_t i = 0; i < len; ++i) {
-      ASSERT(characters[i] <= 0xFF);
-      *result.CharAddr(i) = characters[i];
-    }
-  }
+  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  String::Copy(result, 0, characters, len);
   return result.raw();
 }
 
@@ -5376,78 +5563,30 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
 RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
-  OneByteString& result = OneByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      OneByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    for (intptr_t i = 0; i < len; ++i) {
-      ASSERT(characters[i] <= 0xFF);
-      *result.CharAddr(i) = characters[i];
-    }
-  }
+  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  String::Copy(result, 0, characters, len);
   return result.raw();
 }
 
 
 RawOneByteString* OneByteString::New(const OneByteString& str,
                                      Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
   intptr_t len = str.Length();
-  const Class& cls =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
-  OneByteString& result = OneByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      OneByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(str.Hash());
-    if (len > 0) {
-      memmove(result.CharAddr(0), str.CharAddr(0), len);
-    }
-  }
+  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  String::Copy(result, 0, str, 0, len);
   return result.raw();
 }
 
 
-RawOneByteString* OneByteString::Concat(const OneByteString& str1,
-                                        const OneByteString& str2,
+RawOneByteString* OneByteString::Concat(const String& str1,
+                                        const String& str2,
                                         Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
-  OneByteString& result = OneByteString::Handle();
-  {
-    intptr_t len1 = str1.Length();
-    intptr_t len2 = str2.Length();
-    intptr_t len = len1 + len2;
-    RawObject* raw = Object::Allocate(cls,
-                                      OneByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    if (len1 > 0) {
-      memmove(result.CharAddr(0), str1.CharAddr(0), len1);
-    }
-    if (len2 > 0) {
-      memmove(result.CharAddr(len1), str2.CharAddr(0), len2);
-    }
-  }
+  intptr_t len1 = str1.Length();
+  intptr_t len2 = str2.Length();
+  intptr_t len = len1 + len2;
+  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  String::Copy(result, 0, str1, 0, len1);
+  String::Copy(result, len1, str2, 0, len2);
   return result.raw();
 }
 
@@ -5455,30 +5594,15 @@ RawOneByteString* OneByteString::Concat(const OneByteString& str1,
 RawOneByteString* OneByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
-  OneByteString& result = OneByteString::Handle();
+  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
   OneByteString& str = OneByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      OneByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    intptr_t strings_len = strings.Length();
-    intptr_t pos = 0;
-    for (intptr_t i = 0; i < strings_len; i++) {
-      str ^= strings.At(i);
-      intptr_t str_len = str.Length();
-      if (str_len > 0) {
-        memmove(result.CharAddr(pos), str.CharAddr(0), str_len);
-      }
-      pos += str_len;
-    }
+  intptr_t strings_len = strings.Length();
+  intptr_t pos = 0;
+  for (intptr_t i = 0; i < strings_len; i++) {
+    str ^= strings.At(i);
+    intptr_t str_len = str.Length();
+    String::Copy(result, pos, str, 0, str_len);
+    pos += str_len;
   }
   return result.raw();
 }
@@ -5491,40 +5615,21 @@ RawOneByteString* OneByteString::SubString(const OneByteString& str,
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
   OneByteString& result = OneByteString::Handle();
-  if (length <=  (str.Length() - begin_index)) {
-    Isolate* isolate = Isolate::Current();
-    const Class& cls =
-        Class::Handle(isolate->object_store()->one_byte_string_class());
-    {
-      RawObject* raw = Object::Allocate(cls,
-                                        OneByteString::InstanceSize(length),
-                                        space);
-      NoGCScope no_gc;
-      result ^= raw;
-      result.SetLength(length);
-      result.SetHash(0);
-      memmove(result.CharAddr(0), str.CharAddr(begin_index), length);
-    }
+  if (length <= (str.Length() - begin_index)) {
+    result ^= OneByteString::New(length, space);
+    String::Copy(result, 0, str, begin_index, length);
   }
+  // TODO(5418937): return a non-null object on error.
   return result.raw();
 }
 
 
 const char* OneByteString::ToCString() const {
-  intptr_t len = Length();
-  Zone* zone = Isolate::Current()->current_zone();
-  char* result = reinterpret_cast<char*>(zone->Allocate(len + 1));
-  // CharAddr fails if len == 0, so do not call memmove.
-  if (len > 0) {
-    memmove(result, CharAddr(0), len);
-  }
-  result[len] = 0;
-  return result;
+  return String::ToCString();
 }
 
 
-RawTwoByteString* TwoByteString::New(const uint16_t* characters,
-                                     intptr_t len,
+RawTwoByteString* TwoByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
 
@@ -5539,10 +5644,16 @@ RawTwoByteString* TwoByteString::New(const uint16_t* characters,
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    if (len > 0) {
-      memmove(result.CharAddr(0), characters, len * 2);
-    }
   }
+  return result.raw();
+}
+
+
+RawTwoByteString* TwoByteString::New(const uint16_t* characters,
+                                     intptr_t len,
+                                     Heap::Space space) {
+  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  String::Copy(result, 0, characters, len);
   return result.raw();
 }
 
@@ -5550,48 +5661,17 @@ RawTwoByteString* TwoByteString::New(const uint16_t* characters,
 RawTwoByteString* TwoByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->two_byte_string_class());
-  TwoByteString& result = TwoByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      TwoByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    for (intptr_t i = 0; i < len; i++) {
-      ASSERT(characters[i] <= 0xFFFF);
-      *result.CharAddr(i) = characters[i];
-    }
-  }
+  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  String::Copy(result, 0, characters, len);
   return result.raw();
 }
 
 
 RawTwoByteString* TwoByteString::New(const TwoByteString& str,
                                      Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
   intptr_t len = str.Length();
-  const Class& cls =
-      Class::Handle(isolate->object_store()->two_byte_string_class());
-  TwoByteString& result = TwoByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      TwoByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(str.Hash());
-    if (len > 0) {
-      memmove(result.CharAddr(0), str.CharAddr(0), len * 2);
-    }
-  }
+  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  String::Copy(result, 0, str, 0, len);
   return result.raw();
 }
 
@@ -5599,47 +5679,13 @@ RawTwoByteString* TwoByteString::New(const TwoByteString& str,
 RawTwoByteString* TwoByteString::Concat(const String& str1,
                                         const String& str2,
                                         Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->two_byte_string_class());
   TwoByteString& result = TwoByteString::Handle();
-  {
-    intptr_t len1 = str1.Length();
-    intptr_t len2 = str2.Length();
-    intptr_t len = len1 + len2;
-    RawObject* raw = Object::Allocate(cls,
-                                      TwoByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    if (len1 > 0) {
-      if (str1.IsTwoByteString()) {
-        TwoByteString& str = TwoByteString::Handle();
-        str ^= str1.raw();
-        memmove(result.CharAddr(0), str.CharAddr(0), len1 * 2);
-      } else {
-        ASSERT(str1.IsOneByteString() || str1.IsFourByteString());
-        for (intptr_t i = 0; i < len1; i++) {
-          *result.CharAddr(i) = str1.CharAt(i);
-        }
-      }
-    }
-    if (len2 > 0) {
-      if (str2.IsTwoByteString()) {
-        TwoByteString& str = TwoByteString::Handle();
-        str ^= str2.raw();
-        memmove(result.CharAddr(len1), str.CharAddr(0), len2 * 2);
-      } else {
-        ASSERT(str2.IsOneByteString() || str2.IsFourByteString());
-        for (intptr_t i = 0; i < len2; i++) {
-          *result.CharAddr(len1 + i) = str2.CharAt(i);
-        }
-      }
-    }
-  }
+  intptr_t len1 = str1.Length();
+  intptr_t len2 = str2.Length();
+  intptr_t len = len1 + len2;
+  result ^= TwoByteString::New(len, space);
+  String::Copy(result, 0, str1, 0, len1);
+  String::Copy(result, len1, str2, 0, len2);
   return result.raw();
 }
 
@@ -5647,40 +5693,15 @@ RawTwoByteString* TwoByteString::Concat(const String& str1,
 RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  const Class& cls =
-      Class::Handle(isolate->object_store()->two_byte_string_class());
-
-  TwoByteString& result = TwoByteString::Handle();
+  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
   String& str = String::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      TwoByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    intptr_t strings_len = strings.Length();
-    intptr_t pos = 0;
-    for (intptr_t i = 0; i < strings_len; i++) {
-      str ^= strings.At(i);
-      intptr_t str_len = str.Length();
-      if (str_len > 0) {
-        if (str.IsTwoByteString()) {
-          TwoByteString& twostr = TwoByteString::Handle();
-          twostr ^= str.raw();
-          memmove(result.CharAddr(pos), twostr.CharAddr(0), str_len * 2);
-        } else {
-          ASSERT(str.IsOneByteString() || str.IsFourByteString());
-          for (intptr_t j = 0; j < str_len; ++j) {
-            ASSERT(str.CharAt(j) <= 0xFFFF);
-            *result.CharAddr(pos + j) = str.CharAt(j);
-          }
-        }
-      }
-      pos += str_len;
-    }
+  intptr_t strings_len = strings.Length();
+  intptr_t pos = 0;
+  for (intptr_t i = 0; i < strings_len; i++) {
+    str ^= strings.At(i);
+    intptr_t str_len = str.Length();
+    String::Copy(result, pos, str, 0, str_len);
+    pos += str_len;
   }
   return result.raw();
 }
@@ -5693,113 +5714,67 @@ RawTwoByteString* TwoByteString::SubString(const TwoByteString& str,
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
   TwoByteString& result = TwoByteString::Handle();
-  if (length <=  (str.Length() - begin_index)) {
-    Isolate* isolate = Isolate::Current();
-    const Class& cls =
-        Class::Handle(isolate->object_store()->two_byte_string_class());
-    {
-      RawObject* raw = Object::Allocate(cls,
-                                        TwoByteString::InstanceSize(length),
-                                        space);
-      NoGCScope no_gc;
-      result ^= raw;
-      result.SetLength(length);
-      result.SetHash(0);
-      memmove(result.CharAddr(0), str.CharAddr(begin_index), (length * 2));
-    }
+  if (length <= (str.Length() - begin_index)) {
+    result ^= TwoByteString::New(length, space);
+    String::Copy(result, 0, str, begin_index, length);
   }
+  // TODO(5418937): return a non-null object on error.
   return result.raw();
 }
 
 
 const char* TwoByteString::ToCString() const {
-  intptr_t len = Length();
-  Zone* zone = Isolate::Current()->current_zone();
-  char* result = reinterpret_cast<char*>(zone->Allocate(len + 1));
-  // TODO(iposva): Proper UTF-8 encoding.
-  for (intptr_t i = 0; i < len; i++) {
-    result[i] = CharAt(i);
+  return String::ToCString();
+}
+
+
+
+RawFourByteString* FourByteString::New(intptr_t len,
+                                       Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+
+  const Class& cls =
+      Class::Handle(isolate->object_store()->four_byte_string_class());
+  FourByteString& result = FourByteString::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls,
+                                      FourByteString::InstanceSize(len),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetHash(0);
   }
-  result[len] = 0;
-  return result;
+  return result.raw();
 }
 
 
 RawFourByteString* FourByteString::New(const uint32_t* characters,
                                        intptr_t len,
                                        Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->four_byte_string_class());
-  FourByteString& result = FourByteString::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      FourByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    if (len > 0) {
-      memmove(result.CharAddr(0), characters, len * 4);
-    }
-  }
+  FourByteString& result =
+      FourByteString::Handle(FourByteString::New(len, space));
+  String::Copy(result, 0, characters, len);
   return result.raw();
 }
 
 
 RawFourByteString* FourByteString::New(const FourByteString& str,
                                        Heap::Space space) {
-  return New(str.CharAddr(0), str.Length(), space);
+  return FourByteString::New(str.CharAddr(0), str.Length(), space);
 }
 
 
 RawFourByteString* FourByteString::Concat(const String& str1,
                                           const String& str2,
                                           Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->four_byte_string_class());
-  FourByteString& result = FourByteString::Handle();
-  {
-    intptr_t len1 = str1.Length();
-    intptr_t len2 = str2.Length();
-    intptr_t len = len1 + len2;
-    RawObject* raw = Object::Allocate(cls,
-                                      FourByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
-    if (len1 > 0) {
-      if (str1.IsFourByteString()) {
-        ASSERT(str1.IsFourByteString());
-        FourByteString& str = FourByteString::Handle();
-        str ^= str1.raw();
-        memmove(result.CharAddr(0), str.CharAddr(0), len1 * 4);
-      } else {
-        ASSERT(str1.IsOneByteString() || str1.IsTwoByteString());
-        for (intptr_t i = 0; i < len1; i++) {
-          *result.CharAddr(i) = str1.CharAt(i);
-        }
-      }
-    }
-    if (len2 > 0) {
-      if (str2.IsFourByteString()) {
-        FourByteString& str = FourByteString::Handle();
-        str ^= str2.raw();
-        memmove(result.CharAddr(len1), str.CharAddr(0), len2 * 4);
-      } else {
-        ASSERT(str2.IsOneByteString() || str2.IsTwoByteString());
-        for (intptr_t i = 0; i < len2; i++) {
-          *result.CharAddr(len1 + i) = str2.CharAt(i);
-        }
-      }
-    }
-  }
+  intptr_t len1 = str1.Length();
+  intptr_t len2 = str2.Length();
+  intptr_t len = len1 + len2;
+  FourByteString& result =
+      FourByteString::Handle(FourByteString::New(len, space));
+  String::Copy(result, 0, str1, 0, len1);
+  String::Copy(result, len1, str2, 0, len2);
   return result.raw();
 }
 
@@ -5807,37 +5782,16 @@ RawFourByteString* FourByteString::Concat(const String& str1,
 RawFourByteString* FourByteString::ConcatAll(const Array& strings,
                                              intptr_t len,
                                              Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  const Class& cls =
-      Class::Handle(isolate->object_store()->four_byte_string_class());
-
-  FourByteString& result = FourByteString::Handle();
+  FourByteString& result =
+      FourByteString::Handle(FourByteString::New(len, space));
   String& str = String::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
-                                      FourByteString::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
     intptr_t strings_len = strings.Length();
     intptr_t pos = 0;
     for (intptr_t i = 0; i < strings_len; i++) {
       str ^= strings.At(i);
       intptr_t str_len = str.Length();
-      if (str_len > 0) {
-        if (str.IsFourByteString()) {
-          FourByteString& fourstr = FourByteString::Handle();
-          fourstr ^= str.raw();
-          memmove(result.CharAddr(pos), fourstr.CharAddr(0), str_len * 4);
-        } else {
-          ASSERT(str.IsOneByteString() || str.IsTwoByteString());
-          for (intptr_t j = 0; j < str_len; ++j) {
-            *result.CharAddr(pos + j) = str.CharAt(j);
-          }
-        }
-      }
+      String::Copy(result, pos, str, 0, str_len);
       pos += str_len;
     }
   }
@@ -5852,35 +5806,17 @@ RawFourByteString* FourByteString::SubString(const FourByteString& str,
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
   FourByteString& result = FourByteString::Handle();
-  if (length <=  (str.Length() - begin_index)) {
-    Isolate* isolate = Isolate::Current();
-    const Class& cls =
-        Class::Handle(isolate->object_store()->four_byte_string_class());
-    {
-      RawObject* raw = Object::Allocate(cls,
-                                        FourByteString::InstanceSize(length),
-                                        space);
-      NoGCScope no_gc;
-      result ^= raw;
-      result.SetLength(length);
-      result.SetHash(0);
-      memmove(result.CharAddr(0), str.CharAddr(begin_index), (length * 4));
-    }
+  if (length <= (str.Length() - begin_index)) {
+    result ^= FourByteString::New(length, space);
+    String::Copy(result, 0, str, begin_index, length);
   }
+  // TODO(5418937): return a non-null object on error.
   return result.raw();
 }
 
 
 const char* FourByteString::ToCString() const {
-  intptr_t len = Length();
-  Zone* zone = Isolate::Current()->current_zone();
-  char* result = reinterpret_cast<char*>(zone->Allocate(len + 1));
-  // TODO(iposva): Proper UTF-8 encoding.
-  for (intptr_t i = 0; i < len; i++) {
-    result[i] = CharAt(i);
-  }
-  result[len] = 0;
-  return result;
+  return String::ToCString();
 }
 
 
