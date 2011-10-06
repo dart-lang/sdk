@@ -620,6 +620,9 @@ class DartDocumentationVisitor extends DartNodeTraverser<Void> {
 
   private void documentClass(ClassElement classElement) {
     String name = classElement.getName();
+    if (isPrivateName(name)) {
+      return;
+    }
     String fileName = outputDirectory + File.separator + name + ".html";
     try {
       stream = new PrintStream(fileName);

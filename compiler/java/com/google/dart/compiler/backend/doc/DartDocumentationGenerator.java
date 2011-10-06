@@ -209,7 +209,7 @@ public class DartDocumentationGenerator extends AbstractBackend {
     stream.println("<body>");
     stream.println("\n<header></header>\n");
   
-    stream.println("<h1 id=\"title\">Libraries</h1>");
+    stream.println("<h1 id=\"title\">Library Reference</h1>");
     
     stream.println("<section id=\"libraries-overview\">");
     for (LibraryUnit lib : libraries) {
