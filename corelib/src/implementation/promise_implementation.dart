@@ -58,7 +58,7 @@ class PromiseImpl<T> implements Promise<T> {
   T get value() {
     if (!isDone()) {
       // TODO(kasperl): Turn this into a proper exception object.
-      throw "Attempted to get the value of an uncompleted promise.";
+      throw new Exception("Attempted to get the value of an uncompleted promise.");
     }
     if (hasError()) {
       throw _error;
@@ -316,13 +316,11 @@ class ProxyImpl {
   }
 
   bool operator ==(var other) {
-    return (other is ProxyImpl) &&
-        _promise.value == other._promise.value;
+    return this === other;
   }
 
-  int hashCode() {
-    return _promise.value.hashCode();
-  }
+  // FIXME(benl): generate a more useful hashCode.
+  int hashCode() => 0;
 
   // Marshal the [message] and pass it to the [process] callback
   // function once this proxy and all proxies in the message are

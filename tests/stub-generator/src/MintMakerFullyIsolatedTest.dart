@@ -2,40 +2,68 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse
+// IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
 
-interface Purse factory PurseImpl {
+interface Purse {
   Purse();
-  // FIXME(benl): need to autogen constructors...
-  void init(Mint$Proxy mint, int balance);
   int queryBalance();
   Purse$Proxy sproutPurse();
-  void deposit(int amount, Purse$Proxy source);
+  // The deposit has not completed until the promise completes. If we
+  // supported Promise<void> then this could use that.
+  Promise<int> deposit(int amount, Purse$Proxy source);
+}
+
+interface PowerfulPurse extends Purse factory PurseImpl {
+  PowerfulPurse();
+
+  void init(Mint$Proxy mint, int balance);
+  // Return an int so we can wait for it to complete. Shame we can't
+  // have a Promise<void>.
+  int grab(int amount);
+  Purse weak();
 }
 
 interface Mint factory MintImpl {
   Mint();
 
   Purse$Proxy createPurse(int balance);
+  PowerfulPurse$Proxy promote(Purse$Proxy purse);
 }
 
 class MintImpl implements Mint {
 
-  MintImpl() { }
+  MintImpl() { print('mint'); }
 
   Purse$Proxy createPurse(int balance) {
-    Purse$Proxy purse = new Purse$ProxyImpl.createIsolate();
+    print('createPurse');
+    PowerfulPurse$ProxyImpl purse =
+      new PowerfulPurse$ProxyImpl.createIsolate();
     Mint$Proxy thisProxy = new Mint$ProxyImpl.localProxy(this);
     purse.init(thisProxy, balance);
-    return purse;
+
+    Purse$Proxy weakPurse = purse.weak();
+    if (_power === null)
+      _power = new Map<Purse$Proxy, PowerfulPurse$Proxy>();
+    print('cP1');
+    print(weakPurse.hashCode());
+    _power[weakPurse] = purse;
+    print('cP2');
+    return weakPurse;
   }
 
+  PowerfulPurse$Proxy promote(Purse$Proxy purse) {
+    print('promote');
+    return _power[purse];
+  }
+
+  static Map<Purse$Proxy, PowerfulPurse$Proxy> _power;
 }
 
-class PurseImpl implements Purse {
+class PurseImpl implements PowerfulPurse {
 
   // FIXME(benl): autogenerate constructor, get rid of init(...).
-  //PurseImpl(this._mint, this._balance) { }
+  // Note that this constructor should not exist in the public interface
+  // PurseImpl(this._mint, this._balance) { }
   PurseImpl() { }
 
   init(Mint$Proxy mint, int balance) {
@@ -48,15 +76,31 @@ class PurseImpl implements Purse {
   }
 
   Purse$Proxy sproutPurse() {
+    print('sprout');
     return _mint.createPurse(0);
   }
 
-  void deposit(int amount, Purse$Proxy proxy) {
-    Purse$ProxyImpl impl = proxy.dynamic;
-    PurseImpl source = impl.local;
-    if (source._balance < amount) throw "Not enough dough.";
-    _balance += amount;
-    source._balance -= amount;
+  Promise<int> deposit(int amount, Purse$Proxy proxy) {
+    print('deposit');
+    Promise<int> grabbed = _mint.promote(proxy).grab(amount);
+    Promise<int> done = new Promise<int>();
+    grabbed.then((int) {
+      print("deposit done");
+      _balance += amount;
+      done.complete(_balance);
+    });
+    return done;
+  }
+
+  int grab(int amount) {
+    print("grab");
+    if (_balance < amount) throw "Not enough dough.";
+    _balance -= amount;
+    return amount;
+  }
+
+  Purse weak() {
+    return this;
   }
 
   Mint$Proxy _mint;
@@ -69,29 +113,51 @@ class MintMakerFullyIsolatedTest {
   static void testMain() {
     Mint$Proxy mint = new Mint$ProxyImpl.createIsolate();
     Purse$Proxy purse = mint.createPurse(100);
+    // FIXME(benl): how do I write this?
+    //PowerfulPurse$Proxy power = (PowerfulPurse$Proxy)purse;
+    //expectEqualsStr("xxx", power.grab());
     expectEquals(100, purse.queryBalance());
 
     Purse$Proxy sprouted = purse.sproutPurse();
     expectEquals(0, sprouted.queryBalance());
 
-    sprouted.deposit(5, purse);
-    expectEquals(0 + 5, sprouted.queryBalance());
-    expectEquals(100 - 5, purse.queryBalance());
+    Promise<int> done = sprouted.deposit(5, purse);
+    // FIXME(benl): it should not be necessary to wait here, I think,
+    // but without this, the tests seem to execute prematurely.
+    expectEquals(5, done);
+    done.then((int) {
+      expectEquals(0 + 5, sprouted.queryBalance());
+      expectEquals(100 - 5, purse.queryBalance());
+    });
 
-    sprouted.deposit(42, purse);
-    expectEquals(0 + 5 + 42, sprouted.queryBalance());
-    expectEquals(100 - 5 - 42, purse.queryBalance());
+    done = sprouted.deposit(42, purse); 
+    expectEquals(42, done);
+    done.then((int) {
+      expectEquals(0 + 5 + 42, sprouted.queryBalance());
+      expectEquals(100 - 5 - 42, purse.queryBalance());
+    });
 
-    expectDone(6);
+    expectDone(8);
   }
 
   static List<Promise> results;
+
+  static void expectEqualsStr(String expected, Promise<String> promise) {
+    if (results === null) {
+      results = new List<Promise>();
+    }
+    results.add(promise.then((String actual) {
+      print('done ' + expected + '/' + actual);
+      Expect.equals(expected, actual);
+    }));
+  }
 
   static void expectEquals(int expected, Promise<int> promise) {
     if (results === null) {
       results = new List<Promise>();
     }
     results.add(promise.then((int actual) {
+      print('done ' + expected + '/' + actual);
       Expect.equals(expected, actual);
     }));
   }
@@ -103,7 +169,8 @@ class MintMakerFullyIsolatedTest {
     } else {
       Promise done = new Promise();
       done.waitFor(results, results.length);
-      done.then((ignored) {
+      done.then((ignored) { 
+        print('done all ' + n + '/' + results.length);
         Expect.equals(n, results.length);
         print('##DONE##');
       });

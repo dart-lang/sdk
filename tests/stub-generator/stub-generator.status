@@ -9,7 +9,7 @@ MintMakerFullyIsolatedTest: Skip  # Bug 5283149
 MintMakerPromiseWithStubsTest: Fail # Bug 5384756
 
 [ $arch == dartc ]
-MintMakerFullyIsolatedTest: Fail  # Bug 5344878
+MintMakerFullyIsolatedTest: Fail  # benl
 
 [ $arch == x64 ]
 *: Skip
@@ -24,4 +24,4 @@ MintMakerFullyIsolatedTest: Fail  # Bug 5344878
 *: Skip
 
 [ $arch == chromium ]
-*: Skip
+#*: Skip

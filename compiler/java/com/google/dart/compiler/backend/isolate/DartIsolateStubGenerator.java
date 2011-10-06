@@ -78,15 +78,26 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     return x.getSymbol().isConstructor();
   }
 
+  // Simple types can be passed directly, non-simple types need proxying. Promises count as a
+  // simple type because the marshaling handles them internally.
   private static boolean isSimpleType(DartTypeNode x) {
-    if (!x.getTypeArguments().isEmpty())
-      return false;
     if (!(x.getIdentifier() instanceof DartIdentifier))
       return false;
     String name = ((DartIdentifier)x.getIdentifier()).getTargetName();
+    if (name.equals("Promise"))
+      return true;
+    if (!x.getTypeArguments().isEmpty())
+      return false;
     if (name.equals("int") || name.equals("void"))
       return true;
     return false;
+  }
+  
+  private static boolean isPromise(DartTypeNode x) {
+    if (!(x.getIdentifier() instanceof DartIdentifier))
+      return false;
+    String name = ((DartIdentifier)x.getIdentifier()).getTargetName();
+    return name.equals("Promise");
   }
 
   private static boolean isVoid(DartTypeNode x) {
@@ -96,11 +107,14 @@ public class DartIsolateStubGenerator extends AbstractBackend {
   }
 
   private static boolean isProxyType(DartTypeNode x) {
-    if (!x.getTypeArguments().isEmpty())
-      return false;
     if (!(x.getIdentifier() instanceof DartIdentifier))
       return false;
-    return ((DartIdentifier)x.getIdentifier()).getTargetName().endsWith("$Proxy");
+    String name = ((DartIdentifier)x.getIdentifier()).getTargetName();
+    if (name.equals("Promise"))
+      return true;
+    if (!x.getTypeArguments().isEmpty())
+      return false;
+    return name.endsWith("$Proxy"); 
   }
 
   private void p(String str) {
@@ -186,32 +200,10 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     DartVisitor visitor = new DartVisitor() {
       @Override
       public boolean visit(DartMethodDefinition x, DartContext ctx) {
-        if (isConstructor(x)) {
+        if (!printFunctionDeclaration(this, x)) {
           return false;
         }
-        nl();
-        final DartFunction func = x.getFunction();
-        final DartTypeNode returnTypeNode = func.getReturnTypeNode();
-        final boolean isVoid = isVoid(returnTypeNode);
-        final boolean isSimple = isSimpleType(returnTypeNode);
-        final boolean isProxy = isProxyType(returnTypeNode);
-        p("  ");
-        if (!isVoid && isSimple) {
-          p("Promise<");
-        }
-        accept(returnTypeNode);
-        if (!isVoid) {
-          if (isSimple) {
-            p(">");
-          } else if (!isProxy) {
-            p("$Proxy");
-          }
-        }
-        p(" ");
-        accept(x.getName());
-        p("(");
-        printParams(func.getParams());
-        p(");");
+        p(";");
         nl();
 
         return false;
@@ -315,34 +307,16 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     DartVisitor visitor = new DartVisitor() {
       @Override
       public boolean visit(DartMethodDefinition x, DartContext ctx) {
-        if (isConstructor(x)) {
+        if (!printFunctionDeclaration(this, x))
           return false;
-        }
+        p(" {");
         nl();
+        p("    ");
         final DartFunction func = x.getFunction();
         final DartTypeNode returnTypeNode = func.getReturnTypeNode();
         final boolean isVoid = isVoid(returnTypeNode);
         final boolean isSimple = isSimpleType(returnTypeNode);
         final boolean isProxy = isProxyType(returnTypeNode);
-        p("  ");
-        if (!isVoid && isSimple) {
-          p("Promise<");
-        }
-        accept(returnTypeNode);
-        if (!isVoid) {
-          if (isSimple) {
-            p(">");
-          } else if (!isProxy) {
-            p("$Proxy");
-          }
-        }
-        p(" ");
-        accept(x.getName());
-        p("(");
-        printParams(func.getParams());
-        p(") {");
-        nl();
-        p("    ");
         if (!isVoid) {
           p("return ");
           if (!isSimple) {
@@ -410,7 +384,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     nl();
   }
 
-  private void printSelector(List<DartNode> members) {
+  private void printSelector(List<DartNode> members, String dispatcherName) {
     boolean first = true;
     for (DartNode member : members) {
       if (first) {
@@ -431,7 +405,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     nl();
     p("      // TODO(kasperl,benl): Somehow throw an exception instead.");
     nl();
-    p("      reply(\"Exception: command not understood.\");");
+    p("      reply(\"Exception: command '\" + command + \"' not understood by " + dispatcherName + ".\");");
     nl();
     p("    }");
     nl();
@@ -654,7 +628,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     nl();
     p("    String command = message[0];");
     nl();
-    printSelector(clazz.getMembers());
+    printSelector(clazz.getMembers(), name);
     p("  }");
     nl();
     p("}");
@@ -747,5 +721,37 @@ public class DartIsolateStubGenerator extends AbstractBackend {
   public String getSourceMapExtension() {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  private boolean printFunctionDeclaration(DartVisitor visitor, DartMethodDefinition x) {
+    if (isConstructor(x)) {
+      return false;
+    }
+    nl();
+    final DartFunction func = x.getFunction();
+    final DartTypeNode returnTypeNode = func.getReturnTypeNode();
+    final boolean isVoid = isVoid(returnTypeNode);
+    final boolean isSimple = isSimpleType(returnTypeNode);
+    final boolean isProxy = isProxyType(returnTypeNode);
+    final boolean isPromise = isPromise(returnTypeNode);
+    p("  ");
+    if (!isVoid && isSimple && !isPromise) {
+      p("Promise<");
+    }
+    visitor.accept(returnTypeNode);
+    if (!isVoid) {
+      if (isSimple && !isPromise) {
+        p(">");
+      } else if (!isProxy) {
+        p("$Proxy");
+      }
+    }
+    p(" ");
+    visitor.accept(x.getName());
+    p("(");
+    printParams(func.getParams());
+    p(")");
+    
+    return true;
   }
 }
