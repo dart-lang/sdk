@@ -951,10 +951,9 @@ DART_EXPORT Dart_Result Dart_InvokeDynamic(Dart_Handle object,
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
-  if (obj.IsNull()) {
-    // Let the resolver figure out the correct target.
-    // E.g., (null).toString() should execute correctly.
-  } else if (!obj.IsInstance()) {
+  // Let the resolver figure out the correct target for null receiver.
+  // E.g., (null).toString() should execute correctly.
+  if (!obj.IsNull() && !obj.IsInstance()) {
     RETURN_FAILURE("Invalid receiver (not instance) passed to invoke dynamic");
   }
   if (function_name == NULL) {
