@@ -742,7 +742,7 @@ class BenchmarkBase {
     Date start = new Date.now();
     while (time < timeMinimum) {
       f();
-      time = (new Date.now().difference(start)).duration;
+      time = (new Date.now().difference(start)).inMilliseconds;
       iter++;
     }
     // Force double result by using a double constant.
@@ -1111,7 +1111,7 @@ class PingPongGame {
   }
 
   void evaluateRound() {
-    int time = (new Date.now().difference(_start)).duration;
+    int time = (new Date.now().difference(_start)).inMilliseconds;
     if (!_warmedup && time < Benchmark1.WARMUP_TIME) {
       startRound();
     } else if (!_warmedup) {

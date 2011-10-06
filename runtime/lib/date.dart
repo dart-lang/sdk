@@ -4,12 +4,12 @@
 // Dart core library.
 
 class TimeZoneImplementation implements TimeZone {
-  Time get offset() {
-    if (isUtc) return const Time.duration(0);
+  Duration get offset() {
+    if (isUtc) return const Duration();
     throw "Unimplemented";
   }
-  factory TimeZoneImplementation(Time offset) {
-    if (offset.duration == 0) {
+  factory TimeZoneImplementation(Duration offset) {
+    if (offset.inMilliseconds == 0) {
       return const TimeZoneImplementation.utc();
     } else {
       throw "Unimplemented";
@@ -169,15 +169,15 @@ class DateImplementation implements Date {
   }
 
   int get milliseconds() {
-    return value % Time.MS_PER_SECOND;
+    return value % Duration.MILLISECONDS_PER_SECOND;
   }
 
   int get secondsSinceEpoch_() {
     // Always round down.
     if (value < 0) {
-      return (value + 1) ~/ Time.MS_PER_SECOND - 1;
+      return (value + 1) ~/ Duration.MILLISECONDS_PER_SECOND - 1;
     } else {
-      return value ~/ Time.MS_PER_SECOND;
+      return value ~/ Duration.MILLISECONDS_PER_SECOND;
     }
   }
 
@@ -217,19 +217,21 @@ class DateImplementation implements Date {
     }
   }
 
-  // Adds the duration [time] to this Date instance.
-  Date add(Time time) {
-    return new DateImplementation.fromEpoch(value + time.duration, timeZone);
+  // Adds the [duration] to this Date instance.
+  Date add(Duration duration) {
+    return new DateImplementation.fromEpoch(value + duration.inMilliseconds,
+                                            timeZone);
   }
 
-  // Subtracts the duration [time] from this Date instance.
-  Date subtract(Time time) {
-    return new DateImplementation.fromEpoch(value - time.duration, timeZone);
+  // Subtracts the [duration] from this Date instance.
+  Date subtract(Duration duration) {
+    return new DateImplementation.fromEpoch(value - duration.inMilliseconds,
+                                            timeZone);
   }
 
-  // Returns a [Time] with the difference of [this] and [other].
-  Time difference(Date other) {
-    return new TimeImplementation.duration(value - other.value);
+  // Returns a [Duration] with the difference of [this] and [other].
+  Duration difference(Date other) {
+    return new DurationImplementation(milliseconds: value - other.value);
   }
 
   final int value;
@@ -250,7 +252,7 @@ class DateImplementation implements Date {
     final int YEARS_OFFSET = 400000;
     final int DAYS_YEAR_2098 = DAYS_IN_100_YEARS + 6 * DAYS_IN_4_YEARS;
 
-    int days = secondsSinceEpoch ~/ Time.SECONDS_PER_DAY;
+    int days = secondsSinceEpoch ~/ Duration.SECONDS_PER_DAY;
     if (days > 0 && days < DAYS_YEAR_2098) {
       // According to V8 this fast case works for dates from 1970 to 2099.
       return 1970 + (4 * days + 2) ~/ DAYS_IN_4_YEARS;
@@ -286,7 +288,7 @@ class DateImplementation implements Date {
     int equivalentYear = equivalentYear_(year);
     int equivalentDays = dayFromYear_(equivalentYear);
     int diffDays = equivalentDays - days;
-    return secondsSinceEpoch + diffDays * Time.SECONDS_PER_DAY;
+    return secondsSinceEpoch + diffDays * Duration.SECONDS_PER_DAY;
   }
 
   // Returns the days since 1970 for the start of the given [year].
@@ -372,7 +374,7 @@ class DateImplementation implements Date {
       equivalentYear = equivalentYear_(years);
       int offsetInDays = (dayFromYear_(years) - dayFromYear_(equivalentYear));
       // Leap seconds are ignored.
-      offsetInSeconds = offsetInDays * Time.SECONDS_PER_DAY;
+      offsetInSeconds = offsetInDays * Duration.SECONDS_PER_DAY;
     } else {
       equivalentYear = years;
       offsetInSeconds = 0;
@@ -380,7 +382,7 @@ class DateImplementation implements Date {
     int secondsSinceEpoch = brokenDownDateToSecondsSinceEpoch_(
         equivalentYear, month, day, hours, minutes, seconds, isUtc);
     int adjustedSeconds = secondsSinceEpoch + offsetInSeconds;
-    return adjustedSeconds * Time.MS_PER_SECOND + milliseconds;
+    return adjustedSeconds * Duration.MILLISECONDS_PER_SECOND + milliseconds;
   }
 
   // Natives

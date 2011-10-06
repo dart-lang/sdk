@@ -12,7 +12,7 @@ class DateUtils {
 
   static final YESTERDAY = 'Yesterday';
 
-  static final MS_IN_WEEK = Date.DAYS_IN_WEEK * Time.MS_PER_DAY;
+  static final MS_IN_WEEK = Date.DAYS_IN_WEEK * Duration.MILLISECONDS_PER_DAY;
 
   // TODO(jmesserly): workaround for missing Date.fromDate in Dartium
   // Remove this once that is implemented. See b/5055106
@@ -58,7 +58,7 @@ class DateUtils {
     Date result = new Date.withTimeZone(
         year, month, day, hours, minutes, seconds, 0, new TimeZone.utc());
     // Shift it to the proper zone, but it's still a UTC time
-    result = result.subtract(new Time(0, zoneOffset, 0, 0, 0));
+    result = result.subtract(new Duration(hours: zoneOffset));
     // Then render it as a local time
     return result.changeTimeZone(new TimeZone.local());
   }
@@ -125,15 +125,15 @@ class DateUtils {
 
     final now = new Date.now();
     if (datesAreEqual(then, now)) {
-      return toHourMinutesString(new Time(
+      return toHourMinutesString(new Duration(
           0, then.hours, then.minutes, then.seconds, then.milliseconds));
     }
 
     final today = new Date(now.year, now.month, now.day, 0, 0, 0, 0);
-    Time delta = today.difference(then);
-    if (delta.duration < Time.MS_PER_DAY) {
+    Duration delta = today.difference(then);
+    if (delta.inMilliseconds < Duration.MILLISECONDS_PER_DAY) {
       return YESTERDAY;
-    } else if (delta.duration < MS_IN_WEEK) {
+    } else if (delta.inMilliseconds < MS_IN_WEEK) {
       return WEEKDAYS[getWeekday(then)];
     } else {
       // TODO(jmesserly): locale specific date format
@@ -151,16 +151,17 @@ class DateUtils {
   // Code inspired by v8/src/date.js
   static int getWeekday(Date dateTime) {
     final unixTimeStart = new Date(1970, 1, 1, 0, 0, 0, 0);
-    int msSince1970 = dateTime.difference(unixTimeStart).duration;
-    int daysSince1970 = msSince1970 ~/ Time.MS_PER_DAY;
+    int msSince1970 = dateTime.difference(unixTimeStart).inMilliseconds;
+    int daysSince1970 = msSince1970 ~/ Duration.MILLISECONDS_PER_DAY;
     // 1970-1-1 was Thursday
     return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
   }
 
   /** Formats a time in H:MM A format */
   // TODO(jmesserly): should get 12 vs 24 hour clock setting from the locale
-  static String toHourMinutesString(Time time) {
-    int hours = time.hours;
+  static String toHourMinutesString(Duration duration) {
+    assert(duration.inDays == 0);
+    int hours = duration.inHours;
     String a;
     if (hours >= 12) {
       a = 'pm';
@@ -177,7 +178,8 @@ class DateUtils {
       if (n >= 10) return "${n}";
       return "0${n}";
     }
-    String mm = twoDigits(time.minutes);
+    String mm =
+        twoDigits(duration.inMinutes.remainder(Duration.MINUTES_PER_HOUR));
     return "${hours}:${mm} ${a}";
   }
 }

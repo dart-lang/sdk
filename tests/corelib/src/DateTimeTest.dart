@@ -235,9 +235,9 @@ class DateTest {
                                     dt1.hours, dt1.minutes, dt1.seconds,
                                     dt1.milliseconds,
                                     const TimeZone.utc());
-    Time zoneOffset = dt1.difference(dt2);
-    Expect.equals(true, zoneOffset.days == 0);
-    Expect.equals(true, zoneOffset.hours.abs() <= 12);
+    Duration zoneOffset = dt1.difference(dt2);
+    Expect.equals(true, zoneOffset.inDays == 0);
+    Expect.equals(true, zoneOffset.inHours.abs() <= 12);
     Expect.equals(dt1.year, dt2.year);
     Expect.equals(dt1.month, dt2.month);
     Expect.equals(true, (dt1.day - dt2.day).abs() <= 1);
@@ -304,7 +304,8 @@ class DateTest {
 
   static void testSubAdd() {
     var dt1 = new Date.fromEpoch(1305140315000, const TimeZone.utc());
-    var dt2 = dt1.add(const Time.duration(3 * Time.MS_PER_SECOND + 5));
+    var dt2 = dt1.add(new Duration(milliseconds:
+        3 * Duration.MILLISECONDS_PER_SECOND + 5));
     Expect.equals(dt1.year, dt2.year);
     Expect.equals(dt1.month, dt2.month);
     Expect.equals(dt1.day, dt2.day);
@@ -312,7 +313,8 @@ class DateTest {
     Expect.equals(dt1.minutes, dt2.minutes);
     Expect.equals(dt1.seconds + 3, dt2.seconds);
     Expect.equals(dt1.milliseconds + 5, dt2.milliseconds);
-    var dt3 = dt2.subtract(const Time.duration(3 * Time.MS_PER_SECOND + 5));
+    var dt3 = dt2.subtract(new Duration(milliseconds:
+        3 * Duration.MILLISECONDS_PER_SECOND + 5));
     Expect.equals(true, dt1 == dt3);
     Expect.equals(false, dt1 == dt2);
   }

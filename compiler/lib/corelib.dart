@@ -15,6 +15,7 @@
 #source("src/comparable.dart");
 #source("src/date.dart");
 #source("src/double.dart");
+#source("src/duration.dart");
 #source("src/exceptions.dart");
 #source("src/expect.dart");
 #source("src/function.dart");
@@ -36,5 +37,4 @@
 #source("src/string.dart");
 #source("src/strings.dart");
 #source("src/string_buffer.dart");
-#source("src/time.dart");
 #source("src/time_zone.dart");

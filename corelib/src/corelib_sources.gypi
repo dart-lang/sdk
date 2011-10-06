@@ -9,6 +9,7 @@
     'comparable.dart',
     'date.dart',
     'double.dart',
+    'duration.dart',
     'exceptions.dart',
     'expect.dart',
     'function.dart',
@@ -30,7 +31,6 @@
     'string.dart',
     'strings.dart',
     'string_buffer.dart',
-    'time.dart',
     'time_zone.dart',
   ],
 }

@@ -6,6 +6,7 @@
   'sources': [
     'array.dart',
     'dual_pivot_quicksort.dart',
+    'duration_implementation.dart',
     'exceptions.dart',
     'hash_map_set.dart',
     'linked_hash_map.dart',
@@ -13,6 +14,5 @@
     'queue.dart',
     'splay_tree.dart',
     'stopwatch_implementation.dart',
-    'time_implementation.dart',
   ],
 }

@@ -148,7 +148,7 @@ interface Date extends Comparable factory DateImplementation {
 
   /**
    * Returns true if this [Date] is set to UTC time.
-   * This is equivalent to [:this.timeZone.duration == 0:].
+   * This is equivalent to [:this.timeZone.isUtc():].
    */
   bool isUtc();
 
@@ -159,18 +159,17 @@ interface Date extends Comparable factory DateImplementation {
   String toString();
 
   /**
-   * Returns a new [Date] with the time [other] added to this instance.
+   * Returns a new [Date] with the [duration] added to this instance.
    */
-  Date add(Time other);
+  Date add(Duration duration);
 
   /**
-   * Returns a new [Date] with the time [other] subtracted from this
-   * instance.
+   * Returns a new [Date] with the [duration] subtracted from this instance.
    */
-  Date subtract(Time other);
+  Date subtract(Duration duration);
 
   /**
-   * Returns a [Time] with the difference of [:this:] and [other].
+   * Returns a [Duration] with the difference of [:this:] and [other].
    */
-  Time difference(Date other);
+  Duration difference(Date other);
 }

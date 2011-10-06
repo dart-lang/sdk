@@ -125,19 +125,21 @@ class DateImplementation implements Date {
     }
   }
 
-    // Adds the duration [time] to this Date instance.
-  Date add(Time time) {
-    return new DateImplementation.fromEpoch(value + time.duration, timeZone);
+    // Adds the [duration] to this Date instance.
+  Date add(Duration duration) {
+    return new DateImplementation.fromEpoch(value + duration.inMilliseconds,
+                                            timeZone);
   }
 
-  // Subtracts the duration [time] from this Date instance.
-  Date subtract(Time time) {
-    return new DateImplementation.fromEpoch(value - time.duration, timeZone);
+  // Subtracts the [duration] from this Date instance.
+  Date subtract(Duration duration) {
+    return new DateImplementation.fromEpoch(value - duration.inMilliseconds,
+                                            timeZone);
   }
 
-  // Returns a [Time] with the difference of [this] and [other].
-  Time difference(Date other) {
-    return new TimeImplementation.duration(value - other.value);
+  // Returns a [Duration] with the difference of [this] and [other].
+  Duration difference(Date other) {
+    return new Duration(milliseconds: value - other.value);
   }
 
   final int value;

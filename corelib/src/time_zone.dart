@@ -13,11 +13,11 @@ interface TimeZone factory TimeZoneImplementation {
   // The date is then used to determine if it should be CET or CEST.
   // However this also means that the offset is depending on an associated
   // date.
-  final Time offset;
+  final Duration offset;
 
   // TODO(floitsch): The interface of this class will most likely change.
   // This constructor will probably disappear.
-  const TimeZone(Time offset);
+  const TimeZone(Duration offset);
   const TimeZone.utc();
   TimeZone.local();
 }
