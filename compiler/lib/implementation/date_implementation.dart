@@ -95,9 +95,10 @@ class DateImplementation implements Date {
     int msSince1970 = this.difference(unixTimeStart).inMilliseconds;
     // Adjust the milliseconds to avoid problems with summer-time.
     if (hours < 2) {
-      msSince1970 += 2 * Duration.MS_PER_HOUR;
+      msSince1970 += 2 * Duration.MILLISECONDS_PER_HOUR;
     }
-    int daysSince1970 = (msSince1970 / Duration.MS_PER_DAY).floor().toInt();
+    int daysSince1970 =
+        (msSince1970 / Duration.MILLISECONDS_PER_DAY).floor().toInt();
     // 1970-1-1 was a Thursday.
     return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
   }
