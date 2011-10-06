@@ -9,6 +9,9 @@
     'corelib_sources.gypi',
     'compiler_corelib_sources.gypi',
     'closure_compiler_sources.gypi',
+    'domlib_sources.gypi',
+    'htmllib_sources.gypi',
+    'jsonlib_sources.gypi',
   ],
   'targets': [
     {
@@ -107,10 +110,44 @@
           'action': [ 'cp', 'scripts/dartc_wrapper.py', '<@(_outputs)' ]
         },
         {
+          'message': 'Collect system libraries',
+          'action_name': 'collect_systemlibrary',
+          'inputs': [
+            '<(PRODUCT_DIR)/compiler/bin/dartc',
+            'dartc.xml',
+            'domlib_sources.gypi',
+            '<@(domlib_sources)',
+            '<@(domlib_resources)',
+            'htmllib_sources.gypi',
+            '<@(htmllib_sources)',
+            '<@(htmllib_resources)',
+            'jsonlib_sources.gypi',
+            '<@(jsonlib_sources)',
+            '<@(jsonlib_resources)',
+          ],
+          'outputs': [
+            '<(INTERMEDIATE_DIR)/<(_target_name)/syslib.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/corelib.jar.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/domlib.jar.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/htmllib.jar.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/jsonlib.jar.stamp',
+          ],
+          'action': [
+            '../third_party/apache_ant/v1_7_1/bin/ant',
+            '-f', 'dartc.xml',
+            '-Dbuild.dir=<(INTERMEDIATE_DIR)/<(_target_name)',
+            '-Ddist.dir=<(PRODUCT_DIR)/compiler',
+            '-Dclosure_compiler.jar=<(PRODUCT_DIR)/closure_out/compiler.jar',
+            'syslib_clean',
+            'syslib',
+          ],
+        },
+        {
           'message': 'Compiling dart system libraries',
           'action_name': 'compile_systemlibrary',
           'inputs': [
             '<(PRODUCT_DIR)/dartc',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/syslib.stamp',
             'api.dart',
           ],
           'outputs': [
@@ -127,8 +164,8 @@
           'message': 'Packaging dart:core artifacts',
           'action_name': 'package_corelib_artifacts',
           'inputs': [
+            '<(INTERMEDIATE_DIR)/<(_target_name)/corelib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/core/com/google/dart/corelib/corelib.dart.api',
-            'api.dart',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/compiler/lib/corelib.jar',
@@ -141,8 +178,8 @@
           'message': 'Packaging dart:dom artifacts',
           'action_name': 'package_domlib_artifacts',
           'inputs': [
+            '<(INTERMEDIATE_DIR)/<(_target_name)/domlib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/dom/dom/dom.dart.api',
-            'api.dart',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/compiler/lib/domlib.jar',
@@ -155,8 +192,11 @@
           'message': 'Packaging dart:html artifacts',
           'action_name': 'package_htmllib_artifacts',
           'inputs': [
+            'htmllib_sources.gypi',
+            '<@(htmllib_sources)',
+            '<@(htmllib_resources)',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/htmllib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/html/html/html.dart.api',
-            'api.dart',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/compiler/lib/htmllib.jar',
@@ -169,6 +209,7 @@
           'message': 'Packaging dart:json artifacts',
           'action_name': 'package_jsonlib_artifacts',
           'inputs': [
+            '<(INTERMEDIATE_DIR)/<(_target_name)/jsonlib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.api',
             'api.dart',
           ],
@@ -208,6 +249,6 @@
           'message': 'Building closure compiler'
         },
       ]
-    }
+    },
   ],
 }

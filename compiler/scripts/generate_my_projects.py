@@ -36,6 +36,24 @@ def Main():
   if exit_code:
     return exit_code
 
+  exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
+                        "domlib %(compiler)s/domlib_sources ../client/dom dom.dart LICENSE README.google"
+                        % locations)
+  if exit_code:
+    return exit_code
+
+  exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
+                        "htmllib %(compiler)s/htmllib_sources ../client/html html.dart"
+                        % locations)
+  if exit_code:
+    return exit_code
+
+  exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
+                        "jsonlib %(compiler)s/jsonlib_sources ../client/json json.dart"
+                        % locations)
+  if exit_code:
+    return exit_code
+
   exit_code = os.system("python %(compiler)s/generate_source_list.py "
                         "compiler_corelib "
                         "%(compiler)s/compiler_corelib_sources "
