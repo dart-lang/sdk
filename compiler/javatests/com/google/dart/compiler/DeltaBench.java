@@ -5,7 +5,6 @@
 package com.google.dart.compiler;
 
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.testing.TestCompilerConfiguration;
@@ -14,7 +13,6 @@ import com.google.dart.compiler.testing.TestCompilerContext;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Set;
 
 public class DeltaBench {
   public static void main(String[] args) throws IOException {
@@ -60,9 +58,9 @@ public class DeltaBench {
     if (incremental) {
       return;
     }
-    LibraryUnit enclosingLibraryUnit = findLibrary(libraryUnit, interestingFile,
+    LibraryUnit enclosingLibraryUnit = DartCompiler.findLibrary(libraryUnit, interestingFile,
                                                    new HashSet<LibraryElement>());
-    LibraryUnit coreLibraryUnit = findLibrary(libraryUnit, "object.dart",
+    LibraryUnit coreLibraryUnit = DartCompiler.findLibrary(libraryUnit, "object.dart",
                                               new HashSet<LibraryElement>());
     DartUnit unit = null;
     for (DartUnit current : enclosingLibraryUnit.getUnits()) {
@@ -78,25 +76,5 @@ public class DeltaBench {
                               null, -1, -1, config, listener);
     System.err.println("analyzeDelta(" + unit.getSource().getName() + ") took " +
         (System.currentTimeMillis() - start) + "ms");
-  }
-
-  private static LibraryUnit findLibrary(LibraryUnit libraryUnit, String uri,
-                                         Set<LibraryElement> seen) {
-    if (seen.contains(libraryUnit.getElement())) {
-      return null;
-    }
-    seen.add(libraryUnit.getElement());
-    for (LibraryNode src : libraryUnit.getSourcePaths()) {
-      if (src.getText().equals(uri)) {
-        return libraryUnit;
-      }
-    }
-    for (LibraryUnit importedLibrary : libraryUnit.getImports()) {
-      LibraryUnit unit = findLibrary(importedLibrary, uri, seen);
-      if (unit != null) {
-        return unit;
-      }
-    }
-    return null;
   }
 }

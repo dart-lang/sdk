@@ -78,7 +78,7 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
 
   @Override
   public DynamicType getType() {
-    return null;
+    return Types.newDynamicType();
   }
 
   @Override

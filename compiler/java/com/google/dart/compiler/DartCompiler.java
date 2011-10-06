@@ -51,6 +51,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -1088,5 +1089,29 @@ public class DartCompiler {
                                                interestNode, interestStart, interestLength,
                                                config, listener);
     return analyzer.analyze();
+  }
+
+  public static LibraryUnit findLibrary(LibraryUnit libraryUnit, String uri,
+      Set<LibraryElement> seen) {
+    if (seen.contains(libraryUnit.getElement())) {
+      return null;
+    }
+    seen.add(libraryUnit.getElement());
+    for (LibraryNode src : libraryUnit.getSourcePaths()) {
+      if (src.getText().equals(uri)) {
+        return libraryUnit;
+      }
+    }
+    for (LibraryUnit importedLibrary : libraryUnit.getImports()) {
+      LibraryUnit unit = findLibrary(importedLibrary, uri, seen);
+      if (unit != null) {
+        return unit;
+      }
+    }
+    return null;
+  }
+  
+  public static LibraryUnit getCoreLib(LibraryUnit libraryUnit) {
+    return findLibrary(libraryUnit, "corelib.dart", new HashSet<LibraryElement>());
   }
 }

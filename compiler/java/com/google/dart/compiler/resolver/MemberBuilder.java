@@ -111,6 +111,7 @@ public class MemberBuilder {
       MethodElement element = method.getSymbol();
       if (element == null) {
         switch (getMethodKind(method)) {
+          case NONE:
           case CONSTRUCTOR:
             element = buildConstructor(method);
             addConstructor((ClassElement) currentHolder, (ConstructorElement) element);
