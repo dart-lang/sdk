@@ -4,6 +4,7 @@
 
 // Imported library does not start with a library tag.
 
+#library("ScriptNegativeTest.dart");
 #import("ScriptNegativeLib.dart");
 
 main() {

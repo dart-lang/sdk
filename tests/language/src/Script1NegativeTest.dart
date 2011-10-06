@@ -4,6 +4,7 @@
 
 // Imported library has wrong order of import and source tags.
 
+#library("Script1NegativeTest.dart");
 #import("Script1NegativeLib.dart");
 
 main() {

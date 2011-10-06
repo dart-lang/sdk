@@ -59,13 +59,10 @@ Private3Test: Fail                   # Bug 5391976
 Switch3NegativeTest: Crash           # Bug 5318228
 BadNamedParametersTest: Fail    # Bug Bug 4202974 - release mode is not throwing NSME
 
-# Tests that pass in release mode but fail in debug mode
-[ ($arch == dartc || $arch == chromium) && $mode == debug ]
-
 
 [ $arch == dartc || $arch == chromium ]
 Prefix11NegativeTest: Fail # Bug 5406175
-Prefix12NegativeTest: Fail,Crash # Bug 5406175
+Prefix12NegativeTest: Fail # Bug 5406175
 FunctionTypeParameterNegativeTest: Fail # Bug 4568007
 ImplicitScopeTest: FAIL              # Nested statements can be declarations
 ConstConstructor1NegativeTest: FAIL  # 5142545
@@ -139,120 +136,40 @@ AssertTest: Fail             # Uses AssertError class.
 ThirdTest: Fail # Bug 5339586
 
 
-
-[ $arch == chromium ]
-ApplicationTest: Fail                 # Bug 5145731
-TopLevelMultipleFilesTest: Fail       # Bug 5145731
-TopLevelNonPrefixedLibraryTest: Fail  # Bug 5145731
-TopLevelPrefixedLibraryTest: Fail     # Bug 5145731
-TopLevelEntryTest: Fail               # Bug 5145731
-PrivateTest: Fail                     # Bug 5145731
-Private3Test: Fail                    # Bug 5145731
-
-Prefix1NegativeTest: Skip # Bug 5406175
-Prefix2NegativeTest: Skip # Bug 5406175
-Prefix3NegativeTest: Skip # Bug 5406175
-Prefix4NegativeTest: Skip # Bug 5406175
-Prefix5NegativeTest: Skip # Bug 5406175
-Prefix6NegativeTest: Skip # Bug 5406175
-Prefix7NegativeTest: Skip # Bug 5406175
-Prefix8NegativeTest: Skip # Bug 5406175
-Prefix9NegativeTest: Skip # Bug 5406175
-Prefix10NegativeTest: Skip # Bug 5406175
-Prefix11NegativeTest: Skip # Bug 5406175
-Prefix12NegativeTest: Skip # Bug 5406175
-PrefixTest: Crash,Fail # Bug 5406175
-Prefix10Test: Crash,Fail # Bug 5406175
-Prefix11Test: Crash,Fail # Bug 5406175
-Prefix12Test: Crash,Fail # Bug 5406175
-LibraryPrefixesTest: Fail # Bug 5406175
-TopLevelNonPrefixedLibraryTest: Fail # Bug 5406175
-
-[ $arch == chromium && $mode == release ]
-Instanceof2Test: Fail, Pass # Bug 5275232
-
-
-[ $arch == ia32 ]
-
 [ $arch == dartium ]
-Prefix1NegativeTest: Skip            # Bug 5072252
-Prefix2NegativeTest: Skip            # Bug 5072252
-Prefix3NegativeTest: Skip            # Bug 5072252
-Prefix4NegativeTest: Skip            # Bug 5072252
-Prefix5NegativeTest: Skip            # Bug 5072252
-Prefix6NegativeTest: Skip            # Bug 5072252
-Prefix7NegativeTest: Skip            # Bug 5072252
-Prefix8NegativeTest: Skip            # Bug 5072252
-Prefix9NegativeTest: Skip            # Bug 5072252
-Prefix10NegativeTest: Skip           # Bug 5072252
-Prefix11NegativeTest: Skip           # Bug 5072252
-Prefix12NegativeTest: Skip           # Bug 5072252
-PrefixTest: Skip                     # Bug 5072252
-Prefix10Test: Skip                   # Bug 5072252
-Prefix11Test: Skip                   # Bug 5072252
-Prefix12Test: Skip                   # Bug 5072252
-LibraryPrefixesTest: Skip            # Bug 5072252
-TopLevelNonPrefixedLibraryTest: Skip # Bug 5072252
-ApplicationTest: Fail                # Bug 5072252
-TopLevelEntryTest: Fail              # Bug 5072252
-TopLevelMultipleFilesTest: Fail      # Bug 5072252
-AbstractStaticNegativeTest: Skip     # Bug 5408067
+# print is only available if DOM is imported
+Throw5Test: Fail
+ExceptionTest: Fail
+MathTest: Fail
+ExpectTest: Fail
+StringInterpolateTest: Fail
+ExecuteFinally7Test: Fail
+SavannahTest: Fail
+Throw2Test: Fail
+Throw3Test: Fail
+HelloDartTest: Fail
+ThrowTest: Fail
+TryCatch3Test: Fail
+StackTraceTest: Fail
+Throw1Test: Fail
+RegExp2Test: Fail
+FannkuchTest: Fail
+RichardsTest: Fail
+Throw6Test: Fail
+RegEx2Test: Fail
+DivByZeroTest: Fail
+UnboundGetterTest: Fail
+NativeTest: Fail
+Throw4Test: Fail
+ImplicitClosure1Test: Fail
+Private2Test: Fail
+ImportCoreImplNoPrefixTest: Fail
+HelloScriptTest: Fail
+ImportCoreImplNoPrefixTest: Fail
+ImportCoreNoPrefixTest: Fail
+Private3Test: Fail
 
-# print and println are not implemented yet
-Throw5Test: Skip
-ExceptionTest: Skip
-MathTest: Skip
-ExpectTest: Skip
-StringInterpolateTest: Skip
-ExecuteFinally7Test: Skip
-SavannahTest: Skip
-Throw2Test: Skip
-Throw3Test: Skip
-HelloDartTest: Skip
-ThrowTest: Skip
-TryCatch3Test: Skip
-StackTraceTest: Skip
-Throw1Test: Skip
-RegExp2Test: Skip
-FannkuchTest: Skip
-RichardsTest: Skip
-Throw6Test: Skip
-RegEx2Test: Skip
-DivByZeroTest: Skip
-UnboundGetterTest: Skip
-NativeTest: Skip
-Throw4Test: Skip
-ImplicitClosure1Test: Skip
-Private2Test: Skip
-
-TypedMessageTest: Skip # Bug 5246195
-
-# Expect is not available
-Private3Test: Skip
-Library1Test :Skip
-
-[ $arch == dartium || $arch == chromium ]
-PrivateTest: Fail                     # Bug 5382463
-HelloScriptTest: Fail # Bug 5072252
-ImportCoreImplNoPrefixTest: Fail # Bug 5382463
-ImportCoreNoPrefixTest: Fail # Bug 5382463
-
-# Bug 5293748
-GenericInstanceofTest: Skip
-GenericInheritanceTest: Skip
-GenericParameterizedExtendsTest: Skip
-MultiPassTest: Skip
-OverriddenNoSuchMethodTest: Skip
-BinaryTreesTest: Skip
-NBodyTest: Skip
-Library1Test: Skip
-ManyGenericInstanceofTest: Skip
-DeltaBlueTest: Skip
-MandelbrotTest: Skip
-DeltaBlueClosureTest: Skip
-ManyOverriddenNoSuchMethodTest: Skip
-MultiPass2Test: Skip
-RichardsTest: Skip
+TypedMessageTest: Fail # Bug 5246195
 
 [ $arch == x64 ]
 *: Skip

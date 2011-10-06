@@ -5,7 +5,9 @@
 
 // Type parameters can shadow a library prefix.
 
+#library("Prefix10NegativeTest.dart");
 #import("library10.dart", prefix:"T");
+
 class P<T> {
   P.named(T this.fld);
   T fld;

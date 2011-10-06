@@ -4,6 +4,7 @@
 
 // Dart test for testing access to private fields.
 
+#library("PrivateTest.dart");
 #import("PrivateOther.lib");
 #source("Private1.dart");
 #source("Private2.dart");

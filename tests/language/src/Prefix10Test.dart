@@ -1,10 +1,11 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
 
+#library("Prefix10Test.dart");
 #import("library10.dart", prefix : "lib10");
 #import("library11.dart", prefix : "lib11");
+
 class Prefix10Test {
   static Test1() {
     var result = 0;

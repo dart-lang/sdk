@@ -4,6 +4,7 @@
 
 // Imported library has source file with library tags.
 
+#library("Script2NegativeTest.dart");
 #import("Script2NegativeLib.dart");
 
 main() {

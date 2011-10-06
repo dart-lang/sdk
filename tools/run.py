@@ -60,24 +60,13 @@ DART_TEST_AS_LIBRARY = '''
 #source('%(test)s');
 '''
 
-#TODO(sigmund): remove when prefixes are working
-DART_MAIN_TRAMPOLINE = '''
-#library('main_trampoline');
-
-#import('%(library)s');
-
-mainTrampoline() {
-  main();
-}
-'''
-
 DART_CONTENTS = '''
 #library('test');
 
 #import('%(dom_library)s');
 #import('%(test_framework)s');
 
-#import('main_trampoline.dart');
+#import('%(library)s', prefix: "Test");
 
 pass() {
   document.body.innerHTML = 'PASS';
@@ -106,7 +95,7 @@ main() {
     }
   };
   try {
-    mainTrampoline();
+    Test.main();
     if (!needsToWait) pass();
     mainIsFinished = true;
   } catch(var e, var trace) {
@@ -129,8 +118,11 @@ BROWSER_OUTPUT_PASS_PATTERN = re.compile(r"^Content-Type: text/plain\nPASS$",
                                          re.MULTILINE)
 
 # Pattern for checking if the test is a library in itself.
-LIBRARY_DEFINITION_PATTERN = re.compile(r"^#library(.*);",
+LIBRARY_DEFINITION_PATTERN = re.compile(r"^#library\(.*\);",
                                         re.MULTILINE)
+SOURCE_OR_IMPORT_PATTERN = re.compile(r"^#(source|import)\(.*\);",
+                                      re.MULTILINE)
+
 
 class Error(Exception):
   pass
@@ -140,7 +132,11 @@ def IsWebTest(test, source):
   return DOM_IMPORT_PATTERN.search(source)
 
 def IsLibraryDefinition(test, source):
-  return LIBRARY_DEFINITION_PATTERN.search(source)
+  if LIBRARY_DEFINITION_PATTERN.search(source): return True
+  if SOURCE_OR_IMPORT_PATTERN.search(source):
+    print ("WARNING for %s: Browser tests need a #library "
+            "for a file that #import or #source" % test)
+  return False
 
 
 class Architecture(object):
@@ -203,7 +199,7 @@ class BrowserArchitecture(Architecture):
 
     return self.temp_dir
 
-  def GetTestContents(self):
+  def GetTestContents(self, library_file):
     unittest_path = join(self.root_path,
                          'client', 'testing', 'unittest', 'unittest.dart')
     if self.arch == 'chromium':
@@ -219,7 +215,8 @@ class BrowserArchitecture(Architecture):
     inputs = { 'unittest': unittest_path,
                'test': test_path,
                'dom_library': dom_path,
-               'test_framework': test_framework_path }
+               'test_framework': test_framework_path,
+               'library': library_file }
     return DART_CONTENTS % inputs
 
   def GenerateWebTestScript(self):
@@ -233,15 +230,9 @@ class BrowserArchitecture(Architecture):
       f.write(test_as_library)
       f.close()
 
-    trampoline_contents = DART_MAIN_TRAMPOLINE % { 'library': library_file }
-    trampoline_file = join(self.temp_dir, 'main_trampoline.dart')
-    f = open(trampoline_file, 'w')
-    f.write(trampoline_contents)
-    f.close()
-
     app_output_file = self.GetTestScriptFile()
     f = open(app_output_file, 'w')
-    f.write(self.GetTestContents())
+    f.write(self.GetTestContents(library_file))
     f.close()
 
   def GetRunCommand(self, fatal_static_type_errors = False):
@@ -256,7 +247,7 @@ class BrowserArchitecture(Architecture):
     drt_flags = [ '--no-timeout' ]
     dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
     dart_flags += ' '.join(self.vm_options)
-    
+
     if self.arch == 'chromium' and self.mode == 'release':
       dart_flags += ' --optimize '
     drt_flags.append(dart_flags)
@@ -319,7 +310,7 @@ class ChromiumArchitecture(BrowserArchitecture):
     """ Returns cmdline as an array to invoke the compiler on this test"""
     # We need an absolute path because the compilation will run
     # in a temporary directory.
-    
+
     dartc = abspath(join(utils.GetBuildRoot(OS_GUESS, self.mode, 'dartc'),
                          'compiler',
                          'bin',

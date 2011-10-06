@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that instanceof works correctly with type variables.
 
+#library("GenericInstanceofTest.dart");
 #source("GenericInstanceof.dart");
 
 main() {

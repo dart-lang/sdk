@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+#library("Prefix12Test.dart");
 #import("library11.dart", prefix : "lib11");
+
 class Prefix12Test {
   static Test1() {
     var result = 0;

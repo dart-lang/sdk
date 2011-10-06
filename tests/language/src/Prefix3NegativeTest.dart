@@ -5,8 +5,10 @@
 
 // Using the same prefix name while importing two different libraries is
 // an error.
+#library("Prefix3NegativeTest.dart");
 #import("library1.dart", prefix: "lib2");
 #import("library2.dart", prefix: "lib2");
+
 class Prefix3NegativeTest {
   static Main() {
   }

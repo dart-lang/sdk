@@ -4,6 +4,7 @@
 
 // Dart test for sort routines.
 // VMOptions=--expose_core_impl
+#library("SortTest.dart");
 #source("SortHelper.dart");
 
 class SortTest {

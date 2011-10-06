@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+#library("Prefix7NegativeTest.dart");
 #import("library10.dart", prefix:"lib10");
 
 // Top level variables cannot shadow library prefixes, they should collide.

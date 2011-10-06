@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+#library("Prefix12NegativeTest.dart");
 #import("library12.dart", prefix:"lib12");
+
 class Prefix12NegativeTest {
   static Test1() {
     // Symbols in libraries imported by the prefixed library should not be
