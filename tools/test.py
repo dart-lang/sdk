@@ -469,7 +469,7 @@ class TestOutput(object):
     if self.HasCrashed():
       outcome = testing.CRASH
     elif self.HasTimedOut():
-      outcome = TIMEOUT
+      outcome = testing.TIMEOUT
     elif self.HasFailed():
       outcome = testing.FAIL
     else:
