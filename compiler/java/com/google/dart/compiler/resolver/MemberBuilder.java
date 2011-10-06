@@ -287,29 +287,41 @@ public class MemberBuilder {
       resolveFunction(accessorNode.getFunction(), accessorElement, null);
 
       String name = fieldNode.getName().getTargetName();
-      Element element = currentHolder.lookupLocalElement(name);
-      FieldElementImplementation fieldElement = null;
-      if (element == null || element.getKind().equals(ElementKind.FIELD)) {
-        fieldElement = (FieldElementImplementation) element;
+      Element element = null;
+      if (currentHolder != null) {
+          element = currentHolder.lookupLocalElement(name);
       } else {
-        resolutionError(fieldNode, DartCompilerErrorCode.FIELD_CONFLICTS, name, element.getKind());
+        // Top level nodes are not handled gracefully
+        element = topLevelContext.getScope().findElement(name);
+      }
+
+      FieldElementImplementation fieldElement = null;
+      if (element == null || element.getKind().equals(ElementKind.FIELD)
+          && element.getModifiers().isAbstractField()) {
+        fieldElement = (FieldElementImplementation) element;
       }
 
       if (fieldElement == null) {
         fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getModifiers());
-        Elements.addField(currentHolder, fieldElement);
+        addField(currentHolder, fieldElement);
       }
 
       if (accessorNode.getModifiers().isGetter()) {
         if (fieldElement.getGetter() != null) {
-          resolutionError(fieldNode,  DartCompilerErrorCode.FIELD_CONFLICTS, name, "getter");
+          int conflictLine = fieldElement.getNode().getSourceLine();
+          int conflictColumn = fieldElement.getNode().getSourceColumn();
+          resolutionError(fieldNode,  DartCompilerErrorCode.FIELD_CONFLICTS, name, "getter",
+                          conflictLine, conflictColumn);
         } else {
           fieldElement.setGetter(accessorElement);
           fieldElement.setType(accessorElement.getReturnType());
         }
       } else if (accessorNode.getModifiers().isSetter()) {
         if (fieldElement.getSetter() != null) {
-          resolutionError(fieldNode, DartCompilerErrorCode.FIELD_CONFLICTS, name, "setter");
+          int conflictLine = fieldElement.getNode().getSourceLine();
+          int conflictColumn = fieldElement.getNode().getSourceColumn();
+          resolutionError(fieldNode, DartCompilerErrorCode.FIELD_CONFLICTS, name, "setter",
+                          conflictLine, conflictColumn);
         } else {
           fieldElement.setSetter(accessorElement);
           List<VariableElement> parameters = accessorElement.getParameters();
@@ -327,8 +339,10 @@ public class MemberBuilder {
     }
 
     private void addField(EnclosingElement holder, FieldElement element) {
-      checkUniqueName(holder, element);
-      Elements.addField(holder, element);
+      if (holder != null) {
+        checkUniqueName(holder, element);
+        Elements.addField(holder, element);
+      }
     }
 
     private void addMethod(EnclosingElement holder, MethodElement element) {
@@ -412,7 +426,7 @@ public class MemberBuilder {
       assert e != other : "forgot to call checkUniqueName() before adding to the class?";
       if (other != null) {
         ElementKind eKind = ElementKind.of(e);
-        ElementKind oKind  = ElementKind.of(other);
+        ElementKind oKind = ElementKind.of(other);
 
         // Constructors have a separate namespace.
         boolean oIsConstructor = oKind.equals(ElementKind.CONSTRUCTOR);
@@ -442,7 +456,18 @@ public class MemberBuilder {
           return;
         }
 
-        resolutionError(e.getNode(), DartCompilerErrorCode.NAME_CLASSES_EXISTING_MEMBER);
+
+        // Message has no space between source and line number so that if we can't
+        // find the name, it won't show funny formatting.
+        String source = "";
+        DartNode otherNode = other.getNode();
+        if (e.getNode() != otherNode  && otherNode.getSource() != null
+            && otherNode.getSource().getUri() != null) {
+          source = otherNode.getSource().getUri().toString() + " ";
+        }
+
+        resolutionError(e.getNode(), DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER,
+            source, other.getNode().getSourceLine(), other.getNode().getSourceColumn());
       }
     }
 

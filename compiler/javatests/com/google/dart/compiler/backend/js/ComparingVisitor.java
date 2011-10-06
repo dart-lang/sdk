@@ -47,10 +47,10 @@ import com.google.dart.compiler.backend.js.ast.JsThisRef;
 import com.google.dart.compiler.backend.js.ast.JsThrow;
 import com.google.dart.compiler.backend.js.ast.JsTry;
 import com.google.dart.compiler.backend.js.ast.JsVars;
+import com.google.dart.compiler.backend.js.ast.JsVars.JsVar;
 import com.google.dart.compiler.backend.js.ast.JsVisitable;
 import com.google.dart.compiler.backend.js.ast.JsVisitor;
 import com.google.dart.compiler.backend.js.ast.JsWhile;
-import com.google.dart.compiler.backend.js.ast.JsVars.JsVar;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;

@@ -33,7 +33,6 @@ import static com.google.dart.compiler.parser.ParserEventsTest.Mark.FunctionType
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.Identifier;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.IfStatement;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.Initializer;
-import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TypeExpression;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.Label;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.Literal;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.MapLiteral;
@@ -60,6 +59,7 @@ import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TopLevelElem
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TryStatement;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TypeAnnotation;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TypeArguments;
+import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TypeExpression;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TypeFunctionOrVarable;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.TypeParameter;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.UnaryExpression;

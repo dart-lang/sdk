@@ -14,7 +14,6 @@ import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.DefaultDartArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
-import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;

@@ -80,7 +80,6 @@ NamedParameters3NegativeTest: Fail   # Implementation in progress.
 NamedParameters4NegativeTest: Fail   # Implementation in progress.
 NamedParameters6NegativeTest: Crash  # Implementation in progress.
 ScopeVariableTest: Fail              # 5244704
-Field1NegativeTest: Fail             # 5253031
 InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail  # 5387405

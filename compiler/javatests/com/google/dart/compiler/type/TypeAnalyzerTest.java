@@ -20,7 +20,6 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
 import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
@@ -33,6 +32,7 @@ import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.resolver.Resolver.ResolveElementsVisitor;
 import com.google.dart.compiler.resolver.Scope;
 import com.google.dart.compiler.resolver.SupertypeResolver;
+import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.util.DartSourceString;
 
 import java.io.IOError;

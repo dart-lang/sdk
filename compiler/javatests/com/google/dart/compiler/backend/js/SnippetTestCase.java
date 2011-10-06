@@ -5,8 +5,8 @@
 package com.google.dart.compiler.backend.js;
 
 import com.google.common.base.Strings;
-import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
+import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;

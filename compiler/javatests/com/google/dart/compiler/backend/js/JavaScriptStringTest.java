@@ -4,8 +4,6 @@
 
 package com.google.dart.compiler.backend.js;
 
-import com.google.dart.compiler.backend.js.JsToStringGenerationVisitor;
-
 import junit.framework.TestCase;
 
 import org.mozilla.javascript.Node;
