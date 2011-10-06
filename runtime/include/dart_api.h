@@ -190,7 +190,7 @@ DART_EXPORT Dart_Isolate Dart_CurrentIsolate();
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_ExitIsolate();
 
-DART_EXPORT void Dart_RunLoop();
+DART_EXPORT Dart_Result Dart_RunLoop();
 
 
 // Object.

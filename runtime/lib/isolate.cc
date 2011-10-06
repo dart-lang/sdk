@@ -9,6 +9,7 @@
 #include "vm/dart.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -185,8 +186,10 @@ static void RunIsolate(uword parameter) {
   // Intialize stack limit in case we are running isolate in a
   // different thread than in which it was initialized.
   isolate->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&isolate));
-
-  {
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
     Zone zone;
     HandleScope handle_scope;
     ASSERT(ClassFinalizer::FinalizePendingClasses());
@@ -235,19 +238,27 @@ static void RunIsolate(uword parameter) {
       ProcessUnhandledException(uhe);
     }
     ASSERT(result.IsNull());
-  }
-  free(class_name);
+    free(class_name);
 
-  // Keep listening until there are no active receive ports.
-  while (isolate->active_ports() > 0) {
+    // Keep listening until there are no active receive ports.
+    while (isolate->active_ports() > 0) {
+      Zone zone;
+      HandleScope handle_scope;
+
+      PortMessage* message = PortMap::ReceiveMessage(0);
+      message->Handle();
+      delete message;
+    }
+  } else {
     Zone zone;
     HandleScope handle_scope;
-
-    PortMessage* message = PortMap::ReceiveMessage(0);
-    message->Handle();
-    delete message;
+    const String& error = String::Handle(
+        Isolate::Current()->object_store()->sticky_error());
+    const char* errmsg = error.ToCString();
+    fprintf(stderr, "%s\n", errmsg);
+    exit(255);
   }
-
+  isolate->set_long_jump_base(base);
   Dart::ShutdownIsolate();
 }
 

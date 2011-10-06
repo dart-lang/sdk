@@ -68,20 +68,6 @@ DART_EXPORT void Dart_ExitIsolate() {
 }
 
 
-DART_EXPORT void Dart_RunLoop() {
-  Isolate* isolate = Isolate::Current();
-  // Keep listening until there are no active receive ports.
-  while (isolate->active_ports() > 0) {
-    Zone zone;
-    HandleScope handle_scope;
-
-    PortMessage* message = PortMap::ReceiveMessage(0);
-    message->Handle();
-    delete message;
-  }
-}
-
-
 static void SetupErrorResult(Dart_Result* result) {
   // Make a copy of the error message as the original message string
   // may get deallocated when we return back from the Dart API call.
@@ -93,6 +79,34 @@ static void SetupErrorResult(Dart_Result* result) {
   OS::SNPrint(msg, errlen, "%s", errmsg);
   result->type_ = kRetError;
   result->retval_.errmsg = msg;
+}
+
+
+DART_EXPORT Dart_Result Dart_RunLoop() {
+  Isolate* isolate = Isolate::Current();
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  Dart_Result result;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    // Keep listening until there are no active receive ports.
+    while (isolate->active_ports() > 0) {
+      Zone zone;
+      HandleScope handle_scope;
+
+      PortMessage* message = PortMap::ReceiveMessage(0);
+      message->Handle();
+      delete message;
+    }
+    result.type_ = kRetCBool;
+    result.retval_.bool_value = true;
+  } else {
+    Zone zone;
+    HandleScope handle_scope;
+    SetupErrorResult(&result);
+  }
+  isolate->set_long_jump_base(base);
+  return result;
 }
 
 

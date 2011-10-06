@@ -246,9 +246,15 @@ int main(int argc, char** argv) {
     Dart_ShutdownIsolate();
     return 255;  // Indicates we encountered an error.
   }
-  Dart_ExitScope();
   // Keep handling messages until the last active receive port is closed.
-  Dart_RunLoop();
+  result = Dart_RunLoop();
+  if (!Dart_IsValidResult(result)) {
+    fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return 255;  // Indicates we encountered an error.
+  }
+  Dart_ExitScope();
   // Dump symbol information for the profiler.
   DumpPprofSymbolInfo();
   // Shutdown the isolate.
