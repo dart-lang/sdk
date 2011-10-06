@@ -12,7 +12,7 @@ class Clock {
    * Returns the current clock tick.
    */
   static int now() {
-    return new DateTime.now().value;
+    return new Date.now().value;
   }
 
   /**

@@ -7,6 +7,6 @@
 #import('../observable/observable.dart');
 
 #source('CollectionUtils.dart');
-#source('DateTimeUtils.dart');
+#source('DateUtils.dart');
 #source('StringUtils.dart');
 #source('Uri.dart');

@@ -18,7 +18,7 @@ namespace dart {
 
 bool OS::BreakDownSecondsSinceEpoch(time_t seconds_since_epoch,
                                     bool in_utc,
-                                    BrokenDownDateTime* result) {
+                                    BrokenDownDate* result) {
   struct tm tm_result;
   struct tm* error_code;
   if (in_utc) {
@@ -40,7 +40,7 @@ bool OS::BreakDownSecondsSinceEpoch(time_t seconds_since_epoch,
 
 
 bool OS::BrokenDownToSecondsSinceEpoch(
-    const BrokenDownDateTime& broken_down, bool in_utc, time_t* result) {
+    const BrokenDownDate& broken_down, bool in_utc, time_t* result) {
   struct tm tm_broken_down;
   // mktime takes the years since 1900.
   tm_broken_down.tm_year = broken_down.year;

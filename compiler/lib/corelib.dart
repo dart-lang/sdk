@@ -13,7 +13,7 @@
 #source("src/bool.dart");
 #source("src/collection.dart");
 #source("src/comparable.dart");
-#source("src/date_time.dart");
+#source("src/date.dart");
 #source("src/double.dart");
 #source("src/exceptions.dart");
 #source("src/expect.dart");

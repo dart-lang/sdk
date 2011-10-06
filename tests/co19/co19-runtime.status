@@ -146,6 +146,30 @@ LibTest/core/Date/year/Date/year/A01/t02 : Skip
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Skip
 
 
+# The DateTime class has been renamed to Date
+LibTest/core/DateTime/compareTo/DateTime/compareTo/A01/t01: Skip
+LibTest/core/DateTime/compareTo/DateTime/compareTo/A01/t02: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t01: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t02: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t03: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t04: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t05: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t06: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t07: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t08: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t09: Skip
+LibTest/core/DateTime/DateTime/DateTime/A02/t01: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t01: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t02: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t03: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t04: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t05: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t06: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t07: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t08: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t09: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t10: Skip
+
 # Following tests define a main with an argument, per new specification
 # we do not pass any argument to main.
 LangGuideTest/07_Overriding/A05/t01: Fail,Okay
@@ -236,7 +260,6 @@ LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compo
 # These tests are failing in some configurations and not in others.
 # Filed bug 5309058 to track this.
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Skip
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t10: Skip
 LibTest/core/DoubleLinkedList/every/DoubleLinkedList/every/A01/t08: Skip
 LibTest/core/DoubleLinkedList/filter/DoubleLinkedList/filter/A01/t08: Skip
 LibTest/core/DoubleLinkedList/forEach/DoubleLinkedList/forEach/A01/t06: Skip
@@ -301,7 +324,6 @@ LibTest/core/Array/some/Array/some/A01/t01: Fail
 LibTest/core/Array/toArray/Array/toArray/A01/t01: Fail
 LibTest/core/Array/toSet/Array/toSet/A01/t01: Fail
 LibTest/core/Array/toSet/Array/toSet/A01/t03: Fail
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t01: Fail
 LibTest/core/DoubleLinkedList/every/DoubleLinkedList/every/A01/t03: Fail
 LibTest/core/DoubleLinkedList/filter/DoubleLinkedList/filter/A01/t03: Fail
 LibTest/core/DoubleLinkedList/forEach/DoubleLinkedList/forEach/A01/t03: Fail

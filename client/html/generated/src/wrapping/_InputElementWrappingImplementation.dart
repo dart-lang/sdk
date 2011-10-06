@@ -165,9 +165,9 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set value(String value) { _ptr.value = value; }
 
-  DateTime get valueAsDate() { return _ptr.valueAsDate; }
+  Date get valueAsDate() { return _ptr.valueAsDate; }
 
-  void set valueAsDate(DateTime value) { _ptr.valueAsDate = value; }
+  void set valueAsDate(Date value) { _ptr.valueAsDate = value; }
 
   num get valueAsNumber() { return _ptr.valueAsNumber; }
 

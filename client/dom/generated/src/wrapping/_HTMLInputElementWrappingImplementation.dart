@@ -248,11 +248,11 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set value(String value) { _set__HTMLInputElement_value(this, value); }
   static void _set__HTMLInputElement_value(var _this, String value) native;
 
-  DateTime get valueAsDate() { return _get__HTMLInputElement_valueAsDate(this); }
-  static DateTime _get__HTMLInputElement_valueAsDate(var _this) native;
+  Date get valueAsDate() { return _get__HTMLInputElement_valueAsDate(this); }
+  static Date _get__HTMLInputElement_valueAsDate(var _this) native;
 
-  void set valueAsDate(DateTime value) { _set__HTMLInputElement_valueAsDate(this, value); }
-  static void _set__HTMLInputElement_valueAsDate(var _this, DateTime value) native;
+  void set valueAsDate(Date value) { _set__HTMLInputElement_valueAsDate(this, value); }
+  static void _set__HTMLInputElement_valueAsDate(var _this, Date value) native;
 
   num get valueAsNumber() { return _get__HTMLInputElement_valueAsNumber(this); }
   static num _get__HTMLInputElement_valueAsNumber(var _this) native;

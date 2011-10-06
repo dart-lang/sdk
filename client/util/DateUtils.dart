@@ -5,22 +5,22 @@
 /**
  * General purpose date/time utilities.
  */
-class DateTimeUtils {
+class DateUtils {
   // TODO(jmesserly): localized strings
   static final WEEKDAYS = const ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
                                  'Friday', 'Saturday', 'Sunday'];
 
   static final YESTERDAY = 'Yesterday';
 
-  static final MS_IN_WEEK = DateTime.DAYS_IN_WEEK * Time.MS_PER_DAY;
+  static final MS_IN_WEEK = Date.DAYS_IN_WEEK * Time.MS_PER_DAY;
 
-  // TODO(jmesserly): workaround for missing DateTime.fromDate in Dartium
+  // TODO(jmesserly): workaround for missing Date.fromDate in Dartium
   // Remove this once that is implemented. See b/5055106
   // Parse a string like: "Mon, 27 Jun 2011 15:22:00 -0700"
-  static DateTime fromString(String text) {
+  static Date fromString(String text) {
     final parts = text.split(' ');
     if (parts.length == 1) {
-      return _parseIsoDateTime(text);
+      return _parseIsoDate(text);
     }
 
     if (parts.length != 6) {
@@ -55,7 +55,7 @@ class DateTimeUtils {
     int zoneOffset = Math.parseInt(parts[5]) ~/ 100;
 
     // Pretend it's a UTC time
-    DateTime result = new DateTime.withTimeZone(
+    Date result = new Date.withTimeZone(
         year, month, day, hours, minutes, seconds, 0, new TimeZone.utc());
     // Shift it to the proper zone, but it's still a UTC time
     result = result.subtract(new Time(0, zoneOffset, 0, 0, 0));
@@ -64,11 +64,11 @@ class DateTimeUtils {
   }
 
   /** Parse a string like: 2011-07-19T22:03:04.000Z */
-  // TODO(jmesserly): workaround for DateTime.fromDate, which has issues:
+  // TODO(jmesserly): workaround for Date.fromDate, which has issues:
   //   * on Dart VM it doesn't handle all of ISO 8601. See b/5055106.
   //   * on DartC it doesn't work on Safari. See b/5062557.
   // Remove this once that function is fully implemented
-  static DateTime _parseIsoDateTime(String text) {
+  static Date _parseIsoDate(String text) {
     void ensure(bool value) {
       if (!value) {
         throw 'bad date format, expected YYYY-MM-DDTHH:MM:SS.mmmZ: ' + text;
@@ -99,7 +99,7 @@ class DateTimeUtils {
       milliseconds = Math.parseInt(seconds[1]);
     }
 
-    return new DateTime.withTimeZone(
+    return new Date.withTimeZone(
         Math.parseInt(date[0]),
         Math.parseInt(date[1]),
         Math.parseInt(date[2]),
@@ -117,19 +117,19 @@ class DateTimeUtils {
    *  - if it's from the same week, just show the weekday
    *  - otherwise, show just the date
    */
-  static String toRecentTimeString(DateTime then) {
-    bool datesAreEqual(DateTime d1, DateTime d2) {
+  static String toRecentTimeString(Date then) {
+    bool datesAreEqual(Date d1, Date d2) {
       return (d1.year == d2.year) && (d1.month == d2.month) &&
           (d1.day == d2.day);
     }
 
-    final now = new DateTime.now();
+    final now = new Date.now();
     if (datesAreEqual(then, now)) {
       return toHourMinutesString(new Time(
           0, then.hours, then.minutes, then.seconds, then.milliseconds));
     }
 
-    final today = new DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
+    final today = new Date(now.year, now.month, now.day, 0, 0, 0, 0);
     Time delta = today.difference(then);
     if (delta.duration < Time.MS_PER_DAY) {
       return YESTERDAY;
@@ -147,14 +147,14 @@ class DateTimeUtils {
     }
   }
 
-  // TODO(jmesserly): this is a workaround for unimplemented DateTime.weekday
+  // TODO(jmesserly): this is a workaround for unimplemented Date.weekday
   // Code inspired by v8/src/date.js
-  static int getWeekday(DateTime dateTime) {
-    final unixTimeStart = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+  static int getWeekday(Date dateTime) {
+    final unixTimeStart = new Date(1970, 1, 1, 0, 0, 0, 0);
     int msSince1970 = dateTime.difference(unixTimeStart).duration;
     int daysSince1970 = msSince1970 ~/ Time.MS_PER_DAY;
     // 1970-1-1 was Thursday
-    return ((daysSince1970 + DateTime.THU) % DateTime.DAYS_IN_WEEK);
+    return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
   }
 
   /** Formats a time in H:MM A format */

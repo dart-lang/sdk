@@ -123,7 +123,7 @@ class AnimationScheduler {
       _setupInterval();
     }
     int numRemaining = 0;
-    int minTime = new DateTime.now().value + MS_PER_FRAME;
+    int minTime = new Date.now().value + MS_PER_FRAME;
 
     int len = _callbacks.length;
     for (final callback in _callbacks) {

@@ -9,6 +9,6 @@
  */
 class TimeUtil {
   static int now() {
-    return new DateTime.now().value;
+    return new Date.now().value;
   }
 }

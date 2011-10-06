@@ -9,7 +9,7 @@ interface TimeZone factory TimeZoneImplementation {
   // TODO(floitsch): The interface of this class will most likely change.
   // [offset] will probably not be accessible this way. It is much simpler to
   // think of TimeZones as locations instead of offsets.
-  // When constructing a date, one wants to say: give me the DateTime in Paris.
+  // When constructing a date, one wants to say: give me the Date in Paris.
   // The date is then used to determine if it should be CET or CEST.
   // However this also means that the offset is depending on an associated
   // date.

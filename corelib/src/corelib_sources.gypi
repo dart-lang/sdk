@@ -7,7 +7,7 @@
     'bool.dart',
     'collection.dart',
     'comparable.dart',
-    'date_time.dart',
+    'date.dart',
     'double.dart',
     'exceptions.dart',
     'expect.dart',

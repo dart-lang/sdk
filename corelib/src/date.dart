@@ -5,9 +5,9 @@
 // Dart core library.
 
 /**
- * DateTime is the public interface to a point in time.
+ * Date is the public interface to a point in time.
  */
-interface DateTime extends Comparable factory DateTimeImplementation {
+interface Date extends Comparable factory DateImplementation {
   // Weekday constants that are returned by [weekday] method:
   static final int MON = 0;
   static final int TUE = 1;
@@ -33,61 +33,61 @@ interface DateTime extends Comparable factory DateTimeImplementation {
   static final int DEC = 12;
 
   /**
-   * Constructs a [DateTime] instance based on the individual parts, in the
+   * Constructs a [Date] instance based on the individual parts, in the
    * local time-zone.
    */
-  DateTime(int year,
-           int month,
-           int day,
-           int hours,
-           int minutes,
-           int seconds,
-           int milliseconds);
+  Date(int year,
+       int month,
+       int day,
+       int hours,
+       int minutes,
+       int seconds,
+       int milliseconds);
 
   /**
-   * Constructs a [DateTime] instance based on the individual parts.
+   * Constructs a [Date] instance based on the individual parts.
    * [timeZone] may not be [:null:].
    */
-  DateTime.withTimeZone(int year,
-                        int month,
-                        int day,
-                        int hours,
-                        int minutes,
-                        int seconds,
-                        int milliseconds,
-                        TimeZone timeZone);
+  Date.withTimeZone(int year,
+                    int month,
+                    int day,
+                    int hours,
+                    int minutes,
+                    int seconds,
+                    int milliseconds,
+                    TimeZone timeZone);
 
   /**
-   * Constructs a new [DateTime] instance with current date time value.
+   * Constructs a new [Date] instance with current date time value.
    * The [timeZone] of this instance is set to the local time-zone.
    */
-  DateTime.now();
+  Date.now();
 
   /**
-   * Constructs a new [DateTime] instance based on [formattedString].
+   * Constructs a new [Date] instance based on [formattedString].
    */
-  DateTime.fromString(String formattedString);
+  Date.fromString(String formattedString);
 
   /**
-   * Constructs a new [DateTime] instance with the given time zone. The given
+   * Constructs a new [Date] instance with the given time zone. The given
    * [timeZone] must not be [:null:].
    *
    * This constructor is the only one that doesn't need to be computations and
    * which can therefore be [:const:].
    *
-   * The constructed [DateTime] represents 1970-01-01T00:00:00Z + [value]ms in
+   * The constructed [Date] represents 1970-01-01T00:00:00Z + [value]ms in
    * the given [timeZone].
    */
-  const DateTime.fromEpoch(int value, TimeZone timeZone);
+  const Date.fromEpoch(int value, TimeZone timeZone);
 
   /**
-   * Returns a new [DateTime] in the given [targetTimeZone] time zone. The
+   * Returns a new [Date] in the given [targetTimeZone] time zone. The
    * [value] of the new instance is equal to [:this.value:].
    *
    * This call is equivalent to
-   *  [:new DateTime.fromEpoch(this.value, targetTimeZone):].
+   *  [:new Date.fromEpoch(this.value, targetTimeZone):].
    */
-  DateTime changeTimeZone(TimeZone targetTimeZone);
+  Date changeTimeZone(TimeZone targetTimeZone);
 
   /**
    * Returns the year.
@@ -142,12 +142,12 @@ interface DateTime extends Comparable factory DateTimeImplementation {
   final TimeZone timeZone;
 
   /**
-   * Returns true if this [DateTime] is set to local time.
+   * Returns true if this [Date] is set to local time.
    */
   bool isLocalTime();
 
   /**
-   * Returns true if this [DateTime] is set to UTC time.
+   * Returns true if this [Date] is set to UTC time.
    * This is equivalent to [:this.timeZone.duration == 0:].
    */
   bool isUtc();
@@ -159,18 +159,18 @@ interface DateTime extends Comparable factory DateTimeImplementation {
   String toString();
 
   /**
-   * Returns a new [DateTime] with the time [other] added to this instance.
+   * Returns a new [Date] with the time [other] added to this instance.
    */
-  DateTime add(Time other);
+  Date add(Time other);
 
   /**
-   * Returns a new [DateTime] with the time [other] subtracted from this
+   * Returns a new [Date] with the time [other] subtracted from this
    * instance.
    */
-  DateTime subtract(Time other);
+  Date subtract(Time other);
 
   /**
    * Returns a [Time] with the difference of [:this:] and [other].
    */
-  Time difference(DateTime other);
+  Time difference(Date other);
 }

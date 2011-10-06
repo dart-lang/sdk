@@ -11,7 +11,7 @@ class FileWrappingImplementation extends BlobWrappingImplementation implements F
 
   int get fileSize() { return _ptr.fileSize; }
 
-  DateTime get lastModifiedDate() { return _ptr.lastModifiedDate; }
+  Date get lastModifiedDate() { return _ptr.lastModifiedDate; }
 
   String get name() { return _ptr.name; }
 

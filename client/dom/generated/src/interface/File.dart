@@ -10,7 +10,7 @@ interface File extends Blob {
 
   int get fileSize();
 
-  DateTime get lastModifiedDate();
+  Date get lastModifiedDate();
 
   String get name();
 }

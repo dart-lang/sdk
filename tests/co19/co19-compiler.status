@@ -9,7 +9,6 @@ prefix co19
 #
 [ $arch == dartc && $mode == release ]
 LangGuideTest/02_Language_Constructs/02_6_Functions/A04/t02: Fail # Bug 5391976
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t09: Fail # Bug 5392516
 LibTest/core/Set/add/Set/add/A01/t05: Fail                        # Bug 5392511
 LibTest/core/Set/addAll/Set/addAll/A01/t05: Fail                  # Bug 5392511
 LibTest/core/Set/contains/Set/contains/A01/t04: Fail              # Bug 5392511
@@ -180,20 +179,30 @@ LibTest/core/Date/toString/Date/toString/A01/t01 : Skip
 LibTest/core/Date/year/Date/year/A01/t01 : Skip
 LibTest/core/Date/year/Date/year/A01/t02 : Skip
 
-LibTest/core/DateTime/DateTime/DateTime/A01/t02: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime/DateTime/A01/t04: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime/DateTime/A01/t03: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime/DateTime/A01/t05: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime/DateTime/A01/t06: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime/DateTime/A01/t07: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime/DateTime/A01/t08: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t02: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t03: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t05: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t04: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t06: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t07: Fail # Bug 5371670.
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t08: Fail # Bug 5371670.
+# The DateTime class has been renamed to Date
+LibTest/core/DateTime/compareTo/DateTime/compareTo/A01/t01: Skip
+LibTest/core/DateTime/compareTo/DateTime/compareTo/A01/t02: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t01: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t02: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t03: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t04: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t05: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t06: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t07: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t08: Skip
+LibTest/core/DateTime/DateTime/DateTime/A01/t09: Skip
+LibTest/core/DateTime/DateTime/DateTime/A02/t01: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t01: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t02: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t03: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t04: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t05: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t06: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t07: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t08: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t09: Skip
+LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t10: Skip
+
 LibTest/core/Map/containsKey/Map/containsKey/A01/t03: Fail # Bug 5371670.
 LibTest/core/Map/containsValue/Map/containsValue/A01/t02: Fail # Bug 5371670.
 LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail # Bug 5371670.
@@ -301,10 +310,6 @@ LibTest/core/Date/day/Date/day/A01/t03: Fail
 LibTest/core/Date/toString/Date/toString/A01/t01: Fail
 LibTest/core/Date/weekday/Date/weekday/A01/t01: Fail
 LibTest/core/Date/weekday/Date/weekday/A01/t04: Fail
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t01: Fail
-LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t10: Fail
-LibTest/core/DateTime/DateTime/DateTime/A01/t09: Fail
-LibTest/core/DateTime/compareTo/DateTime/compareTo/A01/t02: Fail
 LibTest/core/DoubleLinkedList/every/DoubleLinkedList/every/A01/t03: Fail
 LibTest/core/DoubleLinkedList/every/DoubleLinkedList/every/A01/t05: Fail
 LibTest/core/DoubleLinkedList/every/DoubleLinkedList/every/A01/t08: Fail

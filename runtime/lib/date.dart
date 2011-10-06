@@ -27,40 +27,40 @@ class TimeZoneImplementation implements TimeZone {
   final bool isUtc;
 }
 
-// JavaScript implementation of DateTimeImplementation.
-class DateTimeImplementation implements DateTime {
-  factory DateTimeImplementation(int years,
-                                 int month,
-                                 int day,
-                                 int hours,
-                                 int minutes,
-                                 int seconds,
-                                 int milliseconds) {
-    return new DateTimeImplementation.withTimeZone(
+// JavaScript implementation of DateImplementation.
+class DateImplementation implements Date {
+  factory DateImplementation(int years,
+                             int month,
+                             int day,
+                             int hours,
+                             int minutes,
+                             int seconds,
+                             int milliseconds) {
+    return new DateImplementation.withTimeZone(
         years, month, day,
         hours, minutes, seconds, milliseconds,
         new TimeZoneImplementation.local());
   }
 
-  DateTimeImplementation.withTimeZone(int years,
-                                      int month,
-                                      int day,
-                                      int hours,
-                                      int minutes,
-                                      int seconds,
-                                      int milliseconds,
-                                      TimeZoneImplementation timeZone)
+  DateImplementation.withTimeZone(int years,
+                                  int month,
+                                  int day,
+                                  int hours,
+                                  int minutes,
+                                  int seconds,
+                                  int milliseconds,
+                                  TimeZoneImplementation timeZone)
   : timeZone = timeZone,
-    value = brokenDownDateTimeToMillisecondsSinceEpoch_(
+    value = brokenDownDateToMillisecondsSinceEpoch_(
                years, month, day, hours, minutes, seconds, milliseconds,
                timeZone.isUtc) {}
 
-  DateTimeImplementation.now()
+  DateImplementation.now()
   : timeZone = new TimeZone.local(),
     value = getCurrentMs_() {
   }
 
-  factory DateTimeImplementation.fromString(String formattedString) {
+  factory DateImplementation.fromString(String formattedString) {
     int substringToNumber(String str, int from, int to) {
       int result = 0;
       for (int i = from; i < to; i++) {
@@ -69,7 +69,7 @@ class DateTimeImplementation implements DateTime {
       return result;
     }
 
-    // TODO(floitsch): improve DateTimeImplementation parsing.
+    // TODO(floitsch): improve DateImplementation parsing.
     // Parse ISO 8601: "2011-05-14 00:37:18.231Z".
     int yearMonthSeparator = formattedString.indexOf("-", 0);
     if (yearMonthSeparator < 0) throw "UNIMPLEMENTED";
@@ -110,27 +110,27 @@ class DateTimeImplementation implements DateTime {
                                          secondsMillisecondsSeparator + 1,
                                          end);
     TimeZone timeZone = (isUtc ? const TimeZone.utc() : new TimeZone.local());
-    return new DateTimeImplementation.withTimeZone(
+    return new DateImplementation.withTimeZone(
         year, month, day, hours, minutes, seconds, milliseconds, timeZone);
   }
 
-  const DateTimeImplementation.fromEpoch(int this.value,
-                                         TimeZone this.timeZone);
+  const DateImplementation.fromEpoch(int this.value,
+                                     TimeZone this.timeZone);
 
   bool operator ==(Object other) {
-    if (!(other is DateTimeImplementation)) return false;
+    if (!(other is DateImplementation)) return false;
     return value == other.value && timeZone == other.timeZone;
   }
 
-  int compareTo(DateTime other) {
+  int compareTo(Date other) {
     return value.compareTo(other.value);
   }
 
-  DateTime changeTimeZone(TimeZone targetTimeZone) {
+  Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone === null) {
       targetTimeZone = new TimeZoneImplementation.local();
     }
-    return new DateTime.fromEpoch(value, targetTimeZone);
+    return new Date.fromEpoch(value, targetTimeZone);
   }
 
   int get year() {
@@ -217,20 +217,18 @@ class DateTimeImplementation implements DateTime {
     }
   }
 
-  // Adds the duration [time] to this DateTime instance.
-  DateTime add(Time time) {
-    return new DateTimeImplementation.fromEpoch(value + time.duration,
-                                                timeZone);
+  // Adds the duration [time] to this Date instance.
+  Date add(Time time) {
+    return new DateImplementation.fromEpoch(value + time.duration, timeZone);
   }
 
-  // Subtracts the duration [time] from this DateTime instance.
-  DateTime subtract(Time time) {
-    return new DateTimeImplementation.fromEpoch(value - time.duration,
-                                                timeZone);
+  // Subtracts the duration [time] from this Date instance.
+  Date subtract(Time time) {
+    return new DateImplementation.fromEpoch(value - time.duration, timeZone);
   }
 
   // Returns a [Time] with the difference of [this] and [other].
-  Time difference(DateTime other) {
+  Time difference(Date other) {
     return new TimeImplementation.duration(value - other.value);
   }
 
@@ -337,7 +335,7 @@ class DateTimeImplementation implements DateTime {
     return 2008 + (recentYear - 2008) % 28;
   }
 
-  static brokenDownDateTimeToMillisecondsSinceEpoch_(
+  static brokenDownDateToMillisecondsSinceEpoch_(
       int years, int month, int day,
       int hours, int minutes, int seconds, int milliseconds,
       bool isUtc) {
@@ -379,36 +377,36 @@ class DateTimeImplementation implements DateTime {
       equivalentYear = years;
       offsetInSeconds = 0;
     }
-    int secondsSinceEpoch = brokenDownDateTimeToSecondsSinceEpoch_(
+    int secondsSinceEpoch = brokenDownDateToSecondsSinceEpoch_(
         equivalentYear, month, day, hours, minutes, seconds, isUtc);
     int adjustedSeconds = secondsSinceEpoch + offsetInSeconds;
     return adjustedSeconds * Time.MS_PER_SECOND + milliseconds;
   }
 
   // Natives
-  static brokenDownDateTimeToSecondsSinceEpoch_(
+  static brokenDownDateToSecondsSinceEpoch_(
       int years, int month, int day, int hours, int minutes, int seconds,
-      bool isUtc) native "DateTimeNatives_brokenDownToSecondsSinceEpoch";
+      bool isUtc) native "DateNatives_brokenDownToSecondsSinceEpoch";
 
-  static int getCurrentMs_() native "DateTimeNatives_currentTimeMillis";
+  static int getCurrentMs_() native "DateNatives_currentTimeMillis";
 
   // TODO(floitsch): it would be more efficient if we didn't call the native
   // function for every member, but cached the broken-down date.
   static int getYear_(int secondsSinceEpoch, bool isUtc)
-      native "DateTimeNatives_getYear";
+      native "DateNatives_getYear";
 
   static int getMonth_(int secondsSinceEpoch, bool isUtc)
-      native "DateTimeNatives_getMonth";
+      native "DateNatives_getMonth";
 
   static int getDay_(int secondsSinceEpoch, bool isUtc)
-      native "DateTimeNatives_getDay";
+      native "DateNatives_getDay";
 
   static int getHours_(int secondsSinceEpoch, bool isUtc)
-      native "DateTimeNatives_getHours";
+      native "DateNatives_getHours";
 
   static int getMinutes_(int secondsSinceEpoch, bool isUtc)
-      native "DateTimeNatives_getMinutes";
+      native "DateNatives_getMinutes";
 
   static int getSeconds_(int secondsSinceEpoch, bool isUtc)
-      native "DateTimeNatives_getSeconds";
+      native "DateNatives_getSeconds";
 }

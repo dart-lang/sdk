@@ -4,61 +4,61 @@
 
 // Dart core library.
 
-// JavaScript implementation of DateTimeImplementation.
-class DateTimeImplementation implements DateTime {
-  factory DateTimeImplementation(int years,
-                                 int month,
-                                 int day,
-                                 int hours,
-                                 int minutes,
-                                 int seconds,
-                                 int milliseconds) {
-    return new DateTimeImplementation.withTimeZone(
+// JavaScript implementation of DateImplementation.
+class DateImplementation implements Date {
+  factory DateImplementation(int years,
+                             int month,
+                             int day,
+                             int hours,
+                             int minutes,
+                             int seconds,
+                             int milliseconds) {
+    return new DateImplementation.withTimeZone(
         years, month, day,
         hours, minutes, seconds, milliseconds,
         new TimeZoneImplementation.local());
   }
 
-  DateTimeImplementation.withTimeZone(int years,
-                                      int month,
-                                      int day,
-                                      int hours,
-                                      int minutes,
-                                      int seconds,
-                                      int milliseconds,
-                                      TimeZoneImplementation timeZone)
+  DateImplementation.withTimeZone(int years,
+                                  int month,
+                                  int day,
+                                  int hours,
+                                  int minutes,
+                                  int seconds,
+                                  int milliseconds,
+                                  TimeZoneImplementation timeZone)
       : this.timeZone = timeZone,
         value = _valueFromDecomposed(years, month, day,
                                      hours, minutes, seconds, milliseconds,
                                      timeZone.isUtc) {
   }
 
-  DateTimeImplementation.now()
+  DateImplementation.now()
       : timeZone = new TimeZone.local(),
         value = _now() {
   }
 
-  DateTimeImplementation.fromString(String formattedString)
+  DateImplementation.fromString(String formattedString)
       : timeZone = new TimeZone.local(),
         value = _valueFromString(formattedString) {
   }
 
-  const DateTimeImplementation.fromEpoch(this.value, this.timeZone);
+  const DateImplementation.fromEpoch(this.value, this.timeZone);
 
   bool operator ==(other) {
-    if (!(other is DateTimeImplementation)) return false;
+    if (!(other is DateImplementation)) return false;
     return (value == other.value) && (timeZone == other.timeZone);
   }
 
-  int compareTo(DateTime other) {
+  int compareTo(Date other) {
     return value.compareTo(other.value);
   }
 
-  DateTime changeTimeZone(TimeZone targetTimeZone) {
+  Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone == null) {
       targetTimeZone = new TimeZoneImplementation.local();
     }
-    return new DateTime.fromEpoch(value, targetTimeZone);
+    return new Date.fromEpoch(value, targetTimeZone);
   }
 
   int get year() {
@@ -125,20 +125,18 @@ class DateTimeImplementation implements DateTime {
     }
   }
 
-    // Adds the duration [time] to this DateTime instance.
-  DateTime add(Time time) {
-    return new DateTimeImplementation.fromEpoch(value + time.duration,
-                                                timeZone);
+    // Adds the duration [time] to this Date instance.
+  Date add(Time time) {
+    return new DateImplementation.fromEpoch(value + time.duration, timeZone);
   }
 
-  // Subtracts the duration [time] from this DateTime instance.
-  DateTime subtract(Time time) {
-    return new DateTimeImplementation.fromEpoch(value - time.duration,
-                                                timeZone);
+  // Subtracts the duration [time] from this Date instance.
+  Date subtract(Time time) {
+    return new DateImplementation.fromEpoch(value - time.duration, timeZone);
   }
 
   // Returns a [Time] with the difference of [this] and [other].
-  Time difference(DateTime other) {
+  Time difference(Date other) {
     return new TimeImplementation.duration(value - other.value);
   }
 

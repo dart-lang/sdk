@@ -15,14 +15,14 @@ class Isolate;
 // Interface to the underlying OS platform.
 class OS {
  public:
-  typedef struct BrokenDownDateTime {
+  typedef struct BrokenDownDate {
     int year;   // Offset by 1900. A value of 111 Represents the year 2011.
     int month;  // [0..11]
     int day;    // [1..31]
     int hours;
     int minutes;
     int seconds;
-  } BrokenDownDateTime;
+  } BrokenDownDate;
 
   // Takes the seconds since epoch (midnight, January 1, 1970 UTC) and breaks it
   // down into date and time.
@@ -32,13 +32,13 @@ class OS {
   // Returns true if the conversion succeeds, false otherwise.
   static bool BreakDownSecondsSinceEpoch(time_t seconds_since_epoch,
                                          bool in_utc,
-                                         BrokenDownDateTime* result);
+                                         BrokenDownDate* result);
 
   // Converts a broken down date into the seconds since epoch (midnight,
   // January 1, 1970 UTC). Returns true if the conversion succeeds, false
   // otherwise.
   static bool BrokenDownToSecondsSinceEpoch(
-      const BrokenDownDateTime& broken_down, bool in_utc, time_t* result);
+      const BrokenDownDate& broken_down, bool in_utc, time_t* result);
 
   // Returns the current time in milliseconds measured
   // from midnight January 1, 1970 UTC.

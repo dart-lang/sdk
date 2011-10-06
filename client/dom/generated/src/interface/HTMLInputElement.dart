@@ -164,9 +164,9 @@ interface HTMLInputElement extends HTMLElement {
 
   void set value(String value);
 
-  DateTime get valueAsDate();
+  Date get valueAsDate();
 
-  void set valueAsDate(DateTime value);
+  void set valueAsDate(Date value);
 
   num get valueAsNumber();
 

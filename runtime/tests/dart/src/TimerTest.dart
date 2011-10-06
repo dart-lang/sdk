@@ -11,19 +11,19 @@ class TimerTest {
   static void testSimpleTimer() {
 
     void timeoutHandler(Timer timer) {
-      int endTime = (new DateTime.now()).value;
+      int endTime = (new Date.now()).value;
       Expect.equals(true, (endTime - _startTime) >= _timeout);
       if (_iteration < _ITERATIONS) {
         _iteration++;
         _timeout = _timeout - _DECREASE;
-        _startTime = (new DateTime.now()).value;
+        _startTime = (new Date.now()).value;
         new Timer(timeoutHandler, _timeout, false);
       }
     }
 
     _iteration = 0;
     _timeout = _STARTTIMEOUT;
-    _startTime = (new DateTime.now()).value;
+    _startTime = (new Date.now()).value;
      new Timer(timeoutHandler, _timeout, false);
   }
 

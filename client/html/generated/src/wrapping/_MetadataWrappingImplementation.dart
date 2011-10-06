@@ -7,7 +7,7 @@
 class MetadataWrappingImplementation extends DOMWrapperBase implements Metadata {
   MetadataWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  DateTime get modificationTime() { return _ptr.modificationTime; }
+  Date get modificationTime() { return _ptr.modificationTime; }
 
   String get typeName() { return "Metadata"; }
 }

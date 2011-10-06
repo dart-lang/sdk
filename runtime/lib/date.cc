@@ -13,7 +13,7 @@ namespace dart {
 
 static bool BreakDownSecondsSinceEpoch(const Integer& dart_seconds,
                                        const Bool& dart_is_utc,
-                                       OS::BrokenDownDateTime* result) {
+                                       OS::BrokenDownDate* result) {
   bool is_utc = dart_is_utc.value();
   int64_t value = dart_seconds.AsInt64Value();
   time_t seconds = static_cast<time_t>(value);
@@ -21,7 +21,7 @@ static bool BreakDownSecondsSinceEpoch(const Integer& dart_seconds,
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_brokenDownToSecondsSinceEpoch, 7) {
+DEFINE_NATIVE_ENTRY(DateNatives_brokenDownToSecondsSinceEpoch, 7) {
   const Integer& dart_years = Integer::CheckedHandle(arguments->At(0));
   const Smi& dart_month = Smi::CheckedHandle(arguments->At(1));
   const Smi& dart_day = Smi::CheckedHandle(arguments->At(2));
@@ -34,7 +34,7 @@ DEFINE_NATIVE_ENTRY(DateTimeNatives_brokenDownToSecondsSinceEpoch, 7) {
   }
   Smi& smi_years = Smi::Handle();
   smi_years ^= dart_years.raw();
-  OS::BrokenDownDateTime broken_down;
+  OS::BrokenDownDate broken_down;
   // mktime takes the years since 1900.
   // TODO(floitsch): Removing 1900 could underflow the intptr_t.
   intptr_t year = smi_years.Value() - 1900;
@@ -59,17 +59,17 @@ DEFINE_NATIVE_ENTRY(DateTimeNatives_brokenDownToSecondsSinceEpoch, 7) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_currentTimeMillis, 0) {
+DEFINE_NATIVE_ENTRY(DateNatives_currentTimeMillis, 0) {
   const Integer& time = Integer::Handle(
       Integer::New(OS::GetCurrentTimeMillis()));
   arguments->SetReturn(time);
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_getYear, 2) {
+DEFINE_NATIVE_ENTRY(DateNatives_getYear, 2) {
   const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
   const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
-  OS::BrokenDownDateTime broken_down;
+  OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
   if (!succeeded) {
@@ -82,10 +82,10 @@ DEFINE_NATIVE_ENTRY(DateTimeNatives_getYear, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_getMonth, 2) {
+DEFINE_NATIVE_ENTRY(DateNatives_getMonth, 2) {
   const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
   const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
-  OS::BrokenDownDateTime broken_down;
+  OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
   if (!succeeded) {
@@ -97,10 +97,10 @@ DEFINE_NATIVE_ENTRY(DateTimeNatives_getMonth, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_getDay, 2) {
+DEFINE_NATIVE_ENTRY(DateNatives_getDay, 2) {
   const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
   const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
-  OS::BrokenDownDateTime broken_down;
+  OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
   if (!succeeded) {
@@ -111,10 +111,10 @@ DEFINE_NATIVE_ENTRY(DateTimeNatives_getDay, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_getHours, 2) {
+DEFINE_NATIVE_ENTRY(DateNatives_getHours, 2) {
   const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
   const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
-  OS::BrokenDownDateTime broken_down;
+  OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
   if (!succeeded) {
@@ -125,10 +125,10 @@ DEFINE_NATIVE_ENTRY(DateTimeNatives_getHours, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_getMinutes, 2) {
+DEFINE_NATIVE_ENTRY(DateNatives_getMinutes, 2) {
   const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
   const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
-  OS::BrokenDownDateTime broken_down;
+  OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
   if (!succeeded) {
@@ -139,10 +139,10 @@ DEFINE_NATIVE_ENTRY(DateTimeNatives_getMinutes, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateTimeNatives_getSeconds, 2) {
+DEFINE_NATIVE_ENTRY(DateNatives_getSeconds, 2) {
   const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
   const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
-  OS::BrokenDownDateTime broken_down;
+  OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
   if (!succeeded) {

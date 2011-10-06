@@ -58,12 +58,12 @@ class Suite {
         // more smoothly as well.
         for (int i = 0; i < _N_RUNS; i++) {
           int runs = 0;
-          final int start = new DateTime.now().value;
+          final int start = new Date.now().value;
 
-          int cur = new DateTime.now().value;
+          int cur = new Date.now().value;
           while ((cur - start) < 1000) {
             test();
-            cur = new DateTime.now().value;
+            cur = new Date.now().value;
             runs++;
           }
 

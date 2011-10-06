@@ -10,7 +10,7 @@
 #source("implementation/arrays.dart");
 #source("implementation/bool.dart");
 #source("implementation/collections.dart");
-#source("implementation/date_time_implementation.dart");
+#source("implementation/date_implementation.dart");
 #source("implementation/isolate.dart");
 #source("implementation/isolate_serialization.dart");
 #source("implementation/math_natives.dart");
@@ -35,7 +35,7 @@
 #native("implementation/array.js");
 #native("implementation/bool.js");
 #native("implementation/core.js");
-#native("implementation/date_time_implementation.js");
+#native("implementation/date_implementation.js");
 #native("implementation/isolate.js");
 #native("implementation/math_natives.js");
 #native("implementation/number.js");

@@ -739,10 +739,10 @@ class BenchmarkBase {
   static double measureFor(Function f, int timeMinimum) {
     int time = 0;
     int iter = 0;
-    DateTime start = new DateTime.now();
+    Date start = new Date.now();
     while (time < timeMinimum) {
       f();
-      time = (new DateTime.now().difference(start)).duration;
+      time = (new Date.now().difference(start)).duration;
       iter++;
     }
     // Force double result by using a double constant.
@@ -1111,12 +1111,12 @@ class PingPongGame {
   }
 
   void evaluateRound() {
-    int time = (new DateTime.now().difference(_start)).duration;
+    int time = (new Date.now().difference(_start)).duration;
     if (!_warmedup && time < Benchmark1.WARMUP_TIME) {
       startRound();
     } else if (!_warmedup) {
       _warmedup = true;
-      _start = new DateTime.now();
+      _start = new Date.now();
       _iterations = 0;
       startRound();
     } else if (_warmedup && time < Benchmark1.RUN_TIME) {
@@ -1140,7 +1140,7 @@ class PingPongGame {
         evaluateRound();
       }
     });
-    _start = new DateTime.now();
+    _start = new Date.now();
     startRound();
   }
 
@@ -1149,7 +1149,7 @@ class PingPongGame {
     _ping.close();
   }
 
-  DateTime _start;
+  Date _start;
   SendPort _pong;
   SendPort _pingPort;
   ReceivePort _ping;

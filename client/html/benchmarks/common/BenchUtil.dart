@@ -6,7 +6,7 @@
 
 class BenchUtil {
   static int get now() {
-    return new DateTime.now().value;
+    return new Date.now().value;
   }
 
   static Map<String, Object> deserialize(String data) {
