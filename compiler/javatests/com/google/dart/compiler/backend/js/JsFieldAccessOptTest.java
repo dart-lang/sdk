@@ -65,5 +65,17 @@ public class JsFieldAccessOptTest extends ExprOptTest {
     parts = findMarkerAtOccurrence.split("[=]");
     assertTrue(parts.length == 2);
     assertEquals("b.X_Getter$getter()", parts[1].trim());
+
+    // var _marker_7 = c.x$field;
+    findMarkerAtOccurrence = findMarkerAtOccurrence(js, "_marker_7", "[;\\n]", 1);
+    parts = findMarkerAtOccurrence.split("[=]");
+    assertTrue(parts.length == 2);
+    assertEquals("c.x$field", parts[1].trim());
+
+    // var _marker_8 = c.AXGetter$getter();
+    findMarkerAtOccurrence = findMarkerAtOccurrence(js, "_marker_8", "[;\\n]", 1);
+    parts = findMarkerAtOccurrence.split("[=]");
+    assertTrue(parts.length == 2);
+    assertEquals("c.AXGetter$getter()", parts[1].trim());
   }
 }

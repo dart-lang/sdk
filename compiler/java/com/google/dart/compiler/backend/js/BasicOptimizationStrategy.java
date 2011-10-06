@@ -15,10 +15,13 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNullLiteral;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -193,20 +196,14 @@ class BasicOptimizationStrategy implements OptimizationStrategy {
    */
   @Override
   public FieldElement findOptimizableFieldElementFor(DartExpression expr, FieldKind fieldKind) {
-    Set<DartExpression> visited = Sets.newHashSet();
+    Set<DartNode> visited = Sets.newHashSet();
     FieldElement field = maybeGetInlineableField(expr, fieldKind, visited);
     visited = null;
     return field;
   }
 
   private FieldElement maybeGetInlineableField(DartExpression expr, FieldKind fieldKind,
-                                               Set<DartExpression> visited) {
-    if (visited.contains(expr)) {
-      // If field references itself, it will cause a cycle. in this case, we return null.
-      return null;
-    }
-    visited.add(expr);
-
+                                               Set<DartNode> visited) {
     // if the field is referenced in a function expression we cannot inline it.
     if (expr.getParent() instanceof DartFunctionObjectInvocation) {
       return null;
@@ -236,7 +233,12 @@ class BasicOptimizationStrategy implements OptimizationStrategy {
   }
 
   private FieldElement maybeGetNonAbstractFieldGetter(FieldElement field, FieldKind fieldKind,
-                                                      Set<DartExpression> visited) {
+                                                      Set<DartNode> visited) {
+    if (visited.contains(field.getNode())) {
+      // If field references itself, it will cause a cycle. in this case, we return null.
+      return null;
+    }
+    visited.add(field.getNode());
     if (field.getModifiers().isAbstractField()) {
       if (fieldKind.equals(FieldKind.GETTER) && (field.getGetter() != null)) {
         DartMethodDefinition getter = (DartMethodDefinition) field.getGetter().getNode();
@@ -247,7 +249,15 @@ class BasicOptimizationStrategy implements OptimizationStrategy {
             DartStatement stmt = fnGetter.getBody().getStatements().iterator().next();
             if (stmt instanceof DartReturnStatement) {
               DartReturnStatement returnStmt = (DartReturnStatement) stmt;
-              return maybeGetInlineableField(returnStmt.getValue(), fieldKind, visited);
+              DartExpression retExpr = returnStmt.getValue();
+              if (retExpr instanceof DartIdentifier) {
+                return maybeGetInlineableField(retExpr, fieldKind, visited);
+              } else if (retExpr instanceof DartPropertyAccess) {
+                DartPropertyAccess propAccess = (DartPropertyAccess) retExpr;
+                if (propAccess.getQualifier() instanceof DartThisExpression) {
+                  return maybeGetInlineableField(propAccess, fieldKind, visited);
+                }
+              }
             }
           }
         }

@@ -10,7 +10,6 @@ class A {
   A(){}
 }
 
-
 class WillNotOptimizeFieldAccess {
   WillNotOptimizeFieldAccess(){}
   int x;
@@ -55,8 +54,24 @@ class B extends A {
     }
 }
 
+class C {
+  C() { }
+
+  int x;
+  A a;
+
+  int get XGetter() {
+    return this.x;
+  }
+
+  int get AXGetter() {
+    return a.x;
+  }
+}
+
 class Main {
   static void main() {
+
     A _marker_0 = new A();
 
     _marker_0.x = 1;
@@ -77,6 +92,12 @@ class Main {
     A _marker_5 = b.A_Getter;
 
     int _marker_6 = b.X_Getter;
+
+    C c = new C();
+
+    int _marker_7 = c.XGetter;
+
+    int _marker_8 = c.AXGetter;
   }
 }
 
