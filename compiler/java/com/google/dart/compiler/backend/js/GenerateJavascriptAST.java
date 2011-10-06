@@ -1123,23 +1123,31 @@ public class GenerateJavascriptAST {
       // function([$s0, $s1, ...], $n, $o, P0, P1, P2, P3, ...) {
       JsFunction tramp = new JsFunction(globalScope);
       JsScope scope = tramp.getScope();
-      List<JsParameter> closureScopeParams = new ArrayList<JsParameter>();
-      for (int i = 0; i < numClosureScopes; ++i) {
-        JsParameter param = new JsParameter(scope.declareName("$s" + i));
-        tramp.getParameters().add(param);
-        closureScopeParams.add(param);
-      }
-      JsParameter countParam = new JsParameter(scope.declareName("$n"));
-      tramp.getParameters().add(countParam);
-      JsParameter namedParam = new JsParameter(scope.declareName("$o"));
-      tramp.getParameters().add(namedParam);
 
+      // Create fresh parameters for the explicit and synthetic parameters.
       List<JsParameter> explicitJsParams = new ArrayList<JsParameter>();
       for (DartParameter dartParam : func.getParams()) {
         String paramName = ((DartIdentifier) dartParam.getName()).getTargetName();
         JsParameter param = new JsParameter(scope.declareName(paramName));
         explicitJsParams.add(param);
-        tramp.getParameters().add(param);
+      }
+
+      List<JsParameter> closureScopeParams = new ArrayList<JsParameter>();
+      for (int i = 0; i < numClosureScopes; ++i) {
+        JsParameter param = new JsParameter(scope.declareFreshName("$s" + i));
+        closureScopeParams.add(param);
+      }
+      JsParameter countParam = new JsParameter(scope.declareFreshName("$n"));
+      JsParameter namedParam = new JsParameter(scope.declareFreshName("$o"));
+
+      // Declare parameters in the proper order.
+      for (int i = 0; i < numClosureScopes; ++i) {
+        tramp.getParameters().add(closureScopeParams.get(i));
+      }
+      tramp.getParameters().add(countParam);
+      tramp.getParameters().add(namedParam);
+      for (int i = 0; i < explicitJsParams.size(); ++i) {
+        tramp.getParameters().add(explicitJsParams.get(i));
       }
 
       // var seen = 0, def = 0;
@@ -1147,8 +1155,8 @@ public class GenerateJavascriptAST {
       tramp.setBody(body);
       List<JsStatement> stmts = body.getStatements();
 
-      JsName seen = scope.declareName("seen");
-      JsName def = scope.declareName("def");
+      JsName seen = scope.declareFreshName("seen");
+      JsName def = scope.declareFreshName("def");
       stmts.add(AstUtil.newVar(null, seen, number(0)));
       stmts.add(AstUtil.newVar(null, def, number(0)));
 

@@ -211,6 +211,20 @@ testStaticNSM() {
 }
 
 // ---------------------------------------------------------------------------
+class Tintin {
+  Tintin() { }
+
+  int possibleNameConflict([int $n]) {
+    return $n + 1;
+  }
+}
+
+testPossibleNameConflict() {
+  var tintin = new Tintin();
+  Expect.equals(43, tintin.possibleNameConflict($n:42));
+}
+
+// ---------------------------------------------------------------------------
 main() {
   testCtors();
   testCalls();
@@ -218,4 +232,5 @@ main() {
   testMultipleClosureScopes();
   testGetter();
   testStaticNSM();
+  testPossibleNameConflict();
 }
