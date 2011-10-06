@@ -149,13 +149,14 @@ class DartCompiler(object):
         'dartc')), '-noincremental', '-out', outdir]
     if self.optimize:
       cmd.append('-optimize')
+      cmd.append('--disable-type-optimizations')
     cmd.append(inputfile)
     return cmd
 
   def outputFileName(self, inputfile, outdir):
     return join(outdir,
         ('file' if isabs(inputfile) else '') + inputfile +
-        ('.opt' if self.optimize else '.app') + '.js')
+        ('' if self.optimize else '.app') + '.js')
 
 
 def execute(cmd, verbose=False):
