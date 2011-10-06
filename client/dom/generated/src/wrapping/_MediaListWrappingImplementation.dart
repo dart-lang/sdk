@@ -84,6 +84,22 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }

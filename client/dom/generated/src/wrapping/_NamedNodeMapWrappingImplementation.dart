@@ -78,6 +78,22 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }

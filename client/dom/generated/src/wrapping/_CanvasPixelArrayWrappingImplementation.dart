@@ -78,6 +78,22 @@ class _CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements 
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }

@@ -78,6 +78,22 @@ class _StyleSheetListWrappingImplementation extends DOMWrapperBase implements St
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<StyleSheet> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [StyleSheet initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<StyleSheet> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }
