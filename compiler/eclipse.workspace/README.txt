@@ -9,10 +9,12 @@ HOW TO
 2. If you're already using Eclipse, you can either switch to a new
    workspace (File > Switch Workspace) or use your current workspace.
 
-3. Add the folloing "Path Variable" to your workspace:
+3. Add the following "Path Variable" to your workspace:
    (Open Preferences... > General > Workspace > Linked Resources)
    DART_TRUNK: point to the root of your checkout
-   D8_EXEC: for example DART_TRUNK/compiler/out/Release_dartc/d8
+   D8_EXEC: for example DART_TRUNK/compiler/out/Debug_dartc/d8
+            or on a mac DART_TRUNK/compiler/xcodebuild/Debug_dashc/d8
+  
 
 4. Add a "Classpath Variable" to your workspace called DART_TRUNK
    that points to the same directory as your DART_TRUNK path variable.
