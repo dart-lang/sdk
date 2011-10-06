@@ -5,9 +5,7 @@
 // Dart core library.
 
 /**
- * [TimeZone]s represent locations (for example Europe/Paris). The time offset
- * relative to UTC is dependent on the date (for example CEST in the summer
- * or CET in the winter).
+ * [TimeZone]s represent locations (for example Europe/Paris).
  */
 interface TimeZone factory TimeZoneImplementation {
   const TimeZone.utc();
