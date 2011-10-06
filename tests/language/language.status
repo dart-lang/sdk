@@ -87,6 +87,7 @@ InterfaceFactory3NegativeTest: Fail  # 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 SuperNegativeTest: Fail # Now that super calls are automatically injected this test doesn't make sense
+NullToStringTest: Fail  # Bug 5421978
 
 # Crashes in dartc.
 FunctionTypeAliasTest: Crash  # Bug 4519208.

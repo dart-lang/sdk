@@ -448,7 +448,9 @@ DEFINE_RUNTIME_ENTRY(ResolvePatchInstanceCall, 1) {
   DartFrame* caller_frame = iterator.NextFrame();
   String& function_name = String::Handle();
   if ((!receiver.IsNull() && code.IsNull()) || !FLAG_inline_cache) {
-    // Let megamorphic lookup handle noSuchMethod.
+    // We did not find a method; it means either that we need to invoke
+    // noSuchMethod or that we have encountered a situation with implicit
+    // closures. All these cases are handled by the megamorphic lookup stub.
     CodePatcher::PatchInstanceCallAt(
         caller_frame->pc(), StubCode::MegamorphicLookupEntryPoint());
     if (FLAG_trace_ic) {
@@ -528,15 +530,24 @@ DEFINE_RUNTIME_ENTRY(ResolvePatchInstanceCall, 1) {
 }
 
 
-static RawFunction* LookupDynamicFunction(Class* cls, const String& name) {
+static RawFunction* LookupDynamicFunction(const Class& in_cls,
+                                          const String& name) {
+  Class& cls = Class::Handle();
+  // For lookups treat null as an instance of class Object.
+  if (in_cls.IsNullClass()) {
+    cls = Isolate::Current()->object_store()->object_class();
+  } else {
+    cls = in_cls.raw();
+  }
+
   Function& function = Function::Handle();
-  while (!cls->IsNull()) {
+  while (!cls.IsNull()) {
     // Check if function exists.
-    function = cls->LookupDynamicFunction(name);
+    function = cls.LookupDynamicFunction(name);
     if (!function.IsNull()) {
       break;
     }
-    *cls = cls->SuperClass();
+    cls = cls.SuperClass();
   }
   return function.raw();
 }
@@ -554,11 +565,6 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
          kResolveImplicitClosureFunctionRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
   const String& original_func_name = String::CheckedHandle(arguments.At(1));
-  if (receiver.IsNull()) {
-    // No implicit closure functions on null.
-    GrowableArray<const Object*> args;
-    Exceptions::ThrowByType(Exceptions::kNullPointer, args);
-  }
   const String& getter_prefix = String::Handle(String::New("get:"));
   Closure& closure = Closure::Handle();
   if (!original_func_name.StartsWith(getter_prefix)) {
@@ -574,7 +580,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   func_name = String::SubString(original_func_name, getter_prefix.Length());
   func_name = String::NewSymbol(func_name);
   const Function& function =
-      Function::Handle(LookupDynamicFunction(&receiver_class, func_name));
+      Function::Handle(LookupDynamicFunction(receiver_class, func_name));
   if (function.IsNull()) {
     // There is no function of the same name so can't be the case where
     // we are trying to create an implicit closure of an instance function.
