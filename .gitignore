@@ -37,7 +37,7 @@ third_party/pyparsing/
 third_party/appengine-python/
 
 # Built by chromebot and downloaded from Google Storage
-client/tests/dartium
+client/tests/drt
 
 # Compiled python binaries
 *.pyc

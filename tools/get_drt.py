@@ -4,9 +4,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Gets or updates our local build of Dartium. This is used for testing Dart
-# apps, without the need to build Dartium locally
-
+# Gets or updates a DumpRenderTree (a nearly headless build of chrome). This is
+# used for running browser tests of client applications.
 
 import os
 import sys
@@ -25,8 +24,12 @@ os.chdir(dart_src)
 
 GSUTIL_DIR = 'third_party/gsutil/20110627'
 GSUTIL = GSUTIL_DIR + '/gsutil'
-DARTIUM_DIR = 'client/tests/dartium'
-VERSION = DARTIUM_DIR + '/BUILD_VERSION'
+DRT_DIR = 'client/tests/drt'
+VERSION = DRT_DIR + '/LAST_VERSION'
+DRT_DARTIUM_LATEST_PATTERN = (
+    'gs://dashium-archive/latest/dashium-%(osname)s-full-*.zip')
+DRT_CHROMIUM_LATEST_PATTERN = (
+    'gs://dart-dump-render-tree/latest/chromium-%(osname)s-*.zip')
 
 sys.path.append(GSUTIL_DIR + '/boto')
 import boto
@@ -36,9 +39,7 @@ def execute_command(*cmd):
   """Execute a command in a subprocess."""
   pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   output, error = pipe.communicate()
-  if pipe.returncode != 0:
-    raise Exception('Execution of "%s" failed: %s' % (cmd, str(output)))
-  return output
+  return pipe.returncode, output
 
 
 def execute_command_visible(*cmd):
@@ -80,7 +81,7 @@ def ensure_config():
   if not has_boto_config():
     print >>sys.stderr, '''
 *******************************************************************************
-* WARNING: Can't download Dartium binaries! These are required to test client.
+* WARNING: Can't download DumpRenderTree! This is required to test client apps.
 * You need to do a one-time configuration step to access Google Storage.
 * Please run this command and follow the instructions:
 *     %s config
@@ -104,32 +105,45 @@ def main():
 
   ensure_config()
 
-  # Query the last known good build
-  latest = gsutil('ls', 'gs://dashium-archive/latest/dashium-%s-full-*.zip' %
-                  osname).split()[-1]
+  # Query for the lastest version
+  pattern = DRT_DARTIUM_LATEST_PATTERN  % { 'osname' : osname }
+  result, out = gsutil('ls', pattern)
+  if result != 0: # e.g. no access
+    print "Coudln't find/no access to: %s" % pattern
+    pattern = DRT_CHROMIUM_LATEST_PATTERN  % { 'osname' : osname }
+    print "trying %s instead" % pattern
+    result, out = gsutil('ls', pattern)
+    if result != 0:
+      raise Exception("Couldn't retrieve DumpRenderTree: %s\n%s" % (
+          pattern, str(out)))
+
+  latest = out.split()[-1]
 
   # Check if we need to update the file
   if os.path.exists(VERSION):
     v = open(VERSION, 'r').read()
     if v == latest:
       if not in_runhooks():
-        print 'Dartium is up to date.\nVersion: ' + latest
+        print 'DumpRenderTree is up to date.\nVersion: ' + latest
       return 0 # up to date
 
-  if os.path.exists(DARTIUM_DIR):
-    print 'Removing old dartium tree %s' % DARTIUM_DIR
-    shutil.rmtree(DARTIUM_DIR)
+  if os.path.exists(DRT_DIR):
+    print 'Removing old DumpRenderTree tree %s' % DRT_DIR
+    shutil.rmtree(DRT_DIR)
 
   # download the zip file to a temporary path, and unzip to the target location
   temp_dir = tempfile.mkdtemp()
   try:
-    temp_zip = temp_dir + '/dashium.zip'
+    temp_zip = temp_dir + '/drt.zip'
     # It's nice to show download progress
     gsutil_visible('cp', latest, temp_zip)
 
-    execute_command('unzip', temp_zip, '-d', temp_dir)
+    result, out = execute_command('unzip', temp_zip, '-d', temp_dir)
+    if result != 0:
+      raise Exception('Execution of "unzip %s -d %s" failed: %s' %
+                      temp_zip, temp_dir, str(output))
     unzipped_dir = temp_dir + '/' + os.path.basename(latest)[:-4] # remove .zip
-    shutil.move(unzipped_dir, DARTIUM_DIR)
+    shutil.move(unzipped_dir, DRT_DIR)
   finally:
     shutil.rmtree(temp_dir)
 
@@ -138,7 +152,7 @@ def main():
   v.write(latest)
   v.close()
 
-  print 'Successfully downloaded to %s' % DARTIUM_DIR
+  print 'Successfully downloaded to %s' % DRT_DIR
   return 0
 
 if __name__ == '__main__':

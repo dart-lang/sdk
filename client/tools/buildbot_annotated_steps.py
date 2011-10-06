@@ -26,7 +26,7 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 REVISION = 'BUILDBOT_REVISION'
 
 # latest dartium location
-DARTIUM_VERSION_FILE = 'tests/dartium/BUILD_VERSION'
+DARTIUM_VERSION_FILE = 'tests/drt/LAST_VERSION'
 DARTIUM_V_MATCHER = 'gs://dashium-archive/latest/dashium-\w*-full-([0-9]*).zip'
 
 # Patterns are of the form "dart_client-linux-ia32-debug"

@@ -269,7 +269,7 @@ def browserRun(message, htmlfile, test, verbose):
   # run the generated code
   printLine(message + ' [%d]' % (test + 1))
   status, out, err = execute([
-      'tests/dartium/DumpRenderTree',
+      'tests/drt/DumpRenderTree',
        '--dart-flags=--enable_type_checks --enable_asserts', htmlfile],
       verbose)
   if status != 0:

@@ -238,7 +238,7 @@ class BrowserArchitecture(Architecture):
   def GetRunCommand(self, fatal_static_type_errors = False):
     # For some reason, DRT needs to be called via an absolute path
     drt_location = join(self.root_path,
-        'client', 'tests', 'dartium', 'DumpRenderTree')
+        'client', 'tests', 'drt', 'DumpRenderTree')
 
     # On Mac DumpRenderTree is a .app folder
     if platform.system() == 'Darwin':
