@@ -55,23 +55,6 @@ class DateTimeImplementation implements DateTime {
                years, month, day, hours, minutes, seconds, milliseconds,
                timeZone.isUtc) {}
 
-  factory DateTimeImplementation.fromDateAndTime(
-      Date date,
-      Time time,
-      TimeZoneImplementation timeZone) {
-    if (timeZone === null) {
-      timeZone = new TimeZoneImplementation.local();
-    }
-    return new DateTimeImplementation.withTimeZone(date.year,
-                                                   date.month,
-                                                   date.day + time.days,
-                                                   time.hours,
-                                                   time.minutes,
-                                                   time.seconds,
-                                                   time.milliseconds,
-                                                   timeZone);
-  }
-
   DateTimeImplementation.now()
   : timeZone = new TimeZone.local(),
     value = getCurrentMs_() {
@@ -150,14 +133,6 @@ class DateTimeImplementation implements DateTime {
     return new DateTime.fromEpoch(value, targetTimeZone);
   }
 
-  Date get date() {
-    return new DateImplementation(year, month, day);
-  }
-
-  Time get time() {
-    return new TimeImplementation(0, hours, minutes, seconds, milliseconds);
-  }
-
   int get year() {
     int secondsSinceEpoch = secondsSinceEpoch_;
     // According to V8 some library calls have troubles with negative values.
@@ -219,11 +194,26 @@ class DateTimeImplementation implements DateTime {
   }
 
   String toString() {
-    // TODO(floitsch): switch to string-interpolation.
+    String threeDigits(int n) {
+      if (n >= 100) return "${n}";
+      if (n > 10) return "0${n}";
+      return "00${n}";
+    }
+    String twoDigits(int n) {
+      if (n >= 10) return "${n}";
+      return "0${n}";
+    }
+
+    String m = twoDigits(month);
+    String d = twoDigits(day);
+    String h = twoDigits(hours);
+    String min = twoDigits(minutes);
+    String sec = twoDigits(seconds);
+    String ms = threeDigits(milliseconds);
     if (timeZone.isUtc) {
-      return date.toString() + " " + time.toString() + "Z";
+      return "$year-$m-$d $h:$min:$sec.${ms}Z";
     } else {
-      return date.toString() + " " + time.toString();
+      return "$year-$m-$d $h:$min:$sec.$ms";
     }
   }
 

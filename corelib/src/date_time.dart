@@ -8,6 +8,29 @@
  * DateTime is the public interface to a point in time.
  */
 interface DateTime extends Comparable factory DateTimeImplementation {
+  // Weekday constants that are returned by [weekday] method:
+  static final int MON = 0;
+  static final int TUE = 1;
+  static final int WED = 2;
+  static final int THU = 3;
+  static final int FRI = 4;
+  static final int SAT = 5;
+  static final int SUN = 6;
+  static final int DAYS_IN_WEEK = 7;
+
+  // Month constants that are returned by the [month] getter.
+  static final int JAN = 1;
+  static final int FEB = 2;
+  static final int MAR = 3;
+  static final int APR = 4;
+  static final int MAY = 5;
+  static final int JUN = 6;
+  static final int JUL = 7;
+  static final int AUG = 8;
+  static final int SEP = 9;
+  static final int OCT = 10;
+  static final int NOV = 11;
+  static final int DEC = 12;
 
   /**
    * Constructs a [DateTime] instance based on the individual parts, in the
@@ -33,12 +56,6 @@ interface DateTime extends Comparable factory DateTimeImplementation {
                         int seconds,
                         int milliseconds,
                         TimeZone timeZone);
-
-  /**
-   * Constructs a [DateTime] instance based on the individual parts.
-   * If [timeZone] is [:null:], then the local zone is used.
-   */
-  DateTime.fromDateAndTime(Date date, Time time, TimeZone timeZone);
 
   /**
    * Constructs a new [DateTime] instance with current date time value.
@@ -73,16 +90,6 @@ interface DateTime extends Comparable factory DateTimeImplementation {
   DateTime changeTimeZone(TimeZone targetTimeZone);
 
   /**
-   * Returns the date.
-   */
-  Date get date();
-
-  /**
-   * Returns the time.
-   */
-  Time get time();
-
-  /**
    * Returns the year.
    */
   int get year();
@@ -93,7 +100,7 @@ interface DateTime extends Comparable factory DateTimeImplementation {
   int get month();
 
   /**
-   * Returns the date in the month [1..31].
+   * Returns the day in the month [1..31].
    */
   int get day();
 
@@ -118,7 +125,7 @@ interface DateTime extends Comparable factory DateTimeImplementation {
   int get milliseconds();
 
   /**
-   * Returns the week day [Date.MON..Date.SUN]
+   * Returns the week day [MON..SUN]
    */
   int get weekday();
 

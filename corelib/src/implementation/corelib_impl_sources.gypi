@@ -5,7 +5,6 @@
 {
   'sources': [
     'array.dart',
-    'date_implementation.dart',
     'dual_pivot_quicksort.dart',
     'exceptions.dart',
     'hash_map_set.dart',

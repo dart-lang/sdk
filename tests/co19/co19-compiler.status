@@ -154,8 +154,32 @@ LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Argument
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A03/t01: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Fail # Bug 5371670.
 LibTest/core/Array/length/Array/length/A01/t02: Fail # Bug 5371670.
-LibTest/core/Date/Date/Date/A01/t03: Fail # Bug 5371670.
-LibTest/core/Date/Date/Date/A01/t04: Fail # Bug 5371670.
+
+# The Date class has been removed.
+LibTest/core/Date/Date/Date/A01/t01: Skip
+LibTest/core/Date/Date/Date/A01/t02: Skip
+LibTest/core/Date/Date/Date/A01/t03: Skip
+LibTest/core/Date/Date/Date/A01/t04: Skip
+LibTest/core/Date/day/Date/day/A01/t01 : Skip
+LibTest/core/Date/day/Date/day/A01/t02 : Skip
+LibTest/core/Date/day/Date/day/A01/t03 : Skip
+LibTest/core/Date/compareTo/Date/compareTo/A01/t01 : Skip
+LibTest/core/Date/compareTo/Date/compareTo/A01/t02 : Skip
+LibTest/core/Date/weekday/Date/weekday/A01/t01 : Skip
+LibTest/core/Date/weekday/Date/weekday/A01/t02 : Skip
+LibTest/core/Date/weekday/Date/weekday/A01/t03 : Skip
+LibTest/core/Date/weekday/Date/weekday/A01/t04 : Skip
+LibTest/core/Date/month/Date/month/A01/t01 : Skip
+LibTest/core/Date/month/Date/month/A01/t02 : Skip
+LibTest/core/Date/month/Date/month/A01/t03 : Skip
+LibTest/core/Date/Date/Date/Date/A01/t01 : Skip
+LibTest/core/Date/Date/Date/Date/A01/t02 : Skip
+LibTest/core/Date/Date/Date/Date/A01/t03 : Skip
+LibTest/core/Date/Date/Date/Date/A01/t04 : Skip
+LibTest/core/Date/toString/Date/toString/A01/t01 : Skip
+LibTest/core/Date/year/Date/year/A01/t01 : Skip
+LibTest/core/Date/year/Date/year/A01/t02 : Skip
+
 LibTest/core/DateTime/DateTime/DateTime/A01/t02: Fail # Bug 5371670.
 LibTest/core/DateTime/DateTime/DateTime/A01/t04: Fail # Bug 5371670.
 LibTest/core/DateTime/DateTime/DateTime/A01/t03: Fail # Bug 5371670.

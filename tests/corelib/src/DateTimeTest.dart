@@ -36,15 +36,6 @@ class DateTimeTest {
     Expect.equals(46, dt.minutes);
     Expect.equals(40, dt.seconds);
     Expect.equals(1, dt.milliseconds);
-    Date d = dt.date;
-    Expect.equals(33658, d.year);
-    Expect.equals(9, d.month);
-    Expect.equals(27, d.day);
-    Time t = dt.time;
-    Expect.equals(1, t.hours);
-    Expect.equals(46, t.minutes);
-    Expect.equals(40, t.seconds);
-    Expect.equals(1, t.milliseconds);
     dt = new DateTime.fromEpoch(-1000000000000001, const TimeZone.utc());
     Expect.equals(-29719, dt.year);
     Expect.equals(4, dt.month);
@@ -53,15 +44,6 @@ class DateTimeTest {
     Expect.equals(13, dt.minutes);
     Expect.equals(19, dt.seconds);
     Expect.equals(999, dt.milliseconds);
-    d = dt.date;
-    Expect.equals(-29719, d.year);
-    Expect.equals(4, d.month);
-    Expect.equals(5, d.day);
-    t = dt.time;
-    Expect.equals(22, t.hours);
-    Expect.equals(13, t.minutes);
-    Expect.equals(19, t.seconds);
-    Expect.equals(999, t.milliseconds);
     // Same with local zone.
     dt = new DateTime.fromEpoch(1000000000000001, new TimeZone.local());
     Expect.equals(33658, dt.year);
@@ -216,8 +198,9 @@ class DateTimeTest {
                         (2034 == dt.year && 12 == dt.month && 31 == dt.day));
     Expect.equals(0, dt.seconds);
     Expect.equals(1, dt.milliseconds);
-    DateTime dt2 = new DateTime.fromDateAndTime(dt.date, dt.time,
-                                                new TimeZone.local());
+    DateTime dt2 = new DateTime.withTimeZone(
+        dt.year, dt.month, dt.day, dt.hours, dt.minutes, dt.seconds,
+        dt.milliseconds, new TimeZone.local());
     Expect.equals(dt.value, dt2.value);
     dt = new DateTime.fromEpoch(SECONDS_YEAR_2035 * 1000 - 1,
                                 new TimeZone.local());
@@ -225,7 +208,9 @@ class DateTimeTest {
                         (2034 == dt.year && 12 == dt.month && 31 == dt.day));
     Expect.equals(59, dt.seconds);
     Expect.equals(999, dt.milliseconds);
-    dt2 = new DateTime.fromDateAndTime(dt.date, dt.time, new TimeZone.local());
+    dt2 = new DateTime.withTimeZone(
+        dt.year, dt.month, dt.day, dt.hours, dt.minutes, dt.seconds,
+        dt.milliseconds, new TimeZone.local());
     Expect.equals(dt.value, dt2.value);
   }
 
@@ -240,16 +225,6 @@ class DateTimeTest {
     Expect.equals(0, dt.milliseconds);
     Expect.equals(true, const TimeZone.utc() == dt.timeZone);
     Expect.equals(1305140315000, dt.value);
-    Date d = dt.date;
-    Expect.equals(2011, d.year);
-    Expect.equals(5, d.month);
-    Expect.equals(11, d.day);
-    Time t = dt.time;
-    Expect.equals(0, t.days);
-    Expect.equals(18, t.hours);
-    Expect.equals(58, t.minutes);
-    Expect.equals(35, t.seconds);
-    Expect.equals(0, t.milliseconds);
     dt = new DateTime.fromEpoch(-9999999, const TimeZone.utc());
     Expect.equals(1969, dt.year);
     Expect.equals(12, dt.month);
@@ -258,15 +233,6 @@ class DateTimeTest {
     Expect.equals(13, dt.minutes);
     Expect.equals(20, dt.seconds);
     Expect.equals(1, dt.milliseconds);
-    d = dt.date;
-    Expect.equals(1969, d.year);
-    Expect.equals(12, d.month);
-    Expect.equals(31, d.day);
-    t = dt.time;
-    Expect.equals(21, t.hours);
-    Expect.equals(13, t.minutes);
-    Expect.equals(20, t.seconds);
-    Expect.equals(1, t.milliseconds);
   }
 
   static void testLocalGetters() {
@@ -294,12 +260,13 @@ class DateTimeTest {
 
   static void testConstructors() {
     var dt1 = new DateTime.fromEpoch(1305140315000, new TimeZone.local());
-    Date d = dt1.date;
-    Time t = dt1.time;
-    var dt3 = new DateTime.fromDateAndTime(d, t, null);
+    var dt3 = new DateTime(dt1.year, dt1.month, dt1.day, dt1.hours, dt1.minutes,
+                           dt1.seconds, dt1.milliseconds);
     Expect.equals(dt1.value, dt3.value);
     Expect.equals(true, dt1 == dt3);
-    dt3 = new DateTime.fromDateAndTime(d, t, new TimeZone.local());
+    dt3 = new DateTime.withTimeZone(
+        dt1.year, dt1.month, dt1.day, dt1.hours, dt1.minutes,
+        dt1.seconds, dt1.milliseconds, new TimeZone.local());
     Expect.equals(dt1.value, dt3.value);
     Expect.equals(true, dt1 == dt3);
     dt3 = new DateTime.withTimeZone(2011, 5, 11, 18, 58, 35, 0,
@@ -313,9 +280,9 @@ class DateTimeTest {
     Expect.equals(dt2.value, dt3.value);
     Expect.equals(true, dt2 == dt3);
     dt1 = new DateTime.fromEpoch(-9999999, const TimeZone.utc());
-    d = dt1.date;
-    t = dt1.time;
-    dt3 = new DateTime.fromDateAndTime(d, t, const TimeZone.utc());
+    dt3 = new DateTime.withTimeZone(
+        dt1.year, dt1.month, dt1.day, dt1.hours, dt1.minutes,
+        dt1.seconds, dt1.milliseconds, const TimeZone.utc());
     Expect.equals(dt1.value, dt3.value);
   }
 
@@ -325,17 +292,29 @@ class DateTimeTest {
     Expect.equals(dt1.value, dt2.value);
     var dt3 = new DateTime.fromEpoch(1305140315000, const TimeZone.utc());
     Expect.equals(dt1.value, dt3.value);
-    Expect.equals(true, dt2.date == dt3.date);
-    Expect.equals(true, dt2.time == dt3.time);
+    Expect.equals(dt2.year, dt3.year);
+    Expect.equals(dt2.month, dt3.month);
+    Expect.equals(dt2.day, dt3.day);
+    Expect.equals(dt2.hours, dt3.hours);
+    Expect.equals(dt2.minutes, dt3.minutes);
+    Expect.equals(dt2.seconds, dt3.seconds);
+    Expect.equals(dt2.milliseconds, dt3.milliseconds);
     var dt4 = dt3.changeTimeZone(new TimeZone.local());
-    Expect.equals(true, dt1.date == dt4.date);
-    Expect.equals(true, dt1.time == dt4.time);
+    Expect.equals(dt1.year, dt4.year);
+    Expect.equals(dt1.month, dt4.month);
+    Expect.equals(dt1.day, dt4.day);
+    Expect.equals(dt1.hours, dt4.hours);
+    Expect.equals(dt1.minutes, dt4.minutes);
+    Expect.equals(dt1.seconds, dt4.seconds);
+    Expect.equals(dt1.milliseconds, dt4.milliseconds);
   }
 
   static void testSubAdd() {
     var dt1 = new DateTime.fromEpoch(1305140315000, const TimeZone.utc());
     var dt2 = dt1.add(const Time.duration(3 * Time.MS_PER_SECOND + 5));
-    Expect.equals(true, dt1.date == dt2.date);
+    Expect.equals(dt1.year, dt2.year);
+    Expect.equals(dt1.month, dt2.month);
+    Expect.equals(dt1.day, dt2.day);
     Expect.equals(dt1.hours, dt2.hours);
     Expect.equals(dt1.minutes, dt2.minutes);
     Expect.equals(dt1.seconds + 3, dt2.seconds);

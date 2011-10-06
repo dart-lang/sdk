@@ -12,7 +12,7 @@ class DateTimeUtils {
 
   static final YESTERDAY = 'Yesterday';
 
-  static final MS_IN_WEEK = Date.DAYS_IN_WEEK * Time.MS_PER_DAY;
+  static final MS_IN_WEEK = DateTime.DAYS_IN_WEEK * Time.MS_PER_DAY;
 
   // TODO(jmesserly): workaround for missing DateTime.fromDate in Dartium
   // Remove this once that is implemented. See b/5055106
@@ -118,9 +118,15 @@ class DateTimeUtils {
    *  - otherwise, show just the date
    */
   static String toRecentTimeString(DateTime then) {
+    bool datesAreEqual(DateTime d1, DateTime d2) {
+      return (d1.year == d2.year) && (d1.month == d2.month) &&
+          (d1.day == d2.day);
+    }
+
     final now = new DateTime.now();
-    if (then.date == now.date) {
-      return toHourMinutesString(then.time);
+    if (datesAreEqual(then, now)) {
+      return toHourMinutesString(new Time(
+          0, then.hours, then.minutes, then.seconds, then.milliseconds));
     }
 
     final today = new DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
@@ -131,7 +137,13 @@ class DateTimeUtils {
       return WEEKDAYS[getWeekday(then)];
     } else {
       // TODO(jmesserly): locale specific date format
-      return then.date.toString();
+      String twoDigits(int n) {
+        if (n >= 10) return "${n}";
+        return "0${n}";
+      }
+      String twoDigitMonth = twoDigits(then.month);
+      String twoDigitDay = twoDigits(then.day);
+      return "${then.year}-${twoDigitMonth}-${twoDigitDay}";
     }
   }
 
@@ -142,7 +154,7 @@ class DateTimeUtils {
     int msSince1970 = dateTime.difference(unixTimeStart).duration;
     int daysSince1970 = msSince1970 ~/ Time.MS_PER_DAY;
     // 1970-1-1 was Thursday
-    return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
+    return ((daysSince1970 + DateTime.THU) % DateTime.DAYS_IN_WEEK);
   }
 
   /** Formats a time in H:MM A format */
