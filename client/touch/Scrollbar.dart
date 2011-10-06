@@ -102,10 +102,12 @@ class Scrollbar implements ScrollListener {
 
     Element scrollerEl = _scroller.getElement();
 
-    _addEventListeners(
-        _verticalElement, _onStart, _onMove, _onEnd, _onEnd, true);
-    _addEventListeners(
-        _horizontalElement, _onStart, _onMove, _onEnd, _onEnd, true);
+    if (!Device.supportsTouch) {
+      _addEventListeners(
+          _verticalElement, _onStart, _onMove, _onEnd, _onEnd, true);
+      _addEventListeners(
+          _horizontalElement, _onStart, _onMove, _onEnd, _onEnd, true);
+    }
 
     _scroller.addScrollListener(this);
     _showScrollbars(false);
@@ -288,8 +290,16 @@ class Scrollbar implements ScrollListener {
     if (_hovering == true && _displayOnHover) {
       show = true;
     }
-    Css.setOpacity(_verticalElement.style, show ? '1' : '0');
-    Css.setOpacity(_horizontalElement.style, show ? '1' : '0');
+    _toggleOpacity(_verticalElement, show);
+    _toggleOpacity(_horizontalElement, show);
+  }
+
+  _toggleOpacity(Element element, bool show) {
+    if (show) {
+      element.style.removeProperty("opacity");
+    } else {
+      Css.setOpacity(element.style, '0');
+    }
   }
 
   num _defaultScrollSize(num frameSize, num contentSize) {

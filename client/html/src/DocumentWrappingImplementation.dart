@@ -25,6 +25,8 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
 
   Element get activeElement() => LevelDom.wrapElement(_documentPtr.activeElement);
 
+  Node get parent() => null;
+
   Element get body() => LevelDom.wrapElement(_documentPtr.body);
 
   void set body(Element value) { _documentPtr.body = LevelDom.unwrap(value); }

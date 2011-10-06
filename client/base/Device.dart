@@ -72,5 +72,11 @@ class Device {
    */
   static bool get isWebOs() => userAgent.contains("webOS", 0);
 
-  static bool get supportsTouch() => isMobileSafari || isAndroid;
+  static bool _supportsTouch;
+  static bool get supportsTouch() {
+    if (_supportsTouch == null) {
+      _supportsTouch = isMobileSafari || isAndroid;
+    }
+    return _supportsTouch;
+  }
 }

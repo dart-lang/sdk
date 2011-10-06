@@ -57,12 +57,12 @@ class MeasureText {
   }
 
   /**
-   * Add line broken text as text nodes separated by <br> elements.
+   * Add line broken text as html separated by <br> elements.
    * Returns the number of lines in the output.
-   * This function is safe to call with [:element === null:] in which case the
-   * line count is returned but no DOM manipulation occurs.
+   * This function is safe to call with [:sb === null:] in which case just the
+   * line count is returned.
    */
-  int addLineBrokenText(Element element, String text, num lineWidth,
+  int addLineBrokenText(StringBuffer sb, String text, num lineWidth,
                         int maxLines) {
     // Strip surrounding whitespace. This ensures we create zero lines if there
     // is no visible text.
@@ -70,7 +70,7 @@ class MeasureText {
 
     // We can often avoid performing a full line break calculation when only
     // the number of lines and not the actual linebreaks is required.
-    if (element === null) {
+    if (sb === null) {
       _context.font = font;
       int textWidth = _context.measureText(text).width.toInt();
       // By the pigeon hole principle, the resulting text will require at least
@@ -99,11 +99,12 @@ class MeasureText {
         // the first whitespace character encountered.
         end = Math.min(end + 50, text.length);
       }
-      if (element !== null) {
+      if (sb !== null) {
         if (lines > 1) {
-          element.nodes.add(new Element.tag('br'));
+          sb.add('<br>');
         }
-        element.nodes.add(new Text(text.substring(start, end)));
+        // TODO(jacobr): HTML escape this text.
+        sb.add(text.substring(start, end));
       }
     });
     return lines;

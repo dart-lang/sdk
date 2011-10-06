@@ -11,7 +11,7 @@ class ConveyorView extends CompositeView {
   // TODO(jmesserly): some places use this property to know when the slide
   // transition is finished. It would be better to have an event that fires
   // when we're done sliding
-  static final ANIMATE_SECONDS = 0.5;
+  static final ANIMATE_SECONDS = 0.25;
 
   View targetView;
   // TODO(rnystrom): Should not be settable.
