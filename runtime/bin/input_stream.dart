@@ -22,4 +22,3 @@ interface InputStream {
    */
   void readUntil(List<int> pattern, void callback(List<int> buffer));
 }
-

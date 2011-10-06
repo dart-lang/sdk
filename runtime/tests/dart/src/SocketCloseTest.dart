@@ -107,6 +107,7 @@ class SocketCloseServer extends Isolate {
   void main() {
 
     void connectionHandler() {
+      Socket _client;
 
       void messageHandler() {
         _dataEvents++;
@@ -115,12 +116,12 @@ class SocketCloseServer extends Isolate {
 
       void closeHandler() {
         _closeEvents++;
-        _socket.close();
+        _client.close();
       }
 
       void errorHandler() {
         _errorEvents++;
-        _socket.close();
+        _client.close();
       }
 
       _client = _server.accept();
@@ -159,7 +160,6 @@ class SocketCloseServer extends Isolate {
   }
 
   ServerSocket _server;
-  Socket _client;
   int _errorEvents;
   int _dataEvents;
   int _closeEvents;

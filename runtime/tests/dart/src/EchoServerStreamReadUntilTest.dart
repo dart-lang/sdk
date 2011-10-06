@@ -23,8 +23,12 @@ class EchoServerGame {
   static final MESSAGES = 200;
   // Char "A".
   static final FIRSTCHAR = 65;
-  static final List<int> PATTERN =
-      const [FIRSTCHAR + MSGSIZE - 2, FIRSTCHAR + MSGSIZE - 1];
+
+  // First pattern is the third and second last character of the message.
+  static final List<int> PATTERN1 =
+      const [FIRSTCHAR + MSGSIZE - 3, FIRSTCHAR + MSGSIZE - 2];
+  // Second pattern is the last character of the message.
+  static final List<int> PATTERN2 = const [FIRSTCHAR + MSGSIZE - 1];
 
   EchoServerGame.start()
       : _receivePort = new ReceivePort(),
@@ -41,42 +45,51 @@ class EchoServerGame {
   }
 
   void sendData() {
+    Socket _socket;
 
     void closeHandler() {
       _socket.close();
     }
 
     void errorHandler() {
-      Logger.println("Socket error");
+      print("Socket error");
+      Expect.equals(true, false);
       _socket.close();
     }
 
     void connectHandler() {
-
-      SocketOutputStream stream = _socket.outputStream;
+      SocketInputStream inputStream = _socket.inputStream;
+      SocketOutputStream outputStream = _socket.outputStream;
 
       void dataSent() {
-        SocketInputStream stream = _socket.inputStream;
 
         void dataReceived(List<int> buffer) {
-          for (int i = 0; i < MSGSIZE; i++) {
-            Expect.equals(FIRSTCHAR + i, _buffer[i]);
-          }
-          _messages++;
-          _socket.close();
-          if (_messages < MESSAGES) {
-            sendData();
+          if (buffer.length == MSGSIZE - 1) {
+            for (int i = 0; i < MSGSIZE - 1; i++) {
+              Expect.equals(FIRSTCHAR + i, _buffer[i]);
+            }
+            inputStream.readUntil(PATTERN2, dataReceived);
           } else {
-            shutdown();
+            Expect.equals(1, buffer.length);
+            _messages++;
+            _socket.close();
+            if (_messages < MESSAGES) {
+              sendData();
+            } else {
+              shutdown();
+            }
           }
         }
 
-        stream.readUntil(PATTERN, dataReceived);
+        // Write data and continue in dataSent.
+        inputStream.readUntil(PATTERN1, dataReceived);
       }
 
       _socket.setCloseHandler(closeHandler);
       _socket.setErrorHandler(errorHandler);
-      bool written = stream.write(_buffer, 0, MSGSIZE, dataSent);
+
+      // Write data and continue in dataSent.
+      bool written = outputStream.write(_buffer, 0, MSGSIZE, dataSent);
       if (written) {
         dataSent();
       }
@@ -104,7 +117,6 @@ class EchoServerGame {
   int _port;
   ReceivePort _receivePort;
   SendPort _sendPort;
-  Socket _socket;
   List<int> _buffer;
   int _messages;
 }
@@ -114,49 +126,54 @@ class EchoServer extends Isolate {
   static final HOST = "127.0.0.1";
   static final int MSGSIZE = EchoServerGame.MSGSIZE;
   static final int FIRSTCHAR = EchoServerGame.FIRSTCHAR;
-  static final List<int> PATTERN = EchoServerGame.PATTERN;
+  static final List<int> PATTERN1 = EchoServerGame.PATTERN1;
+  static final List<int> PATTERN2 = EchoServerGame.PATTERN2;
 
   void main() {
 
     void connectionHandler() {
+      Socket _client;
 
       void messageHandler() {
+        SocketInputStream inputStream = _client.inputStream;
+        SocketOutputStream outputStream = _client.outputStream;
 
+        // Data is expected to arrive in two chunks. First all but the
+        // last character and second a single character.
         void dataReceived(List<int> buffer) {
 
-          SocketOutputStream outputStream = _client.outputStream;
-
-          void dataWritten() {
-            _client.close();
-          }
-
-          for (int i = 0; i < MSGSIZE; i++) {
-            Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
-          }
-          bool written = outputStream.write(buffer, 0, MSGSIZE, dataWritten);
-          if (written) {
-            dataWritten();
+          if (buffer.length == MSGSIZE - 1) {
+            for (int i = 0; i < MSGSIZE - 1; i++) {
+              Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
+            }
+            outputStream.write(buffer, 0, buffer.length, null);
+            inputStream.readUntil(PATTERN2, dataReceived);
+          } else {
+            Expect.equals(1, buffer.length);
+            outputStream.write(buffer, 0, buffer.length, null);
+            inputStream.readUntil(PATTERN2, dataReceived);
           }
         }
 
-        SocketInputStream inputStream = _client.inputStream;
-        inputStream.readUntil(PATTERN, dataReceived);
-      }
+        void closeHandler() {
+          _client.close();
+        }
 
-      void closeHandler() {
-        _socket.close();
-      }
+        void errorHandler() {
+          print("Socket error");
+          Expect.equals(true, false);
+          _client.close();
+        }
 
-      void errorHandler() {
-        Logger.println("Socket error");
-        _socket.close();
+        _client.setCloseHandler(closeHandler);
+        _client.setErrorHandler(errorHandler);
+
+        inputStream.readUntil(PATTERN1, dataReceived);
       }
 
       _client = _server.accept();
       if (_client !== null) {
-        _client.setDataHandler(messageHandler);
-        _client.setCloseHandler(closeHandler);
-        _client.setErrorHandler(errorHandler);
+        messageHandler();
       }
     }
 
@@ -181,5 +198,4 @@ class EchoServer extends Isolate {
   }
 
   ServerSocket _server;
-  Socket _client;
 }

@@ -77,6 +77,10 @@ class _SocketBase {
     }
   }
 
+  void _scheduleEvent(int event) {
+    _handler.toSendPort().send([1 << event], null);
+  }
+
   int get port() {
     if (_port == null) {
       _port = _getPort();

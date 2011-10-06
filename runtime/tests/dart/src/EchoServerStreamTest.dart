@@ -114,12 +114,10 @@ class EchoServer extends Isolate {
   static final HOST = "127.0.0.1";
   static final int MSGSIZE = EchoServerGame.MSGSIZE;
 
-  // TODO(hpayer): can be removed as soon as we have default constructors
-  EchoServer() : super() { }
-
   void main() {
 
     void connectionHandler() {
+      Socket _client;
 
       void messageHandler() {
 
@@ -129,17 +127,10 @@ class EchoServer extends Isolate {
 
           SocketOutputStream outputStream = _client.outputStream;
 
-          void dataWritten() {
-            _client.close();
-          }
-
           for (int i = 0; i < MSGSIZE; i++) {
             Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
           }
-          bool written = outputStream.write(buffer, 0, MSGSIZE, dataWritten);
-          if (written) {
-            dataWritten();
-          }
+          outputStream.write(buffer, 0, MSGSIZE, null);
         }
 
         SocketInputStream inputStream = _client.inputStream;
@@ -150,12 +141,12 @@ class EchoServer extends Isolate {
       }
 
       void closeHandler() {
-        _socket.close();
+        _client.close();
       }
 
       void errorHandler() {
         print("Socket error");
-        _socket.close();
+        _client.close();
       }
 
       _client = _server.accept();
@@ -184,7 +175,6 @@ class EchoServer extends Isolate {
   }
 
   ServerSocket _server;
-  Socket _client;
 }
 
 main() {

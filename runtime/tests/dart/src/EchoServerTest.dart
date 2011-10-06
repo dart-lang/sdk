@@ -86,7 +86,6 @@ class EchoServerGame {
 
     void connectHandler() {
 
-
       void writeMessage() {
         int bytesWritten = 0;
 
@@ -140,12 +139,10 @@ class EchoServer extends Isolate {
   static final msgSize = EchoServerGame.MSGSIZE;
 
 
-  // TODO(hpayer): can be removed as soon as we have default constructors
-  EchoServer() : super() { }
-
   void main() {
 
     void connectionHandler() {
+      Socket _client;
 
       void messageHandler() {
 
@@ -166,7 +163,6 @@ class EchoServer extends Isolate {
             _client.setDataHandler(handleRead);
           }
           else {
-            _client.setDataHandler(null);
             /*
              * We check every time the whole buffer to verify data integrity.
              */
@@ -183,8 +179,6 @@ class EchoServer extends Isolate {
                       buffer, bytesWritten, msgSize - bytesWritten);
                 if (bytesWritten < msgSize) {
                   _client.setWriteHandler(handleWrite);
-                } else {
-                  _client.close();
                 }
               }
               handleWrite();
@@ -197,12 +191,12 @@ class EchoServer extends Isolate {
       }
 
       void closeHandler() {
-        _socket.close();
+        _client.close();
       }
 
       void errorHandler() {
         print("Socket error");
-        _socket.close();
+        _client.close();
       }
 
       _client = _server.accept();
@@ -231,7 +225,6 @@ class EchoServer extends Isolate {
   }
 
   ServerSocket _server;
-  Socket _client;
 }
 
 main() {

@@ -94,35 +94,51 @@ class SocketInputStream implements InputStream {
     return buffer;
   }
 
-  void readUntil(List<int> pattern, void callback(List<int> buffer)) {
+  void readUntil(List<int> pattern, void callback(List<int> resultBuffer)) {
     void doRead() {
-      int size = _socket.available();
-      List<int> buffer = new List<int>(size);
-      int result = _socket.readList(buffer, 0, size);
-      if (result > 0) {
-        // TODO(hpayer): Avoid copying of data before pattern matching.
-        List<int> newBuffer = _getBufferedData(buffer, result);
-        int index = _matchPattern(newBuffer, pattern, 0);
-        // If pattern was found return the data including pattern and store the
-        // remainder in the buffer.
-        if (index != -1) {
-          int finalBufferSize = index + pattern.length;
-          List<int> finalBuffer = new List<int>(finalBufferSize);
-          finalBuffer.copyFrom(newBuffer, 0, 0, finalBufferSize);
-          if (finalBufferSize < newBuffer.length) {
-            List<int> remainder =
-                new List<int>(newBuffer.length - finalBufferSize);
-            remainder.copyFrom(buffer, finalBufferSize, 0, newBuffer.length);
-            _buffer = remainder;
-          }
-          _socket.setDataHandler(null);
-          callback(finalBuffer);
-        } else {
-          _buffer = newBuffer;
+      List<int> newBuffer;
+      if (_buffer != null) {
+        newBuffer = _buffer;
+      } else {
+        int size = _socket.available();
+        List<int> buffer = new List<int>(size);
+        int result = _socket.readList(buffer, 0, size);
+        if (result > 0) {
+          // TODO(hpayer): Avoid copying of data before pattern matching.
+          newBuffer = _getBufferedData(buffer, result);
         }
       }
+
+      int index = _matchPattern(newBuffer, pattern, 0);
+      // If pattern was found return the data including pattern and store the
+      // remainder in the buffer.
+      if (index != -1) {
+        int finalBufferSize = index + pattern.length;
+        List<int> finalBuffer = new List<int>(finalBufferSize);
+        finalBuffer.copyFrom(newBuffer, 0, 0, finalBufferSize);
+        if (finalBufferSize < newBuffer.length) {
+          List<int> remainder =
+              new List<int>(newBuffer.length - finalBufferSize);
+          remainder.copyFrom(newBuffer, finalBufferSize, 0, remainder.length);
+          _buffer = remainder;
+        } else {
+          _buffer = null;
+        }
+        _socket.setDataHandler(null);
+        callback(finalBuffer);
+      } else {
+        _buffer = newBuffer;
+        _socket.setDataHandler(doRead);
+      }
     }
+
+    // Register callback for data available.
     _socket.setDataHandler(doRead);
+
+    // If data is already buffered schedule a data available callback.
+    if (_buffer != null) {
+      _socket._scheduleEvent(_SocketBase._IN_EVENT);
+    }
   }
 
   Socket _socket;
