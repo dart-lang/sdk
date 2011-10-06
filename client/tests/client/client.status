@@ -6,6 +6,7 @@ prefix client
 
 [ $arch == dartium ]
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
+samples/swarm/swarm_tests: Fail # buildbot needs to be updated.
 
 [ $arch == chromium && $mode == release ]
 layout/layout_tests: Fail          # Bug 5400902
@@ -15,7 +16,7 @@ layout/layout_tests: Fail          # Bug 5400902
 
 
 # 'client' tests import the DOM library, so they only make sense in
-# a browser environment,
+# a browser environment.
 [ $arch == dartc ]
 *: Skip
 
