@@ -261,7 +261,11 @@ RawInstance* Compiler::ExecuteOnce(SequenceNode* fragment) {
   code_gen.FinalizeExceptionHandlers(code);
 
   GrowableArray<const Object*> arguments;  // no arguments.
-  Instance& result = Instance::Handle(DartEntry::InvokeStatic(func, arguments));
+  const Array& kNoArgumentNames = Array::Handle();
+  Instance& result = Instance::Handle(
+      DartEntry::InvokeStatic(func,
+                              arguments,
+                              kNoArgumentNames));
   if (result.IsUnhandledException()) {
     // TODO(srdjan): implement proper exit from compiler.
     UNIMPLEMENTED();

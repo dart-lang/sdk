@@ -840,8 +840,9 @@ static void InvokeStatic(const Function& function,
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
+    const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
-        DartEntry::InvokeStatic(function, args));
+        DartEntry::InvokeStatic(function, args, kNoArgumentNames));
     result->type_ = kRetObject;
     result->retval_.obj_value = Api::NewLocalHandle(retval);
   } else {
@@ -864,8 +865,9 @@ static void InvokeDynamic(const Instance& receiver,
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
+    const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
-        DartEntry::InvokeDynamic(receiver, function, args));
+        DartEntry::InvokeDynamic(receiver, function, args, kNoArgumentNames));
     result->type_ = kRetObject;
     result->retval_.obj_value = Api::NewLocalHandle(retval);
   } else {
@@ -887,8 +889,9 @@ static void InvokeClosure(const Closure& closure,
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
+    const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
-        DartEntry::InvokeClosure(closure, args));
+        DartEntry::InvokeClosure(closure, args, kNoArgumentNames));
     result->type_ = kRetObject;
     result->retval_.obj_value = Api::NewLocalHandle(retval);
   } else {

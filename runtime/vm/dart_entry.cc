@@ -16,7 +16,8 @@ namespace dart {
 RawInstance* DartEntry::InvokeDynamic(
     const Instance& receiver,
     const Function& function,
-    const GrowableArray<const Object*>& arguments) {
+    const GrowableArray<const Object*>& arguments,
+    const Array& optional_arguments_names) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -29,12 +30,12 @@ RawInstance* DartEntry::InvokeDynamic(
   ASSERT(!instrs.IsNull());
 
   // Set up arguments to include the receiver as the first argument.
-  int number_of_args = arguments.length() + 1;
-  GrowableArray<const Object*> args(number_of_args);
+  const int num_arguments = arguments.length() + 1;
+  GrowableArray<const Object*> args(num_arguments);
   const Object& arg0 = Object::ZoneHandle(receiver.raw());
   args.Add(&arg0);
-  for (int i = 0; i < arguments.length(); i++) {
-    args.Add(arguments[i]);
+  for (int i = 1; i < num_arguments; i++) {
+    args.Add(arguments[i - 1]);
   }
 
   // Now Call the invoke stub which will invoke the dart function.
@@ -43,15 +44,19 @@ RawInstance* DartEntry::InvokeDynamic(
   const Context& context =
       Context::ZoneHandle(Isolate::Current()->object_store()->empty_context());
   ASSERT(context.isolate() == Isolate::Current());
-  return entrypoint(instrs.EntryPoint(),
-                    CodeGenerator::ArgumentsDescriptor(number_of_args, NULL),
-                    args.data(),
-                    context);
+  return entrypoint(
+      instrs.EntryPoint(),
+      CodeGenerator::ArgumentsDescriptor(num_arguments,
+                                         optional_arguments_names),
+      args.data(),
+      context);
 }
 
 
 RawInstance* DartEntry::InvokeStatic(
-    const Function& function, const GrowableArray<const Object*>& arguments) {
+    const Function& function,
+    const GrowableArray<const Object*>& arguments,
+    const Array& optional_arguments_names) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -72,14 +77,17 @@ RawInstance* DartEntry::InvokeStatic(
   ASSERT(context.isolate() == Isolate::Current());
   return entrypoint(
       instrs.EntryPoint(),
-      CodeGenerator::ArgumentsDescriptor(arguments.length(), NULL),
+      CodeGenerator::ArgumentsDescriptor(arguments.length(),
+                                         optional_arguments_names),
       arguments.data(),
       context);
 }
 
 
 RawInstance* DartEntry::InvokeClosure(
-    const Closure& closure, const GrowableArray<const Object*>& arguments) {
+    const Closure& closure,
+    const GrowableArray<const Object*>& arguments,
+    const Array& optional_arguments_names) {
   // Get the entrypoint corresponding to the closure specified, this
   // will result in a compilation of the closure if it is not already
   // compiled.
@@ -101,7 +109,8 @@ RawInstance* DartEntry::InvokeClosure(
   ASSERT(context.isolate() == Isolate::Current());
   return entrypoint(
       instrs.EntryPoint(),
-      CodeGenerator::ArgumentsDescriptor(arguments.length(), NULL),
+      CodeGenerator::ArgumentsDescriptor(arguments.length(),
+                                         optional_arguments_names),
       arguments.data(),
       context);
 }
@@ -124,7 +133,8 @@ RawInstance* DartLibraryCalls::ExceptionCreate(
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
-  DartEntry::InvokeStatic(constructor, constructor_arguments);
+  const Array& kNoArgumentNames = Array::Handle();
+  DartEntry::InvokeStatic(constructor, constructor_arguments, kNoArgumentNames);
   return exception_object.raw();
 }
 
@@ -135,6 +145,7 @@ RawInstance* DartLibraryCalls::ToString(const Instance& receiver) {
   GrowableArray<const Object*> arguments;
   const int kNumArguments = 1;  // Receiver.
   const int kNumNamedArguments = 0;  // None.
+  const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                function_name,
@@ -142,7 +153,10 @@ RawInstance* DartLibraryCalls::ToString(const Instance& receiver) {
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
   const Instance& result = Instance::Handle(
-      DartEntry::InvokeDynamic(receiver, function, arguments));
+      DartEntry::InvokeDynamic(receiver,
+                               function,
+                               arguments,
+                               kNoArgumentNames));
   // Object's 'toString' threw an exception, let the caller handle it.
   ASSERT(result.IsString() || result.IsUnhandledException());
   return result.raw();
@@ -157,6 +171,7 @@ RawInstance* DartLibraryCalls::Equals(const Instance& left,
   arguments.Add(&right);
   const int kNumArguments = 2;
   const int kNumNamedArguments = 0;
+  const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left,
                                function_name,
@@ -164,7 +179,7 @@ RawInstance* DartLibraryCalls::Equals(const Instance& left,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
   const Instance& result = Instance::Handle(
-      DartEntry::InvokeDynamic(left, function, arguments));
+      DartEntry::InvokeDynamic(left, function, arguments, kNoArgumentNames));
   // Object's '==' threw an exception, let the caller handle it.
   ASSERT(result.IsBool() || result.IsUnhandledException());
   return result.raw();

@@ -114,7 +114,7 @@ RawInstance* ReceivePortCreate(intptr_t port_id) {
   GrowableArray<const Object*> arguments(kNumArguments);
   arguments.Add(&Integer::Handle(Integer::New(port_id)));
   const Instance& result = Instance::Handle(
-      DartEntry::InvokeStatic(function, arguments));
+      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
   if (result.IsUnhandledException()) {
     UnhandledException& uhe = UnhandledException::Handle();
     uhe ^= result.raw();
@@ -139,7 +139,7 @@ static RawInstance* SendPortCreate(intptr_t port_id) {
   GrowableArray<const Object*> arguments(kNumArguments);
   arguments.Add(&Integer::Handle(Integer::New(port_id)));
   const Instance& result = Instance::Handle(
-      DartEntry::InvokeStatic(function, arguments));
+      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
   return result.raw();
 }
 
@@ -164,7 +164,7 @@ void PortMessage::Handle() {
   arguments.Add(&Integer::Handle(Integer::New(reply_id())));
   arguments.Add(&msg);
   const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments));
+      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
   if (result.IsUnhandledException()) {
     UnhandledException& uhe = UnhandledException::Handle();
     uhe ^= result.raw();
@@ -213,7 +213,10 @@ static void RunIsolate(uword parameter) {
     if (!default_constructor.IsNull()) {
       GrowableArray<const Object*> arguments(1);
       arguments.Add(&target);
-      result = DartEntry::InvokeStatic(default_constructor, arguments);
+      const Array& kNoArgumentNames = Array::Handle();
+      result = DartEntry::InvokeStatic(default_constructor,
+                                       arguments,
+                                       kNoArgumentNames);
       if (result.IsUnhandledException()) {
         UnhandledException& uhe = UnhandledException::Handle();
         uhe ^= result.raw();
@@ -231,7 +234,11 @@ static void RunIsolate(uword parameter) {
     const Instance& local_port = Instance::Handle(ReceivePortCreate(port_id));
     GrowableArray<const Object*> arguments(1);
     arguments.Add(&local_port);
-    result = DartEntry::InvokeDynamic(target, target_function, arguments);
+    const Array& kNoArgumentNames = Array::Handle();
+    result = DartEntry::InvokeDynamic(target,
+                                      target_function,
+                                      arguments,
+                                      kNoArgumentNames);
     if (result.IsUnhandledException()) {
       UnhandledException& uhe = UnhandledException::Handle();
       uhe ^= result.raw();

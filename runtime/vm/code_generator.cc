@@ -25,23 +25,12 @@ DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls.");
 
 
-const Array& CodeGenerator::ArgumentsDescriptor(int num_arguments,
-                                                ArgumentListNode* arguments) {
-  const Array& names = arguments == NULL ? Array::Handle() : arguments->names();
-  const intptr_t num_named_args = names.IsNull() ? 0 : names.Length();
+const Array& CodeGenerator::ArgumentsDescriptor(
+    int num_arguments,
+    const Array& optional_arguments_names) {
+  const intptr_t num_named_args =
+      optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   const intptr_t num_pos_args = num_arguments - num_named_args;
-
-  // The code generator may prepend an extra positional argument to the list of
-  // actual parameters. This can be the receiver of an instance call, the
-  // allocated but uninitialized receiver of a constructor call, or the type
-  // argument vector of a factory call.
-  // The value 'num_arguments' is the actual total number of arguments,
-  // including the prepended positional argument, whereas
-  // 'arguments->length()' is the parsed number of arguments not including the
-  // prepended argument.
-  ASSERT((arguments == NULL) ||
-         (arguments->length() == num_arguments) ||
-         (arguments->length() == (num_arguments - 1)));
 
   // Build the argument descriptor array, which consists of the total number of
   // arguments, the number of positional arguments, alphabetically sorted
@@ -57,7 +46,7 @@ const Array& CodeGenerator::ArgumentsDescriptor(int num_arguments,
   String& name = String::Handle();
   Smi& pos = Smi::Handle();
   for (int i = 0; i < num_named_args; i++) {
-    name ^= names.At(i);
+    name ^= optional_arguments_names.At(i);
     pos = Smi::New(num_pos_args + i);
     int j = i;
     // Shift already inserted pairs with "larger" names.
@@ -624,9 +613,13 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
     return;  // No getter function found so can't be an implicit closure.
   }
   GrowableArray<const Object*> invoke_arguments(0);
+  const Array& kNoArgumentNames = Array::Handle();
   const Instance& result =
       Instance::Handle(
-          DartEntry::InvokeDynamic(receiver, function, invoke_arguments));
+          DartEntry::InvokeDynamic(receiver,
+                                   function,
+                                   invoke_arguments,
+                                   kNoArgumentNames));
   if (result.IsUnhandledException()) {
     arguments.SetReturn(code);
     return;  // Error accessing getter, treat as no such method.
@@ -733,6 +726,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   // noSuchMethod(InvocationMirror call).
   const int kNumArguments = 3;
   const int kNumNamedArguments = 0;
+  const Array& kNoArgumentNames = Array::Handle();
   const String& function_name =
       String::Handle(String::NewSymbol("noSuchMethod"));
   const Function& function = Function::ZoneHandle(
@@ -744,9 +738,11 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   GrowableArray<const Object*> invoke_arguments(2);
   invoke_arguments.Add(&original_function_name);
   invoke_arguments.Add(&orig_arguments);
-  const Instance& result =
-      Instance::Handle(
-          DartEntry::InvokeDynamic(receiver, function, invoke_arguments));
+  const Instance& result = Instance::Handle(
+      DartEntry::InvokeDynamic(receiver,
+                               function,
+                               invoke_arguments,
+                               kNoArgumentNames));
   CheckResultException(result);
   arguments.SetReturn(result);
 }

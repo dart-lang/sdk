@@ -1912,7 +1912,8 @@ void OptimizingCodeGenerator::GenerateDirectInstanceCall(
   ExternalLabel target_label("DirectInstanceCall", code.EntryPoint());
 
   __ LoadObject(ECX, target);
-  __ LoadObject(EDX, ArgumentsDescriptor(arg_count, node->arguments()));
+  __ LoadObject(EDX, ArgumentsDescriptor(arg_count,
+                                         node->arguments()->names()));
 
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kOther, node->id(), node->token_index());
@@ -2005,7 +2006,7 @@ void OptimizingCodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
                            node->token_index(),
                            node->function_name(),
                            number_of_arguments,
-                           node->arguments());
+                           node->arguments()->names());
     }
   }
   // Result is in EAX.
@@ -2087,7 +2088,7 @@ bool OptimizingCodeGenerator::TryInlineStaticCall(StaticCallNode* node) {
     __ Bind(&call_method);
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
-                                           node->arguments()));
+                                           node->arguments()->names()));
     GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
     __ Bind(&done);
     return true;
@@ -2103,7 +2104,7 @@ void OptimizingCodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
   } else {
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
-                                           node->arguments()));
+                                           node->arguments()->names()));
     GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
   }
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));

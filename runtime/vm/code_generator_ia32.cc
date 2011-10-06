@@ -470,21 +470,23 @@ void CodeGenerator::GeneratePushVariable(const LocalVariable& variable,
 }
 
 
-void CodeGenerator::GenerateInstanceCall(intptr_t node_id,
-                                         intptr_t token_index,
-                                         const String& function_name,
-                                         int arg_count,
-                                         ArgumentListNode* arguments) {
+void CodeGenerator::GenerateInstanceCall(
+    intptr_t node_id,
+    intptr_t token_index,
+    const String& function_name,
+    int num_arguments,
+    const Array& optional_arguments_names) {
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
   __ LoadObject(ECX, function_name);
-  __ LoadObject(EDX, ArgumentsDescriptor(arg_count, arguments));
+  __ LoadObject(EDX, ArgumentsDescriptor(num_arguments,
+                                         optional_arguments_names));
   __ call(&StubCode::CallInstanceFunctionLabel());
   AddCurrentDescriptor(PcDescriptors::kIcCall,
                        node_id,
                        token_index);
-  __ addl(ESP, Immediate(arg_count * kWordSize));
+  __ addl(ESP, Immediate(num_arguments * kWordSize));
 }
 
 
@@ -1068,11 +1070,12 @@ void CodeGenerator::GenerateLoadIndexed(intptr_t node_id,
   const String& operator_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
   const int kNumArguments = 2;  // Receiver and index.
+  const Array& kNoArgumentNames = Array::Handle();
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumArguments,
-                       NULL);
+                       kNoArgumentNames);
 }
 
 
@@ -1112,11 +1115,12 @@ void CodeGenerator::GenerateStoreIndexed(intptr_t node_id,
   const String& operator_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
   const int kNumArguments = 3;  // Receiver, index and value.
+  const Array& kNoArgumentNames = Array::Handle();
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumArguments,
-                       NULL);
+                       kNoArgumentNames);
 }
 
 
@@ -1202,11 +1206,12 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
     operator_name = String::NewSymbol(node->Name());
   }
   const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Array::Handle();
   GenerateInstanceCall(node->id(),
                        node->token_index(),
                        operator_name,
                        kNumberOfArguments,
-                       NULL);
+                       kNoArgumentNames);
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }
@@ -1723,11 +1728,12 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     // Do '==' first then negate if necessary,
     const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
     const int kNumberOfArguments = 2;
+    const Array& kNoArgumentNames = Array::Handle();
     GenerateInstanceCall(node->id(),
                          node->token_index(),
                          operator_name,
                          kNumberOfArguments,
-                         NULL);
+                         kNoArgumentNames);
 
     // Result is in EAX. No need to negate if result is not needed.
     if ((node->kind() == Token::kNE) && IsResultNeeded(node)) {
@@ -1989,11 +1995,12 @@ void CodeGenerator::GenerateBinaryOperatorCall(intptr_t node_id,
                                                const char* name) {
   const String& operator_name = String::ZoneHandle(String::NewSymbol(name));
   const int kNumberOfArguments = 2;
+  const Array& kNoArgumentNames = Array::Handle();
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumberOfArguments,
-                       NULL);
+                       kNoArgumentNames);
 }
 
 
@@ -2048,9 +2055,12 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
     // Build argument array to pass to the interpolation function.
     GrowableArray<const Object*> interpolate_arg;
     interpolate_arg.Add(&literals);
+    const Array& kNoArgumentNames = Array::Handle();
     // Call the interpolation function.
     String& concatenated = String::ZoneHandle();
-    concatenated ^= DartEntry::InvokeStatic(interpol_func, interpolate_arg);
+    concatenated ^= DartEntry::InvokeStatic(interpol_func,
+                                            interpolate_arg,
+                                            kNoArgumentNames);
     if (concatenated.IsUnhandledException()) {
       ErrorMsg(node->token_index(),
           "Exception thrown in CodeGenerator::VisitStringConcatNode");
@@ -2070,7 +2080,7 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
   node->values()->Visit(this);
   __ LoadObject(ECX, interpol_func);
   __ LoadObject(EDX, ArgumentsDescriptor(interpol_arg->length(),
-                                         interpol_arg));
+                                         interpol_arg->names()));
   GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
   __ addl(ESP, Immediate(interpol_arg->length() * kWordSize));
   // Result is in EAX.
@@ -2094,7 +2104,7 @@ void CodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
                        node->token_index(),
                        node->function_name(),
                        number_of_arguments,
-                       node->arguments());
+                       node->arguments()->names());
   // Result is in EAX.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -2106,7 +2116,7 @@ void CodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
   node->arguments()->Visit(this);
   __ LoadObject(ECX, node->function());
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
-                                         node->arguments()));
+                                         node->arguments()->names()));
   GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));
   // Result is in EAX.
@@ -2132,7 +2142,7 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
   // compiled).
   // NOTE: The stub accesses the closure before the parameter list.
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
-                                         node->arguments()));
+                                         node->arguments()->names()));
   GenerateCall(node->token_index(), &StubCode::CallClosureFunctionLabel());
   __ addl(ESP, Immediate((node->arguments()->length() + 1) * kWordSize));
   // Restore the context.
@@ -2250,7 +2260,8 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
     node->arguments()->Visit(this);
     // Call the factory.
     __ LoadObject(ECX, node->constructor());
-    __ LoadObject(EDX, ArgumentsDescriptor(num_args, node->arguments()));
+    __ LoadObject(EDX, ArgumentsDescriptor(num_args,
+                                           node->arguments()->names()));
     GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
     // Factory constructor returns object in EAX.
     __ addl(ESP, Immediate(num_args * kWordSize));
@@ -2281,7 +2292,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   // Call the constructor.
   int num_args = node->arguments()->length() + 1;  // +1 to include receiver.
   __ LoadObject(ECX, node->constructor());
-  __ LoadObject(EDX, ArgumentsDescriptor(num_args, node->arguments()));
+  __ LoadObject(EDX, ArgumentsDescriptor(num_args, node->arguments()->names()));
   GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
   // Constructors do not return any value.
 
@@ -2296,11 +2307,12 @@ void CodeGenerator::GenerateInstanceGetterCall(intptr_t node_id,
                                                const String& field_name) {
   const String& getter_name = String::ZoneHandle(Field::GetterName(field_name));
   const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Array::Handle();
   GenerateInstanceCall(node_id,
                        token_index,
                        getter_name,
                        kNumberOfArguments,
-                       NULL);
+                       kNoArgumentNames);
 }
 
 
@@ -2323,11 +2335,12 @@ void CodeGenerator::GenerateInstanceSetterCall(intptr_t node_id,
                                                const String& field_name) {
   const String& setter_name = String::ZoneHandle(Field::SetterName(field_name));
   const int kNumberOfArguments = 2;  // receiver + value.
+  const Array& kNoArgumentNames = Array::Handle();
   GenerateInstanceCall(node_id,
                        token_index,
                        setter_name,
                        kNumberOfArguments,
-                       NULL);
+                       kNoArgumentNames);
 }
 
 
@@ -2366,7 +2379,8 @@ void CodeGenerator::GenerateStaticGetterCall(intptr_t token_index,
   }
   __ LoadObject(ECX, function);
   const int kNumberOfArguments = 0;
-  __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, NULL));
+  const Array& kNoArgumentNames = Array::Handle();
+  __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
   GenerateCall(token_index, &StubCode::CallStaticFunctionLabel());
   // No arguments were pushed, hence nothing to pop.
 }
@@ -2393,7 +2407,8 @@ void CodeGenerator::GenerateStaticSetterCall(intptr_t token_index,
       Function::ZoneHandle(field_class.LookupStaticFunction(setter_name));
   __ LoadObject(ECX, function);
   const int kNumberOfArguments = 1;  // value.
-  __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, NULL));
+  const Array& kNoArgumentNames = Array::Handle();
+  __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
   GenerateCall(token_index, &StubCode::CallStaticFunctionLabel());
   __ addl(ESP, Immediate(kNumberOfArguments * kWordSize));
 }

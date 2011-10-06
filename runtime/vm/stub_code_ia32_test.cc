@@ -78,8 +78,9 @@ TEST_CASE(CallRuntimeStubCode) {
       Code::FinalizeCode("Test_CallRuntimeStubCode", &_assembler_));
   const Function& function = RegisterFakeFunction(kName, code);
   GrowableArray<const Object*>  arguments;
+  const Array& kNoArgumentNames = Array::Handle();
   Smi& result = Smi::Handle();
-  result ^= DartEntry::InvokeStatic(function, arguments);
+  result ^= DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);
   EXPECT_EQ((value1 - value2), result.Value());
 }
 
@@ -123,8 +124,9 @@ TEST_CASE(CallNativeCFunctionStubCode) {
       Code::FinalizeCode(kName, &_assembler_));
   const Function& function = RegisterFakeFunction(kName, code);
   GrowableArray<const Object*>  arguments;
+  const Array& kNoArgumentNames = Array::Handle();
   Smi& result = Smi::Handle();
-  result ^= DartEntry::InvokeStatic(function, arguments);
+  result ^= DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);
   EXPECT_EQ((value1 - value2), result.Value());
 }
 

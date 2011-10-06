@@ -5630,8 +5630,8 @@ void Parser::RunStaticFieldInitializer(const Field& field) {
                                                  Resolver::kIsQualified));
     ASSERT(!func.IsNull());
     ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
-    Instance& const_value =
-        Instance::Handle(DartEntry::InvokeStatic(func, arguments));
+    Instance& const_value = Instance::Handle(
+        DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
     if (const_value.IsUnhandledException()) {
       ErrorMsg("Exception thrown in Parser::RunStaticFieldInitializer");
     }
@@ -5671,8 +5671,9 @@ RawInstance* Parser::EvaluateConstConstructorCall(
     ASSERT(arg->IsLiteralNode());
     arg_values.Add(&arg->AsLiteralNode()->literal());
   }
+  const Array& opt_arg_names = arguments->names();
   const Instance& result = Instance::Handle(
-      DartEntry::InvokeStatic(constructor, arg_values));
+      DartEntry::InvokeStatic(constructor, arg_values, opt_arg_names));
   if (result.IsUnhandledException()) {
     ErrorMsg("Exception thrown in EvaluateConstConstructorCall");
   }
@@ -6437,10 +6438,13 @@ String& Parser::Interpolate(ArrayNode* values) {
   // Build argument array to pass to the interpolation function.
   GrowableArray<const Object*> interpolate_arg;
   interpolate_arg.Add(&value_arr);
+  const Array& kNoArgumentNames = Array::Handle();
 
   // Call interpolation function.
   String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeStatic(func, interpolate_arg);
+  concatenated ^= DartEntry::InvokeStatic(func,
+                                          interpolate_arg,
+                                          kNoArgumentNames);
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }

@@ -35,17 +35,22 @@ class DartEntry : public AllStatic {
   static RawInstance* InvokeDynamic(
       const Instance& receiver,
       const Function& function,
-      const GrowableArray<const Object*>& arguments);
+      const GrowableArray<const Object*>& arguments,
+      const Array& optional_arguments_names);
 
   // Invoke the specified static function.
   // Returns object returned by the dart static function.
   static RawInstance* InvokeStatic(
-      const Function& function, const GrowableArray<const Object*>& arguments);
+      const Function& function,
+      const GrowableArray<const Object*>& arguments,
+      const Array& optional_arguments_names);
 
   // Invoke the specified closure object.
   // Returns object returned by the closure.
   static RawInstance* InvokeClosure(
-      const Closure& closure, const GrowableArray<const Object*>& arguments);
+      const Closure& closure,
+      const GrowableArray<const Object*>& arguments,
+      const Array& optional_arguments_names);
 };
 
 

@@ -34,8 +34,11 @@ TEST_CASE(DartEntry) {
   EXPECT(CompilerTest::TestCompileFunction(function));
   EXPECT(function.HasCode());
   GrowableArray<const Object*> arguments;
+  const Array& kNoArgumentNames = Array::Handle();
   const Smi& retval = Smi::Handle(
-      reinterpret_cast<RawSmi*>(DartEntry::InvokeStatic(function, arguments)));
+      reinterpret_cast<RawSmi*>(DartEntry::InvokeStatic(function,
+                                                        arguments,
+                                                        kNoArgumentNames)));
   EXPECT_EQ(Smi::New(42), retval.raw());
 }
 

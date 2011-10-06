@@ -49,11 +49,13 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   // Add pc descriptors to code.
   void FinalizePcDescriptors(const Code& code);
 
-  // Allocate and return an arguments descriptor for the given 'num_arguments'
-  // and 'arguments'. If 'arguments' is NULL, treat all 'num_arguments' as
-  // positional arguments.
-  static const Array& ArgumentsDescriptor(int num_arguments,
-                                          ArgumentListNode* arguments);
+  // Allocate and return an arguments descriptor.
+  // Let 'num_names' be the length of 'optional_arguments_names'.
+  // Treat the first 'num_arguments - num_names' arguments as positional and
+  // treat the following 'num_names' arguments as named optional arguments.
+  static const Array& ArgumentsDescriptor(
+      int num_arguments,
+      const Array& optional_arguments_names);
 
   virtual bool IsOptimizing() const {
     return false;
@@ -106,8 +108,8 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateInstanceCall(intptr_t node_id,
                             intptr_t token_index,
                             const String& function_name,
-                            int arg_count,
-                            ArgumentListNode* arguments);
+                            int num_arguments,
+                            const Array& optional_arguments_names);
 
   void GenerateInstanceOf(intptr_t token_index,
                           const Type& type,

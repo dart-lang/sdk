@@ -437,8 +437,11 @@ const Instance* StaticGetterNode::EvalConstExpr() const {
     return NULL;
   }
   GrowableArray<const Object*> arguments;
+  const Array& kNoArgumentNames = Array::Handle();
   const Instance& field_value =
-      Instance::ZoneHandle(DartEntry::InvokeStatic(getter_func, arguments));
+      Instance::ZoneHandle(DartEntry::InvokeStatic(getter_func,
+                                                   arguments,
+                                                   kNoArgumentNames));
   if (field_value.IsUnhandledException()) {
     return NULL;
   }
