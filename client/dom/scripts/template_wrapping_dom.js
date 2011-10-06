@@ -7,6 +7,31 @@
 
 $!CODE
 
+function __dom_native_TimeoutHander_method(_this, callback, timeout, operation) {
+  try {
+    return _this.$dom[operation](__dom_unwrap_TimeoutHandler_function(callback),
+                                 __dom_unwrap(timeout));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__setInterval(_this, callback, timeout) {
+  return __dom_native_TimeoutHander_method(_this, callback, timeout, 'setInterval');
+}
+
+function native__DOMWindowWrappingImplementation__setTimeout(_this, callback, timeout) {
+  return __dom_native_TimeoutHander_method(_this, callback, timeout, 'setTimeout');
+}
+
+function native__WorkerContextWrappingImplementation__setInterval(_this, callback, timeout) {
+  return __dom_native_TimeoutHander_method(_this, callback, timeout, 'setInterval');
+}
+
+function native__WorkerContextWrappingImplementation__setTimeout(_this, callback, timeout) {
+  return __dom_native_TimeoutHander_method(_this, callback, timeout, 'setTimeout');
+}
+
 function native__DOMWindowWrappingImplementation__createFileReader(_this) {
   try {
     return __dom_wrap(new FileReader());
@@ -254,6 +279,14 @@ function __dom_wrap_primitive(ptr) {
   return (ptr === null) ? (void 0) : ptr;
 }
 
+
+function __dom_finish_unwrap_function(fn, unwrapped) {
+  fn.$dom = unwrapped;
+  var isolatetoken = __dom_isolate_token();
+  __dom_set_cached('dart_wrapper', unwrapped, isolatetoken, fn);
+  return unwrapped;
+}
+
 /** @suppress {duplicate} */
 function __dom_unwrap(obj) {
   if (obj == null) {
@@ -268,12 +301,18 @@ function __dom_unwrap(obj) {
       return $dartcall(obj, args.map(__dom_wrap));
       // BUGBUG? Should the result be unwrapped? Or is it always void/bool ?
     };
-    obj.$dom = unwrapped;
-    var isolatetoken = __dom_isolate_token();
-    __dom_set_cached('dart_wrapper', unwrapped, isolatetoken, obj);
-    return unwrapped;
+    return __dom_finish_unwrap_function(obj, unwrapped);
   }
   return obj;
+}
+
+function __dom_unwrap_TimeoutHandler_function(fn) {
+  // Some browsers (e.g. FF) pass data to the timeout function, others do not.
+  // Dart's TimeoutHandler takes no arguments, so drop any arguments passed to
+  // the unwrapped callback.
+  return __dom_finish_unwrap_function(
+      fn,
+      function() { return $dartcall(fn, []); });
 }
 
 // Declared in src/GlobalProperties.dart
