@@ -1605,16 +1605,39 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t token_index) {
     return;
   }
 
+  // Check that the type of the object on the stack is allowed in conditional
+  // context.
+  // Call the runtime if the object is null or not of type bool.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label runtime_call, done;
+  __ movl(EAX, Address(ESP, 0));
+  __ cmpl(EAX, raw_null);
+  __ j(EQUAL, &runtime_call, Assembler::kNearJump);
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &runtime_call, Assembler::kNearJump);  // Call runtime for Smi.
+  const Type& bool_interface = Type::Handle(Type::BoolInterface());
+  const Class& bool_class = Class::ZoneHandle(bool_interface.type_class());
+  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+  __ CompareObject(ECX, bool_class);
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  __ Bind(&runtime_call);
   const Object& result = Object::ZoneHandle();
   __ PushObject(result);  // Make room for the result of the runtime call.
   const Immediate location =
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
   __ pushl(location);  // Push the source location.
-  __ pushl(Address(ESP, 2 * kWordSize));  // Push the source object.
+  __ pushl(EAX);  // Push the source object.
+  // TODO(regis): Once we enforce the rule prohibiting subtyping of bool, we
+  // should rename the runtime call 'ConditionTypeCheck' to
+  // 'ConditionTypeError'.
   GenerateCallRuntime(token_index, kConditionTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ addl(ESP, Immediate(3 * kWordSize));
+
+  __ Bind(&done);
 }
 
 

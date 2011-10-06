@@ -1674,6 +1674,11 @@ RawType* Type::ObjectType() {
 }
 
 
+RawType* Type::BoolInterface() {
+  return Isolate::Current()->object_store()->bool_interface();
+}
+
+
 RawType* Type::FunctionInterface() {
   return Isolate::Current()->object_store()->function_interface();
 }

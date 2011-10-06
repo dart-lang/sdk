@@ -709,6 +709,9 @@ class Type : public Object {
   // The 'Object' type.
   static RawType* ObjectType();
 
+  // The 'bool' interface type.
+  static RawType* BoolInterface();
+
   // The 'Function' interface type.
   static RawType* FunctionInterface();
 

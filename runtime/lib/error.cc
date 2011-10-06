@@ -224,8 +224,7 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeCheck, 2) {
 
   const char* msg = "boolean expression";
   if (src_instance.IsNull() || !src_instance.IsBool()) {
-    const Type& bool_interface =
-        Type::ZoneHandle(Isolate::Current()->object_store()->bool_interface());
+    const Type& bool_interface = Type::Handle(Type::BoolInterface());
     const Type& src_type = Type::Handle(src_instance.GetType());
     const String& src_type_name = String::Handle(src_type.Name());
     const String& bool_type_name = String::Handle(bool_interface.Name());
