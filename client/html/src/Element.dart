@@ -76,6 +76,7 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   Element.tag(String tag);
 
   Map<String, String> get attributes();
+  void set attributes(Map<String, String> value);
 
   ElementList get elements();
 

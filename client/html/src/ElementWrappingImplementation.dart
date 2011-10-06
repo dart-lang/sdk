@@ -401,11 +401,23 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   ElementWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
+  ElementAttributeMap _elementAttributeMap;
   _CssClassSet _cssClassSet;
   _DataAttributeMap _dataAttributes;
 
   Map<String, String> get attributes() {
-    return new ElementAttributeMap._wrap(_ptr);
+    if (_elementAttributeMap === null) {
+      _elementAttributeMap = new ElementAttributeMap._wrap(_ptr);
+    }
+    return _elementAttributeMap;
+  }
+
+  void set attributes(Map<String, String> value) {
+    Map<String, String> attributes = this.attributes;
+    attributes.clear();
+    for (String key in value.getKeys()) {
+      attributes[key] = value[key];
+    }
   }
 
   ElementList get elements() => new _ChildrenElementList._wrap(_ptr);
