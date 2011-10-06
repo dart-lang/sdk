@@ -6,5 +6,5 @@
 
 interface WebKitCSSMatrix$!EXTENDS factory _WebKitCSSMatrixFactoryProvider {
 
-  WebKitCSSMatrix(String spec = '');
+  WebKitCSSMatrix([String spec]);
 $!MEMBERS}

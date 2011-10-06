@@ -23,9 +23,7 @@ _idl_to_dart_type_conversions = {
     'DOMObject': 'Object',
     'DOMString': 'String',
     'DOMTimeStamp': 'int',
-    # TODO(vsm): What's the right type?  For JS, this is mapped to Date.
-    # Dart has DateTime in its core library.
-    'Date': 'DateTime',
+    'Date': 'Date',
     # Map to num to enable callers to pass in Dart int, rational
     # types.  Our implementations will need to convert these to
     # doubles or floats as needed.
