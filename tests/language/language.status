@@ -67,7 +67,6 @@ BadNamedParametersTest: Fail    # Bug Bug 4202974 - release mode is not throwing
 Prefix11NegativeTest: Fail # Bug 5406175
 Prefix12NegativeTest: Fail # Bug 5406175
 FunctionTypeParameterNegativeTest: Fail # Bug 4568007
-ImplicitScopeTest: FAIL              # Nested statements can be declarations
 ConstConstructor1NegativeTest: FAIL  # 5142545
 ConstConstructor2NegativeTest: FAIL  # 5142545
 MathTest: FAIL                       # 5165080
@@ -80,7 +79,6 @@ NamedParameters2NegativeTest: Fail   # Implementation in progress.
 NamedParameters3NegativeTest: Fail   # Implementation in progress.
 NamedParameters4NegativeTest: Fail   # Implementation in progress.
 NamedParameters6NegativeTest: Crash  # Implementation in progress.
-ScopeVariableTest: Fail              # 5244704
 InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail  # 5387405

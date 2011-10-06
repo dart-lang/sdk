@@ -137,9 +137,7 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A13/t01:
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_2_Interface/A02/t03: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A02/t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t02: Fail # Bug 5371670.
+
 LangGuideTest/02_Language_Constructs/02_7_Abstract_Methods/A02/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_8_Static_Methods/A02/t02: Fail # Bug 5371670.
 LangGuideTest/07_Overriding/A02/t01: Fail # Bug 5371670.
@@ -253,7 +251,9 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/A02/t04: Skip # Times out.
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/A02/t02: Fail
+LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t01: Fail
+LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A02/t01: Fail
+LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t02: Fail
 LangGuideTest/02_Language_Constructs/02_6_Functions/A04/t01: Fail
 LangGuideTest/02_Language_Constructs/02_6_Functions/A06/t01: Fail
 LangGuideTest/02_Language_Constructs/02_6_Functions/A06/t02: Fail

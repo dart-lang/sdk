@@ -49,7 +49,8 @@ class GenerateNamesAndScopes extends NormalizedVisitor {
 
   private final Deque<JsScope> scopes = new LinkedList<JsScope>();
   private DartClass currentClass = null;
-  private int nextLabelId = 0;
+  private int labelUniqifier = 0; // to resolve label name collisions.
+  private int varUniqifier = 0; // to resolve variable name collisions.
 
   private final TranslationContext translationContext;
   private final LibraryElement unitLibrary;
@@ -124,20 +125,20 @@ class GenerateNamesAndScopes extends NormalizedVisitor {
   public boolean visit(DartParameter x, DartContext ctx) {
     // TODO(ngeoffray): A parameter in a function type does not have a symbol.
     if (x.getSymbol() != null) {
-      declare(x.getSymbol(), x.getParameterName());
+      declareExclusively(x.getSymbol(), x.getParameterName());
     }
     return true;
   }
 
   @Override
   public boolean visit(DartVariable x, DartContext ctx) {
-    declare(x.getSymbol(), x.getVariableName());
+    declareExclusively(x.getSymbol(), x.getVariableName());
     return true;
   }
 
   @Override
   public boolean visit(DartLabel x, DartContext ctx) {
-    declare(x.getSymbol(), "L" + nextLabelId++);
+    declareExclusively(x.getSymbol(), String.format("L%X", labelUniqifier++));
     return true;
   }
 
@@ -163,7 +164,7 @@ class GenerateNamesAndScopes extends NormalizedVisitor {
   }
 
   private JsName function(Symbol symbol, String name, String originalName, DartFunction func) {
-    JsName jsName = name != null ? declare(symbol, name, originalName) : null;
+    JsName jsName = name != null ? declareExclusively(symbol, name, originalName) : null;
     JsFunction jsFunc = new JsFunction(scopes.peek(), jsName);
     jsFunc.setFromDart(true);
     scopes.push(jsFunc.getScope());
@@ -175,8 +176,32 @@ class GenerateNamesAndScopes extends NormalizedVisitor {
     return declareInScope(scopes.peek(), x, name, originalName);
   }
 
-  private JsName declare(Symbol x, String name) {
-    return declareInScope(scopes.peek(), x, name, name);
+  private JsName declareExclusively(Symbol x, String name, String originalName) {
+    return declareExclusivelyInScope(scopes.peek(), x, name, originalName);
+  }
+
+  private JsName declareExclusively(Symbol x, String name) {
+    return declareExclusivelyInScope(scopes.peek(), x, name, name);
+  }
+
+  private static final int BIG_PRIME_UNDER_0XFFFFF = 985531;
+
+  /**
+   * Create a unique name for this variable in this scope.
+   *
+   * Try to keep this from being a linear scan of the namespace, and keep
+   * it under 5 hex digits (over 1,000,000 unique suffixes).
+   *
+   */
+  private JsName declareExclusivelyInScope(JsScope scope, Symbol x,
+                                           String name, String originalName) {
+    String mappedName = name;
+    int offset = 0;
+    while (scope.findExistingName(mappedName) != null) {
+      mappedName = String.format("%s_%X", mappedName, varUniqifier);
+      varUniqifier = (varUniqifier + offset++) % BIG_PRIME_UNDER_0XFFFFF;
+    }
+    return declareInScope(scope, x, mappedName, originalName);
   }
 
   private JsName declareInScope(JsScope scope, Symbol x, String name, String originalName) {
