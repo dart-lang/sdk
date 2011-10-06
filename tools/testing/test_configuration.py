@@ -9,6 +9,7 @@ import test
 import platform
 import re
 import run
+import shutil
 import sys
 import tempfile
 
@@ -97,6 +98,14 @@ class StandardTestConfiguration(test.TestConfiguration):
     if exists(status):
       test.ReadConfigurationInto(status, sections, defs)
 
+  def FindReferencedFiles(self, lines):
+    referenced_files = []
+    for line in lines:
+      m = re.match("#(source|import)\(['\"](.*)['\"]\);", line)
+      if m:
+        referenced_files.append(m.group(2))
+    return referenced_files
+
   def SplitMultiTest(self, test_path, filename):
     (name, extension) = os.path.splitext(os.path.basename(filename))
     with open(filename, 'r') as s:
@@ -114,11 +123,18 @@ class StandardTestConfiguration(test.TestConfiguration):
         tags[tag] = kind
     if not tags:
       return {}
+    # Prepare directory for generated tests.
     tests = {}
     generated_test_dir = os.path.join(self.context.workspace, 'generated_tests')
     generated_test_dir = os.path.join(generated_test_dir, *test_path[:-1])
     if not os.path.exists(generated_test_dir):
       os.makedirs(generated_test_dir)
+    # Copy referenced files to generated tests directory.
+    referenced_files = self.FindReferencedFiles(lines)
+    for referenced_file in referenced_files:
+      shutil.copy(os.path.join(os.path.dirname(filename), referenced_file),
+                  os.path.join(generated_test_dir, referenced_file))
+    # Generate test for each tag found in the main test file.
     for tag in tags:
       test_lines = []
       for line in lines:
