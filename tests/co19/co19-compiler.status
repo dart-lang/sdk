@@ -216,12 +216,13 @@ LibTest/core/Set/some/Set/some/A01/t06: Fail # Bug 5371670.
 LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Fail # Bug 5371670.
 LibTest/core/Strings/join/Strings/join/A01/t02: Fail # Bug 5371670.
 
-# These spread/rest tests need to be removed (b/5359622).
+# These spread/rest tests need to be removed (b/5359622, b/5420449).
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Spread_Arguments/A01/t01: Skip
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Spread_Arguments/A02/t01: Skip
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Spread_Arguments/A03/t01: Skip
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Spread_Arguments/A04/t01: Skip
 LangGuideTest/02_Language_Constructs/02_6_Functions/A04/t02: Skip
+LangGuideTest/02_Language_Constructs/02_7_Abstract_Methods/A01/t02: Fail, Okay
 
 # This test is incorrect, see b/5392661
 LangGuideTest/02_Language_Constructs/02_1_Class/A05/t01: Fail

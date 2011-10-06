@@ -74,14 +74,11 @@ StringConcatTest: FAIL               # 5196164
 NamedParametersTest: Fail            # Implementation in progress.
 NamedParametersTypeTest: Fail        # Implementation in progress.
 NamedParametersWithConversionsTest: Fail # Implementation in progress.
-NamedParametersNegativeTest: Skip    # Implementation in progress.
-NamedParameters2NegativeTest: Skip   # Implementation in progress.
-NamedParameters3NegativeTest: Skip   # Implementation in progress.
-NamedParameters4NegativeTest: Skip   # Implementation in progress.
-NamedParameters5NegativeTest: Skip   # Implementation in progress.
-NamedParameters6NegativeTest: Skip   # Implementation in progress.
-NamedParameters7NegativeTest: Skip   # Implementation in progress.
-NamedParameters8NegativeTest: Skip   # Implementation in progress.
+NamedParametersNegativeTest: Fail    # Implementation in progress.
+NamedParameters2NegativeTest: Fail   # Implementation in progress.
+NamedParameters3NegativeTest: Fail   # Implementation in progress.
+NamedParameters4NegativeTest: Fail   # Implementation in progress.
+NamedParameters6NegativeTest: Crash  # Implementation in progress.
 ScopeVariableTest: Fail              # 5244704
 Field1NegativeTest: Fail             # 5253031
 InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
