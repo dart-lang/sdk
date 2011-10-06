@@ -90,7 +90,16 @@ class DateImplementation implements Date {
   }
 
   int get weekday() {
-    throw "Unimplemented";
+    final Date unixTimeStart =
+        new Date.withTimeZone(1970, 1, 1, 0, 0, 0, 0, timeZone);
+    int msSince1970 = this.difference(unixTimeStart).inMilliseconds;
+    // Adjust the milliseconds to avoid problems with summer-time.
+    if (hours < 2) {
+      msSince1970 += 2 * Duration.MS_PER_HOUR;
+    }
+    int daysSince1970 = (msSince1970 / Duration.MS_PER_DAY).floor().toInt();
+    // 1970-1-1 was a Thursday.
+    return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
   }
 
   bool isLocalTime() {

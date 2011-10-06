@@ -331,6 +331,36 @@ class DateTest {
     Expect.equals("2011-05-11 18:58:35.000Z", str);
   }
 
+  static void testWeekday() {
+    var d = new Date(2011, 10, 6, 0, 45, 37, 0);
+    Expect.equals(Date.THU, d.weekday);
+    d = new Date.withTimeZone(2011, 10, 6, 0, 45, 37, 0, const TimeZone.utc());
+    Expect.equals(Date.THU, d.weekday);
+    d = new Date(2011, 10, 5, 23, 45, 37, 0);
+    Expect.equals(Date.WED, d.weekday);
+    d = new Date.withTimeZone(2011, 10, 5, 23, 45, 37, 0, const TimeZone.utc());
+    Expect.equals(Date.WED, d.weekday);
+    d = new Date(1970, 1, 1, 0, 0, 0, 1);
+    Expect.equals(Date.THU, d.weekday);
+    d = new Date.withTimeZone(1970, 1, 1, 0, 0, 0, 1, const TimeZone.utc());
+    Expect.equals(Date.THU, d.weekday);
+    d = new Date.withTimeZone(1969, 12, 31, 23, 59, 59, 999,
+                              const TimeZone.utc());
+    Expect.equals(Date.WED, d.weekday);
+    d = new Date(1969, 12, 31, 23, 59, 59, 999);
+    Expect.equals(Date.WED, d.weekday);
+    d = new Date(2011, 10, 4, 23, 45, 37, 0);
+    Expect.equals(Date.TUE, d.weekday);
+    d = new Date(2011, 10, 3, 23, 45, 37, 0);
+    Expect.equals(Date.MON, d.weekday);
+    d = new Date(2011, 10, 2, 23, 45, 37, 0);
+    Expect.equals(Date.SUN, d.weekday);
+    d = new Date(2011, 10, 1, 23, 45, 37, 0);
+    Expect.equals(Date.SAT, d.weekday);
+    d = new Date(2011, 9, 30, 23, 45, 37, 0);
+    Expect.equals(Date.FRI, d.weekday);
+  }
+
   static void testMain() {
     testNow();
     testValue();
@@ -342,6 +372,7 @@ class DateTest {
     testDateStrings();
     testEquivalentYears();
     testFarAwayDates();
+    testWeekday();
   }
 }
 
