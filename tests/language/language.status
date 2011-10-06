@@ -36,6 +36,7 @@ OverrideMethodWithFieldTest: Fail # Bug 5384453
 FieldOverrideTest/none: Fail # Bug 5384222
 FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
+ConstNamedTest: Fail        # Bug 5422033
 
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
