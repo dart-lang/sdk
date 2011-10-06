@@ -42,5 +42,5 @@ interface XPathResult {
 
   Node iterateNext();
 
-  Node snapshotItem([int index]);
+  Node snapshotItem(int index);
 }

@@ -11,15 +11,10 @@ class _XMLSerializerWrappingImplementation extends DOMWrapperBase implements XML
     return new _XMLSerializerWrappingImplementation();
   }
 
-  String serializeToString([Node node = null]) {
-    if (node === null) {
-      return _serializeToString(this);
-    } else {
-      return _serializeToString_2(this, node);
-    }
+  String serializeToString(Node node) {
+    return _serializeToString(this, node);
   }
-  static String _serializeToString(receiver) native;
-  static String _serializeToString_2(receiver, node) native;
+  static String _serializeToString(receiver, node) native;
 
   String get typeName() { return "XMLSerializer"; }
 }

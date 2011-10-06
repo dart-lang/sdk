@@ -108,7 +108,7 @@ interface HTMLMediaElement extends HTMLElement {
 
   int get webkitVideoDecodedByteCount();
 
-  String canPlayType([String type]);
+  String canPlayType(String type);
 
   void load();
 

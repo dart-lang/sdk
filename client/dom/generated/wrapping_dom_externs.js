@@ -214,7 +214,6 @@ dom_externs.cols;                       // attribute HTMLFrameSetElement.cols, a
 dom_externs.column;                     // attribute JavaScriptCallFrame.column
 dom_externs.commonAncestorContainer;    // attribute Range.commonAncestorContainer
 dom_externs.compact;                    // attribute HTMLDListElement.compact, attribute HTMLDirectoryElement.compact, attribute HTMLMenuElement.compact, attribute HTMLOListElement.compact, attribute HTMLUListElement.compact
-dom_externs.compareBoundaryPoints;      // operation Range.compareBoundaryPoints
 dom_externs.compareDocumentPosition;    // operation Node.compareDocumentPosition
 dom_externs.compareNode;                // operation Range.compareNode
 dom_externs.comparePoint;               // operation Range.comparePoint
@@ -581,7 +580,6 @@ dom_externs.initBeforeLoadEvent;        // operation BeforeLoadEvent.initBeforeL
 dom_externs.initCloseEvent;             // operation CloseEvent.initCloseEvent
 dom_externs.initCompositionEvent;       // operation CompositionEvent.initCompositionEvent
 dom_externs.initCustomEvent;            // operation CustomEvent.initCustomEvent
-dom_externs.initDeviceMotionEvent;      // operation DeviceMotionEvent.initDeviceMotionEvent
 dom_externs.initDeviceOrientationEvent;  // operation DeviceOrientationEvent.initDeviceOrientationEvent
 dom_externs.initErrorEvent;             // operation ErrorEvent.initErrorEvent
 dom_externs.initEvent;                  // operation Event.initEvent

@@ -14,25 +14,15 @@ class _TextWrappingImplementation extends _CharacterDataWrappingImplementation i
   String get wholeText() { return _get__Text_wholeText(this); }
   static String _get__Text_wholeText(var _this) native;
 
-  Text replaceWholeText([String content = null]) {
-    if (content === null) {
-      return _replaceWholeText(this);
-    } else {
-      return _replaceWholeText_2(this, content);
-    }
+  Text replaceWholeText(String content) {
+    return _replaceWholeText(this, content);
   }
-  static Text _replaceWholeText(receiver) native;
-  static Text _replaceWholeText_2(receiver, content) native;
+  static Text _replaceWholeText(receiver, content) native;
 
-  Text splitText([int offset = null]) {
-    if (offset === null) {
-      return _splitText(this);
-    } else {
-      return _splitText_2(this, offset);
-    }
+  Text splitText(int offset) {
+    return _splitText(this, offset);
   }
-  static Text _splitText(receiver) native;
-  static Text _splitText_2(receiver, offset) native;
+  static Text _splitText(receiver, offset) native;
 
   String get typeName() { return "Text"; }
 }

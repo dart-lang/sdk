@@ -14,26 +14,11 @@ class _DataTransferItemsWrappingImplementation extends DOMWrapperBase implements
   int get length() { return _get__DataTransferItems_length(this); }
   static int _get__DataTransferItems_length(var _this) native;
 
-  void add([String data = null, String type = null]) {
-    if (data === null) {
-      if (type === null) {
-        _add(this);
-        return;
-      }
-    } else {
-      if (type === null) {
-        _add_2(this, data);
-        return;
-      } else {
-        _add_3(this, data, type);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void add(String data, String type) {
+    _add(this, data, type);
+    return;
   }
-  static void _add(receiver) native;
-  static void _add_2(receiver, data) native;
-  static void _add_3(receiver, data, type) native;
+  static void _add(receiver, data, type) native;
 
   void clear() {
     _clear(this);

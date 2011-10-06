@@ -40,47 +40,45 @@ interface Range {
 
   Range cloneRange();
 
-  void collapse([bool toStart]);
+  void collapse(bool toStart);
 
-  int compareBoundaryPoints();
+  int compareNode(Node refNode);
 
-  int compareNode([Node refNode]);
+  int comparePoint(Node refNode, int offset);
 
-  int comparePoint([Node refNode, int offset]);
-
-  DocumentFragment createContextualFragment([String html]);
+  DocumentFragment createContextualFragment(String html);
 
   void deleteContents();
 
   void detach();
 
-  void expand([String unit]);
+  void expand(String unit);
 
   DocumentFragment extractContents();
 
-  void insertNode([Node newNode]);
+  void insertNode(Node newNode);
 
-  bool intersectsNode([Node refNode]);
+  bool intersectsNode(Node refNode);
 
-  bool isPointInRange([Node refNode, int offset]);
+  bool isPointInRange(Node refNode, int offset);
 
-  void selectNode([Node refNode]);
+  void selectNode(Node refNode);
 
-  void selectNodeContents([Node refNode]);
+  void selectNodeContents(Node refNode);
 
-  void setEnd([Node refNode, int offset]);
+  void setEnd(Node refNode, int offset);
 
-  void setEndAfter([Node refNode]);
+  void setEndAfter(Node refNode);
 
-  void setEndBefore([Node refNode]);
+  void setEndBefore(Node refNode);
 
-  void setStart([Node refNode, int offset]);
+  void setStart(Node refNode, int offset);
 
-  void setStartAfter([Node refNode]);
+  void setStartAfter(Node refNode);
 
-  void setStartBefore([Node refNode]);
+  void setStartBefore(Node refNode);
 
-  void surroundContents([Node newParent]);
+  void surroundContents(Node newParent);
 
   String toString();
 }

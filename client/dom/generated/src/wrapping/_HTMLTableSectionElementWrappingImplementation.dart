@@ -38,27 +38,16 @@ class _HTMLTableSectionElementWrappingImplementation extends _HTMLElementWrappin
   void set vAlign(String value) { _set__HTMLTableSectionElement_vAlign(this, value); }
   static void _set__HTMLTableSectionElement_vAlign(var _this, String value) native;
 
-  void deleteRow([int index = null]) {
-    if (index === null) {
-      _deleteRow(this);
-      return;
-    } else {
-      _deleteRow_2(this, index);
-      return;
-    }
+  void deleteRow(int index) {
+    _deleteRow(this, index);
+    return;
   }
-  static void _deleteRow(receiver) native;
-  static void _deleteRow_2(receiver, index) native;
+  static void _deleteRow(receiver, index) native;
 
-  HTMLElement insertRow([int index = null]) {
-    if (index === null) {
-      return _insertRow(this);
-    } else {
-      return _insertRow_2(this, index);
-    }
+  HTMLElement insertRow(int index) {
+    return _insertRow(this, index);
   }
-  static HTMLElement _insertRow(receiver) native;
-  static HTMLElement _insertRow_2(receiver, index) native;
+  static HTMLElement _insertRow(receiver, index) native;
 
   String get typeName() { return "HTMLTableSectionElement"; }
 }

@@ -88,35 +88,20 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   }
   static Node _appendChild(receiver, newChild) native;
 
-  Node cloneNode([bool deep = null]) {
-    if (deep === null) {
-      return _cloneNode(this);
-    } else {
-      return _cloneNode_2(this, deep);
-    }
+  Node cloneNode(bool deep) {
+    return _cloneNode(this, deep);
   }
-  static Node _cloneNode(receiver) native;
-  static Node _cloneNode_2(receiver, deep) native;
+  static Node _cloneNode(receiver, deep) native;
 
-  int compareDocumentPosition([Node other = null]) {
-    if (other === null) {
-      return _compareDocumentPosition(this);
-    } else {
-      return _compareDocumentPosition_2(this, other);
-    }
+  int compareDocumentPosition(Node other) {
+    return _compareDocumentPosition(this, other);
   }
-  static int _compareDocumentPosition(receiver) native;
-  static int _compareDocumentPosition_2(receiver, other) native;
+  static int _compareDocumentPosition(receiver, other) native;
 
-  bool contains([Node other = null]) {
-    if (other === null) {
-      return _contains(this);
-    } else {
-      return _contains_2(this, other);
-    }
+  bool contains(Node other) {
+    return _contains(this, other);
   }
-  static bool _contains(receiver) native;
-  static bool _contains_2(receiver, other) native;
+  static bool _contains(receiver, other) native;
 
   bool dispatchEvent(Event event) {
     return _dispatchEvent(this, event);
@@ -138,73 +123,35 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   }
   static Node _insertBefore(receiver, newChild, refChild) native;
 
-  bool isDefaultNamespace([String namespaceURI = null]) {
-    if (namespaceURI === null) {
-      return _isDefaultNamespace(this);
-    } else {
-      return _isDefaultNamespace_2(this, namespaceURI);
-    }
+  bool isDefaultNamespace(String namespaceURI) {
+    return _isDefaultNamespace(this, namespaceURI);
   }
-  static bool _isDefaultNamespace(receiver) native;
-  static bool _isDefaultNamespace_2(receiver, namespaceURI) native;
+  static bool _isDefaultNamespace(receiver, namespaceURI) native;
 
-  bool isEqualNode([Node other = null]) {
-    if (other === null) {
-      return _isEqualNode(this);
-    } else {
-      return _isEqualNode_2(this, other);
-    }
+  bool isEqualNode(Node other) {
+    return _isEqualNode(this, other);
   }
-  static bool _isEqualNode(receiver) native;
-  static bool _isEqualNode_2(receiver, other) native;
+  static bool _isEqualNode(receiver, other) native;
 
-  bool isSameNode([Node other = null]) {
-    if (other === null) {
-      return _isSameNode(this);
-    } else {
-      return _isSameNode_2(this, other);
-    }
+  bool isSameNode(Node other) {
+    return _isSameNode(this, other);
   }
-  static bool _isSameNode(receiver) native;
-  static bool _isSameNode_2(receiver, other) native;
+  static bool _isSameNode(receiver, other) native;
 
-  bool isSupported([String feature = null, String version = null]) {
-    if (feature === null) {
-      if (version === null) {
-        return _isSupported(this);
-      }
-    } else {
-      if (version === null) {
-        return _isSupported_2(this, feature);
-      } else {
-        return _isSupported_3(this, feature, version);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  bool isSupported(String feature, String version) {
+    return _isSupported(this, feature, version);
   }
-  static bool _isSupported(receiver) native;
-  static bool _isSupported_2(receiver, feature) native;
-  static bool _isSupported_3(receiver, feature, version) native;
+  static bool _isSupported(receiver, feature, version) native;
 
-  String lookupNamespaceURI([String prefix = null]) {
-    if (prefix === null) {
-      return _lookupNamespaceURI(this);
-    } else {
-      return _lookupNamespaceURI_2(this, prefix);
-    }
+  String lookupNamespaceURI(String prefix) {
+    return _lookupNamespaceURI(this, prefix);
   }
-  static String _lookupNamespaceURI(receiver) native;
-  static String _lookupNamespaceURI_2(receiver, prefix) native;
+  static String _lookupNamespaceURI(receiver, prefix) native;
 
-  String lookupPrefix([String namespaceURI = null]) {
-    if (namespaceURI === null) {
-      return _lookupPrefix(this);
-    } else {
-      return _lookupPrefix_2(this, namespaceURI);
-    }
+  String lookupPrefix(String namespaceURI) {
+    return _lookupPrefix(this, namespaceURI);
   }
-  static String _lookupPrefix(receiver) native;
-  static String _lookupPrefix_2(receiver, namespaceURI) native;
+  static String _lookupPrefix(receiver, namespaceURI) native;
 
   void normalize() {
     _normalize(this);

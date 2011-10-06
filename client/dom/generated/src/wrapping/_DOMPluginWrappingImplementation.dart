@@ -23,25 +23,15 @@ class _DOMPluginWrappingImplementation extends DOMWrapperBase implements DOMPlug
   String get name() { return _get__DOMPlugin_name(this); }
   static String _get__DOMPlugin_name(var _this) native;
 
-  DOMMimeType item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  DOMMimeType item(int index) {
+    return _item(this, index);
   }
-  static DOMMimeType _item(receiver) native;
-  static DOMMimeType _item_2(receiver, index) native;
+  static DOMMimeType _item(receiver, index) native;
 
-  DOMMimeType namedItem([String name = null]) {
-    if (name === null) {
-      return _namedItem(this);
-    } else {
-      return _namedItem_2(this, name);
-    }
+  DOMMimeType namedItem(String name) {
+    return _namedItem(this, name);
   }
-  static DOMMimeType _namedItem(receiver) native;
-  static DOMMimeType _namedItem_2(receiver, name) native;
+  static DOMMimeType _namedItem(receiver, name) native;
 
   String get typeName() { return "DOMPlugin"; }
 }

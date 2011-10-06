@@ -8,17 +8,17 @@ interface NamedNodeMap extends List<Node> {
 
   int get length();
 
-  Node getNamedItem([String name]);
+  Node getNamedItem(String name);
 
-  Node getNamedItemNS([String namespaceURI, String localName]);
+  Node getNamedItemNS(String namespaceURI, String localName);
 
-  Node item([int index]);
+  Node item(int index);
 
-  Node removeNamedItem([String name]);
+  Node removeNamedItem(String name);
 
-  Node removeNamedItemNS([String namespaceURI, String localName]);
+  Node removeNamedItemNS(String namespaceURI, String localName);
 
-  Node setNamedItem([Node node]);
+  Node setNamedItem(Node node);
 
-  Node setNamedItemNS([Node node]);
+  Node setNamedItemNS(Node node);
 }

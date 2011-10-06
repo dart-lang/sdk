@@ -24,9 +24,9 @@ interface WorkerGlobalScope {
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void clearInterval([int handle]);
+  void clearInterval(int handle);
 
-  void clearTimeout([int handle]);
+  void clearTimeout(int handle);
 
   void close();
 

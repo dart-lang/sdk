@@ -148,171 +148,51 @@ class _WebKitCSSMatrixWrappingImplementation extends DOMWrapperBase implements W
   }
   static WebKitCSSMatrix _inverse(receiver) native;
 
-  WebKitCSSMatrix multiply([WebKitCSSMatrix secondMatrix = null]) {
-    if (secondMatrix === null) {
-      return _multiply(this);
-    } else {
-      return _multiply_2(this, secondMatrix);
-    }
+  WebKitCSSMatrix multiply(WebKitCSSMatrix secondMatrix) {
+    return _multiply(this, secondMatrix);
   }
-  static WebKitCSSMatrix _multiply(receiver) native;
-  static WebKitCSSMatrix _multiply_2(receiver, secondMatrix) native;
+  static WebKitCSSMatrix _multiply(receiver, secondMatrix) native;
 
-  WebKitCSSMatrix rotate([num rotX = null, num rotY = null, num rotZ = null]) {
-    if (rotX === null) {
-      if (rotY === null) {
-        if (rotZ === null) {
-          return _rotate(this);
-        }
-      }
-    } else {
-      if (rotY === null) {
-        if (rotZ === null) {
-          return _rotate_2(this, rotX);
-        }
-      } else {
-        if (rotZ === null) {
-          return _rotate_3(this, rotX, rotY);
-        } else {
-          return _rotate_4(this, rotX, rotY, rotZ);
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  WebKitCSSMatrix rotate(num rotX, num rotY, num rotZ) {
+    return _rotate(this, rotX, rotY, rotZ);
   }
-  static WebKitCSSMatrix _rotate(receiver) native;
-  static WebKitCSSMatrix _rotate_2(receiver, rotX) native;
-  static WebKitCSSMatrix _rotate_3(receiver, rotX, rotY) native;
-  static WebKitCSSMatrix _rotate_4(receiver, rotX, rotY, rotZ) native;
+  static WebKitCSSMatrix _rotate(receiver, rotX, rotY, rotZ) native;
 
-  WebKitCSSMatrix rotateAxisAngle([num x = null, num y = null, num z = null, num angle = null]) {
-    if (x === null) {
-      if (y === null) {
-        if (z === null) {
-          if (angle === null) {
-            return _rotateAxisAngle(this);
-          }
-        }
-      }
-    } else {
-      if (y === null) {
-        if (z === null) {
-          if (angle === null) {
-            return _rotateAxisAngle_2(this, x);
-          }
-        }
-      } else {
-        if (z === null) {
-          if (angle === null) {
-            return _rotateAxisAngle_3(this, x, y);
-          }
-        } else {
-          if (angle === null) {
-            return _rotateAxisAngle_4(this, x, y, z);
-          } else {
-            return _rotateAxisAngle_5(this, x, y, z, angle);
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  WebKitCSSMatrix rotateAxisAngle(num x, num y, num z, num angle) {
+    return _rotateAxisAngle(this, x, y, z, angle);
   }
-  static WebKitCSSMatrix _rotateAxisAngle(receiver) native;
-  static WebKitCSSMatrix _rotateAxisAngle_2(receiver, x) native;
-  static WebKitCSSMatrix _rotateAxisAngle_3(receiver, x, y) native;
-  static WebKitCSSMatrix _rotateAxisAngle_4(receiver, x, y, z) native;
-  static WebKitCSSMatrix _rotateAxisAngle_5(receiver, x, y, z, angle) native;
+  static WebKitCSSMatrix _rotateAxisAngle(receiver, x, y, z, angle) native;
 
-  WebKitCSSMatrix scale([num scaleX = null, num scaleY = null, num scaleZ = null]) {
-    if (scaleX === null) {
-      if (scaleY === null) {
-        if (scaleZ === null) {
-          return _scale(this);
-        }
-      }
-    } else {
-      if (scaleY === null) {
-        if (scaleZ === null) {
-          return _scale_2(this, scaleX);
-        }
-      } else {
-        if (scaleZ === null) {
-          return _scale_3(this, scaleX, scaleY);
-        } else {
-          return _scale_4(this, scaleX, scaleY, scaleZ);
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  WebKitCSSMatrix scale(num scaleX, num scaleY, num scaleZ) {
+    return _scale(this, scaleX, scaleY, scaleZ);
   }
-  static WebKitCSSMatrix _scale(receiver) native;
-  static WebKitCSSMatrix _scale_2(receiver, scaleX) native;
-  static WebKitCSSMatrix _scale_3(receiver, scaleX, scaleY) native;
-  static WebKitCSSMatrix _scale_4(receiver, scaleX, scaleY, scaleZ) native;
+  static WebKitCSSMatrix _scale(receiver, scaleX, scaleY, scaleZ) native;
 
-  void setMatrixValue([String string = null]) {
-    if (string === null) {
-      _setMatrixValue(this);
-      return;
-    } else {
-      _setMatrixValue_2(this, string);
-      return;
-    }
+  void setMatrixValue(String string) {
+    _setMatrixValue(this, string);
+    return;
   }
-  static void _setMatrixValue(receiver) native;
-  static void _setMatrixValue_2(receiver, string) native;
+  static void _setMatrixValue(receiver, string) native;
 
-  WebKitCSSMatrix skewX([num angle = null]) {
-    if (angle === null) {
-      return _skewX(this);
-    } else {
-      return _skewX_2(this, angle);
-    }
+  WebKitCSSMatrix skewX(num angle) {
+    return _skewX(this, angle);
   }
-  static WebKitCSSMatrix _skewX(receiver) native;
-  static WebKitCSSMatrix _skewX_2(receiver, angle) native;
+  static WebKitCSSMatrix _skewX(receiver, angle) native;
 
-  WebKitCSSMatrix skewY([num angle = null]) {
-    if (angle === null) {
-      return _skewY(this);
-    } else {
-      return _skewY_2(this, angle);
-    }
+  WebKitCSSMatrix skewY(num angle) {
+    return _skewY(this, angle);
   }
-  static WebKitCSSMatrix _skewY(receiver) native;
-  static WebKitCSSMatrix _skewY_2(receiver, angle) native;
+  static WebKitCSSMatrix _skewY(receiver, angle) native;
 
   String toString() {
     return _toString(this);
   }
   static String _toString(receiver) native;
 
-  WebKitCSSMatrix translate([num x = null, num y = null, num z = null]) {
-    if (x === null) {
-      if (y === null) {
-        if (z === null) {
-          return _translate(this);
-        }
-      }
-    } else {
-      if (y === null) {
-        if (z === null) {
-          return _translate_2(this, x);
-        }
-      } else {
-        if (z === null) {
-          return _translate_3(this, x, y);
-        } else {
-          return _translate_4(this, x, y, z);
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  WebKitCSSMatrix translate(num x, num y, num z) {
+    return _translate(this, x, y, z);
   }
-  static WebKitCSSMatrix _translate(receiver) native;
-  static WebKitCSSMatrix _translate_2(receiver, x) native;
-  static WebKitCSSMatrix _translate_3(receiver, x, y) native;
-  static WebKitCSSMatrix _translate_4(receiver, x, y, z) native;
+  static WebKitCSSMatrix _translate(receiver, x, y, z) native;
 
   String get typeName() { return "WebKitCSSMatrix"; }
 }

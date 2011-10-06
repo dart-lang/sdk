@@ -50,27 +50,16 @@ class _HTMLTableRowElementWrappingImplementation extends _HTMLElementWrappingImp
   void set vAlign(String value) { _set__HTMLTableRowElement_vAlign(this, value); }
   static void _set__HTMLTableRowElement_vAlign(var _this, String value) native;
 
-  void deleteCell([int index = null]) {
-    if (index === null) {
-      _deleteCell(this);
-      return;
-    } else {
-      _deleteCell_2(this, index);
-      return;
-    }
+  void deleteCell(int index) {
+    _deleteCell(this, index);
+    return;
   }
-  static void _deleteCell(receiver) native;
-  static void _deleteCell_2(receiver, index) native;
+  static void _deleteCell(receiver, index) native;
 
-  HTMLElement insertCell([int index = null]) {
-    if (index === null) {
-      return _insertCell(this);
-    } else {
-      return _insertCell_2(this, index);
-    }
+  HTMLElement insertCell(int index) {
+    return _insertCell(this, index);
   }
-  static HTMLElement _insertCell(receiver) native;
-  static HTMLElement _insertCell_2(receiver, index) native;
+  static HTMLElement _insertCell(receiver, index) native;
 
   String get typeName() { return "HTMLTableRowElement"; }
 }

@@ -86,17 +86,11 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
   }
   static void _markTimeline(receiver) native;
 
-  void time([String title = null]) {
-    if (title === null) {
-      _time(this);
-      return;
-    } else {
-      _time_2(this, title);
-      return;
-    }
+  void time(String title) {
+    _time(this, title);
+    return;
   }
-  static void _time(receiver) native;
-  static void _time_2(receiver, title) native;
+  static void _time(receiver, title) native;
 
   void timeEnd(String title) {
     _timeEnd(this, title);

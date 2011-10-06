@@ -86,91 +86,40 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
     return new _FixedSizeListIterator<Node>(this);
   }
 
-  Node getNamedItem([String name = null]) {
-    if (name === null) {
-      return _getNamedItem(this);
-    } else {
-      return _getNamedItem_2(this, name);
-    }
+  Node getNamedItem(String name) {
+    return _getNamedItem(this, name);
   }
-  static Node _getNamedItem(receiver) native;
-  static Node _getNamedItem_2(receiver, name) native;
+  static Node _getNamedItem(receiver, name) native;
 
-  Node getNamedItemNS([String namespaceURI = null, String localName = null]) {
-    if (namespaceURI === null) {
-      if (localName === null) {
-        return _getNamedItemNS(this);
-      }
-    } else {
-      if (localName === null) {
-        return _getNamedItemNS_2(this, namespaceURI);
-      } else {
-        return _getNamedItemNS_3(this, namespaceURI, localName);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Node getNamedItemNS(String namespaceURI, String localName) {
+    return _getNamedItemNS(this, namespaceURI, localName);
   }
-  static Node _getNamedItemNS(receiver) native;
-  static Node _getNamedItemNS_2(receiver, namespaceURI) native;
-  static Node _getNamedItemNS_3(receiver, namespaceURI, localName) native;
+  static Node _getNamedItemNS(receiver, namespaceURI, localName) native;
 
-  Node item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  Node item(int index) {
+    return _item(this, index);
   }
-  static Node _item(receiver) native;
-  static Node _item_2(receiver, index) native;
+  static Node _item(receiver, index) native;
 
-  Node removeNamedItem([String name = null]) {
-    if (name === null) {
-      return _removeNamedItem(this);
-    } else {
-      return _removeNamedItem_2(this, name);
-    }
+  Node removeNamedItem(String name) {
+    return _removeNamedItem(this, name);
   }
-  static Node _removeNamedItem(receiver) native;
-  static Node _removeNamedItem_2(receiver, name) native;
+  static Node _removeNamedItem(receiver, name) native;
 
-  Node removeNamedItemNS([String namespaceURI = null, String localName = null]) {
-    if (namespaceURI === null) {
-      if (localName === null) {
-        return _removeNamedItemNS(this);
-      }
-    } else {
-      if (localName === null) {
-        return _removeNamedItemNS_2(this, namespaceURI);
-      } else {
-        return _removeNamedItemNS_3(this, namespaceURI, localName);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Node removeNamedItemNS(String namespaceURI, String localName) {
+    return _removeNamedItemNS(this, namespaceURI, localName);
   }
-  static Node _removeNamedItemNS(receiver) native;
-  static Node _removeNamedItemNS_2(receiver, namespaceURI) native;
-  static Node _removeNamedItemNS_3(receiver, namespaceURI, localName) native;
+  static Node _removeNamedItemNS(receiver, namespaceURI, localName) native;
 
-  Node setNamedItem([Node node = null]) {
-    if (node === null) {
-      return _setNamedItem(this);
-    } else {
-      return _setNamedItem_2(this, node);
-    }
+  Node setNamedItem(Node node) {
+    return _setNamedItem(this, node);
   }
-  static Node _setNamedItem(receiver) native;
-  static Node _setNamedItem_2(receiver, node) native;
+  static Node _setNamedItem(receiver, node) native;
 
-  Node setNamedItemNS([Node node = null]) {
-    if (node === null) {
-      return _setNamedItemNS(this);
-    } else {
-      return _setNamedItemNS_2(this, node);
-    }
+  Node setNamedItemNS(Node node) {
+    return _setNamedItemNS(this, node);
   }
-  static Node _setNamedItemNS(receiver) native;
-  static Node _setNamedItemNS_2(receiver, node) native;
+  static Node _setNamedItemNS(receiver, node) native;
 
   String get typeName() { return "NamedNodeMap"; }
 }

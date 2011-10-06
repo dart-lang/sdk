@@ -14,7 +14,7 @@ interface HTMLCanvasElement extends HTMLElement {
 
   void set width(int value);
 
-  Object getContext([String contextId]);
+  Object getContext(String contextId);
 
-  String toDataURL([String type]);
+  String toDataURL(String type);
 }

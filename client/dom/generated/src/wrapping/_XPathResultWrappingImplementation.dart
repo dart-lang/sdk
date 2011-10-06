@@ -37,15 +37,10 @@ class _XPathResultWrappingImplementation extends DOMWrapperBase implements XPath
   }
   static Node _iterateNext(receiver) native;
 
-  Node snapshotItem([int index = null]) {
-    if (index === null) {
-      return _snapshotItem(this);
-    } else {
-      return _snapshotItem_2(this, index);
-    }
+  Node snapshotItem(int index) {
+    return _snapshotItem(this, index);
   }
-  static Node _snapshotItem(receiver) native;
-  static Node _snapshotItem_2(receiver, index) native;
+  static Node _snapshotItem(receiver, index) native;
 
   String get typeName() { return "XPathResult"; }
 }

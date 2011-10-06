@@ -12,13 +12,13 @@ interface CharacterData extends Node {
 
   int get length();
 
-  void appendData([String data]);
+  void appendData(String data);
 
-  void deleteData([int offset, int length]);
+  void deleteData(int offset, int length);
 
-  void insertData([int offset, String data]);
+  void insertData(int offset, String data);
 
-  void replaceData([int offset, int length, String data]);
+  void replaceData(int offset, int length, String data);
 
-  String substringData([int offset, int length]);
+  String substringData(int offset, int length);
 }

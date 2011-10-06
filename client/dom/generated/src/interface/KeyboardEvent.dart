@@ -28,9 +28,9 @@ interface KeyboardEvent extends UIEvent {
 
   bool get shiftKey();
 
-  bool getModifierState([String keyIdentifierArg]);
+  bool getModifierState(String keyIdentifierArg);
 
-  void initKeyboardEvent([String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey]);
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }
 
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

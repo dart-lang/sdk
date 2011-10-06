@@ -1068,7 +1068,6 @@ function DOM$fixClass$DeviceMotionEvent(c) {
   if (c.prototype) {
     c.prototype.interval$getter = function() { return DOM$EnsureDartNull(this.interval); };
   }
-  DOM$fixMembers(c, ['initDeviceMotionEvent']);
   c.$implements$DeviceMotionEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -4539,7 +4538,6 @@ function DOM$fixClass$Range(c) {
     'cloneContents',
     'cloneRange',
     'collapse',
-    'compareBoundaryPoints',
     'compareNode',
     'comparePoint',
     'createContextualFragment',

@@ -80,6 +80,10 @@ def main():
         'WorkerContext': 'WorkerGlobalScope',
       })
 
+  optional_argument_whitelist = [
+      ('CSSStyleDeclaration', 'setProperty', 'priority'),
+      ]
+
   for dir_name in webkit_dirs:
     dir_path = os.path.join(current_dir, '..', '..', '..', '..',
                 'third_party', 'WebKit', 'Source', 'WebCore', dir_name)
@@ -109,7 +113,7 @@ def main():
   })
 
   # Merging:
-  builder.merge_imported_interfaces()
+  builder.merge_imported_interfaces(optional_argument_whitelist)
 
   builder.fix_displacements('WebKit')
 

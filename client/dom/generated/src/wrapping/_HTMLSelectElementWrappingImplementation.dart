@@ -86,51 +86,26 @@ class _HTMLSelectElementWrappingImplementation extends _HTMLElementWrappingImple
   bool get willValidate() { return _get__HTMLSelectElement_willValidate(this); }
   static bool _get__HTMLSelectElement_willValidate(var _this) native;
 
-  void add([HTMLElement element = null, HTMLElement before = null]) {
-    if (element === null) {
-      if (before === null) {
-        _add(this);
-        return;
-      }
-    } else {
-      if (before === null) {
-        _add_2(this, element);
-        return;
-      } else {
-        _add_3(this, element, before);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void add(HTMLElement element, HTMLElement before) {
+    _add(this, element, before);
+    return;
   }
-  static void _add(receiver) native;
-  static void _add_2(receiver, element) native;
-  static void _add_3(receiver, element, before) native;
+  static void _add(receiver, element, before) native;
 
   bool checkValidity() {
     return _checkValidity(this);
   }
   static bool _checkValidity(receiver) native;
 
-  Node item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  Node item(int index) {
+    return _item(this, index);
   }
-  static Node _item(receiver) native;
-  static Node _item_2(receiver, index) native;
+  static Node _item(receiver, index) native;
 
-  Node namedItem([String name = null]) {
-    if (name === null) {
-      return _namedItem(this);
-    } else {
-      return _namedItem_2(this, name);
-    }
+  Node namedItem(String name) {
+    return _namedItem(this, name);
   }
-  static Node _namedItem(receiver) native;
-  static Node _namedItem_2(receiver, name) native;
+  static Node _namedItem(receiver, name) native;
 
   void remove(int index) {
     _remove(this, index);

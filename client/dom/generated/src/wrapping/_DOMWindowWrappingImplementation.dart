@@ -707,27 +707,16 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static void _addEventListener(receiver, type, listener) native;
   static void _addEventListener_2(receiver, type, listener, useCapture) native;
 
-  void alert([String message = null]) {
-    if (message === null) {
-      _alert(this);
-      return;
-    } else {
-      _alert_2(this, message);
-      return;
-    }
+  void alert(String message) {
+    _alert(this, message);
+    return;
   }
-  static void _alert(receiver) native;
-  static void _alert_2(receiver, message) native;
+  static void _alert(receiver, message) native;
 
-  String atob([String string = null]) {
-    if (string === null) {
-      return _atob(this);
-    } else {
-      return _atob_2(this, string);
-    }
+  String atob(String string) {
+    return _atob(this, string);
   }
-  static String _atob(receiver) native;
-  static String _atob_2(receiver, string) native;
+  static String _atob(receiver, string) native;
 
   void blur() {
     _blur(this);
@@ -735,15 +724,10 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _blur(receiver) native;
 
-  String btoa([String string = null]) {
-    if (string === null) {
-      return _btoa(this);
-    } else {
-      return _btoa_2(this, string);
-    }
+  String btoa(String string) {
+    return _btoa(this, string);
   }
-  static String _btoa(receiver) native;
-  static String _btoa_2(receiver, string) native;
+  static String _btoa(receiver, string) native;
 
   void captureEvents() {
     _captureEvents(this);
@@ -751,29 +735,17 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _captureEvents(receiver) native;
 
-  void clearInterval([int handle = null]) {
-    if (handle === null) {
-      _clearInterval(this);
-      return;
-    } else {
-      _clearInterval_2(this, handle);
-      return;
-    }
+  void clearInterval(int handle) {
+    _clearInterval(this, handle);
+    return;
   }
-  static void _clearInterval(receiver) native;
-  static void _clearInterval_2(receiver, handle) native;
+  static void _clearInterval(receiver, handle) native;
 
-  void clearTimeout([int handle = null]) {
-    if (handle === null) {
-      _clearTimeout(this);
-      return;
-    } else {
-      _clearTimeout_2(this, handle);
-      return;
-    }
+  void clearTimeout(int handle) {
+    _clearTimeout(this, handle);
+    return;
   }
-  static void _clearTimeout(receiver) native;
-  static void _clearTimeout_2(receiver, handle) native;
+  static void _clearTimeout(receiver, handle) native;
 
   void close() {
     _close(this);
@@ -781,15 +753,10 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _close(receiver) native;
 
-  bool confirm([String message = null]) {
-    if (message === null) {
-      return _confirm(this);
-    } else {
-      return _confirm_2(this, message);
-    }
+  bool confirm(String message) {
+    return _confirm(this, message);
   }
-  static bool _confirm(receiver) native;
-  static bool _confirm_2(receiver, message) native;
+  static bool _confirm(receiver, message) native;
 
   FileReader createFileReader() {
     return _createFileReader(this);
@@ -821,88 +788,10 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  bool find([String string = null, bool caseSensitive = null, bool backwards = null, bool wrap = null, bool wholeWord = null, bool searchInFrames = null, bool showDialog = null]) {
-    if (string === null) {
-      if (caseSensitive === null) {
-        if (backwards === null) {
-          if (wrap === null) {
-            if (wholeWord === null) {
-              if (searchInFrames === null) {
-                if (showDialog === null) {
-                  return _find(this);
-                }
-              }
-            }
-          }
-        }
-      }
-    } else {
-      if (caseSensitive === null) {
-        if (backwards === null) {
-          if (wrap === null) {
-            if (wholeWord === null) {
-              if (searchInFrames === null) {
-                if (showDialog === null) {
-                  return _find_2(this, string);
-                }
-              }
-            }
-          }
-        }
-      } else {
-        if (backwards === null) {
-          if (wrap === null) {
-            if (wholeWord === null) {
-              if (searchInFrames === null) {
-                if (showDialog === null) {
-                  return _find_3(this, string, caseSensitive);
-                }
-              }
-            }
-          }
-        } else {
-          if (wrap === null) {
-            if (wholeWord === null) {
-              if (searchInFrames === null) {
-                if (showDialog === null) {
-                  return _find_4(this, string, caseSensitive, backwards);
-                }
-              }
-            }
-          } else {
-            if (wholeWord === null) {
-              if (searchInFrames === null) {
-                if (showDialog === null) {
-                  return _find_5(this, string, caseSensitive, backwards, wrap);
-                }
-              }
-            } else {
-              if (searchInFrames === null) {
-                if (showDialog === null) {
-                  return _find_6(this, string, caseSensitive, backwards, wrap, wholeWord);
-                }
-              } else {
-                if (showDialog === null) {
-                  return _find_7(this, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames);
-                } else {
-                  return _find_8(this, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) {
+    return _find(this, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
   }
-  static bool _find(receiver) native;
-  static bool _find_2(receiver, string) native;
-  static bool _find_3(receiver, string, caseSensitive) native;
-  static bool _find_4(receiver, string, caseSensitive, backwards) native;
-  static bool _find_5(receiver, string, caseSensitive, backwards, wrap) native;
-  static bool _find_6(receiver, string, caseSensitive, backwards, wrap, wholeWord) native;
-  static bool _find_7(receiver, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames) native;
-  static bool _find_8(receiver, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog) native;
+  static bool _find(receiver, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog) native;
 
   void focus() {
     _focus(this);
@@ -910,23 +799,10 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _focus(receiver) native;
 
-  CSSStyleDeclaration getComputedStyle([Element element = null, String pseudoElement = null]) {
-    if (element === null) {
-      if (pseudoElement === null) {
-        return _getComputedStyle(this);
-      }
-    } else {
-      if (pseudoElement === null) {
-        return _getComputedStyle_2(this, element);
-      } else {
-        return _getComputedStyle_3(this, element, pseudoElement);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) {
+    return _getComputedStyle(this, element, pseudoElement);
   }
-  static CSSStyleDeclaration _getComputedStyle(receiver) native;
-  static CSSStyleDeclaration _getComputedStyle_2(receiver, element) native;
-  static CSSStyleDeclaration _getComputedStyle_3(receiver, element, pseudoElement) native;
+  static CSSStyleDeclaration _getComputedStyle(receiver, element, pseudoElement) native;
 
   DOMSelection getSelection() {
     return _getSelection(this);
@@ -983,23 +859,10 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _print(receiver) native;
 
-  String prompt([String message = null, String defaultValue = null]) {
-    if (message === null) {
-      if (defaultValue === null) {
-        return _prompt(this);
-      }
-    } else {
-      if (defaultValue === null) {
-        return _prompt_2(this, message);
-      } else {
-        return _prompt_3(this, message, defaultValue);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  String prompt(String message, String defaultValue) {
+    return _prompt(this, message, defaultValue);
   }
-  static String _prompt(receiver) native;
-  static String _prompt_2(receiver, message) native;
-  static String _prompt_3(receiver, message, defaultValue) native;
+  static String _prompt(receiver, message, defaultValue) native;
 
   void releaseEvents() {
     _releaseEvents(this);
@@ -1054,23 +917,10 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static int _setInterval(receiver, handler, timeout) native;
 
-  int setTimeout([TimeoutHandler handler = null, int timeout = null]) {
-    if (handler === null) {
-      if (timeout === null) {
-        return _setTimeout(this);
-      }
-    } else {
-      if (timeout === null) {
-        return _setTimeout_2(this, handler);
-      } else {
-        return _setTimeout_3(this, handler, timeout);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  int setTimeout(TimeoutHandler handler, int timeout) {
+    return _setTimeout(this, handler, timeout);
   }
-  static int _setTimeout(receiver) native;
-  static int _setTimeout_2(receiver, handler) native;
-  static int _setTimeout_3(receiver, handler, timeout) native;
+  static int _setTimeout(receiver, handler, timeout) native;
 
   Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) {
     if (dialogArgs === null) {
@@ -1102,51 +952,20 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _webkitCancelRequestAnimationFrame(receiver, id) native;
 
-  WebKitPoint webkitConvertPointFromNodeToPage([Node node = null, WebKitPoint p = null]) {
-    if (node === null) {
-      if (p === null) {
-        return _webkitConvertPointFromNodeToPage(this);
-      }
-    } else {
-      if (p === null) {
-        return _webkitConvertPointFromNodeToPage_2(this, node);
-      } else {
-        return _webkitConvertPointFromNodeToPage_3(this, node, p);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p) {
+    return _webkitConvertPointFromNodeToPage(this, node, p);
   }
-  static WebKitPoint _webkitConvertPointFromNodeToPage(receiver) native;
-  static WebKitPoint _webkitConvertPointFromNodeToPage_2(receiver, node) native;
-  static WebKitPoint _webkitConvertPointFromNodeToPage_3(receiver, node, p) native;
+  static WebKitPoint _webkitConvertPointFromNodeToPage(receiver, node, p) native;
 
-  WebKitPoint webkitConvertPointFromPageToNode([Node node = null, WebKitPoint p = null]) {
-    if (node === null) {
-      if (p === null) {
-        return _webkitConvertPointFromPageToNode(this);
-      }
-    } else {
-      if (p === null) {
-        return _webkitConvertPointFromPageToNode_2(this, node);
-      } else {
-        return _webkitConvertPointFromPageToNode_3(this, node, p);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) {
+    return _webkitConvertPointFromPageToNode(this, node, p);
   }
-  static WebKitPoint _webkitConvertPointFromPageToNode(receiver) native;
-  static WebKitPoint _webkitConvertPointFromPageToNode_2(receiver, node) native;
-  static WebKitPoint _webkitConvertPointFromPageToNode_3(receiver, node, p) native;
+  static WebKitPoint _webkitConvertPointFromPageToNode(receiver, node, p) native;
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element = null]) {
-    if (element === null) {
-      return _webkitRequestAnimationFrame(this, callback);
-    } else {
-      return _webkitRequestAnimationFrame_2(this, callback, element);
-    }
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) {
+    return _webkitRequestAnimationFrame(this, callback, element);
   }
-  static int _webkitRequestAnimationFrame(receiver, callback) native;
-  static int _webkitRequestAnimationFrame_2(receiver, callback, element) native;
+  static int _webkitRequestAnimationFrame(receiver, callback, element) native;
 
   String get typeName() { return "DOMWindow"; }
 }

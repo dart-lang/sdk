@@ -103,7 +103,7 @@ class DatabaseBuilder(object):
       # TODO: Decide which attributes are uninteresting.
       pass
 
-  def _split_declarations(self, interface):
+  def _split_declarations(self, interface, optional_argument_whitelist):
     """Splits read-write attributes and operations with optional
     arguments into multiple declarations"""
 
@@ -121,6 +121,18 @@ class DatabaseBuilder(object):
         setter_attr.is_fc_setter = True
         new_attributes.append(setter_attr)
     interface.attributes = new_attributes
+
+    # Remove optional annotations from legacy optional arguments.
+    for op in interface.operations:
+      for i in range(0, len(op.arguments)):
+        argument = op.arguments[i]
+        if argument.is_optional:
+          if 'Optional' in argument.ext_attrs:
+            optional_value = argument.ext_attrs['Optional']
+            if optional_value == 'CallWithDefaultValue':
+              if (interface.id, op.id, argument.id) not in optional_argument_whitelist:
+                argument.is_optional = False
+                del argument.ext_attrs['Optional']
 
     # split operations with optional args into multiple operations
     new_ops = []
@@ -395,12 +407,12 @@ class DatabaseBuilder(object):
     indicating which types are equivalent"""
     self._same_signatures = signatures_table
 
-  def merge_imported_interfaces(self):
+  def merge_imported_interfaces(self, optional_argument_whitelist):
     """Merges all imported interfaces and loads them into the DB."""
 
     # Step 1: Pre process imported interfaces
     for interface, module_name, import_options in self._imported_interfaces:
-      self._split_declarations(interface)
+      self._split_declarations(interface, optional_argument_whitelist)
       self._annotate(interface, module_name, import_options)
 
     # Step 2: Add all new interfaces and merge overlapping ones

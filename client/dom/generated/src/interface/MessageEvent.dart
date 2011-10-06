@@ -16,5 +16,5 @@ interface MessageEvent extends Event {
 
   DOMWindow get source();
 
-  void initMessageEvent([String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, MessagePort messagePort]);
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, MessagePort messagePort);
 }

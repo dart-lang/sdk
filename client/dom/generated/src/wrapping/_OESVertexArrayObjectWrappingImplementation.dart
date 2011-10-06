@@ -11,44 +11,27 @@ class _OESVertexArrayObjectWrappingImplementation extends DOMWrapperBase impleme
     return new _OESVertexArrayObjectWrappingImplementation();
   }
 
-  void bindVertexArrayOES([WebGLVertexArrayObjectOES arrayObject = null]) {
-    if (arrayObject === null) {
-      _bindVertexArrayOES(this);
-      return;
-    } else {
-      _bindVertexArrayOES_2(this, arrayObject);
-      return;
-    }
+  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
+    _bindVertexArrayOES(this, arrayObject);
+    return;
   }
-  static void _bindVertexArrayOES(receiver) native;
-  static void _bindVertexArrayOES_2(receiver, arrayObject) native;
+  static void _bindVertexArrayOES(receiver, arrayObject) native;
 
   WebGLVertexArrayObjectOES createVertexArrayOES() {
     return _createVertexArrayOES(this);
   }
   static WebGLVertexArrayObjectOES _createVertexArrayOES(receiver) native;
 
-  void deleteVertexArrayOES([WebGLVertexArrayObjectOES arrayObject = null]) {
-    if (arrayObject === null) {
-      _deleteVertexArrayOES(this);
-      return;
-    } else {
-      _deleteVertexArrayOES_2(this, arrayObject);
-      return;
-    }
+  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
+    _deleteVertexArrayOES(this, arrayObject);
+    return;
   }
-  static void _deleteVertexArrayOES(receiver) native;
-  static void _deleteVertexArrayOES_2(receiver, arrayObject) native;
+  static void _deleteVertexArrayOES(receiver, arrayObject) native;
 
-  bool isVertexArrayOES([WebGLVertexArrayObjectOES arrayObject = null]) {
-    if (arrayObject === null) {
-      return _isVertexArrayOES(this);
-    } else {
-      return _isVertexArrayOES_2(this, arrayObject);
-    }
+  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
+    return _isVertexArrayOES(this, arrayObject);
   }
-  static bool _isVertexArrayOES(receiver) native;
-  static bool _isVertexArrayOES_2(receiver, arrayObject) native;
+  static bool _isVertexArrayOES(receiver, arrayObject) native;
 
   String get typeName() { return "OESVertexArrayObject"; }
 }

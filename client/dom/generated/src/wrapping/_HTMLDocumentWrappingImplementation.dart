@@ -109,29 +109,17 @@ class _HTMLDocumentWrappingImplementation extends _DocumentWrappingImplementatio
   }
   static void _releaseEvents(receiver) native;
 
-  void write([String text = null]) {
-    if (text === null) {
-      _write(this);
-      return;
-    } else {
-      _write_2(this, text);
-      return;
-    }
+  void write(String text) {
+    _write(this, text);
+    return;
   }
-  static void _write(receiver) native;
-  static void _write_2(receiver, text) native;
+  static void _write(receiver, text) native;
 
-  void writeln([String text = null]) {
-    if (text === null) {
-      _writeln(this);
-      return;
-    } else {
-      _writeln_2(this, text);
-      return;
-    }
+  void writeln(String text) {
+    _writeln(this, text);
+    return;
   }
-  static void _writeln(receiver) native;
-  static void _writeln_2(receiver, text) native;
+  static void _writeln(receiver, text) native;
 
   String get typeName() { return "HTMLDocument"; }
 }

@@ -62,17 +62,11 @@ class _LocationWrappingImplementation extends DOMWrapperBase implements Location
   void set search(String value) { _set__Location_search(this, value); }
   static void _set__Location_search(var _this, String value) native;
 
-  void assign([String url = null]) {
-    if (url === null) {
-      _assign(this);
-      return;
-    } else {
-      _assign_2(this, url);
-      return;
-    }
+  void assign(String url) {
+    _assign(this, url);
+    return;
   }
-  static void _assign(receiver) native;
-  static void _assign_2(receiver, url) native;
+  static void _assign(receiver, url) native;
 
   String getParameter(String name) {
     return _getParameter(this, name);
@@ -85,17 +79,11 @@ class _LocationWrappingImplementation extends DOMWrapperBase implements Location
   }
   static void _reload(receiver) native;
 
-  void replace([String url = null]) {
-    if (url === null) {
-      _replace(this);
-      return;
-    } else {
-      _replace_2(this, url);
-      return;
-    }
+  void replace(String url) {
+    _replace(this, url);
+    return;
   }
-  static void _replace(receiver) native;
-  static void _replace_2(receiver, url) native;
+  static void _replace(receiver, url) native;
 
   String get typeName() { return "Location"; }
 }

@@ -44,38 +44,17 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   String get type() { return _get__DOMSelection_type(this); }
   static String _get__DOMSelection_type(var _this) native;
 
-  void addRange([Range range = null]) {
-    if (range === null) {
-      _addRange(this);
-      return;
-    } else {
-      _addRange_2(this, range);
-      return;
-    }
+  void addRange(Range range) {
+    _addRange(this, range);
+    return;
   }
-  static void _addRange(receiver) native;
-  static void _addRange_2(receiver, range) native;
+  static void _addRange(receiver, range) native;
 
-  void collapse([Node node = null, int index = null]) {
-    if (node === null) {
-      if (index === null) {
-        _collapse(this);
-        return;
-      }
-    } else {
-      if (index === null) {
-        _collapse_2(this, node);
-        return;
-      } else {
-        _collapse_3(this, node, index);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void collapse(Node node, int index) {
+    _collapse(this, node, index);
+    return;
   }
-  static void _collapse(receiver) native;
-  static void _collapse_2(receiver, node) native;
-  static void _collapse_3(receiver, node, index) native;
+  static void _collapse(receiver, node, index) native;
 
   void collapseToEnd() {
     _collapseToEnd(this);
@@ -89,23 +68,10 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   }
   static void _collapseToStart(receiver) native;
 
-  bool containsNode([Node node = null, bool allowPartial = null]) {
-    if (node === null) {
-      if (allowPartial === null) {
-        return _containsNode(this);
-      }
-    } else {
-      if (allowPartial === null) {
-        return _containsNode_2(this, node);
-      } else {
-        return _containsNode_3(this, node, allowPartial);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  bool containsNode(Node node, bool allowPartial) {
+    return _containsNode(this, node, allowPartial);
   }
-  static bool _containsNode(receiver) native;
-  static bool _containsNode_2(receiver, node) native;
-  static bool _containsNode_3(receiver, node, allowPartial) native;
+  static bool _containsNode(receiver, node, allowPartial) native;
 
   void deleteFromDocument() {
     _deleteFromDocument(this);
@@ -119,67 +85,22 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   }
   static void _empty(receiver) native;
 
-  void extend([Node node = null, int offset = null]) {
-    if (node === null) {
-      if (offset === null) {
-        _extend(this);
-        return;
-      }
-    } else {
-      if (offset === null) {
-        _extend_2(this, node);
-        return;
-      } else {
-        _extend_3(this, node, offset);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void extend(Node node, int offset) {
+    _extend(this, node, offset);
+    return;
   }
-  static void _extend(receiver) native;
-  static void _extend_2(receiver, node) native;
-  static void _extend_3(receiver, node, offset) native;
+  static void _extend(receiver, node, offset) native;
 
-  Range getRangeAt([int index = null]) {
-    if (index === null) {
-      return _getRangeAt(this);
-    } else {
-      return _getRangeAt_2(this, index);
-    }
+  Range getRangeAt(int index) {
+    return _getRangeAt(this, index);
   }
-  static Range _getRangeAt(receiver) native;
-  static Range _getRangeAt_2(receiver, index) native;
+  static Range _getRangeAt(receiver, index) native;
 
-  void modify([String alter = null, String direction = null, String granularity = null]) {
-    if (alter === null) {
-      if (direction === null) {
-        if (granularity === null) {
-          _modify(this);
-          return;
-        }
-      }
-    } else {
-      if (direction === null) {
-        if (granularity === null) {
-          _modify_2(this, alter);
-          return;
-        }
-      } else {
-        if (granularity === null) {
-          _modify_3(this, alter, direction);
-          return;
-        } else {
-          _modify_4(this, alter, direction, granularity);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void modify(String alter, String direction, String granularity) {
+    _modify(this, alter, direction, granularity);
+    return;
   }
-  static void _modify(receiver) native;
-  static void _modify_2(receiver, alter) native;
-  static void _modify_3(receiver, alter, direction) native;
-  static void _modify_4(receiver, alter, direction, granularity) native;
+  static void _modify(receiver, alter, direction, granularity) native;
 
   void removeAllRanges() {
     _removeAllRanges(this);
@@ -187,81 +108,23 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   }
   static void _removeAllRanges(receiver) native;
 
-  void selectAllChildren([Node node = null]) {
-    if (node === null) {
-      _selectAllChildren(this);
-      return;
-    } else {
-      _selectAllChildren_2(this, node);
-      return;
-    }
+  void selectAllChildren(Node node) {
+    _selectAllChildren(this, node);
+    return;
   }
-  static void _selectAllChildren(receiver) native;
-  static void _selectAllChildren_2(receiver, node) native;
+  static void _selectAllChildren(receiver, node) native;
 
-  void setBaseAndExtent([Node baseNode = null, int baseOffset = null, Node extentNode = null, int extentOffset = null]) {
-    if (baseNode === null) {
-      if (baseOffset === null) {
-        if (extentNode === null) {
-          if (extentOffset === null) {
-            _setBaseAndExtent(this);
-            return;
-          }
-        }
-      }
-    } else {
-      if (baseOffset === null) {
-        if (extentNode === null) {
-          if (extentOffset === null) {
-            _setBaseAndExtent_2(this, baseNode);
-            return;
-          }
-        }
-      } else {
-        if (extentNode === null) {
-          if (extentOffset === null) {
-            _setBaseAndExtent_3(this, baseNode, baseOffset);
-            return;
-          }
-        } else {
-          if (extentOffset === null) {
-            _setBaseAndExtent_4(this, baseNode, baseOffset, extentNode);
-            return;
-          } else {
-            _setBaseAndExtent_5(this, baseNode, baseOffset, extentNode, extentOffset);
-            return;
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) {
+    _setBaseAndExtent(this, baseNode, baseOffset, extentNode, extentOffset);
+    return;
   }
-  static void _setBaseAndExtent(receiver) native;
-  static void _setBaseAndExtent_2(receiver, baseNode) native;
-  static void _setBaseAndExtent_3(receiver, baseNode, baseOffset) native;
-  static void _setBaseAndExtent_4(receiver, baseNode, baseOffset, extentNode) native;
-  static void _setBaseAndExtent_5(receiver, baseNode, baseOffset, extentNode, extentOffset) native;
+  static void _setBaseAndExtent(receiver, baseNode, baseOffset, extentNode, extentOffset) native;
 
-  void setPosition([Node node = null, int offset = null]) {
-    if (node === null) {
-      if (offset === null) {
-        _setPosition(this);
-        return;
-      }
-    } else {
-      if (offset === null) {
-        _setPosition_2(this, node);
-        return;
-      } else {
-        _setPosition_3(this, node, offset);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void setPosition(Node node, int offset) {
+    _setPosition(this, node, offset);
+    return;
   }
-  static void _setPosition(receiver) native;
-  static void _setPosition_2(receiver, node) native;
-  static void _setPosition_3(receiver, node, offset) native;
+  static void _setPosition(receiver, node, offset) native;
 
   String get typeName() { return "DOMSelection"; }
 }

@@ -14,15 +14,10 @@ class _HTMLAllCollectionWrappingImplementation extends DOMWrapperBase implements
   int get length() { return _get__HTMLAllCollection_length(this); }
   static int _get__HTMLAllCollection_length(var _this) native;
 
-  Node item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  Node item(int index) {
+    return _item(this, index);
   }
-  static Node _item(receiver) native;
-  static Node _item_2(receiver, index) native;
+  static Node _item(receiver, index) native;
 
   Node namedItem(String name) {
     return _namedItem(this, name);

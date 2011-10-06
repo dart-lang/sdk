@@ -8,5 +8,5 @@ interface CSSValueList extends CSSValue {
 
   int get length();
 
-  CSSValue item([int index]);
+  CSSValue item(int index);
 }

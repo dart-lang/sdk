@@ -11,26 +11,11 @@ class _CanvasGradientWrappingImplementation extends DOMWrapperBase implements Ca
     return new _CanvasGradientWrappingImplementation();
   }
 
-  void addColorStop([num offset = null, String color = null]) {
-    if (offset === null) {
-      if (color === null) {
-        _addColorStop(this);
-        return;
-      }
-    } else {
-      if (color === null) {
-        _addColorStop_2(this, offset);
-        return;
-      } else {
-        _addColorStop_3(this, offset, color);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void addColorStop(num offset, String color) {
+    _addColorStop(this, offset, color);
+    return;
   }
-  static void _addColorStop(receiver) native;
-  static void _addColorStop_2(receiver, offset) native;
-  static void _addColorStop_3(receiver, offset, color) native;
+  static void _addColorStop(receiver, offset, color) native;
 
   String get typeName() { return "CanvasGradient"; }
 }

@@ -23,25 +23,15 @@ class _HTMLCanvasElementWrappingImplementation extends _HTMLElementWrappingImple
   void set width(int value) { _set__HTMLCanvasElement_width(this, value); }
   static void _set__HTMLCanvasElement_width(var _this, int value) native;
 
-  Object getContext([String contextId = null]) {
-    if (contextId === null) {
-      return _getContext(this);
-    } else {
-      return _getContext_2(this, contextId);
-    }
+  Object getContext(String contextId) {
+    return _getContext(this, contextId);
   }
-  static Object _getContext(receiver) native;
-  static Object _getContext_2(receiver, contextId) native;
+  static Object _getContext(receiver, contextId) native;
 
-  String toDataURL([String type = null]) {
-    if (type === null) {
-      return _toDataURL(this);
-    } else {
-      return _toDataURL_2(this, type);
-    }
+  String toDataURL(String type) {
+    return _toDataURL(this, type);
   }
-  static String _toDataURL(receiver) native;
-  static String _toDataURL_2(receiver, type) native;
+  static String _toDataURL(receiver, type) native;
 
   String get typeName() { return "HTMLCanvasElement"; }
 }

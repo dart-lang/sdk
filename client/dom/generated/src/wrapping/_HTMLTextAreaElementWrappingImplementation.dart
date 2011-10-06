@@ -145,36 +145,17 @@ class _HTMLTextAreaElementWrappingImplementation extends _HTMLElementWrappingImp
   }
   static void _setCustomValidity(receiver, error) native;
 
-  void setSelectionRange([int start = null, int end = null, String direction = null]) {
-    if (start === null) {
-      if (end === null) {
-        if (direction === null) {
-          _setSelectionRange(this);
-          return;
-        }
-      }
+  void setSelectionRange(int start, int end, [String direction = null]) {
+    if (direction === null) {
+      _setSelectionRange(this, start, end);
+      return;
     } else {
-      if (end === null) {
-        if (direction === null) {
-          _setSelectionRange_2(this, start);
-          return;
-        }
-      } else {
-        if (direction === null) {
-          _setSelectionRange_3(this, start, end);
-          return;
-        } else {
-          _setSelectionRange_4(this, start, end, direction);
-          return;
-        }
-      }
+      _setSelectionRange_2(this, start, end, direction);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _setSelectionRange(receiver) native;
-  static void _setSelectionRange_2(receiver, start) native;
-  static void _setSelectionRange_3(receiver, start, end) native;
-  static void _setSelectionRange_4(receiver, start, end, direction) native;
+  static void _setSelectionRange(receiver, start, end) native;
+  static void _setSelectionRange_2(receiver, start, end, direction) native;
 
   String get typeName() { return "HTMLTextAreaElement"; }
 }

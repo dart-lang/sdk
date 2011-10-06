@@ -110,65 +110,22 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   void set webkitdropzone(String value) { _set__HTMLElement_webkitdropzone(this, value); }
   static void _set__HTMLElement_webkitdropzone(var _this, String value) native;
 
-  Element insertAdjacentElement([String where = null, Element element = null]) {
-    if (where === null) {
-      if (element === null) {
-        return _insertAdjacentElement(this);
-      }
-    } else {
-      if (element === null) {
-        return _insertAdjacentElement_2(this, where);
-      } else {
-        return _insertAdjacentElement_3(this, where, element);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Element insertAdjacentElement(String where, Element element) {
+    return _insertAdjacentElement(this, where, element);
   }
-  static Element _insertAdjacentElement(receiver) native;
-  static Element _insertAdjacentElement_2(receiver, where) native;
-  static Element _insertAdjacentElement_3(receiver, where, element) native;
+  static Element _insertAdjacentElement(receiver, where, element) native;
 
-  void insertAdjacentHTML([String where = null, String html = null]) {
-    if (where === null) {
-      if (html === null) {
-        _insertAdjacentHTML(this);
-        return;
-      }
-    } else {
-      if (html === null) {
-        _insertAdjacentHTML_2(this, where);
-        return;
-      } else {
-        _insertAdjacentHTML_3(this, where, html);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void insertAdjacentHTML(String where, String html) {
+    _insertAdjacentHTML(this, where, html);
+    return;
   }
-  static void _insertAdjacentHTML(receiver) native;
-  static void _insertAdjacentHTML_2(receiver, where) native;
-  static void _insertAdjacentHTML_3(receiver, where, html) native;
+  static void _insertAdjacentHTML(receiver, where, html) native;
 
-  void insertAdjacentText([String where = null, String text = null]) {
-    if (where === null) {
-      if (text === null) {
-        _insertAdjacentText(this);
-        return;
-      }
-    } else {
-      if (text === null) {
-        _insertAdjacentText_2(this, where);
-        return;
-      } else {
-        _insertAdjacentText_3(this, where, text);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void insertAdjacentText(String where, String text) {
+    _insertAdjacentText(this, where, text);
+    return;
   }
-  static void _insertAdjacentText(receiver) native;
-  static void _insertAdjacentText_2(receiver, where) native;
-  static void _insertAdjacentText_3(receiver, where, text) native;
+  static void _insertAdjacentText(receiver, where, text) native;
 
   String get typeName() { return "HTMLElement"; }
 }

@@ -8,5 +8,5 @@ interface BeforeLoadEvent extends Event {
 
   String get url();
 
-  void initBeforeLoadEvent([String type, bool canBubble, bool cancelable, String url]);
+  void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url);
 }

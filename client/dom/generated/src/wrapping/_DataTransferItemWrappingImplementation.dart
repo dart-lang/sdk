@@ -22,17 +22,11 @@ class _DataTransferItemWrappingImplementation extends DOMWrapperBase implements 
   }
   static Blob _getAsFile(receiver) native;
 
-  void getAsString([StringCallback callback = null]) {
-    if (callback === null) {
-      _getAsString(this);
-      return;
-    } else {
-      _getAsString_2(this, callback);
-      return;
-    }
+  void getAsString(StringCallback callback) {
+    _getAsString(this, callback);
+    return;
   }
-  static void _getAsString(receiver) native;
-  static void _getAsString_2(receiver, callback) native;
+  static void _getAsString(receiver, callback) native;
 
   String get typeName() { return "DataTransferItem"; }
 }

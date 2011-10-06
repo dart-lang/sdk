@@ -17,29 +17,17 @@ class _MediaQueryListWrappingImplementation extends DOMWrapperBase implements Me
   String get media() { return _get__MediaQueryList_media(this); }
   static String _get__MediaQueryList_media(var _this) native;
 
-  void addListener([MediaQueryListListener listener = null]) {
-    if (listener === null) {
-      _addListener(this);
-      return;
-    } else {
-      _addListener_2(this, listener);
-      return;
-    }
+  void addListener(MediaQueryListListener listener) {
+    _addListener(this, listener);
+    return;
   }
-  static void _addListener(receiver) native;
-  static void _addListener_2(receiver, listener) native;
+  static void _addListener(receiver, listener) native;
 
-  void removeListener([MediaQueryListListener listener = null]) {
-    if (listener === null) {
-      _removeListener(this);
-      return;
-    } else {
-      _removeListener_2(this, listener);
-      return;
-    }
+  void removeListener(MediaQueryListListener listener) {
+    _removeListener(this, listener);
+    return;
   }
-  static void _removeListener(receiver) native;
-  static void _removeListener_2(receiver, listener) native;
+  static void _removeListener(receiver, listener) native;
 
   String get typeName() { return "MediaQueryList"; }
 }

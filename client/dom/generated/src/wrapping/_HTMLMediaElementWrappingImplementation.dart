@@ -137,15 +137,10 @@ class _HTMLMediaElementWrappingImplementation extends _HTMLElementWrappingImplem
   int get webkitVideoDecodedByteCount() { return _get__HTMLMediaElement_webkitVideoDecodedByteCount(this); }
   static int _get__HTMLMediaElement_webkitVideoDecodedByteCount(var _this) native;
 
-  String canPlayType([String type = null]) {
-    if (type === null) {
-      return _canPlayType(this);
-    } else {
-      return _canPlayType_2(this, type);
-    }
+  String canPlayType(String type) {
+    return _canPlayType(this, type);
   }
-  static String _canPlayType(receiver) native;
-  static String _canPlayType_2(receiver, type) native;
+  static String _canPlayType(receiver, type) native;
 
   void load() {
     _load(this);

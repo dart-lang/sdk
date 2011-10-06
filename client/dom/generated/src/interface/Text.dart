@@ -8,7 +8,7 @@ interface Text extends CharacterData {
 
   String get wholeText();
 
-  Text replaceWholeText([String content]);
+  Text replaceWholeText(String content);
 
-  Text splitText([int offset]);
+  Text splitText(int offset);
 }

@@ -8,9 +8,9 @@ interface DOMPluginArray {
 
   int get length();
 
-  DOMPlugin item([int index]);
+  DOMPlugin item(int index);
 
-  DOMPlugin namedItem([String name]);
+  DOMPlugin namedItem(String name);
 
-  void refresh([bool reload]);
+  void refresh(bool reload);
 }

@@ -42,60 +42,26 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   }
   static Range _cloneRange(receiver) native;
 
-  void collapse([bool toStart = null]) {
-    if (toStart === null) {
-      _collapse(this);
-      return;
-    } else {
-      _collapse_2(this, toStart);
-      return;
-    }
+  void collapse(bool toStart) {
+    _collapse(this, toStart);
+    return;
   }
-  static void _collapse(receiver) native;
-  static void _collapse_2(receiver, toStart) native;
+  static void _collapse(receiver, toStart) native;
 
-  int compareBoundaryPoints() {
-    return _compareBoundaryPoints(this);
+  int compareNode(Node refNode) {
+    return _compareNode(this, refNode);
   }
-  static int _compareBoundaryPoints(receiver) native;
+  static int _compareNode(receiver, refNode) native;
 
-  int compareNode([Node refNode = null]) {
-    if (refNode === null) {
-      return _compareNode(this);
-    } else {
-      return _compareNode_2(this, refNode);
-    }
+  int comparePoint(Node refNode, int offset) {
+    return _comparePoint(this, refNode, offset);
   }
-  static int _compareNode(receiver) native;
-  static int _compareNode_2(receiver, refNode) native;
+  static int _comparePoint(receiver, refNode, offset) native;
 
-  int comparePoint([Node refNode = null, int offset = null]) {
-    if (refNode === null) {
-      if (offset === null) {
-        return _comparePoint(this);
-      }
-    } else {
-      if (offset === null) {
-        return _comparePoint_2(this, refNode);
-      } else {
-        return _comparePoint_3(this, refNode, offset);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  DocumentFragment createContextualFragment(String html) {
+    return _createContextualFragment(this, html);
   }
-  static int _comparePoint(receiver) native;
-  static int _comparePoint_2(receiver, refNode) native;
-  static int _comparePoint_3(receiver, refNode, offset) native;
-
-  DocumentFragment createContextualFragment([String html = null]) {
-    if (html === null) {
-      return _createContextualFragment(this);
-    } else {
-      return _createContextualFragment_2(this, html);
-    }
-  }
-  static DocumentFragment _createContextualFragment(receiver) native;
-  static DocumentFragment _createContextualFragment_2(receiver, html) native;
+  static DocumentFragment _createContextualFragment(receiver, html) native;
 
   void deleteContents() {
     _deleteContents(this);
@@ -109,188 +75,86 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   }
   static void _detach(receiver) native;
 
-  void expand([String unit = null]) {
-    if (unit === null) {
-      _expand(this);
-      return;
-    } else {
-      _expand_2(this, unit);
-      return;
-    }
+  void expand(String unit) {
+    _expand(this, unit);
+    return;
   }
-  static void _expand(receiver) native;
-  static void _expand_2(receiver, unit) native;
+  static void _expand(receiver, unit) native;
 
   DocumentFragment extractContents() {
     return _extractContents(this);
   }
   static DocumentFragment _extractContents(receiver) native;
 
-  void insertNode([Node newNode = null]) {
-    if (newNode === null) {
-      _insertNode(this);
-      return;
-    } else {
-      _insertNode_2(this, newNode);
-      return;
-    }
+  void insertNode(Node newNode) {
+    _insertNode(this, newNode);
+    return;
   }
-  static void _insertNode(receiver) native;
-  static void _insertNode_2(receiver, newNode) native;
+  static void _insertNode(receiver, newNode) native;
 
-  bool intersectsNode([Node refNode = null]) {
-    if (refNode === null) {
-      return _intersectsNode(this);
-    } else {
-      return _intersectsNode_2(this, refNode);
-    }
+  bool intersectsNode(Node refNode) {
+    return _intersectsNode(this, refNode);
   }
-  static bool _intersectsNode(receiver) native;
-  static bool _intersectsNode_2(receiver, refNode) native;
+  static bool _intersectsNode(receiver, refNode) native;
 
-  bool isPointInRange([Node refNode = null, int offset = null]) {
-    if (refNode === null) {
-      if (offset === null) {
-        return _isPointInRange(this);
-      }
-    } else {
-      if (offset === null) {
-        return _isPointInRange_2(this, refNode);
-      } else {
-        return _isPointInRange_3(this, refNode, offset);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  bool isPointInRange(Node refNode, int offset) {
+    return _isPointInRange(this, refNode, offset);
   }
-  static bool _isPointInRange(receiver) native;
-  static bool _isPointInRange_2(receiver, refNode) native;
-  static bool _isPointInRange_3(receiver, refNode, offset) native;
+  static bool _isPointInRange(receiver, refNode, offset) native;
 
-  void selectNode([Node refNode = null]) {
-    if (refNode === null) {
-      _selectNode(this);
-      return;
-    } else {
-      _selectNode_2(this, refNode);
-      return;
-    }
+  void selectNode(Node refNode) {
+    _selectNode(this, refNode);
+    return;
   }
-  static void _selectNode(receiver) native;
-  static void _selectNode_2(receiver, refNode) native;
+  static void _selectNode(receiver, refNode) native;
 
-  void selectNodeContents([Node refNode = null]) {
-    if (refNode === null) {
-      _selectNodeContents(this);
-      return;
-    } else {
-      _selectNodeContents_2(this, refNode);
-      return;
-    }
+  void selectNodeContents(Node refNode) {
+    _selectNodeContents(this, refNode);
+    return;
   }
-  static void _selectNodeContents(receiver) native;
-  static void _selectNodeContents_2(receiver, refNode) native;
+  static void _selectNodeContents(receiver, refNode) native;
 
-  void setEnd([Node refNode = null, int offset = null]) {
-    if (refNode === null) {
-      if (offset === null) {
-        _setEnd(this);
-        return;
-      }
-    } else {
-      if (offset === null) {
-        _setEnd_2(this, refNode);
-        return;
-      } else {
-        _setEnd_3(this, refNode, offset);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void setEnd(Node refNode, int offset) {
+    _setEnd(this, refNode, offset);
+    return;
   }
-  static void _setEnd(receiver) native;
-  static void _setEnd_2(receiver, refNode) native;
-  static void _setEnd_3(receiver, refNode, offset) native;
+  static void _setEnd(receiver, refNode, offset) native;
 
-  void setEndAfter([Node refNode = null]) {
-    if (refNode === null) {
-      _setEndAfter(this);
-      return;
-    } else {
-      _setEndAfter_2(this, refNode);
-      return;
-    }
+  void setEndAfter(Node refNode) {
+    _setEndAfter(this, refNode);
+    return;
   }
-  static void _setEndAfter(receiver) native;
-  static void _setEndAfter_2(receiver, refNode) native;
+  static void _setEndAfter(receiver, refNode) native;
 
-  void setEndBefore([Node refNode = null]) {
-    if (refNode === null) {
-      _setEndBefore(this);
-      return;
-    } else {
-      _setEndBefore_2(this, refNode);
-      return;
-    }
+  void setEndBefore(Node refNode) {
+    _setEndBefore(this, refNode);
+    return;
   }
-  static void _setEndBefore(receiver) native;
-  static void _setEndBefore_2(receiver, refNode) native;
+  static void _setEndBefore(receiver, refNode) native;
 
-  void setStart([Node refNode = null, int offset = null]) {
-    if (refNode === null) {
-      if (offset === null) {
-        _setStart(this);
-        return;
-      }
-    } else {
-      if (offset === null) {
-        _setStart_2(this, refNode);
-        return;
-      } else {
-        _setStart_3(this, refNode, offset);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void setStart(Node refNode, int offset) {
+    _setStart(this, refNode, offset);
+    return;
   }
-  static void _setStart(receiver) native;
-  static void _setStart_2(receiver, refNode) native;
-  static void _setStart_3(receiver, refNode, offset) native;
+  static void _setStart(receiver, refNode, offset) native;
 
-  void setStartAfter([Node refNode = null]) {
-    if (refNode === null) {
-      _setStartAfter(this);
-      return;
-    } else {
-      _setStartAfter_2(this, refNode);
-      return;
-    }
+  void setStartAfter(Node refNode) {
+    _setStartAfter(this, refNode);
+    return;
   }
-  static void _setStartAfter(receiver) native;
-  static void _setStartAfter_2(receiver, refNode) native;
+  static void _setStartAfter(receiver, refNode) native;
 
-  void setStartBefore([Node refNode = null]) {
-    if (refNode === null) {
-      _setStartBefore(this);
-      return;
-    } else {
-      _setStartBefore_2(this, refNode);
-      return;
-    }
+  void setStartBefore(Node refNode) {
+    _setStartBefore(this, refNode);
+    return;
   }
-  static void _setStartBefore(receiver) native;
-  static void _setStartBefore_2(receiver, refNode) native;
+  static void _setStartBefore(receiver, refNode) native;
 
-  void surroundContents([Node newParent = null]) {
-    if (newParent === null) {
-      _surroundContents(this);
-      return;
-    } else {
-      _surroundContents_2(this, newParent);
-      return;
-    }
+  void surroundContents(Node newParent) {
+    _surroundContents(this, newParent);
+    return;
   }
-  static void _surroundContents(receiver) native;
-  static void _surroundContents_2(receiver, newParent) native;
+  static void _surroundContents(receiver, newParent) native;
 
   String toString() {
     return _toString(this);

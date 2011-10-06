@@ -86,11 +86,11 @@ interface Node extends EventTarget {
 
   Node appendChild(Node newChild);
 
-  Node cloneNode([bool deep]);
+  Node cloneNode(bool deep);
 
-  int compareDocumentPosition([Node other]);
+  int compareDocumentPosition(Node other);
 
-  bool contains([Node other]);
+  bool contains(Node other);
 
   bool dispatchEvent(Event event);
 
@@ -100,17 +100,17 @@ interface Node extends EventTarget {
 
   Node insertBefore(Node newChild, Node refChild);
 
-  bool isDefaultNamespace([String namespaceURI]);
+  bool isDefaultNamespace(String namespaceURI);
 
-  bool isEqualNode([Node other]);
+  bool isEqualNode(Node other);
 
-  bool isSameNode([Node other]);
+  bool isSameNode(Node other);
 
-  bool isSupported([String feature, String version]);
+  bool isSupported(String feature, String version);
 
-  String lookupNamespaceURI([String prefix]);
+  String lookupNamespaceURI(String prefix);
 
-  String lookupPrefix([String namespaceURI]);
+  String lookupPrefix(String namespaceURI);
 
   void normalize();
 

@@ -12,7 +12,7 @@ interface History {
 
   void forward();
 
-  void go([int distance]);
+  void go(int distance);
 
   void pushState(Object data, String title, [String url]);
 

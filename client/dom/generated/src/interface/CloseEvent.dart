@@ -12,5 +12,5 @@ interface CloseEvent extends Event {
 
   bool get wasClean();
 
-  void initCloseEvent([String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg]);
+  void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg);
 }

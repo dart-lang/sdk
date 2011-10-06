@@ -17,35 +17,16 @@ class _CSSMediaRuleWrappingImplementation extends _CSSRuleWrappingImplementation
   MediaList get media() { return _get__CSSMediaRule_media(this); }
   static MediaList _get__CSSMediaRule_media(var _this) native;
 
-  void deleteRule([int index = null]) {
-    if (index === null) {
-      _deleteRule(this);
-      return;
-    } else {
-      _deleteRule_2(this, index);
-      return;
-    }
+  void deleteRule(int index) {
+    _deleteRule(this, index);
+    return;
   }
-  static void _deleteRule(receiver) native;
-  static void _deleteRule_2(receiver, index) native;
+  static void _deleteRule(receiver, index) native;
 
-  int insertRule([String rule = null, int index = null]) {
-    if (rule === null) {
-      if (index === null) {
-        return _insertRule(this);
-      }
-    } else {
-      if (index === null) {
-        return _insertRule_2(this, rule);
-      } else {
-        return _insertRule_3(this, rule, index);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  int insertRule(String rule, int index) {
+    return _insertRule(this, rule, index);
   }
-  static int _insertRule(receiver) native;
-  static int _insertRule_2(receiver, rule) native;
-  static int _insertRule_3(receiver, rule, index) native;
+  static int _insertRule(receiver, rule, index) native;
 
   String get typeName() { return "CSSMediaRule"; }
 }

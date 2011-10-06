@@ -38,62 +38,11 @@ class _UIEventWrappingImplementation extends _EventWrappingImplementation implem
   int get which() { return _get__UIEvent_which(this); }
   static int _get__UIEvent_which(var _this) native;
 
-  void initUIEvent([String type = null, bool canBubble = null, bool cancelable = null, DOMWindow view = null, int detail = null]) {
-    if (type === null) {
-      if (canBubble === null) {
-        if (cancelable === null) {
-          if (view === null) {
-            if (detail === null) {
-              _initUIEvent(this);
-              return;
-            }
-          }
-        }
-      }
-    } else {
-      if (canBubble === null) {
-        if (cancelable === null) {
-          if (view === null) {
-            if (detail === null) {
-              _initUIEvent_2(this, type);
-              return;
-            }
-          }
-        }
-      } else {
-        if (cancelable === null) {
-          if (view === null) {
-            if (detail === null) {
-              _initUIEvent_3(this, type, canBubble);
-              return;
-            }
-          }
-        } else {
-          if (view === null) {
-            if (detail === null) {
-              _initUIEvent_4(this, type, canBubble, cancelable);
-              return;
-            }
-          } else {
-            if (detail === null) {
-              _initUIEvent_5(this, type, canBubble, cancelable, view);
-              return;
-            } else {
-              _initUIEvent_6(this, type, canBubble, cancelable, view, detail);
-              return;
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) {
+    _initUIEvent(this, type, canBubble, cancelable, view, detail);
+    return;
   }
-  static void _initUIEvent(receiver) native;
-  static void _initUIEvent_2(receiver, type) native;
-  static void _initUIEvent_3(receiver, type, canBubble) native;
-  static void _initUIEvent_4(receiver, type, canBubble, cancelable) native;
-  static void _initUIEvent_5(receiver, type, canBubble, cancelable, view) native;
-  static void _initUIEvent_6(receiver, type, canBubble, cancelable, view, detail) native;
+  static void _initUIEvent(receiver, type, canBubble, cancelable, view, detail) native;
 
   String get typeName() { return "UIEvent"; }
 }

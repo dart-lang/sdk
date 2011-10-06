@@ -11,32 +11,10 @@ class _XPathExpressionWrappingImplementation extends DOMWrapperBase implements X
     return new _XPathExpressionWrappingImplementation();
   }
 
-  XPathResult evaluate([Node contextNode = null, int type = null, XPathResult inResult = null]) {
-    if (contextNode === null) {
-      if (type === null) {
-        if (inResult === null) {
-          return _evaluate(this);
-        }
-      }
-    } else {
-      if (type === null) {
-        if (inResult === null) {
-          return _evaluate_2(this, contextNode);
-        }
-      } else {
-        if (inResult === null) {
-          return _evaluate_3(this, contextNode, type);
-        } else {
-          return _evaluate_4(this, contextNode, type, inResult);
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) {
+    return _evaluate(this, contextNode, type, inResult);
   }
-  static XPathResult _evaluate(receiver) native;
-  static XPathResult _evaluate_2(receiver, contextNode) native;
-  static XPathResult _evaluate_3(receiver, contextNode, type) native;
-  static XPathResult _evaluate_4(receiver, contextNode, type, inResult) native;
+  static XPathResult _evaluate(receiver, contextNode, type, inResult) native;
 
   String get typeName() { return "XPathExpression"; }
 }

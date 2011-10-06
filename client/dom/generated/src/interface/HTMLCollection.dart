@@ -10,5 +10,5 @@ interface HTMLCollection extends List<Node> {
 
   Node item(int index);
 
-  Node namedItem([String name]);
+  Node namedItem(String name);
 }

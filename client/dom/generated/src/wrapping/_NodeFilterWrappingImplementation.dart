@@ -11,15 +11,10 @@ class _NodeFilterWrappingImplementation extends DOMWrapperBase implements NodeFi
     return new _NodeFilterWrappingImplementation();
   }
 
-  int acceptNode([Node n = null]) {
-    if (n === null) {
-      return _acceptNode(this);
-    } else {
-      return _acceptNode_2(this, n);
-    }
+  int acceptNode(Node n) {
+    return _acceptNode(this, n);
   }
-  static int _acceptNode(receiver) native;
-  static int _acceptNode_2(receiver, n) native;
+  static int _acceptNode(receiver, n) native;
 
   String get typeName() { return "NodeFilter"; }
 }

@@ -92,39 +92,22 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
     return new _FixedSizeListIterator<String>(this);
   }
 
-  void appendMedium([String newMedium = null]) {
-    if (newMedium === null) {
-      _appendMedium(this);
-      return;
-    } else {
-      _appendMedium_2(this, newMedium);
-      return;
-    }
+  void appendMedium(String newMedium) {
+    _appendMedium(this, newMedium);
+    return;
   }
-  static void _appendMedium(receiver) native;
-  static void _appendMedium_2(receiver, newMedium) native;
+  static void _appendMedium(receiver, newMedium) native;
 
-  void deleteMedium([String oldMedium = null]) {
-    if (oldMedium === null) {
-      _deleteMedium(this);
-      return;
-    } else {
-      _deleteMedium_2(this, oldMedium);
-      return;
-    }
+  void deleteMedium(String oldMedium) {
+    _deleteMedium(this, oldMedium);
+    return;
   }
-  static void _deleteMedium(receiver) native;
-  static void _deleteMedium_2(receiver, oldMedium) native;
+  static void _deleteMedium(receiver, oldMedium) native;
 
-  String item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  String item(int index) {
+    return _item(this, index);
   }
-  static String _item(receiver) native;
-  static String _item_2(receiver, index) native;
+  static String _item(receiver, index) native;
 
   String get typeName() { return "MediaList"; }
 }

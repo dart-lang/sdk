@@ -19,15 +19,10 @@ class _CSSPrimitiveValueWrappingImplementation extends _CSSValueWrappingImplemen
   }
   static Counter _getCounterValue(receiver) native;
 
-  num getFloatValue([int unitType = null]) {
-    if (unitType === null) {
-      return _getFloatValue(this);
-    } else {
-      return _getFloatValue_2(this, unitType);
-    }
+  num getFloatValue(int unitType) {
+    return _getFloatValue(this, unitType);
   }
-  static num _getFloatValue(receiver) native;
-  static num _getFloatValue_2(receiver, unitType) native;
+  static num _getFloatValue(receiver, unitType) native;
 
   RGBColor getRGBColorValue() {
     return _getRGBColorValue(this);
@@ -44,47 +39,17 @@ class _CSSPrimitiveValueWrappingImplementation extends _CSSValueWrappingImplemen
   }
   static String _getStringValue(receiver) native;
 
-  void setFloatValue([int unitType = null, num floatValue = null]) {
-    if (unitType === null) {
-      if (floatValue === null) {
-        _setFloatValue(this);
-        return;
-      }
-    } else {
-      if (floatValue === null) {
-        _setFloatValue_2(this, unitType);
-        return;
-      } else {
-        _setFloatValue_3(this, unitType, floatValue);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void setFloatValue(int unitType, num floatValue) {
+    _setFloatValue(this, unitType, floatValue);
+    return;
   }
-  static void _setFloatValue(receiver) native;
-  static void _setFloatValue_2(receiver, unitType) native;
-  static void _setFloatValue_3(receiver, unitType, floatValue) native;
+  static void _setFloatValue(receiver, unitType, floatValue) native;
 
-  void setStringValue([int stringType = null, String stringValue = null]) {
-    if (stringType === null) {
-      if (stringValue === null) {
-        _setStringValue(this);
-        return;
-      }
-    } else {
-      if (stringValue === null) {
-        _setStringValue_2(this, stringType);
-        return;
-      } else {
-        _setStringValue_3(this, stringType, stringValue);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void setStringValue(int stringType, String stringValue) {
+    _setStringValue(this, stringType, stringValue);
+    return;
   }
-  static void _setStringValue(receiver) native;
-  static void _setStringValue_2(receiver, stringType) native;
-  static void _setStringValue_3(receiver, stringType, stringValue) native;
+  static void _setStringValue(receiver, stringType, stringValue) native;
 
   String get typeName() { return "CSSPrimitiveValue"; }
 }

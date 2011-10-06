@@ -26,17 +26,11 @@ class _HistoryWrappingImplementation extends DOMWrapperBase implements History {
   }
   static void _forward(receiver) native;
 
-  void go([int distance = null]) {
-    if (distance === null) {
-      _go(this);
-      return;
-    } else {
-      _go_2(this, distance);
-      return;
-    }
+  void go(int distance) {
+    _go(this, distance);
+    return;
   }
-  static void _go(receiver) native;
-  static void _go_2(receiver, distance) native;
+  static void _go(receiver, distance) native;
 
   void pushState(Object data, String title, [String url = null]) {
     if (url === null) {

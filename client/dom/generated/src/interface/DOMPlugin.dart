@@ -14,7 +14,7 @@ interface DOMPlugin {
 
   String get name();
 
-  DOMMimeType item([int index]);
+  DOMMimeType item(int index);
 
-  DOMMimeType namedItem([String name]);
+  DOMMimeType namedItem(String name);
 }

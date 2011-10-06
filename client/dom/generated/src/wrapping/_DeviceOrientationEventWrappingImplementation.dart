@@ -20,78 +20,11 @@ class _DeviceOrientationEventWrappingImplementation extends _EventWrappingImplem
   num get gamma() { return _get__DeviceOrientationEvent_gamma(this); }
   static num _get__DeviceOrientationEvent_gamma(var _this) native;
 
-  void initDeviceOrientationEvent([String type = null, bool bubbles = null, bool cancelable = null, num alpha = null, num beta = null, num gamma = null]) {
-    if (type === null) {
-      if (bubbles === null) {
-        if (cancelable === null) {
-          if (alpha === null) {
-            if (beta === null) {
-              if (gamma === null) {
-                _initDeviceOrientationEvent(this);
-                return;
-              }
-            }
-          }
-        }
-      }
-    } else {
-      if (bubbles === null) {
-        if (cancelable === null) {
-          if (alpha === null) {
-            if (beta === null) {
-              if (gamma === null) {
-                _initDeviceOrientationEvent_2(this, type);
-                return;
-              }
-            }
-          }
-        }
-      } else {
-        if (cancelable === null) {
-          if (alpha === null) {
-            if (beta === null) {
-              if (gamma === null) {
-                _initDeviceOrientationEvent_3(this, type, bubbles);
-                return;
-              }
-            }
-          }
-        } else {
-          if (alpha === null) {
-            if (beta === null) {
-              if (gamma === null) {
-                _initDeviceOrientationEvent_4(this, type, bubbles, cancelable);
-                return;
-              }
-            }
-          } else {
-            if (beta === null) {
-              if (gamma === null) {
-                _initDeviceOrientationEvent_5(this, type, bubbles, cancelable, alpha);
-                return;
-              }
-            } else {
-              if (gamma === null) {
-                _initDeviceOrientationEvent_6(this, type, bubbles, cancelable, alpha, beta);
-                return;
-              } else {
-                _initDeviceOrientationEvent_7(this, type, bubbles, cancelable, alpha, beta, gamma);
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) {
+    _initDeviceOrientationEvent(this, type, bubbles, cancelable, alpha, beta, gamma);
+    return;
   }
-  static void _initDeviceOrientationEvent(receiver) native;
-  static void _initDeviceOrientationEvent_2(receiver, type) native;
-  static void _initDeviceOrientationEvent_3(receiver, type, bubbles) native;
-  static void _initDeviceOrientationEvent_4(receiver, type, bubbles, cancelable) native;
-  static void _initDeviceOrientationEvent_5(receiver, type, bubbles, cancelable, alpha) native;
-  static void _initDeviceOrientationEvent_6(receiver, type, bubbles, cancelable, alpha, beta) native;
-  static void _initDeviceOrientationEvent_7(receiver, type, bubbles, cancelable, alpha, beta, gamma) native;
+  static void _initDeviceOrientationEvent(receiver, type, bubbles, cancelable, alpha, beta, gamma) native;
 
   String get typeName() { return "DeviceOrientationEvent"; }
 }

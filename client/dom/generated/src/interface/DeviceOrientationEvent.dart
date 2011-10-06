@@ -12,5 +12,5 @@ interface DeviceOrientationEvent extends Event {
 
   num get gamma();
 
-  void initDeviceOrientationEvent([String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma]);
+  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma);
 }

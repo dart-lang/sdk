@@ -464,23 +464,23 @@ interface Window extends EventTarget {
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void alert([String message]);
+  void alert(String message);
 
-  String atob([String string]);
+  String atob(String string);
 
   void blur();
 
-  String btoa([String string]);
+  String btoa(String string);
 
   void captureEvents();
 
-  void clearInterval([int handle]);
+  void clearInterval(int handle);
 
-  void clearTimeout([int handle]);
+  void clearTimeout(int handle);
 
   void close();
 
-  bool confirm([String message]);
+  bool confirm(String message);
 
   FileReader createFileReader();
 
@@ -492,11 +492,11 @@ interface Window extends EventTarget {
 
   bool dispatchEvent(Event evt);
 
-  bool find([String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog]);
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
   void focus();
 
-  CSSStyleDeclaration getComputedStyle([Element element, String pseudoElement]);
+  CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement);
 
   DOMSelection getSelection();
 
@@ -512,7 +512,7 @@ interface Window extends EventTarget {
 
   void print();
 
-  String prompt([String message, String defaultValue]);
+  String prompt(String message, String defaultValue);
 
   void releaseEvents();
 
@@ -530,7 +530,7 @@ interface Window extends EventTarget {
 
   int setInterval(TimeoutHandler handler, int timeout);
 
-  int setTimeout([TimeoutHandler handler, int timeout]);
+  int setTimeout(TimeoutHandler handler, int timeout);
 
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
 
@@ -538,11 +538,11 @@ interface Window extends EventTarget {
 
   void webkitCancelRequestAnimationFrame(int id);
 
-  WebKitPoint webkitConvertPointFromNodeToPage([Node node, WebKitPoint p]);
+  WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p);
 
-  WebKitPoint webkitConvertPointFromPageToNode([Node node, WebKitPoint p]);
+  WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element]);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
 }
 
 interface DOMWindow extends Window {

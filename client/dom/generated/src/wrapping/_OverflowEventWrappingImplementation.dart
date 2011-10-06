@@ -20,36 +20,11 @@ class _OverflowEventWrappingImplementation extends _EventWrappingImplementation 
   bool get verticalOverflow() { return _get__OverflowEvent_verticalOverflow(this); }
   static bool _get__OverflowEvent_verticalOverflow(var _this) native;
 
-  void initOverflowEvent([int orient = null, bool horizontalOverflow = null, bool verticalOverflow = null]) {
-    if (orient === null) {
-      if (horizontalOverflow === null) {
-        if (verticalOverflow === null) {
-          _initOverflowEvent(this);
-          return;
-        }
-      }
-    } else {
-      if (horizontalOverflow === null) {
-        if (verticalOverflow === null) {
-          _initOverflowEvent_2(this, orient);
-          return;
-        }
-      } else {
-        if (verticalOverflow === null) {
-          _initOverflowEvent_3(this, orient, horizontalOverflow);
-          return;
-        } else {
-          _initOverflowEvent_4(this, orient, horizontalOverflow, verticalOverflow);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) {
+    _initOverflowEvent(this, orient, horizontalOverflow, verticalOverflow);
+    return;
   }
-  static void _initOverflowEvent(receiver) native;
-  static void _initOverflowEvent_2(receiver, orient) native;
-  static void _initOverflowEvent_3(receiver, orient, horizontalOverflow) native;
-  static void _initOverflowEvent_4(receiver, orient, horizontalOverflow, verticalOverflow) native;
+  static void _initOverflowEvent(receiver, orient, horizontalOverflow, verticalOverflow) native;
 
   String get typeName() { return "OverflowEvent"; }
 }

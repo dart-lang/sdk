@@ -6,13 +6,13 @@
 
 interface DOMImplementation {
 
-  CSSStyleSheet createCSSStyleSheet([String title, String media]);
+  CSSStyleSheet createCSSStyleSheet(String title, String media);
 
-  Document createDocument([String namespaceURI, String qualifiedName, DocumentType doctype]);
+  Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype);
 
-  DocumentType createDocumentType([String qualifiedName, String publicId, String systemId]);
+  DocumentType createDocumentType(String qualifiedName, String publicId, String systemId);
 
-  HTMLDocument createHTMLDocument([String title]);
+  HTMLDocument createHTMLDocument(String title);
 
-  bool hasFeature([String feature, String version]);
+  bool hasFeature(String feature, String version);
 }

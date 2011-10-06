@@ -6,5 +6,5 @@
 
 interface DOMParser {
 
-  Document parseFromString([String str, String contentType]);
+  Document parseFromString(String str, String contentType);
 }

@@ -14,19 +14,19 @@ interface CSSStyleDeclaration {
 
   CSSRule get parentRule();
 
-  CSSValue getPropertyCSSValue([String propertyName]);
+  CSSValue getPropertyCSSValue(String propertyName);
 
-  String getPropertyPriority([String propertyName]);
+  String getPropertyPriority(String propertyName);
 
-  String getPropertyShorthand([String propertyName]);
+  String getPropertyShorthand(String propertyName);
 
-  String getPropertyValue([String propertyName]);
+  String getPropertyValue(String propertyName);
 
-  bool isPropertyImplicit([String propertyName]);
+  bool isPropertyImplicit(String propertyName);
 
-  String item([int index]);
+  String item(int index);
 
-  String removeProperty([String propertyName]);
+  String removeProperty(String propertyName);
 
-  void setProperty([String propertyName, String value, String priority]);
+  void setProperty(String propertyName, String value, [String priority]);
 }

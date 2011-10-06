@@ -8,5 +8,5 @@ interface StyleMedia {
 
   String get type();
 
-  bool matchMedium([String mediaquery]);
+  bool matchMedium(String mediaquery);
 }

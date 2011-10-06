@@ -20,74 +20,32 @@ class _CSSStyleSheetWrappingImplementation extends _StyleSheetWrappingImplementa
   CSSRuleList get rules() { return _get__CSSStyleSheet_rules(this); }
   static CSSRuleList _get__CSSStyleSheet_rules(var _this) native;
 
-  int addRule([String selector = null, String style = null, int index = null]) {
-    if (selector === null) {
-      if (style === null) {
-        if (index === null) {
-          return _addRule(this);
-        }
-      }
-    } else {
-      if (style === null) {
-        if (index === null) {
-          return _addRule_2(this, selector);
-        }
-      } else {
-        if (index === null) {
-          return _addRule_3(this, selector, style);
-        } else {
-          return _addRule_4(this, selector, style, index);
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-  static int _addRule(receiver) native;
-  static int _addRule_2(receiver, selector) native;
-  static int _addRule_3(receiver, selector, style) native;
-  static int _addRule_4(receiver, selector, style, index) native;
-
-  void deleteRule([int index = null]) {
+  int addRule(String selector, String style, [int index = null]) {
     if (index === null) {
-      _deleteRule(this);
-      return;
+      return _addRule(this, selector, style);
     } else {
-      _deleteRule_2(this, index);
-      return;
+      return _addRule_2(this, selector, style, index);
     }
   }
-  static void _deleteRule(receiver) native;
-  static void _deleteRule_2(receiver, index) native;
+  static int _addRule(receiver, selector, style) native;
+  static int _addRule_2(receiver, selector, style, index) native;
 
-  int insertRule([String rule = null, int index = null]) {
-    if (rule === null) {
-      if (index === null) {
-        return _insertRule(this);
-      }
-    } else {
-      if (index === null) {
-        return _insertRule_2(this, rule);
-      } else {
-        return _insertRule_3(this, rule, index);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void deleteRule(int index) {
+    _deleteRule(this, index);
+    return;
   }
-  static int _insertRule(receiver) native;
-  static int _insertRule_2(receiver, rule) native;
-  static int _insertRule_3(receiver, rule, index) native;
+  static void _deleteRule(receiver, index) native;
 
-  void removeRule([int index = null]) {
-    if (index === null) {
-      _removeRule(this);
-      return;
-    } else {
-      _removeRule_2(this, index);
-      return;
-    }
+  int insertRule(String rule, int index) {
+    return _insertRule(this, rule, index);
   }
-  static void _removeRule(receiver) native;
-  static void _removeRule_2(receiver, index) native;
+  static int _insertRule(receiver, rule, index) native;
+
+  void removeRule(int index) {
+    _removeRule(this, index);
+    return;
+  }
+  static void _removeRule(receiver, index) native;
 
   String get typeName() { return "CSSStyleSheet"; }
 }

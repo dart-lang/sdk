@@ -14,48 +14,11 @@ class _CustomEventWrappingImplementation extends _EventWrappingImplementation im
   Object get detail() { return _get__CustomEvent_detail(this); }
   static Object _get__CustomEvent_detail(var _this) native;
 
-  void initCustomEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, Object detailArg = null]) {
-    if (typeArg === null) {
-      if (canBubbleArg === null) {
-        if (cancelableArg === null) {
-          if (detailArg === null) {
-            _initCustomEvent(this);
-            return;
-          }
-        }
-      }
-    } else {
-      if (canBubbleArg === null) {
-        if (cancelableArg === null) {
-          if (detailArg === null) {
-            _initCustomEvent_2(this, typeArg);
-            return;
-          }
-        }
-      } else {
-        if (cancelableArg === null) {
-          if (detailArg === null) {
-            _initCustomEvent_3(this, typeArg, canBubbleArg);
-            return;
-          }
-        } else {
-          if (detailArg === null) {
-            _initCustomEvent_4(this, typeArg, canBubbleArg, cancelableArg);
-            return;
-          } else {
-            _initCustomEvent_5(this, typeArg, canBubbleArg, cancelableArg, detailArg);
-            return;
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) {
+    _initCustomEvent(this, typeArg, canBubbleArg, cancelableArg, detailArg);
+    return;
   }
-  static void _initCustomEvent(receiver) native;
-  static void _initCustomEvent_2(receiver, typeArg) native;
-  static void _initCustomEvent_3(receiver, typeArg, canBubbleArg) native;
-  static void _initCustomEvent_4(receiver, typeArg, canBubbleArg, cancelableArg) native;
-  static void _initCustomEvent_5(receiver, typeArg, canBubbleArg, cancelableArg, detailArg) native;
+  static void _initCustomEvent(receiver, typeArg, canBubbleArg, cancelableArg, detailArg) native;
 
   String get typeName() { return "CustomEvent"; }
 }

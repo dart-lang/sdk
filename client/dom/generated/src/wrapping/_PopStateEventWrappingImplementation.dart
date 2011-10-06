@@ -14,48 +14,11 @@ class _PopStateEventWrappingImplementation extends _EventWrappingImplementation 
   Object get state() { return _get__PopStateEvent_state(this); }
   static Object _get__PopStateEvent_state(var _this) native;
 
-  void initPopStateEvent([String typeArg = null, bool canBubbleArg = null, bool cancelableArg = null, Object stateArg = null]) {
-    if (typeArg === null) {
-      if (canBubbleArg === null) {
-        if (cancelableArg === null) {
-          if (stateArg === null) {
-            _initPopStateEvent(this);
-            return;
-          }
-        }
-      }
-    } else {
-      if (canBubbleArg === null) {
-        if (cancelableArg === null) {
-          if (stateArg === null) {
-            _initPopStateEvent_2(this, typeArg);
-            return;
-          }
-        }
-      } else {
-        if (cancelableArg === null) {
-          if (stateArg === null) {
-            _initPopStateEvent_3(this, typeArg, canBubbleArg);
-            return;
-          }
-        } else {
-          if (stateArg === null) {
-            _initPopStateEvent_4(this, typeArg, canBubbleArg, cancelableArg);
-            return;
-          } else {
-            _initPopStateEvent_5(this, typeArg, canBubbleArg, cancelableArg, stateArg);
-            return;
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) {
+    _initPopStateEvent(this, typeArg, canBubbleArg, cancelableArg, stateArg);
+    return;
   }
-  static void _initPopStateEvent(receiver) native;
-  static void _initPopStateEvent_2(receiver, typeArg) native;
-  static void _initPopStateEvent_3(receiver, typeArg, canBubbleArg) native;
-  static void _initPopStateEvent_4(receiver, typeArg, canBubbleArg, cancelableArg) native;
-  static void _initPopStateEvent_5(receiver, typeArg, canBubbleArg, cancelableArg, stateArg) native;
+  static void _initPopStateEvent(receiver, typeArg, canBubbleArg, cancelableArg, stateArg) native;
 
   String get typeName() { return "PopStateEvent"; }
 }

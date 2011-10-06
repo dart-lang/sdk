@@ -11,17 +11,11 @@ class _MediaQueryListListenerWrappingImplementation extends DOMWrapperBase imple
     return new _MediaQueryListListenerWrappingImplementation();
   }
 
-  void queryChanged([MediaQueryList list = null]) {
-    if (list === null) {
-      _queryChanged(this);
-      return;
-    } else {
-      _queryChanged_2(this, list);
-      return;
-    }
+  void queryChanged(MediaQueryList list) {
+    _queryChanged(this, list);
+    return;
   }
-  static void _queryChanged(receiver) native;
-  static void _queryChanged_2(receiver, list) native;
+  static void _queryChanged(receiver, list) native;
 
   String get typeName() { return "MediaQueryListListener"; }
 }

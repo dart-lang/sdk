@@ -72,9 +72,9 @@ interface HTMLElement extends Element {
 
   void set webkitdropzone(String value);
 
-  Element insertAdjacentElement([String where, Element element]);
+  Element insertAdjacentElement(String where, Element element);
 
-  void insertAdjacentHTML([String where, String html]);
+  void insertAdjacentHTML(String where, String html);
 
-  void insertAdjacentText([String where, String text]);
+  void insertAdjacentText(String where, String text);
 }

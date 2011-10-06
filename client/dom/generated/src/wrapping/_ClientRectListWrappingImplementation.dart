@@ -14,15 +14,10 @@ class _ClientRectListWrappingImplementation extends DOMWrapperBase implements Cl
   int get length() { return _get__ClientRectList_length(this); }
   static int _get__ClientRectList_length(var _this) native;
 
-  ClientRect item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  ClientRect item(int index) {
+    return _item(this, index);
   }
-  static ClientRect _item(receiver) native;
-  static ClientRect _item_2(receiver, index) native;
+  static ClientRect _item(receiver, index) native;
 
   String get typeName() { return "ClientRectList"; }
 }

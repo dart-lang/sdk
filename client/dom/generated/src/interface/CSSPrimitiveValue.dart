@@ -62,7 +62,7 @@ interface CSSPrimitiveValue extends CSSValue {
 
   Counter getCounterValue();
 
-  num getFloatValue([int unitType]);
+  num getFloatValue(int unitType);
 
   RGBColor getRGBColorValue();
 
@@ -70,7 +70,7 @@ interface CSSPrimitiveValue extends CSSValue {
 
   String getStringValue();
 
-  void setFloatValue([int unitType, num floatValue]);
+  void setFloatValue(int unitType, num floatValue);
 
-  void setStringValue([int stringType, String stringValue]);
+  void setStringValue(int stringType, String stringValue);
 }

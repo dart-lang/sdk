@@ -60,9 +60,9 @@ interface HTMLDocument extends Document {
 
   void releaseEvents();
 
-  void write([String text]);
+  void write(String text);
 
-  void writeln([String text]);
+  void writeln(String text);
 }
 
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

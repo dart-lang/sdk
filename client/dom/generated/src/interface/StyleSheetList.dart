@@ -8,5 +8,5 @@ interface StyleSheetList extends List<StyleSheet> {
 
   int get length();
 
-  StyleSheet item([int index]);
+  StyleSheet item(int index);
 }

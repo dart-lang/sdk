@@ -8,5 +8,5 @@ interface CSSRuleList {
 
   int get length();
 
-  CSSRule item([int index]);
+  CSSRule item(int index);
 }

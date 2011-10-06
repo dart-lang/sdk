@@ -14,15 +14,10 @@ class _StyleMediaWrappingImplementation extends DOMWrapperBase implements StyleM
   String get type() { return _get__StyleMedia_type(this); }
   static String _get__StyleMedia_type(var _this) native;
 
-  bool matchMedium([String mediaquery = null]) {
-    if (mediaquery === null) {
-      return _matchMedium(this);
-    } else {
-      return _matchMedium_2(this, mediaquery);
-    }
+  bool matchMedium(String mediaquery) {
+    return _matchMedium(this, mediaquery);
   }
-  static bool _matchMedium(receiver) native;
-  static bool _matchMedium_2(receiver, mediaquery) native;
+  static bool _matchMedium(receiver, mediaquery) native;
 
   String get typeName() { return "StyleMedia"; }
 }

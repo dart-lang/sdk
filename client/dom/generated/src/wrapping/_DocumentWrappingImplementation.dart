@@ -407,442 +407,165 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   void set xmlVersion(String value) { _set__Document_xmlVersion(this, value); }
   static void _set__Document_xmlVersion(var _this, String value) native;
 
-  Node adoptNode([Node source = null]) {
-    if (source === null) {
-      return _adoptNode(this);
-    } else {
-      return _adoptNode_2(this, source);
-    }
+  Node adoptNode(Node source) {
+    return _adoptNode(this, source);
   }
-  static Node _adoptNode(receiver) native;
-  static Node _adoptNode_2(receiver, source) native;
+  static Node _adoptNode(receiver, source) native;
 
-  Range caretRangeFromPoint([int x = null, int y = null]) {
-    if (x === null) {
-      if (y === null) {
-        return _caretRangeFromPoint(this);
-      }
-    } else {
-      if (y === null) {
-        return _caretRangeFromPoint_2(this, x);
-      } else {
-        return _caretRangeFromPoint_3(this, x, y);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Range caretRangeFromPoint(int x, int y) {
+    return _caretRangeFromPoint(this, x, y);
   }
-  static Range _caretRangeFromPoint(receiver) native;
-  static Range _caretRangeFromPoint_2(receiver, x) native;
-  static Range _caretRangeFromPoint_3(receiver, x, y) native;
+  static Range _caretRangeFromPoint(receiver, x, y) native;
 
-  Attr createAttribute([String name = null]) {
-    if (name === null) {
-      return _createAttribute(this);
-    } else {
-      return _createAttribute_2(this, name);
-    }
+  Attr createAttribute(String name) {
+    return _createAttribute(this, name);
   }
-  static Attr _createAttribute(receiver) native;
-  static Attr _createAttribute_2(receiver, name) native;
+  static Attr _createAttribute(receiver, name) native;
 
-  Attr createAttributeNS([String namespaceURI = null, String qualifiedName = null]) {
-    if (namespaceURI === null) {
-      if (qualifiedName === null) {
-        return _createAttributeNS(this);
-      }
-    } else {
-      if (qualifiedName === null) {
-        return _createAttributeNS_2(this, namespaceURI);
-      } else {
-        return _createAttributeNS_3(this, namespaceURI, qualifiedName);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Attr createAttributeNS(String namespaceURI, String qualifiedName) {
+    return _createAttributeNS(this, namespaceURI, qualifiedName);
   }
-  static Attr _createAttributeNS(receiver) native;
-  static Attr _createAttributeNS_2(receiver, namespaceURI) native;
-  static Attr _createAttributeNS_3(receiver, namespaceURI, qualifiedName) native;
+  static Attr _createAttributeNS(receiver, namespaceURI, qualifiedName) native;
 
-  CDATASection createCDATASection([String data = null]) {
-    if (data === null) {
-      return _createCDATASection(this);
-    } else {
-      return _createCDATASection_2(this, data);
-    }
+  CDATASection createCDATASection(String data) {
+    return _createCDATASection(this, data);
   }
-  static CDATASection _createCDATASection(receiver) native;
-  static CDATASection _createCDATASection_2(receiver, data) native;
+  static CDATASection _createCDATASection(receiver, data) native;
 
   CSSStyleDeclaration createCSSStyleDeclaration() {
     return _createCSSStyleDeclaration(this);
   }
   static CSSStyleDeclaration _createCSSStyleDeclaration(receiver) native;
 
-  Comment createComment([String data = null]) {
-    if (data === null) {
-      return _createComment(this);
-    } else {
-      return _createComment_2(this, data);
-    }
+  Comment createComment(String data) {
+    return _createComment(this, data);
   }
-  static Comment _createComment(receiver) native;
-  static Comment _createComment_2(receiver, data) native;
+  static Comment _createComment(receiver, data) native;
 
   DocumentFragment createDocumentFragment() {
     return _createDocumentFragment(this);
   }
   static DocumentFragment _createDocumentFragment(receiver) native;
 
-  Element createElement([String tagName = null]) {
-    if (tagName === null) {
-      return _createElement(this);
-    } else {
-      return _createElement_2(this, tagName);
-    }
+  Element createElement(String tagName) {
+    return _createElement(this, tagName);
   }
-  static Element _createElement(receiver) native;
-  static Element _createElement_2(receiver, tagName) native;
+  static Element _createElement(receiver, tagName) native;
 
-  Element createElementNS([String namespaceURI = null, String qualifiedName = null]) {
-    if (namespaceURI === null) {
-      if (qualifiedName === null) {
-        return _createElementNS(this);
-      }
-    } else {
-      if (qualifiedName === null) {
-        return _createElementNS_2(this, namespaceURI);
-      } else {
-        return _createElementNS_3(this, namespaceURI, qualifiedName);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Element createElementNS(String namespaceURI, String qualifiedName) {
+    return _createElementNS(this, namespaceURI, qualifiedName);
   }
-  static Element _createElementNS(receiver) native;
-  static Element _createElementNS_2(receiver, namespaceURI) native;
-  static Element _createElementNS_3(receiver, namespaceURI, qualifiedName) native;
+  static Element _createElementNS(receiver, namespaceURI, qualifiedName) native;
 
-  EntityReference createEntityReference([String name = null]) {
-    if (name === null) {
-      return _createEntityReference(this);
-    } else {
-      return _createEntityReference_2(this, name);
-    }
+  EntityReference createEntityReference(String name) {
+    return _createEntityReference(this, name);
   }
-  static EntityReference _createEntityReference(receiver) native;
-  static EntityReference _createEntityReference_2(receiver, name) native;
+  static EntityReference _createEntityReference(receiver, name) native;
 
-  Event createEvent([String eventType = null]) {
-    if (eventType === null) {
-      return _createEvent(this);
-    } else {
-      return _createEvent_2(this, eventType);
-    }
+  Event createEvent(String eventType) {
+    return _createEvent(this, eventType);
   }
-  static Event _createEvent(receiver) native;
-  static Event _createEvent_2(receiver, eventType) native;
+  static Event _createEvent(receiver, eventType) native;
 
-  NodeIterator createNodeIterator([Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null]) {
-    if (root === null) {
-      if (whatToShow === null) {
-        if (filter === null) {
-          if (expandEntityReferences === null) {
-            return _createNodeIterator(this);
-          }
-        }
-      }
-    } else {
-      if (whatToShow === null) {
-        if (filter === null) {
-          if (expandEntityReferences === null) {
-            return _createNodeIterator_2(this, root);
-          }
-        }
-      } else {
-        if (filter === null) {
-          if (expandEntityReferences === null) {
-            return _createNodeIterator_3(this, root, whatToShow);
-          }
-        } else {
-          if (expandEntityReferences === null) {
-            return _createNodeIterator_4(this, root, whatToShow, filter);
-          } else {
-            return _createNodeIterator_5(this, root, whatToShow, filter, expandEntityReferences);
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  NodeIterator createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) {
+    return _createNodeIterator(this, root, whatToShow, filter, expandEntityReferences);
   }
-  static NodeIterator _createNodeIterator(receiver) native;
-  static NodeIterator _createNodeIterator_2(receiver, root) native;
-  static NodeIterator _createNodeIterator_3(receiver, root, whatToShow) native;
-  static NodeIterator _createNodeIterator_4(receiver, root, whatToShow, filter) native;
-  static NodeIterator _createNodeIterator_5(receiver, root, whatToShow, filter, expandEntityReferences) native;
+  static NodeIterator _createNodeIterator(receiver, root, whatToShow, filter, expandEntityReferences) native;
 
-  ProcessingInstruction createProcessingInstruction([String target = null, String data = null]) {
-    if (target === null) {
-      if (data === null) {
-        return _createProcessingInstruction(this);
-      }
-    } else {
-      if (data === null) {
-        return _createProcessingInstruction_2(this, target);
-      } else {
-        return _createProcessingInstruction_3(this, target, data);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  ProcessingInstruction createProcessingInstruction(String target, String data) {
+    return _createProcessingInstruction(this, target, data);
   }
-  static ProcessingInstruction _createProcessingInstruction(receiver) native;
-  static ProcessingInstruction _createProcessingInstruction_2(receiver, target) native;
-  static ProcessingInstruction _createProcessingInstruction_3(receiver, target, data) native;
+  static ProcessingInstruction _createProcessingInstruction(receiver, target, data) native;
 
   Range createRange() {
     return _createRange(this);
   }
   static Range _createRange(receiver) native;
 
-  Text createTextNode([String data = null]) {
-    if (data === null) {
-      return _createTextNode(this);
-    } else {
-      return _createTextNode_2(this, data);
-    }
+  Text createTextNode(String data) {
+    return _createTextNode(this, data);
   }
-  static Text _createTextNode(receiver) native;
-  static Text _createTextNode_2(receiver, data) native;
+  static Text _createTextNode(receiver, data) native;
 
-  TreeWalker createTreeWalker([Node root = null, int whatToShow = null, NodeFilter filter = null, bool expandEntityReferences = null]) {
-    if (root === null) {
-      if (whatToShow === null) {
-        if (filter === null) {
-          if (expandEntityReferences === null) {
-            return _createTreeWalker(this);
-          }
-        }
-      }
-    } else {
-      if (whatToShow === null) {
-        if (filter === null) {
-          if (expandEntityReferences === null) {
-            return _createTreeWalker_2(this, root);
-          }
-        }
-      } else {
-        if (filter === null) {
-          if (expandEntityReferences === null) {
-            return _createTreeWalker_3(this, root, whatToShow);
-          }
-        } else {
-          if (expandEntityReferences === null) {
-            return _createTreeWalker_4(this, root, whatToShow, filter);
-          } else {
-            return _createTreeWalker_5(this, root, whatToShow, filter, expandEntityReferences);
-          }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) {
+    return _createTreeWalker(this, root, whatToShow, filter, expandEntityReferences);
   }
-  static TreeWalker _createTreeWalker(receiver) native;
-  static TreeWalker _createTreeWalker_2(receiver, root) native;
-  static TreeWalker _createTreeWalker_3(receiver, root, whatToShow) native;
-  static TreeWalker _createTreeWalker_4(receiver, root, whatToShow, filter) native;
-  static TreeWalker _createTreeWalker_5(receiver, root, whatToShow, filter, expandEntityReferences) native;
+  static TreeWalker _createTreeWalker(receiver, root, whatToShow, filter, expandEntityReferences) native;
 
-  Element elementFromPoint([int x = null, int y = null]) {
-    if (x === null) {
-      if (y === null) {
-        return _elementFromPoint(this);
-      }
-    } else {
-      if (y === null) {
-        return _elementFromPoint_2(this, x);
-      } else {
-        return _elementFromPoint_3(this, x, y);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Element elementFromPoint(int x, int y) {
+    return _elementFromPoint(this, x, y);
   }
-  static Element _elementFromPoint(receiver) native;
-  static Element _elementFromPoint_2(receiver, x) native;
-  static Element _elementFromPoint_3(receiver, x, y) native;
+  static Element _elementFromPoint(receiver, x, y) native;
 
-  bool execCommand([String command = null, bool userInterface = null, String value = null]) {
-    if (command === null) {
-      if (userInterface === null) {
-        if (value === null) {
-          return _execCommand(this);
-        }
-      }
-    } else {
-      if (userInterface === null) {
-        if (value === null) {
-          return _execCommand_2(this, command);
-        }
-      } else {
-        if (value === null) {
-          return _execCommand_3(this, command, userInterface);
-        } else {
-          return _execCommand_4(this, command, userInterface, value);
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  bool execCommand(String command, bool userInterface, String value) {
+    return _execCommand(this, command, userInterface, value);
   }
-  static bool _execCommand(receiver) native;
-  static bool _execCommand_2(receiver, command) native;
-  static bool _execCommand_3(receiver, command, userInterface) native;
-  static bool _execCommand_4(receiver, command, userInterface, value) native;
+  static bool _execCommand(receiver, command, userInterface, value) native;
 
   Object getCSSCanvasContext(String contextId, String name, int width, int height) {
     return _getCSSCanvasContext(this, contextId, name, width, height);
   }
   static Object _getCSSCanvasContext(receiver, contextId, name, width, height) native;
 
-  Element getElementById([String elementId = null]) {
-    if (elementId === null) {
-      return _getElementById(this);
-    } else {
-      return _getElementById_2(this, elementId);
-    }
+  Element getElementById(String elementId) {
+    return _getElementById(this, elementId);
   }
-  static Element _getElementById(receiver) native;
-  static Element _getElementById_2(receiver, elementId) native;
+  static Element _getElementById(receiver, elementId) native;
 
-  NodeList getElementsByClassName([String tagname = null]) {
-    if (tagname === null) {
-      return _getElementsByClassName(this);
-    } else {
-      return _getElementsByClassName_2(this, tagname);
-    }
+  NodeList getElementsByClassName(String tagname) {
+    return _getElementsByClassName(this, tagname);
   }
-  static NodeList _getElementsByClassName(receiver) native;
-  static NodeList _getElementsByClassName_2(receiver, tagname) native;
+  static NodeList _getElementsByClassName(receiver, tagname) native;
 
-  NodeList getElementsByName([String elementName = null]) {
-    if (elementName === null) {
-      return _getElementsByName(this);
-    } else {
-      return _getElementsByName_2(this, elementName);
-    }
+  NodeList getElementsByName(String elementName) {
+    return _getElementsByName(this, elementName);
   }
-  static NodeList _getElementsByName(receiver) native;
-  static NodeList _getElementsByName_2(receiver, elementName) native;
+  static NodeList _getElementsByName(receiver, elementName) native;
 
-  NodeList getElementsByTagName([String tagname = null]) {
-    if (tagname === null) {
-      return _getElementsByTagName(this);
-    } else {
-      return _getElementsByTagName_2(this, tagname);
-    }
+  NodeList getElementsByTagName(String tagname) {
+    return _getElementsByTagName(this, tagname);
   }
-  static NodeList _getElementsByTagName(receiver) native;
-  static NodeList _getElementsByTagName_2(receiver, tagname) native;
+  static NodeList _getElementsByTagName(receiver, tagname) native;
 
-  NodeList getElementsByTagNameNS([String namespaceURI = null, String localName = null]) {
-    if (namespaceURI === null) {
-      if (localName === null) {
-        return _getElementsByTagNameNS(this);
-      }
-    } else {
-      if (localName === null) {
-        return _getElementsByTagNameNS_2(this, namespaceURI);
-      } else {
-        return _getElementsByTagNameNS_3(this, namespaceURI, localName);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  NodeList getElementsByTagNameNS(String namespaceURI, String localName) {
+    return _getElementsByTagNameNS(this, namespaceURI, localName);
   }
-  static NodeList _getElementsByTagNameNS(receiver) native;
-  static NodeList _getElementsByTagNameNS_2(receiver, namespaceURI) native;
-  static NodeList _getElementsByTagNameNS_3(receiver, namespaceURI, localName) native;
+  static NodeList _getElementsByTagNameNS(receiver, namespaceURI, localName) native;
 
-  CSSStyleDeclaration getOverrideStyle([Element element = null, String pseudoElement = null]) {
-    if (element === null) {
-      if (pseudoElement === null) {
-        return _getOverrideStyle(this);
-      }
-    } else {
-      if (pseudoElement === null) {
-        return _getOverrideStyle_2(this, element);
-      } else {
-        return _getOverrideStyle_3(this, element, pseudoElement);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  CSSStyleDeclaration getOverrideStyle(Element element, String pseudoElement) {
+    return _getOverrideStyle(this, element, pseudoElement);
   }
-  static CSSStyleDeclaration _getOverrideStyle(receiver) native;
-  static CSSStyleDeclaration _getOverrideStyle_2(receiver, element) native;
-  static CSSStyleDeclaration _getOverrideStyle_3(receiver, element, pseudoElement) native;
+  static CSSStyleDeclaration _getOverrideStyle(receiver, element, pseudoElement) native;
 
-  Node importNode([Node importedNode = null, bool deep = null]) {
-    if (importedNode === null) {
-      if (deep === null) {
-        return _importNode(this);
-      }
-    } else {
-      if (deep === null) {
-        return _importNode_2(this, importedNode);
-      } else {
-        return _importNode_3(this, importedNode, deep);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Node importNode(Node importedNode, bool deep) {
+    return _importNode(this, importedNode, deep);
   }
-  static Node _importNode(receiver) native;
-  static Node _importNode_2(receiver, importedNode) native;
-  static Node _importNode_3(receiver, importedNode, deep) native;
+  static Node _importNode(receiver, importedNode, deep) native;
 
-  bool queryCommandEnabled([String command = null]) {
-    if (command === null) {
-      return _queryCommandEnabled(this);
-    } else {
-      return _queryCommandEnabled_2(this, command);
-    }
+  bool queryCommandEnabled(String command) {
+    return _queryCommandEnabled(this, command);
   }
-  static bool _queryCommandEnabled(receiver) native;
-  static bool _queryCommandEnabled_2(receiver, command) native;
+  static bool _queryCommandEnabled(receiver, command) native;
 
-  bool queryCommandIndeterm([String command = null]) {
-    if (command === null) {
-      return _queryCommandIndeterm(this);
-    } else {
-      return _queryCommandIndeterm_2(this, command);
-    }
+  bool queryCommandIndeterm(String command) {
+    return _queryCommandIndeterm(this, command);
   }
-  static bool _queryCommandIndeterm(receiver) native;
-  static bool _queryCommandIndeterm_2(receiver, command) native;
+  static bool _queryCommandIndeterm(receiver, command) native;
 
-  bool queryCommandState([String command = null]) {
-    if (command === null) {
-      return _queryCommandState(this);
-    } else {
-      return _queryCommandState_2(this, command);
-    }
+  bool queryCommandState(String command) {
+    return _queryCommandState(this, command);
   }
-  static bool _queryCommandState(receiver) native;
-  static bool _queryCommandState_2(receiver, command) native;
+  static bool _queryCommandState(receiver, command) native;
 
-  bool queryCommandSupported([String command = null]) {
-    if (command === null) {
-      return _queryCommandSupported(this);
-    } else {
-      return _queryCommandSupported_2(this, command);
-    }
+  bool queryCommandSupported(String command) {
+    return _queryCommandSupported(this, command);
   }
-  static bool _queryCommandSupported(receiver) native;
-  static bool _queryCommandSupported_2(receiver, command) native;
+  static bool _queryCommandSupported(receiver, command) native;
 
-  String queryCommandValue([String command = null]) {
-    if (command === null) {
-      return _queryCommandValue(this);
-    } else {
-      return _queryCommandValue_2(this, command);
-    }
+  String queryCommandValue(String command) {
+    return _queryCommandValue(this, command);
   }
-  static String _queryCommandValue(receiver) native;
-  static String _queryCommandValue_2(receiver, command) native;
+  static String _queryCommandValue(receiver, command) native;
 
   Element querySelector(String selectors) {
     return _querySelector(this, selectors);

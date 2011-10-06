@@ -23,106 +23,52 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   CSSRule get parentRule() { return _get__CSSStyleDeclaration_parentRule(this); }
   static CSSRule _get__CSSStyleDeclaration_parentRule(var _this) native;
 
-  CSSValue getPropertyCSSValue([String propertyName = null]) {
-    if (propertyName === null) {
-      return _getPropertyCSSValue(this);
-    } else {
-      return _getPropertyCSSValue_2(this, propertyName);
-    }
+  CSSValue getPropertyCSSValue(String propertyName) {
+    return _getPropertyCSSValue(this, propertyName);
   }
-  static CSSValue _getPropertyCSSValue(receiver) native;
-  static CSSValue _getPropertyCSSValue_2(receiver, propertyName) native;
+  static CSSValue _getPropertyCSSValue(receiver, propertyName) native;
 
-  String getPropertyPriority([String propertyName = null]) {
-    if (propertyName === null) {
-      return _getPropertyPriority(this);
-    } else {
-      return _getPropertyPriority_2(this, propertyName);
-    }
+  String getPropertyPriority(String propertyName) {
+    return _getPropertyPriority(this, propertyName);
   }
-  static String _getPropertyPriority(receiver) native;
-  static String _getPropertyPriority_2(receiver, propertyName) native;
+  static String _getPropertyPriority(receiver, propertyName) native;
 
-  String getPropertyShorthand([String propertyName = null]) {
-    if (propertyName === null) {
-      return _getPropertyShorthand(this);
-    } else {
-      return _getPropertyShorthand_2(this, propertyName);
-    }
+  String getPropertyShorthand(String propertyName) {
+    return _getPropertyShorthand(this, propertyName);
   }
-  static String _getPropertyShorthand(receiver) native;
-  static String _getPropertyShorthand_2(receiver, propertyName) native;
+  static String _getPropertyShorthand(receiver, propertyName) native;
 
-  String getPropertyValue([String propertyName = null]) {
-    if (propertyName === null) {
-      return _getPropertyValue(this);
-    } else {
-      return _getPropertyValue_2(this, propertyName);
-    }
+  String getPropertyValue(String propertyName) {
+    return _getPropertyValue(this, propertyName);
   }
-  static String _getPropertyValue(receiver) native;
-  static String _getPropertyValue_2(receiver, propertyName) native;
+  static String _getPropertyValue(receiver, propertyName) native;
 
-  bool isPropertyImplicit([String propertyName = null]) {
-    if (propertyName === null) {
-      return _isPropertyImplicit(this);
-    } else {
-      return _isPropertyImplicit_2(this, propertyName);
-    }
+  bool isPropertyImplicit(String propertyName) {
+    return _isPropertyImplicit(this, propertyName);
   }
-  static bool _isPropertyImplicit(receiver) native;
-  static bool _isPropertyImplicit_2(receiver, propertyName) native;
+  static bool _isPropertyImplicit(receiver, propertyName) native;
 
-  String item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  String item(int index) {
+    return _item(this, index);
   }
-  static String _item(receiver) native;
-  static String _item_2(receiver, index) native;
+  static String _item(receiver, index) native;
 
-  String removeProperty([String propertyName = null]) {
-    if (propertyName === null) {
-      return _removeProperty(this);
-    } else {
-      return _removeProperty_2(this, propertyName);
-    }
+  String removeProperty(String propertyName) {
+    return _removeProperty(this, propertyName);
   }
-  static String _removeProperty(receiver) native;
-  static String _removeProperty_2(receiver, propertyName) native;
+  static String _removeProperty(receiver, propertyName) native;
 
-  void setProperty([String propertyName = null, String value = null, String priority = null]) {
-    if (propertyName === null) {
-      if (value === null) {
-        if (priority === null) {
-          _setProperty(this);
-          return;
-        }
-      }
+  void setProperty(String propertyName, String value, [String priority = null]) {
+    if (priority === null) {
+      _setProperty(this, propertyName, value);
+      return;
     } else {
-      if (value === null) {
-        if (priority === null) {
-          _setProperty_2(this, propertyName);
-          return;
-        }
-      } else {
-        if (priority === null) {
-          _setProperty_3(this, propertyName, value);
-          return;
-        } else {
-          _setProperty_4(this, propertyName, value, priority);
-          return;
-        }
-      }
+      _setProperty_2(this, propertyName, value, priority);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _setProperty(receiver) native;
-  static void _setProperty_2(receiver, propertyName) native;
-  static void _setProperty_3(receiver, propertyName, value) native;
-  static void _setProperty_4(receiver, propertyName, value, priority) native;
+  static void _setProperty(receiver, propertyName, value) native;
+  static void _setProperty_2(receiver, propertyName, value, priority) native;
 
   String get typeName() { return "CSSStyleDeclaration"; }
 }

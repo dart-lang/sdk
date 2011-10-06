@@ -38,5 +38,5 @@ interface NodeFilter {
 
   static final int SHOW_TEXT = 0x00000004;
 
-  int acceptNode([Node n]);
+  int acceptNode(Node n);
 }

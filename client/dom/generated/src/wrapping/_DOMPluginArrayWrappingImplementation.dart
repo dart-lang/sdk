@@ -14,37 +14,21 @@ class _DOMPluginArrayWrappingImplementation extends DOMWrapperBase implements DO
   int get length() { return _get__DOMPluginArray_length(this); }
   static int _get__DOMPluginArray_length(var _this) native;
 
-  DOMPlugin item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  DOMPlugin item(int index) {
+    return _item(this, index);
   }
-  static DOMPlugin _item(receiver) native;
-  static DOMPlugin _item_2(receiver, index) native;
+  static DOMPlugin _item(receiver, index) native;
 
-  DOMPlugin namedItem([String name = null]) {
-    if (name === null) {
-      return _namedItem(this);
-    } else {
-      return _namedItem_2(this, name);
-    }
+  DOMPlugin namedItem(String name) {
+    return _namedItem(this, name);
   }
-  static DOMPlugin _namedItem(receiver) native;
-  static DOMPlugin _namedItem_2(receiver, name) native;
+  static DOMPlugin _namedItem(receiver, name) native;
 
-  void refresh([bool reload = null]) {
-    if (reload === null) {
-      _refresh(this);
-      return;
-    } else {
-      _refresh_2(this, reload);
-      return;
-    }
+  void refresh(bool reload) {
+    _refresh(this, reload);
+    return;
   }
-  static void _refresh(receiver) native;
-  static void _refresh_2(receiver, reload) native;
+  static void _refresh(receiver, reload) native;
 
   String get typeName() { return "DOMPluginArray"; }
 }

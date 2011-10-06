@@ -50,36 +50,11 @@ class _EventWrappingImplementation extends DOMWrapperBase implements Event {
   String get type() { return _get__Event_type(this); }
   static String _get__Event_type(var _this) native;
 
-  void initEvent([String eventTypeArg = null, bool canBubbleArg = null, bool cancelableArg = null]) {
-    if (eventTypeArg === null) {
-      if (canBubbleArg === null) {
-        if (cancelableArg === null) {
-          _initEvent(this);
-          return;
-        }
-      }
-    } else {
-      if (canBubbleArg === null) {
-        if (cancelableArg === null) {
-          _initEvent_2(this, eventTypeArg);
-          return;
-        }
-      } else {
-        if (cancelableArg === null) {
-          _initEvent_3(this, eventTypeArg, canBubbleArg);
-          return;
-        } else {
-          _initEvent_4(this, eventTypeArg, canBubbleArg, cancelableArg);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
+    _initEvent(this, eventTypeArg, canBubbleArg, cancelableArg);
+    return;
   }
-  static void _initEvent(receiver) native;
-  static void _initEvent_2(receiver, eventTypeArg) native;
-  static void _initEvent_3(receiver, eventTypeArg, canBubbleArg) native;
-  static void _initEvent_4(receiver, eventTypeArg, canBubbleArg, cancelableArg) native;
+  static void _initEvent(receiver, eventTypeArg, canBubbleArg, cancelableArg) native;
 
   void preventDefault() {
     _preventDefault(this);

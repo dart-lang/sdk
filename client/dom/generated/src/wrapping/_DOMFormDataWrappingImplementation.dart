@@ -11,26 +11,11 @@ class _DOMFormDataWrappingImplementation extends DOMWrapperBase implements DOMFo
     return new _DOMFormDataWrappingImplementation();
   }
 
-  void append([String name = null, String value = null]) {
-    if (name === null) {
-      if (value === null) {
-        _append(this);
-        return;
-      }
-    } else {
-      if (value === null) {
-        _append_2(this, name);
-        return;
-      } else {
-        _append_3(this, name, value);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void append(String name, String value) {
+    _append(this, name, value);
+    return;
   }
-  static void _append(receiver) native;
-  static void _append_2(receiver, name) native;
-  static void _append_3(receiver, name, value) native;
+  static void _append(receiver, name, value) native;
 
   String get typeName() { return "DOMFormData"; }
 }

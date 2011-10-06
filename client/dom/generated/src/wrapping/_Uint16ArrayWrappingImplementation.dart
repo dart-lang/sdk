@@ -14,23 +14,15 @@ class _Uint16ArrayWrappingImplementation extends _ArrayBufferViewWrappingImpleme
   int get length() { return _get__Uint16Array_length(this); }
   static int _get__Uint16Array_length(var _this) native;
 
-  Uint16Array subarray([int start = null, int end = null]) {
-    if (start === null) {
-      if (end === null) {
-        return _subarray(this);
-      }
+  Uint16Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return _subarray(this, start);
     } else {
-      if (end === null) {
-        return _subarray_2(this, start);
-      } else {
-        return _subarray_3(this, start, end);
-      }
+      return _subarray_2(this, start, end);
     }
-    throw "Incorrect number or type of arguments";
   }
-  static Uint16Array _subarray(receiver) native;
-  static Uint16Array _subarray_2(receiver, start) native;
-  static Uint16Array _subarray_3(receiver, start, end) native;
+  static Uint16Array _subarray(receiver, start) native;
+  static Uint16Array _subarray_2(receiver, start, end) native;
 
   String get typeName() { return "Uint16Array"; }
 }

@@ -10,7 +10,7 @@ interface CSSMediaRule extends CSSRule {
 
   MediaList get media();
 
-  void deleteRule([int index]);
+  void deleteRule(int index);
 
-  int insertRule([String rule, int index]);
+  int insertRule(String rule, int index);
 }

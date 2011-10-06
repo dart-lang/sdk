@@ -24,7 +24,7 @@ interface HTMLTableSectionElement extends HTMLElement {
 
   void set vAlign(String value);
 
-  void deleteRow([int index]);
+  void deleteRow(int index);
 
-  HTMLElement insertRow([int index]);
+  HTMLElement insertRow(int index);
 }

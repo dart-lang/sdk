@@ -47,29 +47,17 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   static void _addEventListener(receiver, type, listener) native;
   static void _addEventListener_2(receiver, type, listener, useCapture) native;
 
-  void clearInterval([int handle = null]) {
-    if (handle === null) {
-      _clearInterval(this);
-      return;
-    } else {
-      _clearInterval_2(this, handle);
-      return;
-    }
+  void clearInterval(int handle) {
+    _clearInterval(this, handle);
+    return;
   }
-  static void _clearInterval(receiver) native;
-  static void _clearInterval_2(receiver, handle) native;
+  static void _clearInterval(receiver, handle) native;
 
-  void clearTimeout([int handle = null]) {
-    if (handle === null) {
-      _clearTimeout(this);
-      return;
-    } else {
-      _clearTimeout_2(this, handle);
-      return;
-    }
+  void clearTimeout(int handle) {
+    _clearTimeout(this, handle);
+    return;
   }
-  static void _clearTimeout(receiver) native;
-  static void _clearTimeout_2(receiver, handle) native;
+  static void _clearTimeout(receiver, handle) native;
 
   void close() {
     _close(this);

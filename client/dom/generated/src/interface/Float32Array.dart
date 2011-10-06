@@ -10,5 +10,5 @@ interface Float32Array extends ArrayBufferView {
 
   int get length();
 
-  Float32Array subarray([int start, int end]);
+  Float32Array subarray(int start, [int end]);
 }

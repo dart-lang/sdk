@@ -14,15 +14,10 @@ class _CSSValueListWrappingImplementation extends _CSSValueWrappingImplementatio
   int get length() { return _get__CSSValueList_length(this); }
   static int _get__CSSValueList_length(var _this) native;
 
-  CSSValue item([int index = null]) {
-    if (index === null) {
-      return _item(this);
-    } else {
-      return _item_2(this, index);
-    }
+  CSSValue item(int index) {
+    return _item(this, index);
   }
-  static CSSValue _item(receiver) native;
-  static CSSValue _item_2(receiver, index) native;
+  static CSSValue _item(receiver, index) native;
 
   String get typeName() { return "CSSValueList"; }
 }

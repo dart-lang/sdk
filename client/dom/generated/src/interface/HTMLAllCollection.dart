@@ -8,7 +8,7 @@ interface HTMLAllCollection {
 
   int get length();
 
-  Node item([int index]);
+  Node item(int index);
 
   Node namedItem(String name);
 

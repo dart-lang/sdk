@@ -11,23 +11,10 @@ class _DOMParserWrappingImplementation extends DOMWrapperBase implements DOMPars
     return new _DOMParserWrappingImplementation();
   }
 
-  Document parseFromString([String str = null, String contentType = null]) {
-    if (str === null) {
-      if (contentType === null) {
-        return _parseFromString(this);
-      }
-    } else {
-      if (contentType === null) {
-        return _parseFromString_2(this, str);
-      } else {
-        return _parseFromString_3(this, str, contentType);
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  Document parseFromString(String str, String contentType) {
+    return _parseFromString(this, str, contentType);
   }
-  static Document _parseFromString(receiver) native;
-  static Document _parseFromString_2(receiver, str) native;
-  static Document _parseFromString_3(receiver, str, contentType) native;
+  static Document _parseFromString(receiver, str, contentType) native;
 
   String get typeName() { return "DOMParser"; }
 }
