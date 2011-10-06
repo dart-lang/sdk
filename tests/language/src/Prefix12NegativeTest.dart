@@ -2,19 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
+// Symbols in libraries imported by the prefixed library should not be visible
 
 #library("Prefix12NegativeTest.dart");
 #import("library12.dart", prefix:"lib12");
 
-class Prefix12NegativeTest {
-  static Test1() {
-    // Symbols in libraries imported by the prefixed library should not be
-    // visible here.
-    var obj = lib12.top_level11;
-    Expect.equals(100, obj);
-  }
-}
-
 main() {
-  Prefix12NegativeTest.Test1();
+  var obj = lib12.top_level11; // Error, variable should not be visible
 }
