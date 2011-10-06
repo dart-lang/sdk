@@ -394,48 +394,89 @@ public class ClosureJsBackend extends AbstractJsBackend {
 
   private CompilerOptions getCompilerOptions() {
     CompilerOptions options = new CompilerOptions();
-    CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
-    // TODO(johnlenz): This is overkill as we only care about errors,
-    // not warnings at this point. But we want the errors.
-    WarningLevel.VERBOSE.setOptionsForWarningLevel(options);
+    options.setCodingConvention(new ClosureJsCodingConvention());
+
+    // Set the optimization passes that we want.
+    if (fastOutput) {
+      options.smartNameRemoval = true;
+      options.collapseProperties = true;
+      options.removeUnusedPrototypeProperties = true;
+      options.removeUnusedVars = true;
+      options.setRenamingPolicy(VariableRenamingPolicy.ALL, PropertyRenamingPolicy.ALL_UNQUOTED);
+      // On by default
+      options.setReplaceIdGenerators(false);
+   } else {
+      CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
+      options.setAssumeStrictThis(true);
+      // TODO(johnlenz): try out experimential inlining
+      // options.setAssumeClosuresOnlyCaptureReferences(true);
+
+      // TODO(johnlenz): rewriteFunctionExpressions kills the Richards benchmark,
+      // it needs some better heuristics.
+      options.rewriteFunctionExpressions = false;
+
+      // AliasKeywords has a runtime performance hit, disable it.
+      options.aliasKeywords = false;
+
+      // slow for little value
+      options.setPropertyAffinity(false);
+
+      // TODO(johnlenz): These passes use SimpleDefinitionFinder or equivalent, and operate
+      // based on property name, not object type. DisambiguateProperties helps but is not
+      // a complete fix even with complete type information.
+      // See http://code.google.com/p/closure-compiler/issues/detail?id=437.
+      // We need to develop a plan for how to deal with them.
+
+      options.computeFunctionSideEffects = false;
+      options.devirtualizePrototypeMethods = true;
+      options.inlineGetters = true;
+
+      // TODO(johnlenz): Some DOM definitions look like unused prototype property
+      // definitions because they are only referenced using dynamically generated
+      // names.
+      options.removeUnusedPrototypePropertiesInExterns = false;
+    }
+
+    if (produceSourceMap) {
+      options.sourceMapOutputPath = "placeholder"; // anything will do
+      options.sourceMapDetailLevel = DetailLevel.SYMBOLS;
+      options.sourceMapFormat = Format.V3;
+    }
+
+    // Turn off the default checks.
+
+    // Dart doesn't currently need the Closure Library checks
+    // or optimizations.
+    options.closurePass = false;
 
     // Disable type warnings as we don't provide any type information.
     options.setInferTypes(false);
     options.checkTypes = false;
     options.setWarningLevel(DiagnosticGroups.CHECK_TYPES, CheckLevel.OFF);
 
-    // Use the lowest common denominator, ES3 parsing with ES5 Strict
-    // restrictions.
-    options.checkEs5Strict = true;
-    options.setAssumeStrictThis(true);
+    // Disable other checks, that don't make sense for generated code
+    options.setWarningLevel(DiagnosticGroups.GLOBAL_THIS, CheckLevel.OFF);
+    options.checkSuspiciousCode = false;
+    options.checkGlobalThisLevel = CheckLevel.OFF;
+    options.checkMissingReturn = CheckLevel.OFF;
+    options.checkGlobalNamesLevel = CheckLevel.OFF;
+    options.aggressiveVarCheck = CheckLevel.OFF;
+    options.setWarningLevel(DiagnosticGroups.DEPRECATED, CheckLevel.OFF);
 
-    options.setCodingConvention(new ClosureJsCodingConvention());
+    // Optionally turn on the checks that are useful to Dart
+    if (validate) {
+      options.checkSymbols = true;
+      options.setWarningLevel(DiagnosticGroups.ES5_STRICT, CheckLevel.ERROR);
+      // options.setAggressiveVarCheck(CheckLevel.ERROR);
+    } else {
+      // A lot of warnings don't make sense for generated code, or require type
+      // information. Turn them all off by default and make the ones we care
+      // about errors.
+      WarningLevel.QUIET.setOptionsForWarningLevel(options);
 
-    // Always output the source map.
-    options.sourceMapOutputPath = "placeholder"; // anything will do
-
-    // TODO(johnlenz): rewriteFunctionExpressions kills the Richards benchmark,
-    // it needs some better heuristics.
-    options.rewriteFunctionExpressions = false;
-
-    // AliasKeywords has a performance hit, disable it.
-    options.aliasKeywords = false;
-
-    // TODO(johnlenz): These passes use SimpleDefinitionFinder or equivalent, and operate
-    // based on property name, not object type. DisambiguateProperties helps but is not
-    // a complete fix even with complete type information.
-    // See http://code.google.com/p/closure-compiler/issues/detail?id=437.
-    // Disable them for now until we develop a plan for how to deal with them.
-
-    options.computeFunctionSideEffects = false;
-    options.devirtualizePrototypeMethods = true;
-    options.inlineGetters = true;
-
-
-    // TODO(johnlenz): Some DOM definitions look like unused prototype property
-    // definitions because they are only referenced using dynamically generated
-    // names.
-    options.removeUnusedPrototypePropertiesInExterns = false;
+      options.checkSymbols = false;
+      options.setWarningLevel(DiagnosticGroups.ES5_STRICT, CheckLevel.OFF);
+    }
 
     // To ease debugging, try enabling these options:
     if (generateHumanReadableOutput) {
@@ -444,7 +485,8 @@ public class ClosureJsBackend extends AbstractJsBackend {
       options.printInputDelimiter = true;
       options.inputDelimiter = "// Input %name%";
     }
-    // If those aren't enough, try these:
+    // If those aren't enough, try disabling these:
+    // options.setRenamingPolicy(VariableRenamingPolicy.OFF, PropertyRenamingPolicy.OFF);
     // options.coalesceVariableNames = false;
     // options.setShadowVariables(false);
     // options.inlineFunctions = false;
@@ -591,16 +633,16 @@ public class ClosureJsBackend extends AbstractJsBackend {
 
   @Override
   public String getAppExtension() {
-    return EXTENSION_JS;
+    return (incremental) ? EXTENSION_APP_JS : EXTENSION_OPT_JS;
   }
 
   @Override
   public String getSourceMapExtension() {
-    return EXTENSION_JS_SRC_MAP;
+    return (incremental) ? EXTENSION_APP_JS_SRC_MAP : EXTENSION_OPT_JS_SRC_MAP;
   }
 
   @Override
   protected boolean shouldOptimize() {
-    return true;
+    return (fastOutput) ? false : true;
   }
 }
