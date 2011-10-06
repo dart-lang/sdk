@@ -23,8 +23,7 @@ public class Modifiers {
   private static final int FLAG_OPERATOR = FLAG_SETTER << 1;
   private static final int FLAG_NATIVE = FLAG_OPERATOR << 1;
   private static final int FLAG_INLINABLE = FLAG_NATIVE << 1;
-  private static final int FLAG_VARIADIC = FLAG_INLINABLE << 1;
-  private static final int FLAG_ABSTRACTFIELD = FLAG_VARIADIC << 1;
+  private static final int FLAG_ABSTRACTFIELD = FLAG_INLINABLE << 1;
   private static final int FLAG_REDIRECTEDCONSTRUCTOR = FLAG_ABSTRACTFIELD << 1;
   private static final int FLAG_FINAL = FLAG_REDIRECTEDCONSTRUCTOR << 1;
   private static final int FLAG_NAMED = FLAG_FINAL << 1;
@@ -40,7 +39,6 @@ public class Modifiers {
   public boolean isOperator() { return is(FLAG_OPERATOR); }
   public boolean isNative() { return is(FLAG_NATIVE); }
   public boolean isInlinable() { return is(FLAG_INLINABLE); }
-  public boolean isVariadic() { return is(FLAG_VARIADIC); }
   public boolean isAbstractField() { return is(FLAG_ABSTRACTFIELD); }
   public boolean isRedirectedConstructor() { return is(FLAG_REDIRECTEDCONSTRUCTOR); }
   public boolean isFinal() { return is(FLAG_FINAL); }
@@ -55,7 +53,6 @@ public class Modifiers {
   public Modifiers makeOperator() { return make(FLAG_OPERATOR); }
   public Modifiers makeNative() { return make(FLAG_NATIVE); }
   public Modifiers makeInlinable() { return make(FLAG_INLINABLE); }
-  public Modifiers makeVariadic() { return make(FLAG_VARIADIC); }
   public Modifiers makeAbstractField() { return make(FLAG_ABSTRACTFIELD); }
   public Modifiers makeRedirectedConstructor() { return make(FLAG_REDIRECTEDCONSTRUCTOR); }
   public Modifiers makeFinal() { return make(FLAG_FINAL); }
@@ -70,7 +67,6 @@ public class Modifiers {
   public Modifiers removeOperator() { return remove(FLAG_OPERATOR); }
   public Modifiers removeNative() { return remove(FLAG_NATIVE); }
   public Modifiers removeInlinable() { return remove(FLAG_INLINABLE); }
-  public Modifiers removeVariadic() { return remove(FLAG_VARIADIC); }
   public Modifiers removeAbstractField() { return remove(FLAG_ABSTRACTFIELD); }
   public Modifiers removeRedirectedConstructor() { return remove(FLAG_REDIRECTEDCONSTRUCTOR); }
   public Modifiers removeFinal() { return remove(FLAG_FINAL); }

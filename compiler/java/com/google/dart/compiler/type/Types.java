@@ -5,7 +5,6 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -336,13 +335,7 @@ public class Types {
     Type restParameter = null;
     for (VariableElement parameter : parameters) {
       Type type = parameter.getType();
-      if (parameter.getModifiers().isVariadic()) {
-        if (restParameter != null) {
-          listener.resolutionError(parameter.getNode(),
-                                   DartCompilerErrorCode.MULTIPLE_REST_PARAMETERS);
-        }
-        restParameter = ((InterfaceType) type).getArguments().get(0);
-      } else if (parameter.isNamed()) {
+      if (parameter.isNamed()) {
         if (namedParameterTypes == null) {
           namedParameterTypes = new LinkedHashMap<String, Type>();
         }

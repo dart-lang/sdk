@@ -183,7 +183,6 @@ public enum DartCompilerErrorCode implements ErrorCode {
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
   UNEXPECTED_TYPE_ARGUMENT("unexpected type argument"),
-  VARIADIC_PARAMETER_HAS_INITIALIZER("Rest parameter cannot have an initializer"),
   UNREFERENCED_LABEL("unreferenced label \"%s\""),
   USELESS_LABEL("useless label \"%s\""),
   VOID("expression does not yield a value"),

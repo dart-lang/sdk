@@ -1166,48 +1166,29 @@ public class DartParser extends CompletionHooksParserBase {
       DartParameter param = parseFormalParameter(hasNamed);
       params.add(param);
 
-      if (param.getModifiers().isVariadic()) {
-        if (hasNamed) {
-          // Cannot mix named and variadic parameters.
-          // TODO(jgw): Enable this error as soon as we remove support for optional unnamed
-          // parameters. It currently breaks incremental compilation for methods of the form:
-          //   method(x = 0, ...y);
-          // Because that gets normalized to:
-          //   method([x = 0, ...y]);
-          // Which is illegal.
-          //
-          // reportError(position(), DartCompilerErrorCode.NAMED_AND_VARIADIC_PARAMETERS);
-          expect(Token.RBRACK);
-        }
-
-        // Variadic must be the last parameter
+      done = optional(Token.RBRACK);
+      if (done) {
         expectCloseParen();
-        done = true;
       } else {
-        done = optional(Token.RBRACK);
-        if (done) {
-          expectCloseParen();
-        } else {
-          done = optional(Token.RPAREN);
-        }
+        done = optional(Token.RPAREN);
+      }
 
-        if (hasDefaultParameter) {
-          if (!hasNamed) {
-            // TODO(jgw): Add this check, and remove the one below, when we remove default
-            //   positional parameters.
-            // reportError(position(), DartCompilerErrorCode.DEFAULT_POSITIONAL_PARAMETER);
-            if (param.getDefaultExpr() == null) {
-              reportError(position(), DartCompilerErrorCode.DEFAULT_PARAMETER_BEFORE_NORMAL_PARAMETER);
-            }
+      if (hasDefaultParameter) {
+        if (!hasNamed) {
+          // TODO(jgw): Add this check, and remove the one below, when we remove default
+          //   positional parameters.
+          // reportError(position(), DartCompilerErrorCode.DEFAULT_POSITIONAL_PARAMETER);
+          if (param.getDefaultExpr() == null) {
+            reportError(position(), DartCompilerErrorCode.DEFAULT_PARAMETER_BEFORE_NORMAL_PARAMETER);
           }
-        } else {
-          hasDefaultParameter = (param.getDefaultExpr() != null);
         }
+      } else {
+        hasDefaultParameter = (param.getDefaultExpr() != null);
+      }
 
-        if (!done) {
-          // Ensure termination if token is anything other than COMMA.
-          done = !expect(Token.COMMA);
-        }
+      if (!done) {
+        // Ensure termination if token is anything other than COMMA.
+        done = !expect(Token.COMMA);
       }
     }
 
@@ -1228,10 +1209,6 @@ public class DartParser extends CompletionHooksParserBase {
    *
    * defaultFormalParameter
    *     : normalFormalParameter ('=' constantExpression)?
-   *     ;
-   *
-   * restFormalParameter
-   *     : finalVarOrType? '...' identifier
    *     ;
    * </pre>
    */
@@ -1271,10 +1248,6 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    if (optional(Token.ELLIPSIS)) {
-      modifiers = modifiers.makeVariadic();
-    }
-
     paramName = parseParameterName();
 
     if (peek(0) == Token.LPAREN) {
@@ -1284,9 +1257,6 @@ public class DartParser extends CompletionHooksParserBase {
       }
       if (hasVar) {
         reportError(position(), DartCompilerErrorCode.FUNCTION_TYPED_PARAMETER_IS_VAR);
-      }
-      if (modifiers.isVariadic()) {
-        reportError(position(), DartCompilerErrorCode.FUNCTION_TYPED_PARAMETER_IS_VARIADIC);
       }
       functionParams = parseFormalParameterList();
     } else {
@@ -1306,9 +1276,6 @@ public class DartParser extends CompletionHooksParserBase {
 
       case ASSIGN:
         // Default parameter.
-        if (modifiers.isVariadic()) {
-          reportError(position(), DartCompilerErrorCode.VARIADIC_PARAMETER_HAS_INITIALIZER);
-        }
 
         // TODO(jgw): This makes legacy default parameters implicitly named, which will ease the
         // transition. Remove this as soon as positional default parameters are removed.

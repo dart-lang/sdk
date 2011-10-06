@@ -244,9 +244,6 @@ public class DartToSourceVisitor extends DartVisitor {
       accept(x.getTypeNode());
       p(" ");
     }
-    if (x.getModifiers().isVariadic()) {
-      p("...");
-    }
     accept(x.getName());
     if (x.getFunctionParameters() != null) {
       p("(");

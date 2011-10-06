@@ -66,9 +66,6 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
   @Override
   public Element visitParameter(DartParameter node) {
     Type type = resolveType(node.getTypeNode(), isStaticContext());
-    if (node.getModifiers().isVariadic()) {
-      type = typeProvider.getArrayType(type);
-    }
     VariableElement element = Elements.parameterElement(node, node.getParameterName(),
                                                         node.getModifiers());
     List<DartParameter> functionParameters = node.getFunctionParameters();
