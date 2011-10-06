@@ -641,8 +641,7 @@ public class GenerateJavascriptAST {
       JsFunction func = new JsFunction(this.globalScope);
       // Make an id like:
       //   <type>:field1:field2:...-<supertype>:field1:field2:...
-      String s = getJsName(classElement).getShortIdent();
-      JsExpression idExpr = string(s);
+      JsExpression idExpr = rtt.getRTTClassId(classElement);
       for (Element member : classElement.getMembers()) {
         if (member.getKind() == ElementKind.FIELD) {
           if (!member.getModifiers().isStatic()) {
