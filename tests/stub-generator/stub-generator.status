@@ -24,4 +24,4 @@ MintMakerFullyIsolatedTest: Fail  # benl
 *: Skip
 
 [ $arch == chromium ]
-#*: Skip
+*: Skip
