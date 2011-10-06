@@ -6,18 +6,6 @@
 
 // JavaScript implementation of TimeZoneImplementation.
 class TimeZoneImplementation implements TimeZone {
-  Duration get offset() {
-    if (isUtc) return const Duration();
-    throw "Unimplemented";
-  }
-  factory TimeZoneImplementation(Duration offset) {
-    if (offset.inMilliseconds == 0) {
-      return const TimeZoneImplementation.utc();
-    } else {
-      throw "Unimplemented";
-    }
-  }
-
   const TimeZoneImplementation.utc() : this.isUtc = true;
   const TimeZoneImplementation.local() : this.isUtc = false;
 
