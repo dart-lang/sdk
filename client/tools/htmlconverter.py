@@ -26,13 +26,19 @@ import utils
 
 DART_MIME_TYPE = "application/dart"
 LIBRARY_PATTERN = "^#library\(.*\);"
-IMPORT_SOURCE_PATTERN = "(#import|#source)(\(['\"])([^'\"]*)(['\"]\);)"
+IMPORT_SOURCE_MATCHER = re.compile(
+    r"^ *(#import|#source)(\(['\"])([^'\"]*)(.*\);)", re.MULTILINE)
+DOM_IMPORT_MATCHER = re.compile(
+    r"^#import\(['\"]dart\:dom['\"].*\);", re.MULTILINE)
+HTML_NO_PREFIX_IMPORT_MATCHER = re.compile(
+    r"^#import.*(dart:html|html.dart)['\"]\);", re.MULTILINE)
+JSON_IMPORT_MATCHER = re.compile(
+    r"^#import\(['\"]dart:json['\"].*\);", re.MULTILINE)
 
-DARTC_INLINE_CODE_ADDITIONAL_IMPORTS = """
-#library('inlinedcode');
-#import('dart:dom');
-#import('dart:json');
-"""
+COMPILER_NOT_FOUND_ERROR = (
+"""Couldn't find compiler: please run the following commands:
+   $ cd %s
+   $ ./tools/build.py --arch=ia32""")
 
 ENTRY_POINT = """
 #library('entry');
@@ -56,12 +62,20 @@ DARTIUM_TO_JS_SCRIPT = """
          "that doesn't support Dart. Do you want to redirect to " +
          "a version compiled to JavaScript instead?")) {
        var addr = window.location;
-       window.location = addr.toString().replace('-dartium.html', '-js.html');
+       window.location = addr.toString().replace('-dart.html', '-js.html');
      }
   }
 })();
 </script>
 """
+
+def adjustImports(contents):
+  def repl(matchobj):
+    path = matchobj.group(3)
+    if not path.startswith('dart:'):
+      path = abspath(path)
+    return (matchobj.group(1) + matchobj.group(2) + path + matchobj.group(4))
+  return IMPORT_SOURCE_MATCHER.sub(repl, contents)
 
 class DartCompiler(object):
   """ Common code for compiling Dart script tags in an HTML file. """
@@ -96,17 +110,10 @@ class DartCompiler(object):
         # We will import the source file to emulate in JS that code is run after
         # DOMContentLoaded. We need a #library to ensure #import won't fail:
         if not re.search(LIBRARY_PATTERN, contents, re.MULTILINE):
-          def repl(matchobj):
-            path = matchobj.group(3)
-            if path.startswith('dart:'):
-              return matchobj.group(0)
-            return (matchobj.group(1) + matchobj.group(2)
-                    + abspath(path) + matchobj.group(4))
-          contents = re.sub(IMPORT_SOURCE_PATTERN, repl, contents)
           inputfile = join(indir, 'code.dart')
           with open(inputfile, 'w') as f:
             f.write("#library('code');")
-            f.write(contents)
+            f.write(adjustImports(contents))
 
       else:
         raise ConverterException("invalid file type:" + src)
@@ -117,10 +124,23 @@ class DartCompiler(object):
         return ''
 
       indir = tempfile.mkdtemp()
+      # eliminate leading spaces in front of directives
+      body = adjustImports(body)
 
       inputfile = join(indir, 'code.dart')
       with open(inputfile, 'w') as f:
-        f.write(DARTC_INLINE_CODE_ADDITIONAL_IMPORTS)
+        f.write("#library('inlinedcode');\n")
+        # dom and json are added by default
+        if not DOM_IMPORT_MATCHER.search(body):
+          f.write("#import('dart:dom');\n")
+        if not JSON_IMPORT_MATCHER.search(body):
+          f.write("#import('dart:json');\n")
+        # html import will conflict with DOM import
+        if HTML_NO_PREFIX_IMPORT_MATCHER.search(body):
+          raise ConverterException(
+              'Can\'t import "dom:html" or "html.dart" from scripts inlined ' +
+              'in the page without a prefix. This import conflicts with an ' +
+              ' import of "dart:dom" that is injected automatically.')
         f.write(body)
 
     wrappedfile = join(indir, 'entry.dart')
@@ -130,7 +150,7 @@ class DartCompiler(object):
     status, out, err = execute(self.compileCommand(wrappedfile, outdir),
                                self.verbose)
     if status:
-      raise ConverterException()
+      raise ConverterException('compilation errors found by dartc')
 
     # Inline the compiled code in the page
     with open(self.outputFileName(wrappedfile, outdir), 'r') as f:
@@ -143,10 +163,13 @@ class DartCompiler(object):
     return CHROMIUM_SCRIPT_TEMPLATE % res
 
   def compileCommand(self, inputfile, outdir):
-    cmd = [abspath(join(DART_PATH,
+    binary = abspath(join(DART_PATH,
         # TODO(sigmund): support also mode = release
         utils.GetBuildRoot(utils.GuessOS(), 'debug', 'ia32'),
-        'dartc')), '-noincremental', '-out', outdir]
+        'dartc'))
+    if not exists(binary):
+      raise ConverterException(COMPILER_NOT_FOUND_ERROR % DART_PATH)
+    cmd = [binary, '-noincremental', '-out', outdir]
     if self.optimize:
       cmd.append('-optimize')
       cmd.append('--disable-type-optimizations')
@@ -185,6 +208,7 @@ def convertPath(project_path, prefix_path):
         - prefix_path: prefix for relative paths.
   """
   if isabs(project_path):
+    # TODO(sigmund): add a flag to pass in the root-level for absolute paths.
     return project_path[1:]
   elif not (project_path.startswith('http://') or
             project_path.startswith('https://')):
@@ -342,7 +366,7 @@ class DartToDartHTMLConverter(DartHTMLConverter):
           self.verbose)
 
       if status:
-        raise ConverterException('calling copy_dart.py')
+        raise ConverterException('exception calling copy_dart.py')
 
     # do not rewrite the script tag
     return False
@@ -455,8 +479,8 @@ def Flags():
   result.add_option("-t", "--target",
       help="The target html to generate",
       metavar="[chromium,dartium]",
-      default='chromium,dartium')
-  result.set_usage("htmlconverter.py input.html -o OUTDIR -t chromium,dartium")
+      default='chromium')
+  result.set_usage("htmlconverter.py input.html -o OUTDIR")
   return result
 
 def writeOut(contents, filepath):
@@ -503,6 +527,8 @@ def convertForOffline(filename, outfile, verbose, encode_images):
     f.write(contents)
   print "Generated output in: " + abspath(outfile)
 
+RED_COLOR = "\033[31m"
+NO_COLOR = "\033[0m"
 
 def main():
   parser = Flags()
@@ -511,15 +537,19 @@ def main():
     parser.print_help()
     return 1
 
-  filename = args[0]
-  outfile = join(options.out, filename)
-  if 'chromium' in options.target:
-    convertForChromium(
-        filename, options.optimize, outfile.replace('.html', '-js.html'),
-        options.verbose)
-  if 'dartium' in options.target:
-    convertForDartium(filename, outfile.replace('.html', '-dartium.html'),
-                      options.verbose)
+  try:
+    filename = args[0]
+    outfile = join(options.out, filename)
+    if 'chromium' in options.target:
+      convertForChromium(
+          filename, options.optimize, outfile.replace('.html', '-js.html'),
+          options.verbose)
+    if 'dartium' in options.target:
+      convertForDartium(filename, outfile.replace('.html', '-dart.html'),
+                        options.verbose)
+  except Exception as e:
+    print "%sERROR%s: %s" % (RED_COLOR, NO_COLOR, str(e))
+    return 1
   return 0
 
 if __name__ == '__main__':

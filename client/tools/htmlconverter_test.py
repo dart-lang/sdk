@@ -96,7 +96,7 @@ TEST3_DART = """
 """
 
 TEST3_DART_A = """
-class MyClass { 
+class MyClass {
   static myprint() {
     window.alert('test3!');
   }
@@ -204,6 +204,37 @@ this is visible on DOMContentLoaded
 #EOF
 """
 
+# TODO(sigmund): integrate with testing infrastructure and mark negative tests.
+# removing the prefix on test6 should purposely fail.
+
+TEST6_HTML = """
+<html>
+  <head></head>
+  <body>
+    <script type="application/javascript">
+      if (window.layoutTestController) {
+        window.layoutTestController.dumpAsText();
+      }
+    </script>
+
+    <!-- embed source code -->
+    <script type="application/dart">
+      #import('html/html.dart', prefix: 'html');
+      main() {
+        html.window.alert('hi');
+      }
+    </script>
+  </body>
+</html>
+"""
+
+TEST6_OUTPUT = """
+ALERT: hi
+Content-Type: text/plain
+
+#EOF
+"""
+
 
 FILES = {
     'test_1.html': TEST1_HTML,
@@ -220,6 +251,7 @@ FILES = {
     'test_4.dart': TEST4_DART,
 
     'test_5.html': TEST5_HTML,
+    'test_6.html': TEST6_HTML,
   }
 
 INPUTS = [
@@ -227,14 +259,18 @@ INPUTS = [
     'test_2.html',
     'test_3.html',
     'test_4.html',
-    'test_5.html']
+    'test_5.html',
+    'test_6.html'
+    ]
 
 OUTPUTS = [
     TEST1_OUTPUT,
     TEST2_OUTPUT,
     TEST3_OUTPUT,
     TEST4_OUTPUT,
-    TEST5_OUTPUT]
+    TEST5_OUTPUT,
+    TEST6_OUTPUT
+    ]
 
 CLIENT_PATH = dirname(dirname(abspath(__file__)))
 RED_COLOR = "\033[31m"
@@ -300,7 +336,7 @@ def deleteInputFiles():
 
 def runTest(test, target, verbose, keep_temporary_files):
   inputfile = INPUTS[test]
-  suffix = '-js.html' if target == 'chromium' else '-dartium.html'
+  suffix = '-js.html' if target == 'chromium' else '-dart.html'
   outfile = abspath(join('out', inputfile.replace(".html", suffix)))
 
   # TODO(sigmund): tests should also run in dartium before converting them
