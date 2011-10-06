@@ -2,17 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class SocketIOException {
-  const SocketIOException([String message = ""]) : message_ = message;
-  String getMessage() { return message_; }
-  final String message_;
-}
-
 /*
  * SocketNativeWrapper is defined in native and holds a field to store the
  * native socket object.
  */
-class SocketBase {
+class _SocketBase {
 
   /*
    * Keep these constants in sync with the native poll event identifiers.
@@ -21,9 +15,12 @@ class SocketBase {
   static final int _OUT_EVENT = 1;
   static final int _ERROR_EVENT = 2;
   static final int _CLOSE_EVENT = 3;
+  static final int _FIRST_EVENT = _IN_EVENT;
+  static final int _LAST_EVENT = _CLOSE_EVENT;
+
   static final int _CLOSE_COMMAND = 4;
 
-  SocketBase () {
+  _SocketBase () {
     _handler = new ReceivePort();
     _handlerMap = new List(_CLOSE_EVENT + 1);
     _handlerMask = 0;
@@ -42,7 +39,7 @@ class SocketBase {
     assert(message.length == 1);
     _canActivateHandlers = false;
     int event_mask = message[0];
-      for (int i = _IN_EVENT; i <= _CLOSE_EVENT; i++) {
+      for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
         if (((event_mask & (1 << i)) != 0) && _handlerMap[i] !== null) {
           var handleEvent = _handlerMap[i];
           /*
@@ -131,7 +128,7 @@ class SocketBase {
 }
 
 
-class _ServerSocket extends SocketBase implements ServerSocket {
+class _ServerSocket extends _SocketBase implements ServerSocket {
   /*
    * Constructor for server socket. First a socket object is allocated
    * in which the native socket is stored. After that _createBind
@@ -175,7 +172,7 @@ class _ServerSocket extends SocketBase implements ServerSocket {
 }
 
 
-class _Socket extends SocketBase implements Socket {
+class _Socket extends _SocketBase implements Socket {
   /*
    * Constructor for socket. First a socket object is allocated
    * in which the native socket is stored. After that _createConnect is

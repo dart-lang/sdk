@@ -114,3 +114,14 @@ interface Socket factory _Socket {
    */
   void close();
 }
+
+
+class SocketIOException implements Exception {
+  const SocketIOException([String this.message = ""]);
+  String toString() => "SocketIOException: $message";
+
+  /*
+   * Contains the exception message.
+   */
+  final String message;
+}

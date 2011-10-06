@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class FileIOException implements Exception {
-  const FileIOException([String message = ""]) : _message = message;
-  String getMessage() { return _message; }
-  final String _message;
-}
-
 interface FileInputStream extends InputStream factory _FileInputStream {
   FileInputStream(File file);
 }
@@ -62,4 +56,15 @@ interface File factory _File {
 
 class FileUtil {
   static bool fileExists(String name) native "File_Exists";
+}
+
+
+class FileIOException implements Exception {
+  const FileIOException([String this.message = ""]);
+  String toString() => "FileIOException: $message";
+
+  /*
+   * Contains the exception message.
+   */
+  final String message;
 }
