@@ -9,10 +9,10 @@ class TouchTests extends UnitTestSuite {
 
   void setUpTestSuite() {
     test('Solver', () {
-      expect(Solver.solve((x) => x * x, 81, 10) == 9;
-      expect(Solver.solve((x) => x * x, 0, 10) == 0;
-      expect(Solver.solve((x) => x * x, 1.5625, 10) == 1.25;
-      expect(Solver.solve((x) => 1 / x, 10, 1) == 0.1;
+      expect(Solver.solve((x) => x * x, 81, 10)) == 9;
+      expect(Solver.solve((x) => x * x, 0, 10)) == 0;
+      expect(Solver.solve((x) => x * x, 1.5625, 10)) == 1.25;
+      expect(Solver.solve((x) => 1 / x, 10, 1)) == 0.1;
     });
 
     group('Momentum', () {
@@ -25,7 +25,7 @@ class TouchTests extends UnitTestSuite {
 
       test('TimeoutMomentum()', () {
         final delegate = new TestMomentumDelegate();
-        final momentum = new TimeoutMomentum(null,)
+        final momentum = new TimeoutMomentum(null);
       });
     });
   }
@@ -35,8 +35,8 @@ class TestMomentumDelegate {
   Function onDecelerateCallback;
   Function onDecelerationEndCallback;
 
-  void onDecelerate(num x, num y, num duration = 0,
-                    String timingFunction = null) {
+  void onDecelerate(num x, num y,
+                    [num duration = 0, String timingFunction = null]) {
      onDecelerateCallback(x, y, duration, timingFunction);
   }
 

@@ -50,11 +50,11 @@ class HttpServer {
 
 
 class ClientApp {
-  ClientApp(String path, List<String> staticApps = null) {
+  ClientApp(String path, [List<String> staticApps = null]) {
     _init(path, staticApps);
   }
 
-  static HttpRequestHandler create(String path, List<String> staticApps = null) {
+  static HttpRequestHandler create(String path, [List<String> staticApps = null]) {
     return new ClientApp(path, staticApps).handler;
   }
 
