@@ -14,6 +14,7 @@ CountTest: Fail         # Bug 5246195
 PromiseBasedTest: Fail  # Bug 5246195
 StaticStateTest: Fail   # Bug 5246195
 RequestReplyTest: Crash, Fail # Bug 5395487
+CrossIsolateMessageTest: Fail  # Bug 5246195
 NestedSpawnTest: Fail   # Bug 5246195
 NestedSpawn2Test: Fail  # Bug 5246195
 
@@ -23,9 +24,6 @@ Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 
 [ $arch == dartium || $arch == ia32 || $arch == x64 || $arch == simarm || $arch == arm ]
 SerializationTest: Skip  # DartC test (uses coreimpl).
-
-[ $arch == dartc && $mode == release ]
-CrossIsolateMessageTest: Fail  # Bug 5421146
 
 [ $arch == chromium && $arch == release ]
 ConstructorTest: Fail            # Bug 5382463
