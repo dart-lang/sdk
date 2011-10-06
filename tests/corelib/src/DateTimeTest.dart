@@ -332,6 +332,7 @@ class DateTest {
   }
 
   static void testWeekday() {
+    // 2011-10-06 is Summertime.
     var d = new Date(2011, 10, 6, 0, 45, 37, 0);
     Expect.equals(Date.THU, d.weekday);
     d = new Date.withTimeZone(2011, 10, 6, 0, 45, 37, 0, const TimeZone.utc());
@@ -340,6 +341,7 @@ class DateTest {
     Expect.equals(Date.WED, d.weekday);
     d = new Date.withTimeZone(2011, 10, 5, 23, 45, 37, 0, const TimeZone.utc());
     Expect.equals(Date.WED, d.weekday);
+    // 1970-01-01 is Wintertime.
     d = new Date(1970, 1, 1, 0, 0, 0, 1);
     Expect.equals(Date.THU, d.weekday);
     d = new Date.withTimeZone(1970, 1, 1, 0, 0, 0, 1, const TimeZone.utc());
