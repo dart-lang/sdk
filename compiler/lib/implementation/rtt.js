@@ -42,6 +42,17 @@ RTT.prototype.implementedBy = function(value){
       this.implementedByType(RTT.getTypeInfo(value)); 
 };
 
+/** 
+ * A helper function for safely looking up a value
+ * in a Object used as a map.
+ * @param {Object.<*>} map
+ * @param {srting} key
+ * @return {*} the value or null;
+ */
+function $mapLookup(map, key) {
+  return map.hasOwnProperty(key) ? map[key] : null;
+}
+
 /**
  * @param {!RTT} other
  * @return {boolean} Whether this type is implement by other
@@ -50,7 +61,7 @@ RTT.prototype.implementedByType = function(otherType) {
   if (otherType === this || otherType === RTT.dynamicType) {
     return true;
   }
-  var targetTypeInfo = otherType.implementedTypes[this.classKey];
+  var targetTypeInfo = $mapLookup(otherType.implementedTypes, this.classKey);
   if (targetTypeInfo == null) { 
     return false; 
   }
@@ -95,7 +106,7 @@ RTT.getNativeTypeInfo = function(value) {
 RTT.create = function(name, implementsSupplier, typeArgs) {
   if (name == $cls("Object")) return RTT.objectType;
   var typekey = RTT.getTypeKey(name, typeArgs);
-  var rtt = RTT.types[typekey];
+  var rtt = $mapLookup(RTT.types, typekey);
   if (rtt) {
     return rtt;
   }
@@ -154,7 +165,7 @@ RTT.removeTypeInfo = function(o) {
  * @param {number} i
  * @return {RTT}
  */
-RTT.getTypeArg = function(typeArgs,i) {
+RTT.getTypeArg = function(typeArgs, i) {
   if (typeArgs) {
     if (typeArgs.length > i) {
       return typeArgs[i];
@@ -169,13 +180,13 @@ RTT.getTypeArg = function(typeArgs,i) {
  * The typeArg array is optional
  * @param {*} o
  * @param {string} classkey
- * @param {number} i
  * @return {Array.<RTT>}
  */
 RTT.getTypeArgsFor = function(o, classkey) {
-  var rtt = RTT.getTypeInfo(o).implementedTypes[classkey];
+  var rtt = $mapLookup(RTT.getTypeInfo(o).implementedTypes, classkey);
   if (!rtt) {
-    throw new Error("internal error: can not find " + classkey + " in " + JSON.stringify(o));
+    throw new Error("internal error: can not find " +
+        classkey + " in " + JSON.stringify(o));
   }
   return rtt.typeArgs;
 };
