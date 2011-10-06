@@ -9,11 +9,10 @@
 # please use the following procedure to mark a test
 # failed on an architecture other than the one you are working on.
 #
-# 1) Copy the old version of the test to [runtime|compiler]/tests/dart/src
-# 2) Rename the file with a 'Legacy' prefix.
-# 3) File a bug for the failure due to the language change.
-# 4) Update the dart.status and language.status files appropriately.
-# 5) Update the language/src directory with the updated test.
+# 1) Copy the old version of the test to
+#    tests/language/src/TestName[Dartc|VM]Test.dart.
+# 2) File a bug for the failure due to the language change.
+# 3) Update the language/src directory with the updated test.
 
 prefix language
 
@@ -48,6 +47,9 @@ ManyEchoServerTest: Skip        # Bug 5103754
 CanonicalConstTest: Fail        # Bug 5270133
 OverrideFieldTest/none: Fail    # Bug 5384222
 GenericParameterizedExtendsTest: Skip  # Bug 5391643
+
+# DartC specific tests that should not be run by the VM.
+*DartcTest: Skip
 
 # Problems specific to dartc optimized mode
 [ ($arch == dartc || $arch == chromium) && $mode == release ]
@@ -134,6 +136,10 @@ TypeTest: Fail               # Uses TypeError class.
 AssertTest: Fail             # Uses AssertError class.
 
 ThirdTest: Fail # Bug 5339586
+
+
+# VM specific tests that should not be run by DartC.
+*VMTest: Skip
 
 
 [ $arch == dartium ]
