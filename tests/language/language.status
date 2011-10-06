@@ -57,6 +57,7 @@ NullPointerExceptionTest: Fail       # Bug 5391976
 CallThroughNullGetterTest: Fail      # Bug 5391976
 Private3Test: Fail                   # Bug 5391976
 Switch3NegativeTest: Crash           # Bug 5318228
+BadNamedParametersTest: Fail    # Bug Bug 4202974 - release mode is not throwing NSME
 
 # Tests that pass in release mode but fail in debug mode
 [ ($arch == dartc || $arch == chromium) && $mode == debug ]
@@ -67,7 +68,6 @@ Prefix11NegativeTest: Fail # Bug 5406175
 Prefix12NegativeTest: Fail,Crash # Bug 5406175
 FunctionTypeParameterNegativeTest: Fail # Bug 4568007
 ImplicitScopeTest: FAIL              # Nested statements can be declarations
-ResolveTest: FAIL                    # 4254120 (implicit constructors)
 ConstConstructor1NegativeTest: FAIL  # 5142545
 ConstConstructor2NegativeTest: FAIL  # 5142545
 MathTest: FAIL                       # 5165080
@@ -75,7 +75,6 @@ StringConcatTest: FAIL               # 5196164
 NamedParametersTest: Fail            # Implementation in progress.
 NamedParametersTypeTest: Fail        # Implementation in progress.
 NamedParametersWithConversionsTest: Fail # Implementation in progress.
-BadNamedParameters2Test: Fail        # Implementation in progress.
 NamedParametersNegativeTest: Skip    # Implementation in progress.
 NamedParameters2NegativeTest: Skip   # Implementation in progress.
 NamedParameters3NegativeTest: Skip   # Implementation in progress.
@@ -91,13 +90,13 @@ RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail  # 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
+SuperNegativeTest: Fail # Now that super calls are automatically injected this test doesn't make sense
 
 # Crashes in dartc.
 FunctionTypeAliasTest: Crash  # Bug 4519208.
 
 # Other bugs (or unimplemented features) in dartc.
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
-GenericInheritanceTest: Fail # Bug 4562150 (implicit constructors).
 Throw7NegativeTest: Fail     # Bug 4208459.
 Throw3Test: Fail             # Bug 4205624.
 SwitchLabelTest: Fail        # Bug 4208467.
@@ -108,7 +107,6 @@ PseudoKWNegativeTest: Fail   # Bug 4979760.
 OverriddenNoSuchMethodTest: Fail  # Bug 4202974.
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
 NoSuchMethodTest: Fail       # Bug 4202974.
-BadNamedParametersTest: Fail # Bug 4202974.
 NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 LocalFunction3Test: Fail     # Bug 4202974.
@@ -131,7 +129,6 @@ OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
-DeoptimizationTest: Fail # Bug 4254120
 CharEscapeTest: Fail
 FunctionTypeParameter2NegativeTest: Fail # Bug 4568007
 

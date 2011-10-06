@@ -214,6 +214,71 @@ public class ResolverTest extends ResolverTestCase {
     checkExpectedErrors();
   }
 
+  public void testImplicitDefaultConstructor() {
+    // Check that the implicit constructor is resolved correctly
+    resolve(parseUnit(
+        "class Object {}",
+        "class B {}",
+        "class C { main() { new B(); } }"), getContext());
+    checkExpectedErrors();
+    
+    /*
+     * We should check for signature mismatch but that is a TypeAnalyzer issue.
+     */
+  }
+
+  public void testImplicitDefaultConstructor_ThroughFactories() {
+    // Check that we generate implicit constructors through factories also.
+    resolve(parseUnit(
+        "class Object {}",
+        "interface B factory C {}",
+        "class C {}",
+        "class D { main() { new B(); } }"), getContext());
+    checkExpectedErrors();
+  }
+  
+  public void testImplicitDefaultConstructor_WithConstCtor() {
+    setExpectedErrors(1);
+    // Check that we generate an error if the implicit constructor would violate const.
+    resolve(parseUnit(
+        "class Object {}",
+        "class B { const B() {} }",
+        "class C extends B {}",
+        "class D { main() { new C(); } }"), getContext());
+    checkExpectedErrors();
+  }
+
+  public void testImplicitSuperCall_ImplicitCtor() {
+    // Check that we can properly resolve the super ctor that exists.
+    resolve(parseUnit(
+        "class Object {}",
+        "class B { B() {} }",
+        "class C extends B {}",
+        "class D { main() { new C(); } }"), getContext());
+    checkExpectedErrors();
+  }
+
+  public void testImplicitSuperCall_OnExistingCtor() {
+    // Check that we can properly resolve the super ctor that exists.
+    resolve(parseUnit(
+        "class Object {}",
+        "class B { B() {} }",
+        "class C extends B { C(){} }",
+        "class D { main() { new C(); } }"), getContext());
+    checkExpectedErrors();
+  }
+
+  public void testImplicitSuperCall_NonExistentSuper() {
+    setExpectedErrors(1);
+    // Check that we generate an error if the implicit constructor would call a non-existent super.
+    resolve(parseUnit(
+        "class Object {}",
+        "class B { B(Object o) {} }",
+        "class C extends B {}",
+        "class D { main() { new C(); } }"), getContext());
+    checkExpectedErrors();
+  }
+
   public void testCyclicSupertype() {
     setExpectedErrors(8);
     resolve(parseUnit(
