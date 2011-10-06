@@ -12,6 +12,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.LimitInputStream;
+import com.google.dart.compiler.CommandLineOptions;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
@@ -20,10 +21,16 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.backend.js.ast.JsBlock;
 import com.google.dart.compiler.backend.js.ast.JsProgram;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
+import com.google.dart.compiler.metrics.DartEventType;
+import com.google.dart.compiler.metrics.Tracer;
+import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
+import com.google.dart.compiler.util.DefaultTextOutput;
+import com.google.dart.compiler.util.TextOutput;
 import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.CompilationLevel;
 import com.google.javascript.jscomp.Compiler;
@@ -33,8 +40,12 @@ import com.google.javascript.jscomp.DiagnosticGroups;
 import com.google.javascript.jscomp.JSError;
 import com.google.javascript.jscomp.JSModule;
 import com.google.javascript.jscomp.JSSourceFile;
+import com.google.javascript.jscomp.PropertyRenamingPolicy;
 import com.google.javascript.jscomp.Result;
 import com.google.javascript.jscomp.SourceAst;
+import com.google.javascript.jscomp.SourceMap.DetailLevel;
+import com.google.javascript.jscomp.SourceMap.Format;
+import com.google.javascript.jscomp.VariableRenamingPolicy;
 import com.google.javascript.jscomp.WarningLevel;
 
 import java.io.IOException;
@@ -58,8 +69,8 @@ import java.util.zip.ZipInputStream;
  * @author johnlenz@google.com (John Lenz)
  */
 public class ClosureJsBackend extends AbstractJsBackend {
-  public static final String EXTENSION_JS = "opt.js";
-  public static final String EXTENSION_JS_SRC_MAP = "opt.js.map";
+  private static final String EXTENSION_OPT_JS = "opt.js";
+  private static final String EXTENSION_OPT_JS_SRC_MAP = "opt.js.map";
 
   // A map of possible input sources to use when building the optimized output.
   private Map<String, DartUnit> dartSrcToUnitMap = Maps.newHashMap();
@@ -67,27 +78,58 @@ public class ClosureJsBackend extends AbstractJsBackend {
 
   // Generate "readable" output for debugging
   private final boolean generateHumanReadableOutput;
+  // Generate "good" instead of "best" output.
+  private final boolean fastOutput;
+  // TODO(johnlenz): Currently we can only support incremential builds
+  // if we aren't building source maps.
+  private final boolean incremental;
+
+  private final boolean produceSourceMap;
+  // Validate the generated JavaScript
+  private final boolean validate;
 
   public ClosureJsBackend() {
-    this.generateHumanReadableOutput = false;
+    this(false);
   }
 
   /**
    * @param generateHumanReadableOutput - generates human readable javascript output.
    */
   public ClosureJsBackend(boolean generateHumanReadableOutput) {
+    // Current default settings
+    this(false, true, false, true, generateHumanReadableOutput);
+  }
+
+  public ClosureJsBackend(boolean fastOutput,
+                          boolean produceSourceMap,
+                          boolean incremental,
+                          boolean validate,
+                          boolean generateHumanReadableOutput) {
+    this.fastOutput = fastOutput;
+    this.produceSourceMap = produceSourceMap;
+    // can't currently produce a valid source map incrementally
+    this.incremental = incremental && !produceSourceMap;
+    this.validate = validate;
     this.generateHumanReadableOutput = generateHumanReadableOutput;
   }
 
   @Override
   public boolean isOutOfDate(DartSource src, DartCompilerContext context) {
-    return true;
+    if (!incremental) {
+      return true;
+    } else {
+      return super.isOutOfDate(src, context);
+    }
   }
 
   @Override
   public void compileUnit(DartUnit unit, DartSource src,
-      DartCompilerContext context, CoreTypeProvider typeProvider) {
-    dartSrcToUnitMap.put(src.getName(), unit);
+      DartCompilerContext context, CoreTypeProvider typeProvider) throws IOException {
+    if (!incremental) {
+      dartSrcToUnitMap.put(src.getName(), unit);
+    } else {
+      super.compileUnit(unit, src, context, typeProvider);
+    }
   }
 
   private Map<String, CompilerInput> createClosureJsAst(Map<String,JsProgram> parts, Source source) {
@@ -98,7 +140,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     for (Map.Entry<String,JsProgram> part : parts.entrySet()) {
       String partName = part.getKey();
       String inputName = name + ':' + partName;
-      SourceAst sourceAst = new ClosureJsAst(part.getValue(), inputName, source);
+      SourceAst sourceAst = new ClosureJsAst(part.getValue(), inputName, source, validate);
       CompilerInput input = new CompilerInput(sourceAst, false);
       translatedParts.put(part.getKey(), input);
     }
@@ -131,21 +173,38 @@ public class ClosureJsBackend extends AbstractJsBackend {
       StringWriter w = new StringWriter();
       Reader r = nativeSrc.getSourceReader();
       CharStreams.copy(r, w);
-      inputs.add(new CompilerInput(JSSourceFile.fromCode(name, w.toString()), false));
+      inputs.add(new CompilerInput(createSource(name, w), false));
     }
 
     @Override
-    public void visitPart(Part part) {
+    public void visitPart(Part part) throws IOException {
       DartSource src = part.unit.getSource();
-      Map<String, CompilerInput> translatedParts = translatedUnits.get(part.unit);
-      if (translatedParts == null) {
-        assert !sourcesByName.containsKey(src.getName());
-        sourcesByName.put(src.getName(), src);
-        Preconditions.checkNotNull(part.unit, "src: " + src.getName());
-        translatedParts = translateUnit(part.unit, src, context, typeProvider);
-        translatedUnits.put(part.unit, translatedParts);
+      if (!incremental) {
+        Map<String, CompilerInput> translatedParts = translatedUnits.get(part.unit);
+        if (translatedParts == null) {
+          assert !sourcesByName.containsKey(src.getName());
+          sourcesByName.put(src.getName(), src);
+          Preconditions.checkNotNull(part.unit, "src: " + src.getName());
+          translatedParts = translateUnit(part.unit, src, context, typeProvider);
+          Preconditions.checkState(!translatedUnits.containsKey(part.unit));
+          translatedUnits.put(part.unit, translatedParts);
+        }
+        inputs.add(translatedParts.get(part.part));
+        return;
       }
-      inputs.add(translatedParts.get(part.part));
+
+      Reader r = context.getArtifactReader(src, part.part, EXTENSION_JS);
+      if (r == null) {
+        return;
+      }
+      StringWriter w = new StringWriter();
+      CharStreams.copy(r, w);
+      String inputName = src.getName() + ':' + part.part;
+      inputs.add(new CompilerInput(createSource(inputName, w), false));
+    }
+
+    private JSSourceFile createSource(String name, Writer w) {
+      return JSSourceFile.fromCode(name, w.toString());
     }
   }
 
@@ -162,7 +221,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     DependencyBuilder.build(context.getAppLibraryUnit(), callback);
 
     // Lastly, add the entry point.
-    inputs.add( getCompilerInputForEntry(context) );
+    inputs.add(getCompilerInputForEntry(context));
 
     // Currently, there is only a single module, add all the sources to it.
     JSModule mainModule = new JSModule("main");
@@ -172,10 +231,10 @@ public class ClosureJsBackend extends AbstractJsBackend {
       }
     }
 
-    Writer out = context.getArtifactWriter(app, "", EXTENSION_JS);
+    Writer out = context.getArtifactWriter(app, "", getAppExtension());
     boolean failed = true;
     try {
-      Writer srcMapOut = context.getArtifactWriter(app, "", EXTENSION_JS_SRC_MAP);
+      Writer srcMapOut = context.getArtifactWriter(app, "", getSourceMapExtension());
       boolean failed2 = true;
       try {
         compileModule(
@@ -318,16 +377,15 @@ public class ClosureJsBackend extends AbstractJsBackend {
       Writer out, Writer srcMapOut)
       throws IOException {
     if (result.success) {
+      // TODO(johnlenz): Append directly to the writer.
       String output = compiler.toSource(module);
       out.append(output);
       out.append('\n');
 
-      compiler.getSourceMap().appendTo(srcMapOut, module.getName());
-
+      if (produceSourceMap) {
+        compiler.getSourceMap().appendTo(srcMapOut, module.getName());
+      }
       totalJsOutputCharCount = output.length();
-
-      // TODO(johnlenz): Output the externs declarations
-      // TODO(johnlenz): Output the manifest.
     }
 
     // return 0 if no errors, the error count otherwise

@@ -13,6 +13,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
+import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartClass;
@@ -30,6 +31,8 @@ import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.util.DefaultTextOutput;
+import com.google.dart.compiler.util.TextOutput;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -50,6 +53,11 @@ import java.util.Set;
  * @author johnlenz@google.com (John Lenz)
  */
 public abstract class AbstractJsBackend extends AbstractBackend {
+
+  public static final String EXTENSION_JS = "js";
+  public static final String EXTENSION_APP_JS = "app.js";
+  public static final String EXTENSION_JS_SRC_MAP = "js.map";
+  public static final String EXTENSION_APP_JS_SRC_MAP = "app.js.map";
 
   private static final String ROOT_PART_NAME = "";
   private static final String STATICS_PART_NAME = "$statics$";
@@ -466,6 +474,75 @@ public abstract class AbstractJsBackend extends AbstractBackend {
     }
 
     return mangler.mangleEntryPoint(entry, context.getApplicationUnit().getElement());
+  }
+
+  @Override
+  public boolean isOutOfDate(DartSource src, DartCompilerContext context) {
+    return context.isOutOfDate(src, src, EXTENSION_JS);
+  }
+
+  @Override
+  public void compileUnit(DartUnit unit, DartSource src, DartCompilerContext context,
+      CoreTypeProvider typeProvider) throws IOException {
+    // Translate the AST to JS.
+    Map<String, JsProgram> parts = translateToJS(unit, context, typeProvider);
+    String srcName = src.getName();
+
+    for (Map.Entry<String, JsProgram> entry : parts.entrySet()) {
+      // Generate Javascript output.
+      TextOutput out = new DefaultTextOutput(false);
+      JsToStringGenerationVisitor srcGenerator;
+      String name = entry.getKey();
+      boolean failed = true;
+      Writer w;
+
+      JsProgram program = entry.getValue();
+      JsBlock globalBlock = program.getGlobalBlock();
+
+      TraceEvent srcEvent =
+          Tracer.canTrace() ? Tracer.start(DartEventType.JS_SOURCE_GEN, "src", srcName, "name",
+              name) : null;
+      try {
+        srcGenerator = new JsSourceGenerationVisitor(out);
+
+        // TODO(johnlenz): Make source maps optional.
+        srcGenerator.generateSourceMap(true);
+
+        srcGenerator.accept(globalBlock);
+        w = context.getArtifactWriter(src, name, EXTENSION_JS);
+        try {
+          w.write(out.toString());
+          failed = false;
+        } finally {
+          Closeables.close(w, failed);
+        }
+      } finally {
+        Tracer.end(srcEvent);
+      }
+
+      /*
+       * Currently, out of date checks require that we write a JS file even if it is empty.
+       * However, we should not write a map file if it is.
+       */
+      if (!globalBlock.getStatements().isEmpty()) {
+        TraceEvent sourcemapEvent =
+            Tracer.canTrace() ? Tracer.start(DartEventType.WRITE_SOURCE_MAP, "src", srcName,
+                "name", name) : null;
+        try {
+          // Write out the source map.
+          w = context.getArtifactWriter(src, name, EXTENSION_JS_SRC_MAP);
+          failed = true;
+          try {
+            srcGenerator.writeSourceMap(w, src.getName());
+            failed = false;
+          } finally {
+            Closeables.close(w, failed);
+          }
+        } finally {
+          Tracer.end(sourcemapEvent);
+        }
+      }
+    }
   }
 
   protected abstract boolean shouldOptimize();

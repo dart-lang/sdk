@@ -78,6 +78,12 @@ public class ClosureJsAstTranslator {
    private final Map<Source, StaticSourceFile> sourceCache =
        new HashMap<Source, StaticSourceFile>();
 
+   private final boolean validate;
+
+   ClosureJsAstTranslator(boolean validate) {
+     this.validate = validate;
+   }
+
    private StaticSourceFile getClosureSourceFile(Source source) {
      StaticSourceFile closureSourceFile = sourceCache.get(source);
      if (closureSourceFile == null) {
@@ -97,7 +103,9 @@ public class ClosureJsAstTranslator {
        script.addChildToBack(transform(s));
      }
      // Validate the structural integrity of the AST.
-     new AstValidator().validateScript(script);
+     if (validate) {
+       new AstValidator().validateScript(script);
+     }
      return script;
    }
 

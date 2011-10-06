@@ -30,11 +30,14 @@ public class ClosureJsAst implements SourceAst {
   private final Source source;
   private final InputId inputId;
 
-  public ClosureJsAst(JsProgram program, String inputName, Source source) {
+  private final boolean validate;
+
+  public ClosureJsAst(JsProgram program, String inputName, Source source, boolean validate) {
     assert(inputName != null);
     this.program = program;
     this.source = source;
     this.inputId = new InputId(inputName);
+    this.validate = validate;
   }
 
   @Override
@@ -71,6 +74,6 @@ public class ClosureJsAst implements SourceAst {
   }
 
   private void createAst(AbstractCompiler compiler) {
-    root = new ClosureJsAstTranslator().translate(program, inputId, source);
+    root = new ClosureJsAstTranslator(validate).translate(program, inputId, source);
   }
 }
