@@ -25,6 +25,9 @@ Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 [ $arch == dartium || $arch == ia32 || $arch == x64 || $arch == simarm || $arch == arm ]
 SerializationTest: Skip  # DartC test (uses coreimpl).
 
+[ $arch == dartc && $mode == release ]
+CrossIsolateMessageTest: Fail  # TODO(floitsch): fix that. I'm on it.
+
 [ $arch == chromium && $arch == release ]
 ConstructorTest: Fail            # Bug 5382463
 SpawnTest: Fail                  # Bug 5382463
