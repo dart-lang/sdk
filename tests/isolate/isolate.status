@@ -26,7 +26,7 @@ Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 SerializationTest: Skip  # DartC test (uses coreimpl).
 
 [ $arch == dartc && $mode == release ]
-CrossIsolateMessageTest: Fail  # TODO(floitsch): fix that. I'm on it.
+CrossIsolateMessageTest: Fail  # Bug 5421146
 
 [ $arch == chromium && $arch == release ]
 ConstructorTest: Fail            # Bug 5382463
