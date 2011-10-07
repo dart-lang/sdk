@@ -20,6 +20,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author floitsch@google.com (Florian Loitsch)
@@ -69,7 +70,7 @@ public class V8Launcher implements JavaScriptLauncher {
   }
 
   @Override
-  public void execute(String jsScript, String sourceName, String[] args, RunnerOptions options,
+  public void execute(String jsScript, String sourceName, String[] args, Set<RunnerFlag> flags,
                       PrintStream stdout, PrintStream stderr)
       throws RunnerError {
     if (!isConfigured()) {
@@ -85,7 +86,7 @@ public class V8Launcher implements JavaScriptLauncher {
       ArrayList<String> command = new ArrayList<String>();
       command.add(v8Executable().getAbsolutePath());
       command.add(sourceFile.getAbsolutePath());
-      if (options.shouldProfile()) {
+      if (flags.contains(RunnerFlag.PROFILE)) {
         command.add("--prof");
       }
       command.add("--");
@@ -132,7 +133,7 @@ public class V8Launcher implements JavaScriptLauncher {
       if (exitValue != 0) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter out = new PrintWriter(stringWriter);
-        if (options.verbose()) {
+        if (flags.contains(RunnerFlag.VERBOSE)) {
           out.println(jsScript);
         }
         out.println("Execution failed.");

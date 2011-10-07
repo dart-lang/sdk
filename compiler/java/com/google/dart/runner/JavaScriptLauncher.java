@@ -5,6 +5,7 @@
 package com.google.dart.runner;
 
 import java.io.PrintStream;
+import java.util.Set;
 
 /**
  * @author floitsch@google.com (Florian Loitsch)
@@ -12,7 +13,7 @@ import java.io.PrintStream;
  */
 interface JavaScriptLauncher {
 
-  void execute(String jsScript, String sourceName, String[] args, RunnerOptions flags,
+  void execute(String jsScript, String sourceName, String[] args, Set<RunnerFlag> flags,
                PrintStream stdout, PrintStream stderr)
       throws RunnerError;
 

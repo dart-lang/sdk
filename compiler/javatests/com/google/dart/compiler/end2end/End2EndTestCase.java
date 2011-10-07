@@ -4,8 +4,6 @@
 
 package com.google.dart.compiler.end2end;
 
-import com.google.dart.compiler.CommandLineOptions;
-import com.google.dart.compiler.CommandLineOptions.DartRunnerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilerListener;
@@ -19,9 +17,11 @@ import com.google.dart.compiler.backend.js.ClosureJsBackend;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.runner.DartRunner;
 import com.google.dart.runner.RunnerError;
+import com.google.dart.runner.RunnerFlag;
 
 import org.mozilla.javascript.RhinoException;
 
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -71,21 +71,14 @@ public abstract class End2EndTestCase extends CompilerTestCase {
   protected void runTest(LibrarySource app, OptimizationLevel opLevel,
                          DartCompilerListener listener) {
     try {
-      final CompilerConfiguration config = getCompilerConfiguration(opLevel);
-      DartRunnerOptions verboseOptions = new CommandLineOptions.DartRunnerOptions() {
-        @Override
-        public boolean verbose() {
-          return true;
-        }
-      };
-
+      CompilerConfiguration config = getCompilerConfiguration(opLevel);
       DartRunner.compileAndRunApp(app,
-                                  verboseOptions,
-                                  config,
-                                  listener,
-                                  new String[0],
-                                  System.out,
-                                  System.err);
+                                EnumSet.of(RunnerFlag.VERBOSE),
+                                config,
+                                listener,
+                                new String[0],
+                                System.out,
+                                System.err);
     } catch (RhinoException e) {
       // TODO(jgw): This is a hack to dump the translated source when something goes wrong. It can
       // be removed as soon as we have a source map we can use to provide source-level errors.

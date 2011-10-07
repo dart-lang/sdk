@@ -13,6 +13,7 @@ import org.mozilla.javascript.Undefined;
 
 import java.io.PrintStream;
 import java.lang.reflect.Member;
+import java.util.Set;
 
 /**
  * @author floitsch@google.com (Florian Loitsch)
@@ -177,7 +178,7 @@ public class RhinoLauncher implements JavaScriptLauncher {
   }
 
   @Override
-  public void execute(String jsScript, String sourceName, String[] args, RunnerOptions options,
+  public void execute(String jsScript, String sourceName, String[] args, Set<RunnerFlag> flags,
                       PrintStream stdout, PrintStream stderr)
       throws RunnerError {
     try {
@@ -201,7 +202,7 @@ public class RhinoLauncher implements JavaScriptLauncher {
     } catch (RhinoException e) {
       // TODO(jgw): This is a hack to dump the translated source when something goes wrong. It can
       // be removed as soon as we have a source map we can use to provide source-level errors.
-      if (options.verbose()) {
+      if (flags.contains(RunnerFlag.VERBOSE)) {
         stdout.println(jsScript);
         stdout.flush();
       }
