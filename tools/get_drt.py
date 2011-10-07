@@ -47,7 +47,7 @@ def execute_command_visible(*cmd):
   result = subprocess.call(cmd, stdout=sys.stdout, stderr=sys.stderr,
                            stdin=sys.stdin)
   if result != 0:
-    raise Exception('Execution of "%s" failed' % cmd)
+    raise Exception('Execution of "%s" failed' % ' '.join(cmd))
 
 
 def gsutil(*cmd):
