@@ -3262,6 +3262,7 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
   Field& field = Field::Handle();
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
   for (intptr_t i = 0; i < dict_size; i++) {
     entry = dict.At(i);
     if (!entry.IsNull()) {
@@ -3274,6 +3275,9 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
       } else if (entry.IsField()) {
         field ^= entry.raw();
         entry_name = field.name();
+      } else if (entry.IsLibraryPrefix()) {
+        prefix ^= entry.raw();
+        entry_name = prefix.name();
       } else {
         UNREACHABLE();
       }
