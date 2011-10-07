@@ -117,6 +117,8 @@ class Object {
     kSentinelObject,
     kClassClass,
     kNullClass,
+    kVarClass,
+    kVoidClass,
     kTypeClass,
     kParameterizedTypeClass,
     kTypeParameterClass,
@@ -206,6 +208,8 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
+  static RawClass* var_class() { return var_class_; }
+  static RawClass* void_class() { return void_class_; }
   static RawClass* type_class() { return type_class_; }
   static RawClass* parameterized_type_class() {
       return parameterized_type_class_;
@@ -307,9 +311,9 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawInstance* transition_sentinel_;
 
   static RawClass* class_class_;  // Class of the Class vm object.
-  static RawClass* var_class_;  // Represents the 'var' type.
-  static RawClass* void_class_;  // Represents the 'void' type.
   static RawClass* null_class_;  // Class of the null object.
+  static RawClass* var_class_;  // Class of the 'var' type.
+  static RawClass* void_class_;  // Class of the 'void' type.
   static RawClass* type_class_;  // Class of the Type vm object.
   static RawClass* parameterized_type_class_;  // Class of ParameterizedType.
   static RawClass* type_parameter_class_;  // Class of TypeParameter vm object.
@@ -456,7 +460,10 @@ class Class : public Object {
   bool IsNullClass() const { return raw() == Object::null_class(); }
 
   // Check if this class represents the 'var' class.
-  bool IsVarClass() const;
+  bool IsVarClass() const { return raw() == Object::var_class(); }
+
+  // Check if this class represents the 'void' class.
+  bool IsVoidClass() const { return raw() == Object::void_class(); }
 
   // Check if this class represents the 'Object' class.
   bool IsObjectClass() const;
@@ -646,13 +653,19 @@ class Type : public Object {
   RawString* ClassName() const;
 
   // Check if this type represents the 'null' type.
-  bool IsNullType() const;
+  bool IsNullType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::null_class());
+  }
 
   // Check if this type represents the 'var' type.
-  bool IsVarType() const;
+  bool IsVarType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::var_class());
+  }
 
   // Check if this type represents the 'void' type.
-  bool IsVoidType() const;
+  bool IsVoidType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::void_class());
+  }
 
   // Check if this type represents a function type.
   bool IsFunctionType() const {

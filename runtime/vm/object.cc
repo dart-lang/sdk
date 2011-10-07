@@ -48,6 +48,8 @@ RawInstance* Object::transition_sentinel_ =
     reinterpret_cast<RawInstance*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::var_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::parameterized_type_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -79,6 +81,10 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kClassClass;
   } else if (raw_class == null_class()) {
     return kNullClass;
+  } else if (raw_class == var_class()) {
+    return kVarClass;
+  } else if (raw_class == void_class()) {
+    return kVoidClass;
   } else if (raw_class == type_class()) {
     return kTypeClass;
   } else if (raw_class == parameterized_type_class()) {
@@ -126,6 +132,8 @@ RawClass* Object::GetSingletonClass(int index) {
   switch (index) {
     case kClassClass: return class_class();
     case kNullClass: return null_class();
+    case kVarClass: return var_class();
+    case kVoidClass: return void_class();
     case kTypeClass: return type_class();
     case kParameterizedTypeClass: return parameterized_type_class();
     case kTypeParameterClass: return type_parameter_class();
@@ -157,6 +165,8 @@ const char* Object::GetSingletonClassName(int index) {
   switch (index) {
     case kClassClass: return "Class";
     case kNullClass: return "Null";
+    case kVarClass: return "var";
+    case kVoidClass: return "void";
     case kTypeClass: return "Type";
     case kParameterizedTypeClass: return "ParameterizedType";
     case kTypeParameterClass: return "TypeParameter";
@@ -243,8 +253,11 @@ void Object::InitOnce() {
   }
 
   // Allocate the remaining VM internal classes.
-  cls = Class::New<Type>();
-  type_class_ = cls.raw();
+  cls = Class::New<Instance>();
+  var_class_ = cls.raw();
+
+  cls = Class::New<Instance>();
+  void_class_ = cls.raw();
 
   cls = Class::New<ParameterizedType>();
   parameterized_type_class_ = cls.raw();
@@ -537,24 +550,18 @@ void Object::Init(Isolate* isolate) {
   cls = Class::NewInterface(name, script);
   core_impl_lib.AddClass(cls);
 
-  // The 'null' class is not registered in the class dictionary and is not
-  // named, but a corresponding type is stored in the object store.
+  // The classes 'null', 'var', and 'void' are not registered in the class
+  // dictionary and are not named, but corresponding types are stored in the
+  // object store.
   cls = null_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_null_type(type);
 
-  // The 'var' and 'void' classes are not registered in the class dictionary,
-  // but they are named and their corresponding types are stored in the object
-  // store.
-  name = String::NewSymbol("var");
-  cls = Class::New<Instance>();
-  cls.set_name(name);
+  cls = var_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_var_type(type);
 
-  name = String::NewSymbol("void");
-  cls = Class::New<Instance>();
-  cls.set_name(name);
+  cls = void_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_void_type(type);
 
@@ -1140,11 +1147,6 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 
-bool Class::IsVarClass() const {
-  return raw() == Type::Handle(Type::VarType()).type_class();
-}
-
-
 bool Class::IsObjectClass() const {
   return raw() == Type::Handle(Type::ObjectType()).type_class();
 }
@@ -1600,21 +1602,6 @@ RawString* Type::ClassName() const {
   } else {
     return unresolved_type_class();
   }
-}
-
-
-bool Type::IsNullType() const {
-  return raw() == Isolate::Current()->object_store()->null_type();
-}
-
-
-bool Type::IsVarType() const {
-  return raw() == Isolate::Current()->object_store()->var_type();
-}
-
-
-bool Type::IsVoidType() const {
-  return raw() == Isolate::Current()->object_store()->void_type();
 }
 
 
