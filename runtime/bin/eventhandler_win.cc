@@ -735,22 +735,22 @@ static unsigned int __stdcall EventHandlerThread(void* args) {
     } else if (!ok) {
       // If GetQueuedCompletionStatus return false and overlapped is
       // not NULL then it did dequeue a request which failed.
-      if (overlapped != NULL) {
-        // Treat ERROR_CONNECTION_ABORTED as connection closed.
-        // The error ERROR_OPERATION_ABORTED is set for pending
-        // accept requests for a listen socket which is closed.
-        if (GetLastError() == ERROR_CONNECTION_ABORTED ||
-            GetLastError() == ERROR_OPERATION_ABORTED) {
-          ASSERT(bytes == 0);
-          handler->HandleIOCompletion(bytes, key, overlapped);
-        } else {
-          printf("After GetQueuedCompletionStatus %d\n", GetLastError());
-          UNREACHABLE();
-        }
+
+      // Treat ERROR_CONNECTION_ABORTED as connection closed.
+      // The error ERROR_OPERATION_ABORTED is set for pending
+      // accept requests for a listen socket which is closed.
+      // ERROR_NETNAME_DELETED occurs when the client closes
+      // the socket it is reading from.
+      DWORD last_error = GetLastError();
+      if (last_error == ERROR_CONNECTION_ABORTED ||
+          last_error == ERROR_OPERATION_ABORTED ||
+          last_error == ERROR_NETNAME_DELETED) {
+        ASSERT(bytes == 0);
+        handler->HandleIOCompletion(bytes, key, overlapped);
       } else {
         printf("After GetQueuedCompletionStatus %d\n", GetLastError());
         UNREACHABLE();
-      }
+     }
     } else if (key == NULL) {
       // A key of NULL signals an interrupt message.
       InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(overlapped);

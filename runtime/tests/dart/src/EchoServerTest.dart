@@ -109,6 +109,8 @@ class EchoServerGame {
     _socket = new Socket(EchoServer.HOST, _port);
     if (_socket !== null) {
       _socket.setConnectHandler(connectHandler);
+    } else {
+      Expect.fail("socket creation failed");
     }
   }
 
