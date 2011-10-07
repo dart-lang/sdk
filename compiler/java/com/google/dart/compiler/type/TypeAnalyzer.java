@@ -651,6 +651,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
+      node.setReferencedElement(functionType.getElement());
       return checkInvocation(node, node, null, typeOf(node.getTarget()));
     }
 
@@ -660,11 +661,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Element element = (Element) node.getTargetSymbol();
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
+        node.setReferencedElement(element);
         return checkInvocation(node, node, name, element.getType());
       }
       Type receiver = nonVoidTypeOf(node.getTarget());
       List<DartExpression> arguments = node.getArgs();
-      return analyzeMethodInvocation(receiver, lookupMember(receiver, name, node), name,
+      Member member = lookupMember(receiver, name, node);
+      if (member != null) {
+        node.setReferencedElement(member.getElement());
+      }
+      return analyzeMethodInvocation(receiver, member, name,
                                      node.getFunctionName(), analyzeArgumentTypes(arguments),
                                      arguments);
     }
@@ -679,6 +685,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         visit(node.getArgs());
         return voidType;
       } else {
+        node.setReferencedElement(element);
         checkInvocation(node, node, null, typeAsMemberOf(element, currentClass));
         return voidType;
       }
@@ -941,6 +948,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitNewExpression(DartNewExpression node) {
       ConstructorElement element = node.getSymbol();
+      node.setReferencedElement(element);
       DartTypeNode typeNode = Types.constructorTypeNode(node);
       DartNode typeName = typeNode.getIdentifier();
       InterfaceType type = (InterfaceType) validateTypeNode(typeNode, true);
@@ -1023,6 +1031,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
       Element element = node.getTargetSymbol();
+      node.setReferencedElement(element);
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
         return element.getType();
@@ -1040,6 +1049,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return typeError(node.getName(), DartCompilerErrorCode.NOT_A_MEMBER_OF, name, cls);
       }
       element = member.getElement();
+      node.setReferencedElement(element);
       Modifiers modifiers = element.getModifiers();
       if (modifiers.isStatic()) {
         return typeError(node.getName(),
@@ -1202,6 +1212,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartIdentifier target = node.getTarget();
       String name = target.getTargetName();
       Element element = target.getTargetSymbol();
+      node.setReferencedElement(element);
       Type type;
       switch (ElementKind.of(element)) {
         case FIELD:

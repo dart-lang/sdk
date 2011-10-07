@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.dart.compiler.resolver.Element;
+
 import java.util.List;
 
 /**
@@ -30,9 +32,10 @@ import java.util.List;
  * </ul>
  *
  */
-public abstract class DartInvocation extends DartExpression {
+public abstract class DartInvocation extends DartExpression implements ElementReference {
 
   private List<DartExpression> args;
+  private Element referencedElement;
 
   public DartInvocation(List<DartExpression> args) {
     this.args = becomeParentOf(args);
@@ -44,5 +47,13 @@ public abstract class DartInvocation extends DartExpression {
 
   public List<DartExpression> getArgs() {
     return args;
+  }
+
+  public Element getReferencedElement() {
+    return referencedElement;
+  }
+
+  public void setReferencedElement(Element referencedElement) {
+    this.referencedElement = referencedElement;
   }
 }

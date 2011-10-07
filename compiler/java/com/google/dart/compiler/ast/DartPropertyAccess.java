@@ -10,11 +10,12 @@ import com.google.dart.compiler.resolver.Element;
 /**
  * Represents a Dart property access expression (a.b).
  */
-public class DartPropertyAccess extends DartExpression {
+public class DartPropertyAccess extends DartExpression implements ElementReference {
 
   private DartNode qualifier;
   private DartIdentifier name;
   private DartExpression normalizedNode = this;
+  private Element referencedElement;
 
   public DartPropertyAccess(DartNode qualifier, DartIdentifier name) {
     this.qualifier = becomeParentOf(qualifier);
@@ -79,5 +80,15 @@ public class DartPropertyAccess extends DartExpression {
   @Override
   public <R> R accept(DartPlainVisitor<R> visitor) {
     return visitor.visitPropertyAccess(this);
+  }
+
+  @Override
+  public Element getReferencedElement() {
+    return referencedElement;
+  }
+
+  @Override
+  public void setReferencedElement(Element element) {
+    referencedElement = element;
   }
 }
