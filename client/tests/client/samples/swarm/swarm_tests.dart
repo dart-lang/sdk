@@ -5,7 +5,7 @@
 #library('swarm_tests');
 
 #import('../../../../base/base.dart');
-#import('../../../../html/html.dart');
+#import('dart:html');
 #import('../../../../samples/swarm/swarmlib.dart');
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../view/view.dart');

@@ -5,7 +5,7 @@
 
 #library('dartcombat_tests');
 
-#import('../../../../html/html.dart');
+#import('dart:html');
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../samples/dartcombat/dartcombatlib.dart');
 

@@ -9,7 +9,7 @@
 #import('../../../touch/touch.dart');
 #import('../../../util/utilslib.dart');
 #import('../../../view/view.dart');
-#import('../../../html/html.dart');
+#import('dart:html');
 
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');

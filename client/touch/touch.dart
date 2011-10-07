@@ -6,7 +6,7 @@
 
 #import('../base/base.dart');
 #import('../util/utilslib.dart');
-#import('../html/html.dart');
+#import('dart:html');
 
 #source('BezierPhysics.dart');
 #source('FxUtil.dart');

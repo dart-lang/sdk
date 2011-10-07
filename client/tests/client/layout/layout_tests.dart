@@ -5,7 +5,7 @@
 #library('layout_tests');
 
 #import('../../../base/base.dart');
-#import('../../../html/html.dart');
+#import('dart:html');
 #import('../../../layout/layout.dart');
 #import('../../../view/view.dart');
 #import('../../../testing/unittest/unittest.dart');

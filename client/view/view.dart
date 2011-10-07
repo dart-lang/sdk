@@ -7,7 +7,7 @@
 #import('../base/base.dart');
 #import('../observable/observable.dart');
 #import('../touch/touch.dart');
-#import('../html/html.dart');
+#import('dart:html');
 #import('../layout/layout.dart');
 
 #source('CompositeView.dart');
