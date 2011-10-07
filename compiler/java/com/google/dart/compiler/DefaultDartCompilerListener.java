@@ -50,7 +50,7 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
   }
 
   private boolean useColor() {
-    return String.valueOf(System.getenv("TERM")).startsWith("xterm");
+    return String.valueOf(System.getenv("TERM")).startsWith("xterm") && System.console() != null;
   }
 
   /**
