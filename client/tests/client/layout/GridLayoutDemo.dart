@@ -81,7 +81,7 @@ _parseExampleStyles(String css) {
     if (parts.length != 2) {
       continue;
     }
-    String id = parts[0].trim().substringToEnd(1);
+    String id = parts[0].trim().substring(1);
     result[id] = _parseStyleProps(parts[1]);
   }
   return result;
