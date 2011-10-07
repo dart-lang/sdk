@@ -1620,8 +1620,11 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t token_index) {
   __ j(EQUAL, &runtime_call, Assembler::kNearJump);
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(ZERO, &runtime_call, Assembler::kNearJump);  // Call runtime for Smi.
-  const Type& bool_interface = Type::Handle(Type::BoolInterface());
-  const Class& bool_class = Class::ZoneHandle(bool_interface.type_class());
+  // This check should pass if the receiver's class implements the interface
+  // 'bool'. Check only class 'Bool' since it is the only legal implementation
+  // of the interface 'bool'.
+  const Class& bool_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->bool_class());
   __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
   __ CompareObject(ECX, bool_class);
   __ j(EQUAL, &done, Assembler::kNearJump);
