@@ -10,7 +10,7 @@
 # around for later examination. These files will be destroyed on
 # script re-run
 
-DART_PARAMS="-metrics "
+DART_PARAMS="--metrics "
 RUNS=3
 ONE_DELTA=""
 DARTC=$(which dartc)

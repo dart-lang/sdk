@@ -41,7 +41,7 @@ else
   fi
 fi
 
-DARTC_FLAGS="-metrics -out $DARTC_HOME/out "
+DARTC_FLAGS="--metrics --out $DARTC_HOME/out "
 
 # Warmup period, run the compiler a few times to warm up the os/filesystem/etc
 # before collecting metrics

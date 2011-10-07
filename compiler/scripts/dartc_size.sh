@@ -19,7 +19,7 @@ DIST_DIR=$DARTC_HOME/compiler
 DARTC_LIBS=$DIST_DIR/lib
 
 OUT_DIR=out-size
-DARTC_FLAGS="-optimize -out $OUT_DIR"
+DARTC_FLAGS="--optimize --out $OUT_DIR"
 
 # Make it easy to insert 'set -x' or similar commands when debugging problems with this script.
 eval "$JAVA_STUB_DEBUG"
