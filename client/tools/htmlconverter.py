@@ -539,14 +539,17 @@ def main():
 
   try:
     filename = args[0]
+    extension = filename[filename.rfind('.'):]
+    if extension != '.html' and extension != '.htm':
+      print "Invalid input file extension: %s" % extension
+      return 1
     outfile = join(options.out, filename)
     if 'chromium' in options.target:
-      convertForChromium(
-          filename, options.optimize, outfile.replace('.html', '-js.html'),
-          options.verbose)
+      convertForChromium(filename, options.optimize,
+          outfile.replace(extension, '-js' + extension), options.verbose)
     if 'dartium' in options.target:
-      convertForDartium(filename, outfile.replace('.html', '-dart.html'),
-                        options.verbose)
+      convertForDartium(filename,
+          outfile.replace(extension, '-dart' + extension), options.verbose)
   except Exception as e:
     print "%sERROR%s: %s" % (RED_COLOR, NO_COLOR, str(e))
     return 1
