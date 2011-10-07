@@ -169,18 +169,18 @@ class DartCompiler(object):
         'dartc'))
     if not exists(binary):
       raise ConverterException(COMPILER_NOT_FOUND_ERROR % DART_PATH)
-    cmd = [binary, '-noincremental', '-out', outdir]
+    cmd = [binary,
+           '-noincremental',
+           '--work', outdir,
+           '--out', self.outputFileName(inputfile, outdir)]
     if self.optimize:
-      cmd.append('-optimize')
+      cmd.append('--optimize')
       cmd.append('--disable-type-optimizations')
     cmd.append(inputfile)
     return cmd
 
   def outputFileName(self, inputfile, outdir):
-    return join(outdir,
-        ('file' if isabs(inputfile) else '') + inputfile +
-        ('' if self.optimize else '.app') + '.js')
-
+    return join(outdir, basename(inputfile) + '.js')
 
 def execute(cmd, verbose=False):
   """Execute a command in a subprocess. """
