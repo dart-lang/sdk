@@ -109,9 +109,7 @@ def main():
   pattern = DRT_DARTIUM_LATEST_PATTERN  % { 'osname' : osname }
   result, out = gsutil('ls', pattern)
   if result != 0: # e.g. no access
-    print "Coudln't find/no access to: %s" % pattern
     pattern = DRT_CHROMIUM_LATEST_PATTERN  % { 'osname' : osname }
-    print "trying %s instead" % pattern
     result, out = gsutil('ls', pattern)
     if result != 0:
       raise Exception("Couldn't retrieve DumpRenderTree: %s\n%s" % (
