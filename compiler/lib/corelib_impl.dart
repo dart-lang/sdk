@@ -27,6 +27,7 @@
 #source("src/implementation/exceptions.dart");
 #source("src/implementation/hash_map_set.dart");
 #source("src/implementation/linked_hash_map.dart");
+#source("src/implementation/maps.dart");
 #source("src/implementation/promise_implementation.dart");
 #source("src/implementation/queue.dart");
 #source("src/implementation/stopwatch_implementation.dart");
