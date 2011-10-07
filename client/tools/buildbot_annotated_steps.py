@@ -28,7 +28,7 @@ REVISION = 'BUILDBOT_REVISION'
 # latest dartium location
 DARTIUM_VERSION_FILE = 'tests/drt/LAST_VERSION'
 DARTIUM_V_MATCHER = (
-    'gs://dartium-archive/latest/dartium-\w*-inc-([0-9]*).([0-9]*).zip')
+    'gs://dartium-archive/[^/]*/dartium-\w*-inc-([0-9]*).([0-9]*).zip')
 
 # Patterns are of the form "dart_client-linux-ia32-debug"
 BUILDER_PATTERN = r'dart_client-(\w+)-(\w+)-(\w+)'
@@ -145,7 +145,7 @@ def ProcessDartClientTests(srcpath, arch, mode, platform, name):
       latest = open(version_file, 'r').read()
       match = re.match(DARTIUM_V_MATCHER, latest)
       if match:
-        print '@@@BUILD_STEP dart-vm r%s (dartium r%s)@@@' % (
+        print '@@@BUILD_STEP vm r%s (dartium r%s)@@@' % (
             match.group(2), match.group(1))
   print '@@@BUILD_STEP browser unit tests@@@'
   return RunBrowserTests(srcpath, arch, mode, platform)
