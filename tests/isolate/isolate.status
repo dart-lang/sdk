@@ -18,6 +18,8 @@ RequestReplyTest: Crash, Fail # Bug 5395487
 CrossIsolateMessageTest: Fail  # Bug 5246195
 NestedSpawnTest: Fail   # Bug 5246195
 NestedSpawn2Test: Fail  # Bug 5246195
+MixedTest: Fail         # Bug 5246195
+Mixed2Test: Fail        # Bug 5246195
 
 
 [ $arch == ia32 ]

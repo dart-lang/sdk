@@ -292,27 +292,10 @@ isolate$IsolateEvent.dequeue = function() {
   return result;
 };
 
-var isolate$lightCount = 0;
-var isolate$heavyCount = 0;
-
 function native_IsolateNatives__spawn(runnable, light, replyPort) {
-  // TODO(kasperl): Allow mixing heavy and light isolates.
-  if (light) {
-    isolate$lightCount++;
-    if (isolate$heavyCount != 0) {
-      throw Error("Cannot mix light and heavy isolates.");
-    }
-    isolate$useWorkers = false;
-  } else {
-    isolate$heavyCount++;
-    if (isolate$lightCount != 0) {
-      throw Error("Cannot mix light and heavy isolates.");
-    }
-  }
-
   // TODO(floitsch): throw exception if runnable's class doesn't have a
   // default constructor.
-  if (isolate$useWorkers) {
+  if (isolate$useWorkers && !light) {
     isolate$startWorker(runnable, replyPort);
   } else {
     isolate$startNonWorker(runnable, replyPort);
