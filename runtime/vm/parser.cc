@@ -6781,6 +6781,7 @@ void Parser::SkipPrimary() {
   }
   switch (CurrentToken()) {
     case Token::kTHIS:
+    case Token::kSUPER:
     case Token::kNULL:
     case Token::kTRUE:
     case Token::kFALSE:
@@ -6793,9 +6794,6 @@ void Parser::SkipPrimary() {
       break;
     case Token::kSTRING:
       SkipStringLiteral();
-      break;
-    case Token::kSUPER:
-      Unimplemented("skipping of super not yet implemented");
       break;
     case Token::kLPAREN:
       ConsumeToken();
