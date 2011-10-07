@@ -783,7 +783,7 @@ public class DartCompiler {
     CompilerOptions topCompilerOptions = processCommandLineOptions(args);
     boolean result = false;
     try {
-      if (topCompilerOptions.isBatch()) {
+      if (topCompilerOptions.shouldBatch()) {
         if (args.length > 1) {
           System.err.println("(Extra arguments specified with -batch ignored.)");
         }
@@ -791,7 +791,7 @@ public class DartCompiler {
           @Override
           public boolean invoke(String[] args) throws Throwable {
             CompilerOptions compilerOptions = processCommandLineOptions(args);
-            if (compilerOptions.isBatch()) {
+            if (compilerOptions.shouldBatch()) {
               System.err.println("-batch ignored: Already in batch mode.");
             }
             return compilerMain(compilerOptions);

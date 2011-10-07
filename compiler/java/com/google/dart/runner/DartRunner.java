@@ -9,7 +9,6 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions;
-import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CommandLineOptions.DartRunnerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -46,10 +45,8 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DartRunner {
@@ -102,26 +99,6 @@ public class DartRunner {
 
     LibrarySource app = new UrlLibrarySource(new File(script));
 
-    // TODO(zundel): Replace RunnerFlag enum with DartRunnerOptions
-    final Set<RunnerFlag> flags = EnumSet.noneOf(RunnerFlag.class);
-    if (options.shouldOptimize()) {
-      flags.add(RunnerFlag.OPTIMIZE);
-    }
-    if (options.verbose()) {
-      flags.add(RunnerFlag.VERBOSE);
-    }
-    if (options.shouldProfile()) {
-      flags.add(RunnerFlag.PROFILE);
-    }
-    if (options.shouldCompileOnly()) {
-      flags.add(RunnerFlag.COMPILE_ONLY);
-    }
-    if (options.typeErrorsAreFatal()) {
-      flags.add(RunnerFlag.FATAL_TYPE_ERRORS);
-    }
-    if (options.useRhino()) {
-      flags.add(RunnerFlag.USE_RHINO);
-    }
     if (options.shouldExposeCoreImpl()) {
       imports = new ArrayList<LibrarySource>(imports);
       // use a place-holder LibrarySource instance, to be replaced when embedded
@@ -142,7 +119,7 @@ public class DartRunner {
       };
 
     CompilationResult compiled;
-    compiled = compileApp(app, imports, flags, listener);
+    compiled = compileApp(app, imports, options, listener);
 
     if (listener.getProblemCount() != 0) {
       throw new RunnerError("Compilation failed.");
@@ -173,8 +150,9 @@ public class DartRunner {
       }
     }
 
-    if (!flags.contains(RunnerFlag.COMPILE_ONLY)) {
-      runApp(compiled, app.getName(), flags, scriptArguments.toArray(new String[0]), stdout, stderr);
+    if (!options.shouldCompileOnly()) {
+      runApp(compiled, app.getName(), options, scriptArguments.toArray(new String[0]),
+             stdout, stderr);
     }
   }
 
@@ -291,7 +269,7 @@ public class DartRunner {
   }
 
   public static void compileAndRunApp(LibrarySource app,
-                                      Set<RunnerFlag> flags,
+                                      DartRunnerOptions options,
                                       CompilerConfiguration config,
                                       DartCompilerListener listener,
                                       String[] dartArguments,
@@ -300,20 +278,21 @@ public class DartRunner {
       throws RunnerError {
     CompilationResult compiled = compileApp(
         app, Collections.<LibrarySource>emptyList(), config, listener);
-    runApp(compiled, app.getName(), flags, dartArguments, stdout, stderr);
+    runApp(compiled, app.getName(), options, dartArguments, stdout, stderr);
   }
 
   private static void runApp(CompilationResult compiled,
                              String sourceName,
-                             Set<RunnerFlag> flags,
+                             DartRunnerOptions options,
                              String[] scriptArguments,
                              PrintStream stdout,
                              PrintStream stderr)
       throws RunnerError {
-    if (flags.contains(RunnerFlag.USE_RHINO)) {
-      new RhinoLauncher().execute(compiled.js, sourceName, scriptArguments, flags, stdout, stderr);
+
+    if (options.useRhino()) {
+      new RhinoLauncher().execute(compiled.js, sourceName, scriptArguments, options, stdout, stderr);
     } else {
-      new V8Launcher(compiled.mapping).execute(compiled.js, sourceName, scriptArguments, flags,
+      new V8Launcher(compiled.mapping).execute(compiled.js, sourceName, scriptArguments, options,
                                                stdout, stderr);
     }
   }
@@ -328,22 +307,15 @@ public class DartRunner {
     }
   }
 
-  private static CompilationResult compileApp(LibrarySource app,
-                                              List<LibrarySource> imports,
-                                              final Set<RunnerFlag> flags,
-                                              DartCompilerListener listener)
-      throws RunnerError {
-    // TODO(johnlenz): create a "OptimizingCompilerConfiguration"
-
+  private static CompilationResult compileApp (LibrarySource app, List<LibrarySource> imports,
+      final DartRunnerOptions options, DartCompilerListener listener) throws RunnerError {
     Backend backend;
-    CompilerOptions defaultOptions = new CompilerOptions();
-    if (flags.contains(RunnerFlag.OPTIMIZE)) {
+    if (options.shouldOptimize()) {
       backend = new ClosureJsBackend();
-      defaultOptions.optimize(true);
     } else {
       backend = new JavascriptBackend();
     }
-    CompilerConfiguration config = new DefaultCompilerConfiguration(backend, defaultOptions) {
+    CompilerConfiguration config = new DefaultCompilerConfiguration(backend, options) {
       @Override
       public boolean expectEntryPoint() {
         return true;
@@ -351,7 +323,7 @@ public class DartRunner {
 
       @Override
       public boolean typeErrorsAreFatal() {
-        return flags.contains(RunnerFlag.FATAL_TYPE_ERRORS);
+        return options.typeErrorsAreFatal();
       }
     };
     return compileApp(app, imports, config, listener);

@@ -32,7 +32,7 @@ public class TestRunner {
     try {
       boolean runBatch = false;
       TestRunnerOptions options = processCommandLineOptions(args);
-      if (options.isBatch()) {
+      if (options.shouldBatch()) {
         runBatch = true;
         if (args.length > 1) {
           System.err.println("(Extra arguments specified with -batch ignored.)");

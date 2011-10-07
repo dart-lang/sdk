@@ -7,11 +7,17 @@ package com.google.dart.runner;
 /**
  * Flags that can be given to Runners and Launchers.
  */
-public enum RunnerFlag {
-  VERBOSE,
-  PROFILE,
-  OPTIMIZE,
-  COMPILE_ONLY,
-  USE_RHINO,
-  FATAL_TYPE_ERRORS;
+public interface RunnerOptions {
+
+  public boolean shouldProfile();
+
+  public boolean shouldCompileOnly();
+
+  public boolean shouldOptimize();
+
+  public boolean typeErrorsAreFatal();
+
+  public boolean useRhino();
+
+  public boolean verbose();
 }
