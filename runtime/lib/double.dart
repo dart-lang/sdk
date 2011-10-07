@@ -174,7 +174,7 @@ class Double implements double {
         }
         // Step 8.c.iii.
         String a = m.substring(0, k - fractionDigits);
-        String b = m.substringToEnd(k - fractionDigits);
+        String b = m.substring(k - fractionDigits);
         // Step 8.c.iv.
         m = a + "." + b;
       }
