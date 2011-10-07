@@ -33,8 +33,9 @@ class NumberImplementation implements int, double native "Number" {
   // CompareTo has to give a complete order, including -0/+0, NaN and
   // Infinities.
   NumberImplementation compareTo(NumberImplementation other) {
-    // TODO(floitsch): NumberImplementation.compareTo is broken, since it
+    // TODO(5427706): NumberImplementation.compareTo is broken, since it
     // doesn't take NaNs and -0.0 into account.
+    // And it doesn't return an int...
     return this - other;
   }
 
