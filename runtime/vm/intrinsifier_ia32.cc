@@ -23,6 +23,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
+DECLARE_FLAG(bool, enable_type_checks);
 
 // List of intrinsics: (class-name, function-name, intrinsification method).
 #define INTRINSIC_LIST(V)                                                      \
@@ -183,6 +184,9 @@ static bool Array_getIndexed(Assembler* assembler) {
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 static bool Array_setIndexed(Assembler* assembler) {
+  if (FLAG_enable_type_checks) {
+    return false;
+  }
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label fall_through;

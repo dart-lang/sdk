@@ -328,8 +328,7 @@ void CodeGenerator::GeneratePreEntryCode() {
   const bool may_optimize =
       !FLAG_report_invocation_count &&
       (FLAG_optimization_invocation_threshold >= 0) &&
-      parsed_function_.function().is_optimizable() &&
-      !FLAG_enable_type_checks;
+      parsed_function_.function().is_optimizable();
   // Count invocation and check.
   if (FLAG_report_invocation_count || may_optimize) {
     const Function& function =

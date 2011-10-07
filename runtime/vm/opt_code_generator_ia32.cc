@@ -20,6 +20,7 @@ namespace dart {
 #define __ assembler_->
 
 DEFINE_FLAG(bool, trace_optimization, false, "Trace optimizations.");
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, trace_functions);
 
@@ -478,6 +479,10 @@ void OptimizingCodeGenerator::VisitLoadLocalNode(LoadLocalNode* node) {
 
 
 void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitStoreLocalNode(node);
+    return;
+  }
   CodeGenInfo value_info(node->value());
   value_info.set_request_result_in_eax(true);
   node->value()->Visit(this);
@@ -995,6 +1000,10 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   // Operators "&&" and "||" cannot be overloaded, therefore inline them
   // instead of calling the operator.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
+    if (FLAG_enable_type_checks) {
+      CodeGenerator::VisitBinaryOpNode(node);
+      return;
+    }
     GenerateLogicalBinaryOp(node);
     return;
   }
@@ -1030,6 +1039,10 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
 
 
 void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitIncrOpLocalNode(node);
+    return;
+  }
   const char* kOptMessage = "Inlines IncrOpLocal";
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
   if (!NodeHasOnlyClass(node, smi_class_)) {
@@ -1242,6 +1255,10 @@ void OptimizingCodeGenerator::VisitInstanceGetterNode(
 // The result of the assignment to a field is the value being stored.
 void OptimizingCodeGenerator::VisitInstanceSetterNode(
     InstanceSetterNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitInstanceSetterNode(node);
+    return;
+  }
   const char* kMessage = "Inline instance setter";
   const ZoneGrowableArray<const Class*>* classes =
       node->CollectedClassesAtId(node->id());
@@ -1740,6 +1757,10 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
 
 
 void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitStoreIndexedNode(node);
+    return;
+  }
   node->array()->Visit(this);
   // TODO(srdjan): Use VisitLoadTwo and check if index is smi (CodeGenInfo).
   ObjectStore* object_store = Isolate::Current()->object_store();
@@ -1778,6 +1799,10 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 
 void OptimizingCodeGenerator::VisitForNode(ForNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitForNode(node);
+    return;
+  }
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   node->initializer()->Visit(this);
   SourceLabel* label = node->label();
@@ -1808,6 +1833,10 @@ void OptimizingCodeGenerator::VisitForNode(ForNode* node) {
 
 
 void OptimizingCodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitDoWhileNode(node);
+    return;
+  }
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   SourceLabel* label = node->label();
   Label loop;
@@ -1830,6 +1859,10 @@ void OptimizingCodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
 
 
 void OptimizingCodeGenerator::VisitWhileNode(WhileNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitWhileNode(node);
+    return;
+  }
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   SourceLabel* label = node->label();
   __ Bind(label->continue_label());
@@ -1854,6 +1887,10 @@ void OptimizingCodeGenerator::VisitWhileNode(WhileNode* node) {
 
 
 void OptimizingCodeGenerator::VisitIfNode(IfNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitIfNode(node);
+    return;
+  }
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   Label false_label, true_label, done;
   CodeGenInfo condition_info(node->condition());
