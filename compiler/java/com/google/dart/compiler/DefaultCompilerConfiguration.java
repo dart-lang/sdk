@@ -162,7 +162,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
   @Override
   public boolean incremental() {
-    return compilerOptions.incremental();
+    return compilerOptions.buildIncrementally();
   }
 
   @Override

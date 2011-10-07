@@ -4,9 +4,9 @@
 
 package com.google.dart.compiler;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.runner.DartRunner;
+import com.google.dart.runner.RunnerOptions;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -42,18 +42,19 @@ public class CommandLineOptions {
             usage = "Debugging: disable type optimizations")
     private boolean disableTypeOptimizations = false;
 
-    @Option(name = "-documentation-lib",
+    @Option(name = "--documentation-lib", aliases = { "-documentation-lib" },
         usage = "only generate documentation for the given library")
     private String documentationLibrary = null;
 
-    @Option(name = "-documentation-out", usage = "directory to receive documentation output")
+    @Option(name = "--documentation-out", aliases = { "-documentation-out" },
+        usage = "directory to receive documentation output")
     private String documentationOutputDirectory = null;
 
-    @Option(name = "-generate-documentation",
+    @Option(name = "--generate-documentation", aliases = { "-generate-documentation" },
         usage = "generate documentation for the provided source files")
     private boolean generateDocumentation = false;
 
-    @Option(name = "-generate-isolate-stubs",
+    @Option(name = "--generate-isolate-stubs", aliases = { "-generate-isolate-stubs" },
         usage = "classes to generate stubs for, comma-separated")
     private String generateIsolateStubs = null;
 
@@ -64,49 +65,62 @@ public class CommandLineOptions {
     @Option(name = "--ignore-unrecognized-flags", usage = "ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
 
-    @Option(name = "-isolate-stub-out", usage = "file to receive generated stub output")
+    @Option(name = "--isolate-stub-out", aliases = { "-isolate-stub-out" },
+        usage = "file to receive generated stub output")
     private String isolateStubOutputFile = null;
 
-    @Option(name = "-jvm-metrics-detail", usage = "summary or verbose (default is summary)")
+    @Option(name = "--jvm-metrics-detail", usage = "summary or verbose (default is summary)")
     private String jvmMetricDetail = "summary";
 
-    @Option(name = "-jvm-metrics-format", usage = "tabular or pretty (default is tabular)")
+    @Option(name = "--jvm-metrics-format", usage = "tabular or pretty (default is tabular)")
     private String jvmMetricFormat = "tabular";
 
-    @Option(name = "-jvm-metrics-type", usage = "comma-separated list, including:\n"
+    @Option(name = "--jvm-metrics-type", usage = "comma-separated list, including:\n"
         + "  all:  show all available stat types (default)\n"
         + "  gc:   show garbage collection stats\n"
         + "  mem:  show memory stats\n" + "  jit:  show jit stats")
     private String jvmMetricType = "all";
 
-    @Option(name = "-noincremental", usage = "disable incremental compilation")
+    @Option(name = "--noincremental", aliases = { "-noincremental" },
+        usage = "disable incremental compilation")
     private boolean noincremental = false;
 
-    // see shouldOptimize() below
     private boolean optimize = false;
+
+    /**
+     * Enables optimization of the generated JavaScript.
+     */
+    @Option(name = "--optimize", aliases = { "-optimize" }, usage = "produce optimized code")
+    public void setOptimize(boolean optimize) {
+      this.optimize = optimize;
+    }
+
+    @Option(name = "--out", usage = "write generated JavaScript to the specified file")
+    private File outputFilename = null;
 
     // TODO(zundel): -out is for backward compatibility until scripts are updated
     @Option(name = "--work", aliases = { "-out" }, usage = "directory to receive compiler output")
     private File workDirectory = new File("out");
 
-    @Option(name = "-help", usage = "prints this help message")
+    @Option(name = "--help", aliases = { "-?", "-help" }, usage = "prints this help message")
     private boolean showHelp = false;
 
-    @Option(name = "-jvm-metrics", usage = "print jvm metrics at end of compilation")
+    @Option(name = "--jvm-metrics", usage = "print jvm metrics at end of compilation")
     private boolean showJvmMetrics = false;
 
-    @Option(name = "-metrics", usage = "print compilation metrics")
+    @Option(name = "--metrics", usage = "print compilation metrics")
     private boolean showMetrics = false;
-
-    @Argument
-    private final List<String> sourceFiles = new ArrayList<String>();
 
     @Option(name = "--fatal-type-errors", aliases = { "-fatal-type-errors" },
         usage = "type errors are fatal errors (instead of warnings)")
     private boolean typeErrorsAreFatal = false;
 
-    @Option(name = "-Werror", usage = "warnings (excluding type warnings) are fatal errors")
+    @Option(name = "--fatal-warnings", aliases = { "-Werror" },
+        usage = "warnings (excluding type warnings) are fatal errors")
     private boolean warningsAreFatal = false;
+
+    @Argument
+    private final List<String> sourceFiles = new ArrayList<String>();
 
     /**
      * Returns whether the option -check-only is provided.
@@ -180,11 +194,11 @@ public class CommandLineOptions {
     /**
      * Returns whether the compiler should attempt to incrementally recompile.
      */
-    public boolean incremental() {
+    public boolean buildIncrementally() {
       return !noincremental;
     }
 
-    public boolean isBatch() {
+    public boolean shouldBatch() {
       return batch;
     }
 
@@ -195,17 +209,6 @@ public class CommandLineOptions {
     public boolean generateHumanReadableOutput() {
       return generateHumanReadableOutput;
     }
-
-    /**
-     * Enables optimization of the generated JavaScript.
-     */
-    @Option(name = "-optimize", aliases = { "--optimize" }, usage = "produce optimized code")
-    public void optimize(boolean optimize) {
-      this.optimize = optimize;
-    }
-
-    @Option(name = "--out", usage = "write generated JavaScript to the specified file")
-    private File outputFilename = null;
 
     /**
      * @return the path to receive compiler output.
@@ -254,7 +257,7 @@ public class CommandLineOptions {
   /**
    * Command line options accepted by the {@link DartRunner} entry point.
    */
-  public static class DartRunnerOptions extends CompilerOptions {
+  public static class DartRunnerOptions extends CompilerOptions implements RunnerOptions {
 
     @Option(name = "--compile-only", usage = "compile but do not execute")
     private boolean compileOnly = false;
@@ -262,18 +265,19 @@ public class CommandLineOptions {
     @Option(name = "--expose_core_impl", usage = "automatic import of dart:coreimpl library")
     private boolean exposeCoreImpl = false;
 
+    @Option(name = "--verbose", usage = "extra diagnostic output")
+    private boolean verbose = false;
+
     @Option(name="--prof", usage = "enable profiling")
     private boolean prof;
 
     @Option(name = "--rhino", usage = "use rhino as the JavaScript interpreter")
     private boolean rhino = false;
 
-    @Option(name = "--verbose", usage = "extra diagnostic output")
-    private boolean verbose = false;
-
     /**
      * @return <code>true</code> if the program should compile but not execute.
      */
+    @Override
     public boolean shouldCompileOnly() {
       return compileOnly;
     }
@@ -288,6 +292,7 @@ public class CommandLineOptions {
     /**
      * Returns <code>true</code> if profiling is enabled.
      */
+    @Override
     public boolean shouldProfile() {
       return prof;
     }
@@ -295,6 +300,7 @@ public class CommandLineOptions {
     /**
      * @return <code>true</code> if rhino should be used as the runtime (default is to invoke d8)
      */
+    @Override
     public boolean useRhino() {
       return rhino;
     }
@@ -302,6 +308,7 @@ public class CommandLineOptions {
     /**
      * @return <code>true</code> to enable diagnostic output
      */
+    @Override
     public boolean verbose() {
       return verbose;
     }
@@ -311,7 +318,7 @@ public class CommandLineOptions {
   /**
    * Command line options accepted by the {@link TestRunner} entry point.
    */
-  public static class TestRunnerOptions extends DartRunnerOptions {
+  public static class TestRunnerOptions extends DartRunnerOptions  {
   }
 
   /**
@@ -343,7 +350,6 @@ public class CommandLineOptions {
     }
     CmdLineParser cmdLineParser = new CmdLineParser(parsedOptions);
     for (int i = 0, len = args.length; i < len; i++) {
-      System.out.println("Parsing: " + Joiner.on(" ").join(args));
       try {
         cmdLineParser.parseArgument(args);
       } catch (CmdLineException e) {
@@ -356,8 +362,7 @@ public class CommandLineOptions {
           List<String> newArgs = Lists.newArrayList();
           for (String arg : args) {
             if (arg.equals(option)) {
-              // TODO(zundel): remove diagnostic output
-              System.out.println("Ignoring unrecognized flag: " + arg);
+              System.out.println("(Ignoring unrecognized flag: " + arg + ")");
               continue;
             }
             newArgs.add(arg);
