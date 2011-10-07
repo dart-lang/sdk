@@ -6,7 +6,7 @@ prefix stub-generator
 
 [ $arch == ia32 ]
 MintMakerFullyIsolatedTest: Skip  # Bug 5283149
-MintMakerPromiseWithStubsTest: Fail # Bug 5384756
+MintMakerPromiseWithStubsTest: Skip # Bug 5384756
 
 [ $arch == dartc ]
 MintMakerFullyIsolatedTest: Fail  # benl
