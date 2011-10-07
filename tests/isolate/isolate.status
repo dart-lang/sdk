@@ -9,6 +9,7 @@ ConstructorTest: Fail   # Bug 5246195
 MandelIsolateTest: Fail # Bug 5246195
 SpawnTest: Fail         # Bug 5246195
 MessageTest: Fail       # Bug 5246195
+Message2Test: Fail       # Bug 5246195
 IsolateComplexMessagesTest: Fail # Bug 5246195
 CountTest: Fail         # Bug 5246195
 PromiseBasedTest: Fail  # Bug 5246195
