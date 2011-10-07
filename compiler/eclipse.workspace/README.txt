@@ -45,18 +45,15 @@ HOW TO
     programming problems. Change "Serializable class without
     serialVersionUID" to "Ignore".
 
-14. Open Preferences... > Java > Code Style > Formatter and click
-    "Import...". Open the file GoogleCodeStyle.xml in this directory.
-
-15. Import the launch configuration (File > Import... > Run/Debug >
+14. Import the launch configuration (File > Import... > Run/Debug >
     Launch Configurations).
 
-16. Click "Next >"
+15. Click "Next >"
 
-17. In SVN, browse to: compiler/eclipse.workspace/tests.
+16. In SVN, browse to: compiler/eclipse.workspace/tests.
 
-18. Select "tests".
+17. Select "tests".
 
-19. Click Finish.
+18. Click Finish.
 
-20. Try running the tests: Run > Run History > dartc test suites.
+19. Try running the tests: Run > Run History > dartc test suites.
