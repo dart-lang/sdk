@@ -13,11 +13,16 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 3) {
+DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   ASSERT(TypeArguments::CheckedHandle(arguments->At(0)).IsNull());
   const String& pattern = String::CheckedHandle(arguments->At(1));
-  const String& flags = String::CheckedHandle(arguments->At(2));
-  const JSRegExp& new_regex = JSRegExp::Handle(Jscre::Compile(pattern, flags));
+  const Instance& handle_multi_line = Instance::CheckedHandle(arguments->At(2));
+  const Instance& handle_ignore_case =
+      Instance::CheckedHandle(arguments->At(3));
+  bool ignore_case = handle_ignore_case.raw() == Bool::True();
+  bool multi_line = handle_multi_line.raw() == Bool::True();
+  const JSRegExp& new_regex = JSRegExp::Handle(
+      Jscre::Compile(pattern, multi_line, ignore_case));
   arguments->SetReturn(new_regex);
 }
 
@@ -29,9 +34,16 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getPattern, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getFlags, 1) {
+DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_multiLine, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
-  const String& result = String::Handle(String::New(regexp.Flags()));
+  const Bool& result = Bool::Handle(Bool::Get(regexp.is_multi_line()));
+  arguments->SetReturn(result);
+}
+
+
+DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ignoreCase, 1) {
+  const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
+  const Bool& result = Bool::Handle(Bool::Get(regexp.is_ignore_case()));
   arguments->SetReturn(result);
 }
 

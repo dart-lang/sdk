@@ -55,9 +55,10 @@ namespace dart {
   V(Double_truncate, 1)                                                        \
   V(Double_toInt, 1)                                                           \
   V(Double_pow, 2)                                                             \
-  V(JSSyntaxRegExp_factory, 3)                                                 \
+  V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \
-  V(JSSyntaxRegExp_getFlags, 1)                                                \
+  V(JSSyntaxRegExp_multiLine, 1)                                               \
+  V(JSSyntaxRegExp_ignoreCase, 1)                                              \
   V(JSSyntaxRegExp_getGroupCount, 1)                                           \
   V(JSSyntaxRegExp_ExecuteMatch, 3)                                            \
   V(ObjectArray_allocate, 2)                                                   \

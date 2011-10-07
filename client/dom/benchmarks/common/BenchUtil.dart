@@ -70,7 +70,7 @@ class BenchUtil {
     StringBuffer sb = new StringBuffer();
 
     int pos = 0;
-    for (Match match in new RegExp(pattern, '').allMatches(s)) {
+    for (Match match in new RegExp(pattern).allMatches(s)) {
       sb.add(s.substring(pos, match.start()));
       sb.add(replacement(match));
       pos = match.end();

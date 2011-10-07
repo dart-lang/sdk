@@ -12,7 +12,9 @@ namespace dart {
 
 class Jscre : public AllStatic {
  public:
-  static RawJSRegExp* Compile(const String& pattern, const String& flags);
+  static RawJSRegExp* Compile(const String& pattern,
+                              bool multi_line,
+                              bool ignore_case);
   static RawArray* Execute(const JSRegExp& regex,
                            const String& str,
                            intptr_t index);

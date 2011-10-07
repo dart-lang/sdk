@@ -11,7 +11,7 @@
  * and iterates through the returned iterable of [Match] objects.
  *
  * [:
- *    RegExp exp = const RegExp(@"(\w+)", "");
+ *    RegExp exp = const RegExp(@"(\w+)");
  *    String str = "Parse my string";
  *    Iterable<Match> matches = exp.allMatches(str, exp);
  *    for (Match m in matches) {
@@ -84,7 +84,7 @@ interface Match {
  * a string.
  *
  * [:
- *    RegExp exp = const RegExp(@"(\w+)", "");
+ *    RegExp exp = const RegExp(@"(\w+)");
  *    String str = "Parse my string";
  *    Iterable<Match> matches = exp.allMatches(str, exp);
  * :]
@@ -92,9 +92,10 @@ interface Match {
 interface RegExp extends Pattern factory JSSyntaxRegExp {
 
   /**
-   * Constructs a regular expression.
+   * Constructs a regular expression. The default implementation of a
+   * [RegExp] sets [multiLine] and [ignoreCase] to false.
    */
-  const RegExp(String pattern, String flags);
+  const RegExp(String pattern, [bool multiLine, bool ignoreCase]);
 
   /**
    * Searches for the first match of the regular expression
@@ -125,7 +126,12 @@ interface RegExp extends Pattern factory JSSyntaxRegExp {
   final String pattern;
 
   /**
-   * The flags for this regular expression.
+   * Whether this regular expression matches multiple lines.
    */
-  final String flags;
+  final bool multiLine;
+
+  /**
+   * Whether this regular expression is case insensitive.
+   */
+  final bool ignoreCase;
 }

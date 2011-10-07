@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class JSSyntaxRegExp implements RegExp {
-  const JSSyntaxRegExp(String pattern, String flags)
-    : this.pattern = pattern, this.flags = flags;
+  const JSSyntaxRegExp(
+      String this.pattern,
+      [bool this.multiLine = false,
+       bool this.ignoreCase = false]);
 
   final String pattern;
-  final String flags;
+  final bool multiLine;
+  final bool ignoreCase;
 
   Iterable<Match> allMatches(String str) {
     return new _LazyAllMatches(this, str);
@@ -20,8 +23,11 @@ class JSSyntaxRegExp implements RegExp {
   static String _pattern(JSSyntaxRegExp regexp) native {
     return regexp.pattern;
   }
-  static String _flags(JSSyntaxRegExp regexp) native {
-    return regexp.flags;
+  static bool _multiLine(JSSyntaxRegExp regexp) native {
+    return regexp.multiLine;
+  }
+  static bool _ignoreCase(JSSyntaxRegExp regexp) native {
+    return regexp.ignoreCase;
   }
 }
 

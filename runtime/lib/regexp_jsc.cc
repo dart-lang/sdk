@@ -53,40 +53,28 @@ static void ThrowExceptionOnError(const String& pattern,
 }
 
 
-RawJSRegExp* Jscre::Compile(const String& pattern, const String& flags) {
+RawJSRegExp* Jscre::Compile(const String& pattern,
+                            bool multi_line,
+                            bool ignore_case) {
   // First convert the pattern to UTF16 format as the jscre library expects
   // strings to be in UTF16 encoding.
   uint16_t* two_byte_pattern = GetTwoByteData(pattern);
 
-  // Parse the flags.
-  jscre::JSRegExpIgnoreCaseOption ignore_case = jscre::JSRegExpDoNotIgnoreCase;
   // A Dart regexp is always global.
   bool is_global = true;
-  jscre::JSRegExpMultilineOption multi_line = jscre::JSRegExpSingleLine;
-  for (int i = 0; i < flags.Length(); i++) {
-    switch (flags.CharAt(i)) {
-      case 'i':
-        ignore_case = jscre::JSRegExpIgnoreCase;
-        break;
-      case 'm':
-        multi_line = jscre::JSRegExpMultiline;
-        break;
-      default:
-        // Unrecognized flag, throw an exception.
-        ThrowExceptionOnError(pattern,
-                              "Unknown flag specified for regular expression");
-        UNREACHABLE();
-        return JSRegExp::null();
-    }
-  }
+  // Parse the flags.
+  jscre::JSRegExpIgnoreCaseOption jscre_ignore_case = ignore_case ?
+      jscre::JSRegExpIgnoreCase : jscre::JSRegExpDoNotIgnoreCase;
+  jscre::JSRegExpMultilineOption jscre_multi_line = multi_line ?
+      jscre::JSRegExpMultiline : jscre::JSRegExpSingleLine;
 
   // Compile the regex by calling into the jscre library.
   uint32_t num_bracket_expressions = 0;
   const char* error_msg = NULL;
   jscre::JSRegExp* jscregexp = jscre::jsRegExpCompile(two_byte_pattern,
                                                       pattern.Length(),
-                                                      ignore_case,
-                                                      multi_line,
+                                                      jscre_ignore_case,
+                                                      jscre_multi_line,
                                                       &num_bracket_expressions,
                                                       &error_msg,
                                                       &JSREMalloc,
@@ -102,10 +90,10 @@ RawJSRegExp* Jscre::Compile(const String& pattern, const String& flags) {
     JSRegExp& regexp =
         JSRegExp::Handle(JSRegExp::FromDataStartAddress(jscregexp));
     regexp.set_pattern(pattern);
-    if (multi_line == jscre::JSRegExpMultiline) {
+    if (jscre_multi_line == jscre::JSRegExpMultiline) {
       regexp.set_is_multi_line();
     }
-    if (ignore_case == jscre::JSRegExpIgnoreCase) {
+    if (jscre_ignore_case == jscre::JSRegExpIgnoreCase) {
       regexp.set_is_ignore_case();
     }
     if (is_global) {

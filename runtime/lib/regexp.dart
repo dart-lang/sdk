@@ -50,8 +50,10 @@ class JSRegExpMatch implements Match {
 
 
 class JSSyntaxRegExp implements RegExp {
-  const factory JSSyntaxRegExp(String pattern, String flags)
-      native "JSSyntaxRegExp_factory";
+  const factory JSSyntaxRegExp(
+      String pattern,
+      [bool multiLine = false,
+       bool ignoreCase = false]) native "JSSyntaxRegExp_factory";
 
   Match firstMatch(String str) {
     List match = _ExecuteMatch(str, 0);
@@ -92,7 +94,9 @@ class JSSyntaxRegExp implements RegExp {
 
   String get pattern() native "JSSyntaxRegExp_getPattern";
 
-  String get flags() native "JSSyntaxRegExp_getFlags";
+  bool get multiLine() native "JSSyntaxRegExp_multiLine";
+
+  bool get ignoreCase() native "JSSyntaxRegExp_ignoreCase";
 
   int get _groupCount() native "JSSyntaxRegExp_getGroupCount";
 

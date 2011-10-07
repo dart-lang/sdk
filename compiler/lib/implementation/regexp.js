@@ -60,6 +60,8 @@ function native__LazyAllMatchesIterator__computeNextMatch(regExp, str) {
 }
 
 function $DartRegExpToJSRegExp(exp) {
-  return new RegExp(native_JSSyntaxRegExp__pattern(exp),
-                    native_JSSyntaxRegExp__flags(exp) + 'g');
+  var flags = "g";
+  if (native_JSSyntaxRegExp__multiLine(exp)) flags += "m";
+  if (native_JSSyntaxRegExp__ignoreCase(exp)) flags += "i";
+  return new RegExp(native_JSSyntaxRegExp__pattern(exp), flags);
 }

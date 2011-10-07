@@ -130,7 +130,7 @@ class Uri {
         '([^?#]+)?' +                     // path
         '(?:\\?([^#]*))?' +               // query
         '(?:#(.*))?' +                    // fragment
-        '\$', '');
+        '\$');
     }
     return _splitReLazy;
   }
