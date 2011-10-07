@@ -165,7 +165,6 @@ TEST_CASE(SerializeSingletons) {
   SnapshotWriter writer(false, &buffer, &allocator);
   writer.WriteObject(Object::class_class());
   writer.WriteObject(Object::null_class());
-  writer.WriteObject(Object::type_class());
   writer.WriteObject(Object::parameterized_type_class());
   writer.WriteObject(Object::type_parameter_class());
   writer.WriteObject(Object::instantiated_type_class());
@@ -193,7 +192,6 @@ TEST_CASE(SerializeSingletons) {
   SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
   EXPECT(Object::class_class() == reader.ReadObject());
   EXPECT(Object::null_class() == reader.ReadObject());
-  EXPECT(Object::type_class() == reader.ReadObject());
   EXPECT(Object::parameterized_type_class() == reader.ReadObject());
   EXPECT(Object::type_parameter_class() == reader.ReadObject());
   EXPECT(Object::instantiated_type_class() == reader.ReadObject());

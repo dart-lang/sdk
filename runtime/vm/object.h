@@ -119,7 +119,6 @@ class Object {
     kNullClass,
     kVarClass,
     kVoidClass,
-    kTypeClass,
     kParameterizedTypeClass,
     kTypeParameterClass,
     kInstantiatedTypeClass,
@@ -210,7 +209,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* null_class() { return null_class_; }
   static RawClass* var_class() { return var_class_; }
   static RawClass* void_class() { return void_class_; }
-  static RawClass* type_class() { return type_class_; }
   static RawClass* parameterized_type_class() {
       return parameterized_type_class_;
   }
@@ -314,7 +312,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* null_class_;  // Class of the null object.
   static RawClass* var_class_;  // Class of the 'var' type.
   static RawClass* void_class_;  // Class of the 'void' type.
-  static RawClass* type_class_;  // Class of the Type vm object.
   static RawClass* parameterized_type_class_;  // Class of ParameterizedType.
   static RawClass* type_parameter_class_;  // Class of TypeParameter vm object.
   static RawClass* instantiated_type_class_;  // Class of InstantiatedType.
@@ -667,14 +664,23 @@ class Type : public Object {
     return HasResolvedTypeClass() && (type_class() == Object::void_class());
   }
 
-  // Check if this type represents a function type.
-  bool IsFunctionType() const {
-    if (!HasResolvedTypeClass()) {
-      return false;
-    }
-    const Class& cls = Class::Handle(type_class());
-    return !cls.IsNull() && (cls.signature_function() != Object::null());
-  }
+  // Check if this type represents the 'bool' interface.
+  bool IsBoolInterface() const;
+
+  // Check if this type represents the 'int' interface.
+  bool IsIntInterface() const;
+
+  // Check if this type represents the 'double' interface.
+  bool IsDoubleInterface() const;
+
+  // Check if this type represents the 'num' interface.
+  bool IsNumberInterface() const;
+
+  // Check if this type represents the 'String' interface.
+  bool IsStringInterface() const;
+
+  // Check if this type represents the 'Function' interface.
+  bool IsFunctionInterface() const;
 
   // Check if this type is an interface type.
   bool IsInterfaceType() const {
@@ -712,6 +718,18 @@ class Type : public Object {
 
   // The 'bool' interface type.
   static RawType* BoolInterface();
+
+  // The 'int' interface type.
+  static RawType* IntInterface();
+
+  // The 'double' interface type.
+  static RawType* DoubleInterface();
+
+  // The 'num' interface type.
+  static RawType* NumberInterface();
+
+  // The 'String' interface type.
+  static RawType* StringInterface();
 
   // The 'Function' interface type.
   static RawType* FunctionInterface();

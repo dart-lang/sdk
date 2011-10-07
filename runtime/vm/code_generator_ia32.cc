@@ -1477,6 +1477,19 @@ void CodeGenerator::GenerateInstanceOf(intptr_t token_index,
 }
 
 
+// Jumps to label if ECX equals the given class.
+// Inputs:
+// - ECX: tested class.
+// Destroys EDX.
+static void TestClassAndJump(Assembler* assembler,
+                             const Class& cls,
+                             Label *label) {
+  assembler->LoadObject(EDX, cls);
+  assembler->cmpl(EDX, ECX);
+  assembler->j(EQUAL, label, Assembler::kNearJump);
+}
+
+
 // Optimize assignable type check by adding inlined tests for:
 // - NULL -> return NULL.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
@@ -1544,9 +1557,49 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
       // because instances cannot be of an interface type.
       if (!dst_type_class.is_interface()) {
         __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        __ LoadObject(EDX, dst_type_class);
-        __ cmpl(EDX, ECX);
-        __ j(EQUAL, &done, Assembler::kNearJump);
+        TestClassAndJump(assembler_, dst_type_class, &done);
+      } else {
+        // However, for specific core library interfaces, we can check for
+        // specific core library classes.
+        if (dst_type.IsBoolInterface()) {
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          const Class& bool_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->bool_class());
+          TestClassAndJump(assembler_, bool_class, &done);
+        } else if (dst_type.IsSubtypeOf(
+              Type::Handle(Type::NumberInterface()))) {
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          if (dst_type.IsIntInterface() || dst_type.IsNumberInterface()) {
+            // We already checked for Smi above.
+            const Class& mint_class = Class::ZoneHandle(
+                Isolate::Current()->object_store()->mint_class());
+            TestClassAndJump(assembler_, mint_class, &done);
+            const Class& bigint_class = Class::ZoneHandle(
+                Isolate::Current()->object_store()->bigint_class());
+            TestClassAndJump(assembler_, bigint_class, &done);
+          }
+          if (dst_type.IsDoubleInterface() || dst_type.IsNumberInterface()) {
+            const Class& double_class = Class::ZoneHandle(
+                Isolate::Current()->object_store()->double_class());
+            TestClassAndJump(assembler_, double_class, &done);
+          }
+        } else if (dst_type.IsStringInterface()) {
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          const Class& one_byte_string_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->one_byte_string_class());
+          TestClassAndJump(assembler_, one_byte_string_class, &done);
+          const Class& two_byte_string_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->two_byte_string_class());
+          TestClassAndJump(assembler_, two_byte_string_class, &done);
+          const Class& four_byte_string_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->four_byte_string_class());
+          TestClassAndJump(assembler_, four_byte_string_class, &done);
+        } else if (dst_type.IsFunctionInterface()) {
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));
+          __ cmpl(ECX, raw_null);
+          __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+        }
       }
     }
   }

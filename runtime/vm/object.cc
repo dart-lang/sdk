@@ -50,7 +50,6 @@ RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::type_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::parameterized_type_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_parameter_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -85,8 +84,6 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kVarClass;
   } else if (raw_class == void_class()) {
     return kVoidClass;
-  } else if (raw_class == type_class()) {
-    return kTypeClass;
   } else if (raw_class == parameterized_type_class()) {
     return kParameterizedTypeClass;
   } else if (raw_class == type_parameter_class()) {
@@ -134,7 +131,6 @@ RawClass* Object::GetSingletonClass(int index) {
     case kNullClass: return null_class();
     case kVarClass: return var_class();
     case kVoidClass: return void_class();
-    case kTypeClass: return type_class();
     case kParameterizedTypeClass: return parameterized_type_class();
     case kTypeParameterClass: return type_parameter_class();
     case kInstantiatedTypeClass: return instantiated_type_class();
@@ -167,7 +163,6 @@ const char* Object::GetSingletonClassName(int index) {
     case kNullClass: return "Null";
     case kVarClass: return "var";
     case kVoidClass: return "void";
-    case kTypeClass: return "Type";
     case kParameterizedTypeClass: return "ParameterizedType";
     case kTypeParameterClass: return "TypeParameter";
     case kInstantiatedTypeClass: return "InstantiatedType";
@@ -535,10 +530,14 @@ void Object::Init(Isolate* isolate) {
   name = String::NewSymbol("double");
   cls = Class::NewInterface(name, script);
   core_lib.AddClass(cls);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_double_interface(type);
 
   name = String::NewSymbol("String");
   cls = Class::NewInterface(name, script);
   core_lib.AddClass(cls);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_string_interface(type);
 
   name = String::NewSymbol("bool");
   cls = Class::NewInterface(name, script);
@@ -1605,6 +1604,42 @@ RawString* Type::ClassName() const {
 }
 
 
+bool Type::IsBoolInterface() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::BoolInterface()).type_class());
+}
+
+
+bool Type::IsIntInterface() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::IntInterface()).type_class());
+}
+
+
+bool Type::IsDoubleInterface() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::DoubleInterface()).type_class());
+}
+
+
+bool Type::IsNumberInterface() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::NumberInterface()).type_class());
+}
+
+
+bool Type::IsStringInterface() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::StringInterface()).type_class());
+}
+
+
+bool Type::IsFunctionInterface() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::FunctionInterface()).type_class());
+}
+
+
 bool Type::IsMoreSpecificThan(const Type& other) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
@@ -1664,6 +1699,26 @@ RawType* Type::ObjectType() {
 
 RawType* Type::BoolInterface() {
   return Isolate::Current()->object_store()->bool_interface();
+}
+
+
+RawType* Type::IntInterface() {
+  return Isolate::Current()->object_store()->int_interface();
+}
+
+
+RawType* Type::DoubleInterface() {
+  return Isolate::Current()->object_store()->double_interface();
+}
+
+
+RawType* Type::NumberInterface() {
+  return Isolate::Current()->object_store()->number_interface();
+}
+
+
+RawType* Type::StringInterface() {
+  return Isolate::Current()->object_store()->string_interface();
 }
 
 

@@ -19,7 +19,9 @@ ObjectStore::ObjectStore()
     smi_class_(Class::null()),
     mint_class_(Class::null()),
     bigint_class_(Class::null()),
+    double_interface_(Type::null()),
     double_class_(Class::null()),
+    string_interface_(Type::null()),
     one_byte_string_class_(Class::null()),
     two_byte_string_class_(Class::null()),
     four_byte_string_class_(Class::null()),
@@ -127,8 +129,10 @@ RawType* ObjectStore::GetType(int index) {
     case kVoidType: return void_type();
     case kFunctionInterface: return function_interface();
     case kNumberInterface: return number_interface();
+    case kDoubleInterface: return double_interface();
     case kIntInterface: return int_interface();
     case kBoolInterface: return bool_interface();
+    case kStringInterface: return string_interface();
     default: break;
   }
   UNREACHABLE();
@@ -150,10 +154,14 @@ int ObjectStore::GetTypeIndex(const RawType* raw_type) {
     return kFunctionInterface;
   } else if (raw_type == number_interface()) {
     return kNumberInterface;
+  } else if (raw_type == double_interface()) {
+    return kDoubleInterface;
   } else if (raw_type == int_interface()) {
     return kIntInterface;
   } else if (raw_type == bool_interface()) {
     return kBoolInterface;
+  } else if (raw_type == string_interface()) {
+    return kStringInterface;
   }
   return kInvalidIndex;
 }

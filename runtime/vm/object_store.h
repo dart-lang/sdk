@@ -30,8 +30,10 @@ class ObjectStore {
     kVoidType,
     kFunctionInterface,
     kNumberInterface,
+    kDoubleInterface,
     kIntInterface,
     kBoolInterface,
+    kStringInterface,
     kObjectClass,
     kSmiClass,
     kMintClass,
@@ -89,6 +91,11 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, smi_class_);
   }
 
+  RawType* double_interface() const { return double_interface_; }
+  void set_double_interface(const Type& value) {
+    double_interface_ = value.raw();
+  }
+
   RawClass* double_class() const { return double_class_; }
   void set_double_class(const Class& value) { double_class_ = value.raw(); }
 
@@ -97,6 +104,11 @@ class ObjectStore {
 
   RawClass* bigint_class() const { return bigint_class_; }
   void set_bigint_class(const Class& value) { bigint_class_ = value.raw(); }
+
+  RawType* string_interface() const { return string_interface_; }
+  void set_string_interface(const Type& value) {
+    string_interface_ = value.raw();
+  }
 
   RawClass* one_byte_string_class() const { return one_byte_string_class_; }
   void set_one_byte_string_class(const Class& value) {
@@ -235,7 +247,9 @@ class ObjectStore {
   RawClass* smi_class_;
   RawClass* mint_class_;
   RawClass* bigint_class_;
+  RawType* double_interface_;
   RawClass* double_class_;
+  RawType* string_interface_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
   RawClass* four_byte_string_class_;
