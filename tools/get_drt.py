@@ -27,7 +27,7 @@ GSUTIL = GSUTIL_DIR + '/gsutil'
 DRT_DIR = 'client/tests/drt'
 VERSION = DRT_DIR + '/LAST_VERSION'
 DRT_DARTIUM_LATEST_PATTERN = (
-    'gs://dashium-archive/latest/dartium-%(osname)s-inc-*.zip')
+    'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
 DRT_CHROMIUM_LATEST_PATTERN = (
     'gs://dart-dump-render-tree/latest/chromium-%(osname)s-*.zip')
 
