@@ -15,8 +15,6 @@ import com.google.dart.compiler.resolver.MethodElement;
  * Mangles dart identifiers so that they don't conflict with JavaScript identifiers.
  * This complements the JsScope infrastructure. The JsScope infrastructure deals with obfuscatable
  * identifiers, whereas the DartMangler deals with non-obfuscatable identifiers.
- *
- * @author floitsch@google.com (Florian Loitsch)
  */
 public interface DartMangler {
   public static final String NEGATE_OPERATOR_NAME = "negate";

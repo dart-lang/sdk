@@ -6,10 +6,6 @@ package com.google.dart.runner;
 
 import java.io.PrintStream;
 
-/**
- * @author floitsch@google.com (Florian Loitsch)
- *
- */
 interface JavaScriptLauncher {
 
   void execute(String jsScript, String sourceName, String[] args, RunnerOptions flags,

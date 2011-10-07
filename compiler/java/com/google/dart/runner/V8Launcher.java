@@ -22,8 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author floitsch@google.com (Florian Loitsch)
- *
  * Runs a given JS-script in d8 (part of V8).
  */
 public class V8Launcher implements JavaScriptLauncher {

@@ -7,8 +7,6 @@ package com.google.dart.compiler.backend.js;
 import com.google.dart.compiler.backend.js.ast.JsProgram;
 
 /**
- * @author floitsch@google.com (Florian Loitsch)
- *
  * A namer runs through a program and renames the short names of JsNames.
  * Namers must assign short names that don't clash and that are valid
  * JS-identifiers. Nested JsScopes must not shadow JsNames from outer

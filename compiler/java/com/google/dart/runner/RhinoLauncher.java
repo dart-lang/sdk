@@ -15,8 +15,6 @@ import java.io.PrintStream;
 import java.lang.reflect.Member;
 
 /**
- * @author floitsch@google.com (Florian Loitsch)
- *
  * Runs a given JS script.
  */
 public class RhinoLauncher implements JavaScriptLauncher {
