@@ -10,6 +10,7 @@
     'exceptions.dart',
     'hash_map_set.dart',
     'linked_hash_map.dart',
+    'maps.dart',
     'promise_implementation.dart',
     'queue.dart',
     'splay_tree.dart',
