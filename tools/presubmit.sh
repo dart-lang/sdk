@@ -22,7 +22,7 @@ function usage {
   echo
   echo "Runs a quick set of tests on runtime, client, and compiler dirs"
   echo
-  echo " --optimize: Also run dartc/release tests  optimize"
+  echo " --optimize: Also run dartc and client tests in release mode"
   echo " --dartium : Also run dartium/debug tests"
   echo
 }
@@ -108,6 +108,12 @@ echo
 echo "--- Building client ---"
 doBuild client dartc debug
 
+if [ ${DO_OPTIMIZE} == 1 ] ; then
+  # echo "Syncing client debug build to release"
+  # rsync -a out/Debug_dartc out/Release_dartc
+  doBuild client dartc release
+fi
+
 
 echo
 echo "=== Runtime tests === "
@@ -117,27 +123,36 @@ RUNTIME_RESULT=$?
 
 echo
 echo "=== Compiler tests ==="
-echo " Debug mode"
+echo " Debug mode (Ctrl-C to skip this set of tests)"
 doTest compiler dartc debug
 COMPILER_RESULT=$?
 
 if [ ${DO_OPTIMIZE} == 1 ] ; then
-  echo " Release mode (--optimize)"
+  echo " Release mode (--optimize) (Ctrl-C to skip this set of tests)"
   doTest compiler dartc release
   RESULT=$?
   if [ ${RESULT} != 0 ] ; then
-    COMPILER_RESULT=$RESULT
+    COMPILER_RESULT=${RESULT}
   fi
 fi
 
 echo
 echo "=== Client tests ==="
-echo " Chromium"
+echo " Chromium  (Ctrl-C to skip this set of tests)"
 doTest client chromium debug
 CLIENT_RESULT=$?
 
+if [ ${DO_OPTIMIZE} == 1 ] ; then
+  echo " Chromium Release mode (--optimize) (Ctrl-C to skip this set of tests)"
+  doTest compiler chromium release
+  RESULT=$?
+  if [ ${RESULT} != 0 ] ; then
+    CLIENT_RESULT=${RESULT}
+  fi
+fi
+
 if [ ${DO_DARTIUM} == 1 ] ; then
-  echo " Dartium"
+  echo " Dartium (Ctrl-C to skip this set of tests)"
   doTest client dartium release
   RESULT=$?
   if [ ${RESULT} != 0 ] ; then
