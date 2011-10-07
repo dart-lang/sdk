@@ -21,7 +21,7 @@ public class DefaultErrorFormatter implements ErrorFormatter {
   public void format(DartCompilationError event) {
     outputStream.printf("%s:%d:%d: %s\n",
         (event.getSource() != null)
-            ? event.getSource().getUri() : "<unknown-source-file>",
+            ? event.getSource().getName() : "<unknown-source-file>",
         event.getLineNumber(),
         event.getColumnNumber(),
         event.getMessage());

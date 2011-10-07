@@ -50,7 +50,7 @@ public class DartCompilerListenerTest extends DartCompilerListener {
   @Override
   public void compilationError(DartCompilationError event) {
     String reportedSrcName = (event.getSource() != null)
-        ? event.getSource().getUri().toString()
+        ? event.getSource().getName()
         : null;
     if (reportedSrcName == null) {
       reportedSrcName = "<unknown>";
