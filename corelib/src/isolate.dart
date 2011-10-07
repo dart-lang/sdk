@@ -14,7 +14,7 @@ interface SendPort extends Hashable {
    * provided to the receiver to facilitate exchanging sequences of
    * messages.
    */
-  void send(var message, SendPort replyTo);
+  void send(var message, [SendPort replyTo]);
 
   /* Creates a new single-shot receive port, sends a message to this
    * send port with replyTo set to the opened port, and returns the

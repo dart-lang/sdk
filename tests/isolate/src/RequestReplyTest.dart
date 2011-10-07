@@ -11,7 +11,7 @@ class TestIsolate extends Isolate {
 
   void main() {
     this.port.receive((message, SendPort replyTo) {
-      replyTo.send(message + 87, null);
+      replyTo.send(message + 87);
       this.port.close();
     });
   }
@@ -42,7 +42,7 @@ void testSend(TestExpectation expect) {
 void testSendSingleShot(TestExpectation expect) {
   expect.completes(new TestIsolate().spawn()).then((SendPort port) {
     ReceivePort reply = new ReceivePort.singleShot();
-    port.send(99, reply.toSendPort());
+    port.send(99, replyTo: reply.toSendPort());
     reply.receive(expect.runs2((message, replyTo) {
       Expect.equals(99 + 87, message);
       expect.succeeded();

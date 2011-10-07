@@ -6,7 +6,7 @@ class SendPortImpl implements SendPort {
 
   const SendPortImpl(this._workerId, this._isolateId, this._receivePortId);
 
-  void send(var message, SendPort replyTo) {
+  void send(var message, [SendPort replyTo = null]) {
     if (PromiseQueue.isEmpty()) {
       this._sendNow(message, replyTo);
     } else {

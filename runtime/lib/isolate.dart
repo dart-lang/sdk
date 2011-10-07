@@ -88,7 +88,7 @@ class ReceivePortSingleShotImpl implements ReceivePort {
 
 class SendPortImpl implements SendPort {
   /*--- public interface ---*/
-  void send(var message, SendPort replyTo) {
+  void send(var message, [SendPort replyTo = null]) {
     if (PromiseQueue.isEmpty()) {
       this._sendNow(message, replyTo);
     } else {
