@@ -1,0 +1,40 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Dart test program for testing named parameters with 'false' passed as an
+// argument.
+
+
+class TestClass {
+  TestClass();
+
+  bool method([bool value]) => value;
+
+  static bool staticMethod([bool value]) => value;
+}
+
+bool globalMethod([bool value]) => value;
+
+
+main() {
+  var obj = new TestClass();
+
+  Expect.equals(null, obj.method());
+  Expect.equals(true, obj.method(true));
+  Expect.equals(true, obj.method(value: true));
+  Expect.equals(false, obj.method(false));
+  Expect.equals(false, obj.method(value: false));
+
+  Expect.equals(null, TestClass.staticMethod());
+  Expect.equals(true, TestClass.staticMethod(true));
+  Expect.equals(true, TestClass.staticMethod(value: true));
+  Expect.equals(false, TestClass.staticMethod(false));
+  Expect.equals(false, TestClass.staticMethod(value: false));
+
+  Expect.equals(null, globalMethod());
+  Expect.equals(true, globalMethod(true));
+  Expect.equals(true, globalMethod(value: true));
+  Expect.equals(false, globalMethod(false));
+  Expect.equals(false, globalMethod(value: false));
+}
