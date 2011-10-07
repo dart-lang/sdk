@@ -1,3 +1,4 @@
+#library("dom-query.dart");
 #import("dart:dom");
 #import('../../common/common.dart');
 #import('runner.dart');
