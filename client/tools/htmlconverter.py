@@ -404,8 +404,6 @@ class OfflineHTMLConverter(DartHTMLConverter):
     May throw if the download fails.
     """
     # Don't try to re-encode an image that's already data://.
-    if url.startswith('data:image/'):
-      return url
     filetype = url[-3:]
     if filetype == 'svg': filetype = 'svg+xml'
     if self.verbose:
@@ -430,6 +428,8 @@ class OfflineHTMLConverter(DartHTMLConverter):
 
   def downloadImage(self, url):
     """Downloads an image either to file or to data://, and return the URL."""
+    if url.startswith('data:image/'):
+      return url
     try:
       if self.inline_images:
         return self.downloadImageUrlToEncode(url)
