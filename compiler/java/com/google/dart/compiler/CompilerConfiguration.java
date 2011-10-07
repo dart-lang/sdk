@@ -13,8 +13,6 @@ import java.util.List;
 /**
  * A configuration for the Dart compiler specifying which phases
  * and backends will be executed.
- *
- * @author sigmund@google.com (Siggi Cherem)
  */
 public interface CompilerConfiguration {
 

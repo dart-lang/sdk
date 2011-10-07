@@ -10,8 +10,6 @@ import com.google.dart.compiler.resolver.CoreTypeProvider;
 /**
  * A compiler phase that processes a unit and possibly transforms it or reports
  * compilation errors.
- *
- * @author sigmund@google.com (Siggi Cherem)
  */
 public interface DartCompilationPhase {
 
