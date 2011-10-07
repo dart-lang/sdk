@@ -8,9 +8,6 @@ prefix client
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 samples/swarm/swarm_tests: Fail # buildbot needs to be updated.
 
-[ $arch == chromium && $mode == release ]
-layout/layout_tests: Fail          # Bug 5400902
-
 
 [ $arch == chromium ]
 
