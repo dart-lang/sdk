@@ -415,9 +415,9 @@ class ElementEventsImplementation extends EventsImplementation implements Elemen
 }
 
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
- 
+
    factory ElementWrappingImplementation.html(String html) {
-    final temp = _rawDocument.createElement('div');
+    final temp = dom.document.createElement('div');
     temp.innerHTML = html;
 
     if (temp.childElementCount != 1) {
@@ -428,7 +428,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   factory ElementWrappingImplementation.tag(String tag) {
-    return LevelDom.wrapElement(_rawDocument.createElement(tag));
+    return LevelDom.wrapElement(dom.document.createElement(tag));
   }
 
   ElementWrappingImplementation._wrap(ptr) : super._wrap(ptr);

@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface LinkElement extends Element /*, common.LinkStyle */ {
+interface LinkElement extends Element {
 
   String get charset();
 

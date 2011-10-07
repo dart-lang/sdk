@@ -6,6 +6,4 @@
 
 class AudioElementWrappingImplementation extends MediaElementWrappingImplementation implements AudioElement {
   AudioElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "AudioElement"; }
 }

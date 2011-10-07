@@ -72,6 +72,4 @@ class ImageElementWrappingImplementation extends ElementWrappingImplementation i
   int get x() { return _ptr.x; }
 
   int get y() { return _ptr.y; }
-
-  String get typeName() { return "ImageElement"; }
 }

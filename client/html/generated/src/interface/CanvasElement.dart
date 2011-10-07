@@ -16,5 +16,5 @@ interface CanvasElement extends Element {
 
   CanvasRenderingContext getContext([String contextId]);
 
-  String toDataURL([String type]);
+  String toDataURL(String type);
 }

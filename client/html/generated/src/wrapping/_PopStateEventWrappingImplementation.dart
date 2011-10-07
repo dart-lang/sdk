@@ -9,10 +9,8 @@ class PopStateEventWrappingImplementation extends EventWrappingImplementation im
 
   String get state() { return _ptr.state; }
 
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String stateArg) {
-    _ptr.initPopStateEvent(typeArg, canBubbleArg, cancelableArg, stateArg);
+  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) {
+    _ptr.initPopStateEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(stateArg));
     return;
   }
-
-  String get typeName() { return "PopStateEvent"; }
 }

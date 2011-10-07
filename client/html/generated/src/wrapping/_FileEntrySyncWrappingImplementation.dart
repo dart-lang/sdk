@@ -14,6 +14,4 @@ class FileEntrySyncWrappingImplementation extends EntrySyncWrappingImplementatio
   File file() {
     return LevelDom.wrapFile(_ptr.file());
   }
-
-  String get typeName() { return "FileEntrySync"; }
 }

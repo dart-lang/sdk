@@ -43,6 +43,4 @@ class OutputElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "OutputElement"; }
 }

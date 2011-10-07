@@ -17,6 +17,4 @@ class OverflowEventWrappingImplementation extends EventWrappingImplementation im
     _ptr.initOverflowEvent(orient, horizontalOverflow, verticalOverflow);
     return;
   }
-
-  String get typeName() { return "OverflowEvent"; }
 }

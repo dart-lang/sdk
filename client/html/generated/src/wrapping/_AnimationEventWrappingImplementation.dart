@@ -15,6 +15,4 @@ class AnimationEventWrappingImplementation extends EventWrappingImplementation i
     _ptr.initWebKitAnimationEvent(typeArg, canBubbleArg, cancelableArg, animationNameArg, elapsedTimeArg);
     return;
   }
-
-  String get typeName() { return "AnimationEvent"; }
 }

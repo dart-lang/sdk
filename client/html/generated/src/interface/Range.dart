@@ -42,8 +42,6 @@ interface Range {
 
   void collapse(bool toStart);
 
-  int compareBoundaryPoints();
-
   int compareNode(Node refNode);
 
   int comparePoint(Node refNode, int offset);

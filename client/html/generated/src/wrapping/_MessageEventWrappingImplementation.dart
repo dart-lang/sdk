@@ -21,6 +21,4 @@ class MessageEventWrappingImplementation extends EventWrappingImplementation imp
     _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
     return;
   }
-
-  String get typeName() { return "MessageEvent"; }
 }

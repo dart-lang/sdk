@@ -6,9 +6,6 @@
 
 class PointWrappingImplementation extends DOMWrapperBase implements Point {
   PointWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-  factory PointWrappingImplementation(num x, num y) {
-    return LevelDom.wrapPoint(_rawWindow.createWebKitPoint(x, y));
-  }
 
   num get x() { return _ptr.x; }
 
@@ -17,6 +14,4 @@ class PointWrappingImplementation extends DOMWrapperBase implements Point {
   num get y() { return _ptr.y; }
 
   void set y(num value) { _ptr.y = value; }
-
-  String get typeName() { return "Point"; }
 }

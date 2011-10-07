@@ -8,9 +8,9 @@ interface DirectoryEntry extends Entry {
 
   DirectoryReader createReader();
 
-  void getDirectory(String path, Flags flags, EntryCallback successCallback, ErrorCallback errorCallback);
+  void getDirectory(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void getFile(String path, Flags flags, EntryCallback successCallback, ErrorCallback errorCallback);
+  void getFile(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void removeRecursively(VoidCallback successCallback, ErrorCallback errorCallback);
+  void removeRecursively([VoidCallback successCallback, ErrorCallback errorCallback]);
 }

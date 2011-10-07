@@ -14,6 +14,4 @@ class IDBDatabaseErrorWrappingImplementation extends DOMWrapperBase implements I
   String get message() { return _ptr.message; }
 
   void set message(String value) { _ptr.message = value; }
-
-  String get typeName() { return "IDBDatabaseError"; }
 }

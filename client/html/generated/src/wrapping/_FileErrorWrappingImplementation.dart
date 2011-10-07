@@ -8,6 +8,4 @@ class FileErrorWrappingImplementation extends DOMWrapperBase implements FileErro
   FileErrorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get code() { return _ptr.code; }
-
-  String get typeName() { return "FileError"; }
 }

@@ -10,6 +10,4 @@ class PositionErrorCallbackWrappingImplementation extends DOMWrapperBase impleme
   bool handleEvent(PositionError error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "PositionErrorCallback"; }
 }

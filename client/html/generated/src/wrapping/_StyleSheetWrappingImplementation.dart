@@ -22,6 +22,4 @@ class StyleSheetWrappingImplementation extends DOMWrapperBase implements StyleSh
   String get title() { return _ptr.title; }
 
   String get type() { return _ptr.type; }
-
-  String get typeName() { return "StyleSheet"; }
 }

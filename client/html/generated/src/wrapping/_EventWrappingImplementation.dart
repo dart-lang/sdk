@@ -52,6 +52,4 @@ class EventWrappingImplementation extends DOMWrapperBase implements Event {
     _ptr.stopPropagation();
     return;
   }
-
-  String get typeName() { return "Event"; }
 }

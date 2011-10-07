@@ -20,6 +20,4 @@ class HTMLAllCollectionWrappingImplementation extends DOMWrapperBase implements 
   ElementList tags(String name) {
     return LevelDom.wrapElementList(_ptr.tags(name));
   }
-
-  String get typeName() { return "HTMLAllCollection"; }
 }

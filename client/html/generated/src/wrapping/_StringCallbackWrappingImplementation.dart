@@ -10,6 +10,4 @@ class StringCallbackWrappingImplementation extends DOMWrapperBase implements Str
   bool handleEvent(String data) {
     return _ptr.handleEvent(data);
   }
-
-  String get typeName() { return "StringCallback"; }
 }

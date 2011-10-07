@@ -12,6 +12,4 @@ class EntryArrayWrappingImplementation extends DOMWrapperBase implements EntryAr
   Entry item(int index) {
     return LevelDom.wrapEntry(_ptr.item(index));
   }
-
-  String get typeName() { return "EntryArray"; }
 }

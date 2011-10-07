@@ -9,9 +9,11 @@ class Uint16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplement
 
   int get length() { return _ptr.length; }
 
-  Uint16Array subarray(int start, int end) {
-    return LevelDom.wrapUint16Array(_ptr.subarray(start, end));
+  Uint16Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapUint16Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapUint16Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Uint16Array"; }
 }

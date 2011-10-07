@@ -16,6 +16,4 @@ class LegendElementWrappingImplementation extends ElementWrappingImplementation 
   void set align(String value) { _ptr.align = value; }
 
   FormElement get form() { return LevelDom.wrapFormElement(_ptr.form); }
-
-  String get typeName() { return "LegendElement"; }
 }

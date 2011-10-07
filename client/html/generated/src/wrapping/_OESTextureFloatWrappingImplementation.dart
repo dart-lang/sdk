@@ -6,6 +6,4 @@
 
 class OESTextureFloatWrappingImplementation extends DOMWrapperBase implements OESTextureFloat {
   OESTextureFloatWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "OESTextureFloat"; }
 }

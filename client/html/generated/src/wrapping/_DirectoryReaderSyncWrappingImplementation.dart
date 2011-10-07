@@ -10,6 +10,4 @@ class DirectoryReaderSyncWrappingImplementation extends DOMWrapperBase implement
   EntryArraySync readEntries() {
     return LevelDom.wrapEntryArraySync(_ptr.readEntries());
   }
-
-  String get typeName() { return "DirectoryReaderSync"; }
 }

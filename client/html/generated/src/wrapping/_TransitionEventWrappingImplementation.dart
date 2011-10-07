@@ -15,6 +15,4 @@ class TransitionEventWrappingImplementation extends EventWrappingImplementation 
     _ptr.initWebKitTransitionEvent(typeArg, canBubbleArg, cancelableArg, propertyNameArg, elapsedTimeArg);
     return;
   }
-
-  String get typeName() { return "TransitionEvent"; }
 }

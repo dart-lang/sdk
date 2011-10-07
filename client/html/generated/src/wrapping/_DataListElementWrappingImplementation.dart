@@ -8,6 +8,4 @@ class DataListElementWrappingImplementation extends ElementWrappingImplementatio
   DataListElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   ElementList get options() { return LevelDom.wrapElementList(_ptr.options); }
-
-  String get typeName() { return "DataListElement"; }
 }

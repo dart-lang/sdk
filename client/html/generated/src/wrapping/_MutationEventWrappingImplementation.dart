@@ -21,6 +21,4 @@ class MutationEventWrappingImplementation extends EventWrappingImplementation im
     _ptr.initMutationEvent(type, canBubble, cancelable, LevelDom.unwrap(relatedNode), prevValue, newValue, attrName, attrChange);
     return;
   }
-
-  String get typeName() { return "MutationEvent"; }
 }

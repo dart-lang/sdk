@@ -12,6 +12,4 @@ class SpeechInputResultListWrappingImplementation extends DOMWrapperBase impleme
   SpeechInputResult item(int index) {
     return LevelDom.wrapSpeechInputResult(_ptr.item(index));
   }
-
-  String get typeName() { return "SpeechInputResultList"; }
 }

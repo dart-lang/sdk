@@ -12,6 +12,4 @@ class ClientRectListWrappingImplementation extends DOMWrapperBase implements Cli
   ClientRect item(int index) {
     return LevelDom.wrapClientRect(_ptr.item(index));
   }
-
-  String get typeName() { return "ClientRectList"; }
 }

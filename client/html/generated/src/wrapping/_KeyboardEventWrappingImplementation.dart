@@ -29,6 +29,4 @@ class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation 
     _ptr.initKeyboardEvent(type, canBubble, cancelable, LevelDom.unwrap(view), keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
     return;
   }
-
-  String get typeName() { return "KeyboardEvent"; }
 }

@@ -41,6 +41,4 @@ class TableRowElementWrappingImplementation extends ElementWrappingImplementatio
   Element insertCell(int index) {
     return LevelDom.wrapElement(_ptr.insertCell(index));
   }
-
-  String get typeName() { return "TableRowElement"; }
 }

@@ -6,6 +6,4 @@
 
 class IDBKeyWrappingImplementation extends DOMWrapperBase implements IDBKey {
   IDBKeyWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "IDBKey"; }
 }

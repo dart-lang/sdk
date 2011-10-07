@@ -4,9 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface BlockquoteElement extends Element {
+interface CSSMatrix$!EXTENDS factory _CSSMatrixFactoryProvider {
 
-  String get cite();
-
-  void set cite(String value);
-}
+  CSSMatrix([String spec]);
+$!MEMBERS}

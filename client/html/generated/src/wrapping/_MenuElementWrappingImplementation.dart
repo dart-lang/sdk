@@ -10,6 +10,4 @@ class MenuElementWrappingImplementation extends ElementWrappingImplementation im
   bool get compact() { return _ptr.compact; }
 
   void set compact(bool value) { _ptr.compact = value; }
-
-  String get typeName() { return "MenuElement"; }
 }

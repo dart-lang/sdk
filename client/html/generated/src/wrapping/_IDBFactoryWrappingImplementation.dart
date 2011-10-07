@@ -7,9 +7,11 @@
 class IDBFactoryWrappingImplementation extends DOMWrapperBase implements IDBFactory {
   IDBFactoryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
+  IDBRequest getDatabaseNames() {
+    return LevelDom.wrapIDBRequest(_ptr.getDatabaseNames());
+  }
+
   IDBRequest open(String name) {
     return LevelDom.wrapIDBRequest(_ptr.open(name));
   }
-
-  String get typeName() { return "IDBFactory"; }
 }

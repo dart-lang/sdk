@@ -11,6 +11,4 @@ class VoidCallbackWrappingImplementation extends DOMWrapperBase implements VoidC
     _ptr.handleEvent();
     return;
   }
-
-  String get typeName() { return "VoidCallback"; }
 }

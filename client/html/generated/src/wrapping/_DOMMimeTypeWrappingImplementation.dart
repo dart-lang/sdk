@@ -14,6 +14,4 @@ class DOMMimeTypeWrappingImplementation extends DOMWrapperBase implements DOMMim
   String get suffixes() { return _ptr.suffixes; }
 
   String get type() { return _ptr.type; }
-
-  String get typeName() { return "DOMMimeType"; }
 }

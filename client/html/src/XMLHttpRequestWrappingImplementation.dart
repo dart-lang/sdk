@@ -15,10 +15,12 @@ class XMLHttpRequestEventsImplementation extends EventsImplementation
 }
 
 class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementation implements XMLHttpRequest {
-  XMLHttpRequestWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+  XMLHttpRequestWrappingImplementation._wrap(
+      dom.XMLHttpRequest ptr) : super._wrap(ptr);
 
   factory XMLHttpRequestWrappingImplementation() {
-    return LevelDom.wrapXMLHttpRequest(_rawWindow.createXMLHttpRequest());
+    return new XMLHttpRequestWrappingImplementation._wrap(
+        new dom.XMLHttpRequest());
   }
 
   factory XMLHttpRequestWrappingImplementation.getTEMPNAME(String url,

@@ -14,6 +14,4 @@ class PreElementWrappingImplementation extends ElementWrappingImplementation imp
   bool get wrap() { return _ptr.wrap; }
 
   void set wrap(bool value) { _ptr.wrap = value; }
-
-  String get typeName() { return "PreElement"; }
 }

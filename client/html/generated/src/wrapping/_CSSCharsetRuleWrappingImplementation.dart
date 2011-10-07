@@ -10,6 +10,4 @@ class CSSCharsetRuleWrappingImplementation extends CSSRuleWrappingImplementation
   String get encoding() { return _ptr.encoding; }
 
   void set encoding(String value) { _ptr.encoding = value; }
-
-  String get typeName() { return "CSSCharsetRule"; }
 }

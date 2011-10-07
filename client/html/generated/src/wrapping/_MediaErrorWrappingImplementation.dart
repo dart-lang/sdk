@@ -8,6 +8,4 @@ class MediaErrorWrappingImplementation extends DOMWrapperBase implements MediaEr
   MediaErrorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get code() { return _ptr.code; }
-
-  String get typeName() { return "MediaError"; }
 }

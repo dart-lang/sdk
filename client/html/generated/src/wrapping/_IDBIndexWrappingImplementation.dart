@@ -15,17 +15,41 @@ class IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex 
 
   bool get unique() { return _ptr.unique; }
 
+  IDBRequest getObject(IDBKey key) {
+    return LevelDom.wrapIDBRequest(_ptr.getObject(LevelDom.unwrap(key)));
+  }
+
   IDBRequest getKey(IDBKey key) {
     return LevelDom.wrapIDBRequest(_ptr.getKey(LevelDom.unwrap(key)));
   }
 
-  IDBRequest openCursor(IDBKeyRange range, int direction) {
-    return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+    if (range === null) {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor());
+      }
+    } else {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range)));
+      } else {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest openKeyCursor(IDBKeyRange range, int direction) {
-    return LevelDom.wrapIDBRequest(_ptr.openKeyCursor(LevelDom.unwrap(range), direction));
+  IDBRequest openKeyCursor([IDBKeyRange range = null, int direction = null]) {
+    if (range === null) {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openKeyCursor());
+      }
+    } else {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openKeyCursor(LevelDom.unwrap(range)));
+      } else {
+        return LevelDom.wrapIDBRequest(_ptr.openKeyCursor(LevelDom.unwrap(range), direction));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-
-  String get typeName() { return "IDBIndex"; }
 }

@@ -20,6 +20,4 @@ class CoordinatesWrappingImplementation extends DOMWrapperBase implements Coordi
   num get longitude() { return _ptr.longitude; }
 
   num get speed() { return _ptr.speed; }
-
-  String get typeName() { return "Coordinates"; }
 }

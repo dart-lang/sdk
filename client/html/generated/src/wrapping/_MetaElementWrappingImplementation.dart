@@ -22,6 +22,4 @@ class MetaElementWrappingImplementation extends ElementWrappingImplementation im
   String get scheme() { return _ptr.scheme; }
 
   void set scheme(String value) { _ptr.scheme = value; }
-
-  String get typeName() { return "MetaElement"; }
 }

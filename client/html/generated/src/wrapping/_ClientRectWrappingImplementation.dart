@@ -18,6 +18,4 @@ class ClientRectWrappingImplementation extends DOMWrapperBase implements ClientR
   num get top() { return _ptr.top; }
 
   num get width() { return _ptr.width; }
-
-  String get typeName() { return "ClientRect"; }
 }

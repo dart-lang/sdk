@@ -6,6 +6,4 @@
 
 class WebGLBufferWrappingImplementation extends DOMWrapperBase implements WebGLBuffer {
   WebGLBufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLBuffer"; }
 }

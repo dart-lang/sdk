@@ -802,13 +802,13 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass);
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, int format, int type, ArrayBufferView pixels);
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format, int type, ArrayBufferView pixels]);
 
   void texParameterf(int target, int pname, num param);
 
   void texParameteri(int target, int pname, int param);
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, int type, ArrayBufferView pixels);
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type, ArrayBufferView pixels]);
 
   void uniform1f(WebGLUniformLocation location, num x);
 

@@ -81,6 +81,10 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
 
   bool get willValidate() { return _ptr.willValidate; }
 
+  String get wrap() { return _ptr.wrap; }
+
+  void set wrap(String value) { _ptr.wrap = value; }
+
   bool checkValidity() {
     return _ptr.checkValidity();
   }
@@ -95,10 +99,13 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
     return;
   }
 
-  void setSelectionRange(int start, int end, String direction) {
-    _ptr.setSelectionRange(start, end, direction);
-    return;
+  void setSelectionRange(int start, int end, [String direction = null]) {
+    if (direction === null) {
+      _ptr.setSelectionRange(start, end);
+      return;
+    } else {
+      _ptr.setSelectionRange(start, end, direction);
+      return;
+    }
   }
-
-  String get typeName() { return "TextAreaElement"; }
 }

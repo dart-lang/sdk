@@ -40,6 +40,10 @@ interface MediaElement extends Element {
 
   void set currentTime(num value);
 
+  bool get defaultMuted();
+
+  void set defaultMuted(bool value);
+
   num get defaultPlaybackRate();
 
   void set defaultPlaybackRate(num value);
@@ -49,6 +53,8 @@ interface MediaElement extends Element {
   bool get ended();
 
   MediaError get error();
+
+  num get initialTime();
 
   bool get loop();
 

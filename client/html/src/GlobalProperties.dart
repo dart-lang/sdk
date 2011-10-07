@@ -7,22 +7,14 @@ var secretDocument;
 
 Window get window() {
   if (secretWindow === null) {
-    LevelDom.initialize(BootstrapHacks.getWindow());
+    LevelDom.initialize(dom.window);
   }
   return secretWindow;
 }
 
 Document get document() {
   if (secretWindow === null) {
-    LevelDom.initialize(BootstrapHacks.getWindow());
+    LevelDom.initialize(dom.window);
   }
   return secretDocument;
-}
-
-get _rawDocument() {
-  return document.dynamic._documentPtr;
-}
-
-get _rawWindow() {
-  return BootstrapHacks.getWindow();
 }

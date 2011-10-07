@@ -33,6 +33,4 @@ class TableSectionElementWrappingImplementation extends ElementWrappingImplement
   Element insertRow(int index) {
     return LevelDom.wrapElement(_ptr.insertRow(index));
   }
-
-  String get typeName() { return "TableSectionElement"; }
 }

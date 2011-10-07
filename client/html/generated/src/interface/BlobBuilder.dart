@@ -6,7 +6,7 @@
 
 interface BlobBuilder {
 
-  void append(var blob_OR_value, String endings);
+  void append(var blob_OR_value, [String endings]);
 
-  Blob getBlob(String contentType);
+  Blob getBlob([String contentType]);
 }

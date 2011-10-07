@@ -23,6 +23,4 @@ class NotificationCenterWrappingImplementation extends DOMWrapperBase implements
     _ptr.requestPermission(LevelDom.unwrap(callback));
     return;
   }
-
-  String get typeName() { return "NotificationCenter"; }
 }

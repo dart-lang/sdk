@@ -8,6 +8,4 @@ class CSSFontFaceRuleWrappingImplementation extends CSSRuleWrappingImplementatio
   CSSFontFaceRuleWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
-
-  String get typeName() { return "CSSFontFaceRule"; }
 }

@@ -10,6 +10,4 @@ class StorageInfoQuotaCallbackWrappingImplementation extends DOMWrapperBase impl
   bool handleEvent(int grantedQuotaInBytes) {
     return _ptr.handleEvent(grantedQuotaInBytes);
   }
-
-  String get typeName() { return "StorageInfoQuotaCallback"; }
 }

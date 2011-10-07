@@ -6,6 +6,4 @@
 
 class IDBAnyWrappingImplementation extends DOMWrapperBase implements IDBAny {
   IDBAnyWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "IDBAny"; }
 }

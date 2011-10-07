@@ -8,6 +8,4 @@ class SpeechInputEventWrappingImplementation extends EventWrappingImplementation
   SpeechInputEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   SpeechInputResultList get results() { return LevelDom.wrapSpeechInputResultList(_ptr.results); }
-
-  String get typeName() { return "SpeechInputEvent"; }
 }

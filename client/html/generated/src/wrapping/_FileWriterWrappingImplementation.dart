@@ -58,6 +58,4 @@ class FileWriterWrappingImplementation extends DOMWrapperBase implements FileWri
     _ptr.write(LevelDom.unwrap(data));
     return;
   }
-
-  String get typeName() { return "FileWriter"; }
 }

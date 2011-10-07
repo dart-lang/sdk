@@ -34,10 +34,6 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
     return;
   }
 
-  int compareBoundaryPoints() {
-    return _ptr.compareBoundaryPoints();
-  }
-
   int compareNode(Node refNode) {
     return _ptr.compareNode(LevelDom.unwrap(refNode));
   }
@@ -130,6 +126,4 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
   String toString() {
     return _ptr.toString();
   }
-
-  String get typeName() { return "Range"; }
 }

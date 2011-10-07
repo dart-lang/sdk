@@ -80,11 +80,15 @@ interface TextAreaElement extends Element {
 
   bool get willValidate();
 
+  String get wrap();
+
+  void set wrap(String value);
+
   bool checkValidity();
 
   void select();
 
   void setCustomValidity(String error);
 
-  void setSelectionRange(int start, int end, String direction);
+  void setSelectionRange(int start, int end, [String direction]);
 }

@@ -31,6 +31,4 @@ class StorageWrappingImplementation extends DOMWrapperBase implements Storage {
     _ptr.setItem(key, data);
     return;
   }
-
-  String get typeName() { return "Storage"; }
 }

@@ -13,6 +13,4 @@ class CustomEventWrappingImplementation extends EventWrappingImplementation impl
     _ptr.initCustomEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(detailArg));
     return;
   }
-
-  String get typeName() { return "CustomEvent"; }
 }

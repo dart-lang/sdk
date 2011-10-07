@@ -30,11 +30,11 @@ interface IDBTransaction {
 
   void abort();
 
-  void addEventListener(String type, EventListener listener, bool useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event evt);
 
   IDBObjectStore objectStore(String name);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }

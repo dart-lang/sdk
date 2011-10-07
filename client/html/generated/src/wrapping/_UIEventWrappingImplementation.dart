@@ -29,6 +29,4 @@ class UIEventWrappingImplementation extends EventWrappingImplementation implemen
     _ptr.initUIEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail);
     return;
   }
-
-  String get typeName() { return "UIEvent"; }
 }

@@ -10,6 +10,4 @@ class NavigatorUserMediaErrorCallbackWrappingImplementation extends DOMWrapperBa
   bool handleEvent(NavigatorUserMediaError error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "NavigatorUserMediaErrorCallback"; }
 }

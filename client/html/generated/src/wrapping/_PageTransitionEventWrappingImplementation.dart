@@ -13,6 +13,4 @@ class PageTransitionEventWrappingImplementation extends EventWrappingImplementat
     _ptr.initPageTransitionEvent(typeArg, canBubbleArg, cancelableArg, persisted);
     return;
   }
-
-  String get typeName() { return "PageTransitionEvent"; }
 }

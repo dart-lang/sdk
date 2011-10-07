@@ -10,7 +10,7 @@ interface StorageInfo {
 
   static final int TEMPORARY = 0;
 
-  void queryUsageAndQuota(int storageType, StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback);
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
 
-  void requestQuota(int storageType, int newQuotaInBytes, StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback);
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
 }

@@ -12,6 +12,4 @@ class CounterWrappingImplementation extends DOMWrapperBase implements Counter {
   String get listStyle() { return _ptr.listStyle; }
 
   String get separator() { return _ptr.separator; }
-
-  String get typeName() { return "Counter"; }
 }

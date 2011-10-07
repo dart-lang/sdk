@@ -16,12 +16,14 @@ class CanvasElementWrappingImplementation extends ElementWrappingImplementation 
   void set width(int value) { _ptr.width = value; }
 
   CanvasRenderingContext getContext([String contextId = null]) {
-    return LevelDom.wrapCanvasRenderingContext(_ptr.getContext(contextId));
+    if (contextId === null) {
+      return LevelDom.wrapCanvasRenderingContext(_ptr.getContext());
+    } else {
+      return LevelDom.wrapCanvasRenderingContext(_ptr.getContext(contextId));
+    }
   }
 
-  String toDataURL([String type = null]) {
+  String toDataURL(String type) {
     return _ptr.toDataURL(type);
   }
-
-  String get typeName() { return "CanvasElement"; }
 }

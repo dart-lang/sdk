@@ -12,6 +12,4 @@ class StyleMediaWrappingImplementation extends DOMWrapperBase implements StyleMe
   bool matchMedium(String mediaquery) {
     return _ptr.matchMedium(mediaquery);
   }
-
-  String get typeName() { return "StyleMedia"; }
 }

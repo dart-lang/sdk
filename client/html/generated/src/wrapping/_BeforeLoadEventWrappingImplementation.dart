@@ -13,6 +13,4 @@ class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation 
     _ptr.initBeforeLoadEvent(type, canBubble, cancelable, url);
     return;
   }
-
-  String get typeName() { return "BeforeLoadEvent"; }
 }

@@ -11,6 +11,4 @@ class CanvasGradientWrappingImplementation extends DOMWrapperBase implements Can
     _ptr.addColorStop(offset, color);
     return;
   }
-
-  String get typeName() { return "CanvasGradient"; }
 }

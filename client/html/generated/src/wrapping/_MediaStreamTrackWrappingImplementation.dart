@@ -14,6 +14,4 @@ class MediaStreamTrackWrappingImplementation extends DOMWrapperBase implements M
   String get kind() { return _ptr.kind; }
 
   String get label() { return _ptr.label; }
-
-  String get typeName() { return "MediaStreamTrack"; }
 }

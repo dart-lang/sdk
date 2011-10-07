@@ -10,6 +10,4 @@ class DOMFileSystemWrappingImplementation extends DOMWrapperBase implements DOMF
   String get name() { return _ptr.name; }
 
   DirectoryEntry get root() { return LevelDom.wrapDirectoryEntry(_ptr.root); }
-
-  String get typeName() { return "DOMFileSystem"; }
 }

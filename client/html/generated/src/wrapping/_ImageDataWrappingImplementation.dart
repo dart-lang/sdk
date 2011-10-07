@@ -12,6 +12,4 @@ class ImageDataWrappingImplementation extends DOMWrapperBase implements ImageDat
   int get height() { return _ptr.height; }
 
   int get width() { return _ptr.width; }
-
-  String get typeName() { return "ImageData"; }
 }

@@ -6,6 +6,4 @@
 
 class WebGLTextureWrappingImplementation extends DOMWrapperBase implements WebGLTexture {
   WebGLTextureWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLTexture"; }
 }

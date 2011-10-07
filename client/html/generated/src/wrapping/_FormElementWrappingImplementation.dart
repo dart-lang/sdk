@@ -58,6 +58,4 @@ class FormElementWrappingImplementation extends ElementWrappingImplementation im
     _ptr.submit();
     return;
   }
-
-  String get typeName() { return "FormElement"; }
 }

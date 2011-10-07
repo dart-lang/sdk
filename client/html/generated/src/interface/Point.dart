@@ -4,7 +4,8 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Point factory PointWrappingImplementation {
+interface Point factory _PointFactoryProvider {
+
   Point(num x, num y);
 
   num get x();

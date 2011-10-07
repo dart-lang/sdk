@@ -37,22 +37,6 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
-  }
-
-  void removeRange(int start, int length) {
-    throw const NotImplementedException();
-  }
-
-  void insertRange(int start, int length, [initialValue = null]) {
-    throw const NotImplementedException();
-  }
-
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
-  }
-
   int indexOf(Touch element, int startIndex) {
     return _Lists.indexOf(this, element, startIndex, this.length);
   }
@@ -89,6 +73,22 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<Touch> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [Touch initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Touch> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }
@@ -100,6 +100,4 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
   Touch item(int index) {
     return LevelDom.wrapTouch(_ptr.item(index));
   }
-
-  String get typeName() { return "TouchList"; }
 }

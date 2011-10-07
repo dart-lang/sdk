@@ -22,6 +22,4 @@ class ScreenWrappingImplementation extends DOMWrapperBase implements Screen {
   int get pixelDepth() { return _ptr.pixelDepth; }
 
   int get width() { return _ptr.width; }
-
-  String get typeName() { return "Screen"; }
 }

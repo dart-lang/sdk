@@ -10,6 +10,4 @@ class QuoteElementWrappingImplementation extends ElementWrappingImplementation i
   String get cite() { return _ptr.cite; }
 
   void set cite(String value) { _ptr.cite = value; }
-
-  String get typeName() { return "QuoteElement"; }
 }

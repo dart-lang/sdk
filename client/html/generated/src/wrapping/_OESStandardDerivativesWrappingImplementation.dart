@@ -6,6 +6,4 @@
 
 class OESStandardDerivativesWrappingImplementation extends DOMWrapperBase implements OESStandardDerivatives {
   OESStandardDerivativesWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "OESStandardDerivatives"; }
 }

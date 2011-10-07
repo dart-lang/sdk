@@ -12,6 +12,4 @@ class MediaStreamTrackListWrappingImplementation extends DOMWrapperBase implemen
   MediaStreamTrack item(int index) {
     return LevelDom.wrapMediaStreamTrack(_ptr.item(index));
   }
-
-  String get typeName() { return "MediaStreamTrackList"; }
 }

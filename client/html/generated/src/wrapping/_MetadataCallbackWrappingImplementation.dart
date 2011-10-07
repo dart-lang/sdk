@@ -10,6 +10,4 @@ class MetadataCallbackWrappingImplementation extends DOMWrapperBase implements M
   bool handleEvent(Metadata metadata) {
     return _ptr.handleEvent(LevelDom.unwrap(metadata));
   }
-
-  String get typeName() { return "MetadataCallback"; }
 }

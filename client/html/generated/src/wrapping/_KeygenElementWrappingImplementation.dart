@@ -47,6 +47,4 @@ class KeygenElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "KeygenElement"; }
 }

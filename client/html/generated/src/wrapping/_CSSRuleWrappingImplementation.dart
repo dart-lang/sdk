@@ -16,6 +16,4 @@ class CSSRuleWrappingImplementation extends DOMWrapperBase implements CSSRule {
   CSSStyleSheet get parentStyleSheet() { return LevelDom.wrapCSSStyleSheet(_ptr.parentStyleSheet); }
 
   int get type() { return _ptr.type; }
-
-  String get typeName() { return "CSSRule"; }
 }

@@ -6,6 +6,4 @@
 
 class EntityReferenceWrappingImplementation extends NodeWrappingImplementation implements EntityReference {
   EntityReferenceWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "EntityReference"; }
 }

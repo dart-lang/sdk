@@ -8,6 +8,4 @@ class IDBVersionChangeEventWrappingImplementation extends EventWrappingImplement
   IDBVersionChangeEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   String get version() { return _ptr.version; }
-
-  String get typeName() { return "IDBVersionChangeEvent"; }
 }

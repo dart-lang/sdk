@@ -6,6 +6,4 @@
 
 class WebGLProgramWrappingImplementation extends DOMWrapperBase implements WebGLProgram {
   WebGLProgramWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLProgram"; }
 }

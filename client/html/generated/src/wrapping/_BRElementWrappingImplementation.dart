@@ -10,6 +10,4 @@ class BRElementWrappingImplementation extends ElementWrappingImplementation impl
   String get clear() { return _ptr.clear; }
 
   void set clear(String value) { _ptr.clear = value; }
-
-  String get typeName() { return "BRElement"; }
 }

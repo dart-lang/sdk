@@ -8,6 +8,4 @@ class CanvasRenderingContextWrappingImplementation extends DOMWrapperBase implem
   CanvasRenderingContextWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   CanvasElement get canvas() { return LevelDom.wrapCanvasElement(_ptr.canvas); }
-
-  String get typeName() { return "CanvasRenderingContext"; }
 }

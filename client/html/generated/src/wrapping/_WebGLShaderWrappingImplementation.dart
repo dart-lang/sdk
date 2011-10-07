@@ -6,6 +6,4 @@
 
 class WebGLShaderWrappingImplementation extends DOMWrapperBase implements WebGLShader {
   WebGLShaderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLShader"; }
 }

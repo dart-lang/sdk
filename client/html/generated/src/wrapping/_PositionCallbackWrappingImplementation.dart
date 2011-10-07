@@ -10,6 +10,4 @@ class PositionCallbackWrappingImplementation extends DOMWrapperBase implements P
   bool handleEvent(Geoposition position) {
     return _ptr.handleEvent(LevelDom.unwrap(position));
   }
-
-  String get typeName() { return "PositionCallback"; }
 }

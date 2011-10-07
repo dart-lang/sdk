@@ -28,9 +28,14 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
     return;
   }
 
-  void addEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   bool dispatchEvent(Event evt) {
@@ -41,10 +46,13 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
     return LevelDom.wrapIDBObjectStore(_ptr.objectStore(name));
   }
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
-
-  String get typeName() { return "IDBTransaction"; }
 }

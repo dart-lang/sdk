@@ -10,6 +10,4 @@ class NavigatorUserMediaSuccessCallbackWrappingImplementation extends DOMWrapper
   bool handleEvent(LocalMediaStream stream) {
     return _ptr.handleEvent(LevelDom.unwrap(stream));
   }
-
-  String get typeName() { return "NavigatorUserMediaSuccessCallback"; }
 }

@@ -36,6 +36,4 @@ class CharacterDataWrappingImplementation extends NodeWrappingImplementation imp
   String substringData(int offset, int length) {
     return _ptr.substringData(offset, length);
   }
-
-  String get typeName() { return "CharacterData"; }
 }

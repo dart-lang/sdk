@@ -12,6 +12,4 @@ class CSSValueListWrappingImplementation extends CSSValueWrappingImplementation 
   CSSValue item(int index) {
     return LevelDom.wrapCSSValue(_ptr.item(index));
   }
-
-  String get typeName() { return "CSSValueList"; }
 }

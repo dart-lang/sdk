@@ -11,6 +11,4 @@ class LocalMediaStreamWrappingImplementation extends MediaStreamWrappingImplemen
     _ptr.stop();
     return;
   }
-
-  String get typeName() { return "LocalMediaStream"; }
 }

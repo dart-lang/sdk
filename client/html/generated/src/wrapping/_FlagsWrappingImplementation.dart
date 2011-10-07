@@ -14,6 +14,4 @@ class FlagsWrappingImplementation extends DOMWrapperBase implements Flags {
   bool get exclusive() { return _ptr.exclusive; }
 
   void set exclusive(bool value) { _ptr.exclusive = value; }
-
-  String get typeName() { return "Flags"; }
 }

@@ -30,6 +30,4 @@ class WebGLContextAttributesWrappingImplementation extends DOMWrapperBase implem
   bool get stencil() { return _ptr.stencil; }
 
   void set stencil(bool value) { _ptr.stencil = value; }
-
-  String get typeName() { return "WebGLContextAttributes"; }
 }

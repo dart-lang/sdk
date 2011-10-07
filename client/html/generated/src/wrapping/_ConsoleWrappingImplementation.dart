@@ -86,6 +86,4 @@ class ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
     _ptr.warn(LevelDom.unwrapMaybePrimitive(arg));
     return;
   }
-
-  String get typeName() { return "Console"; }
 }

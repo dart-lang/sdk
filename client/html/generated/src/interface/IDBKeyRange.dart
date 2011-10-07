@@ -14,11 +14,11 @@ interface IDBKeyRange {
 
   bool get upperOpen();
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, bool lowerOpen, bool upperOpen);
+  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
 
-  IDBKeyRange lowerBound(IDBKey bound, bool open);
+  IDBKeyRange lowerBound(IDBKey bound, [bool open]);
 
   IDBKeyRange only(IDBKey value);
 
-  IDBKeyRange upperBound(IDBKey bound, bool open);
+  IDBKeyRange upperBound(IDBKey bound, [bool open]);
 }

@@ -57,10 +57,13 @@ class FileReaderWrappingImplementation extends DOMWrapperBase implements FileRea
     return;
   }
 
-  void readAsText(Blob blob, String encoding) {
-    _ptr.readAsText(LevelDom.unwrap(blob), encoding);
-    return;
+  void readAsText(Blob blob, [String encoding = null]) {
+    if (encoding === null) {
+      _ptr.readAsText(LevelDom.unwrap(blob));
+      return;
+    } else {
+      _ptr.readAsText(LevelDom.unwrap(blob), encoding);
+      return;
+    }
   }
-
-  String get typeName() { return "FileReader"; }
 }

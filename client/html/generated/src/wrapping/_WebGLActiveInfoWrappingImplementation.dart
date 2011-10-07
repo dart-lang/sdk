@@ -12,6 +12,4 @@ class WebGLActiveInfoWrappingImplementation extends DOMWrapperBase implements We
   int get size() { return _ptr.size; }
 
   int get type() { return _ptr.type; }
-
-  String get typeName() { return "WebGLActiveInfo"; }
 }

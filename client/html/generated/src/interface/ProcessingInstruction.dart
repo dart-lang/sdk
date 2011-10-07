@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface ProcessingInstruction extends Node /*, common.LinkStyle */ {
+interface ProcessingInstruction extends Node {
 
   String get data();
 

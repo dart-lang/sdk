@@ -11,6 +11,4 @@ class MediaQueryListListenerWrappingImplementation extends DOMWrapperBase implem
     _ptr.queryChanged(LevelDom.unwrap(list));
     return;
   }
-
-  String get typeName() { return "MediaQueryListListener"; }
 }

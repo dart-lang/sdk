@@ -10,6 +10,4 @@ class FileSystemCallbackWrappingImplementation extends DOMWrapperBase implements
   bool handleEvent(DOMFileSystem fileSystem) {
     return _ptr.handleEvent(LevelDom.unwrap(fileSystem));
   }
-
-  String get typeName() { return "FileSystemCallback"; }
 }

@@ -12,6 +12,4 @@ class MediaStreamListWrappingImplementation extends DOMWrapperBase implements Me
   MediaStream item(int index) {
     return LevelDom.wrapMediaStream(_ptr.item(index));
   }
-
-  String get typeName() { return "MediaStreamList"; }
 }

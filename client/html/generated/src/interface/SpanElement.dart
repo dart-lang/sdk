@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class BootstrapHacks {
-  static Window getWindow() {
-    return dom_window;
-  }
+// WARNING: Do not edit - generated code.
+
+interface SpanElement extends Element {
 }

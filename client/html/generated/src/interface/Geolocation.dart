@@ -8,7 +8,7 @@ interface Geolocation {
 
   void clearWatch(int watchId);
 
-  void getCurrentPosition(PositionCallback successCallback, PositionErrorCallback errorCallback);
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
 
-  int watchPosition(PositionCallback successCallback, PositionErrorCallback errorCallback);
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
 }

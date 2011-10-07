@@ -8,6 +8,4 @@ class CSSTransformValueWrappingImplementation extends CSSValueListWrappingImplem
   CSSTransformValueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get operationType() { return _ptr.operationType; }
-
-  String get typeName() { return "CSSTransformValue"; }
 }

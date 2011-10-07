@@ -6,6 +6,4 @@
 
 class WebGLVertexArrayObjectOESWrappingImplementation extends DOMWrapperBase implements WebGLVertexArrayObjectOES {
   WebGLVertexArrayObjectOESWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLVertexArrayObjectOES"; }
 }

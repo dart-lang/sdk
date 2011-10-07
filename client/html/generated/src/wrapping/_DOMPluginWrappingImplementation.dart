@@ -22,6 +22,4 @@ class DOMPluginWrappingImplementation extends DOMWrapperBase implements DOMPlugi
   DOMMimeType namedItem(String name) {
     return LevelDom.wrapDOMMimeType(_ptr.namedItem(name));
   }
-
-  String get typeName() { return "DOMPlugin"; }
 }

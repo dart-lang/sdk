@@ -17,6 +17,4 @@ class CloseEventWrappingImplementation extends EventWrappingImplementation imple
     _ptr.initCloseEvent(typeArg, canBubbleArg, cancelableArg, wasCleanArg, codeArg, reasonArg);
     return;
   }
-
-  String get typeName() { return "CloseEvent"; }
 }

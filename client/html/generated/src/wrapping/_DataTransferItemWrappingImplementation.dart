@@ -19,6 +19,4 @@ class DataTransferItemWrappingImplementation extends DOMWrapperBase implements D
     _ptr.getAsString(LevelDom.unwrap(callback));
     return;
   }
-
-  String get typeName() { return "DataTransferItem"; }
 }

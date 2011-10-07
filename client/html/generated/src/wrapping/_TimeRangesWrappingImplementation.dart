@@ -16,6 +16,4 @@ class TimeRangesWrappingImplementation extends DOMWrapperBase implements TimeRan
   num start(int index) {
     return _ptr.start(index);
   }
-
-  String get typeName() { return "TimeRanges"; }
 }

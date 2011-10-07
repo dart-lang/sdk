@@ -20,6 +20,4 @@ class ProgressElementWrappingImplementation extends ElementWrappingImplementatio
   num get value() { return _ptr.value; }
 
   void set value(num value) { _ptr.value = value; }
-
-  String get typeName() { return "ProgressElement"; }
 }

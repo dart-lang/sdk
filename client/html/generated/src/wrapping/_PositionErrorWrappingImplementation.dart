@@ -10,6 +10,4 @@ class PositionErrorWrappingImplementation extends DOMWrapperBase implements Posi
   int get code() { return _ptr.code; }
 
   String get message() { return _ptr.message; }
-
-  String get typeName() { return "PositionError"; }
 }

@@ -11,3 +11,4 @@ class DOMWrapperBase {
 	_ptr.dartObjectLocalStorage = this;
   }
 }
+

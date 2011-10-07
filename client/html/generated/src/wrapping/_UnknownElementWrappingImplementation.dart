@@ -6,6 +6,4 @@
 
 class UnknownElementWrappingImplementation extends ElementWrappingImplementation implements UnknownElement {
   UnknownElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "UnknownElement"; }
 }

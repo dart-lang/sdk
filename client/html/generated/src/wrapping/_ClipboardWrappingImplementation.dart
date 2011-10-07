@@ -19,9 +19,14 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
 
   DataTransferItems get items() { return LevelDom.wrapDataTransferItems(_ptr.items); }
 
-  void clearData(String type) {
-    _ptr.clearData(type);
-    return;
+  void clearData([String type = null]) {
+    if (type === null) {
+      _ptr.clearData();
+      return;
+    } else {
+      _ptr.clearData(type);
+      return;
+    }
   }
 
   void getData(String type) {
@@ -37,6 +42,4 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
     _ptr.setDragImage(LevelDom.unwrap(image), x, y);
     return;
   }
-
-  String get typeName() { return "Clipboard"; }
 }

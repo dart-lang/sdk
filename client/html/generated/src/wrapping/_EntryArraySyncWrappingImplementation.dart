@@ -12,6 +12,4 @@ class EntryArraySyncWrappingImplementation extends DOMWrapperBase implements Ent
   EntrySync item(int index) {
     return LevelDom.wrapEntrySync(_ptr.item(index));
   }
-
-  String get typeName() { return "EntryArraySync"; }
 }

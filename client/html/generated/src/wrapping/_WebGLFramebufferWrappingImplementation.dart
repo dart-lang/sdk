@@ -6,6 +6,4 @@
 
 class WebGLFramebufferWrappingImplementation extends DOMWrapperBase implements WebGLFramebuffer {
   WebGLFramebufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLFramebuffer"; }
 }

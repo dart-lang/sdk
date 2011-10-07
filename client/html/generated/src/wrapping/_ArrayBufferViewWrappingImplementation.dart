@@ -12,6 +12,4 @@ class ArrayBufferViewWrappingImplementation extends DOMWrapperBase implements Ar
   int get byteLength() { return _ptr.byteLength; }
 
   int get byteOffset() { return _ptr.byteOffset; }
-
-  String get typeName() { return "ArrayBufferView"; }
 }

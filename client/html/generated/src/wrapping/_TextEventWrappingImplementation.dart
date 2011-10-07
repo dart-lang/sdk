@@ -13,6 +13,4 @@ class TextEventWrappingImplementation extends UIEventWrappingImplementation impl
     _ptr.initTextEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
     return;
   }
-
-  String get typeName() { return "TextEvent"; }
 }

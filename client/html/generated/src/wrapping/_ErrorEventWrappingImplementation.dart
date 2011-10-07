@@ -17,6 +17,4 @@ class ErrorEventWrappingImplementation extends EventWrappingImplementation imple
     _ptr.initErrorEvent(typeArg, canBubbleArg, cancelableArg, messageArg, filenameArg, linenoArg);
     return;
   }
-
-  String get typeName() { return "ErrorEvent"; }
 }

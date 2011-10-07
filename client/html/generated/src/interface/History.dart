@@ -14,7 +14,7 @@ interface History {
 
   void go(int distance);
 
-  void pushState(Object data, String title, String url);
+  void pushState(Object data, String title, [String url]);
 
-  void replaceState(Object data, String title, String url);
+  void replaceState(Object data, String title, [String url]);
 }

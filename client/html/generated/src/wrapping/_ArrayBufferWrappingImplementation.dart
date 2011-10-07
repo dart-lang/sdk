@@ -8,6 +8,4 @@ class ArrayBufferWrappingImplementation extends DOMWrapperBase implements ArrayB
   ArrayBufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get byteLength() { return _ptr.byteLength; }
-
-  String get typeName() { return "ArrayBuffer"; }
 }

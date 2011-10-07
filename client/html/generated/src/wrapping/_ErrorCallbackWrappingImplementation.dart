@@ -10,6 +10,4 @@ class ErrorCallbackWrappingImplementation extends DOMWrapperBase implements Erro
   bool handleEvent(FileError error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "ErrorCallback"; }
 }

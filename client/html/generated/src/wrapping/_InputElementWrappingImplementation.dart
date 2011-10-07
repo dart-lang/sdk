@@ -206,9 +206,14 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
     return;
   }
 
-  void setSelectionRange([int start = null, int end = null, String direction = null]) {
-    _ptr.setSelectionRange(start, end, direction);
-    return;
+  void setSelectionRange(int start, int end, [String direction = null]) {
+    if (direction === null) {
+      _ptr.setSelectionRange(start, end);
+      return;
+    } else {
+      _ptr.setSelectionRange(start, end, direction);
+      return;
+    }
   }
 
   void setValueForUser(String value) {
@@ -217,14 +222,22 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
   }
 
   void stepDown([int n = null]) {
-    _ptr.stepDown(n);
-    return;
+    if (n === null) {
+      _ptr.stepDown();
+      return;
+    } else {
+      _ptr.stepDown(n);
+      return;
+    }
   }
 
   void stepUp([int n = null]) {
-    _ptr.stepUp(n);
-    return;
+    if (n === null) {
+      _ptr.stepUp();
+      return;
+    } else {
+      _ptr.stepUp(n);
+      return;
+    }
   }
-
-  String get typeName() { return "InputElement"; }
 }

@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader {
+interface FileReader factory _FileReaderFactoryProvider {
+
+  FileReader();
 
   static final int DONE = 2;
 
@@ -50,5 +52,5 @@ interface FileReader {
 
   void readAsDataURL(Blob blob);
 
-  void readAsText(Blob blob, String encoding);
+  void readAsText(Blob blob, [String encoding]);
 }

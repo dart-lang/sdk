@@ -23,6 +23,4 @@ class DirectoryEntrySyncWrappingImplementation extends EntrySyncWrappingImplemen
     _ptr.removeRecursively();
     return;
   }
-
-  String get typeName() { return "DirectoryEntrySync"; }
 }

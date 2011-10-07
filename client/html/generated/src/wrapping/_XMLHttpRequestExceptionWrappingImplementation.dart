@@ -12,6 +12,4 @@ class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase imple
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "XMLHttpRequestException"; }
 }

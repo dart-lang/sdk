@@ -11,6 +11,4 @@ class DOMFormDataWrappingImplementation extends DOMWrapperBase implements DOMFor
     _ptr.append(name, value);
     return;
   }
-
-  String get typeName() { return "DOMFormData"; }
 }

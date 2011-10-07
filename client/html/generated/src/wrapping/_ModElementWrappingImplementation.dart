@@ -14,6 +14,4 @@ class ModElementWrappingImplementation extends ElementWrappingImplementation imp
   String get dateTime() { return _ptr.dateTime; }
 
   void set dateTime(String value) { _ptr.dateTime = value; }
-
-  String get typeName() { return "ModElement"; }
 }

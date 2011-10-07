@@ -21,6 +21,4 @@ class DOMPluginArrayWrappingImplementation extends DOMWrapperBase implements DOM
     _ptr.refresh(reload);
     return;
   }
-
-  String get typeName() { return "DOMPluginArray"; }
 }

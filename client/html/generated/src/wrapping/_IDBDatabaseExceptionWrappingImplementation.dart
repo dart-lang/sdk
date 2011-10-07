@@ -12,6 +12,4 @@ class IDBDatabaseExceptionWrappingImplementation extends DOMWrapperBase implemen
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "IDBDatabaseException"; }
 }

@@ -7,7 +7,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
 
   factory DocumentFragmentWrappingImplementation() {
     return new DocumentFragmentWrappingImplementation._wrap(
-	    _rawDocument.createDocumentFragment());
+	    dom.document.createDocumentFragment());
   }
 
   Element query(String selectors) {

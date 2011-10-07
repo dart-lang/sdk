@@ -96,6 +96,4 @@ class DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMSe
     _ptr.setPosition(LevelDom.unwrap(node), offset);
     return;
   }
-
-  String get typeName() { return "DOMSelection"; }
 }

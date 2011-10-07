@@ -10,6 +10,4 @@ class DOMParserWrappingImplementation extends DOMWrapperBase implements DOMParse
   Document parseFromString(String str, String contentType) {
     return LevelDom.wrapDocument(_ptr.parseFromString(str, contentType));
   }
-
-  String get typeName() { return "DOMParser"; }
 }

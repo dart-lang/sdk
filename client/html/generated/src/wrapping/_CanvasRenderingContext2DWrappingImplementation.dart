@@ -100,8 +100,14 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
-    if (imagedata_OR_sw is num) {
-      return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw), sh));
+    if (imagedata_OR_sw is ImageData) {
+      if (sh === null) {
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw)));
+      }
+    } else {
+      if (imagedata_OR_sw is num) {
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw), sh));
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -111,8 +117,12 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   CanvasPattern createPattern(var canvas_OR_image, String repetitionType) {
-    if (canvas_OR_image is ImageElement) {
+    if (canvas_OR_image is CanvasElement) {
       return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+    } else {
+      if (canvas_OR_image is ImageElement) {
+        return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -122,16 +132,191 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
-    if (canvas_OR_image is CanvasElement) {
-      _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
+    if (canvas_OR_image is ImageElement) {
+      if (sw_OR_width === null) {
+        if (height_OR_sh === null) {
+          if (dx === null) {
+            if (dy === null) {
+              if (dw === null) {
+                if (dh === null) {
+                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                  return;
+                }
+              }
+            }
+          }
+        }
+      } else {
+        if (dx === null) {
+          if (dy === null) {
+            if (dw === null) {
+              if (dh === null) {
+                _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                return;
+              }
+            }
+          }
+        } else {
+          _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+          return;
+        }
+      }
+    } else {
+      if (canvas_OR_image is CanvasElement) {
+        if (sw_OR_width === null) {
+          if (height_OR_sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (dx === null) {
+            if (dy === null) {
+              if (dw === null) {
+                if (dh === null) {
+                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                  return;
+                }
+              }
+            }
+          } else {
+            _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+            return;
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void drawImageFromRect(ImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
-    _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
-    return;
+    if (sx === null) {
+      if (sy === null) {
+        if (sw === null) {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image));
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      if (sy === null) {
+        if (sw === null) {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else {
+        if (sw === null) {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh);
+                      return;
+                    }
+                  }
+                }
+              }
+            } else {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx);
+                      return;
+                    }
+                  }
+                }
+              } else {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy);
+                      return;
+                    }
+                  }
+                } else {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw);
+                      return;
+                    }
+                  } else {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw, dh);
+                      return;
+                    } else {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   void fill() {
@@ -145,8 +330,13 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void fillText(String text, num x, num y, [num maxWidth = null]) {
-    _ptr.fillText(text, x, y, maxWidth);
-    return;
+    if (maxWidth === null) {
+      _ptr.fillText(text, x, y);
+      return;
+    } else {
+      _ptr.fillText(text, x, y, maxWidth);
+      return;
+    }
   }
 
   ImageData getImageData(num sx, num sy, num sw, num sh) {
@@ -172,8 +362,20 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
-    _ptr.putImageData(LevelDom.unwrap(imagedata), dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-    return;
+    if (dirtyX === null) {
+      if (dirtyY === null) {
+        if (dirtyWidth === null) {
+          if (dirtyHeight === null) {
+            _ptr.putImageData(LevelDom.unwrap(imagedata), dx, dy);
+            return;
+          }
+        }
+      }
+    } else {
+      _ptr.putImageData(LevelDom.unwrap(imagedata), dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) {
@@ -217,17 +419,74 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is num) {
-      _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
+    if (c_OR_color_OR_grayLevel_OR_r is String) {
+      if (alpha_OR_g_OR_m === null) {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              return;
+            }
+          }
+        }
+      } else {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              return;
+            }
+          }
+        }
+      }
+    } else {
+      if (c_OR_color_OR_grayLevel_OR_r is num) {
+        if (alpha_OR_g_OR_m === null) {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                return;
+              }
+            }
+          }
+        } else {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                return;
+              }
+            }
+          } else {
+            if (a === null) {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              return;
+            } else {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              return;
+            }
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void setFillStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is CanvasPattern) {
+    if (color_OR_gradient_OR_pattern is String) {
       _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
       return;
+    } else {
+      if (color_OR_gradient_OR_pattern is CanvasGradient) {
+        _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+        return;
+      } else {
+        if (color_OR_gradient_OR_pattern is CanvasPattern) {
+          _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+          return;
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -253,25 +512,142 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is num) {
-      _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
+    if (c_OR_color_OR_grayLevel_OR_r === null) {
+      if (alpha_OR_g_OR_m === null) {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setShadow(width, height, blur);
+              return;
+            }
+          }
+        }
+      }
+    } else {
+      if (c_OR_color_OR_grayLevel_OR_r is String) {
+        if (alpha_OR_g_OR_m === null) {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                return;
+              }
+            }
+          }
+        } else {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                return;
+              }
+            }
+          }
+        }
+      } else {
+        if (c_OR_color_OR_grayLevel_OR_r is num) {
+          if (alpha_OR_g_OR_m === null) {
+            if (b_OR_y === null) {
+              if (a_OR_k === null) {
+                if (a === null) {
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                  return;
+                }
+              }
+            }
+          } else {
+            if (b_OR_y === null) {
+              if (a_OR_k === null) {
+                if (a === null) {
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                  return;
+                }
+              }
+            } else {
+              if (a === null) {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+                return;
+              } else {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+                return;
+              }
+            }
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is num) {
-      _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
+    if (c_OR_color_OR_grayLevel_OR_r is String) {
+      if (alpha_OR_g_OR_m === null) {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              return;
+            }
+          }
+        }
+      } else {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              return;
+            }
+          }
+        }
+      }
+    } else {
+      if (c_OR_color_OR_grayLevel_OR_r is num) {
+        if (alpha_OR_g_OR_m === null) {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                return;
+              }
+            }
+          }
+        } else {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                return;
+              }
+            }
+          } else {
+            if (a === null) {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              return;
+            } else {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              return;
+            }
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void setStrokeStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is CanvasPattern) {
+    if (color_OR_gradient_OR_pattern is String) {
       _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
       return;
+    } else {
+      if (color_OR_gradient_OR_pattern is CanvasGradient) {
+        _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+        return;
+      } else {
+        if (color_OR_gradient_OR_pattern is CanvasPattern) {
+          _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+          return;
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -287,13 +663,23 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) {
-    _ptr.strokeRect(x, y, width, height, lineWidth);
-    return;
+    if (lineWidth === null) {
+      _ptr.strokeRect(x, y, width, height);
+      return;
+    } else {
+      _ptr.strokeRect(x, y, width, height, lineWidth);
+      return;
+    }
   }
 
   void strokeText(String text, num x, num y, [num maxWidth = null]) {
-    _ptr.strokeText(text, x, y, maxWidth);
-    return;
+    if (maxWidth === null) {
+      _ptr.strokeText(text, x, y);
+      return;
+    } else {
+      _ptr.strokeText(text, x, y, maxWidth);
+      return;
+    }
   }
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) {
@@ -305,6 +691,4 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     _ptr.translate(tx, ty);
     return;
   }
-
-  String get typeName() { return "CanvasRenderingContext2D"; }
 }

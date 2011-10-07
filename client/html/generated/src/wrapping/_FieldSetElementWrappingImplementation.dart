@@ -23,6 +23,4 @@ class FieldSetElementWrappingImplementation extends ElementWrappingImplementatio
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "FieldSetElement"; }
 }

@@ -22,6 +22,4 @@ class ParamElementWrappingImplementation extends ElementWrappingImplementation i
   String get valueType() { return _ptr.valueType; }
 
   void set valueType(String value) { _ptr.valueType = value; }
-
-  String get typeName() { return "ParamElement"; }
 }

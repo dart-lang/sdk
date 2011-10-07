@@ -13,6 +13,4 @@ class CompositionEventWrappingImplementation extends UIEventWrappingImplementati
     _ptr.initCompositionEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
     return;
   }
-
-  String get typeName() { return "CompositionEvent"; }
 }

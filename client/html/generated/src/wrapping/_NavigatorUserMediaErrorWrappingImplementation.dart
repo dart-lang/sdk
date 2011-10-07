@@ -8,6 +8,4 @@ class NavigatorUserMediaErrorWrappingImplementation extends DOMWrapperBase imple
   NavigatorUserMediaErrorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get code() { return _ptr.code; }
-
-  String get typeName() { return "NavigatorUserMediaError"; }
 }

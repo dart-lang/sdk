@@ -10,6 +10,4 @@ class StorageInfoUsageCallbackWrappingImplementation extends DOMWrapperBase impl
   bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes) {
     return _ptr.handleEvent(currentUsageInBytes, currentQuotaInBytes);
   }
-
-  String get typeName() { return "StorageInfoUsageCallback"; }
 }

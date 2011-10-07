@@ -14,6 +14,4 @@ class ProcessingInstructionWrappingImplementation extends NodeWrappingImplementa
   StyleSheet get sheet() { return LevelDom.wrapStyleSheet(_ptr.sheet); }
 
   String get target() { return _ptr.target; }
-
-  String get typeName() { return "ProcessingInstruction"; }
 }

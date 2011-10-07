@@ -14,6 +14,4 @@ class FileWrappingImplementation extends BlobWrappingImplementation implements F
   Date get lastModifiedDate() { return _ptr.lastModifiedDate; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "File"; }
 }

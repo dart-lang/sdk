@@ -10,6 +10,4 @@ class GeopositionWrappingImplementation extends DOMWrapperBase implements Geopos
   Coordinates get coords() { return LevelDom.wrapCoordinates(_ptr.coords); }
 
   int get timestamp() { return _ptr.timestamp; }
-
-  String get typeName() { return "Geoposition"; }
 }

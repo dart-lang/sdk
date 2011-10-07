@@ -24,6 +24,4 @@ class ValidityStateWrappingImplementation extends DOMWrapperBase implements Vali
   bool get valid() { return _ptr.valid; }
 
   bool get valueMissing() { return _ptr.valueMissing; }
-
-  String get typeName() { return "ValidityState"; }
 }

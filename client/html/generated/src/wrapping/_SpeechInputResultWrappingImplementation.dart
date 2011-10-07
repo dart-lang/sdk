@@ -10,6 +10,4 @@ class SpeechInputResultWrappingImplementation extends DOMWrapperBase implements 
   num get confidence() { return _ptr.confidence; }
 
   String get utterance() { return _ptr.utterance; }
-
-  String get typeName() { return "SpeechInputResult"; }
 }

@@ -41,6 +41,4 @@ class EntrySyncWrappingImplementation extends DOMWrapperBase implements EntrySyn
   String toURL() {
     return _ptr.toURL();
   }
-
-  String get typeName() { return "EntrySync"; }
 }

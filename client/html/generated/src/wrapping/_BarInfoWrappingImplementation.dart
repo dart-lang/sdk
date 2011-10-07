@@ -8,6 +8,4 @@ class BarInfoWrappingImplementation extends DOMWrapperBase implements BarInfo {
   BarInfoWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   bool get visible() { return _ptr.visible; }
-
-  String get typeName() { return "BarInfo"; }
 }

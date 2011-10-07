@@ -30,6 +30,4 @@ class EmbedElementWrappingImplementation extends ElementWrappingImplementation i
   int get width() { return _ptr.width; }
 
   void set width(int value) { _ptr.width = value; }
-
-  String get typeName() { return "EmbedElement"; }
 }

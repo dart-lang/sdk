@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface StyleElement extends Element /*, common.LinkStyle */ {
+interface StyleElement extends Element {
 
   bool get disabled();
 

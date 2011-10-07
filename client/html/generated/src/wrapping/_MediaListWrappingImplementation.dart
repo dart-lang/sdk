@@ -18,43 +18,27 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   }
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable Array.");
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
   void add(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void sort(int compare(String a, String b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable Array.");
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
     throw new UnsupportedOperationException("This object is immutable.");
-  }
-
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
-  }
-
-  void removeRange(int start, int length) {
-    throw const NotImplementedException();
-  }
-
-  void insertRange(int start, int length, [initialValue = null]) {
-    throw const NotImplementedException();
-  }
-
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
   }
 
   int indexOf(String element, int startIndex) {
@@ -66,11 +50,11 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   }
 
   int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable Array.");
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
   }
 
   String removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable Array.");
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   String last() {
@@ -91,6 +75,22 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
 
   bool some(bool f(String element)) {
     return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int length) {
+    throw new NotImplementedException();
   }
 
   bool isEmpty() {
@@ -114,6 +114,4 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   String item(int index) {
     return _ptr.item(index);
   }
-
-  String get typeName() { return "MediaList"; }
 }

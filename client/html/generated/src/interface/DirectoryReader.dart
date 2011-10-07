@@ -6,5 +6,5 @@
 
 interface DirectoryReader {
 
-  void readEntries(EntriesCallback successCallback, ErrorCallback errorCallback);
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]);
 }

@@ -24,6 +24,4 @@ class OESVertexArrayObjectWrappingImplementation extends DOMWrapperBase implemen
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
     return _ptr.isVertexArrayOES(LevelDom.unwrap(arrayObject));
   }
-
-  String get typeName() { return "OESVertexArrayObject"; }
 }

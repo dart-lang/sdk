@@ -41,6 +41,4 @@ class WheelEventWrappingImplementation extends UIEventWrappingImplementation imp
     _ptr.initWheelEvent(wheelDeltaX, wheelDeltaY, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return;
   }
-
-  String get typeName() { return "WheelEvent"; }
 }

@@ -14,6 +14,4 @@ class RectWrappingImplementation extends DOMWrapperBase implements Rect {
   CSSPrimitiveValue get right() { return LevelDom.wrapCSSPrimitiveValue(_ptr.right); }
 
   CSSPrimitiveValue get top() { return LevelDom.wrapCSSPrimitiveValue(_ptr.top); }
-
-  String get typeName() { return "Rect"; }
 }

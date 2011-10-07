@@ -10,6 +10,4 @@ class HeadElementWrappingImplementation extends ElementWrappingImplementation im
   String get profile() { return _ptr.profile; }
 
   void set profile(String value) { _ptr.profile = value; }
-
-  String get typeName() { return "HeadElement"; }
 }

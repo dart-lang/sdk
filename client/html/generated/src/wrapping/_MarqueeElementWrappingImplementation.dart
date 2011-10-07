@@ -60,6 +60,4 @@ class MarqueeElementWrappingImplementation extends ElementWrappingImplementation
     _ptr.stop();
     return;
   }
-
-  String get typeName() { return "MarqueeElement"; }
 }

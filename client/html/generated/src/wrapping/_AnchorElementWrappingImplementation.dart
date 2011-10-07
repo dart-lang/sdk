@@ -94,6 +94,4 @@ class AnchorElementWrappingImplementation extends ElementWrappingImplementation 
   String getParameter(String name) {
     return _ptr.getParameter(name);
   }
-
-  String get typeName() { return "AnchorElement"; }
 }

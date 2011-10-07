@@ -8,6 +8,4 @@ class TextMetricsWrappingImplementation extends DOMWrapperBase implements TextMe
   TextMetricsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   num get width() { return _ptr.width; }
-
-  String get typeName() { return "TextMetrics"; }
 }

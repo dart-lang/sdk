@@ -12,6 +12,4 @@ class AnimationListWrappingImplementation extends DOMWrapperBase implements Anim
   Animation item(int index) {
     return LevelDom.wrapAnimation(_ptr.item(index));
   }
-
-  String get typeName() { return "AnimationList"; }
 }

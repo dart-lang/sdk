@@ -6,6 +6,4 @@
 
 class CDATASectionWrappingImplementation extends TextWrappingImplementation implements CDATASection {
   CDATASectionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "CDATASection"; }
 }

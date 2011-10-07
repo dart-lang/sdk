@@ -6,6 +6,4 @@
 
 class WebGLRenderbufferWrappingImplementation extends DOMWrapperBase implements WebGLRenderbuffer {
   WebGLRenderbufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLRenderbuffer"; }
 }

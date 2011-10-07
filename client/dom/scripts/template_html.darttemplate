@@ -7,25 +7,31 @@
 
 #library('html');
 
-#import('bootstrap_hacks.dart');
+#import('dart:dom', prefix:'dom');
 
 $!GENERATED_DART_FILES
 
 #source('generated/src/wrapping/_HtmlWrappingImplementation.dart');
 
+#source('src/_Collections.dart');
+#source('src/_FactoryProviders.dart');
+#source('src/_ListIterators.dart');
+#source('src/_Lists.dart');
 #source('src/AbstractWorker.dart');
 #source('src/AbstractWorkerWrappingImplementation.dart');
-#source('src/DOMApplicationCache.dart');
-#source('src/CSSStyleDeclaration.dart');
-#source('src/CSSStyleDeclarationWrappingImplementation.dart');
-#source('src/DOMApplicationCacheWrappingImplementation.dart');
-#source('src/DOMWrapperBase.dart');
-#source('src/Document.dart');
 #source('src/BodyElement.dart');
 #source('src/BodyElementWrappingImplementation.dart');
+#source('src/CssClassSet.dart');
+#source('src/CSSStyleDeclaration.dart');
+#source('src/CSSStyleDeclarationWrappingImplementation.dart');
+#source('src/DataAttributeMap.dart');
+#source('src/Document.dart');
 #source('src/DocumentFragment.dart');
 #source('src/DocumentFragmentWrappingImplementation.dart');
 #source('src/DocumentWrappingImplementation.dart');
+#source('src/DOMApplicationCache.dart');
+#source('src/DOMApplicationCacheWrappingImplementation.dart');
+#source('src/DOMWrapperBase.dart');
 #source('src/Element.dart');
 #source('src/ElementWrappingImplementation.dart');
 #source('src/EventListener.dart');
@@ -52,9 +58,6 @@ $!GENERATED_DART_FILES
 #source('src/Window.dart');
 #source('src/WindowWrappingImplementation.dart');
 #source('src/Worker.dart');
-#source('src/_Arrays.dart');
-#source('src/_ArrayIterators.dart');
-#source('src/_Collections.dart');
 #source('src/WorkerWrappingImplementation.dart');
 #source('src/XMLHttpRequest.dart');
 #source('src/XMLHttpRequestUpload.dart');

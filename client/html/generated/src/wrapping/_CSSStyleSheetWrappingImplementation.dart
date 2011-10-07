@@ -13,8 +13,12 @@ class CSSStyleSheetWrappingImplementation extends StyleSheetWrappingImplementati
 
   CSSRuleList get rules() { return LevelDom.wrapCSSRuleList(_ptr.rules); }
 
-  int addRule(String selector, String style, int index) {
-    return _ptr.addRule(selector, style, index);
+  int addRule(String selector, String style, [int index = null]) {
+    if (index === null) {
+      return _ptr.addRule(selector, style);
+    } else {
+      return _ptr.addRule(selector, style, index);
+    }
   }
 
   void deleteRule(int index) {
@@ -30,6 +34,4 @@ class CSSStyleSheetWrappingImplementation extends StyleSheetWrappingImplementati
     _ptr.removeRule(index);
     return;
   }
-
-  String get typeName() { return "CSSStyleSheet"; }
 }

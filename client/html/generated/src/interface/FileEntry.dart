@@ -6,7 +6,7 @@
 
 interface FileEntry extends Entry {
 
-  void createWriter(FileWriterCallback successCallback, ErrorCallback errorCallback);
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]);
 
-  void file(FileCallback successCallback, ErrorCallback errorCallback);
+  void file(FileCallback successCallback, [ErrorCallback errorCallback]);
 }

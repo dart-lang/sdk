@@ -10,6 +10,4 @@ class XMLHttpRequestProgressEventWrappingImplementation extends ProgressEventWra
   int get position() { return _ptr.position; }
 
   int get totalSize() { return _ptr.totalSize; }
-
-  String get typeName() { return "XMLHttpRequestProgressEvent"; }
 }

@@ -18,6 +18,4 @@ class LabelElementWrappingImplementation extends ElementWrappingImplementation i
   String get htmlFor() { return _ptr.htmlFor; }
 
   void set htmlFor(String value) { _ptr.htmlFor = value; }
-
-  String get typeName() { return "LabelElement"; }
 }

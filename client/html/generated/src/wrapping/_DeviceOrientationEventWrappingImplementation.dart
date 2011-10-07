@@ -17,6 +17,4 @@ class DeviceOrientationEventWrappingImplementation extends EventWrappingImplemen
     _ptr.initDeviceOrientationEvent(type, bubbles, cancelable, alpha, beta, gamma);
     return;
   }
-
-  String get typeName() { return "DeviceOrientationEvent"; }
 }

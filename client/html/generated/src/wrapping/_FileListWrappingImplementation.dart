@@ -12,6 +12,4 @@ class FileListWrappingImplementation extends DOMWrapperBase implements FileList 
   File item(int index) {
     return LevelDom.wrapFile(_ptr.item(index));
   }
-
-  String get typeName() { return "FileList"; }
 }

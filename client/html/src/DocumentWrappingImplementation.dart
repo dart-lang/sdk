@@ -15,6 +15,7 @@ class DocumentEventsImplementation extends ElementEventsImplementation
 }
 
 class DocumentWrappingImplementation extends ElementWrappingImplementation implements Document {
+
   final _documentPtr;
 
   DocumentWrappingImplementation._wrap(this._documentPtr, ptr) : super._wrap(ptr) {

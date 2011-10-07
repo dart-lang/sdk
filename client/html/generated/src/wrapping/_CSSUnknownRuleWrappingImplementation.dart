@@ -6,6 +6,4 @@
 
 class CSSUnknownRuleWrappingImplementation extends CSSRuleWrappingImplementation implements CSSUnknownRule {
   CSSUnknownRuleWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "CSSUnknownRule"; }
 }

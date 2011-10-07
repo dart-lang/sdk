@@ -21,6 +21,4 @@ class StorageEventWrappingImplementation extends EventWrappingImplementation imp
     _ptr.initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, LevelDom.unwrap(storageAreaArg));
     return;
   }
-
-  String get typeName() { return "StorageEvent"; }
 }

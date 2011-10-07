@@ -16,6 +16,4 @@ class LoseContextWrappingImplementation extends DOMWrapperBase implements LoseCo
     _ptr.restoreContext();
     return;
   }
-
-  String get typeName() { return "LoseContext"; }
 }

@@ -10,6 +10,4 @@ class DivElementWrappingImplementation extends ElementWrappingImplementation imp
   String get align() { return _ptr.align; }
 
   void set align(String value) { _ptr.align = value; }
-
-  String get typeName() { return "DivElement"; }
 }

@@ -16,6 +16,4 @@ class DOMMimeTypeArrayWrappingImplementation extends DOMWrapperBase implements D
   DOMMimeType namedItem(String name) {
     return LevelDom.wrapDOMMimeType(_ptr.namedItem(name));
   }
-
-  String get typeName() { return "DOMMimeTypeArray"; }
 }

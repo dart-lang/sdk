@@ -80,10 +80,6 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BeforeLoadEventWrappingImplementation._wrap(raw);
   }
 
-  static BeforeProcessEvent wrapBeforeProcessEvent(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BeforeProcessEventWrappingImplementation._wrap(raw);
-  }
-
   static Blob wrapBlob(raw) {
     if (raw === null) { return null; }
     if (raw.dartObjectLocalStorage !== null) {
@@ -101,10 +97,6 @@ class LevelDom {
 
   static BlobBuilder wrapBlobBuilder(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BlobBuilderWrappingImplementation._wrap(raw);
-  }
-
-  static BlockquoteElement wrapBlockquoteElement(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BlockquoteElementWrappingImplementation._wrap(raw);
   }
 
   static BodyElement wrapBodyElement(raw) {
@@ -489,8 +481,6 @@ class LevelDom {
       case "HTMLBaseElement":
         return new BaseElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLBaseFontElement*/
-      case "HTMLBlockquoteElement":
-        return new BlockquoteElementWrappingImplementation._wrap(raw);
       case "HTMLBodyElement":
         return new BodyElementWrappingImplementation._wrap(raw);
       case "HTMLButtonElement":
@@ -583,6 +573,8 @@ class LevelDom {
         return new SelectElementWrappingImplementation._wrap(raw);
       case "HTMLSourceElement":
         return new SourceElementWrappingImplementation._wrap(raw);
+      case "HTMLSpanElement":
+        return new SpanElementWrappingImplementation._wrap(raw);
       case "HTMLStyleElement":
         return new StyleElementWrappingImplementation._wrap(raw);
       case "HTMLTableCaptionElement":
@@ -698,8 +690,6 @@ class LevelDom {
         return new AnimationEventWrappingImplementation._wrap(raw);
       case "BeforeLoadEvent":
         return new BeforeLoadEventWrappingImplementation._wrap(raw);
-      case "BeforeProcessEvent":
-        return new BeforeProcessEventWrappingImplementation._wrap(raw);
       case "CloseEvent":
         return new CloseEventWrappingImplementation._wrap(raw);
       case "CompositionEvent":
@@ -789,8 +779,6 @@ class LevelDom {
       case "HTMLBaseElement":
         return new BaseElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLBaseFontElement*/
-      case "HTMLBlockquoteElement":
-        return new BlockquoteElementWrappingImplementation._wrap(raw);
       case "HTMLBodyElement":
         return new BodyElementWrappingImplementation._wrap(raw);
       case "HTMLButtonElement":
@@ -916,6 +904,8 @@ class LevelDom {
         return new SharedWorkerWrappingImplementation._wrap(raw);
       case "HTMLSourceElement":
         return new SourceElementWrappingImplementation._wrap(raw);
+      case "HTMLSpanElement":
+        return new SpanElementWrappingImplementation._wrap(raw);
       case "HTMLStyleElement":
         return new StyleElementWrappingImplementation._wrap(raw);
       case "HTMLTableCaptionElement":
@@ -1335,6 +1325,10 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MutationEventWrappingImplementation._wrap(raw);
   }
 
+  static MutationRecord wrapMutationRecord(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MutationRecordWrappingImplementation._wrap(raw);
+  }
+
   static Navigator wrapNavigator(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new NavigatorWrappingImplementation._wrap(raw);
   }
@@ -1370,8 +1364,6 @@ class LevelDom {
       case "HTMLBaseElement":
         return new BaseElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLBaseFontElement*/
-      case "HTMLBlockquoteElement":
-        return new BlockquoteElementWrappingImplementation._wrap(raw);
       case "HTMLBodyElement":
         return new BodyElementWrappingImplementation._wrap(raw);
       case "HTMLButtonElement":
@@ -1485,6 +1477,8 @@ class LevelDom {
         return new SelectElementWrappingImplementation._wrap(raw);
       case "HTMLSourceElement":
         return new SourceElementWrappingImplementation._wrap(raw);
+      case "HTMLSpanElement":
+        return new SpanElementWrappingImplementation._wrap(raw);
       case "HTMLStyleElement":
         return new StyleElementWrappingImplementation._wrap(raw);
       case "HTMLTableCaptionElement":
@@ -1667,6 +1661,10 @@ class LevelDom {
 
   static SourceElement wrapSourceElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SourceElementWrappingImplementation._wrap(raw);
+  }
+
+  static SpanElement wrapSpanElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SpanElementWrappingImplementation._wrap(raw);
   }
 
   static SpeechInputEvent wrapSpeechInputEvent(raw) {

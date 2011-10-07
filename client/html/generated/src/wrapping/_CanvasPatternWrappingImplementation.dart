@@ -6,6 +6,4 @@
 
 class CanvasPatternWrappingImplementation extends DOMWrapperBase implements CanvasPattern {
   CanvasPatternWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "CanvasPattern"; }
 }

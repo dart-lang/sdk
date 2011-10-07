@@ -10,6 +10,4 @@ class BlobWrappingImplementation extends DOMWrapperBase implements Blob {
   int get size() { return _ptr.size; }
 
   String get type() { return _ptr.type; }
-
-  String get typeName() { return "Blob"; }
 }

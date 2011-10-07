@@ -25,6 +25,4 @@ class FileWriterSyncWrappingImplementation extends DOMWrapperBase implements Fil
     _ptr.write(LevelDom.unwrap(data));
     return;
   }
-
-  String get typeName() { return "FileWriterSync"; }
 }

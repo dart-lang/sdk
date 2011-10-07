@@ -12,6 +12,4 @@ class MapElementWrappingImplementation extends ElementWrappingImplementation imp
   String get name() { return _ptr.name; }
 
   void set name(String value) { _ptr.name = value; }
-
-  String get typeName() { return "MapElement"; }
 }

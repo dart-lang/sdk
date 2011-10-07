@@ -12,6 +12,4 @@ class CSSStyleRuleWrappingImplementation extends CSSRuleWrappingImplementation i
   void set selectorText(String value) { _ptr.selectorText = value; }
 
   CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
-
-  String get typeName() { return "CSSStyleRule"; }
 }

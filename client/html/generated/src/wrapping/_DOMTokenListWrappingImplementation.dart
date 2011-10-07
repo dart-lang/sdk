@@ -30,6 +30,4 @@ class DOMTokenListWrappingImplementation extends DOMWrapperBase implements DOMTo
   bool toggle(String token) {
     return _ptr.toggle(token);
   }
-
-  String get typeName() { return "DOMTokenList"; }
 }

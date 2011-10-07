@@ -12,6 +12,4 @@ class CSSImportRuleWrappingImplementation extends CSSRuleWrappingImplementation 
   MediaList get media() { return LevelDom.wrapMediaList(_ptr.media); }
 
   CSSStyleSheet get styleSheet() { return LevelDom.wrapCSSStyleSheet(_ptr.styleSheet); }
-
-  String get typeName() { return "CSSImportRule"; }
 }

@@ -10,6 +10,4 @@ class DetailsElementWrappingImplementation extends ElementWrappingImplementation
   bool get open() { return _ptr.open; }
 
   void set open(bool value) { _ptr.open = value; }
-
-  String get typeName() { return "DetailsElement"; }
 }

@@ -7,7 +7,7 @@
 
 #library('html');
 
-#import('bootstrap_hacks.dart');
+#import('dart:dom', prefix:'dom');
 
 #source('generated/src/interface/AnchorElement.dart');
 #source('generated/src/interface/Animation.dart');
@@ -21,10 +21,8 @@
 #source('generated/src/interface/BarInfo.dart');
 #source('generated/src/interface/BaseElement.dart');
 #source('generated/src/interface/BeforeLoadEvent.dart');
-#source('generated/src/interface/BeforeProcessEvent.dart');
 #source('generated/src/interface/Blob.dart');
 #source('generated/src/interface/BlobBuilder.dart');
-#source('generated/src/interface/BlockquoteElement.dart');
 #source('generated/src/interface/ButtonElement.dart');
 #source('generated/src/interface/CDATASection.dart');
 #source('generated/src/interface/CSSCharsetRule.dart');
@@ -181,6 +179,7 @@
 #source('generated/src/interface/ModElement.dart');
 #source('generated/src/interface/MouseEvent.dart');
 #source('generated/src/interface/MutationEvent.dart');
+#source('generated/src/interface/MutationRecord.dart');
 #source('generated/src/interface/Navigator.dart');
 #source('generated/src/interface/NavigatorUserMediaError.dart');
 #source('generated/src/interface/NavigatorUserMediaErrorCallback.dart');
@@ -218,6 +217,7 @@
 #source('generated/src/interface/ScriptElement.dart');
 #source('generated/src/interface/SelectElement.dart');
 #source('generated/src/interface/SourceElement.dart');
+#source('generated/src/interface/SpanElement.dart');
 #source('generated/src/interface/SpeechInputEvent.dart');
 #source('generated/src/interface/SpeechInputResult.dart');
 #source('generated/src/interface/SpeechInputResultList.dart');
@@ -284,10 +284,8 @@
 #source('generated/src/wrapping/_BarInfoWrappingImplementation.dart');
 #source('generated/src/wrapping/_BaseElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_BeforeLoadEventWrappingImplementation.dart');
-#source('generated/src/wrapping/_BeforeProcessEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_BlobBuilderWrappingImplementation.dart');
 #source('generated/src/wrapping/_BlobWrappingImplementation.dart');
-#source('generated/src/wrapping/_BlockquoteElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_ButtonElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_CDATASectionWrappingImplementation.dart');
 #source('generated/src/wrapping/_CSSCharsetRuleWrappingImplementation.dart');
@@ -444,6 +442,7 @@
 #source('generated/src/wrapping/_ModElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_MouseEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_MutationEventWrappingImplementation.dart');
+#source('generated/src/wrapping/_MutationRecordWrappingImplementation.dart');
 #source('generated/src/wrapping/_NavigatorUserMediaErrorCallbackWrappingImplementation.dart');
 #source('generated/src/wrapping/_NavigatorUserMediaErrorWrappingImplementation.dart');
 #source('generated/src/wrapping/_NavigatorUserMediaSuccessCallbackWrappingImplementation.dart');
@@ -481,6 +480,7 @@
 #source('generated/src/wrapping/_ScriptElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SelectElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SourceElementWrappingImplementation.dart');
+#source('generated/src/wrapping/_SpanElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputResultListWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputResultWrappingImplementation.dart');
@@ -536,6 +536,7 @@
 #source('generated/src/wrapping/_XMLHttpRequestExceptionWrappingImplementation.dart');
 #source('generated/src/wrapping/_XMLHttpRequestProgressEventWrappingImplementation.dart');
 
+
 #source('generated/src/wrapping/_HtmlWrappingImplementation.dart');
 
 #source('src/AbstractWorker.dart');
@@ -546,10 +547,10 @@
 #source('src/DOMApplicationCacheWrappingImplementation.dart');
 #source('src/DOMWrapperBase.dart');
 #source('src/Document.dart');
+#source('src/DataAttributeMap.dart');
 #source('src/BodyElement.dart');
 #source('src/BodyElementWrappingImplementation.dart');
 #source('src/CssClassSet.dart');
-#source('src/DataAttributeMap.dart');
 #source('src/DocumentFragment.dart');
 #source('src/DocumentFragmentWrappingImplementation.dart');
 #source('src/DocumentWrappingImplementation.dart');
@@ -579,11 +580,13 @@
 #source('src/Window.dart');
 #source('src/WindowWrappingImplementation.dart');
 #source('src/Worker.dart');
-#source('src/_Arrays.dart');
-#source('src/_ArrayIterators.dart');
-#source('src/_Collections.dart');
 #source('src/WorkerWrappingImplementation.dart');
 #source('src/XMLHttpRequest.dart');
 #source('src/XMLHttpRequestUpload.dart');
 #source('src/XMLHttpRequestUploadWrappingImplementation.dart');
 #source('src/XMLHttpRequestWrappingImplementation.dart');
+
+#source('src/_Collections.dart');
+#source('src/_FactoryProviders.dart');
+#source('src/_ListIterators.dart');
+#source('src/_Lists.dart');

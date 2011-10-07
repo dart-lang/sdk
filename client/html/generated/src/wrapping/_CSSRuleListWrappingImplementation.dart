@@ -12,6 +12,4 @@ class CSSRuleListWrappingImplementation extends DOMWrapperBase implements CSSRul
   CSSRule item(int index) {
     return LevelDom.wrapCSSRule(_ptr.item(index));
   }
-
-  String get typeName() { return "CSSRuleList"; }
 }

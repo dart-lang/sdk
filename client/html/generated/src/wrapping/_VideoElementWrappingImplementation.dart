@@ -50,6 +50,4 @@ class VideoElementWrappingImplementation extends MediaElementWrappingImplementat
     _ptr.webkitExitFullscreen();
     return;
   }
-
-  String get typeName() { return "VideoElement"; }
 }

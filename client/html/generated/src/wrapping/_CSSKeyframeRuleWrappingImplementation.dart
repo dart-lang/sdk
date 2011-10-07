@@ -12,6 +12,4 @@ class CSSKeyframeRuleWrappingImplementation extends CSSRuleWrappingImplementatio
   void set keyText(String value) { _ptr.keyText = value; }
 
   CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
-
-  String get typeName() { return "CSSKeyframeRule"; }
 }

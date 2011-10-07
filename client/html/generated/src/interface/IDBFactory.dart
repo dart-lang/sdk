@@ -6,5 +6,7 @@
 
 interface IDBFactory {
 
+  IDBRequest getDatabaseNames();
+
   IDBRequest open(String name);
 }

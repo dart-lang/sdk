@@ -4,11 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface BeforeProcessEvent extends Event {
+interface Point$!EXTENDS factory _PointFactoryProvider {
 
-  String get text();
-
-  void set text(String value);
-
-  void initBeforeProcessEvent(String type, bool canBubble, bool cancelable);
-}
+  Point(num x, num y);
+$!MEMBERS}

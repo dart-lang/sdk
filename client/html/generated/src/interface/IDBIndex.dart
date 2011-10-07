@@ -14,9 +14,11 @@ interface IDBIndex {
 
   bool get unique();
 
+  IDBRequest getObject(IDBKey key);
+
   IDBRequest getKey(IDBKey key);
 
-  IDBRequest openCursor(IDBKeyRange range, int direction);
+  IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest openKeyCursor(IDBKeyRange range, int direction);
+  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
 }

@@ -10,6 +10,4 @@ class TitleElementWrappingImplementation extends ElementWrappingImplementation i
   String get text() { return _ptr.text; }
 
   void set text(String value) { _ptr.text = value; }
-
-  String get typeName() { return "TitleElement"; }
 }

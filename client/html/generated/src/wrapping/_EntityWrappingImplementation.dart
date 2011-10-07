@@ -12,6 +12,4 @@ class EntityWrappingImplementation extends NodeWrappingImplementation implements
   String get publicId() { return _ptr.publicId; }
 
   String get systemId() { return _ptr.systemId; }
-
-  String get typeName() { return "Entity"; }
 }

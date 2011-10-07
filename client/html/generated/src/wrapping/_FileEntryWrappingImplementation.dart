@@ -7,15 +7,23 @@
 class FileEntryWrappingImplementation extends EntryWrappingImplementation implements FileEntry {
   FileEntryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void createWriter(FileWriterCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.createWriter(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.createWriter(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.createWriter(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
 
-  void file(FileCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.file(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.file(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.file(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
-
-  String get typeName() { return "FileEntry"; }
 }

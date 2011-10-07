@@ -6,6 +6,4 @@
 
 class CommentWrappingImplementation extends CharacterDataWrappingImplementation implements Comment {
   CommentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "Comment"; }
 }

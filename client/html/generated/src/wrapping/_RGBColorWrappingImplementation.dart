@@ -14,6 +14,4 @@ class RGBColorWrappingImplementation extends DOMWrapperBase implements RGBColor 
   CSSPrimitiveValue get green() { return LevelDom.wrapCSSPrimitiveValue(_ptr.green); }
 
   CSSPrimitiveValue get red() { return LevelDom.wrapCSSPrimitiveValue(_ptr.red); }
-
-  String get typeName() { return "RGBColor"; }
 }

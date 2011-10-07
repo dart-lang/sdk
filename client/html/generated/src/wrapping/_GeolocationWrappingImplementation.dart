@@ -12,14 +12,21 @@ class GeolocationWrappingImplementation extends DOMWrapperBase implements Geoloc
     return;
   }
 
-  void getCurrentPosition(PositionCallback successCallback, PositionErrorCallback errorCallback) {
-    _ptr.getCurrentPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.getCurrentPosition(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.getCurrentPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
 
-  int watchPosition(PositionCallback successCallback, PositionErrorCallback errorCallback) {
-    return _ptr.watchPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      return _ptr.watchPosition(LevelDom.unwrap(successCallback));
+    } else {
+      return _ptr.watchPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+    }
   }
-
-  String get typeName() { return "Geolocation"; }
 }

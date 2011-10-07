@@ -26,6 +26,4 @@ class TrackElementWrappingImplementation extends ElementWrappingImplementation i
   String get srclang() { return _ptr.srclang; }
 
   void set srclang(String value) { _ptr.srclang = value; }
-
-  String get typeName() { return "TrackElement"; }
 }

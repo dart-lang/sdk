@@ -4,7 +4,8 @@
 
 class TextWrappingImplementation extends CharacterDataWrappingImplementation implements Text {
   factory TextWrappingImplementation(String content) {
-    return new TextWrappingImplementation._wrap(_rawDocument.createTextNode(content));
+    return new TextWrappingImplementation._wrap(
+        dom.document.createTextNode(content));
   }
 
   TextWrappingImplementation._wrap(ptr) : super._wrap(ptr);

@@ -14,6 +14,4 @@ class LIElementWrappingImplementation extends ElementWrappingImplementation impl
   int get value() { return _ptr.value; }
 
   void set value(int value) { _ptr.value = value; }
-
-  String get typeName() { return "LIElement"; }
 }

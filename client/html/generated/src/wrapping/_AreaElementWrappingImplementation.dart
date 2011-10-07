@@ -52,6 +52,4 @@ class AreaElementWrappingImplementation extends ElementWrappingImplementation im
   String get target() { return _ptr.target; }
 
   void set target(String value) { _ptr.target = value; }
-
-  String get typeName() { return "AreaElement"; }
 }

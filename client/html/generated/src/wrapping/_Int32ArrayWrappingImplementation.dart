@@ -9,9 +9,11 @@ class Int32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Int32Array subarray(int start, int end) {
-    return LevelDom.wrapInt32Array(_ptr.subarray(start, end));
+  Int32Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapInt32Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt32Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Int32Array"; }
 }

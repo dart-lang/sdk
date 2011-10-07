@@ -43,6 +43,4 @@ class MouseEventWrappingImplementation extends UIEventWrappingImplementation imp
     _ptr.initMouseEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, LevelDom.unwrap(relatedTarget));
     return;
   }
-
-  String get typeName() { return "MouseEvent"; }
 }

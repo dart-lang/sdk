@@ -10,6 +10,4 @@ class EntriesCallbackWrappingImplementation extends DOMWrapperBase implements En
   bool handleEvent(EntryArray entries) {
     return _ptr.handleEvent(LevelDom.unwrap(entries));
   }
-
-  String get typeName() { return "EntriesCallback"; }
 }

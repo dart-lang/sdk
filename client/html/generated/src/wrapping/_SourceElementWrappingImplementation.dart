@@ -18,6 +18,4 @@ class SourceElementWrappingImplementation extends ElementWrappingImplementation 
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-
-  String get typeName() { return "SourceElement"; }
 }

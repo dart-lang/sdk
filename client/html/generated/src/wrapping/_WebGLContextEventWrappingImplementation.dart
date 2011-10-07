@@ -8,6 +8,4 @@ class WebGLContextEventWrappingImplementation extends EventWrappingImplementatio
   WebGLContextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   String get statusMessage() { return _ptr.statusMessage; }
-
-  String get typeName() { return "WebGLContextEvent"; }
 }

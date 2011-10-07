@@ -127,8 +127,6 @@ class Scroller implements Draggable, MomentumDelegate {
            int scrollTechnique = null, bool capture = false])
       : _element = scrollableElem,
         _frame = scrollableElem.parent,
-        _touchHandler = new TouchHandler(this, scrollableElem.parent),
-        _momentum = new Momentum(this, defaultDecelerationFactor),
         _scrollTechnique = scrollTechnique !== null
             ? scrollTechnique : ScrollerScrollTechnique.TRANSFORM_3D,
         _minPoint = new Coordinate(0, 0),
@@ -136,6 +134,8 @@ class Scroller implements Draggable, MomentumDelegate {
         _maxOffset = new Coordinate(0, 0),
         _minOffset = new Coordinate(0, 0),
         _contentOffset = new Coordinate(0, 0) {
+    _touchHandler = new TouchHandler(this, scrollableElem.parent);
+    _momentum = new Momentum(this, defaultDecelerationFactor);
 
     Element parentElem = scrollableElem.parent;
     assert(parentElem != null);

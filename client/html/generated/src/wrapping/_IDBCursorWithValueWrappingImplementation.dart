@@ -8,6 +8,4 @@ class IDBCursorWithValueWrappingImplementation extends IDBCursorWrappingImplemen
   IDBCursorWithValueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   String get value() { return _ptr.value; }
-
-  String get typeName() { return "IDBCursorWithValue"; }
 }

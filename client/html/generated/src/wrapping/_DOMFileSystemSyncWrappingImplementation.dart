@@ -10,6 +10,4 @@ class DOMFileSystemSyncWrappingImplementation extends DOMWrapperBase implements 
   String get name() { return _ptr.name; }
 
   DirectoryEntrySync get root() { return LevelDom.wrapDirectoryEntrySync(_ptr.root); }
-
-  String get typeName() { return "DOMFileSystemSync"; }
 }

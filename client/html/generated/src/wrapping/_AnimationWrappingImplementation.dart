@@ -36,6 +36,4 @@ class AnimationWrappingImplementation extends DOMWrapperBase implements Animatio
     _ptr.play();
     return;
   }
-
-  String get typeName() { return "Animation"; }
 }

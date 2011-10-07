@@ -15,21 +15,38 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
 
   bool get upperOpen() { return _ptr.upperOpen; }
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, bool lowerOpen, bool upperOpen) {
-    return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper), lowerOpen, upperOpen));
+  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen = null, bool upperOpen = null]) {
+    if (lowerOpen === null) {
+      if (upperOpen === null) {
+        return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper)));
+      }
+    } else {
+      if (upperOpen === null) {
+        return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper), lowerOpen));
+      } else {
+        return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper), lowerOpen, upperOpen));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  IDBKeyRange lowerBound(IDBKey bound, bool open) {
-    return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound), open));
+  IDBKeyRange lowerBound(IDBKey bound, [bool open = null]) {
+    if (open === null) {
+      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound)));
+    } else {
+      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound), open));
+    }
   }
 
   IDBKeyRange only(IDBKey value) {
     return LevelDom.wrapIDBKeyRange(_ptr.only(LevelDom.unwrap(value)));
   }
 
-  IDBKeyRange upperBound(IDBKey bound, bool open) {
-    return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound), open));
+  IDBKeyRange upperBound(IDBKey bound, [bool open = null]) {
+    if (open === null) {
+      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound)));
+    } else {
+      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound), open));
+    }
   }
-
-  String get typeName() { return "IDBKeyRange"; }
 }

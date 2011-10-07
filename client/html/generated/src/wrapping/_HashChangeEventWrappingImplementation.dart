@@ -15,6 +15,4 @@ class HashChangeEventWrappingImplementation extends EventWrappingImplementation 
     _ptr.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
     return;
   }
-
-  String get typeName() { return "HashChangeEvent"; }
 }

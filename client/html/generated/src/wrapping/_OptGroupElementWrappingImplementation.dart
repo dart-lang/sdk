@@ -14,6 +14,4 @@ class OptGroupElementWrappingImplementation extends ElementWrappingImplementatio
   String get label() { return _ptr.label; }
 
   void set label(String value) { _ptr.label = value; }
-
-  String get typeName() { return "OptGroupElement"; }
 }

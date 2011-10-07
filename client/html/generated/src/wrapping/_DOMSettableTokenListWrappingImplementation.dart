@@ -10,6 +10,4 @@ class DOMSettableTokenListWrappingImplementation extends DOMTokenListWrappingImp
   String get value() { return _ptr.value; }
 
   void set value(String value) { _ptr.value = value; }
-
-  String get typeName() { return "DOMSettableTokenList"; }
 }

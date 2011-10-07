@@ -23,9 +23,14 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
 
   String get version() { return _ptr.version; }
 
-  void addEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   void close() {
@@ -46,14 +51,17 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   IDBVersionChangeRequest setVersion(String version) {
     return LevelDom.wrapIDBVersionChangeRequest(_ptr.setVersion(version));
   }
-
-  String get typeName() { return "IDBDatabase"; }
 }

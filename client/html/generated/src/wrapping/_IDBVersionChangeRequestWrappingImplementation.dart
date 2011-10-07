@@ -10,6 +10,4 @@ class IDBVersionChangeRequestWrappingImplementation extends IDBRequestWrappingIm
   EventListener get onblocked() { return LevelDom.wrapEventListener(_ptr.onblocked); }
 
   void set onblocked(EventListener value) { _ptr.onblocked = LevelDom.unwrap(value); }
-
-  String get typeName() { return "IDBVersionChangeRequest"; }
 }

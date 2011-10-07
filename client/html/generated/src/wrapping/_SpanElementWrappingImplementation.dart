@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('bootstrap_hacks');
+// WARNING: Do not edit - generated code.
 
-#import('dart:dom');
-#source('src/BootstrapHacks.dart');
+class SpanElementWrappingImplementation extends ElementWrappingImplementation implements SpanElement {
+  SpanElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}

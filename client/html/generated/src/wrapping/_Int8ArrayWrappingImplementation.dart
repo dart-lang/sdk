@@ -9,9 +9,11 @@ class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementat
 
   int get length() { return _ptr.length; }
 
-  Int8Array subarray(int start, int end) {
-    return LevelDom.wrapInt8Array(_ptr.subarray(start, end));
+  Int8Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapInt8Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt8Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Int8Array"; }
 }

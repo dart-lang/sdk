@@ -30,6 +30,4 @@ class TouchWrappingImplementation extends DOMWrapperBase implements Touch {
   int get webkitRadiusY() { return _ptr.webkitRadiusY; }
 
   num get webkitRotationAngle() { return _ptr.webkitRotationAngle; }
-
-  String get typeName() { return "Touch"; }
 }

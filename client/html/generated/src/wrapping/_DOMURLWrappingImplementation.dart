@@ -15,6 +15,4 @@ class DOMURLWrappingImplementation extends DOMWrapperBase implements DOMURL {
     _ptr.revokeObjectURL(url);
     return;
   }
-
-  String get typeName() { return "DOMURL"; }
 }

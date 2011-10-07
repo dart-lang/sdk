@@ -10,6 +10,4 @@ class FileWriterCallbackWrappingImplementation extends DOMWrapperBase implements
   bool handleEvent(FileWriter fileWriter) {
     return _ptr.handleEvent(LevelDom.unwrap(fileWriter));
   }
-
-  String get typeName() { return "FileWriterCallback"; }
 }

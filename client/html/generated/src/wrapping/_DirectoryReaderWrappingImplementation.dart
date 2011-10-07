@@ -7,10 +7,13 @@
 class DirectoryReaderWrappingImplementation extends DOMWrapperBase implements DirectoryReader {
   DirectoryReaderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void readEntries(EntriesCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.readEntries(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.readEntries(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.readEntries(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
-
-  String get typeName() { return "DirectoryReader"; }
 }

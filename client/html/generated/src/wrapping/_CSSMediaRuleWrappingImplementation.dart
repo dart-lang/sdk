@@ -19,6 +19,4 @@ class CSSMediaRuleWrappingImplementation extends CSSRuleWrappingImplementation i
   int insertRule(String rule, int index) {
     return _ptr.insertRule(rule, index);
   }
-
-  String get typeName() { return "CSSMediaRule"; }
 }

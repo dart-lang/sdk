@@ -12,5 +12,5 @@ interface FileReaderSync {
 
   String readAsDataURL(Blob blob);
 
-  String readAsText(Blob blob, String encoding);
+  String readAsText(Blob blob, [String encoding]);
 }

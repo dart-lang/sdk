@@ -10,6 +10,4 @@ class FileCallbackWrappingImplementation extends DOMWrapperBase implements FileC
   bool handleEvent(File file) {
     return _ptr.handleEvent(LevelDom.unwrap(file));
   }
-
-  String get typeName() { return "FileCallback"; }
 }

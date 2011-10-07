@@ -14,6 +14,4 @@ class HtmlElementWrappingImplementation extends ElementWrappingImplementation im
   String get version() { return _ptr.version; }
 
   void set version(String value) { _ptr.version = value; }
-
-  String get typeName() { return "HtmlElement"; }
 }

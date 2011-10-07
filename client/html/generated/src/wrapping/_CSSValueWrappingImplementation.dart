@@ -12,6 +12,4 @@ class CSSValueWrappingImplementation extends DOMWrapperBase implements CSSValue 
   void set cssText(String value) { _ptr.cssText = value; }
 
   int get cssValueType() { return _ptr.cssValueType; }
-
-  String get typeName() { return "CSSValue"; }
 }

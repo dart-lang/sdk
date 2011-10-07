@@ -23,6 +23,10 @@ class MediaElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set currentTime(num value) { _ptr.currentTime = value; }
 
+  bool get defaultMuted() { return _ptr.defaultMuted; }
+
+  void set defaultMuted(bool value) { _ptr.defaultMuted = value; }
+
   num get defaultPlaybackRate() { return _ptr.defaultPlaybackRate; }
 
   void set defaultPlaybackRate(num value) { _ptr.defaultPlaybackRate = value; }
@@ -32,6 +36,8 @@ class MediaElementWrappingImplementation extends ElementWrappingImplementation i
   bool get ended() { return _ptr.ended; }
 
   MediaError get error() { return LevelDom.wrapMediaError(_ptr.error); }
+
+  num get initialTime() { return _ptr.initialTime; }
 
   bool get loop() { return _ptr.loop; }
 
@@ -103,6 +109,4 @@ class MediaElementWrappingImplementation extends ElementWrappingImplementation i
     _ptr.play();
     return;
   }
-
-  String get typeName() { return "MediaElement"; }
 }

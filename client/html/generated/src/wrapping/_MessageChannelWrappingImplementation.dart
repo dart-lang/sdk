@@ -10,6 +10,4 @@ class MessageChannelWrappingImplementation extends DOMWrapperBase implements Mes
   MessagePort get port1() { return LevelDom.wrapMessagePort(_ptr.port1); }
 
   MessagePort get port2() { return LevelDom.wrapMessagePort(_ptr.port2); }
-
-  String get typeName() { return "MessageChannel"; }
 }

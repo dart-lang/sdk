@@ -17,6 +17,4 @@ class ProgressEventWrappingImplementation extends EventWrappingImplementation im
     _ptr.initProgressEvent(typeArg, canBubbleArg, cancelableArg, lengthComputableArg, loadedArg, totalArg);
     return;
   }
-
-  String get typeName() { return "ProgressEvent"; }
 }

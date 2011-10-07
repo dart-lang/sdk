@@ -10,6 +10,4 @@ class HeadingElementWrappingImplementation extends ElementWrappingImplementation
   String get align() { return _ptr.align; }
 
   void set align(String value) { _ptr.align = value; }
-
-  String get typeName() { return "HeadingElement"; }
 }

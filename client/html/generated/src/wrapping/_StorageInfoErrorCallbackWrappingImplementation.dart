@@ -10,6 +10,4 @@ class StorageInfoErrorCallbackWrappingImplementation extends DOMWrapperBase impl
   bool handleEvent(DOMException error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "StorageInfoErrorCallback"; }
 }

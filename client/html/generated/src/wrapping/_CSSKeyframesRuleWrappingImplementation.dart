@@ -26,6 +26,4 @@ class CSSKeyframesRuleWrappingImplementation extends CSSRuleWrappingImplementati
     _ptr.insertRule(rule);
     return;
   }
-
-  String get typeName() { return "CSSKeyframesRule"; }
 }

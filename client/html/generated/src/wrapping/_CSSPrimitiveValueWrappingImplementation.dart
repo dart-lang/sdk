@@ -38,6 +38,4 @@ class CSSPrimitiveValueWrappingImplementation extends CSSValueWrappingImplementa
     _ptr.setStringValue(stringType, stringValue);
     return;
   }
-
-  String get typeName() { return "CSSPrimitiveValue"; }
 }

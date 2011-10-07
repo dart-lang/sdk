@@ -11,6 +11,4 @@ class CryptoWrappingImplementation extends DOMWrapperBase implements Crypto {
     _ptr.getRandomValues(LevelDom.unwrap(array));
     return;
   }
-
-  String get typeName() { return "Crypto"; }
 }

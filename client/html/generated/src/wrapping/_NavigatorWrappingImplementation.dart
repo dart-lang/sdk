@@ -43,6 +43,4 @@ class NavigatorWrappingImplementation extends DOMWrapperBase implements Navigato
   bool javaEnabled() {
     return _ptr.javaEnabled();
   }
-
-  String get typeName() { return "Navigator"; }
 }

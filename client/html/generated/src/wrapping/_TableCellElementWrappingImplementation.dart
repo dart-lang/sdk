@@ -64,6 +64,4 @@ class TableCellElementWrappingImplementation extends ElementWrappingImplementati
   String get width() { return _ptr.width; }
 
   void set width(String value) { _ptr.width = value; }
-
-  String get typeName() { return "TableCellElement"; }
 }

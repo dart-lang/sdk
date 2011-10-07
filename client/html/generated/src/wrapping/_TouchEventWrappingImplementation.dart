@@ -25,6 +25,4 @@ class TouchEventWrappingImplementation extends UIEventWrappingImplementation imp
     _ptr.initTouchEvent(LevelDom.unwrap(touches), LevelDom.unwrap(targetTouches), LevelDom.unwrap(changedTouches), type, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return;
   }
-
-  String get typeName() { return "TouchEvent"; }
 }

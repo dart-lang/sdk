@@ -6,6 +6,4 @@
 
 class WebGLUniformLocationWrappingImplementation extends DOMWrapperBase implements WebGLUniformLocation {
   WebGLUniformLocationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLUniformLocation"; }
 }

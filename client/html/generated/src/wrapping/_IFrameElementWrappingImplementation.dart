@@ -54,6 +54,4 @@ class IFrameElementWrappingImplementation extends ElementWrappingImplementation 
   String get width() { return _ptr.width; }
 
   void set width(String value) { _ptr.width = value; }
-
-  String get typeName() { return "IFrameElement"; }
 }

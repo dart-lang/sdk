@@ -4,8 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface CSSMatrix factory CSSMatrixWrappingImplementation {
-  CSSMatrix([String cssValue]);
+interface CSSMatrix factory _CSSMatrixFactoryProvider {
+
+  CSSMatrix([String spec]);
 
   num get a();
 

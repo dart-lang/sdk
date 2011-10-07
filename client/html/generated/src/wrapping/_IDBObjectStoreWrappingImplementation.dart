@@ -11,8 +11,12 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
 
   String get name() { return _ptr.name; }
 
-  IDBRequest add(String value, IDBKey key) {
-    return LevelDom.wrapIDBRequest(_ptr.add(value, LevelDom.unwrap(key)));
+  IDBRequest add(String value, [IDBKey key = null]) {
+    if (key === null) {
+      return LevelDom.wrapIDBRequest(_ptr.add(value));
+    } else {
+      return LevelDom.wrapIDBRequest(_ptr.add(value, LevelDom.unwrap(key)));
+    }
   }
 
   IDBRequest clear() {
@@ -32,17 +36,34 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
     return;
   }
 
+  IDBRequest getObject(IDBKey key) {
+    return LevelDom.wrapIDBRequest(_ptr.getObject(LevelDom.unwrap(key)));
+  }
+
   IDBIndex index(String name) {
     return LevelDom.wrapIDBIndex(_ptr.index(name));
   }
 
-  IDBRequest openCursor(IDBKeyRange range, int direction) {
-    return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+    if (range === null) {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor());
+      }
+    } else {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range)));
+      } else {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest put(String value, IDBKey key) {
-    return LevelDom.wrapIDBRequest(_ptr.put(value, LevelDom.unwrap(key)));
+  IDBRequest put(String value, [IDBKey key = null]) {
+    if (key === null) {
+      return LevelDom.wrapIDBRequest(_ptr.put(value));
+    } else {
+      return LevelDom.wrapIDBRequest(_ptr.put(value, LevelDom.unwrap(key)));
+    }
   }
-
-  String get typeName() { return "IDBObjectStore"; }
 }

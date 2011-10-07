@@ -8,11 +8,4 @@ class DeviceMotionEventWrappingImplementation extends EventWrappingImplementatio
   DeviceMotionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   num get interval() { return _ptr.interval; }
-
-  void initDeviceMotionEvent(String type, bool bubbles, bool cancelable) {
-    _ptr.initDeviceMotionEvent(type, bubbles, cancelable);
-    return;
-  }
-
-  String get typeName() { return "DeviceMotionEvent"; }
 }

@@ -72,17 +72,32 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
   }
 
   void bufferData(int target, var data_OR_size, int usage) {
-    if (data_OR_size is int) {
+    if (data_OR_size is ArrayBuffer) {
       _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
       return;
+    } else {
+      if (data_OR_size is ArrayBufferView) {
+        _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+        return;
+      } else {
+        if (data_OR_size is int) {
+          _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+          return;
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void bufferSubData(int target, int offset, var data) {
-    if (data is ArrayBufferView) {
+    if (data is ArrayBuffer) {
       _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
       return;
+    } else {
+      if (data is ArrayBufferView) {
+        _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
+        return;
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -487,10 +502,43 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, int format, int type, ArrayBufferView pixels) {
-    if (border_OR_canvas_OR_image_OR_pixels is int) {
-      _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
-      return;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format = null, int type = null, ArrayBufferView pixels = null]) {
+    if (border_OR_canvas_OR_image_OR_pixels is ImageData) {
+      if (format === null) {
+        if (type === null) {
+          if (pixels === null) {
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+            return;
+          }
+        }
+      }
+    } else {
+      if (border_OR_canvas_OR_image_OR_pixels is ImageElement) {
+        if (format === null) {
+          if (type === null) {
+            if (pixels === null) {
+              _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+              return;
+            }
+          }
+        }
+      } else {
+        if (border_OR_canvas_OR_image_OR_pixels is CanvasElement) {
+          if (format === null) {
+            if (type === null) {
+              if (pixels === null) {
+                _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+                return;
+              }
+            }
+          }
+        } else {
+          if (border_OR_canvas_OR_image_OR_pixels is int) {
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
+            return;
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -505,10 +553,37 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, int type, ArrayBufferView pixels) {
-    if (canvas_OR_format_OR_image_OR_pixels is int) {
-      _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
-      return;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type = null, ArrayBufferView pixels = null]) {
+    if (canvas_OR_format_OR_image_OR_pixels is ImageData) {
+      if (type === null) {
+        if (pixels === null) {
+          _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+          return;
+        }
+      }
+    } else {
+      if (canvas_OR_format_OR_image_OR_pixels is ImageElement) {
+        if (type === null) {
+          if (pixels === null) {
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+            return;
+          }
+        }
+      } else {
+        if (canvas_OR_format_OR_image_OR_pixels is CanvasElement) {
+          if (type === null) {
+            if (pixels === null) {
+              _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+              return;
+            }
+          }
+        } else {
+          if (canvas_OR_format_OR_image_OR_pixels is int) {
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
+            return;
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -667,6 +742,4 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     _ptr.viewport(x, y, width, height);
     return;
   }
-
-  String get typeName() { return "WebGLRenderingContext"; }
 }

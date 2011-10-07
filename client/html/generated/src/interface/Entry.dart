@@ -16,15 +16,15 @@ interface Entry {
 
   String get name();
 
-  void copyTo(DirectoryEntry parent, String name, EntryCallback successCallback, ErrorCallback errorCallback);
+  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void getMetadata(MetadataCallback successCallback, ErrorCallback errorCallback);
+  void getMetadata([MetadataCallback successCallback, ErrorCallback errorCallback]);
 
-  void getParent(EntryCallback successCallback, ErrorCallback errorCallback);
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void moveTo(DirectoryEntry parent, String name, EntryCallback successCallback, ErrorCallback errorCallback);
+  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void remove(VoidCallback successCallback, ErrorCallback errorCallback);
+  void remove([VoidCallback successCallback, ErrorCallback errorCallback]);
 
   String toURL();
 }

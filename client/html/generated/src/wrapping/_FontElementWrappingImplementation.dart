@@ -18,6 +18,4 @@ class FontElementWrappingImplementation extends ElementWrappingImplementation im
   String get size() { return _ptr.size; }
 
   void set size(String value) { _ptr.size = value; }
-
-  String get typeName() { return "FontElement"; }
 }

@@ -22,6 +22,4 @@ class DataTransferItemsWrappingImplementation extends DOMWrapperBase implements 
   DataTransferItem item(int index) {
     return LevelDom.wrapDataTransferItem(_ptr.item(index));
   }
-
-  String get typeName() { return "DataTransferItems"; }
 }
