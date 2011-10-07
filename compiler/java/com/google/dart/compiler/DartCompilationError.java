@@ -287,9 +287,9 @@ public class DartCompilationError {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append((source != null) ? source.getName() : "<unknown source>");
+    sb.append((source != null) ? source.getUri() : "<unknown source>");
     sb.append("(" + lineNumber + ":" + columnNumber + "): ");
     sb.append(message);
     return sb.toString();
- }
+  }
 }

@@ -73,7 +73,7 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
       StringBuilder buf = new StringBuilder();
       buf.append(String.format("%s%s:%d: %s%s\n",
             useColor ? RED_BOLD_COLOR : "",
-            sourceFile.getName(),
+            sourceFile.getUri(),
             event.getLineNumber(),
             event.getMessage(),
             useColor ? NO_COLOR : ""));
