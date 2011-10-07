@@ -200,7 +200,7 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape
 LibTest/core/RegExp/hasMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/hasMatch/DecimalEscape/A01/t04: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t04: Fail
 
-# Following tests uses the old syntax for default argument values.
+# Following tests use the old syntax for default argument values.
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A01/t01: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.15_NonEmptyClassRanges/RegExp/firstMatch/NonEmptyClassRanges/A01/t03: Fail
 

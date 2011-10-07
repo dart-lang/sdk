@@ -1156,7 +1156,6 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartParameter> params = new ArrayList<DartParameter>();
     expect(Token.LPAREN);
     boolean done = optional(Token.RPAREN);
-    boolean hasDefaultParameter = false;
     boolean hasNamed = false;
     while (!done) {
       if (!hasNamed && optional(Token.LBRACK)) {
@@ -1171,19 +1170,6 @@ public class DartParser extends CompletionHooksParserBase {
         expectCloseParen();
       } else {
         done = optional(Token.RPAREN);
-      }
-
-      if (hasDefaultParameter) {
-        if (!hasNamed) {
-          // TODO(jgw): Add this check, and remove the one below, when we remove default
-          //   positional parameters.
-          // reportError(position(), DartCompilerErrorCode.DEFAULT_POSITIONAL_PARAMETER);
-          if (param.getDefaultExpr() == null) {
-            reportError(position(), DartCompilerErrorCode.DEFAULT_PARAMETER_BEFORE_NORMAL_PARAMETER);
-          }
-        }
-      } else {
-        hasDefaultParameter = (param.getDefaultExpr() != null);
       }
 
       if (!done) {
@@ -1275,15 +1261,13 @@ public class DartParser extends CompletionHooksParserBase {
         break;
 
       case ASSIGN:
-        // Default parameter.
-
-        // TODO(jgw): This makes legacy default parameters implicitly named, which will ease the
-        // transition. Remove this as soon as positional default parameters are removed.
-        modifiers = modifiers.makeNamed();
-
-        consume(Token.ASSIGN);
-        initExpr = parseExpression();
-
+        // Default parameter -- only allowed for named parameters.
+        if (isNamed) {
+          consume(Token.ASSIGN);
+          initExpr = parseExpression();
+        } else {
+          reportError(position(), DartCompilerErrorCode.DEFAULT_POSITIONAL_PARAMETER);
+        }
         break;
 
       default:

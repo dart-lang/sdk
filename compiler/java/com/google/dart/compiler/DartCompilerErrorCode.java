@@ -43,8 +43,6 @@ public enum DartCompilerErrorCode implements ErrorCode {
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
-  DEFAULT_PARAMETER_BEFORE_NORMAL_PARAMETER("SyntaxError: Default parameters must be after normal "
-      + "parameters"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DISALLOWED_ABSTRACT_KEYWORD("SyntaxError: abstract keyword not allowed here"),

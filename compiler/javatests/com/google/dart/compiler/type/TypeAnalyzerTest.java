@@ -988,7 +988,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "}",
         "class OptionalParameter {",
         "  OptionalParameter() : this.bar() {}",
-        "  OptionalParameter.bar(int i = null) {}",
+        "  OptionalParameter.bar([int i = null]) {}",
         "  OptionalParameter.foo() : this.bar('') {}",
         "}");
     analyzeClass(classes.get("MissingArgument"), 1);
@@ -1004,7 +1004,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "class Super {",
         "  Super(int x) {}",
         "  Super.foo() {}",
-        "  Super.bar(int i = null) {}",
+        "  Super.bar([int i = null]) {}",
         "}",
         "class BadSub extends Super {",
         "  BadSub() : super('x') {}",
@@ -1026,7 +1026,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         // The following works fine, but was claimed to be a bug:
         "class A {",
         "  int value;",
-        "  A(this.value = 3) {}",
+        "  A([this.value = 3]) {}",
         "}",
         "class B extends A {",
         "  B() : super() {}",
@@ -1044,7 +1044,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "class Foo {",
         "  Foo(int x) {}",
         "  Foo.foo() {}",
-        "  Foo.bar(int i = null) {}",
+        "  Foo.bar([int i = null]) {}",
         "}",
         "interface Bar<T> factory Baz {",
         "  Bar.make();",
@@ -1205,8 +1205,8 @@ public class TypeAnalyzerTest extends TypeTestCase {
   }
 
   public void testInitializedLocals() {
-    analyze("void f(int x = 1) {}");
-    analyzeFail("void f(int x = '') {}", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("void f([int x = 1]) {}");
+    analyzeFail("void f([int x = '']) {}", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
 
     analyze("{ int x = 1; }");
     analyzeFail("{ int x = ''; }", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
@@ -1290,7 +1290,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "}",
         "class SubSubClass extends Class {",
         "  num bar() { return null; }", // TYPE_NOT_ASSIGNMENT_COMPATIBLE.
-        "  void foo(x = null) {}", // TYPE_NOT_ASSIGNMENT_COMPATIBLE.
+        "  void foo([x = null]) {}", // TYPE_NOT_ASSIGNMENT_COMPATIBLE.
         "}",
         "class Usage {",
         "  m() {",

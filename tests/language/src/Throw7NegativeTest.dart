@@ -4,7 +4,7 @@
 // Dart test program for testing throw statement
 
 class MyException1 {
-  const MyException1(String message = "1") : message_ = message;
+  const MyException1([String message = "1"]) : message_ = message;
   final String message_;
 }
 
