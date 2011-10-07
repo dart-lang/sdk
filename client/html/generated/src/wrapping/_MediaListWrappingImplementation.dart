@@ -41,6 +41,22 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   int indexOf(String element, int startIndex) {
     return _Lists.indexOf(this, element, startIndex, this.length);
   }

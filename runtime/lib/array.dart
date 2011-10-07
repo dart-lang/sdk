@@ -92,6 +92,22 @@ class ObjectArray<T> implements Array<T> {
                             int count)
       native "ObjectArray_copyFromObjectArray";
 
+  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [T initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List<T> getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   /**
    * Collection interface.
    */
@@ -188,6 +204,22 @@ class ImmutableArray<T> implements Array<T> {
   void copyFrom(Array src, int srcStart, int dstStart, int count) {
     throw const UnsupportedOperationException(
         "Cannot modify an immutable array");
+  }
+
+  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [T initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List<T> getRange(int start, int length) {
+    throw const NotImplementedException();
   }
 
   /**

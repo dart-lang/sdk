@@ -9,6 +9,22 @@ class GrowableObjectArray<T> implements Array<T> {
     Arrays.copy(src, srcStart, this, dstStart, count);
   }
 
+  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [T initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List<T> getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   // The length of this growable array. It is always less than the
   // length of the backing array.
   int _length;

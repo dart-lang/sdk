@@ -14,6 +14,10 @@ class MyList<T> implements List<T> {
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {}
   int indexOf(T element, int startIndex) { return null; }
   int lastIndexOf(T element, int startIndex) { return null; }
+  void setRange(int start, int length, List from, [int startFrom = 0]) {}
+  void removeRange(int start, int length) {}
+  void insertRange(int start, int length, [initialValue = null]) {}
+  List getRange(int start, int length) { return null; }
   void clear() {}
   T removeLast() { return null; }
   T last() { return null; }

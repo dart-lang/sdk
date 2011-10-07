@@ -149,6 +149,22 @@ class ObjectArray<T> implements Array<T> native "Array" {
     Arrays.copy(src, srcStart, this, dstStart, count);
   }
 
+  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [T initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List<T> getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   int indexOf(T element, int startIndex) {
     return Arrays.indexOf(this, element, startIndex, this.length);
   }

@@ -107,6 +107,22 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   int indexOf(Element element, int startIndex) {
     throw 'Not impl yet. todo(jacobr)';
   }
@@ -196,6 +212,22 @@ class FrozenElementList implements ElementList {
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
     throw 'Not impl yet. todo(jacobr)';
+  }
+
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
   }
 
   int indexOf(Element element, int startIndex) {

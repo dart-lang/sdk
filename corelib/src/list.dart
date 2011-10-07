@@ -127,4 +127,28 @@ interface List<E> extends Collection<E> factory ListFactory {
    * exception if the list is empty.
    */
   E last();
+
+  /**
+   * Copies [length] elements of the [from] array, starting
+   * from [startFrom], into [:this:], starting at [start].
+   */
+  void setRange(int start, int length, List<E> from, [int startFrom]);
+
+  /**
+   * Removes the range in the list starting from [start] to
+   * [: start + length :].
+   */
+  void removeRange(int start, int length);
+
+  /**
+   * Inserts a new range in the list, starting from [start] to
+   * [: start + length :]. The entries are filled with [initialValue].
+   */
+  void insertRange(int start, int length, [E initialValue]);
+
+  /**
+   * Returns a sub list of this list, starting from [start] to
+   * [: start + length :].
+   */
+  List<E> getRange(int start, int length);
 }

@@ -241,6 +241,22 @@ class ObservableList<T>
     Arrays.copy(src, srcStart, this, dstStart, count);
   }
 
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   // Iterable<T>:
   Iterator<T> iterator() => _internal.iterator();
 
