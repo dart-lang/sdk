@@ -78,6 +78,10 @@ NamedParameters2NegativeTest: Fail   # Implementation in progress.
 NamedParameters3NegativeTest: Fail   # Implementation in progress.
 NamedParameters4NegativeTest: Fail   # Implementation in progress.
 NamedParameters6NegativeTest: Crash  # Implementation in progress.
+NamedParametersPassingZeroTest: Fail # Bug
+NamedParametersPassingNullTest: Fail # Bug
+NamedParametersPassingFalseTest: Fail # Bug
+NamedParametersPassingFalsyTest: Fail # Bug
 InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail  # 5387405
