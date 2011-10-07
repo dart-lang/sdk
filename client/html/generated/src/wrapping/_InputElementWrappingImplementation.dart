@@ -206,7 +206,7 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
     return;
   }
 
-  void setSelectionRange(int start = null, int end = null, String direction = null) {
+  void setSelectionRange([int start = null, int end = null, String direction = null]) {
     _ptr.setSelectionRange(start, end, direction);
     return;
   }
@@ -216,12 +216,12 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
     return;
   }
 
-  void stepDown(int n = null) {
+  void stepDown([int n = null]) {
     _ptr.stepDown(n);
     return;
   }
 
-  void stepUp(int n = null) {
+  void stepUp([int n = null]) {
     _ptr.stepUp(n);
     return;
   }

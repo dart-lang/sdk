@@ -99,7 +99,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     return;
   }
 
-  ImageData createImageData(var imagedata_OR_sw, num sh = null) {
+  ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
     if (imagedata_OR_sw is num) {
       return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw), sh));
     }
@@ -121,7 +121,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     return LevelDom.wrapCanvasGradient(_ptr.createRadialGradient(x0, y0, r0, x1, y1, r1));
   }
 
-  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null) {
+  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
     if (canvas_OR_image is CanvasElement) {
       _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
@@ -129,7 +129,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     throw "Incorrect number or type of arguments";
   }
 
-  void drawImageFromRect(ImageElement image, num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null) {
+  void drawImageFromRect(ImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
     _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
     return;
   }
@@ -144,7 +144,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     return;
   }
 
-  void fillText(String text, num x, num y, num maxWidth = null) {
+  void fillText(String text, num x, num y, [num maxWidth = null]) {
     _ptr.fillText(text, x, y, maxWidth);
     return;
   }
@@ -171,7 +171,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     return;
   }
 
-  void putImageData(ImageData imagedata, num dx, num dy, num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null) {
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
     _ptr.putImageData(LevelDom.unwrap(imagedata), dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     return;
   }
@@ -216,7 +216,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     return;
   }
 
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null) {
+  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
     if (c_OR_color_OR_grayLevel_OR_r is num) {
       _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
       return;
@@ -252,7 +252,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     return;
   }
 
-  void setShadow(num width, num height, num blur, var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null) {
+  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
     if (c_OR_color_OR_grayLevel_OR_r is num) {
       _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
       return;
@@ -260,7 +260,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     throw "Incorrect number or type of arguments";
   }
 
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null) {
+  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
     if (c_OR_color_OR_grayLevel_OR_r is num) {
       _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
       return;
@@ -286,12 +286,12 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     return;
   }
 
-  void strokeRect(num x, num y, num width, num height, num lineWidth = null) {
+  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) {
     _ptr.strokeRect(x, y, width, height, lineWidth);
     return;
   }
 
-  void strokeText(String text, num x, num y, num maxWidth = null) {
+  void strokeText(String text, num x, num y, [num maxWidth = null]) {
     _ptr.strokeText(text, x, y, maxWidth);
     return;
   }

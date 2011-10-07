@@ -14,7 +14,7 @@ interface CanvasElement extends Element {
 
   void set width(int value);
 
-  CanvasRenderingContext getContext(String contextId = null);
+  CanvasRenderingContext getContext([String contextId]);
 
-  String toDataURL(String type = null);
+  String toDataURL([String type]);
 }

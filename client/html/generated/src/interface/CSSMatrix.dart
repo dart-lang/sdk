@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 interface CSSMatrix factory CSSMatrixWrappingImplementation {
-  CSSMatrix(String cssValue = null);
+  CSSMatrix([String cssValue]);
 
   num get a();
 

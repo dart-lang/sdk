@@ -194,11 +194,11 @@ interface InputElement extends Element {
 
   void setCustomValidity(String error);
 
-  void setSelectionRange(int start = null, int end = null, String direction = null);
+  void setSelectionRange([int start, int end, String direction]);
 
   void setValueForUser(String value);
 
-  void stepDown(int n = null);
+  void stepDown([int n]);
 
-  void stepUp(int n = null);
+  void stepUp([int n]);
 }

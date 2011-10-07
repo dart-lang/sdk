@@ -6,7 +6,7 @@
 
 class CSSMatrixWrappingImplementation extends DOMWrapperBase implements CSSMatrix {
   CSSMatrixWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-  factory CSSMatrixWrappingImplementation(String cssValue = null) {
+  factory CSSMatrixWrappingImplementation([String cssValue = null]) {
     
     if (cssValue === null) {
       return LevelDom.wrapCSSMatrix(_rawWindow.createWebKitCSSMatrix());
