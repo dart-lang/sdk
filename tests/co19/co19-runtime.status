@@ -202,7 +202,7 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t02: Skip
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t04: Skip
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.13_CharacterClass/RegExp/firstMatch/CharacterClass/A02/t01: Skip
-LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A02/t01: Fail
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A02/t01: Skip
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A03/t01: Skip
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A04/t01: Skip
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A05/t01: Skip
