@@ -19,12 +19,10 @@ StringTest: Fail           # Bug 5196164
 DoubleCompareTest: Fail    # Bug 5427706
 
 
-[ $arch == chromium || $arch == dartium ]
-# Bug 5293748
-SortTest: Skip
-ListSortTest: Skip
-
-[ $arch == chromium ]
+[ $arch == dartium ]
+# print is not available
+SortTest: Fail
+ListSortTest: Fail
 
 
 [ $arch == x64 ]
