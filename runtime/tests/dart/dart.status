@@ -27,6 +27,8 @@ Process*: Skip  # Bug 1
 # Windows implementation of Process is still pending.
 Process*: Skip
 EchoServerStreamReadUntilTest: Skip        # Bug 5414270
+EchoServerStreamTest: Pass || Crash        # Bug 2
+EchoServerTest: Pass || Crash              # Bug 2
 
 
 [ $arch == dartium ]
