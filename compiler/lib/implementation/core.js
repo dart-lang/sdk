@@ -325,10 +325,6 @@ function ASSIGN_INDEX$operator(obj, index, newVal) {
   obj.ASSIGN_INDEX$operator(index, newVal);
 }
 
-// Alter the Function object constructor so that all Function objects
-// will pass the $instanceOfInterface(..., "$Function$Dart") test.
-Function.prototype.$implements$Function$Dart = 1;
-
 function $Dart$ThrowException(e) {
   // If e is not a value, we can use V8's captureStackTrace utility method.
   if (e && (typeof e == "object") && Error.captureStackTrace) {

@@ -208,6 +208,10 @@ RTT.placeholderType = new RTT($cls('::'));
 RTT.placeholderType.implementedBy = function(o) {return true};
 RTT.placeholderType.implementedByType = function(o) {return true};
 
+// Setup the Function object
+Function.prototype.$implements$Function$Dart = 1;
+RTT.setTypeInfo(Function.prototype, RTT.create($cls('Function$Dart')));
+
 /** 
  * @param {string} cls 
  * @return {string}
