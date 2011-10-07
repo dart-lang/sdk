@@ -88,9 +88,6 @@ public abstract class UrlSource implements Source {
 
   @Override
   public long getLastModified() {
-    if (!shouldCareAboutLastModified) {
-      return 0;
-    }
     initProperties();
     return lastModified;
   }
