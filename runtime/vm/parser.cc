@@ -26,7 +26,6 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, true, "Silence warnings.");
-DEFINE_FLAG(bool, warn_params, false, "Report legacy parameter syntax");
 
 // All references to Dart names are listed here.
 static const char* kAssertErrorName = "AssertError";
@@ -883,20 +882,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   }
 
   if (CurrentToken() == Token::kASSIGN) {
-    if (!allow_explicit_default_value) {
-      // TODO(regis): Remove support for legacy optional parameters:
-      // The if guard below needs to be removed, i.e. the error must
-      // be reported for both positional and named optional parameters.
-      if (params->has_named_optional_parameters) {
-        ErrorMsg("parameter must not specify a default value");
-      }
-    }
-    if (FLAG_warn_params && !params->has_named_optional_parameters) {
-      // Turn on warnings automagically.
-      bool save_silent = FLAG_silent_warnings;
-      FLAG_silent_warnings = false;
-      Warning("legacy optional parameter '%s'", parameter.name->ToCString());
-      FLAG_silent_warnings = save_silent;
+    if (!params->has_named_optional_parameters ||
+        !allow_explicit_default_value) {
+      ErrorMsg("parameter must not specify a default value");
     }
     ConsumeToken();
     params->num_optional_parameters++;

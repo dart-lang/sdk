@@ -140,11 +140,9 @@ LibTest/core/Date/toString/Date/toString/A01/t01 : Skip
 LibTest/core/Date/year/Date/year/A01/t01 : Skip
 LibTest/core/Date/year/Date/year/A01/t02 : Skip
 
-
 # The illegal constructor initializer in this test does not get compiled.
 # This test does fail as it's supposed to when invoked with the --compile_all flag.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Skip
-
 
 # The DateTime class has been renamed to Date
 LibTest/core/DateTime/compareTo/DateTime/compareTo/A01/t01: Skip
@@ -201,6 +199,10 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape/RegExp/firstMatch/CharacterClassEscape/A02/t01: Fail
 LibTest/core/RegExp/hasMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/hasMatch/DecimalEscape/A01/t04: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t04: Fail
+
+# Following tests uses the old syntax for default argument values.
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A01/t01: Fail
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.15_NonEmptyClassRanges/RegExp/firstMatch/NonEmptyClassRanges/A01/t03: Fail
 
 # Rationals are not part of the language anymore so the test below which
 # uses Rationals is incorrect. Marking as Fail,Okay

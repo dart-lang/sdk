@@ -40,7 +40,7 @@ TEST_CASE(CodeIndexTable) {
   for (int i = 0; i < kNumFunctions; i++) {
     OS::SNPrint(buffer,
                 256,
-                "static foo%d(int i=1,int j=2,int k=3){return i+j+k;}", i);
+                "static foo%d([int i=1,int j=2,int k=3]){return i+j+k;}", i);
     written += OS::SNPrint((scriptChars + written),
                            (kScriptSize - written),
                            "%s",
@@ -65,7 +65,7 @@ TEST_CASE(CodeIndexTable) {
   // Now load up class B with 1024 functions.
   written = OS::SNPrint(scriptChars, kScriptSize, "class B {");
   // Create one large function.
-  OS::SNPrint(buffer, sizeof(buffer), "static moo0(int i=1) { return ");
+  OS::SNPrint(buffer, sizeof(buffer), "static moo0([int i=1]) { return ");
   written += OS::SNPrint((scriptChars + written),
                          (kScriptSize - written),
                          "%s",
@@ -90,7 +90,7 @@ TEST_CASE(CodeIndexTable) {
   for (int i = 1; i < kNumFunctions; i++) {
     OS::SNPrint(buffer,
                 256,
-                "static moo%d(int i=1,int j=2,int k=3){return i+j+k;}", i);
+                "static moo%d([int i=1,int j=2,int k=3]){return i+j+k;}", i);
     written += OS::SNPrint((scriptChars + written),
                            (kScriptSize - written),
                            "%s",
