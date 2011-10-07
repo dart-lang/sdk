@@ -28,6 +28,7 @@ MapTest: Fail
 SplayTreeTest: Fail
 QueueTest: Fail
 ExceptionImplementationTest: Fail
+MapsTest: Fail
 
 
 [ $arch == x64 ]
