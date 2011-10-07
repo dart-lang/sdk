@@ -142,12 +142,12 @@ echo "" > $LOG_FILE
 
 # switch to tmp for remainder of building
 cd $TMP_DIR
-gclient config svn://svn.chromium.org/dash/trunk/deps/compiler.deps >> $LOG_FILE 2>&1
+gclient config https://dart.googlecode.com/svn/branches/bleeding_edge/deps/compiler.deps >> $LOG_FILE 2>&1
 failTest $? "Error calling gclient config"
 
 if [ "" == "$REV" ]; then
   echo "No revision specified; checking out head for test"
-  REV=`svn info svn://svn.chromium.org/dash/trunk/deps/compiler.deps | sed -n -e 's/Revision: \([0-9]*\)/\1/p'`
+  REV=`svn info https://dart.googlecode.com/svn/branches/bleeding_edge/deps/compiler.deps | sed -n -e 's/Revision: \([0-9]*\)/\1/p'`
   echo "Head revision = $REV"
 fi
 

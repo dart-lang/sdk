@@ -164,7 +164,7 @@ failTest $? "Error collecting statistics from working copy"
 # switch to tmp for remainder of building
 cd $TMP_DIR
 
-gclient config svn://svn.chromium.org/dash/trunk/deps/compiler.deps >> $LOG_FILE 2>&1
+gclient config https://dart.googlecode.com/svn/branches/bleeding_edge/deps/compiler.deps >> $LOG_FILE 2>&1
 failTest $? "Error calling gclient config"
 
 GCLIENT_SYNC="-t "
