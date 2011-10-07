@@ -28,6 +28,7 @@ DRT_DIR = 'client/tests/drt'
 VERSION = DRT_DIR + '/LAST_VERSION'
 DRT_DARTIUM_LATEST_PATTERN = (
     'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
+DRT_DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/dartium-%(osname)s-inc'
 DRT_CHROMIUM_LATEST_PATTERN = (
     'gs://dart-dump-render-tree/latest/chromium-%(osname)s-*.zip')
 
@@ -108,14 +109,20 @@ def main():
   # Query for the lastest version
   pattern = DRT_DARTIUM_LATEST_PATTERN  % { 'osname' : osname }
   result, out = gsutil('ls', pattern)
-  if result != 0: # e.g. no access
+  if result == 0:
+    latest = out.split()[-1]
+    # use permanent link instead, just in case the latest zip entry gets deleted
+    # while we are downloading it.
+    latest = (DRT_DARTIUM_PERMANENT_PREFIX % { 'osname' : osname }
+              + latest[latest.rindex('/'):])
+  else: # e.g. no access
     pattern = DRT_CHROMIUM_LATEST_PATTERN  % { 'osname' : osname }
     result, out = gsutil('ls', pattern)
-    if result != 0:
+    if result == 0:
+      latest = out.split()[-1]
+    else:
       raise Exception("Couldn't retrieve DumpRenderTree: %s\n%s" % (
           pattern, str(out)))
-
-  latest = out.split()[-1]
 
   # Check if we need to update the file
   if os.path.exists(VERSION):
