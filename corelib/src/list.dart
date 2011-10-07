@@ -43,21 +43,21 @@ interface List<E> extends Collection<E> factory ListFactory {
 
   /**
    * Changes the length of the list. If [newLength] is greater than
-   * the current [length], entries are initialized to [:null:]. Throws a
-   * [UnsupportedOperationException] if the list is not extendable.
+   * the current [length], entries are initialized to [:null:]. Throws
+   * an [UnsupportedOperationException] if the list is not extendable.
    */
   void set length(int newLength);
 
   /**
    * Adds [value] at the end of the list, extending the length by
-   * one. Throws a [UnsupportedOperationException] if the list is not
+   * one. Throws an [UnsupportedOperationException] if the list is not
    * extendable.
    */
   void add(E value);
 
   /**
    * Adds [value] at the end of the list, extending the length by
-   * one. Throws a [UnsupportedOperationException] if the list is not
+   * one. Throws an [UnsupportedOperationException] if the list is not
    * extendable.
    */
   void addLast(E value);
@@ -65,7 +65,7 @@ interface List<E> extends Collection<E> factory ListFactory {
   /**
    * Appends all elements of the [collection] to the end of list.
    * Extends the length of the list by the length of [collection].
-   * Throws a [UnsupportedOperationException] if the list is not
+   * Throws an [UnsupportedOperationException] if the list is not
    * extendable.
    */
   void addAll(Collection<E> collection);
@@ -110,7 +110,7 @@ interface List<E> extends Collection<E> factory ListFactory {
 
   /**
    * Removes all elements in the list. The length of the list
-   * becomes zero. Throws a [UnsupportedOperationException] if
+   * becomes zero. Throws an [UnsupportedOperationException] if
    * the list is not extendable.
    */
   void clear();
@@ -129,26 +129,41 @@ interface List<E> extends Collection<E> factory ListFactory {
   E last();
 
   /**
+   * Returns a sub list copy of this list, from [start] to
+   * [:start + length:].
+   * Throws an [IndexOutOfRangeException] if [start] or
+   * [:start + length:] are out of range.
+   */
+  List<E> getRange(int start, int length);
+
+  /**
    * Copies [length] elements of the [from] array, starting
    * from [startFrom], into [:this:], starting at [start].
+   * Throws an [UnsupportedOperationException] if the list is
+   * not extendable.
+   * Throws an [IndexOutOfRangeException] if [start] or
+   * [:start + length:] are out of range for [:this:], or if
+   * [startFrom] is out of range for [from].
    */
   void setRange(int start, int length, List<E> from, [int startFrom]);
 
   /**
    * Removes the range in the list starting from [start] to
-   * [: start + length :].
+   * [:start + length:].
+   * Throws an [UnsupportedOperationException] if the list is
+   * not extendable.
+   * Throws an [IndexOutOfRangeException] if [start] or
+   * [:start + length:] are out of range.
    */
   void removeRange(int start, int length);
 
   /**
    * Inserts a new range in the list, starting from [start] to
-   * [: start + length :]. The entries are filled with [initialValue].
+   * [:start + length:]. The entries are filled with [initialValue].
+   * Throws an [UnsupportedOperationException] if the list is
+   * not extendable.
+   * Throws an [IndexOutOfRangeException] if [start] or
+   * [:start + length:] are out of range.
    */
   void insertRange(int start, int length, [E initialValue]);
-
-  /**
-   * Returns a sub list of this list, starting from [start] to
-   * [: start + length :].
-   */
-  List<E> getRange(int start, int length);
 }
