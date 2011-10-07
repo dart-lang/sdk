@@ -79,14 +79,7 @@ interface String extends Comparable, Hashable, Pattern factory Strings {
    * Returns a substring of this string in the given range.
    * [startIndex] is inclusive and [endIndex] is exclusive.
    */
-  String substring(int startIndex, int endIndex);
-
-  /**
-   * TODO(terry): Remove when VM supports default value for a function arg.
-   *              Change substring function's endIndex argument to have a
-   *              default value of this.length
-   */
-  String substringToEnd(int startIndex);
+  String substring(int startIndex, [int endIndex]);
 
   /**
    * Returns a new string where leading and trailing whitespaces of

@@ -477,7 +477,7 @@ class SyntaxErrorException implements Exception {
   String toString() {
     String location;
     if (_offset < _source.length) {
-      location = 'location: ' + _source.substringToEnd(_offset);
+      location = 'location: ' + _source.substring(_offset);
     } else {
       location = 'end of input';
     }

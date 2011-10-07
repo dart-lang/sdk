@@ -134,7 +134,9 @@ class StringBase {
     return -1;
   }
 
-  String substring(int startIndex, int endIndex) {
+  String substring(int startIndex, [int endIndex]) {
+    if (endIndex == null) endIndex = this.length;
+
     if ((startIndex < 0) || (startIndex > this.length)) {
       throw new IndexOutOfRangeException(startIndex);
     }
@@ -145,14 +147,6 @@ class StringBase {
       throw new IndexOutOfRangeException(startIndex);
     }
     return substringUnchecked_(startIndex, endIndex);
-  }
-
-  // TODO(terry): Temporary workaround until substring can support a default
-  //              argument for endIndex (when the VM supports default args).
-  //              This method is a place holder to flag breakage for apps
-  //              that depend on this behavior of substring.
-  String substringToEnd(int startIndex) {
-    return this.substring(startIndex, this.length);
   }
 
   String substringUnchecked_(int startIndex, int endIndex) {

@@ -60,7 +60,9 @@ class StringImplementation implements String native "String" {
     return this.concat(obj.toString());
   }
 
-  String substring(int startIndex, int endIndex) {
+  String substring(int startIndex, [int endIndex = null]) {
+    if (endIndex == null) endIndex = this.length;
+
     if ((startIndex < 0) || (startIndex > this.length)) {
       throw new IndexOutOfRangeException(startIndex);
     }
@@ -71,14 +73,6 @@ class StringImplementation implements String native "String" {
       throw new IndexOutOfRangeException(startIndex);
     }
     return _substringUnchecked(startIndex, endIndex);
-  }
-
-  // TODO(terry): Temporary workaround until substring can support a default
-  //              argument for endIndex (when the VM supports default args).
-  //              This method is a place holder to flag breakage for apps
-  //              that depend on this behavior of substring.
-  String substringToEnd(int startIndex) {
-    return this.substring(startIndex, this.length);
   }
 
   String trim() native;

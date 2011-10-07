@@ -75,7 +75,7 @@ class BenchUtil {
       sb.add(replacement(match));
       pos = match.end();
     }
-    sb.add(s.substringToEnd(pos));
+    sb.add(s.substring(pos));
 
     return sb.toString();
   }

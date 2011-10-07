@@ -77,6 +77,6 @@ class _DataAttributeMap implements Map<String, String> {
   // Helpers.
   String _attr(String key) => 'data-$key';
   bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substringToEnd(5);
+  String _strip(String key) => key.substring(5);
 }
 
