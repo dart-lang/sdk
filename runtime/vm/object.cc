@@ -5429,22 +5429,20 @@ RawString* String::Concat(const String& str1,
                           const String& str2,
                           Heap::Space space) {
   ASSERT(!str1.IsNull() && !str2.IsNull());
-  bool is_one_byte_string = true;
-  bool is_two_byte_string = true;
+  bool is_two_byte_string = false;
+  bool is_four_byte_string = false;
   if (str1.IsFourByteString() || str2.IsFourByteString()) {
-    is_one_byte_string = false;
-    is_two_byte_string = false;
+    is_four_byte_string = true;
   } else if (str1.IsTwoByteString() || str2.IsTwoByteString()) {
-    is_one_byte_string = false;
+    is_two_byte_string = true;
   }
-  if (is_one_byte_string) {
-    return OneByteString::Concat(str1, str2, space);
+  if (is_four_byte_string) {
+    return FourByteString::Concat(str1, str2, space);
   } else if (is_two_byte_string) {
-    ASSERT(str1.IsTwoByteString() || str2.IsTwoByteString());
     return TwoByteString::Concat(str1, str2, space);
   }
-  ASSERT(str1.IsFourByteString() || str2.IsFourByteString());
-  return FourByteString::Concat(str1, str2, space);
+  ASSERT(str1.IsOneByteString() && str2.IsOneByteString());
+  return OneByteString::Concat(str1, str2, space);
 }
 
 
