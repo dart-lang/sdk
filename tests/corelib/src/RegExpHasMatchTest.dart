@@ -6,9 +6,9 @@
 
 class RegExpHasMatchTest {
   static testMain() {
-    Expect.equals(false, new RegExp("bar", "").hasMatch("foo"));
-    Expect.equals(true, new RegExp("bar|foo", "").hasMatch("foo"));
-    Expect.equals(true, new RegExp("o+", "").hasMatch("foo"));
+    Expect.equals(false, new RegExp("bar").hasMatch("foo"));
+    Expect.equals(true, new RegExp("bar|foo").hasMatch("foo"));
+    Expect.equals(true, new RegExp("o+").hasMatch("foo"));
   }
 }
 

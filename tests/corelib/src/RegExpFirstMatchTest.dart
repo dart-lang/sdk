@@ -6,8 +6,8 @@
 
 class RegExpFirstMatchTest {
   static testMain() {
-    Expect.equals('cat', new RegExp("(\\w+)", "").firstMatch("cat dog")[0]);
-    Expect.equals(null, new RegExp("foo", "").firstMatch("bar"));
+    Expect.equals('cat', new RegExp("(\\w+)").firstMatch("cat dog")[0]);
+    Expect.equals(null, new RegExp("foo").firstMatch("bar"));
   }
 }
 

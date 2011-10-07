@@ -187,13 +187,30 @@ LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assi
 LangGuideTest/08_Expressions/A01/t02: Fail,Okay
 # end of main argument list.
 
+# RegExp flags are not a string anymore. Skip because only checked mode complains.
+LibTest/core/RegExp/RegExp/RegExp/A01/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A05/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A02/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A04/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A03/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape/RegExp/firstMatch/CharacterClassEscape/A05/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape/RegExp/firstMatch/CharacterClassEscape/A01/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape/RegExp/firstMatch/CharacterClassEscape/A06/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape/RegExp/firstMatch/CharacterClassEscape/A02/t01: Skip
+LibTest/core/RegExp/hasMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/hasMatch/DecimalEscape/A01/t04: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t02: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t04: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.13_CharacterClass/RegExp/firstMatch/CharacterClass/A02/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A02/t01: Fail
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A03/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A04/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A05/t01: Skip
+LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A06/t01: Skip
+
 # Following tests use the old syntax for default argument values.
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A01/t01: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.15_NonEmptyClassRanges/RegExp/firstMatch/NonEmptyClassRanges/A01/t03: Fail
-LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A05/t01: Fail
-LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A02/t01: Fail
-LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A04/t01: Fail
-LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.06_Assertion/RegExp/firstMatch/Assertion/A03/t01: Fail
 
 # Rationals are not part of the language anymore so the test below which
 # uses Rationals is incorrect. Marking as Fail,Okay

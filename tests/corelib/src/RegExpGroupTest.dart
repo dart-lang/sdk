@@ -6,7 +6,7 @@
 
 class RegExpGroupTest {
   static testMain() {
-    var match = new RegExp("(a(b)((c|de)+))", "").firstMatch("abcde");
+    var match = new RegExp("(a(b)((c|de)+))").firstMatch("abcde");
     Expect.equals('abcde', match.group(0));
     Expect.equals('abcde', match.group(1));
     Expect.equals('b', match.group(2));

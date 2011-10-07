@@ -5,7 +5,7 @@
 
 class RegEx2Test {
   static void testMain() {
-    final helloPattern = new RegExp("with (hello)", "");
+    final helloPattern = new RegExp("with (hello)");
     String s = "this is a string with hello somewhere";
     Match match = helloPattern.firstMatch(s);
     if (match != null) {

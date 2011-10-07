@@ -6,8 +6,8 @@
 
 class RegExpStringMatchTest {
   static testMain() {
-    Expect.equals('cat', new RegExp("(\\w+)", "").stringMatch("cat dog"));
-    Expect.equals(null, new RegExp("foo", "").stringMatch("bar"));
+    Expect.equals('cat', new RegExp("(\\w+)").stringMatch("cat dog"));
+    Expect.equals(null, new RegExp("foo").stringMatch("bar"));
   }
 }
 

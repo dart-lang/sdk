@@ -6,7 +6,7 @@
 
 class RegExpAllMatchesTest {
   static testIterator() {
-    var matches = new RegExp("foo", "").allMatches("foo foo");
+    var matches = new RegExp("foo").allMatches("foo foo");
     Iterator it = matches.iterator();
     Expect.equals(true, it.hasNext());
     Expect.equals('foo', it.next().group(0));
@@ -30,7 +30,7 @@ class RegExpAllMatchesTest {
   }
 
   static testForEach() {
-    var matches = new RegExp("foo", "").allMatches("foo foo");
+    var matches = new RegExp("foo").allMatches("foo foo");
     var str = "";
     matches.forEach((Match m) {
       str += m.group(0);
@@ -39,7 +39,7 @@ class RegExpAllMatchesTest {
   }
 
   static testFilter() {
-    var matches = new RegExp("foo?", "").allMatches("foo fo foo fo");
+    var matches = new RegExp("foo?").allMatches("foo fo foo fo");
     var filtered = matches.filter((Match m) {
       return m.group(0) == 'foo';
     });
@@ -52,7 +52,7 @@ class RegExpAllMatchesTest {
   }
 
   static testEvery() {
-    var matches = new RegExp("foo?", "").allMatches("foo fo foo fo");
+    var matches = new RegExp("foo?").allMatches("foo fo foo fo");
     Expect.equals(true, matches.every((Match m) {
       return m.group(0).startsWith("fo");
     }));
@@ -62,7 +62,7 @@ class RegExpAllMatchesTest {
   }
 
   static testSome() {
-    var matches = new RegExp("foo?", "").allMatches("foo fo foo fo");
+    var matches = new RegExp("foo?").allMatches("foo fo foo fo");
     Expect.equals(true, matches.some((Match m) {
       return m.group(0).startsWith("fo");
     }));
@@ -75,16 +75,16 @@ class RegExpAllMatchesTest {
   }
 
   static testIsEmpty() {
-    var matches = new RegExp("foo?", "").allMatches("foo fo foo fo");
+    var matches = new RegExp("foo?").allMatches("foo fo foo fo");
     Expect.equals(false, matches.isEmpty());
-    matches = new RegExp("fooo", "").allMatches("foo fo foo fo");
+    matches = new RegExp("fooo").allMatches("foo fo foo fo");
     Expect.equals(true, matches.isEmpty());
   }
 
   static testGetCount() {
-    var matches = new RegExp("foo?", "").allMatches("foo fo foo fo");
+    var matches = new RegExp("foo?").allMatches("foo fo foo fo");
     Expect.equals(4, matches.length);
-    matches = new RegExp("fooo", "").allMatches("foo fo foo fo");
+    matches = new RegExp("fooo").allMatches("foo fo foo fo");
     Expect.equals(0, matches.length);
   }
 

@@ -7,7 +7,7 @@ class RegExp3Test {
   static testMain() {
     var i = 2000;
     try {
-      RegExp exp = new RegExp("[", "");
+      RegExp exp = new RegExp("[");
       i = 100;  // Should not reach here.
     } catch (IllegalJSRegExpException e) {
       i = 0;

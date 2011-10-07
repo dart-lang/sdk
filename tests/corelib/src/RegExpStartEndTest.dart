@@ -4,7 +4,7 @@
 
 main() {
   var matches =
-      new RegExp("(a(b)((c|de)+))", "").allMatches("abcde abcde abcde");
+      new RegExp("(a(b)((c|de)+))").allMatches("abcde abcde abcde");
   var it = matches.iterator();
   int start = 0;
   int end = 5;
