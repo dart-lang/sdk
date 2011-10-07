@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart test for sort routines.
-// VMOptions=--expose_core_impl
 #library("SortTest.dart");
+#import("dart:coreimpl");
 #source("SortHelper.dart");
 
 class SortTest {

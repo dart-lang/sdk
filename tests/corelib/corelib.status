@@ -25,12 +25,6 @@ SortTest: Skip
 ListSortTest: Skip
 
 [ $arch == chromium ]
-# Bug 5275717
-MapTest: Fail
-SplayTreeTest: Fail
-QueueTest: Fail
-ExceptionImplementationTest: Fail
-MapsTest: Fail
 
 
 [ $arch == x64 ]

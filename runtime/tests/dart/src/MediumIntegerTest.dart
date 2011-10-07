@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing Mints. Note that the tests may not work on 64-bit machines,
 // as Smi's would be used to represent many of the numbers.
-// VMOptions=--expose_core_impl
+
+#library("MediumIntegerTest.dart");
+#import("dart:coreimpl");
 
 class MediumIntegerTest {
 

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart test for Splaytrees.
-// VMOptions=--expose_core_impl
+#library("SplayTreeTest.dart");
+#import("dart:coreimpl");
+
 
 class SplayTreeTest {
 

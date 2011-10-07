@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing Bigints.
 // TODO(srdjan): Make sure the numbers are Bigint and not Mint or Smi.
-// VMOptions=--expose_core_impl
+
+#library("BigIntegerTest.dart");
+#import("dart:coreimpl");
 
 class BigIntegerTest {
 

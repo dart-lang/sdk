@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing class 'StringBase' (currently VM specific).
+// We use that flag to disable privacy.
 // VMOptions=--expose_core_impl
+
+#library("StringBaseTest.dart");
+#import("dart:coreimpl");
+
 
 class StringBaseTest {
 
