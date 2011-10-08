@@ -96,7 +96,7 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean allowNoSuchType() {
+  public boolean shouldWarnOnNoSuchType() {
     return false;
   }
 

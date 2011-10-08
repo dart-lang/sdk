@@ -189,8 +189,8 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean allowNoSuchType() {
-    return false;
+  public boolean shouldWarnOnNoSuchType() {
+    return compilerOptions.shouldWarnOnNoSuchType();
   }
 
   @Override

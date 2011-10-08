@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class BadNamedConstructorNegativeTest {
-  A.foo() {}
+// uses experimental flag: --warn_no_such_type that allows compilation to 
+// succeed even when types fail to resolve. in the case below, the 
+// application should throw a runtime error.
+
+main() {
+  var a = new A();
 }

@@ -161,10 +161,6 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkNumErrors("StaticSuperMethodNegativeTest.dart", 1);
   }
 
-  public void testBadNamedConstructorNegativeTest() {
-    checkNumErrors("BadNamedConstructorNegativeTest.dart", 3);
-  }
-
   public void testCyclicRedirectedConstructorNegativeTest() {
     checkNumErrors("CyclicRedirectedConstructorNegativeTest.dart", 3);
   }

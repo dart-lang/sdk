@@ -53,6 +53,7 @@ public class DollarMangler implements DartMangler {
   private static final String HOISTED_OPERATOR_SUFFIX = "$HoistedOperator";
   private static final String HOISTED_CONSTRUCTOR_SUFFIX = "$HoistedConstructor";
   private static final String HOISTED_STATIC_SUFFIX = "$HoistedStatic";
+  private static final String DYNAMIC_CLASS_NAME = "$_Dynamic_";
 
 
   private static final String NATIVE_PREFIX = "native_";
@@ -139,7 +140,8 @@ public class DollarMangler implements DartMangler {
 
   @Override
   public String mangleClassName(ClassElement classElement) {
-    return mangleClassNameHack(classElement.getLibrary(), classElement.getName());
+    String className = !classElement.isDynamic() ? classElement.getName() : DYNAMIC_CLASS_NAME;
+    return mangleClassNameHack(classElement.getLibrary(), className);
   }
 
   @Override
@@ -183,6 +185,7 @@ public class DollarMangler implements DartMangler {
     // We can't just return the constructor + suffix.
     // A class might have factories for different classes.
     String factoryName;
+    className = className.equals("<dynamic>") ? DYNAMIC_CLASS_NAME : className;
     if (constructor.equals("")) {
       factoryName = className + "$";
     } else {

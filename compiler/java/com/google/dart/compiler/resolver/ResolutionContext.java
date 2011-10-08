@@ -180,7 +180,9 @@ public class ResolutionContext implements ResolutionErrorListener {
         }
         break;
     }
-    if (!allowNoSuchType()) {
+    if (shouldWarnOnNoSuchType()) {
+      typeError(identifier, DartCompilerErrorCode.NO_SUCH_TYPE, identifier);
+    } else {
       resolutionError(identifier, DartCompilerErrorCode.NO_SUCH_TYPE, identifier);
     }
     return typeProvider.getDynamicType();
@@ -260,9 +262,9 @@ public class ResolutionContext implements ResolutionErrorListener {
   public void typeError(DartNode node, ErrorCode errorCode, Object... arguments) {
     context.typeError(new DartCompilationError(node, errorCode, arguments));
   }
-  
-  public boolean allowNoSuchType() {
-    return context.allowNoSuchType();
+
+  public boolean shouldWarnOnNoSuchType() {
+    return context.shouldWarnOnNoSuchType();
   }
 
   class Selector extends DartNodeTraverser<Element> {

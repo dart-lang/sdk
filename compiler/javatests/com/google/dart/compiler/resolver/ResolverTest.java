@@ -18,6 +18,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.testing.TestCompilerContext;
+import com.google.dart.compiler.testing.TestCompilerContext.EventKind;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
@@ -352,14 +353,49 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testBadFactory() {
+    encounteredErrors = Lists.newArrayList();
+
+    TestCompilerContext context1 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
+      @Override
+      public void compilationError(DartCompilationError event) {
+        encounteredErrors.add(event);
+      }
+      @Override
+      public boolean shouldWarnOnNoSuchType() {
+        return false;
+      }
+    };
     resolve(parseUnit("class Object {}",
                       "class Zebra {",
                       "  factory foo() {}",
-                      "}"), getContext());
-    ErrorCode[] expected = {
-      DartCompilerErrorCode.NO_SUCH_TYPE
+                      "}"), context1);
+    {
+      ErrorCode[] expected = {
+          DartCompilerErrorCode.NO_SUCH_TYPE
+      };
+      checkExpectedErrors(expected);
+    }
+
+    encounteredErrors = Lists.newArrayList();
+    TestCompilerContext context2 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
+      @Override
+      public void compilationError(DartCompilationError event) {
+        encounteredErrors.add(event);
+      }
+      @Override
+      public boolean shouldWarnOnNoSuchType() {
+        return true;
+      }
     };
-    checkExpectedErrors(expected);
+    resolve(parseUnit("class Object {}",
+                      "class Zebra {",
+                      "  factory foo() {}",
+                      "}"), context2);
+    {
+      ErrorCode[] expected = {
+      };
+      checkExpectedErrors(expected);
+    }
   }
 
   /**

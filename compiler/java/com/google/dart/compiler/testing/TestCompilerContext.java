@@ -84,6 +84,8 @@ public class TestCompilerContext extends DartCompilerListener implements DartCom
   protected void handleEvent(DartCompilationError event, EventKind kind) {
     errors.add(event.getErrorCode());
     if (!ignoredEvents.contains(kind)) {
+      System.err.println("Unexpected Event: " + event + " of kind "
+                         + kind);
       throw new AssertionError(event);
     }
   }
@@ -130,7 +132,7 @@ public class TestCompilerContext extends DartCompilerListener implements DartCom
   }
 
   @Override
-  public boolean allowNoSuchType() {
+  public boolean shouldWarnOnNoSuchType() {
     return false;
   }
 

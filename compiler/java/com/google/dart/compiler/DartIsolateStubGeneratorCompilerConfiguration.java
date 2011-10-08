@@ -16,7 +16,7 @@ public class DartIsolateStubGeneratorCompilerConfiguration extends DefaultCompil
   }
 
   @Override
-  public boolean allowNoSuchType() {
+  public boolean shouldWarnOnNoSuchType() {
     return true;
   }
 }

@@ -443,11 +443,11 @@ public class GenerateJavascriptAST {
         for (Element element : classElement.getMembers()) {
           classMembers.add(element);
         }
-        
+
         if (Elements.needsImplicitDefaultConstructor(classElement)) {
           addImplicitDefaultConstructor(x, classElement, classMembers);
         }
-        
+
         for (Element member : classMembers) {
           switch(ElementKind.of(member)) {
             case METHOD: {
@@ -497,7 +497,7 @@ public class GenerateJavascriptAST {
       return null;
     }
 
-    private void addImplicitDefaultConstructor(DartClass x, ClassElement classElement, 
+    private void addImplicitDefaultConstructor(DartClass x, ClassElement classElement,
         List<Element> classElementMembers) {
       for (DartNode member : x.getMembers()) {
         if (member instanceof DartMethodDefinition) {
@@ -951,7 +951,7 @@ public class GenerateJavascriptAST {
           if (init.isInvocation()) {
             JsExprStmt statement = (JsExprStmt) generate(init);
             return (JsInvocation) statement.getExpression();
-          }  
+          }
         }
       }
       return null;
@@ -2757,19 +2757,26 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitNewExpression(DartNewExpression x) {
       ConstructorElement element = x.getSymbol();
-      String className = element.getConstructorType().getName();
-      // TODO(floitsch): We should have a JsNames instead of creating the string representations.
-      String name = mangler.createFactorySyntax(className, element.getName(), unitLibrary);
-      // We add the class name of the holder of the constructor as a qualifier.
-      JsName classJsName = getJsName(element.getEnclosingElement());
-      JsNameRef consName = AstUtil.newNameRef(classJsName.makeRef(), name);
-
-      JsExpression newExpr = generateConstructorInvocation(x, consName, element);
-      if (x.isConst()) {
-        newExpr = maybeInternConst(newExpr, Types.constructorType(x).getArguments());
+      JsExpression newExpr;
+      if (element != null && element.getConstructorType() != null) {
+        String className = element.getConstructorType().getName();
+        // TODO(floitsch): We should have a JsNames instead of creating the string representations.
+        String name = mangler.createFactorySyntax(className, element.getName(), unitLibrary);
+        // We add the class name of the holder of the constructor as a qualifier.
+        JsName classJsName = getJsName(element.getEnclosingElement());
+        JsNameRef consName = AstUtil.newNameRef(classJsName.makeRef(), name);
+        newExpr = generateConstructorInvocation(x, consName, element);
+        if (x.isConst()) {
+          newExpr = maybeInternConst(newExpr, Types.constructorType(x).getArguments());
+        }
+      } else {
+        // TODO(zundel): No symbol means the type was never resolved.
+        // This should probably throw a no such method exception
+        newExpr = translationContext.getProgram().getNullLiteral();
       }
       return newExpr;
     }
+
 
     // Compile time constants expressions must be canonicalized.
     // We do this with the javascript native "$intern" method.
@@ -3146,7 +3153,7 @@ public class GenerateJavascriptAST {
         classElement = element.getEnclosingElement();
         elementName = element.getName();
       }
-      
+
       // TODO(floitsch): it would be good, if we could get a js-name instead of just a string.
       // This way the debugging information would be better.
       // We need to generate the JsName (for the initializer/factory) once only and store it

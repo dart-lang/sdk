@@ -81,7 +81,7 @@ public interface CompilerConfiguration {
    */
   boolean expectEntryPoint();
 
-  boolean allowNoSuchType();
+  boolean shouldWarnOnNoSuchType();
 
   /**
    * Returns <code>true</code> if the compiler should collect comments.

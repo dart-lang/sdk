@@ -94,8 +94,8 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean allowNoSuchType() {
-    return delegate.allowNoSuchType();
+  public boolean shouldWarnOnNoSuchType() {
+    return delegate.shouldWarnOnNoSuchType();
   }
 
   @Override

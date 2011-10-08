@@ -31,95 +31,112 @@ public class CommandLineOptions {
   public static class CompilerOptions {
 
     @Option(name = "--batch", aliases = { "-batch" },
-        usage = "run in batch mode, accepting command lines from stdin")
+        usage = "Batch mode (for unit testing)")
     private boolean batch = false;
 
     @Option(name = "--check-only", aliases = { "-check-only" },
-        usage = "do not generate output, only analyze")
+        usage = "Do not generate output, only analyze")
     private boolean checkOnly = false;
 
+<<<<<<< HEAD
+    @Option(name = "--warn_no_such_type",
+        usage = "Treat some type checks as warnints\n instead of fatal errors")
+    private boolean shouldWarnOnNoSuchType = false;
+=======
     @Option(name = "--enable_type_checks", usage = "generate runtime type checks")
     private boolean developerModeChecks = false;
+>>>>>>> master
 
     @Option(name = "--disable-type-optimizations",
-            usage = "Debugging: disable type optimizations")
+        usage = "Turn off type optimizations\n (for debugging)")
     private boolean disableTypeOptimizations = false;
 
     @Option(name = "--documentation-lib", aliases = { "-documentation-lib" },
-        usage = "only generate documentation for the given library")
+        usage = "Only generate docs for the\n given library")
     private String documentationLibrary = null;
 
     @Option(name = "--documentation-out", aliases = { "-documentation-out" },
-        usage = "directory to receive documentation output")
+        usage = "Directory to write documentation")
     private String documentationOutputDirectory = null;
 
     @Option(name = "--generate-documentation", aliases = { "-generate-documentation" },
-        usage = "generate documentation for the provided source files")
+        usage = "Generate docs from source")
     private boolean generateDocumentation = false;
 
     @Option(name = "--generate-isolate-stubs", aliases = { "-generate-isolate-stubs" },
-        usage = "classes to generate stubs for, comma-separated")
+        usage = "Classes to generate stubs\n (comma-separated list)")
     private String generateIsolateStubs = null;
 
     @Option(name = "--human-readable-output",
-            usage = "Debugging: generates human readable javascript output")
+        usage = "Write human readable javascript")
     private boolean generateHumanReadableOutput = false;
 
-    @Option(name = "--ignore-unrecognized-flags", usage = "ignore unrecognized command line flags")
+    @Option(name = "--ignore-unrecognized-flags",
+        usage = "Ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
 
     @Option(name = "--isolate-stub-out", aliases = { "-isolate-stub-out" },
-        usage = "file to receive generated stub output")
+        usage = "File to receive generated stub output")
     private String isolateStubOutputFile = null;
 
-    @Option(name = "--jvm-metrics-detail", usage = "summary or verbose (default is summary)")
+    @Option(name = "--jvm-metrics-detail",
+        usage = "Display summary (default) or\n verbose metrics")
     private String jvmMetricDetail = "summary";
 
-    @Option(name = "--jvm-metrics-format", usage = "tabular or pretty (default is tabular)")
+    @Option(name = "--jvm-metrics-format",
+        usage = "Output metrics in tabular (default)\n or pretty format")
     private String jvmMetricFormat = "tabular";
 
-    @Option(name = "--jvm-metrics-type", usage = "comma-separated list, including:\n"
-        + "  all:  show all available stat types (default)\n"
-        + "  gc:   show garbage collection stats\n"
-        + "  mem:  show memory stats\n" + "  jit:  show jit stats")
+    @Option(name = "--jvm-metrics-type",
+        usage = "Comma-separated list to display:\n "
+        + "  all:  (default) all stat types\n "
+        + "  gc:   show garbage collection stats\n "
+        + "  mem:  show memory stats\n "
+        + "  jit:  show jit stats")
     private String jvmMetricType = "all";
 
     @Option(name = "--noincremental", aliases = { "-noincremental" },
-        usage = "disable incremental compilation")
+        usage = "Disable incremental compilation")
     private boolean noincremental = false;
 
     private boolean optimize = false;
 
     /**
-     * Enables optimization of the generated JavaScript.
+     * Enables optimization of the generated javascript.
      */
-    @Option(name = "--optimize", aliases = { "-optimize" }, usage = "produce optimized code")
+    @Option(name = "--optimize", aliases = { "-optimize" },
+        usage = "Produce optimized code")
     public void setOptimize(boolean optimize) {
       this.optimize = optimize;
     }
 
-    @Option(name = "--out", usage = "write generated JavaScript to the specified file")
+    @Option(name = "--out",
+        usage = "Write generated JavaSccript  to a file")
     private File outputFilename = null;
 
     // TODO(zundel): -out is for backward compatibility until scripts are updated
-    @Option(name = "--work", aliases = { "-out" }, usage = "directory to receive compiler output")
+    @Option(name = "--work", aliases = { "-out" },
+        usage = "Directory to receive compiler output\n for future incremental builds")
     private File workDirectory = new File("out");
 
-    @Option(name = "--help", aliases = { "-?", "-help" }, usage = "prints this help message")
+    @Option(name = "--help", aliases = { "-?", "-help" },
+        usage = "Prints this help message")
     private boolean showHelp = false;
 
-    @Option(name = "--jvm-metrics", usage = "print jvm metrics at end of compilation")
+    @Option(name = "--jvm-metrics",
+        usage = "Print jvm metrics at end of compile")
     private boolean showJvmMetrics = false;
 
-    @Option(name = "--metrics", usage = "print compilation metrics")
+    @Option(name = "--metrics",
+        usage = "Print compilation metrics")
     private boolean showMetrics = false;
 
     @Option(name = "--fatal-type-errors", aliases = { "-fatal-type-errors" },
-        usage = "type errors are fatal errors (instead of warnings)")
+        usage = "Treat type errors as fatal")
     private boolean typeErrorsAreFatal = false;
 
     @Option(name = "--fatal-warnings", aliases = { "-Werror" },
-        usage = "warnings (excluding type warnings) are fatal errors")
+        usage = "Treat non-type warnings as fatal")
     private boolean warningsAreFatal = false;
 
     @Argument
@@ -243,6 +260,14 @@ public class CommandLineOptions {
     }
 
     /**
+     * Returns returns true if some resolver static errors should be reported as type
+     * warnings instead of fatal errors.
+     */
+    public boolean shouldWarnOnNoSuchType() {
+      return shouldWarnOnNoSuchType;
+    }
+
+    /**
      * Returns whether type errors are fatal.
      */
     public boolean typeErrorsAreFatal() {
@@ -266,19 +291,19 @@ public class CommandLineOptions {
    */
   public static class DartRunnerOptions extends CompilerOptions implements RunnerOptions {
 
-    @Option(name = "--compile-only", usage = "compile but do not execute")
+    @Option(name = "--compile-only", usage = "Compile but do not execute")
     private boolean compileOnly = false;
 
-    @Option(name = "--expose_core_impl", usage = "automatic import of dart:coreimpl library")
+    @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
     private boolean exposeCoreImpl = false;
 
-    @Option(name = "--verbose", usage = "extra diagnostic output")
+    @Option(name = "--verbose", usage = "Extra diagnostic output")
     private boolean verbose = false;
 
-    @Option(name="--prof", usage = "enable profiling")
+    @Option(name="--prof", usage = "Enable profiling")
     private boolean prof;
 
-    @Option(name = "--rhino", usage = "use rhino as the JavaScript interpreter")
+    @Option(name = "--rhino", usage = "Use rhino as the javascript interpreter")
     private boolean rhino = false;
 
     /**
@@ -318,6 +343,10 @@ public class CommandLineOptions {
     @Override
     public boolean verbose() {
       return verbose;
+    }
+
+    public void setVerbose(boolean value) {
+      this.verbose = value;
     }
   }
 

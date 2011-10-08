@@ -60,10 +60,14 @@ final class DartCompilerMainContext extends DartCompilerListener implements
 
   @Override
   public void typeError(DartCompilationError event) {
-    if (!allowNoSuchType() || event.getErrorCode() != DartCompilerErrorCode.CANNOT_BE_RESOLVED) {
+    if (!shouldWarnOnNoSuchType()
+        || ((event.getErrorCode() != DartCompilerErrorCode.CANNOT_BE_RESOLVED)
+            && (event.getErrorCode() != DartCompilerErrorCode.NO_SUCH_TYPE)
+            && (event.getErrorCode() != DartCompilerErrorCode.INTERFACE_HAS_NO_METHOD_NAMED))) {
+
       incrementTypeErrorCount();
-      listener.typeError(event);
     }
+    listener.typeError(event);
   }
 
   @Override
@@ -124,7 +128,6 @@ final class DartCompilerMainContext extends DartCompilerListener implements
     if (libSrc == lib) {
       return getApplicationUnit();
     }
-    // TODO (danrubel) cache parsed library results
     try {
       return DartParser.getSourceParser(libSrc, listener).preProcessLibraryDirectives(libSrc);
     } catch (IOException ex) {
@@ -164,8 +167,8 @@ final class DartCompilerMainContext extends DartCompilerListener implements
   }
 
   @Override
-  public boolean allowNoSuchType() {
-    return compilerConfiguration.allowNoSuchType();
+  public boolean shouldWarnOnNoSuchType() {
+    return compilerConfiguration.shouldWarnOnNoSuchType();
   }
 
   @Override

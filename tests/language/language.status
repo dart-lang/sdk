@@ -53,25 +53,29 @@ GenericParameterizedExtendsTest: Skip  # Bug 5391643
 
 # Problems specific to dartc optimized mode
 [ ($arch == dartc || $arch == chromium) && $mode == release ]
-MethodInvocationTest: Fail           # Bug  5392266
-Label2NegativeTest: Crash            # Bug 5318228
-NullPointerExceptionTest: Fail       # Bug 5391976
-CallThroughNullGetterTest: Fail      # Bug 5391976
-Private3Test: Fail                   # Bug 5391976
-Switch3NegativeTest: Crash           # Bug 5318228
-BadNamedParametersTest: Fail    # Bug Bug 4202974 - release mode is not throwing NSME
+MethodInvocationTest: Fail               # Bug  5392266
+Label2NegativeTest: Crash                # Bug 5318228
+NullPointerExceptionTest: Fail           # Bug 5391976
+CallThroughNullGetterTest: Fail          # Bug 5391976
+Private3Test: Fail                       # Bug 5391976
+Switch3NegativeTest: Crash               # Bug 5318228
+BadNamedParametersTest: Fail             # Bug Bug 4202974 - release mode is not throwing NSME
+
+# Problems specific to dartc debug mode
+[ ($arch == dartc || $arch == chromium) && $mode == debug ]
 
 
 [ $arch == dartc || $arch == chromium ]
-Prefix11NegativeTest: Fail # Bug 5406175
-Prefix12NegativeTest: Fail # Bug 5406175
-FunctionTypeParameterNegativeTest: Fail # Bug 4568007
-ConstConstructor1NegativeTest: FAIL  # 5142545
-ConstConstructor2NegativeTest: FAIL  # 5142545
-MathTest: FAIL                       # 5165080
-StringConcatTest: FAIL               # 5196164
-NamedParametersTest: Fail            # Implementation in progress.
-NamedParametersTypeTest: Fail        # Implementation in progress.
+Prefix11NegativeTest: Fail               # Bug 5406175
+Prefix12NegativeTest: Fail               # Bug 5406175
+FunctionTypeParameterNegativeTest: Fail  # Bug 4568007
+ConstConstructor1NegativeTest: FAIL      # Bug 5142545
+ConstConstructor2NegativeTest: FAIL      # Bug 5142545
+
+MathTest: FAIL                           # Bug 5165080
+StringConcatTest: FAIL                   # Bug 5196164
+NamedParametersTest: Fail                # Implementation in progress.
+NamedParametersTypeTest: Fail            # Implementation in progress.
 NamedParametersWithConversionsTest: Fail # Implementation in progress.
 NamedParametersNegativeTest: Fail    # Implementation in progress.
 NamedParameters2NegativeTest: Fail   # Implementation in progress.
@@ -84,14 +88,12 @@ NamedParametersPassingFalseTest: Fail # Bug
 NamedParametersPassingFalsyTest: Fail # Bug
 InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
 RegExp3Test: Fail                    # 5299683
-InterfaceFactory3NegativeTest: Fail  # 5387405
+InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 SuperNegativeTest: Fail # Now that super calls are automatically injected this test doesn't make sense
-NullToStringTest: Fail  # Bug 5421978
-
-# Crashes in dartc.
-FunctionTypeAliasTest: Crash  # Bug 4519208.
+NullToStringTest: Fail       # Bug 5421978
+FunctionTypeAliasTest: Crash # Bug 4519208.
 
 # Other bugs (or unimplemented features) in dartc.
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
@@ -111,7 +113,7 @@ LocalFunction3Test: Fail     # Bug 4202974.
 
 FieldNegativeTest: Fail      # Bug 4207626.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
-ExampleConstructorTest: Fail  # Bug 4205742.
+ExampleConstructorTest: Fail # Bug 4205742.
 CTConstTest: Fail            # Bug 4510015.
 Constructor2NegativeTest: Fail  # Bug 4208594.
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
@@ -129,11 +131,12 @@ OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
 CharEscapeTest: Fail
 FunctionTypeParameter2NegativeTest: Fail # Bug 4568007
+TypeDartcTest: Fail                      # Bug 5432720 
 
 # The following tests use missing error classes. Bug 4385894.
 AssertTest: Fail             # Uses AssertError class.
 
-ThirdTest: Fail # Bug 5339586
+ThirdTest: Fail              # Bug 5339586
 
 
 # VM specific tests that should not be run by DartC.

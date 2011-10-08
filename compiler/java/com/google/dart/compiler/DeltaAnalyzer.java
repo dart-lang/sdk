@@ -183,7 +183,7 @@ class DeltaAnalyzer {
     }
 
     @Override
-    public boolean allowNoSuchType() {
+    public boolean shouldWarnOnNoSuchType() {
       return false;
     }
 

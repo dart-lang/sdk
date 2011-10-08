@@ -240,7 +240,7 @@ public class Resolver {
       if (Elements.needsImplicitDefaultConstructor(classElement)) {
         checkImplicitDefaultDefaultSuperInvocation(cls, classElement);
       }
-      
+
       context = previousContext;
       currentHolder = previousHolder;
       return classElement;
@@ -255,16 +255,16 @@ public class Resolver {
       if (Elements.needsImplicitDefaultConstructor(classElement)) {
         return true;
       }
-      
+
       ConstructorElement defaultCtor = Elements.lookupConstructor(classElement, "");
       if (defaultCtor != null) {
         return defaultCtor.getParameters().isEmpty();
       }
-      
+
       return false;
     }
-    
-    private void checkImplicitDefaultDefaultSuperInvocation(DartClass cls, 
+
+    private void checkImplicitDefaultDefaultSuperInvocation(DartClass cls,
         ClassElement classElement) {
       assert (Elements.needsImplicitDefaultConstructor(classElement));
 
@@ -646,7 +646,7 @@ public class Resolver {
       Element element = getContext().getScope().findElement(x.getTargetName());
       if (element == null) {
         if (isStaticContextOrInitializer()) {
-          if (!context.allowNoSuchType()) {
+          if (!context.shouldWarnOnNoSuchType()) {
             resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED, x.getTargetName());
           }
         }
@@ -872,7 +872,7 @@ public class Resolver {
         }
       });
 
-      
+
       if (ElementKind.of(element).equals(ElementKind.CLASS)) {
         // Check for default constructor or implicit default constructor
         ClassElement classElement = (ClassElement) element;
@@ -885,14 +885,14 @@ public class Resolver {
               classElement = defaultClass.getElement();
               element = Elements.lookupConstructor(classElement, "");
             }
-            
+
             if (element == null) {
               return recordElement(x, element);
             }
           }
         }
       }
-      
+
       // If there is a default implementation, lookup the constructor in the
       // default class.
       ConstructorElement constructor = checkIsConstructor(x, element);
@@ -914,7 +914,7 @@ public class Resolver {
             return recordElement(x, element);
           }
         }
-        
+
         // Will check that element is not null.
         constructor = checkIsConstructor(x, element);
       }
@@ -1160,7 +1160,7 @@ public class Resolver {
 
     private ConstructorElement checkIsConstructor(DartNewExpression source, Element element) {
       if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
-        if (!context.allowNoSuchType()) {
+        if (!context.shouldWarnOnNoSuchType()) {
           resolutionError(source.getConstructor(),
               DartCompilerErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
         }
@@ -1179,7 +1179,7 @@ public class Resolver {
           superCall = Elements.lookupConstructor(supertype.getElement(), "");
         }
       }
-      
+
       if ((superCall == null)
           && !currentClass.isObject()
           && !currentClass.isObjectChild()) {
@@ -1188,8 +1188,8 @@ public class Resolver {
           ClassElement superElement = supertype.getElement();
           if (superElement != null) {
             if (!hasDefaultConstructor(superElement)) {
-              resolutionError(node, 
-                  DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR, 
+              resolutionError(node,
+                  DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
                   superElement.getName());
             }
           }
@@ -1266,7 +1266,7 @@ public class Resolver {
           constructorElement = (ConstructorElement) element;
         }
       }
-      
+
       checkConstructor(node, constructorElement);
     }
 
@@ -1305,7 +1305,6 @@ public class Resolver {
     }
   }
 
-  @SuppressWarnings("deprecation")
   private void checkRedirectConstructorCycle(List<ConstructorElement> constructors,
                                              ResolutionContext context) {
     for (ConstructorElement element : constructors) {

@@ -118,7 +118,7 @@ public interface DartCompilerContext {
    */
   CompilerMetrics getCompilerMetrics();
 
-  boolean allowNoSuchType();
+  boolean shouldWarnOnNoSuchType();
 
   /**
    * Returns the {@link CompilerConfiguration} instance.

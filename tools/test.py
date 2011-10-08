@@ -1104,8 +1104,13 @@ class Rule(object):
     if len(self.path) > len(path):
       return False
     for i in xrange(len(self.path)):
-      if not self.path[i].match(path[i]):
-        return False
+      try:
+        if not self.path[i].match(path[i]):
+          return False
+      except: 
+        print "Invalid reguar expression %s in .status file. " % '/'.join(path)
+        print "Try escaping special characters with \\" 
+        raise
     return True
 
 
