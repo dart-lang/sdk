@@ -57,6 +57,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
@@ -76,6 +77,7 @@ import java.util.Set;
  * @author johnlenz@google.com (John Lenz)
  */
 public class RuntimeTypeInjector {
+  private final boolean emitTypeChecks;
   private final TraversalContextProvider context;
   private final JsBlock globalBlock;
   private final JsScope globalScope;
@@ -87,7 +89,7 @@ public class RuntimeTypeInjector {
   RuntimeTypeInjector(
       TraversalContextProvider context,
       CoreTypeProvider typeProvider,
-      TranslationContext translationContext) {
+      TranslationContext translationContext, boolean emitTypeChecks) {
     this.context = context;
     this.translationContext = translationContext;
     JsProgram program = translationContext.getProgram();
@@ -95,6 +97,7 @@ public class RuntimeTypeInjector {
     this.globalScope = program.getScope();
     this.builtinTypes = makeBuiltinTypes(typeProvider);
     this.typeProvider = typeProvider;
+    this.emitTypeChecks = emitTypeChecks;
   }
 
   private Map<ClassElement, String> makeBuiltinTypes(CoreTypeProvider typeProvider) {
@@ -744,8 +747,7 @@ public class RuntimeTypeInjector {
     return call(src, nameref(src, rtt, "implementedBy"), lhs);
   }
 
-  private JsExpression generateRefiedTypeVariableComparison(
-      JsExpression lhs, TypeVariable type,  ClassElement contextClassElement, SourceInfo src) {
+  private JsExpression getReifiedTypeVariableRTT(TypeVariable type, ClassElement contextClassElement) {
     JsExpression rttContext;
     if (!inFactory()) {
       // build: this.typeinfo.implementedTypes['class'].typeArgs;
@@ -756,6 +758,12 @@ public class RuntimeTypeInjector {
     }
     // rtt = rttContext.typeArgs[x]
     JsExpression rtt = buildTypeLookupExpression(type, contextClassElement.getTypeParameters(), rttContext);
+    return rtt;
+  }
+
+  private JsExpression generateRefiedTypeVariableComparison(
+      JsExpression lhs, TypeVariable type,  ClassElement contextClassElement, SourceInfo src) {
+    JsExpression rtt = getReifiedTypeVariableRTT(type, contextClassElement);
     return call(src, nameref(src, rtt, "implementedBy"), lhs);
   }
 
@@ -805,5 +813,129 @@ public class RuntimeTypeInjector {
         || member == null
         || member.getModifiers().isFactory()
         || member.getModifiers().isStatic();
+  }
+
+
+  /**
+   * Optionally emit a runtime type check, which is a call to $chk passing the
+   * runtime type object for the required type and an expression.
+   * 
+   * @param enclosingClass enclosing class element
+   * @param expr expression to check
+   * @param type {@link Type} to check against, null is unknown
+   * @param src source info to use for the generated code
+   * @return an expression wrapping the type check call
+   */
+  JsExpression addTypeCheck(ClassElement enclosingClass, JsExpression expr, Type type,
+      Type exprType, SourceInfo src) {
+    if (!emitTypeChecks || isStaticallyGoodAssignment(type, exprType)) {
+      return expr;
+    }
+    if (isStaticallyBadAssignment(type, exprType, expr)) {
+      return injectTypeError(enclosingClass, expr, type, src);
+    }
+    return injectTypeCheck(enclosingClass, expr, type, src);
+  }
+
+  /**
+   * Check if an assignment is statically known to have a type error.
+   * 
+   * @param type
+   * @param exprType
+   * @param expr
+   * @return true if the assignment is known to be bad statically
+   */
+  private boolean isStaticallyBadAssignment(Type type, Type exprType, JsExpression expr) {
+    if (!expr.isDefinitelyNotNull()) {
+      // nulls can be assigned to any type, so if this may be null we can't assume it is a bad
+      // assignment
+      return false;
+    }
+    // TODO(jat): implement static subtype checks
+    return false;
+  }
+
+  /**
+   * @param type
+   * @param exprType
+   * @return true if the assignment is statically known to not need a check
+   */
+  private boolean isStaticallyGoodAssignment(Type type, Type exprType) {
+    if (type == null || type instanceof DynamicType) {
+      // if there is no target type or it is dynamic, it is good
+      return true;
+    }
+    // TODO(jat): implement static subtype checks
+    return false;
+  }
+
+  /**
+   * Optionally emit a type error, used when it is statically known that a
+   * TypeError must be thrown.
+   * 
+   * @param enclosingClass enclosing class element
+   * @param expr expression that fails the check
+   * @param type type to check against, null is unknown
+   * @param src source info to use for the generated code
+   * @return an expression wrapping the call to the throw helper
+   */
+  private JsExpression injectTypeError(ClassElement enclosingClass, JsExpression expr, Type type,
+      SourceInfo src) {
+    JsExpression rtt = getRtt(enclosingClass, expr, type);
+    if (rtt != null) {
+      expr = call(src, nameref(src, "$te"), rtt, expr);
+    }
+    return expr;
+  }
+
+  /**
+   * Optionally emit a runtime type check, which is a call to $chk passing the
+   * runtime type object for the required type and an expression.
+   * 
+   * @param enclosingClass enclosing class element
+   * @param expr expression to check
+   * @param type type to check against, null is unknown
+   * @param src source info to use for the generated code
+   * @return an expression wrapping the type check call
+   */
+  private JsExpression injectTypeCheck(ClassElement enclosingClass, JsExpression expr, Type type,
+      SourceInfo src) {
+    JsExpression rtt = getRtt(enclosingClass, expr, type);
+    if (rtt != null) {
+      expr = call(src, nameref(src, "$chk"), rtt, expr);
+    }
+    return expr;
+  }
+
+  /**
+   * Get the runtime type object for a type.
+   * 
+   * @param enclosingClass
+   * @param expr
+   * @param type
+   * @return a {@link JsExpression} for the runtime type, or null if no check is required/possible
+   */
+  private JsExpression getRtt(ClassElement enclosingClass, JsExpression expr, Type type) {
+    if (!emitTypeChecks || type == null) {
+      return null;
+    }
+    JsExpression rtt;
+    switch (TypeKind.of(type)) {
+      case INTERFACE:
+        InterfaceType interfaceType = (InterfaceType) type;
+        // TODO(jat): do we need a special case for raw interfaces?
+        return generateRTTLookup(interfaceType, enclosingClass);
+      case VARIABLE:
+        TypeVariable typeVar = (TypeVariable) type;
+        return getReifiedTypeVariableRTT(typeVar, enclosingClass);
+      case VOID:
+      case FUNCTION_ALIAS:
+        // TODO(jat): implement, no checks for now
+      case DYNAMIC:
+        // no check required
+        return null;
+      default:
+        throw new IllegalStateException("unexpected type " + type);
+    }
   }
 }

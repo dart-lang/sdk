@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Errors are created and thrown by DartVM only.
+// Changes here should also be reflected in corelib/error.dart as well
 
 class AssertError {
   factory AssertError._uninstantiable() {

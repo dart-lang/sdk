@@ -21,6 +21,12 @@ public interface CompilerConfiguration {
   List<Backend> getBackends();
 
   /**
+   * Indicates whether developer-mode runtime checks are needed. 
+   * @return true if developer-mode checks should be inserted, false if not
+   */
+  boolean developerModeChecks();
+
+  /**
    * Returns <code>true</code> if the compiler's output should be optimized.
    */
   boolean shouldOptimize();

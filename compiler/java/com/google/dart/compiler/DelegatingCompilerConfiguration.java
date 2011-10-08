@@ -22,6 +22,12 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   public DelegatingCompilerConfiguration(CompilerConfiguration delegate) {
     this.delegate = delegate;
   }
+
+  @Override
+  public boolean developerModeChecks() {
+    return delegate.developerModeChecks();
+  }
+
   @Override
   public List<DartCompilationPhase> getPhases() {
     return delegate.getPhases();

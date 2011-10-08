@@ -131,7 +131,6 @@ CharEscapeTest: Fail
 FunctionTypeParameter2NegativeTest: Fail # Bug 4568007
 
 # The following tests use missing error classes. Bug 4385894.
-TypeTest: Fail               # Uses TypeError class.
 AssertTest: Fail             # Uses AssertError class.
 
 ThirdTest: Fail # Bug 5339586

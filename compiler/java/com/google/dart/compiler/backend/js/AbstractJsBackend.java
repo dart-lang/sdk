@@ -331,8 +331,8 @@ public abstract class AbstractJsBackend extends AbstractBackend {
               unit.getSourceName()) : null;
       try {
         // Normalize front-end AST for back-end consumption.
-        unit = (DartUnit) (new Normalizer()).exec(unit, typeProvider, optimizationStrategy)
-            .getNormalizedNode();
+        unit = (DartUnit) (new Normalizer()).exec(unit, typeProvider,
+            optimizationStrategy).getNormalizedNode();
       } finally {
         Tracer.end(normalizeEvent);
       }

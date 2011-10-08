@@ -129,6 +129,11 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
+  public boolean developerModeChecks() {
+    return compilerOptions.developerModeChecks();
+  }
+
+  @Override
   public boolean shouldOptimize() {
     return compilerOptions.shouldOptimize();
   }

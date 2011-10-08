@@ -269,7 +269,8 @@ public class GenerateJavascriptAST {
       // setup the global scope.
       jsNewDeclarationsStack.push(new HashSet<JsName>());
       currentHolder = unit.getLibrary().getElement();
-      rtt = new RuntimeTypeInjector(this, typeProvider, translationContext);
+      rtt = new RuntimeTypeInjector(this, typeProvider, translationContext,
+          context.getCompilerConfiguration().developerModeChecks());
     }
 
     /**
@@ -958,7 +959,7 @@ public class GenerateJavascriptAST {
 
     private JsNode generateConstructorDefinition(DartMethodDefinition x) {
       assert currentScopeInfo == null : "Nesting a constructor in a method should be impossible";
-      currentScopeInfo = ScopeRootInfo.makeScopeInfo(x);
+      currentScopeInfo = ScopeRootInfo.makeScopeInfo(x, !shouldGenerateDeveloperModeChecks());
       ConstructorElement element = (ConstructorElement) x.getSymbol();
       ClassElement classElement = (ClassElement) element.getEnclosingElement();
       JsScope classMemberScope = translationContext.getMemberScopes().get(classElement);
@@ -1088,7 +1089,7 @@ public class GenerateJavascriptAST {
       assert currentScopeInfo == null : "Nested methods should be impossible";
       inFactoryOrStaticContext = x.getModifiers().isFactory()
           || x.getModifiers().isStatic();
-      currentScopeInfo = ScopeRootInfo.makeScopeInfo(x);
+      currentScopeInfo = ScopeRootInfo.makeScopeInfo(x, !shouldGenerateDeveloperModeChecks());
 
       JsFunction func = (JsFunction) generate(x.getFunction());
 
@@ -1555,7 +1556,7 @@ public class GenerateJavascriptAST {
       JsExprStmt result = null;
 
       if (initializer != null || Elements.isTopLevel(element)) {
-        currentScopeInfo = ScopeRootInfo.makeScopeInfo(x);
+        currentScopeInfo = ScopeRootInfo.makeScopeInfo(x, !shouldGenerateDeveloperModeChecks());
         inFactoryOrStaticContext = true;
 
         // There's an initializer, so emit an assignment statement.
@@ -1632,6 +1633,24 @@ public class GenerateJavascriptAST {
       }
       jsFunc.setBody(body);
 
+      // Create JS parameters
+      List<DartParameter> params = x.getParams();
+      List<JsParameter> jsParams = jsFunc.getParameters();
+      generateAll(params, jsParams, JsParameter.class);
+
+      // Create the runtime type checks that will be inserted later
+      List<JsStatement> checks = Lists.newArrayList();
+      int numParams = params.size();
+      for (int i = 0; i < numParams; ++i) {
+        JsNameRef jsParam = jsParams.get(i).getName().makeRef();
+        JsExpression expr = rtt.addTypeCheck(getCurrentClass(), jsParam,
+            typeOf(params.get(i).getTypeNode()), null, params.get(i));
+        if (expr != jsParam) {
+          // if the expression was returned unchanged, omit the check
+          checks.add(new JsExprStmt(expr));
+        }
+      }
+
       // Add temporary variable declarations, if any.
       declareTempsInBlock(body, jsNewDeclarationsStack.pop());
 
@@ -1654,14 +1673,27 @@ public class GenerateJavascriptAST {
       maybeAddFunctionScopeAlias(currentScopeInfo.getScope(x),
           translationContext.getMethods().get(x));
 
-      // 2. setup parameter values
-      generateAll(x.getParams(), jsFunc.getParameters(), JsParameter.class);
-
-      // 1. call function trace before anything else.
+      // 2. call function trace before anything else.
       maybeAddFunctionTracing(x);
+
+      // 1. insert parameter type checks at the beginning of the method
+      body.getStatements().addAll(0, checks);
 
       functionStack.pop();
       return jsFunc.setSourceRef(x);
+    }
+
+    /**
+     * Get the type associated with a type node
+     * 
+     * @param typeNode a {@link DartTypeNode}, which may be null
+     * @return a {@link Type} corresponding to the type node or null to indicate unknown
+     */
+    private Type typeOf(DartTypeNode typeNode) {
+      if (typeNode == null) {
+        return null;
+      }
+      return typeNode.getType();
     }
 
     private boolean isFactory(DartMethodDefinition method) {
@@ -1880,8 +1912,17 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitReturnStatement(DartReturnStatement x) {
       JsReturn jsRet = new JsReturn();
-      if (x.getValue() != null) {
-        jsRet.setExpr((JsExpression) generate(x.getValue()));
+      DartExpression returnValue = x.getValue();
+      if (returnValue != null) {
+        JsExpression expr = (JsExpression) generate(returnValue);
+        DartFunction function = functionStack.peek();
+        if (function != null) {
+          // NOTE: FunctionExpressionInliner might be leaving return statements around
+          DartTypeNode returnType = function.getReturnTypeNode();
+          expr = rtt.addTypeCheck(getCurrentClass(), expr, typeOf(returnType),
+              returnValue.getType(), x);
+        }
+        jsRet.setExpr(expr);
       }
       return jsRet.setSourceRef(x);
     }
@@ -2016,9 +2057,12 @@ public class GenerateJavascriptAST {
       // If the name is referenced by a closure use the scope alias.
       JsNameRef scopeAliasRef = maybeMakeScopeAliasReference(targetSymbol);
       JsNode result = null;
+      DartExpression value = x.getValue();
       if (scopeAliasRef != null) {
-        if (x.getValue() != null) {
-          JsExpression initExpr = (JsExpression) generate(x.getValue());
+        if (value != null) {
+          JsExpression initExpr = (JsExpression) generate(value);
+          Type type = getTypeOfIdentifier(x.getName());
+          initExpr = rtt.addTypeCheck(getCurrentClass(), initExpr, type, value.getType(), x);
           result = AstUtil.newAssignment(scopeAliasRef, initExpr).setSourceRef(x).makeStmt();
         } else {
           // we need to put some statement in to keep the expected number
@@ -2027,8 +2071,10 @@ public class GenerateJavascriptAST {
         }
       } else {
         JsVars.JsVar jsVar = new JsVars.JsVar(getJsName(targetSymbol));
-        if (x.getValue() != null) {
-          JsExpression initExpr = (JsExpression) generate(x.getValue());
+        if (value != null) {
+          JsExpression initExpr = (JsExpression) generate(value);
+          Type type = getTypeOfIdentifier(x.getName());
+          initExpr = rtt.addTypeCheck(getCurrentClass(), initExpr, type, value.getType(), x);
           jsVar.setInitExpr(initExpr);
         } else {
           jsVar.setInitExpr(undefined());
@@ -2106,9 +2152,10 @@ public class GenerateJavascriptAST {
         return generateInstanceOfComparison(x);
       }
 
-      JsExpression rhs = (JsExpression) generate(x.getArg2());
+      DartExpression arg2 = x.getArg2();
+      JsExpression rhs = (JsExpression) generate(arg2);
       if (operator == Token.ASSIGN) {
-        return x.getArg1().accept(new Assignment(x, rhs));
+        return x.getArg1().accept(new Assignment(x, rhs, arg2.getType()));
       }
 
       assert !operator.isUserDefinableOperator() || !operator.isAssignmentOperator() : x;
@@ -2129,7 +2176,7 @@ public class GenerateJavascriptAST {
           // TODO (fabiomfv) - This optimization targets a v8 perf issue. V8 double equals
           // comparison to undefined is up to 4 times slower than == null. It seems that it was
           // fixed on v8 3.5. once we move to 3.5 and the fix confirmed, this should be revisited.
-          if (x.getArg2() instanceof DartNullLiteral) {
+          if (arg2 instanceof DartNullLiteral) {
             op = mapToNonStrictEquals(op);
             rhs = nulle();
           }
@@ -2148,6 +2195,41 @@ public class GenerateJavascriptAST {
         JsNameRef ref = new JsNameRef(mangler.createOperatorSyntax(operator));
         return AstUtil.newInvocation(ref, lhs, rhs).setSourceRef(x);
       }
+    }
+
+    private Type getTypeOfIdentifier(DartIdentifier ident) {
+      Element element = ident.getReferencedElement();
+      DartTypeNode typeNode = null;
+      if (element == null) {
+        DartNode parent = ident.getParent();
+        if (parent instanceof DartVariable) {
+          DartVariableStatement varStmt = (DartVariableStatement) parent.getParent();
+          typeNode = varStmt.getTypeNode();
+        } else {
+          throw new InternalCompilerException("Unexpected identifier type: " + ident);          
+        }
+      } else {
+        switch (element.getKind()) {
+          case VARIABLE:
+            DartVariableStatement varStmt = (DartVariableStatement) element.getNode().getParent();
+            typeNode = varStmt.getTypeNode();
+            break;
+          case PARAMETER:
+            DartParameter param = (DartParameter) element.getNode();
+            typeNode = param.getTypeNode();
+            break;
+          case FIELD:
+            DartFieldDefinition fieldDef = (DartFieldDefinition) element.getNode().getParent();
+            typeNode = fieldDef.getTypeNode();
+            break;
+          default:
+            throw new InternalCompilerException("Unexpected identifier element type " + element);
+        }
+      }
+      if (typeNode != null) {
+        return typeNode.getType();
+      }
+      return null;
     }
 
     private JsExpression generateInstanceOfComparison(DartBinaryExpression x) {
@@ -2335,7 +2417,9 @@ public class GenerateJavascriptAST {
       DartExpression target = x.getTarget();
       if (target instanceof DartFunctionExpression) {
         DartFunctionExpression functionExpression = (DartFunctionExpression) target;
-        if (functionExpression.getSymbol().getModifiers().isInlinable()) {
+        if (functionExpression.getSymbol().getModifiers().isInlinable() && 
+            !shouldGenerateDeveloperModeChecks()) {
+          // TODO FunctionExpressionInliner conflics with developer mode checks
           return new FunctionExpressionInliner(functionExpression, x.getArgs()).call();
         }
       }
@@ -2707,6 +2791,18 @@ public class GenerateJavascriptAST {
       return intern;
     }
 
+    private boolean shouldBindThis(ScopeRootInfo.ClosureInfo info) {
+      if (shouldGenerateDeveloperModeChecks()) {
+        return true;
+      }
+      
+      return !inFactoryOrStaticContext && info.referencesThis;
+    }
+
+    private boolean shouldGenerateDeveloperModeChecks() {
+      return context.getCompilerConfiguration().developerModeChecks();
+    }
+    
     @Override
     public JsNode visitFunctionExpression(DartFunctionExpression x) {
       JsFunction fn = (JsFunction) generate(x.getFunction());
@@ -2751,7 +2847,7 @@ public class GenerateJavascriptAST {
       if (!fnWasPreviouslyHoisted) {
         // Generate the named-parameter trampoline.
         boolean includesClosureScope = !list.isEmpty();
-        boolean preserveThis = !inFactoryOrStaticContext && info.referencesThis;
+        boolean preserveThis = shouldBindThis(info);
         JsFunction tramp = generateNamedParameterTrampoline(x.getFunction(),
                                                             hoistedName.makeRef(),
                                                             list.size(), preserveThis);
@@ -2775,7 +2871,7 @@ public class GenerateJavascriptAST {
 
         JsExpression thisRef = undefined();
         // Only bind 'this' if 'this' is referenced
-        if (!inFactoryOrStaticContext && info.referencesThis) {
+        if (shouldBindThis(info)) {
           thisRef = new JsThisRef();
         }
 
@@ -3161,10 +3257,12 @@ public class GenerateJavascriptAST {
     class Assignment extends DartNodeTraverser<JsNode> {
       private final DartNode info;
       private final JsExpression rhs;
+      private final Type rhsType;
 
-      public Assignment(DartNode info, JsExpression rhs) {
+      public Assignment(DartNode info, JsExpression rhs, Type rhsType) {
         this.info = info;
         this.rhs = rhs;
+        this.rhsType = rhsType;
       }
 
       @Override
@@ -3178,16 +3276,21 @@ public class GenerateJavascriptAST {
         if (lhs != normalizedNode) {
           return normalizedNode.accept(this);
         }
+        Type type = getTypeOfIdentifier(lhs);
+        JsExpression wrapped =  rtt.addTypeCheck(getCurrentClass(), rhs, type, rhsType, info);
         Element element = optStrategy.findOptimizableFieldElementFor(lhs, FieldKind.SETTER);
         // On the form e1.name = rhs.
-        return generateStore(null, lhs, rhs, element).setSourceRef(info);
+        return generateStore(null, lhs, wrapped, element).setSourceRef(info);
       }
 
       @Override
       public JsNode visitPropertyAccess(DartPropertyAccess lhs) {
         Element element = optStrategy.findOptimizableFieldElementFor(lhs, FieldKind.SETTER);
         // On the form e1.name = rhs.
-        return generateStore(lhs.getQualifier(), lhs.getName(), rhs, element).setSourceRef(info);
+        Type type = lhs.getType();
+        JsExpression wrapped =  rtt.addTypeCheck(getCurrentClass(), rhs, type, rhsType, info);
+        return generateStore(lhs.getQualifier(), lhs.getName(), wrapped,
+            element).setSourceRef(info);
       }
 
       @Override
@@ -3197,16 +3300,18 @@ public class GenerateJavascriptAST {
 
         JsExpression key = (JsExpression) generate(lhs.getKey());
         JsExpression e1 = (JsExpression) generate(lhs.getTarget());
+        Type type = lhs.getType();
+        JsExpression wrapped =  rtt.addTypeCheck(getCurrentClass(), rhs, type, rhsType, info);
         if (optStrategy.canSkipArrayAccessShim(lhs, true /* isAssignee */)) {
           JsBinaryOperation assign = new JsBinaryOperation(JsBinaryOperator.ASG);
           assign.setArg1(AstUtil.newArrayAccess(e1, inlineArrayIndexCheck(e1, key)));
-          assign.setArg2(rhs);
+          assign.setArg2(wrapped);
           return assign.setSourceRef(info);
         } else {
           JsNameRef $0 = new JsNameRef(createTemporary());
           String $set = mangler.createOperatorSyntax(Token.ASSIGN_INDEX);
           // Generate: $0 = rhs
-          JsExpression e = AstUtil.newAssignment($0, rhs);
+          JsExpression e = AstUtil.newAssignment($0, wrapped);
           // Generate: e1.$set(key, $0 = rhs)
           e = AstUtil.newInvocation(AstUtil.newNameRef(e1, $set), key, e);
           // Generate: e, $0

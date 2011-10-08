@@ -25,6 +25,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartThisExpression;
+import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.backend.js.ast.JsName;
@@ -308,9 +309,11 @@ class ScopeRootInfo {
     private Deque<DartScope> scopeStack = Lists.newLinkedList();
     private final Map<DartFunction, ScopeRootInfo.ClosureInfo> closures = Maps.newHashMap();
     private Deque<DartFunction> closureStack = Lists.newLinkedList();
-
-    ClosureRefenceMapBuilder(Map<DartNode, DartScope> scopes) {
+    private final boolean respectInlinableModifier;
+    
+    ClosureRefenceMapBuilder(Map<DartNode, DartScope> scopes, boolean respectInlinableModifier) {
       this.scopes = scopes;
+      this.respectInlinableModifier = respectInlinableModifier;
     }
 
     @Override
@@ -329,7 +332,8 @@ class ScopeRootInfo {
       DartExpression target = x.getTarget();
       if (target instanceof DartFunctionExpression) {
         DartFunctionExpression functionExpression = (DartFunctionExpression) target;
-        if (functionExpression.getSymbol().getModifiers().isInlinable()) {
+        if (respectInlinableModifier && 
+            functionExpression.getSymbol().getModifiers().isInlinable()) {
           acceptList(x.getArgs());
           return traverseFunction(functionExpression.getFunction(), ctx);
         }
@@ -471,19 +475,20 @@ class ScopeRootInfo {
   private final Map<DartNode, DartScope> scopes;
   private int closureIds = 0;
 
-  static ScopeRootInfo makeScopeInfo(DartMethodDefinition x) {
-    return makeScopeInfoImpl(x);
+  static ScopeRootInfo makeScopeInfo(DartMethodDefinition x, boolean respectInlinableModifier) {
+    return makeScopeInfoImpl(x, respectInlinableModifier);
   }
 
-  static ScopeRootInfo makeScopeInfo(DartField x) {
-    return makeScopeInfoImpl(x);
+  static ScopeRootInfo makeScopeInfo(DartField x, boolean respectInlinableModifier) {
+    return makeScopeInfoImpl(x, respectInlinableModifier);
   }
 
-  private static ScopeRootInfo makeScopeInfoImpl(DartClassMember<?> x) {
+  private static ScopeRootInfo makeScopeInfoImpl(DartClassMember<?> x, 
+      boolean respectInlinableModifier) {
     ScopeRootInfo.MethodScopeMapBuilder scopeBuilder = new MethodScopeMapBuilder();
     scopeBuilder.accept(x);
     ScopeRootInfo.ClosureRefenceMapBuilder closureBuilder = new ClosureRefenceMapBuilder(
-        scopeBuilder.scopes);
+        scopeBuilder.scopes, respectInlinableModifier);
     closureBuilder.accept(x);
     return new ScopeRootInfo(x, scopeBuilder.scopes, closureBuilder.closures);
   }

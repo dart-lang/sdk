@@ -311,7 +311,7 @@ public class DartRunner {
       final DartRunnerOptions options, DartCompilerListener listener) throws RunnerError {
     Backend backend;
     if (options.shouldOptimize()) {
-      backend = new ClosureJsBackend();
+      backend = new ClosureJsBackend(options.generateHumanReadableOutput());
     } else {
       backend = new JavascriptBackend();
     }

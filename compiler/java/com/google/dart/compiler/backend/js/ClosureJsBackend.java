@@ -491,6 +491,12 @@ public class ClosureJsBackend extends AbstractJsBackend {
     // options.setShadowVariables(false);
     // options.inlineFunctions = false;
 
+    /*
+     * NOTE: We turn this off because TypeErrors or anything that relies on a type name will fail
+     * due to the renaming.
+     */
+    options.setReplaceIdGenerators(false);
+    
     return options;
   }
 

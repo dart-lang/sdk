@@ -75,6 +75,20 @@ RTT.prototype.implementedByType = function(otherType) {
   return true;
 };
 
+/**
+ * @return {string} the class name associated with this type
+ */
+RTT.prototype.getClassName = function() {
+  var name = this.classKey;
+  if (name.substr(0, 4) == "cls:") {
+    name = name.substr(4);
+  }
+  if (name.substr(-5) == "$Dart") {
+    name = name.substr(0, name.length - 5);
+  }
+  return name;
+}
+
 /** 
  * @param {RTT}
  * @return {boolean} 
@@ -207,6 +221,35 @@ RTT.dynamicType.implementedByType = function(o) {return true};
 RTT.placeholderType = new RTT($cls('::'));
 RTT.placeholderType.implementedBy = function(o) {return true};
 RTT.placeholderType.implementedByType = function(o) {return true};
+
+/**
+ * Checks that a value is assignable to an expected type, and either returns that
+ * value if it is, or else throws a TypeMismatchException.
+ *
+ * @param {!RTT} the expected type
+ * @param {*} the value to check
+ * @return {*} the value
+ */
+function $chk(rtt, value) {
+  // null can be assigned to any type
+  if (value == $Dart$Null || rtt.implementedBy(value)) {
+    return value;
+  }
+  $te(rtt, value);
+}
+
+/**
+ * Throw a TypeError.  See core.dart for the ExceptionHelper class.
+ *
+ * @param {!RTT} the expected type
+ * @param {*) the value that failed
+ */
+function $te(rtt, value) {
+  var srcType = RTT.getTypeInfo(value).getClassName();
+  var dstType = rtt.getClassName();
+  var e = native_ExceptionHelper_createTypeError(srcType, dstType);
+  $Dart$ThrowException(e);
+}
 
 // Setup the Function object
 Function.prototype.$implements$Function$Dart = 1;

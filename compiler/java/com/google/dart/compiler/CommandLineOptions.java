@@ -38,6 +38,9 @@ public class CommandLineOptions {
         usage = "do not generate output, only analyze")
     private boolean checkOnly = false;
 
+    @Option(name = "--enable_type_checks", usage = "generate runtime type checks")
+    private boolean developerModeChecks = false;
+
     @Option(name = "--disable-type-optimizations",
             usage = "Debugging: disable type optimizations")
     private boolean disableTypeOptimizations = false;
@@ -252,6 +255,10 @@ public class CommandLineOptions {
     public boolean warningsAreFatal() {
       return warningsAreFatal;
     }
+
+    public boolean developerModeChecks() {
+      return developerModeChecks;
+    }
   }
 
   /**
@@ -316,7 +323,7 @@ public class CommandLineOptions {
 
 
   /**
-   * Command line options accepted by the {@link TestRunner} entry point.
+   * Command line options accepted by the {@link com.google.dart.runner.TestRunner} entry point.
    */
   public static class TestRunnerOptions extends DartRunnerOptions  {
   }
@@ -329,8 +336,7 @@ public class CommandLineOptions {
    * for 'not a valid option' are suppressed.
    *
    * @param args Arguments passed from main()
-   * @param cmdLineParser An initialized {@link CmdLineParser} for the desired
-   * argument set.
+   * @param parsedOptions [out parameter] parsed options
    * @throws CmdLineException Thrown if there is a problem parsing the options.
    */
   public static CmdLineParser parse(String[] args, CompilerOptions parsedOptions)

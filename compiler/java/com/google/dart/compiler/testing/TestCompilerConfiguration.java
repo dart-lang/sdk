@@ -26,6 +26,11 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   private final SystemLibraryManager systemLibraryManager = new SystemLibraryManager();
 
   @Override
+  public boolean developerModeChecks() {
+    return false;
+  }
+
+  @Override
   public boolean warningsAreFatal() {
     return false;
   }

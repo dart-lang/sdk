@@ -36,6 +36,10 @@ class ExceptionHelper {
       receiver, functionName, arguments) native {
     return new NoSuchMethodException(receiver, functionName, arguments);
   }
+
+  static TypeError createTypeError(String srcType, String dstType) native {
+    return new TypeError(srcType, dstType);
+  }
 }
 
 class _CoreJsUtil {
