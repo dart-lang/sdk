@@ -38,14 +38,13 @@ public class CommandLineOptions {
         usage = "Do not generate output, only analyze")
     private boolean checkOnly = false;
 
-<<<<<<< HEAD
     @Option(name = "--warn_no_such_type",
-        usage = "Treat some type checks as warnints\n instead of fatal errors")
+        usage = "Treat some type checks as warnings\n instead of fatal errors")
     private boolean shouldWarnOnNoSuchType = false;
-=======
-    @Option(name = "--enable_type_checks", usage = "generate runtime type checks")
+
+    @Option(name = "--enable_type_checks", 
+        usage = "Generate runtime type checks")
     private boolean developerModeChecks = false;
->>>>>>> master
 
     @Option(name = "--disable-type-optimizations",
         usage = "Turn off type optimizations\n (for debugging)")

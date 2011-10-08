@@ -131,7 +131,6 @@ OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
 CharEscapeTest: Fail
 FunctionTypeParameter2NegativeTest: Fail # Bug 4568007
-TypeDartcTest: Fail                      # Bug 5432720 
 
 # The following tests use missing error classes. Bug 4385894.
 AssertTest: Fail             # Uses AssertError class.
