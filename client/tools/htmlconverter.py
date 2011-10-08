@@ -80,9 +80,10 @@ def adjustImports(contents):
 class DartCompiler(object):
   """ Common code for compiling Dart script tags in an HTML file. """
 
-  def __init__(self, optimize=False, verbose=False):
+  def __init__(self, optimize=False, verbose=False, extra_flags=""):
     self.optimize = optimize
     self.verbose = verbose
+    self.extra_flags = extra_flags
 
   def compileCode(self, src=None, body=None):
     """ Compile the given source code.
@@ -176,6 +177,7 @@ class DartCompiler(object):
     if self.optimize:
       cmd.append('--optimize')
       cmd.append('--disable-type-optimizations')
+    cmd.append(self.extra_flags);
     cmd.append(inputfile)
     return cmd
 
@@ -500,12 +502,13 @@ def convertForDartium(filename, outfile, verbose):
   converter.close()
   writeOut(converter.getResult(), outfile)
 
-def convertForChromium(filename, optimize, outfile, verbose):
+def convertForChromium(filename, optimize, extra_flags, outfile, verbose):
   """ Converts a file for a chromium target. """
   with open(filename, 'r') as f:
     contents = f.read()
   prefix_path = dirname(filename)
-  converter = DartHTMLConverter(DartCompiler(optimize, verbose), prefix_path)
+  converter = DartHTMLConverter(DartCompiler(optimize, verbose, extra_flags),
+                                prefix_path)
   converter.feed(contents)
   converter.close()
   writeOut(converter.getResult(), outfile)
