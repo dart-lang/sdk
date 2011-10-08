@@ -480,8 +480,12 @@ def Flags():
       action="store")
   result.add_option("-t", "--target",
       help="The target html to generate",
-      metavar="[chromium,dartium]",
+      metavar="[js,chromium,dartium]",
       default='chromium')
+  result.add_option("--extra-flags",
+      help="Extra flags for dartc",
+      type="string",
+      default="")
   result.set_usage("htmlconverter.py input.html -o OUTDIR")
   return result
 
@@ -547,8 +551,8 @@ def main():
       print "Invalid input file extension: %s" % extension
       return 1
     outfile = join(options.out, filename)
-    if 'chromium' in options.target:
-      convertForChromium(filename, options.optimize,
+    if 'chromium' in options.target or 'js' in options.target:
+      convertForChromium(filename, options.optimize, options.extra_flags,
           outfile.replace(extension, '-js' + extension), options.verbose)
     if 'dartium' in options.target:
       convertForDartium(filename,
