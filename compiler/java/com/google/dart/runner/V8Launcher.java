@@ -229,10 +229,14 @@ public class V8Launcher implements JavaScriptLauncher {
 
   private StackEntry decodeLocation(StackEntry entry, String location) {
     String[] parts = location.split(":");
-    if (parts.length == 3) {
-      entry.file = parts[0];
-      entry.line = Integer.valueOf(parts[1]);
-      entry.column = Integer.valueOf(parts[2]);
+    if (parts.length >= 3) {
+      String file = parts[0];
+      for (int i = 1; i <= parts.length-3; i++) {
+        file += ":" + parts[i];
+      }
+      entry.file = file;
+      entry.line = Integer.valueOf(parts[parts.length - 2]);
+      entry.column = Integer.valueOf(parts[parts.length - 1]);
       return entry;
     }
     return null;
