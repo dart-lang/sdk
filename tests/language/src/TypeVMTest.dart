@@ -20,7 +20,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(12, error.line);
       Expect.equals(15, error.column);
     }
@@ -61,7 +61,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(49, error.line);
       Expect.equals(15, error.column);
     }
@@ -85,7 +85,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(74, error.line);
       Expect.equals(14, error.column);
     }
@@ -107,7 +107,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(99, error.line);
       Expect.equals(15, error.column);
     }
@@ -131,7 +131,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(123, error.line);
       Expect.equals(15, error.column);
     }
@@ -162,7 +162,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(145, error.line);
       Expect.equals(33, error.column);
     }
@@ -196,7 +196,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(175, error.line);
       Expect.equals(28, error.column);
     }
@@ -217,7 +217,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(209, error.line);
       Expect.equals(17, error.column);
     }
@@ -233,7 +233,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(225, error.line);
       Expect.equals(14, error.column);
     }
@@ -249,7 +249,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(241, error.line);
       Expect.equals(20, error.column);
     }
@@ -265,7 +265,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(257, error.line);
       Expect.equals(13, error.column);
     }
@@ -281,7 +281,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(273, error.line);
       Expect.equals(15, error.column);
     }
@@ -297,7 +297,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(289, error.line);
       Expect.equals(11, error.column);
     }
@@ -313,7 +313,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(305, error.line);
       Expect.equals(11, error.column);
     }
@@ -329,7 +329,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(321, error.line);
       Expect.equals(20, error.column);
     }
@@ -345,7 +345,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(337, error.line);
       Expect.equals(11, error.column);
     }
@@ -367,7 +367,7 @@ class TypeTest {
         pos = error.url.lastIndexOf("\\", error.url.length);
       }
       String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("TypeTest.dart", subs);
+      Expect.equals("TypeVMTest.dart", subs);
       Expect.equals(472, error.line);
       Expect.equals(12, error.column);
     }
