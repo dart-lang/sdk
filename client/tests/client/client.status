@@ -6,7 +6,6 @@ prefix client
 
 [ $arch == dartium ]
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
-samples/swarm/swarm_tests: Fail # buildbot needs to be updated.
 
 
 [ $arch == chromium ]
