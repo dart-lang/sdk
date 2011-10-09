@@ -760,16 +760,19 @@ public class Normalizer {
       ConstructorElement symbol = node.getSymbol();
       if (symbol == null) {
         InterfaceType constructorType = Types.constructorType(node);
-        
-        // HACK use proper normalized node
-        ClassElement classToInstantiate = constructorType.getElement();
-        if (classToInstantiate.getDefaultClass() != null) {
-          classToInstantiate = classToInstantiate.getDefaultClass().getElement();
-        }
-        
-        if (classToInstantiate != null && Elements.needsImplicitDefaultConstructor(classToInstantiate)) {
-          DartMethodDefinition implicitDefaultConstructor = createImplicitDefaultConstructor(classToInstantiate);
-          node.setSymbol(implicitDefaultConstructor.getSymbol());
+        if (!constructorType.getElement().isDynamic() && node.getArgs().isEmpty()) {
+          // HACK use proper normalized node
+          ClassElement classToInstantiate = constructorType.getElement();
+          if (classToInstantiate.getDefaultClass() != null) {
+            classToInstantiate = classToInstantiate.getDefaultClass().getElement();
+          }
+
+          if (classToInstantiate != null
+              && Elements.needsImplicitDefaultConstructor(classToInstantiate)) {
+            DartMethodDefinition implicitDefaultConstructor =
+                createImplicitDefaultConstructor(classToInstantiate);
+            node.setSymbol(implicitDefaultConstructor.getSymbol());
+          }
         }
       }
       

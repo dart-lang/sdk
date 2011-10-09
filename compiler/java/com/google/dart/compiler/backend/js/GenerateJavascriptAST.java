@@ -2205,8 +2205,6 @@ public class GenerateJavascriptAST {
         if (parent instanceof DartVariable) {
           DartVariableStatement varStmt = (DartVariableStatement) parent.getParent();
           typeNode = varStmt.getTypeNode();
-        } else {
-          throw new InternalCompilerException("Unexpected identifier type: " + ident);          
         }
       } else {
         switch (element.getKind()) {
@@ -2223,7 +2221,7 @@ public class GenerateJavascriptAST {
             typeNode = fieldDef.getTypeNode();
             break;
           default:
-            throw new InternalCompilerException("Unexpected identifier element type " + element);
+            break;
         }
       }
       if (typeNode != null) {
@@ -2770,9 +2768,19 @@ public class GenerateJavascriptAST {
           newExpr = maybeInternConst(newExpr, Types.constructorType(x).getArguments());
         }
       } else {
-        // TODO(zundel): No symbol means the type was never resolved.
-        // This should probably throw a no such method exception
-        newExpr = translationContext.getProgram().getNullLiteral();
+        JsInvocation jsInvocation = AstUtil.newInvocation(new JsNameRef("$nsme2"));
+        JsStringLiteral ctorName = translationContext.getProgram().getStringLiteral(
+            x.getConstructor().toSource());
+        JsArrayLiteral jsArgsArray = new JsArrayLiteral();
+        List<JsExpression> expressions = jsArgsArray.getExpressions();
+        List<DartExpression> dartArgs = x.getArgs();
+        for (DartExpression arg : dartArgs) {
+          expressions.add((JsExpression) generate(arg));
+        }
+        List<JsExpression> jsInvocationArguments = jsInvocation.getArguments();
+        jsInvocationArguments.add(ctorName);
+        jsInvocationArguments.add(jsArgsArray);
+        newExpr = jsInvocation;
       }
       return newExpr;
     }

@@ -365,7 +365,14 @@ function $transformBrowserException(e) {
 
 // Throws a NoSuchMethodException (used by named-parameter trampolines).
 function $nsme() {
-  throw native_ExceptionHelper_createNoSuchMethodException("", "", []);
+  var e = native_ExceptionHelper_createNoSuchMethodException("", "", []);
+  $Dart$ThrowException(e);
+}
+
+// Throws a NoSuchMethodException (used when instantiating via a non-existent class or ctor).
+function $nsme2(name, args) {
+  var e = native_ExceptionHelper_createNoSuchMethodException(name, name, args);
+  $Dart$ThrowException(e);
 }
 
 // Shared named-argument object used by call-sites with no named arguments.
