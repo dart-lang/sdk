@@ -96,8 +96,8 @@ import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
 import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
@@ -951,7 +951,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       node.setReferencedElement(element);
       DartTypeNode typeNode = Types.constructorTypeNode(node);
       DartNode typeName = typeNode.getIdentifier();
-      InterfaceType type = (InterfaceType) validateTypeNode(typeNode, true);
+      Type type = validateTypeNode(typeNode, true);
       if (element == null) {
         visit(node.getArgs());
       } else {
@@ -996,14 +996,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         FunctionType ftype = (FunctionType) element.getType();
-        List<? extends Type> arguments = type.getArguments();
-        ftype = (FunctionType) ftype.subst(arguments,
-                                           type.getElement().getTypeParameters());
-        List<TypeVariable> typeVariables = ftype.getTypeVariables();
-        if (arguments.size() == typeVariables.size()) {
-          ftype = (FunctionType) ftype.subst(arguments, typeVariables);
+        if (type instanceof InterfaceType) {
+          InterfaceType ifaceType = (InterfaceType)type;
+          List<? extends Type> arguments = ifaceType.getArguments();
+          ftype = (FunctionType) ftype.subst(arguments,
+                                             ifaceType.getElement().getTypeParameters());
+          List<TypeVariable> typeVariables = ftype.getTypeVariables();
+          if (arguments.size() == typeVariables.size()) {
+            ftype = (FunctionType) ftype.subst(arguments, typeVariables);
+          }
+          checkInvocation(node, node, null, ftype);
         }
-        checkInvocation(node, node, null, ftype);
       }
       return type;
     }
