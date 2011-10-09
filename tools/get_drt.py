@@ -30,7 +30,7 @@ DRT_DARTIUM_LATEST_PATTERN = (
     'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
 DRT_DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/dartium-%(osname)s-inc'
 DRT_CHROMIUM_LATEST_PATTERN = (
-    'gs://dart-dump-render-tree/latest/chromium-%(osname)s-*.zip')
+    'gs://dart-dump-render-tree/latest/chromium-%(osname)s-103752.zip')
 
 sys.path.append(GSUTIL_DIR + '/boto')
 import boto
