@@ -31,6 +31,7 @@ import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.util.DefaultTextOutput;
 import com.google.dart.compiler.util.TextOutput;
 
@@ -161,14 +162,16 @@ public abstract class AbstractJsBackend extends AbstractBackend {
         DartNode norm = node.getNormalizedNode();
         if (norm instanceof DartClass) {
           DartClass clasz = (DartClass)norm;
+          ClassElement selfElement = clasz.getSymbol();
+          InterfaceType superType = selfElement.getSupertype();
           ClassElement superElement = null;
-          DartTypeNode superType =  clasz.getSuperclass();
           if (superType != null) {
-            superElement = (ClassElement) clasz.getSuperclass().getSymbol();
+            superElement = superType.getElement();
+            assert(superElement != null);
           }
 
           parts.add(new Part(libUnit, unit,
-                             clasz.getClassName(), clasz.getSymbol(), superElement));
+                             clasz.getClassName(), selfElement, superElement));
         }
       }
 
@@ -238,7 +241,10 @@ public abstract class AbstractJsBackend extends AbstractBackend {
 
       final Map<ClassElement, Part> elementToPartMap = Maps.newHashMap();
       for (Part part : parts) {
-        elementToPartMap.put(part.element, part);
+        if (part.element != null) {
+          Part previous = elementToPartMap.put(part.element, part);
+          assert(previous == null);
+        }
       }
 
       // Get the direct dependencies.
@@ -246,9 +252,8 @@ public abstract class AbstractJsBackend extends AbstractBackend {
       for (Part part : parts) {
         if (part.superElement != null) {
           Part superPart = elementToPartMap.get(part.superElement);
-          if (superPart != null) {
-            deps.put(part, superPart);
-          }
+          assert(superPart != null);
+          deps.put(part, superPart);
         }
 
         // Don't add a dependency on itself.
