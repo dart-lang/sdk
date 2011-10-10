@@ -12,7 +12,6 @@ import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.LimitInputStream;
-import com.google.dart.compiler.CommandLineOptions;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
@@ -21,16 +20,10 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.backend.js.ast.JsBlock;
 import com.google.dart.compiler.backend.js.ast.JsProgram;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
-import com.google.dart.compiler.metrics.DartEventType;
-import com.google.dart.compiler.metrics.Tracer;
-import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
-import com.google.dart.compiler.util.DefaultTextOutput;
-import com.google.dart.compiler.util.TextOutput;
 import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.CompilationLevel;
 import com.google.javascript.jscomp.Compiler;
@@ -48,6 +41,7 @@ import com.google.javascript.jscomp.SourceMap.Format;
 import com.google.javascript.jscomp.VariableRenamingPolicy;
 import com.google.javascript.jscomp.WarningLevel;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -594,7 +588,8 @@ public class ClosureJsBackend extends AbstractJsBackend {
     ZipInputStream zip = new ZipInputStream(input);
     Map<String, JSSourceFile> externsMap = Maps.newHashMap();
     for (ZipEntry entry = null; (entry = zip.getNextEntry()) != null; ) {
-      LimitInputStream entryStream = new LimitInputStream(zip, entry.getSize());
+      InputStream entryStream = new BufferedInputStream(
+          new LimitInputStream(zip, entry.getSize()));
       externsMap.put(entry.getName(),
           JSSourceFile.fromInputStream(
               // Give the files an odd prefix, so that they do not conflict
