@@ -84,14 +84,9 @@ class _ChildrenElementList implements ElementList {
     return value;
   }
 
-  Element addLast(Element value) {
-    _element.appendChild(LevelDom.unwrap(value));
-    return value;
-  }
+  Element addLast(Element value) => add(value);
 
-  Iterator<Element> iterator() {
-    return _toList().iterator();
-  }
+  Iterator<Element> iterator() => _toList().iterator();
 
   void addAll(Collection<Element> collection) {
     for (Element element in collection) {
@@ -124,19 +119,24 @@ class _ChildrenElementList implements ElementList {
   }
 
   int indexOf(Element element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.indexOf(this, element, startIndex, this.length);
   }
 
   int lastIndexOf(Element element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.lastIndexOf(this, element, startIndex);
   }
 
   void clear() {
-    throw 'Not impl yet. todo(jacobr)';
+    // It is unclear if we want to keep non element nodes?
+    _element.textContent = '';
   }
 
   Element removeLast() {
-    throw 'Not impl yet. todo(jacobr)';
+    final last = this.last();
+    if (last != null) {
+      _element.removeChild(LevelDom.unwrap(last));
+    }
+    return last;
   }
 
   Element last() {
@@ -434,6 +434,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   ElementWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
   ElementAttributeMap _elementAttributeMap;
+  ElementList _elements;
   _CssClassSet _cssClassSet;
   _DataAttributeMap _dataAttributes;
 
@@ -452,7 +453,20 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
   }
 
-  ElementList get elements() => new _ChildrenElementList._wrap(_ptr);
+  void set elements(Collection<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(copy);
+  }
+
+  ElementList get elements() {
+    if (_elements == null) {
+      _elements = new _ChildrenElementList._wrap(_ptr);
+    }
+    return _elements;
+  }
 
   Set<String> get classes() {
     if (_cssClassSet === null) {

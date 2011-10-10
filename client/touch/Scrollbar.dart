@@ -343,7 +343,7 @@ class Scrollbar implements ScrollListener {
       _cachedSize[cssSize] = size;
       style.setProperty(cssSize, '${size}px', '');
     }
-    if (element.parentElement == null) {
+    if (element.parent == null) {
       _frame.nodes.add(element);
     }
   }

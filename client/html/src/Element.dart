@@ -80,6 +80,9 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   ElementList get elements();
 
+  // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  void set elements(value);
+
   _CssClassSet get classes();
 
   // TODO: The type of value should be Collection<String>. See http://b/5392897
@@ -195,6 +198,8 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   Element query(String selectors);
 
   ElementList queryAll(String selectors);
+
+  Element get parent();
 
   void scrollByLines([int lines]);
 
