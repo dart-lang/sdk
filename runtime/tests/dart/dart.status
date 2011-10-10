@@ -45,6 +45,7 @@ MultipleTimerTest: Skip # Uses EventHandler
 TimerCancelTest: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
+Directory*: Skip # Uses Directory
 
 
 [ $arch == dartc || $arch == chromium ]
