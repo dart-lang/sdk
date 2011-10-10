@@ -8,10 +8,10 @@ import os
 import test
 import platform
 import re
-import run
 import sys
 import tempfile
 
+import architecture
 import test
 import utils
 
@@ -29,7 +29,8 @@ class StandardTestCase(test.TestCase):
     self.filename = filename
     self.mode = mode
     self.arch = arch
-    self.run_arch = run.GetArchitecture(self.arch, self.mode, self.filename)
+    self.run_arch = architecture.GetArchitecture(self.arch, self.mode,
+                                                 self.filename)
     for flag in context.flags:
       self.run_arch.vm_options.append(flag)
 
@@ -116,8 +117,8 @@ class CompilationTestCase(test.TestCase):
     self.filename = filename
     self.mode = mode
     self.arch = arch
-    self.run_arch = run.GetArchitecture(self.arch, self.mode,
-                                        self.filename)
+    self.run_arch = architecture.GetArchitecture(self.arch, self.mode,
+                                                 self.filename)
     self.temp_dir = tempfile.mkdtemp(prefix='dartc-output-')
 
   def IsNegative(self):
