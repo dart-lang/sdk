@@ -188,6 +188,7 @@ public class DartCompiler {
       try {
         for (LibraryUnit lib : libraries.values()) {
           LibrarySource libSrc = lib.getSource();
+          boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
           LibraryUnit apiLib = new LibraryUnit(libSrc);
           LibraryNode selfSourcePath = lib.getSelfSourcePath();
           boolean persist = !incremental || !apiLib.loadApi(context, context);
@@ -204,10 +205,9 @@ public class DartCompiler {
             }
 
             DartUnit apiUnit = apiLib.getUnit(dartSrc.getName());
-            if (apiUnit == null || isSourceOutOfDate(dartSrc, libSrc)) {
+            if (apiUnit == null || (!libIsDartUri && isSourceOutOfDate(dartSrc, libSrc))) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes());
               if (unit != null) {
-                // if we are visiting the tu
                 if (libNode == selfSourcePath) {
                   lib.setSelfDartUnit(unit);
                 }
@@ -381,6 +381,12 @@ public class DartCompiler {
       TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.ADD_OUTOFDATE) : null;
       try {
         for (LibraryUnit lib : libraries.values()) {
+
+          if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
+            // embedded dart libs are always up to date
+            continue;
+          }
+
           // Load the existing DEPS, or create an empty one.
           LibraryDeps deps = lib.getDeps(context);
 
