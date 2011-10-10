@@ -16,8 +16,8 @@ import com.google.dart.compiler.DefaultLibrarySource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.runner.DartRunner;
 import com.google.dart.runner.RunnerError;
-import com.google.dart.runner.TestRunner;
 import com.google.dart.runner.V8Launcher;
 
 import junit.framework.AssertionFailedError;
@@ -138,7 +138,7 @@ public class SharedTestCase extends TestCase {
       if (regularCompile) {
         invokeCompiler();
       } else {
-        TestRunner.throwingMain(arguments, outputStream, outputStream);
+        DartRunner.throwingMain(arguments, outputStream, outputStream);
       }
     } catch (RunnerError e) {
       outputStream.close();

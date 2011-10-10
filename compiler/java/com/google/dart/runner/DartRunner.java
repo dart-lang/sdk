@@ -5,6 +5,7 @@
 package com.google.dart.runner;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.dart.compiler.Backend;
@@ -21,6 +22,8 @@ import com.google.dart.compiler.DefaultDartCompilerListener;
 import com.google.dart.compiler.DefaultErrorFormatter;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.UnitTestBatchRunner;
+import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.backend.js.ClosureJsBackend;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
@@ -72,10 +75,34 @@ public class DartRunner {
 
   public static void main(String[] args) {
     try {
+      boolean runBatch = false;
+      final List<LibrarySource> imports = Collections.emptyList();
       DartRunnerOptions options = processCommandLineOptions(args);
-      throwingMain(options, args, Collections.<LibrarySource>emptyList(), System.out, System.err);
-    } catch (RunnerError error) {
-      System.err.println(error.getLocalizedMessage());
+      if (options.shouldBatch()) {
+        runBatch = true;
+        if (args.length > 1) {
+          System.err
+              .println("(Extra arguments specified with -batch ignored.)");
+        }
+      }
+      if (runBatch) {
+        UnitTestBatchRunner.runAsBatch(args, new Invocation() {
+          @Override
+          public boolean invoke(String[] args) throws Throwable {
+            try {
+              throwingMain(args, System.out, System.err);
+            } catch (RunnerError e) {
+              System.out.println(e.getLocalizedMessage());
+              return false;
+            }
+            return true;
+          }
+        });
+      } else {
+        throwingMain(args, System.out, System.err);
+      }
+    } catch (RunnerError e) {
+      System.err.println(e.getLocalizedMessage());
       System.exit(1);
     } catch (Throwable e) {
       e.printStackTrace();
@@ -83,13 +110,12 @@ public class DartRunner {
     }
   }
 
-  public static void throwingMain(DartRunnerOptions options,
-                                  String[] args,
-                                  List<LibrarySource> imports,
+  public static void throwingMain(String[] args,
                                   PrintStream stdout,
                                   final PrintStream stderr)
       throws RunnerError {
-
+    DartRunnerOptions options = processCommandLineOptions(args);
+    List<LibrarySource> imports = Lists.newArrayList();
     if (options.getSourceFiles().isEmpty()) {
       throw new RunnerError("No script files specified on the command line: " + Joiner.on(" ").join(args));
     }

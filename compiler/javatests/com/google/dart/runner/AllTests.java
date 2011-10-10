@@ -11,7 +11,7 @@ public class AllTests {
   public static Test suite() {
     TestSuite suite = new TestSuite("Dartc test runner tests");
 
-    suite.addTestSuite(TestRunnerTest.class);
+    suite.addTestSuite(DartRunnerTest.class);
 
     return suite;
   }

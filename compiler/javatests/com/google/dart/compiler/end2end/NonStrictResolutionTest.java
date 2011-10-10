@@ -73,8 +73,8 @@ public class NonStrictResolutionTest extends End2EndTestCase {
     StringStream outStream = new StringStream(System.out);
     StringStream errStream = new StringStream(System.err);
     try {
-      DartRunner
-          .compileAndRunApp(app, verboseOptions, config, listener, args, outStream, errStream);
+      DartRunner.compileAndRunApp(app, verboseOptions, config, listener, args,
+                                  outStream, errStream);
     } catch (RhinoException e) {
       super.fail(e.getLocalizedMessage());
     } catch (RunnerError e) {

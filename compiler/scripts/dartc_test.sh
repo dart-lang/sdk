@@ -28,4 +28,4 @@ fi
 exec java -ea -Dcom.google.dart.runner.d8="$D8_EXEC" \
   -Dcom.google.dart.runner.progname="$DART_SCRIPT_NAME" \
   -classpath "@CLASSPATH@" \
-  com.google.dart.runner.TestRunner $@
+  com.google.dart.runner.DartRunner $@
