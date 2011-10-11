@@ -18,7 +18,6 @@ import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -378,7 +377,8 @@ public abstract class AbstractJsBackend extends AbstractBackend {
 
             // Generate the Javascript AST.
             GenerateJavascriptAST generator =
-                new GenerateJavascriptAST(unit, typeProvider, context, optimizationStrategy);
+                new GenerateJavascriptAST(unit, typeProvider, context, optimizationStrategy,
+                                          generateClosureCompatibleCode());
             generator.translateNode(translationContext, node, staticInitBlock);
 
             TraceEvent namerEvent =
@@ -403,7 +403,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
               nonClassTranslationContext = TranslationContext.createContext(unit,
                   nonClassStatements, mangler);
               nonClassGenerator = new GenerateJavascriptAST(unit, typeProvider, context,
-                  optimizationStrategy);
+                  optimizationStrategy, generateClosureCompatibleCode());
             } finally {
               Tracer.end(genInitEvent);
             }
@@ -551,4 +551,8 @@ public abstract class AbstractJsBackend extends AbstractBackend {
   }
 
   protected abstract boolean shouldOptimize();
+
+  protected boolean generateClosureCompatibleCode() {
+    return false;
+  }
 }

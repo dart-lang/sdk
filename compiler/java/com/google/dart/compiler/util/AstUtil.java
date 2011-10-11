@@ -66,6 +66,15 @@ public class AstUtil {
     return nameRef;
   }
 
+  public static JsNameRef nameref(SourceInfo info, JsName qualifier, JsName prop) {
+    JsNameRef nameRef = new JsNameRef(prop);
+    if (qualifier != null) {
+      nameRef.setQualifier(qualifier.makeRef());
+    }
+    nameRef.setSourceRef(info);
+    return nameRef;
+  }
+
   public static JsNameRef newNameRef(JsExpression qualifier, JsName prop) {
     JsNameRef nameRef = new JsNameRef(prop);
     if (qualifier != null) {
@@ -174,8 +183,9 @@ public class AstUtil {
     return (JsInvocation) newInvocation(target, params).setSourceRef(src);
   }
 
-  public static JsExpression comma(SourceInfo src, JsExpression op1, JsExpression op2) {
-    return new JsBinaryOperation(JsBinaryOperator.COMMA, op1, op2).setSourceRef(src);
+  public static JsBinaryOperation comma(SourceInfo src, JsExpression op1, JsExpression op2) {
+    return (JsBinaryOperation)new JsBinaryOperation(JsBinaryOperator.COMMA, op1, op2)
+       .setSourceRef(src);
   }
 
   public static JsNameRef nameref(SourceInfo src, String name) {
@@ -202,7 +212,15 @@ public class AstUtil {
     return new JsPrefixOperation(JsUnaryOperator.NOT, op1).setSourceRef(src);
   }
 
+  public static JsExpression preinc(SourceInfo src, JsExpression op1) {
+    return new JsPrefixOperation(JsUnaryOperator.INC, op1).setSourceRef(src);
+  }
+
   public static JsExpression and(SourceInfo src, JsExpression op1, JsExpression op2) {
-    return new JsBinaryOperation(JsBinaryOperator.AND, op1, op2);
+    return new JsBinaryOperation(JsBinaryOperator.AND, op1, op2).setSourceRef(src);
+  }
+
+  public static JsExpression in(SourceInfo src, JsExpression propName, JsExpression obj) {
+    return new JsBinaryOperation(JsBinaryOperator.INOP, propName, obj).setSourceRef(src);
   }
 }

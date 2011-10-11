@@ -74,7 +74,6 @@ ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 
 MathTest: FAIL                           # Bug 5165080
 StringConcatTest: FAIL                   # Bug 5196164
-NamedParametersTest: Fail                # Implementation in progress.
 NamedParametersTypeTest: Fail            # Implementation in progress.
 NamedParametersWithConversionsTest: Fail # Implementation in progress.
 NamedParametersNegativeTest: Fail    # Implementation in progress.
@@ -82,10 +81,6 @@ NamedParameters2NegativeTest: Fail   # Implementation in progress.
 NamedParameters3NegativeTest: Fail   # Implementation in progress.
 NamedParameters4NegativeTest: Fail   # Implementation in progress.
 NamedParameters6NegativeTest: Crash  # Implementation in progress.
-NamedParametersPassingZeroTest: Fail # Bug
-NamedParametersPassingNullTest: Fail # Bug
-NamedParametersPassingFalseTest: Fail # Bug
-NamedParametersPassingFalsyTest: Fail # Bug
 InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail      # Bug 5387405

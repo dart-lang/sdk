@@ -174,13 +174,16 @@ public class GenerateJavascriptAST {
   private final DartCompilerContext context;
   private final OptimizationStrategy optStrategy;
   private final DartUnit unit;
-  private CoreTypeProvider typeProvider;
+  private final CoreTypeProvider typeProvider;
+  private final boolean generateClosureCompatibleCode;
 
   /**
    * Generates the Javascript AST using the names created in {@link GenerateNamesAndScopes}.
    */
   static class GenerateJavascriptVisitor
       implements DartPlainVisitor<JsNode>, TraversalContextProvider {
+
+    private final boolean generateClosureCompatibleCode;
 
     private static boolean isSuperCall(Symbol symbol) {
       return ElementKind.of(symbol).equals(ElementKind.SUPER);
@@ -252,13 +255,15 @@ public class GenerateJavascriptAST {
 
     public GenerateJavascriptVisitor(DartUnit unit, DartCompilerContext context,
         TranslationContext translationContext,
-        OptimizationStrategy optStrategy, CoreTypeProvider typeProvider) {
+        OptimizationStrategy optStrategy, CoreTypeProvider typeProvider,
+        boolean generateClosureCompatibleCode) {
       this.context = context;
       this.translationContext = translationContext;
       this.optStrategy = optStrategy;
       this.typeProvider = typeProvider;
       this.typeUtils = Types.getInstance(typeProvider);
       this.unitLibrary = unit.getLibrary().getElement();
+      this.generateClosureCompatibleCode = generateClosureCompatibleCode;
 
       // Cache the mangler in a field since it is used frequently
       mangler = translationContext.getMangler();
@@ -1178,23 +1183,23 @@ public class GenerateJavascriptAST {
           continue;
         }
 
-        JsNameRef ifExpr = AstUtil.newNameRef(namedParam.getName().makeRef(),
-            jsParam.getName());
+        JsExpression paramName = string(jsParam.getName().getShortIdent());
+        if (generateClosureCompatibleCode) {
+          paramName = AstUtil.call(null,
+              AstUtil.nameref(null, "JSCompiler_renameProperty"), paramName);
+        }
+        JsExpression ifExpr = AstUtil.in(null, paramName, namedParam.getName().makeRef());
 
-        JsPrefixOperation ppSeen = new JsPrefixOperation(JsUnaryOperator.INC, seen.makeRef());
-        JsBinaryOperation thenExpr = new JsBinaryOperation(JsBinaryOperator.COMMA, ppSeen,
+        JsExpression ppSeen = AstUtil.preinc(null, seen.makeRef());
+        JsBinaryOperation thenExpr = AstUtil.comma(null, ppSeen,
             AstUtil.newNameRef(namedParam.getName().makeRef(), jsParam.getName()));
 
-        JsExpression elseExpr;
-
         DartExpression defaultValue = param.getDefaultExpr();
-        if (defaultValue != null) {
-          JsPrefixOperation ppDef = new JsPrefixOperation(JsUnaryOperator.INC, def.makeRef());
-          elseExpr = new JsBinaryOperation(JsBinaryOperator.COMMA, ppDef,
-            generateDefaultValue(defaultValue));
-        } else {
-          elseExpr = nulle();
-        }
+        JsExpression elseExpr = (defaultValue != null)
+            ? generateDefaultValue(defaultValue)
+            : undefined();
+        JsExpression ppDef = AstUtil.preinc(null, def.makeRef());
+        elseExpr = AstUtil.comma(null, ppDef, elseExpr);
 
         JsBinaryOperation asg = assign(
             jsParam.getName().makeRef(),
@@ -2635,10 +2640,14 @@ public class GenerateJavascriptAST {
             ++posUsed;
             jsArgs.add((JsExpression) generate(posArgs.get(idx)));
           } else if (param.getDefaultValue() != null) {
+            assert(param.isNamed());
             jsArgs.add(generateDefaultValue(param.getDefaultValue()));
           } else {
-            // Call cannot succeed; bail out.
-            return false;
+            if (param.isNamed()) {
+              jsArgs.add(undefined());
+            } else {
+              return false;
+            }
           }
         }
         ++idx;
@@ -3711,18 +3720,20 @@ public class GenerateJavascriptAST {
   }
 
   GenerateJavascriptAST(DartUnit unit, CoreTypeProvider typeProvider, DartCompilerContext context,
-                        OptimizationStrategy optimizationStrategy) {
+                        OptimizationStrategy optimizationStrategy,
+                        boolean generateClosureCompatibleCode) {
     this.unit = unit;
     this.context = context;
     this.optStrategy = optimizationStrategy;
     this.typeProvider = typeProvider;
+    this.generateClosureCompatibleCode = generateClosureCompatibleCode;
   }
 
   public void translateNode(TranslationContext translationContext, DartNode node,
       JsBlock blockStatics) {
     GenerateJavascriptVisitor generator =
         new GenerateJavascriptVisitor(unit, context, translationContext,
-            optStrategy, typeProvider);
+            optStrategy, typeProvider, generateClosureCompatibleCode);
     // Generate the Javascript AST.
     node.accept(generator);
     // Set aside the static initializations

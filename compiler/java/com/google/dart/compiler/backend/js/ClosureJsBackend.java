@@ -490,7 +490,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
      * due to the renaming.
      */
     options.setReplaceIdGenerators(false);
-    
+
     return options;
   }
 
@@ -550,6 +550,8 @@ public class ClosureJsBackend extends AbstractJsBackend {
 
   // Add a declarations for the V8 logging function.
   private static final String UNIT_TEST_EXTERN_STUBS = "var write;";
+
+  private static final String CLOSURE_PRIMITIVES = "function JSCompiler_renameProperty() {};";
 
   // TODO(johnlenz): include json.js in the default set of externs.
   private static final String MISSING_EXTERNS =
@@ -615,6 +617,9 @@ public class ClosureJsBackend extends AbstractJsBackend {
     // Add methods used when running the unit tests.
     externs.add(JSSourceFile.fromCode("unitTestStubs", UNIT_TEST_EXTERN_STUBS));
 
+    // Add methods used by Closure Compiler itself.
+    externs.add(JSSourceFile.fromCode("closureCompilerPrimitives", CLOSURE_PRIMITIVES));
+
     return externs;
   }
 
@@ -645,5 +650,10 @@ public class ClosureJsBackend extends AbstractJsBackend {
   @Override
   protected boolean shouldOptimize() {
     return (fastOutput) ? false : true;
+  }
+
+  @Override
+  protected boolean generateClosureCompatibleCode() {
+    return true;
   }
 }
