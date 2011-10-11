@@ -127,7 +127,7 @@ public class DartUnit extends DartNode {
   public final String toDietSource() {
     if (dietParse == null) {
       DefaultTextOutput out = new DefaultTextOutput(false);
-      new DartToSourceVisitor(out, true).accept(this);
+      new DartToSourceVisitor(out, true, true).accept(this);
       dietParse = out.toString();
     }
     return dietParse;

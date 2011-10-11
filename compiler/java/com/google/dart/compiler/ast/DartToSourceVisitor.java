@@ -12,6 +12,7 @@ import com.google.dart.compiler.util.TextOutput;
 import com.google.debugging.sourcemap.FilePosition;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,6 +26,8 @@ public class DartToSourceVisitor extends DartVisitor {
   private List<SourceMapping> mappings = Lists.newArrayList();
   private final boolean isDiet;
 
+  private final boolean calculateHash;
+  
   public DartToSourceVisitor(TextOutput out) {
     this(out, false);
   }
@@ -32,8 +35,15 @@ public class DartToSourceVisitor extends DartVisitor {
   public DartToSourceVisitor(TextOutput out, boolean isDiet) {
     this.out = out;
     this.isDiet = isDiet;
+    this.calculateHash = false;
   }
-
+  
+  public DartToSourceVisitor(TextOutput out, boolean isDiet, boolean calculateHash) {
+    this.out = out;
+    this.isDiet = isDiet;
+    this.calculateHash = calculateHash;
+  }
+  
   public void generateSourceMap(boolean generate) {
     this.buildMappings = generate;
   }
@@ -105,8 +115,6 @@ public class DartToSourceVisitor extends DartVisitor {
 
     if (x.getReturnTypeNode() != null) {
       accept(x.getReturnTypeNode());
-    } else {
-      p("function ");
     }
 
     p(" ");
@@ -125,6 +133,11 @@ public class DartToSourceVisitor extends DartVisitor {
 
   @Override
   public boolean visit(DartClass x, DartContext ctx) {
+    int start = 0;
+    if (calculateHash == true) {
+      start = out.getPosition();
+    }
+    
     if (x.isInterface()) {
       p("interface ");
     } else {
@@ -173,6 +186,9 @@ public class DartToSourceVisitor extends DartVisitor {
 
     outdent();
     p("}");
+    if (calculateHash == true) {
+      x.setHash(out.toString().substring(start, out.getPosition()).hashCode());
+    }
     nl();
     nl();
     return false;
@@ -764,13 +780,6 @@ public class DartToSourceVisitor extends DartVisitor {
       p(" ");
     }
     DartIdentifier name = x.getName();
-    if (name != null) {
-      if (func.getReturnTypeNode() == null) {
-        p("function ");
-      }
-    } else {
-      p("function");
-    }
     pFunctionDeclaration(name, x.getFunction());
     p(" ");
     if (x.getFunction().getBody() != null) {

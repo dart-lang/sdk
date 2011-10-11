@@ -174,6 +174,42 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     didNotWrite("myother2.dart", EXTENSION_JS, provider);
   }
 
+  public void testNormalizationTracking() {
+    compile();
+
+    provider.resetReadsAndWrites();
+    myAppSource.touchSource("myother7.dart");
+    compile();
+
+    // Test against normalization having an effect on hashcodes
+    // SomeInterface2 is an empty interface that can have an extra default constructor added by 
+    // the dartc backend normalization process.  By depending on a class that implements the interface,
+    // my.app.dart.deps will transitively depend on the empty interface.  If something changes
+    // with how hashcodes are generated, this test should be updated.
+
+    // We just bumped the timestamp on myother7.dart, so only myother7.dart.js and my.app.js should
+    // be changed. At present, the app's deps and api will be rewritten.
+
+    didWrite("myother7.dart", EXTENSION_JS, provider);
+    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    didWrite("my.app.dart", EXTENSION_DEPS, provider);
+    didWrite("my.app.dart", EXTENSION_API, provider);
+
+    // Nothing else should have changed.
+    didNotWrite("my.dart", EXTENSION_JS, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
+    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+
+    didNotWrite("some.dart", EXTENSION_JS, provider);
+    didNotWrite("some.lib.dart", EXTENSION_API, provider);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+
+    didNotWrite("myother0.dart", EXTENSION_JS, provider);
+    didNotWrite("myother1.dart", EXTENSION_JS, provider);
+    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+  }
+
   public void testKnockout_jsArtifact() {
     compile();
 
