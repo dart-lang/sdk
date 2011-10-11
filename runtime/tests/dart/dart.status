@@ -16,7 +16,8 @@ Process*: Skip
 [ $arch == ia32 && $system == macos]
 # Currently process tests are not working on Mac OS.
 Process*: Skip
-
+# This test fails with "Too many open files" on the Mac OS buildbot.
+SocketManyConnectionsTest: Skip
 
 [ $arch == ia32 && $system == win32]
 # Windows implementation of Process is still pending.
@@ -32,6 +33,7 @@ EchoServerStreamReadUntilTest: Skip # Uses Socket
 ManyEchoServerTest: Skip # Uses Socket
 SocketCloseTest: Skip # Uses Socket
 SocketExceptionTest: Skip # Uses Socket
+SocketManyConnectionsTest: Skip # Uses Socket
 FileTest: Skip
 ManyEchoServerTest: Skip  # Uses Socket
 TimerTest: Skip # Uses EventHandler
