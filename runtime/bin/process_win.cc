@@ -78,6 +78,7 @@ int Process::Start(const char* path,
   return 0;
 }
 
+
 bool Process::Kill(intptr_t id) {
   HANDLE process_handle = reinterpret_cast<HANDLE>(id);
   BOOL result = TerminateProcess(process_handle, -1);
@@ -86,4 +87,8 @@ bool Process::Kill(intptr_t id) {
   }
   CloseHandle(process_handle);
   return true;
+}
+
+
+void Process::Exit(intptr_t id) {
 }
