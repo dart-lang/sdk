@@ -19638,6 +19638,94 @@ function native__MessageEventWrappingImplementation__initMessageEvent(_this, typ
   }
 }
 
+function native__MessagePortWrappingImplementation__get__MessagePort_onmessage(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onmessage);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__set__MessagePort_onmessage(_this, value) {
+  try {
+    _this.$dom.onmessage = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__addEventListener(_this, type, listener) {
+  try {
+    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+  try {
+    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__close(_this) {
+  try {
+    return __dom_wrap(_this.$dom.close());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__dispatchEvent(_this, evt) {
+  try {
+    return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__postMessage(_this, message) {
+  try {
+    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__removeEventListener(_this, type, listener) {
+  try {
+    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+  try {
+    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__start(_this) {
+  try {
+    return __dom_wrap(_this.$dom.start());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__webkitPostMessage(_this, message) {
+  try {
+    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__MetadataWrappingImplementation__get__Metadata_modificationTime(_this) {
   try {
     return __dom_wrap(_this.$dom.modificationTime);

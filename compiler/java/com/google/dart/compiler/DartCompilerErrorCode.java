@@ -139,6 +139,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   NAME_CLASHES_EXISTING_MEMBER(
       "name clashes with a previously defined member at %sline %d column %d"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
+  NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NON_CONST_STATIC_MEMBER_IN_INTERFACE("SyntaxError: non-final static members are not allowed in "
       + "interfaces"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("SyntaxError: non-final static members are not allowed in "

@@ -30,7 +30,7 @@ DRT_DARTIUM_LATEST_PATTERN = (
     'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
 DRT_DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/dartium-%(osname)s-inc'
 DRT_CHROMIUM_LATEST_PATTERN = (
-    'gs://dart-dump-render-tree/latest/chromium-%(osname)s-103752.zip')
+    'gs://dart-dump-render-tree/latest/chromium-%(osname)s-*.zip')
 
 sys.path.append(GSUTIL_DIR + '/boto')
 import boto
@@ -121,8 +121,10 @@ def main():
     if result == 0:
       latest = out.split()[-1]
     else:
-      raise Exception("Couldn't retrieve DumpRenderTree: %s\n%s" % (
-          pattern, str(out)))
+      print "Couldn't download DumpRenderTree: %s\n%s" % (pattern, out)
+      if not os.path.exists(VERSION):
+        print "Tests using arch=chromium will not work. Please try again later."
+      return 0
 
   # Check if we need to update the file
   if os.path.exists(VERSION):

@@ -596,6 +596,88 @@ public class ResolverTest extends ResolverTestCase {
     }
   }
 
+  /**
+   * Tests for the 'new' keyword
+   */
+  public void testNewExpression() {
+    // A very ordinary new expression is OK
+    encounteredErrors = Lists.newArrayList();
+    resolve(parseUnit("class Object {}",
+                      "class Foo {",
+                      "  Foo create() {",
+                      "    return new Foo();",
+                      "  }",
+                      "}"),
+                      getContext());
+    {
+      ErrorCode[] expected = {
+      };
+      checkExpectedErrors(expected);
+    }
+
+    // A  new expression with generic type argument is OK
+    encounteredErrors = Lists.newArrayList();
+    resolve(parseUnit("class Object {}",
+                      "class Foo<T> {",
+                      "  Foo<T> create() {",
+                      "    return new Foo<T>();",
+                      "  }",
+                      "}"),
+                      getContext());
+    {
+      ErrorCode[] expected = {
+      };
+      checkExpectedErrors(expected);
+    }
+
+    // Trying new on a variable name shouldn't work.
+    encounteredErrors = Lists.newArrayList();
+    resolve(parseUnit("class Object {}",
+                      "class Foo {",
+                      "  var Bar;",
+                      "  create() { return new Bar();}",
+                      "}"),
+                      getContext());
+    {
+      ErrorCode[] expected = {
+          DartCompilerErrorCode.NO_SUCH_TYPE,
+          DartCompilerErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR,
+      };
+      checkExpectedErrors(expected);
+    }
+
+    // New expression tied to an unbound type variable is not allowed.
+    encounteredErrors = Lists.newArrayList();
+    resolve(parseUnit("class Object {}",
+                      "class Foo<T> {",
+                      "  T create() {",
+                      "    return new T();",
+                      "  }",
+                      "}"),
+                      getContext());
+    {
+      ErrorCode[] expected = {
+          DartCompilerErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR,
+      };
+      checkExpectedErrors(expected);
+    }
+
+    // More cowbell. (Foo<T> isn't a type yet)
+    encounteredErrors = Lists.newArrayList();
+    resolve(parseUnit("class Object {}",
+                      "class Foo<T> { }",
+                      "class B {",
+                      "  foo() { return new Foo<T>(); }",
+                      "}"),
+                      getContext());
+    {
+      ErrorCode[] expected = {
+          DartCompilerErrorCode.NO_SUCH_TYPE,
+      };
+      checkExpectedErrors(expected);
+    }
+  }
+
   private static DartUnit makeUnit(DartNode... topLevelElements) {
     DartUnit unit = new DartUnit(null);
     for (DartNode topLevelElement : topLevelElements) {

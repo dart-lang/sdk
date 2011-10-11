@@ -50,7 +50,7 @@ TEST_CASE(SerializeNull) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -69,7 +69,7 @@ TEST_CASE(SerializeSmi1) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -88,7 +88,7 @@ TEST_CASE(SerializeSmi2) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -107,7 +107,7 @@ TEST_CASE(SerializeDouble) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -128,7 +128,7 @@ TEST_CASE(SerializeBool) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -147,7 +147,7 @@ TEST_CASE(SerializeBigint) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -185,7 +185,7 @@ TEST_CASE(SerializeSingletons) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -221,7 +221,7 @@ TEST_CASE(SerializeString) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -247,7 +247,7 @@ TEST_CASE(SerializeArray) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();
@@ -280,7 +280,7 @@ TEST_CASE(SerializeScript) {
   writer.FinalizeBuffer();
 
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
   Isolate* isolate= Isolate::Current();

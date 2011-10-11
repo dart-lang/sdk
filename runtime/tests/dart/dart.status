@@ -18,11 +18,6 @@ Process*: Skip
 Process*: Skip
 
 
-[ $arch == ia32 && $system == linux]
-# Currently process tests can cause timeouts on Linux.
-Process*: Skip  # Bug 1
-
-
 [ $arch == ia32 && $system == win32]
 # Windows implementation of Process is still pending.
 Process*: Skip
@@ -45,6 +40,7 @@ MultipleTimerTest: Skip # Uses EventHandler
 TimerCancelTest: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
+Directory*: Skip # Uses Directory
 
 
 [ $arch == dartc || $arch == chromium ]

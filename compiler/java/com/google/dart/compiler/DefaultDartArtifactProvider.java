@@ -75,7 +75,7 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
   public boolean isOutOfDate(Source source, Source base, String extension) {
     if (SystemLibraryManager.isDartUri(base.getUri())) {
       Source bundledSource = getBundledArtifact(source, base, "", extension);
-      if (bundledSource != null) {
+      if (bundledSource != null && bundledSource.exists()) {
         // Note: Artifacts bundled with sources are always up to date
         return false;
       }
@@ -84,9 +84,22 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
     return artifactFile.lastModified() < source.getLastModified();
   }
 
+  // TODO(jbrosenberg): remove 'source' argument from this method, it's not used
   protected DartSource getBundledArtifact(Source source, Source base, String part, String extension) {
-    LibrarySource library = libraryOf(base);
-    URI relativeUri = library.getUri().resolve(".").normalize().relativize(base.getUri());
+    LibrarySource library;
+    URI relativeUri;
+    if (base instanceof LibrarySource) {
+      library = (LibrarySource) base;
+      relativeUri = library.getUri().resolve(".").normalize().relativize(base.getUri());
+    } else if (base instanceof DartSource){
+      library = ((DartSource) base).getLibrary();
+      String name = base.getName();
+      URI nameUri = URI.create(name).normalize();
+      relativeUri = library.getUri().resolve(".").normalize().relativize(nameUri);
+    } else {
+      throw new AssertionError(base.getClass().getName());
+    }
+
     DartSource bundledSource;
     if (!relativeUri.isAbsolute()) {
       bundledSource = library.getSourceFor(fullname(relativeUri.getPath(), part, extension));
@@ -94,16 +107,6 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
       bundledSource = null;
     }
     return bundledSource;
-  }
-
-  private LibrarySource libraryOf(Source base) throws AssertionError {
-    if (base instanceof DartSource) {
-      return ((DartSource) base).getLibrary();
-    } else if (base instanceof LibrarySource){
-      return (LibrarySource) base;
-    } else {
-      throw new AssertionError(base.getClass().getName());
-    }
   }
 
   /**

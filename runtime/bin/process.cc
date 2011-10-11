@@ -61,10 +61,19 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_ExitScope();
 }
 
+
 void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t pid = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
   bool success = Process::Kill(pid);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t pid = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  Process::Exit(pid);
   Dart_ExitScope();
 }

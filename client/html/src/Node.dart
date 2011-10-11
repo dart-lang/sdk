@@ -6,14 +6,13 @@
 interface Node extends EventTarget {
 
   NodeList get nodes();
-  // TODO(jacobr): add nodes setter that replaces all children.
+
+  // TODO: The type of value should be Collection<Node>. See http://b/5392897
+  void set nodes(value);
 
   Node get nextNode();
 
   Document get document();
-
-  // TODO(jacobr): should we remove parentElement?
-  Element get parentElement();
 
   Node get parent();
 
@@ -26,8 +25,6 @@ interface Node extends EventTarget {
   Node replaceWith(Node otherNode);
 
   Node remove();
-
-  bool get inDocument();
 
   bool contains(Node otherNode);
 

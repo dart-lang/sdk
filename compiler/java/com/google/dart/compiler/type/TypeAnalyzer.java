@@ -996,7 +996,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         FunctionType ftype = (FunctionType) element.getType();
-        if (type instanceof InterfaceType) {
+        if (TypeKind.of(type).equals(TypeKind.INTERFACE)) {
           InterfaceType ifaceType = (InterfaceType)type;
           List<? extends Type> arguments = ifaceType.getArguments();
           ftype = (FunctionType) ftype.subst(arguments,

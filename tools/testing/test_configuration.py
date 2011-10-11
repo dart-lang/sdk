@@ -8,7 +8,6 @@ import os
 import test
 import platform
 import re
-import run
 import shutil
 import sys
 import tempfile

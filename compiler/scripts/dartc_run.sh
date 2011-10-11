@@ -55,7 +55,7 @@ exec $JAVABIN -ea -classpath @CLASSPATH@ \
               ${JVM_DEBUG_FLAGS} \
               ${JVM_FLAGS} \
               ${JVM_FLAGS_CMDLINE} \
-              com.google.dart.runner.TestRunner \
+              com.google.dart.runner.DartRunner \
               $DARTC_FLAGS \
               "$@"
 

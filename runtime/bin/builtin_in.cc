@@ -40,8 +40,9 @@ static const char Builtin_source_[] = {
   V(File_Flush, 1)                                                             \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
-  V(Process_Kill, 2)                                                           \
   V(Process_Start, 8)                                                          \
+  V(Process_Kill, 2)                                                           \
+  V(Process_Exit, 2)                                                           \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_Available, 1)                                                       \
   V(Socket_ReadList, 4)                                                        \

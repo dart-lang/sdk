@@ -873,7 +873,8 @@ public class Resolver {
       });
 
 
-      if (ElementKind.of(element).equals(ElementKind.CLASS)) {
+      switch (ElementKind.of(element)) {
+        case CLASS:
         // Check for default constructor or implicit default constructor
         ClassElement classElement = (ClassElement) element;
         element = Elements.lookupConstructor(classElement, "");
@@ -891,6 +892,12 @@ public class Resolver {
             }
           }
         }
+        break;
+        case TYPE_VARIABLE:
+          resolutionError(x.getConstructor(), DartCompilerErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+          return null;
+        default:
+          break;
       }
 
       // If there is a default implementation, lookup the constructor in the

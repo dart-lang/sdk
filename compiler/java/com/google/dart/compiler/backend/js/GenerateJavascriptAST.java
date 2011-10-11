@@ -412,10 +412,11 @@ public class GenerateJavascriptAST {
         }
       }
 
-      rtt.generateRuntimeTypeInfo(x);
       maybeInjectIsolateMethods(classElement);
 
       if (classElement.isInterface()) {
+        rtt.generateRuntimeTypeInfo(x);
+
         // Emit only static final fields for interfaces.
         for (Element member : classElement.getMembers()) {
           if (ElementKind.of(member).equals(ElementKind.FIELD)) {
@@ -437,6 +438,8 @@ public class GenerateJavascriptAST {
           inherits.setSourceRef(x);
           globalBlock.getStatements().add(inherits.makeStmt());
         }
+
+        rtt.generateRuntimeTypeInfo(x);
 
         List<Element> classMembers = new ArrayList<Element>();
         classMembers.addAll(classElement.getConstructors());
@@ -1685,7 +1688,7 @@ public class GenerateJavascriptAST {
 
     /**
      * Get the type associated with a type node
-     * 
+     *
      * @param typeNode a {@link DartTypeNode}, which may be null
      * @return a {@link Type} corresponding to the type node or null to indicate unknown
      */
@@ -2415,7 +2418,7 @@ public class GenerateJavascriptAST {
       DartExpression target = x.getTarget();
       if (target instanceof DartFunctionExpression) {
         DartFunctionExpression functionExpression = (DartFunctionExpression) target;
-        if (functionExpression.getSymbol().getModifiers().isInlinable() && 
+        if (functionExpression.getSymbol().getModifiers().isInlinable() &&
             !shouldGenerateDeveloperModeChecks()) {
           // TODO FunctionExpressionInliner conflics with developer mode checks
           return new FunctionExpressionInliner(functionExpression, x.getArgs()).call();
@@ -2810,14 +2813,14 @@ public class GenerateJavascriptAST {
       if (shouldGenerateDeveloperModeChecks()) {
         return true;
       }
-      
+
       return !inFactoryOrStaticContext && info.referencesThis;
     }
 
     private boolean shouldGenerateDeveloperModeChecks() {
       return context.getCompilerConfiguration().developerModeChecks();
     }
-    
+
     @Override
     public JsNode visitFunctionExpression(DartFunctionExpression x) {
       JsFunction fn = (JsFunction) generate(x.getFunction());

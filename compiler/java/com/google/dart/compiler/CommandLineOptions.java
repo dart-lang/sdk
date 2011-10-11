@@ -42,7 +42,7 @@ public class CommandLineOptions {
         usage = "Treat some type checks as warnings\n instead of fatal errors")
     private boolean shouldWarnOnNoSuchType = false;
 
-    @Option(name = "--enable_type_checks", 
+    @Option(name = "--enable_type_checks",
         usage = "Generate runtime type checks")
     private boolean developerModeChecks = false;
 
@@ -347,13 +347,6 @@ public class CommandLineOptions {
     public void setVerbose(boolean value) {
       this.verbose = value;
     }
-  }
-
-
-  /**
-   * Command line options accepted by the {@link com.google.dart.runner.TestRunner} entry point.
-   */
-  public static class TestRunnerOptions extends DartRunnerOptions  {
   }
 
   /**

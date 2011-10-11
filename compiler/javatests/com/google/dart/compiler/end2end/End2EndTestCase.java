@@ -89,13 +89,8 @@ public abstract class End2EndTestCase extends CompilerTestCase {
     DartRunnerOptions verboseOptions = new CommandLineOptions.DartRunnerOptions();
     verboseOptions.setVerbose(true);
     try {
-      DartRunner.compileAndRunApp(app,
-                                  verboseOptions,
-                                  config,
-                                  listener,
-                                  args,
-                                  System.out,
-                                  System.err);
+      DartRunner.compileAndRunApp(app, verboseOptions, config, listener, args,
+                                  System.out, System.err);
     } catch (RhinoException e) {
       // TODO(jgw): This is a hack to dump the translated source when something goes wrong. It can
       // be removed as soon as we have a source map we can use to provide source-level errors.

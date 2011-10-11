@@ -122,19 +122,23 @@ class _ChildrenNodeList implements NodeList {
   }
 
   int indexOf(Node element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.indexOf(this, element, startIndex, this.length);
   }
 
   int lastIndexOf(Node element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.lastIndexOf(this, element, startIndex);
   }
 
   void clear() {
-    throw 'Not impl yet. todo(jacobr)';
+    _node.textContent = '';
   }
 
   Node removeLast() {
-    throw 'Not impl yet. todo(jacobr)';
+    final last = this.last();
+    if (last != null) {
+      _node.removeChild(LevelDom.unwrap(last));
+    }
+    return last;
   }
 
   Node last() {
@@ -147,6 +151,13 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
 
   NodeWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
+  void set nodes(Collection<Node> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    nodes.clear();
+    nodes.addAll(copy);
+  }
+
   NodeList get nodes() {
     if (_nodes === null) {
       _nodes = new _ChildrenNodeList._wrap(_ptr);
@@ -157,9 +168,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   Node get nextNode() => LevelDom.wrapNode(_ptr.nextSibling);
 
   Document get document() => LevelDom.wrapDocument(_ptr.ownerDocument);
-
-  // TODO(jacobr): should we remove parentElement?
-  Element get parentElement() => LevelDom.wrapElement(_ptr.parentElement);
 
   Node get parent() => LevelDom.wrapNode(_ptr.parentNode);
 
@@ -187,29 +195,12 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
     return this;
   }
 
-  /**
-   * Returns whether the node is attached to a document.
-   */
-  bool get inDocument() {
-    var node = _ptr;
-    // TODO(jacobr): is there a faster way to compute this?
-    while(node !== null) {
-      if (node.nodeType == 9) {
-        return true;
-      }
-      node = node.parentNode;
-    }
-    return false;
-  }
-
-  // TODO(jacobr): implement this.  It is supported by Element.
   bool contains(Node otherNode) {
-    if (nodes.length > 0) {
-      // TODO(jacobr): implement.
-      throw 'Contains not implemented yet for non-leaf and non-element nodes.';
-    } else {
-      return false;
+    // TODO: Feature detect and use built in.
+    while (otherNode != null && otherNode != this) {
+      otherNode = otherNode.parent;
     }
+    return otherNode == this;
   }
 
   // TODO(jacobr): remove when/if List supports a method similar to

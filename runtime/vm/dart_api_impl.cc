@@ -35,7 +35,8 @@ DART_EXPORT bool Dart_Initialize(int argc,
 }
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(void* snapshot, void* data) {
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
+                                            void* data) {
   ASSERT(Isolate::Current() == NULL);
   Isolate* isolate = Dart::CreateIsolate(snapshot, data);
   START_TIMER(time_total_runtime);
@@ -1481,7 +1482,8 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-DART_EXPORT Dart_Result Dart_PostIntArray(Dart_Port port, intptr_t field_count,
+DART_EXPORT Dart_Result Dart_PostIntArray(Dart_Port port,
+                                          int field_count,
                                           intptr_t* data) {
   uint8_t* buffer = NULL;
   MessageWriter writer(&buffer, &allocator);
