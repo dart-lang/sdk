@@ -232,6 +232,7 @@ class Parser : ValueObject {
                      const Array& interfaces);
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);
+  AstNode* ParseSuperOperator();
 
   static void SetupDefaultsForOptionalParams(const ParamList* params,
                                              Array& default_values);

@@ -1028,6 +1028,46 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
 }
 
 
+AstNode* Parser::ParseSuperOperator() {
+  AstNode* super_op = NULL;
+  const intptr_t operator_pos = token_index_;
+  const Class& super_class = Class::Handle(current_class().SuperClass());
+  if (super_class.IsNull()) {
+    ErrorMsg(operator_pos, "class '%s' does not have a superclass",
+             String::Handle(current_class().Name()).ToCString());
+  }
+
+  if (CurrentToken() == Token::kLBRACK) {
+    Unimplemented("Not yet implemented: super[expr]");
+  } else if (Token::CanBeOverloaded(CurrentToken())) {
+    Token::Kind op = CurrentToken();
+    ConsumeToken();
+
+    // Resolve the operator function in the superclass.
+    const String& operator_function_name =
+        String::ZoneHandle(String::NewSymbol(Token::Str(op)));
+    const Function& super_operator = Function::ZoneHandle(
+        ResolveDynamicFunction(super_class, operator_function_name));
+    if (super_operator.IsNull()) {
+      ErrorMsg(operator_pos, "operator '%s' not found in super class",
+               Token::Str(op));
+    }
+
+    ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kBIT_OR));
+    AstNode* other_operand = ParseBinaryExpr(Token::Precedence(op) + 1);
+
+    ArgumentListNode* op_arguments = new ArgumentListNode(operator_pos);
+    AstNode* receiver = LoadReceiver(operator_pos);
+    op_arguments->Add(receiver);
+    op_arguments->Add(other_operand);
+
+    CheckFunctionIsCallable(operator_pos, super_operator);
+    super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
+  }
+  return super_op;
+}
+
+
 AstNode* Parser::CreateImplicitClosureNode(const Function& func,
                                            intptr_t token_pos,
                                            AstNode* receiver) {
@@ -6625,10 +6665,10 @@ AstNode* Parser::ParsePrimary() {
       } else {
         primary = ParseSuperFieldAccess(ident);
       }
-    } else if (CurrentToken() == Token::kLBRACK) {
-      Unimplemented("Don't know yet how to interpret super[expr]");
+    } else if (Token::CanBeOverloaded(CurrentToken())) {
+      primary = ParseSuperOperator();
     } else {
-      ErrorMsg("Expected '.' or '[' after super");
+      ErrorMsg("Illegal super call");
     }
   } else {
     UnexpectedToken();
