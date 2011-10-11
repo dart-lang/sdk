@@ -2337,15 +2337,6 @@ bool Function::IsInFactoryScope() const {
 }
 
 
-bool Function::IsInStaticScope() const {
-  Function& outer_function = Function::Handle(raw());
-  while (outer_function.IsLocalFunction()) {
-    outer_function = outer_function.parent_function();
-  }
-  return outer_function.is_static();
-}
-
-
 void Function::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
@@ -2717,6 +2708,15 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
 }
 
 
+bool Function::IsImplicitClosureFunction() const {
+  if (!IsClosureFunction()) {
+    return false;
+  }
+  const Function& parent = Function::Handle(parent_function());
+  return parent.raw_ptr()->implicit_closure_function_ == raw();
+}
+
+
 RawFunction* Function::New() {
   const Class& function_class = Class::Handle(Object::function_class());
   RawObject* raw = Object::Allocate(function_class,
@@ -2757,7 +2757,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
   const Function& result = Function::Handle(
       Function::New(name,
                     RawFunction::kClosureFunction,
-                    /* is_static = */ true,
+                    /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
                     token_index));
   result.set_parent_function(parent);
@@ -2830,6 +2830,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   ASSERT(Class::Handle(closure_function.signature_class()).IsNull());
   closure_function.set_signature_class(signature_class);
   set_implicit_closure_function(closure_function);
+  ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
 }
 

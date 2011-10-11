@@ -134,8 +134,6 @@ class StubCode {
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
   static RawCode* GetAllocationStubForClosure(const Function& func);
-  static RawCode* GetAllocationStubForStaticImplicitClosure(
-      const Function& func);
 
  private:
   static const int kStubCodeSize = 4 * KB;
@@ -167,8 +165,6 @@ class StubCode {
                                              const Class& cls);
   static void GenerateAllocationStubForClosure(Assembler* assembler,
                                                const Function& func);
-  static void GenerateAllocationStubForStaticImplicitClosure(
-      Assembler* assembler, const Function& func);
 };
 
 }  // namespace dart

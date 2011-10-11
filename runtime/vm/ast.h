@@ -38,8 +38,8 @@ namespace dart {
   V(ArgumentListNode, "args")                                                  \
   V(ArrayNode, "array")                                                        \
   V(ClosureNode, "closure")                                                    \
-  V(ImplicitClosureNode, "implicit closure")                                   \
-  V(StaticImplicitClosureNode, "static implicit closure")                      \
+  V(ImplicitInstanceClosureNode, "implicit instance closure")                  \
+  V(ImplicitStaticClosureNode, "implicit static closure")                      \
   V(InstanceCallNode, "instance call")                                         \
   V(StaticCallNode, "static call")                                             \
   V(ClosureCallNode, "closure call")                                           \
@@ -366,6 +366,7 @@ class ClosureNode : public AstNode {
   ClosureNode(intptr_t token_index, const Function& function, LocalScope* scope)
       : AstNode(token_index), function_(function), scope_(scope) {
     ASSERT(function.IsZoneHandle());
+    ASSERT(function.IsNonImplicitClosureFunction());
     ASSERT(scope_ != NULL);
   }
 
@@ -384,33 +385,35 @@ class ClosureNode : public AstNode {
 };
 
 
-class StaticImplicitClosureNode : public AstNode {
+class ImplicitStaticClosureNode : public AstNode {
  public:
-  StaticImplicitClosureNode(intptr_t token_index, const Function& function)
+  ImplicitStaticClosureNode(intptr_t token_index, const Function& function)
       : AstNode(token_index), function_(function) {
     ASSERT(function.IsZoneHandle());
+    ASSERT(function.IsImplicitStaticClosureFunction());
   }
 
   const Function& function() const { return function_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
-  DECLARE_COMMON_NODE_FUNCTIONS(StaticImplicitClosureNode);
+  DECLARE_COMMON_NODE_FUNCTIONS(ImplicitStaticClosureNode);
 
  private:
   const Function& function_;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticImplicitClosureNode);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ImplicitStaticClosureNode);
 };
 
 
-class ImplicitClosureNode : public AstNode {
+class ImplicitInstanceClosureNode : public AstNode {
  public:
-  ImplicitClosureNode(intptr_t token_index,
-                      const Function& function,
-                      AstNode* receiver)
+  ImplicitInstanceClosureNode(intptr_t token_index,
+                             const Function& function,
+                             AstNode* receiver)
       : AstNode(token_index), function_(function), receiver_(receiver) {
     ASSERT(function.IsZoneHandle());
+    ASSERT(function.IsImplicitInstanceClosureFunction());
   }
 
   const Function& function() const { return function_; }
@@ -422,13 +425,13 @@ class ImplicitClosureNode : public AstNode {
     }
   }
 
-  DECLARE_COMMON_NODE_FUNCTIONS(ImplicitClosureNode);
+  DECLARE_COMMON_NODE_FUNCTIONS(ImplicitInstanceClosureNode);
 
  private:
   const Function& function_;
   AstNode* receiver_;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ImplicitClosureNode);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ImplicitInstanceClosureNode);
 };
 
 

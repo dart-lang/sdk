@@ -72,12 +72,6 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   __ Unimplemented("AllocateClosure stub");
 }
 
-
-void StubCode::GenerateAllocationStubForStaticImplicitClosure(
-    Assembler* assembler, const Function& func) {
-  __ Unimplemented("AllocateStaticImplicitClosure stub");
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

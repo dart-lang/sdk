@@ -849,6 +849,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const ContextScope& context_scope = ContextScope::ZoneHandle(
       node->scope()->PreserveOuterScope(current_context_level));
   const Function& function = node->function();
+  ASSERT(function.IsNonImplicitClosureFunction());
   ASSERT(!function.HasCode());
   ASSERT(function.context_scope() == ContextScope::null());
   function.set_context_scope(context_scope);
@@ -862,12 +863,13 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
 }
 
 
-void CodeGenerator::VisitStaticImplicitClosureNode(
-    StaticImplicitClosureNode* node) {
+void CodeGenerator::VisitImplicitStaticClosureNode(
+    ImplicitStaticClosureNode* node) {
   const Function& function = node->function();
+  ASSERT(function.IsImplicitStaticClosureFunction());
   ASSERT(function.context_scope() != ContextScope::null());
   const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForStaticImplicitClosure(function));
+      StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
   GenerateCall(node->token_index(), &label);
   if (IsResultNeeded(node)) {
@@ -876,24 +878,17 @@ void CodeGenerator::VisitStaticImplicitClosureNode(
 }
 
 
-void CodeGenerator::VisitImplicitClosureNode(ImplicitClosureNode* node) {
+void CodeGenerator::VisitImplicitInstanceClosureNode(
+    ImplicitInstanceClosureNode* node) {
   const Function& function = node->function();
+  ASSERT(function.IsImplicitInstanceClosureFunction());
   ASSERT(function.context_scope() != ContextScope::null());
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label null_receiver;
   node->receiver()->Visit(this);
-  __ popl(EAX);  // Get receiver.
-  const Object& result = Object::ZoneHandle();
-  __ PushObject(result);  // Make room for the result of the runtime call.
-  __ PushObject(function);  // Push the type.
-  __ pushl(EAX);  // Push the receiver.
-  GenerateCallRuntime(node->token_index(),
-                      kAllocateImplicitClosureRuntimeEntry);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ addl(ESP, Immediate(2 * kWordSize));
-  __ popl(EAX);  // Allocated closure.
+  const Code& stub = Code::Handle(
+      StubCode::GetAllocationStubForClosure(function));
+  const ExternalLabel label(function.ToCString(), stub.EntryPoint());
+  GenerateCall(node->token_index(), &label);
+  __ popl(ECX);  // Pop receiver.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }

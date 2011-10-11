@@ -52,7 +52,7 @@ void AstPrinter::VisitGenericLocalNode(AstNode* node,
   OS::Print("(%s %s%s '%s'",
             node->Name(),
             var.is_final() ? "final " : "",
-            var.type().ToCString(),
+            String::Handle(var.type().Name()).ToCString(),
             var.name().ToCString());
   if (var.HasIndex()) {
     OS::Print(" @%d", var.index());
@@ -79,7 +79,7 @@ void AstPrinter::VisitGenericFieldNode(AstNode* node, const Field& field) {
   OS::Print("(%s %s%s '%s' ",
             node->Name(),
             field.is_final() ? "final " : "",
-            Type::Handle(field.type()).ToCString(),
+            String::Handle(Type::Handle(field.type()).Name()).ToCString(),
             String::Handle(field.name()).ToCString());
   node->VisitChildren(this);
   OS::Print(")");
@@ -119,7 +119,7 @@ void AstPrinter::VisitLiteralNode(LiteralNode* node) {
 
 void AstPrinter::VisitTypeNode(TypeNode* node) {
   const Type& type = node->type();
-  OS::Print("'%s'", type.ToCString());
+  OS::Print("'%s'", String::Handle(type.Name()).ToCString());
 }
 
 
@@ -267,14 +267,15 @@ void AstPrinter::VisitClosureNode(ClosureNode* node) {
 }
 
 
-void AstPrinter::VisitStaticImplicitClosureNode(
-    StaticImplicitClosureNode* node) {
+void AstPrinter::VisitImplicitStaticClosureNode(
+    ImplicitStaticClosureNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
   OS::Print("static (%s '%s')", node->Name(), function_fullname);
 }
 
 
-void AstPrinter::VisitImplicitClosureNode(ImplicitClosureNode* node) {
+void AstPrinter::VisitImplicitInstanceClosureNode(
+    ImplicitInstanceClosureNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
   OS::Print("(%s '%s')", node->Name(), function_fullname);
 }
@@ -400,7 +401,7 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
     LocalVariable* var = scope->VariableAt(i);
     OS::Print("(%s%s '%s'",
               var->is_final() ? "final " : "",
-              var->type().ToCString(),
+              String::Handle(var->type().Name()).ToCString(),
               var->name().ToCString());
     if (var->owner() != scope) {
       OS::Print(" alias");
@@ -447,7 +448,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
     ASSERT(param->owner() == scope);
     OS::Print("(param %s%s '%s'",
               param->is_final() ? "final " : "",
-              param->type().ToCString(),
+              String::Handle(param->type().Name()).ToCString(),
               param->name().ToCString());
     // Print the default value if the parameter is optional.
     if (pos >= num_fixed_params && pos < num_params) {

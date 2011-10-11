@@ -1071,7 +1071,6 @@ class Function : public Object {
     return kind() == RawFunction::kAbstract;
   }
   bool IsInFactoryScope() const;
-  bool IsInStaticScope() const;
 
   intptr_t token_index() const { return raw_ptr()->token_index_; }
 
@@ -1139,9 +1138,30 @@ class Function : public Object {
     return TestType(kIsAssignableTo, dst);
   }
 
-  // Returns true if this function represents a closure function.
+  // Returns true if this function represents a (possibly implicit) closure
+  // function.
   bool IsClosureFunction() const {
     return kind() == RawFunction::kClosureFunction;
+  }
+
+  // Returns true if this function represents an implicit closure function.
+  bool IsImplicitClosureFunction() const;
+
+  // Returns true if this function represents a non implicit closure function.
+  bool IsNonImplicitClosureFunction() const {
+    return IsClosureFunction() && !IsImplicitClosureFunction();
+  }
+
+  // Returns true if this function represents an implicit static closure
+  // function.
+  bool IsImplicitStaticClosureFunction() const {
+    return is_static() && IsImplicitClosureFunction();
+  }
+
+  // Returns true if this function represents an implicit instance closure
+  // function.
+  bool IsImplicitInstanceClosureFunction() const {
+    return !is_static() && IsImplicitClosureFunction();
   }
 
   // Returns true if this function represents a local function.

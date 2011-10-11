@@ -1240,20 +1240,37 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 }
 
 
-static void ClosureAllocationStub(Assembler* assembler,
-                                  const Function& func,
-                                  bool is_static_implicit_closure) {
+// Called for inline allocation of closures.
+// Input parameters:
+//   ESP + 4 : receiver (only if non-static implicit closure).
+//   ESP : points to return address.
+// Uses EAX, EBX, ECX, EDX as temporary registers.
+void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
+                                                const Function& func) {
+  const intptr_t kReceiverOffset = 1 * kWordSize;
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  intptr_t instance_size = Closure::InstanceSize();
-  if (FLAG_inline_alloc && PageSpace::IsPageAllocatableSize(instance_size)) {
+  ASSERT(func.IsClosureFunction());
+  const bool is_implicit_static_closure =
+      func.IsImplicitStaticClosureFunction();
+  const bool is_implicit_instance_closure =
+      func.IsImplicitInstanceClosureFunction();
+  const intptr_t closure_size = Closure::InstanceSize();
+  const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
+  if (FLAG_inline_alloc &&
+      PageSpace::IsPageAllocatableSize(closure_size + context_size)) {
     const Class& cls = Class::ZoneHandle(func.signature_class());
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ movl(EAX, Address::Absolute(heap->TopAddress()));
-    __ leal(EBX, Address(EAX, instance_size));
+    __ leal(EBX, Address(EAX, closure_size));
+    if (is_implicit_instance_closure) {
+      __ movl(ECX, EBX);  // ECX: new context address.
+      __ addl(EBX, Immediate(context_size));
+    }
     // Check if the allocation fits into the remaining space.
-    // EAX: potential new object.
+    // EAX: potential new closure object.
+    // ECX: potential new context object (only if is_implicit_closure).
     // EBX: potential next object start.
     __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
     __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
@@ -1263,24 +1280,49 @@ static void ClosureAllocationStub(Assembler* assembler,
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
 
     // Initialize the class field in the object.
-    // EAX: new object.
-    // EBX: next object start.
-    __ LoadObject(ECX, cls);  // Load signature class of closure.
-    __ movl(Address(EAX, Closure::class_offset()), ECX);
+    // EAX: new closure object.
+    // ECX: new context object (only if is_implicit_closure).
+    __ LoadObject(EDX, cls);  // Load signature class of closure.
+    __ movl(Address(EAX, Closure::class_offset()), EDX);
 
     // Initialize the function field in the object.
-    // EAX: new object.
+    // EAX: new closure object.
+    // ECX: new context object (only if is_implicit_closure).
     // EBX: next object start.
-    __ LoadObject(ECX, func);  // Load function of closure to be allocated.
-    __ movl(Address(EAX, Closure::function_offset()), ECX);
+    __ LoadObject(EDX, func);  // Load function of closure to be allocated.
+    __ movl(Address(EAX, Closure::function_offset()), EDX);
 
     // Setup the context for this closure.
-    if (is_static_implicit_closure) {
+    if (is_implicit_static_closure) {
       ObjectStore* object_store = Isolate::Current()->object_store();
       ASSERT(object_store != NULL);
       const Context& empty_context =
           Context::ZoneHandle(object_store->empty_context());
-      __ LoadObject(ECX, empty_context);
+      __ LoadObject(EDX, empty_context);
+      __ movl(Address(EAX, Closure::context_offset()), EDX);
+    } else if (is_implicit_instance_closure) {
+      // Initialize the new context capturing the receiver.
+
+      // Set the class field to the Context class.
+      __ LoadObject(EBX, Class::ZoneHandle(Object::context_class()));
+      __ movl(Address(ECX, Context::class_offset()), EBX);
+
+      // Set number of variables field to 1 (for captured receiver).
+      __ movl(Address(ECX, Context::num_variables_offset()), Immediate(1));
+
+      // Set isolate field to isolate of current context.
+      __ movl(EDX, FieldAddress(CTX, Context::isolate_offset()));
+      __ movl(Address(ECX, Context::isolate_offset()), EDX);
+
+      // Set the parent field to null.
+      __ movl(Address(ECX, Context::parent_offset()), raw_null);
+
+      // Initialize the context variable to the receiver.
+      __ movl(EDX, Address(ESP, kReceiverOffset));
+      __ movl(Address(ECX, Context::variable_offset(0)), EDX);
+
+      // Set the newly allocated context in the newly allocated closure.
+      __ addl(ECX, Immediate(kHeapObjectTag));
       __ movl(Address(EAX, Closure::context_offset()), ECX);
     } else {
       __ movl(Address(EAX, Closure::context_offset()), CTX);
@@ -1297,14 +1339,22 @@ static void ClosureAllocationStub(Assembler* assembler,
 
     __ Bind(&slow_case);
   }
+  if (is_implicit_instance_closure) {
+    __ movl(EAX, Address(ESP, kReceiverOffset));
+  }
   // Create a stub frame.
   __ EnterFrame(0);
   const Closure& new_closure = Closure::ZoneHandle();
   __ PushObject(new_closure);  // Push Null closure for return value.
   __ PushObject(func);
-  if (is_static_implicit_closure) {
-    __ CallRuntimeFromStub(kAllocateStaticImplicitClosureRuntimeEntry);
+  if (is_implicit_static_closure) {
+    __ CallRuntimeFromStub(kAllocateImplicitStaticClosureRuntimeEntry);
+  } else if (is_implicit_instance_closure) {
+    __ pushl(EAX);  // Receiver.
+    __ CallRuntimeFromStub(kAllocateImplicitInstanceClosureRuntimeEntry);
+    __ popl(EAX);  // Pop receiver.
   } else {
+    ASSERT(func.IsNonImplicitClosureFunction());
     __ CallRuntimeFromStub(kAllocateClosureRuntimeEntry);
   }
   __ popl(EAX);  // Pop function object.
@@ -1313,26 +1363,6 @@ static void ClosureAllocationStub(Assembler* assembler,
   // Restore the frame pointer.
   __ LeaveFrame();
   __ ret();
-}
-
-
-// Called for inline allocation of closures.
-// Input parameters:
-// Uses EAX, EBX, ECX as temporary registers.
-void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
-                                                const Function& func) {
-  static const bool kIsNotStaticImplicitClosure = false;
-  ClosureAllocationStub(assembler, func, kIsNotStaticImplicitClosure);
-}
-
-
-// Called for inline allocation of implicit closures.
-// Input parameters:
-// Uses EAX, EBX, ECX as temporary registers.
-void StubCode::GenerateAllocationStubForStaticImplicitClosure(
-    Assembler* assembler, const Function& func) {
-  static const bool kIsStaticImplicitClosure = true;
-  ClosureAllocationStub(assembler, func, kIsStaticImplicitClosure);
 }
 
 

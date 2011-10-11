@@ -580,7 +580,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   // The instantiator may be required at run time for generic type checks or
   // allocation of generic types.
   if (parser.current_class().IsParameterized() &&
-      (!parser.current_function().IsInStaticScope() ||
+      (!parser.current_function().is_static() ||
        parser.current_function().IsInFactoryScope())) {
     // In the case of a local function, only set the instantiator if the
     // receiver was captured.
@@ -843,7 +843,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // signature with the type parameters of the enclosing class, if any.
       // TODO(regis): Revisit if this is not the right thing to do.
       const bool is_static =
-          current_function().IsNull() || current_function().IsInStaticScope();
+          current_function().IsNull() || current_function().is_static();
       const Function& signature_function = Function::Handle(
           Function::New(*parameter.name,
                         RawFunction::kSignatureFunction,
@@ -1073,19 +1073,13 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
                                            AstNode* receiver) {
   Function& implicit_closure_function =
       Function::ZoneHandle(func.ImplicitClosureFunction());
-  ASSERT(!implicit_closure_function.IsNull());
-  ASSERT(implicit_closure_function.is_static());  // TODO(regis): For now.
-  AstNode* node;
   if (receiver == NULL) {
-    ASSERT(func.is_static());
-    node = new StaticImplicitClosureNode(token_pos, implicit_closure_function);
+    return new ImplicitStaticClosureNode(token_pos, implicit_closure_function);
   } else {
-    ASSERT(!func.is_static());
-    node = new ImplicitClosureNode(token_pos,
-                                   implicit_closure_function,
-                                   receiver);
+    return new ImplicitInstanceClosureNode(token_pos,
+                                          implicit_closure_function,
+                                          receiver);
   }
-  return node;
 }
 
 
@@ -1417,10 +1411,14 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   OpenFunctionBlock(func);
 
   ParamList params;
+  // Static functions do not have a receiver, except constructors, which are
+  // passed the allocated but uninitialized instance to construct.
+  // An instance closure may capture and access the receiver, but via the
+  // context and not via the first formal parameter.
   // The first parameter of a factory is the TypeArguments vector of the type
   // of the instance to be allocated. We name this hidden parameter 'this'.
-  const bool has_receiver =
-      !func.is_static() || func.IsConstructor() || func.IsFactory();
+  const bool has_receiver = !func.IsClosureFunction() &&
+      (!func.is_static() || func.IsConstructor() || func.IsFactory());
   const bool are_implicitly_final = func.is_const() && func.IsConstructor();
   const bool allow_explicit_default_values = true;
   ASSERT(CurrentToken() == Token::kLPAREN);
@@ -1540,7 +1538,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // The instantiator may be required at run time for generic type checks or
     // allocation of generic types.
     if (current_class().IsParameterized() &&
-        (!current_function().IsInStaticScope() ||
+        (!current_function().is_static() ||
          current_function().IsInFactoryScope())) {
       // Make sure that the receiver of the enclosing instance function
       // (or implicit first parameter of an enclosing factory) is marked as
@@ -3150,7 +3148,7 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   // A nested function may access 'this', referring to the receiver of the
   // outermost enclosing function.
   // We should not be loading the receiver from a static scope.
-  ASSERT(!current_function().IsInStaticScope() ||
+  ASSERT(!current_function().is_static() ||
          current_function().IsInFactoryScope());
   const bool kTestOnly = false;
   LocalVariable* receiver = LookupReceiver(current_block_->scope, kTestOnly);
@@ -5381,7 +5379,7 @@ AstNode* Parser::ParsePostfixExpr() {
         } else if (primary->primary().IsString()) {
           // Primary is an unresolved name.
           String& name = String::CheckedZoneHandle(primary->primary().raw());
-          if (current_function().IsInStaticScope()) {
+          if (current_function().is_static()) {
             ErrorMsg(primary->token_index(),
                      "identifier '%s' is not declared in this scope",
                      name.ToCString());
@@ -5409,7 +5407,7 @@ AstNode* Parser::ParsePostfixExpr() {
             selector = ParseStaticCall(cls, func_name, primary_pos);
           } else {
             // Dynamic function call on implicit "this" parameter.
-            if (current_function().IsInStaticScope()) {
+            if (current_function().is_static()) {
               ErrorMsg(primary_pos,
                        "Cannot access instance method '%s' "
                        "from static function",
@@ -5420,7 +5418,7 @@ AstNode* Parser::ParsePostfixExpr() {
         } else if (primary->primary().IsString()) {
           // Primary is an unresolved name.
           String& name = String::CheckedZoneHandle(primary->primary().raw());
-          if (current_function().IsInStaticScope()) {
+          if (current_function().is_static()) {
             ErrorMsg(primary->token_index(),
                      "identifier '%s' is not declared in this scope",
                      name.ToCString());
@@ -5454,7 +5452,7 @@ AstNode* Parser::ParsePostfixExpr() {
           // If we are compiling an instance method, convert this into
           // a runtime lookup for a field (which may be defined in a
           // subclass.)
-          if (current_function().IsInStaticScope()) {
+          if (current_function().is_static()) {
             ErrorMsg(primary->token_index(),
                      "identifier '%s' is not declared in this scope",
                      ident.ToCString());
@@ -5476,7 +5474,7 @@ AstNode* Parser::ParsePostfixExpr() {
                                                      NULL);
           } else {
             // Instance function access.
-            if (current_function().IsInStaticScope() ||
+            if (current_function().is_static() ||
                 current_function().IsInFactoryScope()) {
               ErrorMsg(primary->token_index(),
                        "illegal use of method '%s'",
@@ -5603,7 +5601,7 @@ void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
                                       const String& field_name) {
   // Fields are not accessible from a static function, except from a
   // constructor, which is considered as non-static by the compiler.
-  if (current_function().IsInStaticScope()) {
+  if (current_function().is_static()) {
     ErrorMsg(field_pos,
              "cannot access instance field '%s' from a static function",
              field_name.ToCString());
@@ -5621,7 +5619,7 @@ void Parser::CheckTypeParameterReference(intptr_t type_parameter_pos,
        current_member_->has_static &&
        !current_member_->has_factory) ||
       (!current_function().IsNull() &&
-       current_function().IsInStaticScope() &&
+       current_function().is_static() &&
        !current_function().IsInFactoryScope())) {
     ErrorMsg(type_parameter_pos,
              "cannot refer to type parameter '%s' from a static function",
@@ -5928,7 +5926,7 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
       // method, this is an error. In an instance method, we convert
       // the unresolved name to an instance field access, since a
       // subclass might define a field with this name.
-      if (current_function().IsInStaticScope()) {
+      if (current_function().is_static()) {
         ErrorMsg(ident_pos, "identifier '%s' is not declared in this scope",
                  ident.ToCString());
       } else {
@@ -6651,7 +6649,7 @@ AstNode* Parser::ParsePrimary() {
              CurrentToken() == Token::kLBRACE) {
     primary = ParseCompoundLiteral();
   } else if (CurrentToken() == Token::kSUPER) {
-    if (current_function().IsInStaticScope()) {
+    if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
     } else if (current_function().IsLocalFunction()) {
       ErrorMsg("cannot access superclass from local function");

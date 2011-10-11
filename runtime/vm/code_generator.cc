@@ -222,11 +222,11 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 // Allocate a new closure.
 // Arg0: local function.
 // TODO(regis): Arg1: type arguments of the closure.
-// TODO(regis): Arg2: type arguments of the instantiator.
 // Return value: newly allocated closure.
 DEFINE_RUNTIME_ENTRY(AllocateClosure, 1) {
   ASSERT(arguments.Count() == kAllocateClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
   // TODO(regis): Process type arguments unless the closure is static.
   // The current context was saved in the Isolate structure when entering the
   // runtime.
@@ -236,32 +236,31 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 1) {
 }
 
 
-// Allocate a new static implicit closure.
+// Allocate a new implicit static closure.
 // Arg0: local function.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateStaticImplicitClosure, 1) {
+DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
   ASSERT(arguments.Count() ==
-         kAllocateStaticImplicitClosureRuntimeEntry.argument_count());
+         kAllocateImplicitStaticClosureRuntimeEntry.argument_count());
   ObjectStore* object_store = Isolate::Current()->object_store();
   ASSERT(object_store != NULL);
   const Function& function = Function::CheckedHandle(arguments.At(0));
-  ASSERT(function.is_static());  // Closure functions are always static for now.
+  ASSERT(function.IsImplicitStaticClosureFunction());
   const Context& context = Context::Handle(object_store->empty_context());
   arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
 }
 
 
-// Allocate a new implicit closure.
+// Allocate a new implicit instance closure.
 // Arg0: local function.
 // Arg1: receiver object.
 // TODO(regis): Arg2: type arguments of the closure.
-// TODO(regis): Arg3: type arguments of the instantiator.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateImplicitClosure, 2) {
+DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 2) {
   ASSERT(arguments.Count() ==
-         kAllocateImplicitClosureRuntimeEntry.argument_count());
+         kAllocateImplicitInstanceClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
-  ASSERT(function.is_static());  // Closure functions are always static for now.
+  ASSERT(function.IsImplicitInstanceClosureFunction());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(1));
   Context& context = Context::Handle();
   context = Context::New(1);
