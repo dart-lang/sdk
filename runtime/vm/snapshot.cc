@@ -39,7 +39,7 @@ static bool IsObjectStoreTypeId(intptr_t index) {
 
 // TODO(5411462): Temporary setup of snapshot for testing purposes,
 // the actual creation of a snapshot maybe done differently.
-Snapshot* Snapshot::SetupFromBuffer(void* raw_memory) {
+const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
   ASSERT(kHeaderSize == sizeof(Snapshot));
   ASSERT(kLengthIndex == length_offset());
@@ -47,7 +47,7 @@ Snapshot* Snapshot::SetupFromBuffer(void* raw_memory) {
   ASSERT((kHeapObjectTag & kInlined));
   ASSERT((kHeapObjectTag & kObjectId));
   ASSERT((kObjectAlignmentMask & kObjectId) == kObjectId);
-  Snapshot* snapshot = reinterpret_cast<Snapshot*>(raw_memory);
+  const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
   return snapshot;
 }
 

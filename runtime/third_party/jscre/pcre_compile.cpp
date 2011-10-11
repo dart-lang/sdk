@@ -566,7 +566,6 @@ compileBranch(int options, int* brackets, unsigned char** codeptr,
     unsigned char* tempcode;
     bool groupsetfirstbyte = false;
     const UChar* ptr = *ptrptr;
-    const UChar* tempptr;
     unsigned char* previous = NULL;
     unsigned char classbits[32];
     
@@ -1564,7 +1563,6 @@ compileBranch(int options, int* brackets, unsigned char** codeptr,
              for validity in the pre-compiling pass. */
                 
             case '\\':
-                tempptr = ptr;
                 c = checkEscape(&ptr, patternEnd, errorcodeptr, cd.numCapturingBrackets, false);
                 
                 /* Handle metacharacters introduced by \. For ones like \d, the ESC_ values

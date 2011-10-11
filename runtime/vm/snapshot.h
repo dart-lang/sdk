@@ -59,10 +59,10 @@ class Snapshot {
   static const int kLengthIndex = 0;
   static const int kSnapshotFlagIndex = 1;
 
-  static Snapshot* SetupFromBuffer(void* raw_memory);
+  static const Snapshot* SetupFromBuffer(const void* raw_memory);
 
   // Getters.
-  uint8_t* content() { return content_; }
+  const uint8_t* content() const { return content_; }
   int32_t length() const { return length_; }
 
   bool IsPartialSnapshot() const { return full_snapshot_ == 0; }
@@ -89,9 +89,9 @@ class Snapshot {
 // Stream for reading various types from a buffer.
 class ReadStream : public ValueObject {
  public:
-  ReadStream(uint8_t* buffer, intptr_t size) : buffer_(buffer),
-                                               current_(buffer),
-                                               end_(buffer + size)  {}
+  ReadStream(const uint8_t* buffer, intptr_t size) : buffer_(buffer),
+                                                     current_(buffer),
+                                                     end_(buffer + size)  {}
 
  private:
   template<typename T>
@@ -151,9 +151,9 @@ class ReadStream : public ValueObject {
   }
 
  private:
-  uint8_t* buffer_;
-  uint8_t* current_;
-  uint8_t* end_;
+  const uint8_t* buffer_;
+  const uint8_t* current_;
+  const uint8_t* end_;
 
   // SnapshotReader needs access to the private Raw classes.
   friend class SnapshotReader;
@@ -266,7 +266,9 @@ class WriteStream : public ValueObject {
 // Reads a snapshot into objects.
 class SnapshotReader {
  public:
-  SnapshotReader(Snapshot* snapshot, Heap* heap, ObjectStore* object_store)
+  SnapshotReader(const Snapshot* snapshot,
+                 Heap* heap,
+                 ObjectStore* object_store)
       : stream_(snapshot->content(), snapshot->length()),
         classes_serialized_(snapshot->IsFullSnapshot()),
         heap_(heap),

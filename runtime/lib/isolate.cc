@@ -39,7 +39,7 @@ class IsolateStartData {
 
 static RawInstance* DeserializeMessage(void* data) {
   // Create a snapshot object using the buffer.
-  Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
   ASSERT(snapshot->IsPartialSnapshot());
 
   // Read object back from the snapshot.

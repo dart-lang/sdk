@@ -51,7 +51,8 @@ bool Dart::InitOnce(int argc, char** argv,
 }
 
 
-Isolate* Dart::CreateIsolate(void* snapshot_buffer, void* data) {
+Isolate* Dart::CreateIsolate(const Dart_Snapshot* snapshot_buffer,
+                             void* data) {
   // Create and initialize a new isolate.
   Isolate* isolate = Isolate::Init();
   Zone zone;
@@ -65,7 +66,7 @@ Isolate* Dart::CreateIsolate(void* snapshot_buffer, void* data) {
     // Initialize from snapshot (this should replicate the functionality
     // of Object::Init(..) in a regular isolate creation path.
     Object::InitFromSnapshot(isolate);
-    Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
+    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
     reader.ReadFullSnapshot();
   }

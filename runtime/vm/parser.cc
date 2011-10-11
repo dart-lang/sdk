@@ -3663,7 +3663,6 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
   TRACE_PARSER("ParseCaseStatement");
   bool default_seen = false;
   intptr_t case_pos = token_index_;
-  intptr_t expr_pos = 0;
   SequenceNode* case_expressions =
       new SequenceNode(case_pos, current_block_->scope);
   while (CurrentToken() == Token::kCASE || CurrentToken() == Token::kDEFAULT) {
@@ -3672,11 +3671,11 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
         ErrorMsg("default clause must be last case");
       }
       ConsumeToken();  // Keyword case.
-      expr_pos = token_index_;
+      intptr_t expr_pos = token_index_;
       AstNode* expr = ParseExpr(kAllowConst);
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
                                                     *switch_expr_value);
-      AstNode* case_comparison = new ComparisonNode(case_pos,
+      AstNode* case_comparison = new ComparisonNode(expr_pos,
                                                     Token::kEQ,
                                                     expr,
                                                     switch_expr_load);
@@ -3686,7 +3685,6 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
         ErrorMsg("only one default clause is allowed");
       }
       ConsumeToken();  // Keyword default.
-      expr_pos = token_index_;
       default_seen = true;
       // The default case always succeeds.
     }
