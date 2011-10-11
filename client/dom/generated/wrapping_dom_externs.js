@@ -45,7 +45,7 @@ dom_externs.activeElement;              // attribute HTMLDocument.activeElement
 dom_externs.activeTexture;              // operation WebGLRenderingContext.activeTexture
 dom_externs.add;                        // operation DOMTokenList.add, operation DataTransferItems.add, operation HTMLSelectElement.add, operation IDBObjectStore.add
 dom_externs.addColorStop;               // operation CanvasGradient.addColorStop
-dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation MediaStream.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
+dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation MediaStream.addEventListener, operation MessagePort.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
 dom_externs.addListener;                // operation MediaQueryList.addListener
 dom_externs.addRange;                   // operation DOMSelection.addRange
 dom_externs.addRule;                    // operation CSSStyleSheet.addRule
@@ -195,7 +195,7 @@ dom_externs.clip;                       // operation CanvasRenderingContext2D.cl
 dom_externs.cloneContents;              // operation Range.cloneContents
 dom_externs.cloneNode;                  // operation Node.cloneNode
 dom_externs.cloneRange;                 // operation Range.cloneRange
-dom_externs.close;                      // operation DOMWindow.close, operation EventSource.close, operation HTMLDocument.close, operation IDBDatabase.close, operation WebSocket.close, operation WorkerContext.close
+dom_externs.close;                      // operation DOMWindow.close, operation EventSource.close, operation HTMLDocument.close, operation IDBDatabase.close, operation MessagePort.close, operation WebSocket.close, operation WorkerContext.close
 dom_externs.closePath;                  // operation CanvasRenderingContext2D.closePath
 dom_externs.closeWindow;                // operation InspectorFrontendHost.closeWindow
 dom_externs.closed;                     // attribute DOMWindow.closed
@@ -357,7 +357,7 @@ dom_externs.disable;                    // operation WebGLRenderingContext.disab
 dom_externs.disableVertexAttribArray;   // operation WebGLRenderingContext.disableVertexAttribArray
 dom_externs.disabled;                   // attribute HTMLButtonElement.disabled, attribute HTMLInputElement.disabled, attribute HTMLKeygenElement.disabled, attribute HTMLLinkElement.disabled, attribute HTMLOptGroupElement.disabled, attribute HTMLOptionElement.disabled, attribute HTMLSelectElement.disabled, attribute HTMLStyleElement.disabled, attribute HTMLTextAreaElement.disabled, attribute StyleSheet.disabled
 dom_externs.disconnectFromBackend;      // operation InspectorFrontendHost.disconnectFromBackend
-dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation MediaStream.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
+dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation MediaStream.dispatchEvent, operation MessagePort.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
 dom_externs.doctype;                    // attribute Document.doctype
 dom_externs.document;                   // attribute DOMWindow.document
 dom_externs.documentElement;            // attribute Document.documentElement
@@ -844,7 +844,7 @@ dom_externs.onloadedmetadata;           // attribute DOMWindow.onloadedmetadata
 dom_externs.onloadend;                  // attribute FileReader.onloadend
 dom_externs.onloadstart;                // attribute DOMWindow.onloadstart, attribute FileReader.onloadstart, attribute XMLHttpRequest.onloadstart, attribute XMLHttpRequestUpload.onloadstart
 dom_externs.only;                       // operation IDBKeyRange.only
-dom_externs.onmessage;                  // attribute DOMWindow.onmessage, attribute DedicatedWorkerContext.onmessage, attribute EventSource.onmessage, attribute HTMLBodyElement.onmessage, attribute HTMLFrameSetElement.onmessage, attribute WebSocket.onmessage, attribute Worker.onmessage
+dom_externs.onmessage;                  // attribute DOMWindow.onmessage, attribute DedicatedWorkerContext.onmessage, attribute EventSource.onmessage, attribute HTMLBodyElement.onmessage, attribute HTMLFrameSetElement.onmessage, attribute MessagePort.onmessage, attribute WebSocket.onmessage, attribute Worker.onmessage
 dom_externs.onmousedown;                // attribute DOMWindow.onmousedown, attribute Document.onmousedown, attribute Element.onmousedown
 dom_externs.onmousemove;                // attribute DOMWindow.onmousemove, attribute Document.onmousemove, attribute Element.onmousemove
 dom_externs.onmouseout;                 // attribute DOMWindow.onmouseout, attribute Document.onmouseout, attribute Element.onmouseout
@@ -951,7 +951,7 @@ dom_externs.port;                       // attribute HTMLAnchorElement.port, att
 dom_externs.port1;                      // attribute MessageChannel.port1
 dom_externs.port2;                      // attribute MessageChannel.port2
 dom_externs.position;                   // attribute FileWriter.position, attribute FileWriterSync.position, attribute HTMLProgressElement.position, attribute XMLHttpRequestProgressEvent.position
-dom_externs.postMessage;                // operation DOMWindow.postMessage, operation DedicatedWorkerContext.postMessage, operation Worker.postMessage
+dom_externs.postMessage;                // operation DOMWindow.postMessage, operation DedicatedWorkerContext.postMessage, operation MessagePort.postMessage, operation Worker.postMessage
 dom_externs.poster;                     // attribute HTMLVideoElement.poster
 dom_externs.preferredStylesheetSet;     // attribute Document.preferredStylesheetSet
 dom_externs.prefix;                     // attribute Node.prefix
@@ -1022,7 +1022,7 @@ dom_externs.removeAttribute;            // operation Element.removeAttribute
 dom_externs.removeAttributeNS;          // operation Element.removeAttributeNS
 dom_externs.removeAttributeNode;        // operation Element.removeAttributeNode
 dom_externs.removeChild;                // operation Node.removeChild
-dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation MediaStream.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
+dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation MediaStream.removeEventListener, operation MessagePort.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
 dom_externs.removeItem;                 // operation Storage.removeItem
 dom_externs.removeListener;             // operation MediaQueryList.removeListener
 dom_externs.removeNamedItem;            // operation NamedNodeMap.removeNamedItem
@@ -1207,7 +1207,7 @@ dom_externs.src;                        // attribute HTMLEmbedElement.src, attri
 dom_externs.srcElement;                 // attribute Event.srcElement
 dom_externs.srclang;                    // attribute HTMLTrackElement.srclang
 dom_externs.standby;                    // attribute HTMLObjectElement.standby
-dom_externs.start;                      // operation HTMLMarqueeElement.start, attribute HTMLOListElement.start, operation TimeRanges.start
+dom_externs.start;                      // operation HTMLMarqueeElement.start, attribute HTMLOListElement.start, operation MessagePort.start, operation TimeRanges.start
 dom_externs.startContainer;             // attribute Range.startContainer
 dom_externs.startOffset;                // attribute Range.startOffset
 dom_externs.startTime;                  // attribute HTMLMediaElement.startTime
@@ -1384,7 +1384,7 @@ dom_externs.webkitHasClosedCaptions;    // attribute HTMLMediaElement.webkitHasC
 dom_externs.webkitHidden;               // attribute Document.webkitHidden
 dom_externs.webkitMatchesSelector;      // operation Element.webkitMatchesSelector
 dom_externs.webkitNotifications;        // attribute DOMWindow.webkitNotifications, attribute WorkerContext.webkitNotifications
-dom_externs.webkitPostMessage;          // operation DedicatedWorkerContext.webkitPostMessage
+dom_externs.webkitPostMessage;          // operation DedicatedWorkerContext.webkitPostMessage, operation MessagePort.webkitPostMessage
 dom_externs.webkitPreservesPitch;       // attribute HTMLMediaElement.webkitPreservesPitch
 dom_externs.webkitRadiusX;              // attribute Touch.webkitRadiusX
 dom_externs.webkitRadiusY;              // attribute Touch.webkitRadiusY

@@ -4093,7 +4093,17 @@ function DOM$fixClass$MessageEvent(c) {
 }
 function DOM$fixClass$MessagePort(c) {
   if (c.prototype) {
+    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
+    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
+  DOM$fixMembers(c, [
+    'addEventListener',
+    'close',
+    'dispatchEvent',
+    'postMessage',
+    'removeEventListener',
+    'start',
+    'webkitPostMessage']);
   c.$implements$MessagePort$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
 }
