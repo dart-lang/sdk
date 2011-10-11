@@ -230,6 +230,7 @@ class Parser : ValueObject {
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,
                      const Array& interfaces);
+  RawFunction* GetSuperFunction(intptr_t token_pos, const String& name);
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);
   AstNode* ParseSuperOperator();

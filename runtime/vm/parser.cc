@@ -1002,56 +1002,110 @@ static RawFunction* ResolveDynamicFunction(const Class& cls,
 }
 
 
+RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
+                                      const String& name) {
+  const Class& super_class = Class::Handle(current_class().SuperClass());
+  if (super_class.IsNull()) {
+    ErrorMsg(token_pos, "class '%s' does not have a superclass",
+             String::Handle(current_class().Name()).ToCString());
+  }
+
+  const Function& super_func =
+      Function::Handle(ResolveDynamicFunction(super_class, name));
+  if (super_func.IsNull()) {
+    ErrorMsg(token_pos, "function '%s' not found in super class",
+             name.ToCString());
+  }
+  CheckFunctionIsCallable(token_pos, super_func);
+  return super_func.raw();
+}
+
+
 AstNode* Parser::ParseSuperCall(const String& function_name) {
   TRACE_PARSER("ParseSuperCall");
   ASSERT(CurrentToken() == Token::kLPAREN);
   const intptr_t supercall_pos = token_index_;
-  const Class& super_class = Class::Handle(current_class().SuperClass());
-  if (super_class.IsNull()) {
-    ErrorMsg("class '%s' does not have a superclass",
-             String::Handle(current_class().Name()).ToCString());
-  }
-  // 'this' parameter is the first argument to super call.
-  AstNode* implicit_argument = LoadReceiver(supercall_pos);
-  ArgumentListNode* arguments =
-      ParseActualParameters(implicit_argument, kAllowConst);
-  // Resolve the function.
+
   const Function& super_function = Function::ZoneHandle(
-      ResolveDynamicFunction(super_class, function_name));
-  if (super_function.IsNull()) {
-    ErrorMsg(supercall_pos,
-             "function '%s' not found in super class",
-             function_name.ToCString());
-  }
-  CheckFunctionIsCallable(supercall_pos, super_function);
+      GetSuperFunction(supercall_pos, function_name));
+
+  // 'this' parameter is the first argument to super call.
+  AstNode* receiver = LoadReceiver(supercall_pos);
+  ArgumentListNode* arguments =
+      ParseActualParameters(receiver, kAllowConst);
   return new StaticCallNode(supercall_pos, super_function, arguments);
 }
 
 
 AstNode* Parser::ParseSuperOperator() {
+  TRACE_PARSER("ParseSuperOperator");
   AstNode* super_op = NULL;
   const intptr_t operator_pos = token_index_;
-  const Class& super_class = Class::Handle(current_class().SuperClass());
-  if (super_class.IsNull()) {
-    ErrorMsg(operator_pos, "class '%s' does not have a superclass",
-             String::Handle(current_class().Name()).ToCString());
-  }
 
   if (CurrentToken() == Token::kLBRACK) {
-    Unimplemented("Not yet implemented: super[expr]");
+    ConsumeToken();
+    AstNode* index_expr = ParseExpr(kAllowConst);
+    ExpectToken(Token::kRBRACK);
+
+    if (Token::IsAssignmentOperator(CurrentToken()) &&
+        (CurrentToken() != Token::kASSIGN)) {
+      // Compound assignment. Ensure side effects in index expression
+      // only execute once. If the index is not a local variable or an
+      // literal, evaluate and save in a temporary local.
+      if (!index_expr->IsLoadLocalNode() && !index_expr->IsLiteralNode()) {
+        LocalVariable* temp =
+            CreateTempConstVariable(operator_pos, index_expr->id(), "lix");
+        AstNode* save =
+            new StoreLocalNode(operator_pos, *temp, index_expr);
+        current_block_->statements->Add(save);
+        index_expr = new LoadLocalNode(operator_pos, *temp);
+      }
+    }
+
+    // Resolve the [] operator function in the superclass.
+    const String& index_operator_name =
+        String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+    const Function& index_operator = Function::ZoneHandle(
+        GetSuperFunction(operator_pos, index_operator_name));
+
+    ArgumentListNode* index_op_arguments = new ArgumentListNode(operator_pos);
+    AstNode* receiver = LoadReceiver(operator_pos);
+    index_op_arguments->Add(receiver);
+    index_op_arguments->Add(index_expr);
+
+    super_op = new StaticCallNode(
+        operator_pos, index_operator, index_op_arguments);
+
+    if (Token::IsAssignmentOperator(CurrentToken())) {
+      Token::Kind assignment_op = CurrentToken();
+      ConsumeToken();
+      AstNode* value = ParseExpr(kAllowConst);
+
+      value = ExpandAssignableOp(operator_pos, assignment_op, super_op, value);
+
+      // Resolve the []= operator function in the superclass.
+      const String& assign_index_operator_name = String::ZoneHandle(
+          String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
+      const Function& assign_index_operator = Function::ZoneHandle(
+          GetSuperFunction(operator_pos, assign_index_operator_name));
+
+      ArgumentListNode* operator_args = new ArgumentListNode(operator_pos);
+      operator_args->Add(LoadReceiver(operator_pos));
+      operator_args->Add(index_expr);
+      operator_args->Add(value);
+
+      super_op = new StaticCallNode(
+          operator_pos, assign_index_operator, operator_args);
+    }
   } else if (Token::CanBeOverloaded(CurrentToken())) {
     Token::Kind op = CurrentToken();
     ConsumeToken();
 
     // Resolve the operator function in the superclass.
     const String& operator_function_name =
-        String::ZoneHandle(String::NewSymbol(Token::Str(op)));
+        String::Handle(String::NewSymbol(Token::Str(op)));
     const Function& super_operator = Function::ZoneHandle(
-        ResolveDynamicFunction(super_class, operator_function_name));
-    if (super_operator.IsNull()) {
-      ErrorMsg(operator_pos, "operator '%s' not found in super class",
-               Token::Str(op));
-    }
+        GetSuperFunction(operator_pos, operator_function_name));
 
     ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kBIT_OR));
     AstNode* other_operand = ParseBinaryExpr(Token::Precedence(op) + 1);
@@ -6663,7 +6717,8 @@ AstNode* Parser::ParsePrimary() {
       } else {
         primary = ParseSuperFieldAccess(ident);
       }
-    } else if (Token::CanBeOverloaded(CurrentToken())) {
+    } else if ((CurrentToken() == Token::kLBRACK) ||
+        Token::CanBeOverloaded(CurrentToken())) {
       primary = ParseSuperOperator();
     } else {
       ErrorMsg("Illegal super call");
