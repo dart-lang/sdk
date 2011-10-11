@@ -38,9 +38,37 @@ class _Process implements Process {
       throw new ProcessException(status._errorMessage, status._errorCode);
     }
     _started = true;
-    if (_exitHandlerCallback !== null) {
-      setExitHandler(_exitHandlerCallback);
-    }
+
+    // Setup an exit handler to handle internal cleanup and possible
+    // callback when a process terminates.
+    _exitHandler.setDataHandler(() {
+        List<int> buffer = new List<int>(8);
+        SocketInputStream input = _exitHandler.inputStream;
+
+        int exitCode(List<int> ints) {
+          return ints[4] + (ints[5] << 8) + (ints[6] << 16) + (ints[7] << 24);
+        }
+
+        int exitPid(List<int> ints) {
+          return ints[0] + (ints[1] << 8) + (ints[2] << 16) + (ints[3] << 24);
+        }
+
+        void handleExit() {
+          _processExit(exitPid(buffer));
+          if (_exitHandlerCallback != null) {
+            _exitHandlerCallback(exitCode(buffer));
+          }
+        }
+
+        void readData() {
+          handleExit();
+        }
+
+        bool result = input.read(buffer, 0, 8, readData);
+        if (result) {
+          handleExit();
+        }
+      });
   }
 
   bool _start(String path,
@@ -50,6 +78,8 @@ class _Process implements Process {
               Socket error,
               Socket exitHandler,
               _ProcessStartStatus status) native "Process_Start";
+
+  void _processExit(int pid) native "Process_Exit";
 
   InputStream get stdoutStream() {
     if (_closed) {
@@ -106,48 +136,18 @@ class _Process implements Process {
     if (_killed) {
       throw new ProcessException("Process killed");
     }
-    if (_started) {
-      _exitHandler.setDataHandler(() {
-        List<int> buffer = new List<int>(4);
-        SocketInputStream input = _exitHandler.inputStream;
-
-        int getExitValue(List<int> ints) {
-          return ints[0] + (ints[1] << 8) + (ints[2] << 16) + (ints[3] << 24);
-        }
-
-        void readData() {
-          callback(getExitValue(buffer));
-        }
-
-        bool result = input.read(buffer, 0, 4, readData);
-        if (result) {
-          callback(getExitValue(buffer));
-        }
-      });
-    } else {
-      _exitHandlerCallback = callback;
-    }
+    _exitHandlerCallback = callback;
   }
 
   String _path;
-
   ObjectArray<String> _arguments;
-
   Socket _in;
-
   Socket _out;
-
   Socket _err;
-
   Socket _exitHandler;
-
   int _pid;
-
   bool _closed;
-
   bool _killed;
-
   bool _started;
-
   var _exitHandlerCallback;
 }

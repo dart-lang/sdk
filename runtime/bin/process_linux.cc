@@ -12,24 +12,62 @@
 
 #include "bin/fdutils.h"
 #include "bin/process.h"
-#include "bin/set.h"
 
 
-class ActiveProcess {
+class ProcessInfo {
  public:
-  pid_t pid;
-  intptr_t fd;
+  ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) { }
 
-  bool operator==(const ActiveProcess &other) const {
-    if (pid == other.pid) {
-      return true;
-    }
-    return false;
-  }
+  pid_t pid() { return pid_; }
+  intptr_t fd() { return fd_; }
+  ProcessInfo* next() { return next_; }
+  void set_next(ProcessInfo* next) { next_ = next; }
+
+ private:
+  pid_t pid_;  // Process pid.
+  intptr_t fd_;  // File descriptor for pipe to report exit code.
+  ProcessInfo* next_;
 };
 
 
-static Set<ActiveProcess> activeProcesses;
+ProcessInfo* active_processes = NULL;
+
+
+static void AddProcess(ProcessInfo* process) {
+  process->set_next(active_processes);
+  active_processes = process;
+}
+
+
+static ProcessInfo* LookupProcess(pid_t pid) {
+  ProcessInfo* current = active_processes;
+  while (current != NULL) {
+    if (current->pid() == pid) {
+      return current;
+    }
+    current = current->next();
+  }
+  return NULL;
+}
+
+
+static void RemoveProcess(pid_t pid) {
+  ProcessInfo* prev = NULL;
+  ProcessInfo* current = active_processes;
+  while (current != NULL) {
+    if (current->pid() == pid) {
+      if (prev == NULL) {
+        active_processes = current->next();
+      } else {
+        prev->set_next(current->next());
+      }
+      delete current;
+      return;
+    }
+    prev = current;
+    current = current->next();
+  }
+}
 
 
 static char* SafeStrNCpy(char* dest, const char* src, size_t n) {
@@ -45,8 +83,8 @@ static void SetChildOsErrorMessage(char* os_error_message,
 }
 
 
-void ExitHandle(int processSignal, siginfo_t* siginfo, void* tmp) {
-  assert(processSignal == SIGCHLD);
+void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
+  assert(process_signal == SIGCHLD);
   struct sigaction act;
   bzero(&act, sizeof(act));
   act.sa_handler = SIG_IGN;
@@ -54,23 +92,18 @@ void ExitHandle(int processSignal, siginfo_t* siginfo, void* tmp) {
   if (sigaction(SIGCHLD, &act, 0) != 0) {
     perror("Process start: disabling signal handler failed");
   }
-  pid_t pid = siginfo->si_pid;
-  ActiveProcess element;
-  element.pid = pid;
-  ActiveProcess* current = activeProcesses.Remove(element);
-  if (current != NULL) {
-    intptr_t message = siginfo->si_status;
+  ProcessInfo* process = LookupProcess(siginfo->si_pid);
+  if (process != NULL) {
+    intptr_t message[2] = { siginfo->si_pid, siginfo->si_status };
     intptr_t result =
-        FDUtils::WriteToBlocking(current->fd, &message, sizeof(message));
+        FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
     if (result != sizeof(message)) {
-      perror("ExitHandle notification failed");
+      perror("ExitHandler notification failed");
     }
-    close(current->fd);
-
-    delete current;
+    close(process->fd());
   }
   act.sa_handler = 0;
-  act.sa_sigaction = ExitHandle;
+  act.sa_sigaction = ExitHandler;
   if (sigaction(SIGCHLD, &act, 0) != 0) {
     perror("Process start: enabling signal handler failed");
   }
@@ -160,7 +193,7 @@ int Process::Start(const char* path,
 
   struct sigaction act;
   bzero(&act, sizeof(act));
-  act.sa_sigaction = ExitHandle;
+  act.sa_sigaction = ExitHandler;
   act.sa_flags = SA_NOCLDSTOP | SA_SIGINFO;
   if (sigaction(SIGCHLD, &act, 0) != 0) {
     perror("Process start: setting signal handler failed");
@@ -231,10 +264,8 @@ int Process::Start(const char* path,
     return errno;
   }
 
-  ActiveProcess* activeProcess = new ActiveProcess();
-  activeProcess->pid = pid;
-  activeProcess->fd = event_fds[1];
-  activeProcesses.Add(*activeProcess);
+  ProcessInfo* process = new ProcessInfo(pid, event_fds[1]);
+  AddProcess(process);
   *exit_event = event_fds[0];
   FDUtils::SetNonBlocking(event_fds[0]);
 
@@ -299,4 +330,9 @@ bool Process::Kill(intptr_t id) {
     return false;
   }
   return true;
+}
+
+
+void Process::Exit(intptr_t id) {
+  RemoveProcess(id);
 }

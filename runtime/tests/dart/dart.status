@@ -18,11 +18,6 @@ Process*: Skip
 Process*: Skip
 
 
-[ $arch == ia32 && $system == linux]
-# Currently process tests can cause timeouts on Linux.
-Process*: Skip  # Bug 1
-
-
 [ $arch == ia32 && $system == win32]
 # Windows implementation of Process is still pending.
 Process*: Skip

@@ -11,6 +11,8 @@
 
 class Process {
  public:
+  // Start a new process providing access to stdin, stdout, stderr and
+  // process exit streams.
   static int Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
@@ -22,7 +24,11 @@ class Process {
                    char* os_error_message,
                    int os_error_message_len);
 
+  // Kill a process with a given pid.
   static bool Kill(intptr_t id);
+
+  // Indicate that the process with the given pid has exited.
+  static void Exit(intptr_t id);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
