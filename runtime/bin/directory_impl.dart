@@ -28,10 +28,10 @@ class _DirectoryListingIsolate extends Isolate {
   void _list(String dir,
              int id,
              bool recursive,
-             ReceivePort dirHandler,
-             ReceivePort fileHandler,
-             ReceivePort doneHandler,
-             ReceivePort dirErrorHandler) native "Directory_List";
+             SendPort dirHandler,
+             SendPort fileHandler,
+             SendPort doneHandler,
+             SendPort dirErrorHandler) native "Directory_List";
 }
 
 
