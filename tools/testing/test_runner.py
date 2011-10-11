@@ -14,13 +14,168 @@ import threading
 import traceback
 import Queue
 
-import test
 import testing
 import utils
 
 
 class Error(Exception):
   pass
+
+
+def _CheckedUnlink(name):
+  try:
+    os.unlink(name)
+  except OSError, e:
+    PrintError("os.unlink() " + str(e))
+
+
+class CommandOutput(object):
+
+  def __init__(self, pid, exit_code, timed_out, stdout, stderr):
+    self.pid = pid
+    self.exit_code = exit_code
+    self.timed_out = timed_out
+    self.stdout = stdout
+    self.stderr = stderr
+    self.failed = None
+
+
+class TestOutput(object):
+
+  def __init__(self, test, command, output):
+    self.test = test
+    self.command = command
+    self.output = output
+
+  def UnexpectedOutput(self):
+    if self.HasCrashed():
+      outcome = testing.CRASH
+    elif self.HasTimedOut():
+      outcome = testing.TIMEOUT
+    elif self.HasFailed():
+      outcome = testing.FAIL
+    else:
+      outcome = testing.PASS
+    return not outcome in self.test.outcomes
+
+  def HasCrashed(self):
+    if utils.IsWindows():
+      if self.output.exit_code == 3:
+        # The VM uses std::abort to terminate on asserts.
+        # std::abort terminates with exit code 3 on Windows.
+        return True
+      return 0x80000000 & self.output.exit_code and not (0x3FFFFF00 & self.output.exit_code)
+    else:
+      # Timed out tests will have exit_code -signal.SIGTERM.
+      if self.output.timed_out:
+        return False
+      if self.output.exit_code == 253:
+        # The Java dartc runners exit 253 in case of unhandled exceptions.
+        return True
+      return self.output.exit_code < 0
+
+  def HasTimedOut(self):
+    return self.output.timed_out;
+
+  def HasFailed(self):
+    execution_failed = self.test.DidFail(self.output)
+    if self.test.IsNegative():
+      return not execution_failed
+    else:
+      return execution_failed
+
+
+def Execute(args, context, timeout=None, cwd=None):
+  (fd_out, outname) = tempfile.mkstemp()
+  (fd_err, errname) = tempfile.mkstemp()
+  (process, exit_code, timed_out) = RunProcess(
+    context,
+    timeout,
+    args = args,
+    stdout = fd_out,
+    stderr = fd_err,
+    cwd = cwd
+  )
+  os.close(fd_out)
+  os.close(fd_err)
+  output = file(outname).read()
+  errors = file(errname).read()
+  _CheckedUnlink(outname)
+  _CheckedUnlink(errname)
+  result = CommandOutput(process.pid, exit_code, timed_out,
+                         output, errors)
+  return result
+
+
+def KillProcessWithID(pid):
+  if utils.IsWindows():
+    os.popen('taskkill /T /F /PID %d' % pid)
+  else:
+    os.kill(pid, signal.SIGTERM)
+
+
+MAX_SLEEP_TIME = 0.1
+INITIAL_SLEEP_TIME = 0.0001
+SLEEP_TIME_FACTOR = 1.25
+
+SEM_INVALID_VALUE = -1
+SEM_NOGPFAULTERRORBOX = 0x0002 # Microsoft Platform SDK WinBase.h
+
+
+def Win32SetErrorMode(mode):
+  prev_error_mode = SEM_INVALID_VALUE
+  try:
+    import ctypes
+    prev_error_mode = ctypes.windll.kernel32.SetErrorMode(mode);
+  except ImportError:
+    pass
+  return prev_error_mode
+
+def RunProcess(context, timeout, args, **rest):
+  if context.verbose: print "#", " ".join(args)
+  popen_args = args
+  prev_error_mode = SEM_INVALID_VALUE;
+  if utils.IsWindows():
+    popen_args = '"' + subprocess.list2cmdline(args) + '"'
+    if context.suppress_dialogs:
+      # Try to change the error mode to avoid dialogs on fatal errors. Don't
+      # touch any existing error mode flags by merging the existing error mode.
+      # See http://blogs.msdn.com/oldnewthing/archive/2004/07/27/198410.aspx.
+      error_mode = SEM_NOGPFAULTERRORBOX;
+      prev_error_mode = Win32SetErrorMode(error_mode);
+      Win32SetErrorMode(error_mode | prev_error_mode);
+  process = subprocess.Popen(
+    shell = utils.IsWindows(),
+    args = popen_args,
+    **rest
+  )
+  if utils.IsWindows() and context.suppress_dialogs and prev_error_mode != SEM_INVALID_VALUE:
+    Win32SetErrorMode(prev_error_mode)
+  # Compute the end time - if the process crosses this limit we
+  # consider it timed out.
+  if timeout is None: end_time = None
+  else: end_time = time.time() + timeout
+  timed_out = False
+  # Repeatedly check the exit code from the process in a
+  # loop and keep track of whether or not it times out.
+  exit_code = None
+  sleep_time = INITIAL_SLEEP_TIME
+  while exit_code is None:
+    if (not end_time is None) and (time.time() >= end_time):
+      # Kill the process and wait for it to exit.
+      KillProcessWithID(process.pid)
+      # Drain the output pipe from the process to avoid deadlock
+      process.communicate()
+      exit_code = process.wait()
+      timed_out = True
+    else:
+      exit_code = process.poll()
+      time.sleep(sleep_time)
+      sleep_time = sleep_time * SLEEP_TIME_FACTOR
+      if sleep_time > MAX_SLEEP_TIME:
+        sleep_time = MAX_SLEEP_TIME
+  return (process, exit_code, timed_out)
+
 
 class TestRunner(object):
   """Base class for runners """
@@ -215,9 +370,9 @@ class BatchRunner(TestRunner):
     else:
       assert false, "Unexpected outcome: %s" % outcome
 
-    cmd_output = test.CommandOutput(0, exit_code,
+    cmd_output = CommandOutput(0, exit_code,
                                     outcome == testing.TIMEOUT, stdout_buf, "")
-    test_output = test.TestOutput(case.case,
+    test_output = TestOutput(case.case,
                                   case.case.GetCommand(),
                                   cmd_output)
     with self.progress.lock:

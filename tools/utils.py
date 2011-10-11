@@ -196,6 +196,11 @@ def Daemonize():
   return True
 
 
+def PrintError(str):
+  sys.stderr.write(str)
+  sys.stderr.write('\n')
+
+
 def Main(argv):
   print "GuessOS() -> ", GuessOS()
   print "GuessArchitecture() -> ", GuessArchitecture()
