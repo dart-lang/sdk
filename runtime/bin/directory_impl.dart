@@ -2,10 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class DirectoryException {
   const DirectoryException(String this.message);
   final String message;
 }
+
+
+class _DirectoryListingIsolate extends Isolate {
+
+  _DirectoryListingIsolate() : super.heavy();
+
+  void main() {
+    port.receive((message, replyTo) {
+       _list(message['dir'],
+             message['id'],
+             message['recursive'],
+             message['dirHandler'],
+             message['fileHandler'],
+             message['doneHandler'],
+             message['dirErrorHandler']);
+    });
+  }
+
+  void _list(String dir,
+             int id,
+             bool recursive,
+             ReceivePort dirHandler,
+             ReceivePort fileHandler,
+             ReceivePort doneHandler,
+             ReceivePort dirErrorHandler) native "Directory_List";
+}
+
 
 class _Directory implements Directory {
 
@@ -40,7 +68,6 @@ class _Directory implements Directory {
   }
 
   void list([bool recursive = false]) {
-    // TODO(ager): Spawn an isolate to make the listing an async operation.
     if (_closed) {
       throw new DirectoryException("Error: directory closed");
     }
@@ -48,13 +75,17 @@ class _Directory implements Directory {
       throw new DirectoryException("Error: listing already in progress");
     }
     _listing = true;
-    _list(_dir,
-          _id,
-          recursive,
-          _dirHandler,
-          _fileHandler,
-          _doneHandler,
-          _dirErrorHandler);
+    new _DirectoryListingIsolate().spawn().then((port) {
+      // TODO(ager): Do not explicitly transform to send ports when
+      // that is done automatically.
+      port.send({ 'dir': _dir,
+                  'id': _id,
+                  'recursive': recursive,
+                  'dirHandler': _dirHandler.toSendPort(),
+                  'fileHandler': _fileHandler.toSendPort(),
+                  'doneHandler': _doneHandler.toSendPort(),
+                  'dirErrorHandler': _dirErrorHandler.toSendPort() });
+    });
   }
 
   // TODO(ager): Implement setting of the handlers as in the process library.
@@ -113,13 +144,6 @@ class _Directory implements Directory {
   // Native code binding.
   bool _open(String dir) native "Directory_Open";
   bool _close(int id) native "Directory_Close";
-  void _list(String dir,
-             int id,
-             bool recursive,
-             ReceivePort dirHandler,
-             ReceivePort fileHandler,
-             ReceivePort doneHandler,
-             ReceivePort dirErrorHandler) native "Directory_List";
 
   ReceivePort _dirHandler;
   ReceivePort _fileHandler;

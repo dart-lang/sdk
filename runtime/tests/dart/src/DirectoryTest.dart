@@ -28,6 +28,10 @@ class DirectoryTest {
     });
 
     directory.list();
+
+    // Listing is asynchronous, so nothing should be listed at this
+    // point.
+    Expect.isFalse(listedSomething);
   }
 
   static void testMain() {
