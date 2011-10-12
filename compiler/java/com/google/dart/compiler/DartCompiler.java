@@ -151,11 +151,11 @@ public class DartCompiler {
         LibraryUnit library = updateLibraries(app);
         importEmbeddedLibraries();
         parseOutOfDateFiles();
-        if (!context.getFilesHaveChanged()) {
-          return library;
-        }
         if (incremental) {
           addOutOfDateDeps();
+        }
+        if (!context.getFilesHaveChanged()) {
+          return library;
         }
         if (!config.resolveDespiteParseErrors() && (context.getErrorCount() > 0)) {
           return library;
@@ -385,6 +385,7 @@ public class DartCompiler {
     private void addOutOfDateDeps() throws IOException {
       TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.ADD_OUTOFDATE) : null;
       try {
+        boolean filesHaveChanged = false;
         for (LibraryUnit lib : libraries.values()) {
 
           if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
@@ -400,6 +401,7 @@ public class DartCompiler {
           for (String sourceName : deps.getSourceNames()) {
             LibraryDeps.Source depSource = deps.getSource(sourceName);
             if (isSourceOutOfDate(lib, depSource)) {
+              filesHaveChanged = true;
               DartSource dartSrc = lib.getSource().getSourceFor(sourceName);
               if ((dartSrc != null) && (dartSrc.exists())) {
                 DartUnit unit = parse(dartSrc, lib.getPrefixes());
@@ -410,6 +412,10 @@ public class DartCompiler {
               }
             }
           }
+        }
+        
+        if (filesHaveChanged) {
+          context.setFilesHaveChanged();
         }
       } finally {
         Tracer.end(logEvent);
