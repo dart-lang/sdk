@@ -153,6 +153,7 @@ import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.type.Types;
 import com.google.dart.compiler.util.AstUtil;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
@@ -252,6 +253,8 @@ public class GenerateJavascriptAST {
     private final DartMangler mangler;
     private final CoreTypeProvider typeProvider;
     private final Types typeUtils;
+
+    private final Deque<JsName> catchVarStack = new ArrayDeque<JsName>();
 
     public GenerateJavascriptVisitor(DartUnit unit, DartCompilerContext context,
         TranslationContext translationContext,
@@ -1975,6 +1978,7 @@ public class GenerateJavascriptAST {
         jsCatch.setBody(jsCatchBody);
         JsStatement jsElse = new JsThrow(new JsNameRef(exceptionVar));
 
+        catchVarStack.push(exceptionVar);
         for (int i = catchBlocks.size() - 1; i >= 0; i--) {
           DartCatchBlock catchBlock = catchBlocks.get(i);
           JsBlock jsClauseBody = (JsBlock) generate(catchBlock.getBlock());
@@ -2012,6 +2016,7 @@ public class GenerateJavascriptAST {
           jsElse = new JsIf(instanceCheck, jsClauseBody, jsElse);
         }
         jsCatchBody.getStatements().add(jsElse);
+        catchVarStack.pop();
       }
 
       if (x.getFinallyBlock() != null) {
@@ -2031,11 +2036,23 @@ public class GenerateJavascriptAST {
     public JsNode visitThrowStatement(DartThrowStatement x) {
       JsNameRef error = new JsNameRef("$Dart$ThrowException");
       JsInvocation invoc = AstUtil.newInvocation(error);
+      JsExpression exception;
       if (x.getException() != null) {
-        invoc.getArguments().add((JsExpression) generate(x.getException()));
+        exception = (JsExpression) generate(x.getException());
+      } else {
+        // rethrow the exception
+        JsName name = catchVarStack.peek();
+        if (name != null) {
+          exception = name.makeRef();
+        } else {
+          // TODO(johnlenz): validate this is the correct behavior
+          throw new InternalCompilerException("invalid rethrow context");
+        }
       }
+      invoc.getArguments().add(exception);
       return new JsExprStmt(invoc.setSourceRef(x));
     }
+
 
     @Override
     public JsNode visitVariableStatement(DartVariableStatement x) {

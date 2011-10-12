@@ -246,7 +246,6 @@ LibTest/core/Set/forEach/Set/forEach/A01/t06: Skip
 LibTest/core/Set/some/Set/some/A01/t04: Skip
 LibTest/core/Set/every/Set/every/A01/t04: Skip
 
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/A02/t04: Skip # Times out.
