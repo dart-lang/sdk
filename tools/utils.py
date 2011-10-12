@@ -197,8 +197,17 @@ def Daemonize():
 
 
 def PrintError(str):
+  """Writes and flushes a string to stderr."""
   sys.stderr.write(str)
   sys.stderr.write('\n')
+
+
+def CheckedUnlink(name):
+  """Unlink a file without throwing an exception."""
+  try:
+    os.unlink(name)
+  except OSError, e:
+    PrintError("os.unlink() " + str(e))
 
 
 def Main(argv):

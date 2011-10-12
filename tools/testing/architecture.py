@@ -1,30 +1,31 @@
-#!/usr/bin/env python
-#
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
 
-"""
-Runs a Dart unit test in different configurations: dartium, chromium, ia32, x64,
-arm, simarm, and dartc. Example:
+"""Runs a Dart unit test in different configurations.
 
-run.py --arch=dartium --mode=release --test=Test.dart
+Currently supported architectures include dartium, chromium, ia32, x64,
+arm, simarm, and dartc.
+
+Example:
+  run.py --arch=dartium --mode=release --test=Test.dart
+
 """
 
 import os
-from os.path import join, abspath, dirname, basename, relpath
 import platform
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+
 import utils
 
 OS_GUESS = utils.GuessOS()
 
-HTML_CONTENTS = '''
+HTML_CONTENTS = """
 <html>
 <head>
   <title> Test %(title)s </title>
@@ -52,14 +53,14 @@ HTML_CONTENTS = '''
   </script>
 </body>
 </html>
-'''
+"""
 
-DART_TEST_AS_LIBRARY = '''
+DART_TEST_AS_LIBRARY = """
 #library('test');
 #source('%(test)s');
-'''
+"""
 
-DART_CONTENTS = '''
+DART_CONTENTS = """
 #library('test');
 
 #import('%(dom_library)s');
@@ -101,49 +102,56 @@ main() {
     fail(e, trace);
   }
 }
-'''
+"""
 
 
 # Patterns for matching test options in .dart files.
-VM_OPTIONS_PATTERN = re.compile(r"// VMOptions=(.*)")
-DART_OPTIONS_PATTERN = re.compile(r"// DartOptions=(.*)")
+VM_OPTIONS_PATTERN = re.compile(r'// VMOptions=(.*)')
+DART_OPTIONS_PATTERN = re.compile(r'// DartOptions=(.*)')
 
 # Pattern for checking if the test is a web test.
-DOM_IMPORT_PATTERN = re.compile(r"^#import.*(dart:dom|html.dart)'\);",
+DOM_IMPORT_PATTERN = re.compile(r'#import.*(dart:dom|html.dart).*\);',
                                 re.MULTILINE)
 
 # Pattern for matching the output of a browser test.
-BROWSER_OUTPUT_PASS_PATTERN = re.compile(r"^Content-Type: text/plain\nPASS$",
+BROWSER_OUTPUT_PASS_PATTERN = re.compile(r'^Content-Type: text/plain\nPASS$',
                                          re.MULTILINE)
 
 # Pattern for checking if the test is a library in itself.
-LIBRARY_DEFINITION_PATTERN = re.compile(r"^#library\(.*\);",
+LIBRARY_DEFINITION_PATTERN = re.compile(r'^#library\(.*\);',
                                         re.MULTILINE)
-SOURCE_OR_IMPORT_PATTERN = re.compile(r"^#(source|import)\(.*\);",
+SOURCE_OR_IMPORT_PATTERN = re.compile(r'^#(source|import)\(.*\);',
                                       re.MULTILINE)
 
 
 class Error(Exception):
+  """Base class for exceptions in this module."""
   pass
 
 
-def IsWebTest(test, source):
+def _IsWebTest(source):
+  """Returns True if the source includes a dart dom library #import."""
   return DOM_IMPORT_PATTERN.search(source)
 
+
 def IsLibraryDefinition(test, source):
-  if LIBRARY_DEFINITION_PATTERN.search(source): return True
+  """Returns True if the source has a #library statement."""
+  if LIBRARY_DEFINITION_PATTERN.search(source):
+    return True
   if SOURCE_OR_IMPORT_PATTERN.search(source):
-    print ("WARNING for %s: Browser tests need a #library "
-            "for a file that #import or #source" % test)
+    print ('WARNING for %s: Browser tests need a #library '
+           'for a file that #import or #source' % test)
   return False
 
 
 class Architecture(object):
+  """Definitions for different ways to test based on the --arch flag."""
+
   def __init__(self, root_path, arch, mode, test):
-    self.root_path = root_path;
-    self.arch = arch;
-    self.mode = mode;
-    self.test = test;
+    self.root_path = root_path
+    self.arch = arch
+    self.mode = mode
+    self.test = test
     self.build_root = utils.GetBuildRoot(OS_GUESS, self.mode, self.arch)
     source = file(test).read()
     self.vm_options = utils.ParseTestOptions(VM_OPTIONS_PATTERN,
@@ -154,77 +162,96 @@ class Architecture(object):
     self.dart_options = utils.ParseTestOptions(DART_OPTIONS_PATTERN,
                                                source,
                                                root_path)
-    self.is_web_test = IsWebTest(test, source)
+    self.is_web_test = _IsWebTest(source)
     self.temp_dir = None
 
   def HasFatalTypeErrors(self):
+    """Returns True if this type of arch supports --fatal-type-errors."""
     return False
 
   def GetTestFrameworkPath(self):
-    return join(self.root_path, 'tests', 'isolate', 'src',
-               'TestFramework.dart')
+    """Path to dart source (TestFramework.dart) for testing framework."""
+    return os.path.join(self.root_path, 'tests', 'isolate', 'src',
+                        'TestFramework.dart')
+
 
 class BrowserArchitecture(Architecture):
+  """Architecture that runs compiled dart->JS through a browser."""
+
   def __init__(self, root_path, arch, mode, test):
     super(BrowserArchitecture, self).__init__(root_path, arch, mode, test)
-    self.temp_dir = tempfile.mkdtemp();
+    self.temp_dir = tempfile.mkdtemp()
     if not self.is_web_test: self.GenerateWebTestScript()
 
   def GetTestScriptFile(self):
     """Returns the name of the .dart file to compile."""
-    if self.is_web_test: return abspath(self.test)
-    return join(self.temp_dir, 'test.dart')
+    if self.is_web_test: return os.path.abspath(self.test)
+    return os.path.join(self.temp_dir, 'test.dart')
 
   def GetHtmlContents(self):
+    """Fills in the HTML_CONTENTS template with info for this architecture."""
     script_type = self.GetScriptType()
-
-    controller_path = join(self.root_path,
-        'client', 'testing', 'unittest', 'test_controller.js')
-
-    return HTML_CONTENTS % { 'title'            : self.test,
-                             'controller_script': controller_path,
-                             'script_type'      : script_type,
-                             'source_script'    : self.GetScriptPath() }
+    controller_path = os.path.join(self.root_path, 'client', 'testing',
+                                   'unittest', 'test_controller.js')
+    return HTML_CONTENTS % {
+        'title': self.test,
+        'controller_script': controller_path,
+        'script_type': script_type,
+        'source_script': self.GetScriptPath()
+    }
 
   def GetHtmlPath(self):
-    # Resources for web tests are relative to the 'html' file. We
-    # output the 'html' file in the 'out' directory instead of the temporary
-    # directory because we can easily go the the resources in 'client' through
-    # 'out'.
+    """Creates a path for the generated .html file.
+
+    Resources for web tests are relative to the 'html' file. We
+    output the 'html' file in the 'out' directory instead of the temporary
+    directory because we can easily go the the resources in 'client' through
+    'out'.
+
+    Returns:
+      Created path for the generated .html file.
+    """
     if self.is_web_test:
-      html_path = join(self.root_path, 'client', self.build_root)
-      if not os.path.exists(html_path): os.makedirs(html_path)
+      html_path = os.path.join(self.root_path, 'client', self.build_root)
+      if not os.path.exists(html_path):
+        os.makedirs(html_path)
       return html_path
 
     return self.temp_dir
 
   def GetTestContents(self, library_file):
-    unittest_path = join(self.root_path,
-                         'client', 'testing', 'unittest', 'unittest.dart')
+    """Pastes a preamble on the front of the .dart file before testing."""
+    unittest_path = os.path.join(self.root_path, 'client', 'testing',
+                                 'unittest', 'unittest.dart')
+
     if self.arch == 'chromium':
-      dom_path = join(self.root_path,
-                      'client', 'testing', 'unittest', 'dom_for_unittest.dart')
+      dom_path = os.path.join(self.root_path, 'client', 'testing',
+                              'unittest', 'dom_for_unittest.dart')
     else:
-      dom_path = join('dart:dom')
+      dom_path = os.path.join('dart:dom')
 
     test_framework_path = self.GetTestFrameworkPath()
-    test_name = basename(self.test)
-    test_path = abspath(self.test)
+    test_path = os.path.abspath(self.test)
 
-    inputs = { 'unittest': unittest_path,
-               'test': test_path,
-               'dom_library': dom_path,
-               'test_framework': test_framework_path,
-               'library': library_file }
+    inputs = {
+        'unittest': unittest_path,
+        'test': test_path,
+        'dom_library': dom_path,
+        'test_framework': test_framework_path,
+        'library': library_file
+    }
     return DART_CONTENTS % inputs
 
   def GenerateWebTestScript(self):
+    """Creates a .dart file to run in the test."""
     if IsLibraryDefinition(self.test, file(self.test).read()):
-      library_file = abspath(self.test)
+      library_file = os.path.abspath(self.test)
     else:
       library_file = 'test_as_library.dart'
-      test_as_library = DART_TEST_AS_LIBRARY % { 'test': abspath(self.test) }
-      test_as_library_file = join(self.temp_dir, library_file)
+      test_as_library = DART_TEST_AS_LIBRARY % {
+          'test': os.path.abspath(self.test)
+      }
+      test_as_library_file = os.path.join(self.temp_dir, library_file)
       f = open(test_as_library_file, 'w')
       f.write(test_as_library)
       f.close()
@@ -234,16 +261,18 @@ class BrowserArchitecture(Architecture):
     f.write(self.GetTestContents(library_file))
     f.close()
 
-  def GetRunCommand(self, fatal_static_type_errors = False):
+  def GetRunCommand(self, fatal_static_type_errors=False):
+    """Returns a command line to execute for the test."""
+    fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
     # For some reason, DRT needs to be called via an absolute path
-    drt_location = join(self.root_path,
-        'client', 'tests', 'drt', 'DumpRenderTree')
+    drt_location = os.path.join(self.root_path, 'client', 'tests', 'drt',
+                                'DumpRenderTree')
 
     # On Mac DumpRenderTree is a .app folder
     if platform.system() == 'Darwin':
       drt_location += '.app/Contents/MacOS/DumpRenderTree'
 
-    drt_flags = [ '--no-timeout' ]
+    drt_flags = ['--no-timeout']
     dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
     dart_flags += ' '.join(self.vm_options)
 
@@ -251,7 +280,7 @@ class BrowserArchitecture(Architecture):
       dart_flags += ' --optimize '
     drt_flags.append(dart_flags)
 
-    html_output_file = join(self.GetHtmlPath(), self.GetHtmlName())
+    html_output_file = os.path.join(self.GetHtmlPath(), self.GetHtmlName())
     f = open(html_output_file, 'w')
     f.write(self.GetHtmlContents())
     f.close()
@@ -261,22 +290,32 @@ class BrowserArchitecture(Architecture):
     return [drt_location] + drt_flags
 
   def HasFailed(self, output):
+    """Return True if the 'PASS' result string isn't in the output."""
     return not BROWSER_OUTPUT_PASS_PATTERN.search(output)
 
   def RunTest(self, verbose):
+    """Calls GetRunCommand() and executes the returned commandline.
+
+    Args:
+      verbose: if True, print additional diagnostics to stdout.
+
+    Returns:
+      Return code from executable. 0 == PASS, 253 = CRASH, anything
+      else is treated as FAIL
+    """
     retcode = self.Compile()
     if retcode != 0: return 1
 
     command = self.GetRunCommand()
 
-    status, output, err = ExecutePipedCommand(command, verbose)
+    unused_status, output, err = ExecutePipedCommand(command, verbose)
     if not self.HasFailed(output):
       self.Cleanup()
       return 0
 
     # TODO(sigmund): print better error message, including how to run test
     # locally, and translate error traces using source map info.
-    print "(FAIL) test page:\033[31m " + command[2] + " \033[0m"
+    print '(FAIL) test page:\033[31m %s \033[0m' % command[2]
     if verbose:
       print 'Additional info: '
       print output
@@ -284,12 +323,15 @@ class BrowserArchitecture(Architecture):
     return 1
 
   def Cleanup(self):
+    """Removes temporary files created for the test."""
     if self.temp_dir:
       shutil.rmtree(self.temp_dir)
       self.temp_dir = None
 
 
 class ChromiumArchitecture(BrowserArchitecture):
+  """Architecture that runs compiled dart->JS through a chromium DRT."""
+
   def __init__(self, root_path, arch, mode, test):
     super(ChromiumArchitecture, self).__init__(root_path, arch, mode, test)
 
@@ -297,29 +339,30 @@ class ChromiumArchitecture(BrowserArchitecture):
     return 'text/javascript'
 
   def GetScriptPath(self):
-    """ Returns the name of the output .js file to create """
+    """Returns the name of the output .js file to create."""
     path = self.GetTestScriptFile()
-    return abspath(os.path.join(self.temp_dir,
-                                os.path.basename(path) + '.js'))
-
+    return os.path.abspath(os.path.join(self.temp_dir,
+                                        os.path.basename(path) + '.js'))
 
   def GetHtmlName(self):
-    return relpath(self.test, self.root_path).replace(os.sep, '_') + '.html'
+    """Returns the name of the output .html file to create."""
+    relpath = os.path.relpath(self.test, self.root_path)
+    return relpath.replace(os.sep, '_') + '.html'
 
   def GetCompileCommand(self, fatal_static_type_errors=False):
-    """ Returns cmdline as an array to invoke the compiler on this test"""
+    """Returns cmdline as an array to invoke the compiler on this test."""
+
     # We need an absolute path because the compilation will run
     # in a temporary directory.
-
-    dartc = abspath(join(utils.GetBuildRoot(OS_GUESS, self.mode, 'dartc'),
-                         'compiler',
-                         'bin',
-                         'dartc'))
+    build_root = utils.GetBuildRoot(OS_GUESS, self.mode, 'dartc')
+    dartc = os.path.abspath(os.path.join(build_root, 'compiler', 'bin',
+                                         'dartc'))
     if utils.IsWindows(): dartc += '.exe'
     cmd = [dartc, '--work', self.temp_dir]
     cmd += self.vm_options
     cmd += ['--out', self.GetScriptPath()]
     if fatal_static_type_errors:
+      # TODO(zundel): update to --fatal_type_errors for both VM and Compiler
       cmd.append('-fatal-type-errors')
     cmd.append(self.GetTestScriptFile())
     return cmd
@@ -329,6 +372,8 @@ class ChromiumArchitecture(BrowserArchitecture):
 
 
 class DartiumArchitecture(BrowserArchitecture):
+  """Architecture that runs dart in an VM embedded in DumpRenderTree."""
+
   def __init__(self, root_path, arch, mode, test):
     super(DartiumArchitecture, self).__init__(root_path, arch, mode, test)
 
@@ -339,10 +384,11 @@ class DartiumArchitecture(BrowserArchitecture):
     return 'file:///' + self.GetTestScriptFile()
 
   def GetHtmlName(self):
-    path = relpath(self.test, self.root_path).replace(os.sep, '_')
+    path = os.path.relpath(self.test, self.root_path).replace(os.sep, '_')
     return path + '.dartium.html'
 
   def GetCompileCommand(self, fatal_static_type_errors=False):
+    fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
     return None
 
   def Compile(self):
@@ -350,25 +396,29 @@ class DartiumArchitecture(BrowserArchitecture):
 
 
 class StandaloneArchitecture(Architecture):
+  """Base class for architectures that run tests without a browser."""
+
   def __init__(self, root_path, arch, mode, test):
     super(StandaloneArchitecture, self).__init__(root_path, arch, mode, test)
 
   def GetCompileCommand(self, fatal_static_type_errors=False):
+    fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
     return None
 
   def GetRunCommand(self, fatal_static_type_errors=False):
+    """Returns a command line to execute for the test."""
     dart = self.GetExecutable()
-    test_name = basename(self.test)
-    test_path = abspath(self.test)
+    test_name = os.path.basename(self.test)
+    test_path = os.path.abspath(self.test)
     command = [dart] + self.vm_options
     (classname, extension) = os.path.splitext(test_name)
     if self.dart_options:
       command += self.dart_options
-    elif (extension == '.dart'):
+    elif extension == '.dart':
       if fatal_static_type_errors:
         command += self.GetFatalTypeErrorsFlags()
       if '_' in classname:
-        (classname, sep, tag) = classname.rpartition('_')
+        (classname, unused_sep, unused_tag) = classname.rpartition('_')
       command += [test_path]
     else:
       command += ['--', test_path]
@@ -389,11 +439,17 @@ class StandaloneArchitecture(Architecture):
 # Long term, we should do the running machinery that is currently in
 # DartRunner.java
 class DartcArchitecture(StandaloneArchitecture):
+  """Runs the Dart ->JS compiler then runs the result in a standalone JS VM."""
+
   def __init__(self, root_path, arch, mode, test):
     super(DartcArchitecture, self).__init__(root_path, arch, mode, test)
 
   def GetExecutable(self):
-    return abspath(join(self.build_root, 'compiler', 'bin', 'dartc_test'))
+    """Returns the name of the executable to run the test."""
+    return os.path.abspath(os.path.join(self.build_root,
+                                        'compiler',
+                                        'bin',
+                                        'dartc_test'))
 
   def GetFatalTypeErrorsFlags(self):
     return ['--fatal-type-errors']
@@ -402,23 +458,27 @@ class DartcArchitecture(StandaloneArchitecture):
     return True
 
   def GetRunCommand(self, fatal_static_type_errors=False):
+    """Returns a command line to execute for the test."""
     cmd = super(DartcArchitecture, self).GetRunCommand(
         fatal_static_type_errors)
     return cmd
 
 
 class RuntimeArchitecture(StandaloneArchitecture):
+  """Executes tests on the standalone VM (runtime)."""
+
   def __init__(self, root_path, arch, mode, test):
     super(RuntimeArchitecture, self).__init__(root_path, arch, mode, test)
 
   def GetExecutable(self):
-    return abspath(join(self.build_root, 'dart_bin'))
+    """Returns the name of the executable to run the test."""
+    return os.path.abspath(os.path.join(self.build_root, 'dart_bin'))
 
 
 def ExecutePipedCommand(cmd, verbose):
-  """Execute a command in a subprocess.
-  """
-  if verbose: print 'Executing: ' + ' '.join(cmd)
+  """Execute a command in a subprocess."""
+  if verbose:
+    print 'Executing: ' + ' '.join(cmd)
   pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   (output, err) = pipe.communicate()
   if pipe.returncode != 0 and verbose:
@@ -428,15 +488,14 @@ def ExecutePipedCommand(cmd, verbose):
   return pipe.returncode, output, err
 
 
-def ExecuteCommand(cmd, verbose = False):
-  """Execute a command in a subprocess.
-  """
+def ExecuteCommand(cmd, verbose=False):
+  """Execute a command in a subprocess."""
   if verbose: print 'Executing: ' + ' '.join(cmd)
   return subprocess.call(cmd)
 
 
 def GetArchitecture(arch, mode, test):
-  root_path = abspath(join(dirname(sys.argv[0]), '..'))
+  root_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..'))
   if arch == 'chromium':
     return ChromiumArchitecture(root_path, arch, mode, test)
 
@@ -448,4 +507,3 @@ def GetArchitecture(arch, mode, test):
 
   elif arch == 'dartc':
     return DartcArchitecture(root_path, arch, mode, test)
-  

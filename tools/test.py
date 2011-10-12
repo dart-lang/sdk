@@ -1271,7 +1271,7 @@ def PrintReport(cases):
 
   def IsFailOk(o):
     return (len(o) == 2) and (testing.FAIL in o) and (testing.OKAY in o)
-  
+
   unskipped = [c for c in cases if not testing.SKIP in c.outcomes]
   print REPORT_TEMPLATE % {
       'total': len(cases),
