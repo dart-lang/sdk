@@ -2,14 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Extend the Boolean prototype with members expected in dart.
- *
- * TODO(jimhug): Add verification to ! and truth tests
- */
-Boolean.$instanceOf = function(obj) {
-  return typeof obj == 'boolean' || obj instanceof Boolean;
-};
+
 
 function native_BoolImplementation_EQ(other) {
   if (typeof other == 'boolean') {

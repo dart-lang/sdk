@@ -2,15 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Extend the Number prototype with members expected in dart.
- *
- * TODO(jimhug): Figure out how to map dart's number hierarchy to Number.
- */
 
-Number.$instanceOf = function(obj) {
-  return typeof obj == 'number' || obj instanceof Number;
-};
 
 function native_NumberImplementation_BIT_OR(other) {
   return this | other;

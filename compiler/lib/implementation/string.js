@@ -2,14 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Extend the String prototype with members expected in dart.
- */
-
-String.$instanceOf = function(obj) {
-  return typeof obj == 'string' || obj instanceof String;
-};
-
 function native_StringImplementation__indexOperator(index) {
   return this[index];
 }
@@ -58,7 +50,7 @@ function native_StringImplementation_trim() {
 }
 
 function native_StringImplementation__replace(from, to) {
-  if (String.$instanceOf(from)) {
+  if ($isString(from)) {
     return this.replace(from, to);
   } else {
     return this.replace($DartRegExpToJSRegExp(from), to);
@@ -66,7 +58,7 @@ function native_StringImplementation__replace(from, to) {
 }
 
 function native_StringImplementation__replaceAll(from, to) {
-  if (String.$instanceOf(from)) {
+  if ($isString(from)) {
     var regexp = new RegExp(
         from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
     return this.replace(regexp, to);
@@ -77,7 +69,7 @@ function native_StringImplementation__replaceAll(from, to) {
 }
 
 function native_StringImplementation__split(pattern) {
-  if (String.$instanceOf(pattern)) {
+  if ($isString(pattern)) {
     return this.split(pattern);
   } else {
     return this.split($DartRegExpToJSRegExp(pattern));
