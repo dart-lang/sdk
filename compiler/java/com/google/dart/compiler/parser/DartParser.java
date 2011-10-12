@@ -299,24 +299,28 @@ public class DartParser extends CompletionHooksParserBase {
       } else {
         importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
       }
+      importPath.setSourceInfo(importDirective.getSourceInfo());
       libUnit.addImportPath(importPath);
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
       DartSourceDirective sourceDirective = done(parseSourceDirective());
       LibraryNode sourcePath = new LibraryNode(sourceDirective.getSourceUri().getValue());
+      sourcePath.setSourceInfo(sourceDirective.getSourceInfo());
       libUnit.addSourcePath(sourcePath);
     }
     while (peek(0) == Token.RESOURCE) {
       beginResourceDirective();
       DartResourceDirective resourceDirective = done(parseResourceDirective());
       LibraryNode resourcePath = new LibraryNode(resourceDirective.getResourceUri().getValue());
+      resourcePath.setSourceInfo(resourceDirective.getSourceInfo());
       libUnit.addResourcePath(resourcePath);
     }
     while (peek(0) == Token.NATIVE) {
       beginNativeDirective();
       DartNativeDirective nativeDirective = done(parseNativeDirective());
       LibraryNode nativePath = new LibraryNode(nativeDirective.getNativeUri().getValue());
+      nativePath.setSourceInfo(nativeDirective.getSourceInfo());
       libUnit.addNativePath(nativePath);
     }
 

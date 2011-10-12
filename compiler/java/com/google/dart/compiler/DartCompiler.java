@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.metrics.DartEventType;
 import com.google.dart.compiler.metrics.JvmMetrics;
@@ -164,6 +165,7 @@ public class DartCompiler {
         typeProvider = new CoreTypeProviderImplementation(corelibUnit.getElement().getScope(),
                                                           context);
         resolveLibraries();
+        validateLibraryDirectives();
         return library;
       } finally {
         if(compilerMetrics != null) {
@@ -215,6 +217,9 @@ public class DartCompiler {
                 persist = true;
               }
             } else {
+              if (libNode == selfSourcePath) {
+                lib.setSelfDartUnit(apiUnit);
+              }
               lib.putUnit(apiUnit);
             }
           }
@@ -485,10 +490,83 @@ public class DartCompiler {
         Tracer.end(logEvent);
       }
     }
+    
+    private void validateLibraryDirectives() {
+      LibraryUnit appLibUnit = context.getAppLibraryUnit();
+      for (LibraryUnit lib : libraries.values()) {
+        // don't need to validate system libraries
+        if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
+          continue;
+        }
+
+        // check that each imported library has a library directive
+        for (LibraryUnit importedLib : lib.getImports()) {
+
+          if (SystemLibraryManager.isDartUri(importedLib.getSource().getUri())) {
+            // system libraries are always valid
+            continue;
+          }
+
+          // get the dart unit corresponding to this library
+          DartUnit unit = importedLib.getSelfDartUnit();
+          if (unit.isDiet()) {
+            // don't need to check a unit that hasn't changed
+            continue;
+          }
+
+          boolean foundLibraryDirective = false;
+          for (DartDirective directive : unit.getDirectives()) {
+            if (directive instanceof DartLibraryDirective) {
+              foundLibraryDirective = true;
+              break;
+            }
+          }
+          if (!foundLibraryDirective) {
+            // find the imported path node (which corresponds to the import
+            // directive node)
+            SourceInfo info = null;
+            for (LibraryNode importPath : lib.getImportPaths()) {
+              if (importPath.getText().equals(importedLib.getSelfSourcePath().getText())) {
+                info = importPath;
+                break;
+              }
+            }
+            if (info != null) {
+              context.compilationError(new DartCompilationError(info,
+                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE, unit.getSource()
+                      .getRelativePath()));
+            }
+          }
+        }
+
+        // check that all sourced units have no directives
+        for (DartUnit unit : lib.getUnits()) {
+          if (unit.isDiet()) {
+            // don't need to check a unit that hasn't changed
+            continue;
+          }
+          if (unit.getDirectives().size() > 0) {
+            // find corresponding source node for this unit
+            for (LibraryNode sourceNode : lib.getSourcePaths()) {
+              if (sourceNode == lib.getSelfSourcePath()) {
+                // skip the special synthetic selfSourcePath node
+                continue;
+              }
+              if (unit.getSource().getRelativePath().equals(sourceNode.getText())) {
+                context.compilationError(new DartCompilationError(unit.getDirectives().get(0),
+                    DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, unit.getSource()
+                        .getRelativePath()));
+              }
+            }
+          }
+        }
+      }
+    }
 
     private void setEntryPoint() {
       LibraryUnit lib = context.getAppLibraryUnit();
       lib.setEntryNode(new LibraryNode(MAIN_ENTRY_POINT_NAME));
+      // this ensures that if we find it, it's a top-level static element 
       Element element = lib.getElement().lookupLocalElement(MAIN_ENTRY_POINT_NAME);
       switch (ElementKind.of(element)) {
         case NONE:
@@ -498,20 +576,18 @@ public class DartCompiler {
         case METHOD:
           MethodElement methodElement = (MethodElement) element;
           Modifiers modifiers = methodElement.getModifiers();
-          if (!modifiers.isGetter() && !modifiers.isSetter()
-              && (methodElement.getParameters() == null
-                  || methodElement.getParameters().size() == 0)) {
-            lib.getElement().setEntryPoint(methodElement);
-          } else if (modifiers.isGetter()) {
+          if (modifiers.isGetter()) {
             context.compilationError(new DartCompilationError(Location.NONE,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER, MAIN_ENTRY_POINT_NAME));
           } else if (modifiers.isSetter()) {
             context.compilationError(new DartCompilationError(Location.NONE,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER, MAIN_ENTRY_POINT_NAME));
-          } else {
+          } else if (methodElement.getParameters().size() > 0) {
             context.compilationError(new DartCompilationError(Location.NONE,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS,
                 MAIN_ENTRY_POINT_NAME));
+          } else {
+            lib.getElement().setEntryPoint(methodElement);
           }
           break;
 
@@ -520,19 +596,6 @@ public class DartCompiler {
               DartCompilerErrorCode.NOT_A_STATIC_METHOD, MAIN_ENTRY_POINT_NAME));
           break;
       }
-    }
-
-    private boolean checkUnitForLibraryDirective(DartUnit unit) {
-      List<DartDirective> directives = unit.getDirectives();
-      if (directives == null || directives.size() == 0) {
-        return false;
-      }
-      for (DartDirective directive : directives) {
-        if (directive instanceof DartLibraryDirective) {
-          return true;
-        }
-      }
-      return false;
     }
 
     private void compileLibraries() throws IOException {
@@ -559,24 +622,6 @@ public class DartCompiler {
             // Don't compile api-only units.
             if (unit.isDiet()) {
               continue;
-            }
-
-            if (!isAppLibUnit) {
-              // See if this unit was imported from another unit, and if so,
-              // it's required to have a #library directive
-              if (libSelfUnit == unit) {
-                if (!checkUnitForLibraryDirective(unit)) {
-                  context.compilationError(new DartCompilationError(Location.NONE,
-                      DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE, unit.getSourceName()));
-                }
-              } else {
-                // Else it's required not to have any directives
-                if (unit.getDirectives() != null) {
-                  context.compilationError(new DartCompilationError(Location.NONE,
-                      DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, libSelfUnit
-                          .getSourceName(), unit.getSourceName()));
-                }
-              }
             }
 
             // Run all compiler phases including AST simplification and symbol

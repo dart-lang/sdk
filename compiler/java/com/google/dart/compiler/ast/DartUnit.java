@@ -147,6 +147,9 @@ public class DartUnit extends DartNode {
    * Answer the receiver's directives or <code>null</code> if none
    */
   public List<DartDirective> getDirectives() {
+    if (directives == null) {
+      return Collections.<DartDirective> emptyList();
+    }
     return directives;
   }
 }

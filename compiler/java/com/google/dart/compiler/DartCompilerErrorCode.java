@@ -103,7 +103,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("SyntaxError: Illegal assignment to non-assignable "
       + "expression"),
   ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT("A source which was included by another source via a "
-      + "#source directive cannot itself contain directives: %s -> %s"),
+      + "#source directive cannot itself contain directives: %s"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   ILLEGAL_NUMBER_OF_ARGUMENTS("SyntaxError: Illegal number of arguments"),
@@ -125,7 +125,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   MISSING_ARGUMENT("missing argument of type %s"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),
-  MISSING_LIBRARY_DIRECTIVE("a library which was imported into another library is missing a "
+  MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a "
       + "#library directive: %s"),
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
   MISSING_SOURCE("Cannot find referenced source: %s"),
