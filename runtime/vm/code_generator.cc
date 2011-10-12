@@ -815,15 +815,19 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.Count() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
-  ASSERT(function.is_optimizable());
-  ASSERT(!Code::Handle(function.code()).is_optimized());
-  const Code& unoptimized_code = Code::Handle(function.code());
-  // Compilation patches the entry of unoptimized code.
-  Compiler::CompileOptimizedFunction(function);
-  const Code& optimized_code = Code::Handle(function.code());
-  ASSERT(!optimized_code.IsNull());
-  ASSERT(!unoptimized_code.IsNull());
-  DisableOldCode(function, unoptimized_code, optimized_code);
+  if (function.is_optimizable()) {
+    ASSERT(!Code::Handle(function.code()).is_optimized());
+    const Code& unoptimized_code = Code::Handle(function.code());
+    // Compilation patches the entry of unoptimized code.
+    Compiler::CompileOptimizedFunction(function);
+    const Code& optimized_code = Code::Handle(function.code());
+    ASSERT(!optimized_code.IsNull());
+    ASSERT(!unoptimized_code.IsNull());
+    DisableOldCode(function, unoptimized_code, optimized_code);
+  } else {
+    // TODO(5442338): Abort as this should not happen.
+    function.set_invocation_counter(0);
+  }
 }
 
 

@@ -395,6 +395,7 @@ void CodeGenerator::FinalizePcDescriptors(const Code& code) {
   bool ok = VerifyPcDescriptors(
       descriptors, parsed_function_.function().is_optimizable());
   if (!ok) {
+    // TODO(5442338) Fix bad pc descriptor generation.
     parsed_function_.function().set_is_optimizable(false);
   }
   code.set_pc_descriptors(descriptors);
