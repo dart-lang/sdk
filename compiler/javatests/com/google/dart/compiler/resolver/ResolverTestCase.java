@@ -4,17 +4,27 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.DartCompilerErrorCode;
+import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.testing.TestCompilerContext;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
+import com.google.dart.compiler.util.DartSourceString;
 
 import junit.framework.TestCase;
 
@@ -27,6 +37,18 @@ import java.util.List;
  * Utility methods for resolver tests.
  */
 abstract class ResolverTestCase extends TestCase {
+
+  private List<DartCompilationError> encounteredErrors = Lists.newArrayList();
+
+  @Override
+  public void setUp() {
+    resetExpectedErrors();
+  }
+
+  @Override
+  public void tearDown() {
+    resetExpectedErrors();
+  }
 
   static Scope resolve(DartUnit unit, TestCompilerContext context) {
     Scope scope = new Scope("library");
@@ -73,26 +95,38 @@ abstract class ResolverTestCase extends TestCase {
 
   static class MockCoreTypeProvider implements CoreTypeProvider {
 
+    private final InterfaceType boolType;
     private final InterfaceType intType;
+    private final InterfaceType doubleType;
+    private final InterfaceType numType;
     private final InterfaceType stringType;
     private final InterfaceType functionType;
-    private final InterfaceType mapType;
-    private final InterfaceType arrayType;
+    private final InterfaceType dynamicType;
+    private final InterfaceType defaultMapType;
+    private final InterfaceType defaultArrayType;
     private final ClassElement objectElement;
 
 
     {
+      ClassElement boolElement = Elements.classNamed("bool");
+      boolType = Types.interfaceType(boolElement, Collections.<Type>emptyList());
       ClassElement intElement = Elements.classNamed("int");
       intType = Types.interfaceType(intElement, Collections.<Type>emptyList());
+      ClassElement doubleElement = Elements.classNamed("double");
+      doubleType = Types.interfaceType(doubleElement, Collections.<Type>emptyList());
+      ClassElement numElement = Elements.classNamed("num");
+      numType = Types.interfaceType(numElement, Collections.<Type>emptyList());
       ClassElement stringElement = Elements.classNamed("String");
       stringType = Types.interfaceType(stringElement, Collections.<Type>emptyList());
       intElement.setType(intType);
       ClassElement functionElement = Elements.classNamed("Function");
       functionType = Types.interfaceType(functionElement, Collections.<Type>emptyList());
+      ClassElement dynamicElement = Elements.classNamed("Dynamic");
+      dynamicType = Types.interfaceType(dynamicElement, Collections.<Type>emptyList());
       ClassElement mapElement = Elements.classNamed("Map");
-      mapType = Types.interfaceType(mapElement, Collections.<Type>emptyList());
-      ClassElement arrayElement = Elements.classNamed("Array");
-      arrayType = Types.interfaceType(arrayElement, Collections.<Type>emptyList());
+      defaultMapType = Types.interfaceType(mapElement, Lists.newArrayList(stringType, dynamicType));
+      ClassElement listElement = Elements.classNamed("List");
+      defaultArrayType = Types.interfaceType(listElement, Lists.newArrayList(dynamicType));
       functionElement.setType(functionType);
     }
 
@@ -107,12 +141,17 @@ abstract class ResolverTestCase extends TestCase {
 
     @Override
     public InterfaceType getDoubleType() {
-      throw new AssertionError();
+      return doubleType;
+    }
+
+    @Override
+    public InterfaceType getNumType() {
+      return numType;
     }
 
     @Override
     public InterfaceType getBoolType() {
-      throw new AssertionError();
+      return boolType;
     }
 
     @Override
@@ -127,7 +166,7 @@ abstract class ResolverTestCase extends TestCase {
 
     @Override
     public InterfaceType getArrayType(Type elementType) {
-      return arrayType;
+      return defaultArrayType;
     }
 
     @Override
@@ -152,7 +191,7 @@ abstract class ResolverTestCase extends TestCase {
 
     @Override
     public InterfaceType getMapType(Type key, Type value) {
-      return mapType;
+      return defaultMapType;
     }
 
     @Override
@@ -166,18 +205,13 @@ abstract class ResolverTestCase extends TestCase {
     }
 
     @Override
-    public InterfaceType getNumType() {
-      throw new AssertionError();
-    }
-
-    @Override
     public InterfaceType getArrayLiteralType(Type value) {
-      throw new AssertionError();
+      return defaultArrayType;
     }
 
     @Override
     public InterfaceType getMapLiteralType(Type key, Type value) {
-      throw new AssertionError();
+      return defaultMapType;
     }
 
     @Override
@@ -189,5 +223,162 @@ abstract class ResolverTestCase extends TestCase {
     public InterfaceType getIsolateType() {
       throw new AssertionError();
     }
+  }
+
+  protected static DartTypeNode makeType(String name, String... arguments) {
+    List<DartTypeNode> argumentNodes = makeTypes(arguments);
+    return new DartTypeNode(new DartIdentifier(name), argumentNodes);
+  }
+
+  static List<DartTypeNode> makeTypes(String... typeNames) {
+    List<DartTypeNode> types = new ArrayList<DartTypeNode>();
+    for (String typeName : typeNames) {
+      types.add(makeType(typeName));
+    }
+    return types;
+  }
+
+
+  protected static DartUnit makeUnit(DartNode... topLevelElements) {
+    DartUnit unit = new DartUnit(null);
+    for (DartNode topLevelElement : topLevelElements) {
+      unit.addTopLevelNode(topLevelElement);
+    }
+    return unit;
+  }
+
+  protected DartUnit parseUnit(String firstLine, String secondLine, String... rest) {
+    return parseUnit(Joiner.on('\n').join(firstLine, secondLine, (Object[]) rest).toString());
+  }
+
+  protected DartUnit parseUnit(String string) {
+    DartSourceString source = new DartSourceString("<source string>", string);
+    return getParser(string).parseUnit(source);
+  }
+
+  private DartParser getParser(String string) {
+    return new DartParser(new DartScannerParserContext(null, string, getListener()));
+  }
+
+  private DartCompilerListener getListener() {
+    return new DartCompilerListener() {
+      @Override
+      public void compilationError(DartCompilationError event) {
+        encounteredErrors.add(event);
+      }
+
+      @Override
+      public void compilationWarning(DartCompilationError event) {
+        compilationError(event);
+      }
+
+      @Override
+      public void typeError(DartCompilationError event) {
+        compilationError(event);
+      }
+    };
+  }
+
+  protected void checkExpectedErrors(ErrorCode[] errorCodes) {
+    checkExpectedErrors(encounteredErrors, errorCodes, null);
+  }
+
+  /**
+   * Given a list of errors encountered during parse/resolve, compare them to
+   * a list of expected error codes.
+   *
+   * @param encountered errors actually encountered
+   * @param errorCodes expected errors.
+   */
+  protected void checkExpectedErrors(List<DartCompilationError> encountered,
+                                        ErrorCode[] errorCodes,
+                                        String source) {
+    if (errorCodes.length != encountered.size()) {
+      printSource(source);
+      printEncountered(encountered);
+      assertEquals(errorCodes.length, encountered.size());
+    }
+    int index = 0;
+    for (ErrorCode errorCode : errorCodes) {
+      ErrorCode found = encountered.get(index).getErrorCode();
+      if (!found.equals(errorCode)) {
+        printSource(source);
+        printEncountered(encountered);
+        assertEquals("Unexpected Error Code: ", errorCode, found);
+      }
+      index++;
+    }
+  }
+
+  /**
+   * Returns a context with a listener that remembers all DartCompilationErrors and records
+   * them.
+   * @return
+   */
+  protected TestCompilerContext getContext() {
+    return new TestCompilerContext() {
+      @Override
+      public void compilationError(DartCompilationError event) {
+        recordError(event);
+      }
+    };
+  }
+
+  /**
+   * Resets the global list of encountered errors.  Call this before evaluating a new test.
+   */
+  protected void resetExpectedErrors() {
+    encounteredErrors = Lists.newArrayList();
+  }
+
+  /**
+   * Save an error event in the global list of encountered errors.  For use by
+   * custom {@link DartCompilerListener} implementations.
+   */
+  protected void recordError(DartCompilationError event) {
+    encounteredErrors.add(event);
+  }
+
+  protected void printSource(String source) {
+    if (source != null) {
+      int count = 1;
+      for (String line : Splitter.on("\n").split(source)) {
+        System.out.println(String.format(" %02d: %s", count++, line));
+      }
+    }
+  }
+  /**
+   * For debugging.
+   */
+  protected void printEncountered(List<DartCompilationError> encountered) {
+    for (DartCompilationError error : encountered) {
+      DartCompilerErrorCode errorCode = (DartCompilerErrorCode) error
+          .getErrorCode();
+      String msg = String.format("%s > %s (%d:%d)", errorCode.name(), error
+          .getMessage(), error.getLineNumber(), error.getColumnNumber());
+      System.out.println(msg);
+    }
+  }
+
+  /**
+   * Convenience method to parse and resolve a code snippet, then test for error codes.
+   */
+  protected void resolveAndTest(String source, ErrorCode... errorCodes) {
+    resetExpectedErrors();
+    final List<DartCompilationError> encountered = Lists.newArrayList();
+    TestCompilerContext ctx =  new TestCompilerContext() {
+      @Override
+      public void compilationError(DartCompilationError event) {
+        encountered.add(event);
+      }
+    };
+    DartUnit unit = parseUnit(source);
+    if (encounteredErrors.size() != 0) {
+      printSource(source);
+      printEncountered(encounteredErrors);
+      assertEquals("Expected no errors in parse step:", 0, encountered.size());
+    }
+    resolve(unit, ctx);
+    checkExpectedErrors(encountered, errorCodes, source);
   }
 }

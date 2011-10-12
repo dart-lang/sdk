@@ -5,28 +5,18 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerErrorCode;
-import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.testing.TestCompilerContext;
 import com.google.dart.compiler.testing.TestCompilerContext.EventKind;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
-import com.google.dart.compiler.util.DartSourceString;
 
 import junit.framework.Assert;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,17 +29,7 @@ public class ResolverTest extends ResolverTestCase {
   private final DartClass array = makeClass("Array", makeType("Object"), "E");
   private final DartClass growableArray = makeClass("GrowableArray", makeType("Array", "S"), "S");
   private final Types types = Types.getInstance(null);
-  private List<DartCompilationError> encounteredErrors = Lists.newArrayList();
 
-  @Override
-  public void setUp() {
-    encounteredErrors = Lists.newArrayList();
-  }
-
-  @Override
-  public void tearDown() {
-    encounteredErrors = null;
-  }
 
   private ClassElement findElementOrFail(Scope libScope, String elementName) {
     Element element = libScope.findElement(elementName);
@@ -214,32 +194,25 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testDuplicatedInterfaces() {
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
         "interface bool {}",
         "interface I<X> {",
         "}",
-        "class A extends C implements I<int> {",
-        "}",
-        "class B extends C implements I<bool> {",
-        "}",
-        "class C implements I<int> {",
-        "}"), getContext());
-    ErrorCode[] expected = { DartCompilerErrorCode.DUPLICATED_INTERFACE };
-    checkExpectedErrors(expected);
+        "class A extends C implements I<int> {}",
+        "class B extends C implements I<bool> {}",
+        "class C implements I<int> {}"),
+        DartCompilerErrorCode.DUPLICATED_INTERFACE);
   }
 
   public void testImplicitDefaultConstructor() {
     // Check that the implicit constructor is resolved correctly
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class B {}",
-        "class C { main() { new B(); } }"), getContext());
-    {
-      ErrorCode[] expected = {};
-      checkExpectedErrors(expected);
-    }
+        "class C { main() { new B(); } }"));
+
     /*
      * We should check for signature mismatch but that is a TypeAnalyzer issue.
      */
@@ -247,76 +220,54 @@ public class ResolverTest extends ResolverTestCase {
 
   public void testImplicitDefaultConstructor_ThroughFactories() {
     // Check that we generate implicit constructors through factories also.
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface B factory C {}",
         "class C {}",
-        "class D { main() { new B(); } }"), getContext());
-    {
-      ErrorCode[] expected = {};
-      checkExpectedErrors(expected);
-    }
+        "class D { main() { new B(); } }"));
   }
 
   public void testImplicitDefaultConstructor_WithConstCtor() {
     // Check that we generate an error if the implicit constructor would violate const.
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class B { const B() {} }",
         "class C extends B {}",
-        "class D { main() { new C(); } }"), getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY,
-      };
-      checkExpectedErrors(expected);
-    }
+        "class D { main() { new C(); } }"),
+          DartCompilerErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
   }
 
   public void testImplicitSuperCall_ImplicitCtor() {
     // Check that we can properly resolve the super ctor that exists.
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class B { B() {} }",
         "class C extends B {}",
-        "class D { main() { new C(); } }"), getContext());
-    {
-      ErrorCode[] expected = {};
-      checkExpectedErrors(expected);
-    }
+        "class D { main() { new C(); } }"));
   }
 
   public void testImplicitSuperCall_OnExistingCtor() {
     // Check that we can properly resolve the super ctor that exists.
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class B { B() {} }",
         "class C extends B { C(){} }",
-        "class D { main() { new C(); } }"), getContext());
-    {
-      ErrorCode[] expected = {};
-      checkExpectedErrors(expected);
-    }
+        "class D { main() { new C(); } }"));
   }
 
   public void testImplicitSuperCall_NonExistentSuper() {
     // Check that we generate an error if the implicit constructor would call a non-existent super.
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class B { B(Object o) {} }",
         "class C extends B {}",
-        "class D { main() { new C(); } }"), getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR
-      };
-      checkExpectedErrors(expected);
-    }
+        "class D { main() { new C(); } }"),
+        DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR);
   }
 
   public void testCyclicSupertype() {
 
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
         "interface bool {}",
@@ -337,8 +288,7 @@ public class ResolverTest extends ResolverTestCase {
         "interface I2 extends I3 {",
         "}",
         "interface I3 extends I2 {",
-        "}"), getContext());
-    ErrorCode[] expected = {
+        "}"),
         DartCompilerErrorCode.CYCLIC_CLASS,
         DartCompilerErrorCode.CYCLIC_CLASS,
         DartCompilerErrorCode.CYCLIC_CLASS,
@@ -346,19 +296,18 @@ public class ResolverTest extends ResolverTestCase {
         DartCompilerErrorCode.CYCLIC_CLASS,
         DartCompilerErrorCode.CYCLIC_CLASS,
         DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-    };
-    checkExpectedErrors(expected);
+        DartCompilerErrorCode.CYCLIC_CLASS
+    );
+
 
   }
 
   public void testBadFactory() {
-    encounteredErrors = Lists.newArrayList();
 
     TestCompilerContext context1 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
       @Override
       public void compilationError(DartCompilationError event) {
-        encounteredErrors.add(event);
+        recordError(event);
       }
       @Override
       public boolean shouldWarnOnNoSuchType() {
@@ -376,11 +325,11 @@ public class ResolverTest extends ResolverTestCase {
       checkExpectedErrors(expected);
     }
 
-    encounteredErrors = Lists.newArrayList();
+    resetExpectedErrors();
     TestCompilerContext context2 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
       @Override
       public void compilationError(DartCompilationError event) {
-        encounteredErrors.add(event);
+        recordError(event);
       }
       @Override
       public boolean shouldWarnOnNoSuchType() {
@@ -425,175 +374,111 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testUnresolvedSuper() {
-    resolve(parseUnit(
+    resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class Foo {",
         "  foo() { super.foo(); }",
-        "}"), getContext());
-    ErrorCode[] expected = {};
-    checkExpectedErrors(expected);
+        "}"));
   }
 
   public void testNameConflict() {
-    resolve(parseUnit("class Object {}",
-                      "class A {",
-                      "  var foo;",
-                      "  var foo;",
-                      "}"),
-                      getContext());
-    ErrorCode[] expected1 = {
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER
-    };
-    checkExpectedErrors(expected1);
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  var foo;",
+        "  var foo;",
+        "}"),
+        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class A {",
-                      "  foo() {}",
-                      "  set foo(x) {}",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  foo() {}",
+        "  set foo(x) {}",
+        "}"),
+        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
     // Same test, but reverse the order of setter and method
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class A {",
-                      "  set foo(x) {}",
-                      "  foo() {}",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  set foo(x) {}",
+        "  foo() {}",
+        "}"),
+        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class A {",
-                      "  var foo;",
-                      "  set foo(x) {}",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  var foo;",
+        "  set foo(x) {}",
+        "}"),
+        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class A {",
-                      "  get foo() {}",
-                      "  var foo;",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  get foo() {}",
+        "  var foo;",
+        "}"),
+        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class A {",
-                      "  var foo;",
-                      "  get foo() {}",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER
-      };
-      checkExpectedErrors(expected);
-    }
 
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class A {",
-                      "  set foo(x) {}",
-                      "  var foo;",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  var foo;",
+        "  get foo() {}",
+        "}"),
+        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "get foo() {}",
-                      "class foo {}",
-                      "set bar(x) {}",
-                      "class bar {}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  set foo(x) {}",
+        "  var foo;",
+        "}"),
+        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "get foo() {}",
+        "class foo {}",
+        "set bar(x) {}",
+        "class bar {}"),
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.DUPLICATE_DEFINITION);
 
     // Same test but in different order
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class foo {}",
-                      "get foo() {}",
-                      "class bar {}",
-                      "set bar(x) {}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-      };
-      checkExpectedErrors(expected);
-    }
-
-
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "set bar(x) {}",
-                      "set bar(x) {}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.DUPLICATE_DEFINITION,
-          DartCompilerErrorCode.FIELD_CONFLICTS,
-      };
-      checkExpectedErrors(expected);
-    }
-
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "get bar() {}",
-                      "get bar() {}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class foo {}",
+        "get foo() {}",
+        "class bar {}",
+        "set bar(x) {}"),
         DartCompilerErrorCode.DUPLICATE_DEFINITION,
         DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.FIELD_CONFLICTS,
-      };
-      checkExpectedErrors(expected);
-    }
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.DUPLICATE_DEFINITION);
+
+
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "set bar(x) {}",
+        "set bar(x) {}"),
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.FIELD_CONFLICTS);
+
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "get bar() {}",
+        "get bar() {}"),
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        DartCompilerErrorCode.FIELD_CONFLICTS);
   }
 
   /**
@@ -601,172 +486,51 @@ public class ResolverTest extends ResolverTestCase {
    */
   public void testNewExpression() {
     // A very ordinary new expression is OK
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class Foo {",
-                      "  Foo create() {",
-                      "    return new Foo();",
-                      "  }",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo {",
+        "  Foo create() {",
+        "    return new Foo();",
+        "  }",
+        "}"));
 
     // A  new expression with generic type argument is OK
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class Foo<T> {",
-                      "  Foo<T> create() {",
-                      "    return new Foo<T>();",
-                      "  }",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {",
+        "  Foo<T> create() {",
+        "    return new Foo<T>();",
+        "  }",
+        "}"));
 
     // Trying new on a variable name shouldn't work.
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class Foo {",
-                      "  var Bar;",
-                      "  create() { return new Bar();}",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NO_SUCH_TYPE,
-          DartCompilerErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR,
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo {",
+        "  var Bar;",
+        "  create() { return new Bar();}",
+        "}"),
+        DartCompilerErrorCode.NO_SUCH_TYPE,
+        DartCompilerErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
 
     // New expression tied to an unbound type variable is not allowed.
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class Foo<T> {",
-                      "  T create() {",
-                      "    return new T();",
-                      "  }",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR,
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {",
+        "  T create() {",
+        "    return new T();",
+        "  }",
+        "}"),
+        DartCompilerErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+
 
     // More cowbell. (Foo<T> isn't a type yet)
-    encounteredErrors = Lists.newArrayList();
-    resolve(parseUnit("class Object {}",
-                      "class Foo<T> { }",
-                      "class B {",
-                      "  foo() { return new Foo<T>(); }",
-                      "}"),
-                      getContext());
-    {
-      ErrorCode[] expected = {
-          DartCompilerErrorCode.NO_SUCH_TYPE,
-      };
-      checkExpectedErrors(expected);
-    }
-  }
-
-  private static DartUnit makeUnit(DartNode... topLevelElements) {
-    DartUnit unit = new DartUnit(null);
-    for (DartNode topLevelElement : topLevelElements) {
-      unit.addTopLevelNode(topLevelElement);
-    }
-    return unit;
-  }
-
-  private static DartTypeNode makeType(String name, String... arguments) {
-    List<DartTypeNode> argumentNodes = makeTypes(arguments);
-    return new DartTypeNode(new DartIdentifier(name), argumentNodes);
-  }
-
-  static List<DartTypeNode> makeTypes(String... typeNames) {
-    List<DartTypeNode> types = new ArrayList<DartTypeNode>();
-    for (String typeName : typeNames) {
-      types.add(makeType(typeName));
-    }
-    return types;
-  }
-
-  private DartUnit parseUnit(String firstLine, String secondLine, String... rest) {
-    return parseUnit(Joiner.on('\n').join(firstLine, secondLine, (Object[]) rest).toString());
-  }
-
-  private DartUnit parseUnit(String string) {
-    DartSourceString source = new DartSourceString("<source string>", string);
-    return getParser(string).parseUnit(source);
-  }
-
-  private DartParser getParser(String string) {
-    return new DartParser(new DartScannerParserContext(null, string, getListener()));
-  }
-
-  private DartCompilerListener getListener() {
-    return new DartCompilerListener() {
-      @Override
-      public void compilationError(DartCompilationError event) {
-        encounteredErrors.add(event);
-      }
-
-      @Override
-      public void compilationWarning(DartCompilationError event) {
-        compilationError(event);
-      }
-
-      @Override
-      public void typeError(DartCompilationError event) {
-        compilationError(event);
-      }
-    };
-  }
-
-  private TestCompilerContext getContext() {
-    return new TestCompilerContext() {
-      @Override
-      public void compilationError(DartCompilationError event) {
-        encounteredErrors.add(event);
-      }
-    };
-  }
-
-  private boolean checkExpectedErrors(ErrorCode[] errorCodes) {
-    if (errorCodes.length != encounteredErrors.size()) {
-      printEncountered();
-      assertEquals(errorCodes.length, encounteredErrors.size());
-    }
-    int index = 0;
-    for (ErrorCode errorCode : errorCodes) {
-      ErrorCode found = encounteredErrors.get(index).getErrorCode();
-      if (!found.equals(errorCode)) {
-        printEncountered();
-        assertEquals("Unexpected Error Code: ", errorCode, found);
-      }
-      index++;
-    }
-    return true;
-  }
-
-  /**
-   * For debugging.
-   */
-  private void printEncountered() {
-    for (DartCompilationError error : encounteredErrors) {
-      DartCompilerErrorCode errorCode = (DartCompilerErrorCode) error
-          .getErrorCode();
-      String msg = String.format("%s > %s (%d:%d)", errorCode.name(), error
-          .getMessage(), error.getLineNumber(), error.getColumnNumber());
-      System.out.println(msg);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> { }",
+        "class B {",
+        "  foo() { return new Foo<T>(); }",
+        "}"),
+        DartCompilerErrorCode.NO_SUCH_TYPE);
   }
 }
