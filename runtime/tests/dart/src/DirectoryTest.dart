@@ -7,7 +7,7 @@
 class DirectoryTest {
   static void testListing() {
     bool listedSomething = false;
-    Directory directory = new Directory.open(".");
+    Directory directory = new Directory(".");
 
     directory.setDirHandler((dir) {
       listedSomething = true;
@@ -20,11 +20,10 @@ class DirectoryTest {
     directory.setDoneHandler((completed) {
       Expect.isTrue(completed, "directory listing did not complete");
       Expect.isTrue(listedSomething, "empty directory");
-      directory.close();
     });
 
-    directory.setDirErrorHandler((dir) {
-      Expect.fail("error listing directory");
+    directory.setErrorHandler((error) {
+      Expect.fail("error listing directory: $error");
     });
 
     directory.list();

@@ -15,23 +15,6 @@
 #include "bin/file.h"
 
 
-bool Directory::Open(const char* path, intptr_t* dir) {
-  DIR* dir_pointer = opendir(path);
-  if (dir_pointer == NULL) {
-    return false;
-  }
-  *dir = reinterpret_cast<intptr_t>(dir_pointer);
-  return true;
-}
-
-
-bool Directory::Close(intptr_t dir) {
-  DIR* dir_pointer = reinterpret_cast<DIR*>(dir);
-  int result = closedir(dir_pointer);
-  return result == 0;
-}
-
-
 static void ComputeFullPath(const char* dir_name,
                             char* path,
                             int* path_length) {
@@ -78,8 +61,8 @@ static void ComputeFullPath(const char* dir_name,
 static void HandleDir(char* dir_name,
                       char* path,
                       int path_length,
-                      Dart_Port dir_handler) {
-  if (dir_handler != 0 &&
+                      Dart_Port dir_port) {
+  if (dir_port != 0 &&
       strcmp(dir_name, ".") != 0 &&
       strcmp(dir_name, "..") != 0) {
     size_t written = snprintf(path + path_length,
@@ -88,7 +71,7 @@ static void HandleDir(char* dir_name,
                               dir_name);
     ASSERT(written == strlen(dir_name));
     Dart_Handle name = Dart_NewString(path);
-    Dart_Post(dir_handler, name);
+    Dart_Post(dir_port, name);
   }
 }
 
@@ -96,36 +79,42 @@ static void HandleDir(char* dir_name,
 static void HandleFile(char* file_name,
                        char* path,
                        int path_length,
-                       Dart_Port file_handler) {
-  if (file_handler != 0) {
+                       Dart_Port file_port) {
+  if (file_port != 0) {
     size_t written = snprintf(path + path_length,
                               PATH_MAX - path_length,
                               "%s",
                               file_name);
     ASSERT(written == strlen(file_name));
     Dart_Handle name = Dart_NewString(path);
-    Dart_Post(file_handler, name);
+    Dart_Post(file_port, name);
   }
 }
 
 
 void Directory::List(const char* dir_name,
-                     intptr_t dir_handle,
                      bool recursive,
-                     Dart_Port dir_handler,
-                     Dart_Port file_handler,
-                     Dart_Port done_handler,
-                     Dart_Port dir_error_handler) {
+                     Dart_Port dir_port,
+                     Dart_Port file_port,
+                     Dart_Port done_port,
+                     Dart_Port dir_error_port) {
+  DIR* dir_pointer = opendir(dir_name);
+  if (dir_pointer == NULL) {
+    // TODO(ager): post something on the error port.
+    Dart_Handle value = Dart_NewBoolean(false);
+    Dart_Post(done_port, value);
+    return;
+  }
+
   // Compute full path for the directory currently being listed.
   char path[PATH_MAX];
   int path_length = 0;
   ComputeFullPath(dir_name, path, &path_length);
 
   // Iterated the directory and post the directories and files to the
-  // handlers.
+  // ports.
   //
   // TODO(ager): Handle recursion and errors caused by recursion.
-  DIR* dir_pointer = reinterpret_cast<DIR*>(dir_handle);
   int success = 0;
   bool lstat_error = false;
   dirent entry;
@@ -134,10 +123,10 @@ void Directory::List(const char* dir_name,
          result != NULL) {
     switch (entry.d_type) {
       case DT_DIR:
-        HandleDir(entry.d_name, path, path_length, dir_handler);
+        HandleDir(entry.d_name, path, path_length, dir_port);
         break;
       case DT_REG:
-        HandleFile(entry.d_name, path, path_length, file_handler);
+        HandleFile(entry.d_name, path, path_length, file_port);
         break;
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
@@ -155,9 +144,9 @@ void Directory::List(const char* dir_name,
           break;
         }
         if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
-          HandleDir(entry.d_name, path, path_length, dir_handler);
+          HandleDir(entry.d_name, path, path_length, dir_port);
         } else if ((entry_info.st_mode & S_IFMT) == S_IFREG) {
-          HandleFile(entry.d_name, path, path_length, file_handler);
+          HandleFile(entry.d_name, path, path_length, file_port);
         }
         break;
       }
@@ -165,13 +154,16 @@ void Directory::List(const char* dir_name,
         break;
     }
   }
-  if (done_handler != 0) {
+  if (done_port != 0) {
     if (success != 0 || lstat_error) {
       Dart_Handle value = Dart_NewBoolean(false);
-      Dart_Post(done_handler, value);
+      Dart_Post(done_port, value);
     } else {
       Dart_Handle value = Dart_NewBoolean(true);
-      Dart_Post(done_handler, value);
+      Dart_Post(done_port, value);
     }
   }
+
+  // TODO(ager): Post on error port.
+  closedir(dir_pointer);
 }

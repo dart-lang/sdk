@@ -16,142 +16,112 @@ class _DirectoryListingIsolate extends Isolate {
   void main() {
     port.receive((message, replyTo) {
        _list(message['dir'],
-             message['id'],
              message['recursive'],
-             message['dirHandler'],
-             message['fileHandler'],
-             message['doneHandler'],
-             message['dirErrorHandler']);
+             message['dirPort'],
+             message['filePort'],
+             message['donePort'],
+             message['errorPort']);
+       replyTo.send(true);
     });
   }
 
   void _list(String dir,
-             int id,
              bool recursive,
-             SendPort dirHandler,
-             SendPort fileHandler,
-             SendPort doneHandler,
-             SendPort dirErrorHandler) native "Directory_List";
+             SendPort dirPort,
+             SendPort filePort,
+             SendPort donePort,
+             SendPort errorPort) native "Directory_List";
 }
 
 
 class _Directory implements Directory {
 
-  _Directory.open(String this._dir) {
-    _id = 0;
-    _closed = false;
-    _listing = false;
-    if (!_open(_dir)) {
-      _closed = true;
-      throw new DirectoryException("Error: could not open directory");
-    }
-  }
-
-  bool close() {
-    if (_closed) {
-      throw new DirectoryException("Error: directory closed");
-    }
-    if (_close(_id)) {
-      _closePort(_dirHandler);
-      _closePort(_fileHandler);
-      _closePort(_doneHandler);
-      _closePort(_dirErrorHandler);
-      _closed = true;
-      bool was_listing = _listing;
-      _listing = false;
-      if (was_listing && _doneHandler !== null) {
-        _doneHandler(false);
-      }
-      return true;
-    }
-    return false;
-  }
+  _Directory(String this._dir);
 
   void list([bool recursive = false]) {
-    if (_closed) {
-      throw new DirectoryException("Error: directory closed");
-    }
-    if (_listing) {
-      throw new DirectoryException("Error: listing already in progress");
-    }
-    _listing = true;
     new _DirectoryListingIsolate().spawn().then((port) {
+      // Build a map of parameters to the directory listing isolate.
+      Map listingParameters = new Map();
+      listingParameters['dir'] = _dir;
+      listingParameters['recursive'] = recursive;
+
+      // Setup ports to receive messages from listing.
       // TODO(ager): Do not explicitly transform to send ports when
-      // that is done automatically.
-      port.send({ 'dir': _dir,
-                  'id': _id,
-                  'recursive': recursive,
-                  'dirHandler': _dirHandler.toSendPort(),
-                  'fileHandler': _fileHandler.toSendPort(),
-                  'doneHandler': _doneHandler.toSendPort(),
-                  'dirErrorHandler': _dirErrorHandler.toSendPort() });
+      // implicit conversions are implemented.
+      ReceivePort dirPort;
+      ReceivePort filePort;
+      ReceivePort donePort;
+      ReceivePort errorPort;
+      if (_dirHandler !== null) {
+        dirPort = new ReceivePort();
+        dirPort.receive((String dir, ignored) {
+          _dirHandler(dir);
+        });
+        listingParameters['dirPort'] = dirPort.toSendPort();
+      }
+      if (_fileHandler !== null) {
+        filePort = new ReceivePort();
+        filePort.receive((String file, ignored) {
+          _fileHandler(file);
+        });
+        listingParameters['filePort'] = filePort.toSendPort();
+      }
+      if (_doneHandler !== null) {
+        donePort = new ReceivePort();
+        donePort.receive((bool completed, ignored) {
+          _doneHandler(completed);
+        });
+        listingParameters['donePort'] = donePort.toSendPort();
+      }
+      if (_errorHandler !== null) {
+        errorPort = new ReceivePort();
+        errorPort.receive((String error, ignored) {
+          _errorHandler(error);
+        });
+        listingParameters['errorPort'] = errorPort.toSendPort();
+      }
+
+      // Close ports when listing is done.
+      ReceivePort closePortsPort = new ReceivePort();
+      closePortsPort.receive((message, replyTo) {
+        _closePort(dirPort);
+        _closePort(filePort);
+        _closePort(donePort);
+        _closePort(errorPort);
+        _closePort(closePortsPort);
+      });
+
+      // Send the listing parameters to the isolate.
+      port.send(listingParameters, closePortsPort.toSendPort());
     });
   }
 
-  // TODO(ager): Implement setting of the handlers as in the process library.
   void setDirHandler(void dirHandler(String dir)) {
-    if (_closed) {
-      throw new DirectoryException("Error: directory closed");
-    }
-    if (_dirHandler === null) {
-      _dirHandler = new ReceivePort();
-    }
-    _dirHandler.receive((String dir, ignored) => dirHandler(dir));
+    _dirHandler = dirHandler;
   }
 
   void setFileHandler(void fileHandler(String file)) {
-    if (_closed) {
-      throw new DirectoryException("Error: directory closed");
-    }
-    if (_fileHandler === null) {
-      _fileHandler = new ReceivePort();
-    }
-    _fileHandler.receive((String file, ignored) => fileHandler(file));
+    _fileHandler = fileHandler;
   }
 
   void setDoneHandler(void doneHandler(bool completed)) {
-    if (_closed) {
-      throw new DirectoryException("Error: directory closed");
-    }
-    if (_doneHandler === null) {
-      _doneHandler = new ReceivePort();
-    }
-    _doneHandler.receive((bool completed, ignored) {
-      _listing = false;
-      doneHandler(completed);
-    });
+    _doneHandler = doneHandler;
   }
 
-  void setDirErrorHandler(void errorHandler(String dir)) {
-    if (_closed) {
-      throw new DirectoryException("Error: directory closed");
-    }
-    if (_dirErrorHandler === null) {
-      _dirErrorHandler = new ReceivePort();
-    }
-    _dirErrorHandler.receive((String dir, ignored) {
-      errorHandler(dir, completed);
-    });
+  void setErrorHandler(void errorHandler(String error)) {
+    _errorHandler = errorHandler;
   }
 
-  // Utility methods.
   void _closePort(ReceivePort port) {
     if (port !== null) {
       port.close();
     }
   }
 
-  // Native code binding.
-  bool _open(String dir) native "Directory_Open";
-  bool _close(int id) native "Directory_Close";
-
-  ReceivePort _dirHandler;
-  ReceivePort _fileHandler;
-  ReceivePort _doneHandler;
-  ReceivePort _dirErrorHandler;
+  var _dirHandler;
+  var _fileHandler;
+  var _doneHandler;
+  var _errorHandler;
 
   String _dir;
-  int _id;
-  bool _closed;
-  bool _listing;
 }

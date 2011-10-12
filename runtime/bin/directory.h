@@ -10,15 +10,12 @@
 
 class Directory {
  public:
-  static bool Open(const char* path, intptr_t* dir);
-  static bool Close(intptr_t dir);
   static void List(const char* path,
-                   intptr_t dir,
                    bool recursive,
-                   Dart_Port dir_handler,
-                   Dart_Port file_handler,
-                   Dart_Port done_handler,
-                   Dart_Port dir_error_handler);
+                   Dart_Port dir_port,
+                   Dart_Port file_port,
+                   Dart_Port done_port,
+                   Dart_Port error_port);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);
