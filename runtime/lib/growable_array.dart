@@ -42,7 +42,9 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   List<T> getRange(int start, int length) {
-    throw const NotImplementedException();
+    if (length == 0) return [];
+    Arrays.rangeCheck(this, start, length);
+    return new List<T>.fromList(this, start, start + length);
   }
 
   // The length of this growable array. It is always less than the
