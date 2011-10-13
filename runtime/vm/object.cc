@@ -677,15 +677,6 @@ RawObject* Object::Allocate(const Class& cls,
 }
 
 
-#if defined(DEBUG)
-void Object::ValidateHeapObject(RawObject* raw_obj) {
-  uword addr = RawObject::ToAddr(raw_obj);
-  ASSERT(Isolate::Current()->heap()->Contains(addr) ||
-         Dart::vm_isolate()->heap()->Contains(addr));
-}
-#endif  // defined(DEBUG)
-
-
 RawString* Class::Name() const {
   if (raw_ptr()->name_ != String::null()) {
     return raw_ptr()->name_;

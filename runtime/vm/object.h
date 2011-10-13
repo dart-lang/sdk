@@ -6,6 +6,7 @@
 #define VM_OBJECT_H_
 
 #include "vm/assert.h"
+#include "vm/dart.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/heap.h"
@@ -295,10 +296,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   cpp_vtable* vtable_address() const {
     return reinterpret_cast<cpp_vtable*>(reinterpret_cast<word>(this));
   }
-
-#if defined(DEBUG)
-  void ValidateHeapObject(RawObject* raw_obj);
-#endif  // defined(DEBUG)
 
   static cpp_vtable handle_vtable_;
 
@@ -2767,17 +2764,22 @@ RawClass* Object::clazz() const {
 
 
 void Object::SetRaw(RawObject* value) {
+  // NOTE: The assignment "raw_ = value" should be the first statement in
+  // this function. Also do not use 'value' in this function after the
+  // assignment (use 'raw_' instead).
   raw_ = value;
-  uword raw_value = reinterpret_cast<uword>(value);
-  if ((raw_value & kSmiTagMask) == kSmiTag) {
+  if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
     return;
   }
-#if defined(DEBUG)
-  ValidateHeapObject(value);
-#endif  // defined(DEBUG)
-  set_vtable((value == null_) ?
-      handle_vtable_ : value->ptr()->class_->ptr()->handle_vtable_);
+#ifdef DEBUG
+  Heap* isolate_heap = Isolate::Current()->heap();
+  Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+  ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
+         vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+#endif
+  set_vtable((raw_ == null_) ?
+      handle_vtable_ : raw_->ptr()->class_->ptr()->handle_vtable_);
 }
 
 
