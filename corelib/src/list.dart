@@ -131,6 +131,7 @@ interface List<E> extends Collection<E> factory ListFactory {
   /**
    * Returns a sub list copy of this list, from [start] to
    * [:start + length:].
+   * Returns an empty list if [length] is 0.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.
    */
@@ -141,6 +142,7 @@ interface List<E> extends Collection<E> factory ListFactory {
    * from [startFrom], into [:this:], starting at [start].
    * Throws an [UnsupportedOperationException] if the list is
    * not extendable.
+   * If [length] is 0, this method does not do anything.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range for [:this:], or if
    * [startFrom] is out of range for [from].
@@ -152,6 +154,7 @@ interface List<E> extends Collection<E> factory ListFactory {
    * [:start + length:].
    * Throws an [UnsupportedOperationException] if the list is
    * not extendable.
+   * If [length] is 0, this method does not do anything.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.
    */
@@ -162,6 +165,7 @@ interface List<E> extends Collection<E> factory ListFactory {
    * [:start + length:]. The entries are filled with [initialValue].
    * Throws an [UnsupportedOperationException] if the list is
    * not extendable.
+   * If [length] is 0, this method does not do anything.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.
    */

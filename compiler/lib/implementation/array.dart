@@ -150,7 +150,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   void removeRange(int start, int length) {

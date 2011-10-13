@@ -10,7 +10,7 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   void removeRange(int start, int length) {

@@ -93,7 +93,7 @@ class ObjectArray<T> implements Array<T> {
       native "ObjectArray_copyFromObjectArray";
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    copyFrom(from, start, startFrom, count);
   }
 
   void removeRange(int start, int length) {
@@ -207,7 +207,8 @@ class ImmutableArray<T> implements Array<T> {
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot modify an immutable array");
   }
 
   void removeRange(int start, int length) {
