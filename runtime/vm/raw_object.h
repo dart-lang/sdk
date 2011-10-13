@@ -16,6 +16,7 @@ namespace dart {
 // Macrobatics to define the Object hierarchy of VM implementation classes.
 #define CLASS_LIST_NO_OBJECT(V)                                                \
   V(Class)                                                                     \
+  V(UnresolvedClass)                                                           \
   V(Type)                                                                      \
     V(ParameterizedType)                                                       \
     V(TypeParameter)                                                           \
@@ -222,6 +223,19 @@ class RawClass : public RawObject {
 };
 
 
+class RawUnresolvedClass : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->qualifier_);
+  }
+  RawString* qualifier_;  // Qualifier for the identifier.
+  RawString* ident_;  // name of the unresolved identifier.
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->ident_); }
+  intptr_t token_index_;
+};
+
+
 class RawType : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
@@ -242,7 +256,7 @@ class RawParameterizedType : public RawType {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_class_);
   }
-  RawObject* type_class_;  // Either resolved class or class name.
+  RawObject* type_class_;  // Either resolved class or unresolved class.
   RawTypeArguments* arguments_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->arguments_); }
   int8_t type_state_;

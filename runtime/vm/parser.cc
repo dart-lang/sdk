@@ -2105,9 +2105,12 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     // TODO(srdjan): Implement checks in class finalization when all types have
     // been resolved.
     if (member.has_factory && !member.name->Equals(members->class_name())) {
-      const TypeArguments& arguments = TypeArguments::Handle();
-      member.type = &Type::ZoneHandle(
-          Type::NewParameterizedType(*member.name, arguments));
+      const UnresolvedClass& type =
+          UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
+                                                       String::Handle(),
+                                                       *(member.name)));
+      const TypeArguments& args = TypeArguments::Handle();
+      member.type = &Type::ZoneHandle(Type::NewParameterizedType(type, args));
     }
     ConsumeToken();
     // We must be dealing with a constructor or named constructor.
@@ -3486,8 +3489,13 @@ bool Parser::IsTypeParameter() {
         nesting_level -= 2;
       } else if (CurrentToken() == Token::kSHR) {
         nesting_level -= 3;
+      } else if (CurrentToken() == Token::kIDENT) {
+        // Check to see if it is a qualified identifier.
+        if (LookaheadToken(1) == Token::kPERIOD) {
+          // Consume the identifier, the period will be consumed below.
+          ConsumeToken();
+        }
       } else if (CurrentToken() != Token::kCOMMA &&
-                 CurrentToken() != Token::kIDENT &&
                  CurrentToken() != Token::kEXTENDS) {
         // We are looking at something other than type parameters.
         return false;
@@ -5570,13 +5578,15 @@ bool Parser::ResolveTypeFromClass(intptr_t type_pos,
   ASSERT(type != NULL);
   // Resolve class.
   if (!type->HasResolvedTypeClass()) {
-    const String& unresolved_type_class =
-        String::Handle(type->unresolved_type_class());
+    const UnresolvedClass& unresolved_class =
+        UnresolvedClass::Handle(type->unresolved_class());
+    const String& unresolved_class_name =
+        String::Handle(unresolved_class.ident());
     // First check if the type is a type parameter of the given class.
     const TypeParameter& type_parameter = TypeParameter::Handle(
-        cls.LookupTypeParameter(unresolved_type_class));
+        cls.LookupTypeParameter(unresolved_class_name));
     if (!type_parameter.IsNull()) {
-      CheckTypeParameterReference(type_pos, unresolved_type_class);
+      CheckTypeParameterReference(type_pos, unresolved_class_name);
       // A type parameter cannot be parameterized, so report an error if type
       // arguments have previously been parsed.
       if (type->arguments() != TypeArguments::null()) {
@@ -5588,13 +5598,13 @@ bool Parser::ResolveTypeFromClass(intptr_t type_pos,
       return true;
     }
     const Class& resolved_type_class =
-        Class::Handle(LookupClass(unresolved_type_class));
+        Class::Handle(LookupClass(unresolved_class_name));
     if (resolved_type_class.IsNull()) {
       return false;
     }
     Object& type_class = Object::Handle(resolved_type_class.raw());
     ASSERT(type->IsParameterizedType());
-    // Replace unresolved type class with resolved type class.
+    // Replace unresolved class with resolved type class.
     ParameterizedType& parameterized_type = ParameterizedType::Handle();
     parameterized_type ^= type->raw();
     parameterized_type.set_type_class(type_class);
@@ -5636,8 +5646,15 @@ RawObject* Parser::LookupTypeClass(const QualIdent& type_name,
              type_name.ident->ToCString());
     return Object::null_class();
   }
-  // Return the type name.
-  return type_name.ident->raw();
+  // We have an unresolved name, create an UnresolvedClass object
+  // for this case.
+  String& qualifier = String::Handle();
+  if (type_name.qualifier != NULL) {
+    qualifier ^= type_name.qualifier->raw();
+  }
+  return UnresolvedClass::New(type_name.ident_pos,
+                              qualifier,
+                              *(type_name.ident));
 }
 
 
@@ -6017,11 +6034,11 @@ RawType* Parser::ParseType(TypeResolution type_resolution) {
   }
   Object& type_class = Object::Handle();
   if (type_resolution == kDoNotResolve) {
-    // TODO(5072252): Figure out what should be done in this case.
+    String& qualifier = String::Handle();
     if (type_name.qualifier != NULL) {
-      Unimplemented("cannot handle qualified type names yet");
+      qualifier ^= type_name.qualifier->raw();
     }
-    type_class = type_name.ident->raw();
+    type_class = UnresolvedClass::New(type_pos, qualifier, *(type_name.ident));
   } else {
     TypeParameter& type_parameter = TypeParameter::Handle();
     // Check if qualifier is a type parameter of the class we are parsing.
@@ -6053,6 +6070,7 @@ RawType* Parser::ParseType(TypeResolution type_resolution) {
   const Type& type = Type::Handle(
       Type::NewParameterizedType(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
+    ASSERT(type_class.IsClass());  // Must be resolved.
     const String& errmsg = String::Handle(
         ClassFinalizer::FinalizeTypeWhileParsing(type));
     if (!errmsg.IsNull()) {
@@ -6427,10 +6445,10 @@ AstNode* Parser::ParseNewOperator() {
     }
     if (!factory_type.HasResolvedTypeClass()) {
       // This error can occur only with bootstrap classes.
-      const String& missing_class_name =
-          String::Handle(factory_type.unresolved_type_class());
-      ErrorMsg("Unresolved factory class '%s'",
-               missing_class_name.ToCString());
+      const UnresolvedClass& unresolved =
+          UnresolvedClass::Handle(factory_type.unresolved_class());
+      const String& missing_class_name = String::Handle(unresolved.ident());
+      ErrorMsg("Unresolved factory class '%s'", missing_class_name.ToCString());
     }
 
     // Only change the class of the constructor to the factory class if the

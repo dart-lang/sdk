@@ -50,6 +50,8 @@ RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::unresolved_class_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::parameterized_type_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_parameter_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -84,6 +86,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kVarClass;
   } else if (raw_class == void_class()) {
     return kVoidClass;
+  } else if (raw_class == unresolved_class_class()) {
+    return kUnresolvedClassClass;
   } else if (raw_class == parameterized_type_class()) {
     return kParameterizedTypeClass;
   } else if (raw_class == type_parameter_class()) {
@@ -131,6 +135,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kNullClass: return null_class();
     case kVarClass: return var_class();
     case kVoidClass: return void_class();
+    case kUnresolvedClassClass: return unresolved_class_class();
     case kParameterizedTypeClass: return parameterized_type_class();
     case kTypeParameterClass: return type_parameter_class();
     case kInstantiatedTypeClass: return instantiated_type_class();
@@ -163,6 +168,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kNullClass: return "Null";
     case kVarClass: return "var";
     case kVoidClass: return "void";
+    case kUnresolvedClassClass: return "UnresolvedClass";
     case kParameterizedTypeClass: return "ParameterizedType";
     case kTypeParameterClass: return "TypeParameter";
     case kInstantiatedTypeClass: return "InstantiatedType";
@@ -248,6 +254,9 @@ void Object::InitOnce() {
   }
 
   // Allocate the remaining VM internal classes.
+  cls = Class::New<UnresolvedClass>();
+  unresolved_class_class_ = cls.raw();
+
   cls = Class::New<Instance>();
   var_class_ = cls.raw();
 
@@ -1465,6 +1474,63 @@ const char* Class::ToCString() const {
 }
 
 
+RawUnresolvedClass* UnresolvedClass::New(intptr_t token_index,
+                                         const String& qualifier,
+                                         const String& ident) {
+  const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
+  type.set_token_index(token_index);
+  type.set_qualifier(qualifier);
+  type.set_ident(ident);
+  return type.raw();
+}
+
+
+RawUnresolvedClass* UnresolvedClass::New() {
+  const Class& unresolved_class_class =
+      Class::Handle(Object::unresolved_class_class());
+  RawObject* raw = Object::Allocate(unresolved_class_class,
+                                    UnresolvedClass::InstanceSize(),
+                                    Heap::kNew);
+  return reinterpret_cast<RawUnresolvedClass*>(raw);
+}
+
+
+void UnresolvedClass::set_token_index(intptr_t token_index) const {
+  raw_ptr()->token_index_ = token_index;
+}
+
+
+void UnresolvedClass::set_ident(const String& ident) const {
+  StorePointer(&raw_ptr()->ident_, ident.raw());
+}
+
+
+void UnresolvedClass::set_qualifier(const String& qualifier) const {
+  StorePointer(&raw_ptr()->qualifier_, qualifier.raw());
+}
+
+
+RawString* UnresolvedClass::Name() const {
+  if (qualifier() != String::null()) {
+    String& name = String::Handle();
+    name = qualifier();
+    String& str = String::Handle();
+    str = String::New(".");
+    name = String::Concat(name, str);
+    str = ident();
+    name = String::Concat(name, str);
+    return name.raw();
+  } else {
+    return ident();
+  }
+}
+
+
+const char* UnresolvedClass::ToCString() const {
+  return "UnresolvedClass";
+}
+
+
 bool Type::IsResolved() const {
   // Type is an abstract class.
   UNREACHABLE();
@@ -1486,10 +1552,10 @@ RawClass* Type::type_class() const {
 }
 
 
-RawString* Type::unresolved_type_class() const {
+RawUnresolvedClass* Type::unresolved_class() const {
   // Type is an abstract class.
   UNREACHABLE();
-  return String::null();
+  return UnresolvedClass::null();
 }
 
 
@@ -1541,7 +1607,8 @@ RawString* Type::Name() const {
       first_type_param_index = num_args - num_type_params;
     }
   } else {
-    class_name = unresolved_type_class();
+    const UnresolvedClass& type = UnresolvedClass::Handle(unresolved_class());
+    class_name = type.Name();
     num_type_params = num_args;
     first_type_param_index = 0;
   }
@@ -1590,7 +1657,7 @@ RawString* Type::ClassName() const {
   if (HasResolvedTypeClass()) {
     return Class::Handle(type_class()).Name();
   } else {
-    return unresolved_type_class();
+    return UnresolvedClass::Handle(unresolved_class()).Name();
   }
 }
 
@@ -1797,11 +1864,12 @@ RawClass* ParameterizedType::type_class() const {
 }
 
 
-RawString* ParameterizedType::unresolved_type_class() const {
+RawUnresolvedClass* ParameterizedType::unresolved_class() const {
   ASSERT(!HasResolvedTypeClass());
-  String& unresolved_type_class = String::Handle();
-  unresolved_type_class ^= raw_ptr()->type_class_;
-  return unresolved_type_class.raw();
+  UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
+  unresolved_class ^= raw_ptr()->type_class_;
+  ASSERT(!unresolved_class.IsNull());
+  return unresolved_class.raw();
 }
 
 
@@ -1835,7 +1903,7 @@ RawType* ParameterizedType::InstantiateFrom(
 
 
 void ParameterizedType::set_type_class(const Object& value) const {
-  ASSERT(!value.IsNull() && (value.IsClass() || value.IsString()));
+  ASSERT(!value.IsNull() && (value.IsClass() || value.IsUnresolvedClass()));
   StorePointer(&raw_ptr()->type_class_, value.raw());
 }
 

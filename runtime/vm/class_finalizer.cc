@@ -285,8 +285,9 @@ RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
 
   // Resolve the type class.
   if (!type.HasResolvedTypeClass()) {
-    const String& type_class_name =
-        String::Handle(type.unresolved_type_class());
+    const UnresolvedClass& unresolved_class =
+        UnresolvedClass::Handle(type.unresolved_class());
+    const String& type_class_name = String::Handle(unresolved_class.ident());
 
     // The type class name may be a type parameter of cls that was not resolved
     // by the parser because it appeared as part of the declaration
@@ -310,15 +311,31 @@ RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
 
     // Lookup the type class.
     Class& type_class = Class::Handle();
-    const Library& lib = Library::Handle(cls.library());
+    Library& lib = Library::Handle();
+    if (unresolved_class.qualifier() == String::null()) {
+      lib = cls.library();
+    } else {
+      const String& qualifier = String::Handle(unresolved_class.qualifier());
+      LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+      lib_prefix = cls.LookupLibraryPrefix(qualifier);
+      if (lib_prefix.IsNull()) {
+        const Script& script = Script::Handle(cls.script());
+        ReportError(script, unresolved_class.token_index(),
+                    "cannot resolve name '%s'\n",
+                    String::Handle(unresolved_class.Name()).ToCString());
+      }
+      lib = lib_prefix.library();
+    }
     ASSERT(!lib.IsNull());
     type_class = lib.LookupClass(type_class_name);
     if (type_class.IsNull()) {
-      ReportError("cannot resolve class name '%s' from '%s'\n",
-                  type_class_name.ToCString(),
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, unresolved_class.token_index(),
+                  "cannot resolve class name '%s' from '%s'\n",
+                  String::Handle(unresolved_class.Name()).ToCString(),
                   String::Handle(cls.Name()).ToCString());
     }
-    // Replace unresolved type class with resolved type class.
+    // Replace unresolved class with resolved type class.
     ASSERT(type.IsParameterizedType());
     ParameterizedType& parameterized_type = ParameterizedType::Handle();
     parameterized_type ^= type.raw();
@@ -911,6 +928,41 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
     field ^= fields_array.At(i);
     OS::Print("  %s\n", field.ToCString());
   }
+}
+
+
+void ClassFinalizer::ReportError(const Script& script,
+                                 intptr_t token_index,
+                                 const char* format, ...) {
+  static const int kBufferLength = 1024;
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  Zone* zone = isolate->current_zone();
+  ASSERT(zone != NULL);
+  char* msg_buffer = reinterpret_cast<char*>(zone->Allocate(kBufferLength + 1));
+
+  const String& script_url = String::CheckedHandle(script.url());
+  const int buf_size = 256;
+  static char text_buffer[buf_size];
+  intptr_t line, column;
+  script.GetTokenLocation(token_index, &line, &column);
+  va_list args;
+  va_start(args, format);
+  OS::VSNPrint(text_buffer, buf_size, format, args);
+  va_end(args);
+
+  intptr_t msg_len = OS::SNPrint(msg_buffer, kBufferLength,
+                                 "'%s': line %d pos %d: %s\n",
+                                 script_url.ToCString(),
+                                 line, column, text_buffer);
+  const String& text = String::Handle(script.GetLine(line));
+  ASSERT(!text.IsNull());
+  if (text.Length() < buf_size) {
+    OS::SNPrint(msg_buffer + msg_len, (kBufferLength - msg_len), "%s\n%*s\n",
+                text.ToCString(), column, "^");
+  }
+  isolate->long_jump_base()->Jump(1, msg_buffer);
+  UNREACHABLE();
 }
 
 

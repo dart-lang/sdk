@@ -120,6 +120,7 @@ class Object {
     kNullClass,
     kVarClass,
     kVoidClass,
+    kUnresolvedClassClass,
     kParameterizedTypeClass,
     kTypeParameterClass,
     kInstantiatedTypeClass,
@@ -210,6 +211,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* null_class() { return null_class_; }
   static RawClass* var_class() { return var_class_; }
   static RawClass* void_class() { return void_class_; }
+  static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* parameterized_type_class() {
       return parameterized_type_class_;
   }
@@ -309,6 +311,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* null_class_;  // Class of the null object.
   static RawClass* var_class_;  // Class of the 'var' type.
   static RawClass* void_class_;  // Class of the 'void' type.
+  static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* parameterized_type_class_;  // Class of ParameterizedType.
   static RawClass* type_parameter_class_;  // Class of TypeParameter vm object.
   static RawClass* instantiated_type_class_;  // Class of InstantiatedType.
@@ -612,6 +615,35 @@ class Class : public Object {
 };
 
 
+// Unresolved class is used for storing unresolved names which will be resolved
+// to a class after all classes have been loaded and finalized.
+class UnresolvedClass : public Object {
+ public:
+  RawString* qualifier() const { return raw_ptr()->qualifier_; }
+  RawString* ident() const { return raw_ptr()->ident_; }
+  intptr_t token_index() const { return raw_ptr()->token_index_; }
+
+  RawString* Name() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUnresolvedClass));
+  }
+  static RawUnresolvedClass* New(intptr_t token_index,
+                                 const String& qualifier,
+                                 const String& ident);
+
+ private:
+  void set_token_index(intptr_t token_index) const;
+  void set_ident(const String& ident) const;
+  void set_qualifier(const String& qualifier) const;
+
+  static RawUnresolvedClass* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass, Object);
+  friend class Class;
+};
+
+
 // Type is an abstract superclass.
 // Subclasses of Type are ParameterizedType, TypeParameter, and
 // InstantiatedType.
@@ -625,7 +657,7 @@ class Type : public Object {
   virtual bool IsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
-  virtual RawString* unresolved_type_class() const;
+  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual bool IsInstantiated() const;
 
@@ -774,7 +806,7 @@ class ParameterizedType : public Type {
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
-  virtual RawString* unresolved_type_class() const;
+  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   void set_arguments(const TypeArguments& value) const;
   virtual bool IsInstantiated() const;

@@ -97,6 +97,51 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
+                                              intptr_t object_id,
+                                              bool classes_serialized) {
+  ASSERT(reader != NULL);
+
+  // Allocate parameterized type object.
+  UnresolvedClass& unresolved_class =
+      UnresolvedClass::ZoneHandle(UnresolvedClass::New());
+  reader->AddBackwardReference(object_id, &unresolved_class);
+
+  // Set all non object fields.
+  unresolved_class.set_token_index(reader->Read<intptr_t>());
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (unresolved_class.raw()->to() -
+                       unresolved_class.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(unresolved_class.raw()->from() + i) = reader->ReadObject();
+  }
+  return unresolved_class.raw();
+}
+
+
+void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
+                                 intptr_t object_id,
+                                 bool serialize_classes) {
+  ASSERT(writer != NULL);
+  SnapshotWriterVisitor visitor(writer);
+
+  // Write out the serialization header value for this object.
+  writer->WriteObjectHeader(kInlined, object_id);
+
+  // Write out the class information.
+  writer->WriteObjectHeader(kObjectId, Object::kUnresolvedClassClass);
+
+  // Write out all the non object pointer fields.
+  writer->Write<intptr_t>(ptr()->token_index_);
+
+  // Write out all the object pointer fields.
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawType* Type::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         bool classes_serialized) {
