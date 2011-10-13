@@ -218,7 +218,9 @@ bool Handle::IssueRead() {
     return true;
   }
 
-  fprintf(stderr, "ReadFile failed: %d\n", GetLastError());
+  if (GetLastError() != ERROR_BROKEN_PIPE) {
+    fprintf(stderr, "ReadFile failed: %d\n", GetLastError());
+  }
   event_handler_->HandleClosed(this);
   IOBuffer::DisposeBuffer(buffer);
   return false;
@@ -244,10 +246,31 @@ bool Handle::IssueWrite() {
     return true;
   }
 
-  fprintf(stderr, "WriteFile failed: %d\n", GetLastError());
+  if (GetLastError() != ERROR_BROKEN_PIPE) {
+    fprintf(stderr, "WriteFile failed: %d\n", GetLastError());
+  }
   event_handler_->HandleClosed(this);
   IOBuffer::DisposeBuffer(buffer);
   return false;
+}
+
+
+void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
+  ScopedLock lock(this);
+  if (completion_port_ == INVALID_HANDLE_VALUE) {
+    ASSERT(event_handler_ == NULL);
+    event_handler_ = event_handler;
+    CreateCompletionPort(event_handler_->completion_port());
+  }
+}
+
+
+bool FileHandle::IsClosed() {
+  return false;
+}
+
+
+void FileHandle::AfterClose() {
 }
 
 
@@ -379,7 +402,7 @@ bool ListenSocket::IsClosed() {
 }
 
 
-int ClientSocket::Available() {
+int Handle::Available() {
   ScopedLock lock(this);
   if (data_ready_ == NULL) return 0;
   ASSERT(!data_ready_->IsEmpty());
@@ -387,7 +410,7 @@ int ClientSocket::Available() {
 }
 
 
-int ClientSocket::Read(void* buffer, int num_bytes) {
+int Handle::Read(void* buffer, int num_bytes) {
   ScopedLock lock(this);
   if (data_ready_ == NULL) return 0;
   num_bytes = data_ready_->Read(buffer, num_bytes);
@@ -399,7 +422,7 @@ int ClientSocket::Read(void* buffer, int num_bytes) {
 }
 
 
-int ClientSocket::Write(const void* buffer, int num_bytes) {
+int Handle::Write(const void* buffer, int num_bytes) {
   ScopedLock lock(this);
   if (pending_write_ != NULL) return 0;
   if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
@@ -744,11 +767,11 @@ static unsigned int __stdcall EventHandlerThread(void* args) {
       DWORD last_error = GetLastError();
       if (last_error == ERROR_CONNECTION_ABORTED ||
           last_error == ERROR_OPERATION_ABORTED ||
-          last_error == ERROR_NETNAME_DELETED) {
+          last_error == ERROR_NETNAME_DELETED ||
+          last_error == ERROR_BROKEN_PIPE) {
         ASSERT(bytes == 0);
         handler->HandleIOCompletion(bytes, key, overlapped);
       } else {
-        printf("After GetQueuedCompletionStatus %d\n", GetLastError());
         UNREACHABLE();
      }
     } else if (key == NULL) {
