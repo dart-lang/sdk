@@ -961,7 +961,9 @@ public class GenerateJavascriptAST {
         for (DartInitializer init : initializers) {
           if (init.isInvocation()) {
             JsExprStmt statement = (JsExprStmt) generate(init);
-            return (JsInvocation) statement.getExpression();
+            if (statement != null) {
+              return (JsInvocation) statement.getExpression();
+            }
           }
         }
       }
@@ -1526,14 +1528,14 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitInitializer(DartInitializer x) {
       JsExpression e = (JsExpression) generate(x.getValue());
-      if (!x.isInvocation()) {
+      if (e != null && !x.isInvocation()) {
         JsName fieldJsName = getJsName(x.getName().getTargetSymbol());
         assert fieldJsName != null : "Field name must have been resolved.";
         JsNameRef field = AstUtil.newNameRef(new JsThisRef(), fieldJsName);
         e = AstUtil.newAssignment(field, e);
         e.setSourceRef(x);
       }
-      return new JsExprStmt(e);
+      return e != null ? new JsExprStmt(e) : null;
     }
 
     @Override
@@ -3189,6 +3191,11 @@ public class GenerateJavascriptAST {
       } else {
         classElement = element.getEnclosingElement();
         elementName = element.getName();
+      }
+
+      // Skip emitting the super calls call if it is Object.
+      if (classElement.equals(typeProvider.getObjectType().getElement())) {
+        return null;
       }
 
       // TODO(floitsch): it would be good, if we could get a js-name instead of just a string.
