@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Stress test isolate generation.
-// DartOptions=-- runtime/tests/dart/src/EchoServerTest.dart runtime/tests/dart/src/ManyEchoServerTest.dart -- ManyEchoServerTest.testMain
+// DartOptions=-- tests/standalone/src/EchoServerTest.dart tests/standalone/src/ManyEchoServerTest.dart -- ManyEchoServerTest.testMain
 
 class ManyEchoServerTest {
   static testMain() {

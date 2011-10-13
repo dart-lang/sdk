@@ -13,10 +13,10 @@ callback(List<int> buffer) {
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getFilename(String path) =>
-    FileUtil.fileExists(path) ? path : 'runtime/' + path;
+    FileUtil.fileExists(path) ? path : '../' + path;
 
 main() {
-  String fName = getFilename("tests/dart/src/readuntil_test.dat");
+  String fName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart, wassup!"
   File file = new File(fName, false);
   FileInputStream x = new FileInputStream(file);

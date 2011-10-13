@@ -2,15 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Echo server test program to test socket streams.
-//
-// VMOptions=
-// VMOptions=--short_socket_read
-// VMOptions=--short_socket_write
-// VMOptions=--short_socket_read --short_socket_write
+// Echo server test program for testing sockets.
 
-
-class EchoServerStreamTest {
+class EchoServerTest {
 
   static void testMain() {
     EchoServerGame echoServerGame = new EchoServerGame.start();
@@ -41,6 +35,46 @@ class EchoServerGame {
 
   void sendData() {
 
+    void messageHandler() {
+
+      List<int> bufferReceived = new List<int>(MSGSIZE);
+      int bytesRead = 0;
+
+      void handleRead() {
+
+        if (_socket.available() > 0) {
+          bytesRead += _socket.readList(
+              bufferReceived, bytesRead, MSGSIZE - bytesRead);
+        }
+        if (bytesRead < MSGSIZE) {
+          /*
+           * We check every time the whole buffer to verify data integrity.
+           */
+          for (int i = 0; i < bytesRead; i++) {
+            Expect.equals(FIRSTCHAR + i, bufferReceived[i]);
+          }
+          _socket.setDataHandler(handleRead);
+        }
+        else {
+          /*
+           * We check every time the whole buffer to verify data integrity.
+           */
+          for (int i = 0; i < MSGSIZE; i++) {
+            Expect.equals(FIRSTCHAR + i, bufferReceived[i]);
+          }
+          _messages++;
+          _socket.close();
+          if (_messages < MESSAGES) {
+            sendData();
+          } else {
+            shutdown();
+          }
+        }
+      }
+
+      handleRead();
+    }
+
     void closeHandler() {
       _socket.close();
     }
@@ -52,40 +86,24 @@ class EchoServerGame {
 
     void connectHandler() {
 
-      SocketOutputStream stream = _socket.outputStream;
+      void writeMessage() {
+        int bytesWritten = 0;
 
-      void dataSent() {
-        // Reset buffer
-        for (int i = 0; i < MSGSIZE; i++) {
-          _buffer[i] = 1;
-        }
-        SocketInputStream stream = _socket.inputStream;
-
-        void dataReceived() {
-          for (int i = 0; i < MSGSIZE; i++) {
-            Expect.equals(FIRSTCHAR + i, _buffer[i]);
-          }
-          _messages++;
-          _socket.close();
-          if (_messages < MESSAGES) {
-            sendData();
-          } else {
-            shutdown();
+        void handleWrite() {
+          bytesWritten += _socket.writeList(
+              _buffer, bytesWritten, MSGSIZE - bytesWritten);
+          if (bytesWritten < MSGSIZE) {
+            _socket.setWriteHandler(handleWrite);
           }
         }
 
-        bool read = stream.read(_buffer, 0, MSGSIZE, dataReceived);
-        if (read) {
-          dataReceived();
-        }
+        handleWrite();
       }
 
+      _socket.setDataHandler(messageHandler);
       _socket.setCloseHandler(closeHandler);
       _socket.setErrorHandler(errorHandler);
-      bool written = stream.write(_buffer, 0, MSGSIZE, dataSent);
-      if (written) {
-        dataSent();
-      }
+      writeMessage();
     }
 
     _socket = new Socket(EchoServer.HOST, _port);
@@ -120,7 +138,8 @@ class EchoServerGame {
 class EchoServer extends Isolate {
 
   static final HOST = "127.0.0.1";
-  static final int MSGSIZE = EchoServerGame.MSGSIZE;
+  static final msgSize = EchoServerGame.MSGSIZE;
+
 
   void main() {
 
@@ -129,23 +148,48 @@ class EchoServer extends Isolate {
 
       void messageHandler() {
 
-        List<int> buffer = new List<int>(MSGSIZE);
+        List<int> buffer = new List<int>(msgSize);
+        int bytesRead = 0;
 
-        void dataReceived() {
-
-          SocketOutputStream outputStream = _client.outputStream;
-
-          for (int i = 0; i < MSGSIZE; i++) {
-            Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
+        void handleRead() {
+          if (_client.available() > 0) {
+            bytesRead += _client.readList(buffer, bytesRead, msgSize - bytesRead);
           }
-          outputStream.write(buffer, 0, MSGSIZE, null);
+          if (bytesRead < msgSize) {
+            /*
+             * We check every time the whole buffer to verify data integrity.
+             */
+            for (int i = 0; i < bytesRead; i++) {
+              Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
+            }
+            _client.setDataHandler(handleRead);
+          }
+          else {
+            /*
+             * We check every time the whole buffer to verify data integrity.
+             */
+            for (int i = 0; i < msgSize; i++) {
+              Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
+            }
+
+            void writeMessage() {
+
+              int bytesWritten = 0;
+
+              void handleWrite() {
+                bytesWritten += _client.writeList(
+                      buffer, bytesWritten, msgSize - bytesWritten);
+                if (bytesWritten < msgSize) {
+                  _client.setWriteHandler(handleWrite);
+                }
+              }
+              handleWrite();
+            }
+            writeMessage();
+          }
         }
 
-        SocketInputStream inputStream = _client.inputStream;
-        bool read = inputStream.read(buffer, 0, MSGSIZE, dataReceived);
-        if (read) {
-          dataReceived();
-        }
+        handleRead();
       }
 
       void closeHandler() {
@@ -186,5 +230,5 @@ class EchoServer extends Isolate {
 }
 
 main() {
-  EchoServerStreamTest.testMain();
+  EchoServerTest.testMain();
 }

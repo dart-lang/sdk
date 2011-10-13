@@ -3,17 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Process test program to test process communication.
-//
-// VMOptions=
-// VMOptions=--short_socket_read
-// VMOptions=--short_socket_write
-// VMOptions=--short_socket_read --short_socket_write
 
-class ProcessStdoutTest {
+class ProcessStderrTest {
 
   static void testExit() {
-    Process process = new Process("out/Debug_ia32//process_test",
-                                   const ["0", "1", "99", "0"]);
+    Process process = new Process("out/Debug_ia32/process_test",
+                                  const ["1", "1", "99", "0"]);
     final int BUFFERSIZE = 10;
     final int STARTCHAR = 65;
     List<int> buffer = new List<int>(BUFFERSIZE);
@@ -22,7 +17,7 @@ class ProcessStdoutTest {
     }
     buffer[BUFFERSIZE - 1] = 10;
 
-    SocketInputStream input = process.stdoutStream;
+    SocketInputStream input = process.stderrStream;
     SocketOutputStream output = process.stdinStream;
 
     process.start();
@@ -37,7 +32,7 @@ class ProcessStdoutTest {
         process.close();
       }
 
-      bool read = input.read(readBuffer, 0, BUFFERSIZE, readData);
+      bool read = input.read(readBuffer, 0, BUFFERSIZE, readData); 
       if (read) {
         readData();
       }
@@ -54,5 +49,5 @@ class ProcessStdoutTest {
 }
 
 main() {
-  ProcessStdoutTest.testMain();
+  ProcessStderrTest.testMain();
 }

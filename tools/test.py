@@ -26,7 +26,7 @@ import utils
 TIMEOUT_SECS = 60
 ARCH_GUESS = utils.GuessArchitecture()
 OS_GUESS = utils.GuessOS()
-BUILT_IN_TESTS = ['dartc', 'vm', 'dart', 'corelib', 'language', 'co19',
+BUILT_IN_TESTS = ['dartc', 'vm', 'standalone', 'corelib', 'language', 'co19',
                   'samples', 'isolate', 'stub-generator', 'client']
 
 # Patterns for matching test options in .dart files.

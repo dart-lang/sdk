@@ -7,7 +7,7 @@ prefix corelib
 [ $arch == ia32 || $arch == dartium ]
 UnicodeTest: Fail        # Bug 5163868
 DoubleCompareTest: Fail  # Bug 5427703
-
+*DartcTest: Skip
 
 [ $arch == ia32 ]
 
@@ -17,6 +17,7 @@ ConstListLiteralTest: Fail # Bug 3341367
 CoreRuntimeTypesTest: Fail # Bug 5196164
 StringTest: Fail           # Bug 5196164
 DoubleCompareTest: Fail    # Bug 5427706
+*VMTest: Skip
 
 
 [ $arch == dartium ]

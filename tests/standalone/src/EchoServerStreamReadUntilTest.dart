@@ -3,11 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Echo server test program to test socket stream read until functionality.
-//
-// VMOptions=
-// VMOptions=--short_socket_read
-// VMOptions=--short_socket_write
-// VMOptions=--short_socket_read --short_socket_write
 
 main() {
   EchoServerStreamReadUntilTest.testMain();
@@ -151,16 +146,12 @@ class EchoServer extends Isolate {
             for (int i = 0; i < MSGSIZE - 1; i++) {
               Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
             }
-            void next() {
-              inputStream.readUntil(PATTERN2, dataReceived);
-            }
-            bool done = outputStream.write(buffer, 0, buffer.length, next);
-            if (done) {
-              next();
-            }
+            outputStream.write(buffer, 0, buffer.length, null);
+            inputStream.readUntil(PATTERN2, dataReceived);
           } else {
             Expect.equals(1, buffer.length);
             outputStream.write(buffer, 0, buffer.length, null);
+            inputStream.readUntil(PATTERN2, dataReceived);
           }
         }
 
