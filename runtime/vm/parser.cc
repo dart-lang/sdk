@@ -1199,6 +1199,38 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
 }
 
 
+void Parser::GenerateSuperInitializerCall(const Class& cls,
+                                          LocalVariable* receiver) {
+  const intptr_t supercall_pos = token_index_;
+  const Class& super_class = Class::Handle(cls.SuperClass());
+  // Omit the implicit super() if there is no super class (i.e.
+  // we're not compiling class Object), or if the super class is an
+  // artificially generated "wrapper class" that has no constructor.
+  if (super_class.IsNull() || (super_class.num_native_fields() > 0)) {
+    return;
+  }
+  String& ctor_name = String::Handle(super_class.Name());
+  String& ctor_suffix = String::Handle(String::NewSymbol("."));
+  ctor_name = String::Concat(ctor_name, ctor_suffix);
+  ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
+  // implicit 'this' parameter is the only argument.
+  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
+  arguments->Add(implicit_argument);
+  const Function& super_ctor = Function::ZoneHandle(
+      super_class.LookupConstructor(ctor_name));
+  if (super_ctor.IsNull() ||
+      !super_ctor.AreValidArguments(arguments->length(),
+                                    arguments->names())) {
+    ErrorMsg(supercall_pos,
+             "unresolved implicit call to super constructor '%s()'",
+             String::Handle(super_class.Name()).ToCString());
+  }
+  CheckFunctionIsCallable(supercall_pos, super_ctor);
+  current_block_->statements->Add(
+      new StaticCallNode(supercall_pos, super_ctor, arguments));
+}
+
+
 AstNode* Parser::ParseSuperInitializer(const Class& cls,
                                        LocalVariable* receiver) {
   TRACE_PARSER("ParseSuperInitializer");
@@ -1328,27 +1360,50 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
 }
 
 
-void Parser::ParseInitializers(const Class& cls, LocalVariable* receiver) {
+void Parser::ParseInitializers(const Class& cls) {
   TRACE_PARSER("ParseInitializers");
-  AstNode* init_statement = NULL;
-  AstNode* super_init_statement = NULL;
-  // TODO(4995181): Allow super initializer to appear in any position
-  // of the initializer list.
-  if (CurrentToken() == Token::kSUPER) {
-    super_init_statement = ParseSuperInitializer(cls, receiver);
-  } else {
-    init_statement = ParseInitializer(cls, receiver);
-    current_block_->statements->Add(init_statement);
+  LocalVariable* receiver = current_block_->scope->VariableAt(0);
+  bool super_init_seen = false;
+  if (CurrentToken() == Token::kCOLON) {
+    if ((LookaheadToken(1) == Token::kTHIS) &&
+        ((LookaheadToken(2) == Token::kLPAREN) ||
+        ((LookaheadToken(2) == Token::kPERIOD) &&
+            (LookaheadToken(4) == Token::kLPAREN)))) {
+      // Either we see this(...) or this.xxx(...) which is a
+      // redirected constructor. We don't need to check whether
+      // const fields are initialized. The other constructor will
+      // guarantee that.
+      ConsumeToken();  // Colon.
+      ParseConstructorRedirection(cls, receiver);
+      return;
+    }
+
+    do {
+      ConsumeToken();  // Colon or comma.
+      AstNode* init_statement = NULL;
+      if (CurrentToken() == Token::kSUPER) {
+        if (super_init_seen) {
+          ErrorMsg("Duplicate call to super constructor");
+        }
+        init_statement = ParseSuperInitializer(cls, receiver);
+        super_init_seen = true;
+      } else {
+        init_statement = ParseInitializer(cls, receiver);
+      }
+      current_block_->statements->Add(init_statement);
+    } while (CurrentToken() == Token::kCOMMA);
   }
-  while (CurrentToken() == Token::kCOMMA) {
-    ConsumeToken();
-    init_statement = ParseInitializer(cls, receiver);
-    current_block_->statements->Add(init_statement);
+
+  // Generate implicit super() if we haven't seen an explicit super call
+  // or constructor redirection.
+  // Omit the implicit super() if there is no super class (i.e.
+  // we're not compiling class Object), or if the super class is an
+  // artificially generated "wrapper class" that has no constructor.
+  if (!super_init_seen) {
+    GenerateSuperInitializerCall(cls, receiver);
   }
-  // The call to super constructor is to be done after all initializers.
-  if (super_init_statement != NULL) {
-    current_block_->statements->Add(super_init_statement);
-  }
+
+  CheckConstFieldsInitialized(cls);
 }
 
 
@@ -1422,27 +1477,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     current_block_->statements->Add(field_init);
   }
 
-  // Super call to constructor of super class.
-  const Class& super_class = Class::Handle(cls.SuperClass());
-  ASSERT(!super_class.IsNull());
-  String& ctor_name = String::Handle(super_class.Name());
-  String& ctor_suffix = String::Handle(String::NewSymbol("."));
-  ctor_name = String::Concat(ctor_name, ctor_suffix);
-  ctor_name = String::NewSymbol(ctor_name);
-  ArgumentListNode* arguments = new ArgumentListNode(ctor_pos);
-  AstNode* implicit_argument = new LoadLocalNode(ctor_pos, *receiver);
-  arguments->Add(implicit_argument);
-  const Function& super_ctor = Function::ZoneHandle(
-      super_class.LookupConstructor(ctor_name));
-  if (super_ctor.IsNull() ||
-      !super_ctor.AreValidArgumentCounts(arguments->length(), 0)) {
-    ErrorMsg(ctor_pos,
-             "super class constructor '%s' not found",
-             ctor_name.ToCString());
-  }
-  current_block_->statements->Add(
-      new StaticCallNode(ctor_pos, super_ctor, arguments));
-
+  GenerateSuperInitializerCall(cls, receiver);
   CheckConstFieldsInitialized(cls);
 
   // Empty constructor body.
@@ -1460,6 +1495,9 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // parse. We just build the sequence node by hand.
     return MakeImplicitConstructor(func);
   }
+
+  const Class& cls = Class::Handle(func.owner());
+  ASSERT(!cls.IsNull());
 
   // Build local scope for function.
   OpenFunctionBlock(func);
@@ -1502,7 +1540,6 @@ SequenceNode* Parser::ParseFunc(const Function& func,
 
   GrowableArray<FieldInitExpression> initializers;
   if (func.IsConstructor()) {
-    Class& cls = Class::Handle(func.owner());
     ParseInitializedInstanceFields(cls, &initializers);
   }
 
@@ -1531,7 +1568,6 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   // if the function is not a constructor
   if (params.has_field_initializer) {
     LocalVariable* receiver = current_block_->scope->VariableAt(0);
-    Class& cls = Class::ZoneHandle(func.owner());
     for (int i = 0; i < params.parameters->length(); i++) {
       ParamDesc& param = (*params.parameters)[i];
       if (param.is_field_initializer) {
@@ -1562,29 +1598,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
 
   if (func.IsConstructor()) {
-    Class& cls = Class::ZoneHandle(func.owner());
-    bool initialized_check_needed = true;
-    if (CurrentToken() == Token::kCOLON) {
-      ConsumeToken();
-      LocalVariable* receiver = current_block_->scope->VariableAt(0);
-      ASSERT(receiver != NULL);
-      if ((CurrentToken() == Token::kTHIS) &&
-          ((LookaheadToken(1) == Token::kLPAREN) ||
-          ((LookaheadToken(1) == Token::kPERIOD) &&
-              (LookaheadToken(3) == Token::kLPAREN)))) {
-        // Either we see this(...) or this.xxx(...) which is a
-        // redirected constructor. We don't need to check whether
-        // const fields are initialized. The other constructor will
-        // guarantee that.
-        initialized_check_needed = false;
-        ParseConstructorRedirection(cls, receiver);
-      } else {
-        ParseInitializers(cls, receiver);
-      }
-    }
-    if (initialized_check_needed) {
-      CheckConstFieldsInitialized(cls);
-    }
+    ParseInitializers(cls);
   }
 
   if (current_block_->scope->function_level() > 0) {
@@ -1652,35 +1666,29 @@ void Parser::SkipToMatchingParenthesis() {
 
 
 void Parser::SkipInitializers() {
-  if (CurrentToken() == Token::kSUPER) {
-    ConsumeToken();
-    if (CurrentToken() == Token::kPERIOD) {
+  ASSERT(CurrentToken() == Token::kCOLON);
+  do {
+    ConsumeToken();  // Colon or comma.
+    if (CurrentToken() == Token::kSUPER) {
       ConsumeToken();
+      if (CurrentToken() == Token::kPERIOD) {
+        ConsumeToken();
+        ExpectIdentifier("identifier expected");
+      }
+      if (CurrentToken() != Token::kLPAREN) {
+        ErrorMsg("'(' expected");
+      }
+      SkipToMatchingParenthesis();
+    } else {
+      SkipIf(Token::kTHIS);
+      SkipIf(Token::kPERIOD);
       ExpectIdentifier("identifier expected");
+      ExpectToken(Token::kASSIGN);
+      SetAllowFunctionLiterals(false);
+      SkipExpr();
+      SetAllowFunctionLiterals(true);
     }
-    if (CurrentToken() != Token::kLPAREN) {
-      ErrorMsg("'(' expected");
-    }
-    SkipToMatchingParenthesis();
-  } else {
-    SkipIf(Token::kTHIS);
-    SkipIf(Token::kPERIOD);
-    ExpectIdentifier("identifier expected");
-    ExpectToken(Token::kASSIGN);
-    SetAllowFunctionLiterals(false);
-    SkipExpr();
-    SetAllowFunctionLiterals(true);
-  }
-  while (CurrentToken() == Token::kCOMMA) {
-    ConsumeToken();
-    SkipIf(Token::kTHIS);
-    SkipIf(Token::kPERIOD);
-    ExpectIdentifier("instance field expected");
-    ExpectToken(Token::kASSIGN);
-    SetAllowFunctionLiterals(false);
-    SkipExpr();
-    SetAllowFunctionLiterals(true);
-  }
+  } while (CurrentToken() == Token::kCOMMA);
 }
 
 
@@ -1802,10 +1810,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     if (!method->IsConstructor()) {
       ErrorMsg("initializers only allowed on constructors");
     }
-    ConsumeToken();
-    if ((CurrentToken() == Token::kTHIS) &&
-        ((LookaheadToken(1) == Token::kLPAREN) ||
-         LookaheadToken(3) == Token::kLPAREN)) {
+    if ((LookaheadToken(1) == Token::kTHIS) &&
+        ((LookaheadToken(2) == Token::kLPAREN) ||
+         LookaheadToken(4) == Token::kLPAREN)) {
       // Redirected constructor: either this(...) or this.xxx(...).
       if (method->params.has_field_initializer) {
         // Constructors that redirect to another constructor must not
@@ -1813,6 +1820,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
         ErrorMsg(formal_param_pos, "Redirecting constructor "
                  "may not use field initializer parameters");
       }
+      ConsumeToken();  // Colon.
       ExpectToken(Token::kTHIS);
       String& redir_name = String::ZoneHandle(
           String::Concat(members->class_name(),

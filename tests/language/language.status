@@ -36,8 +36,10 @@ OverrideMethodWithFieldTest: Fail # Bug 5384453
 FieldOverrideTest/none: Fail # Bug 5384222
 FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
-ConstructorDefaultTest: Fail   # Bug 85
 Library1NegativeTest: Fail # Bug 5430449
+
+ConstructorTest: Fail          # Bug 4995181, execution order
+ParameterInitializerTest: Fail # Bug 4995181, execution order
 
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181

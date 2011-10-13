@@ -221,10 +221,11 @@ class Parser : ValueObject {
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,
            GrowableArray<FieldInitExpression>* initializers);
+  void GenerateSuperInitializerCall(const Class& cls, LocalVariable* receiver);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
   AstNode* ParseInitializer(const Class& cls, LocalVariable* receiver);
   void ParseConstructorRedirection(const Class& cls, LocalVariable* receiver);
-  void ParseInitializers(const Class& cls, LocalVariable* receiver);
+  void ParseInitializers(const Class& cls);
   String& ParseNativeDeclaration();
   RawArray* ParseInterfaceList();
   void AddInterfaces(intptr_t interfaces_pos,

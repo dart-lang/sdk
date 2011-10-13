@@ -241,8 +241,6 @@ LangGuideTest/08_Expressions/A01/t02: Skip
 LangGuideTest/08_Expressions/A02/t02: Skip
 # end of negative type check list.
 
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A05/t01: Fail
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A12/t02: Fail
 LangGuideTest/02_Language_Constructs/02_6_Functions/A04/t01: Fail
 LangGuideTest/02_Language_Constructs/02_6_Functions/A06/t01: Fail
