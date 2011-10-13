@@ -83,6 +83,7 @@ NamedParameters3NegativeTest: Fail   # Implementation in progress.
 NamedParameters4NegativeTest: Fail   # Implementation in progress.
 NamedParameters6NegativeTest: Crash  # Implementation in progress.
 NamedParametersNamedCountTest: Fail  # Bug 5447476
+NamedParametersWithObjectPropertyNamesTest: Fail  # Bug 5447476
 InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail      # Bug 5387405
