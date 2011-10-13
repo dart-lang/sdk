@@ -90,8 +90,9 @@ class BrowserTestCase(StandardTestCase):
   """A test case that executes inside a browser (or DumpRenderTree)."""
 
   def __init__(self, context, path, filename,
-               fatal_static_type_errors, mode, arch):
-    super(BrowserTestCase, self).__init__(context, path, filename, mode, arch)
+               fatal_static_type_errors, mode, arch, vm_options=None):
+    super(BrowserTestCase, self).__init__(
+        context, path, filename, mode, arch, vm_options)
     self.fatal_static_type_errors = fatal_static_type_errors
 
   def Run(self):

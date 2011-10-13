@@ -56,6 +56,13 @@ class StandardTestConfiguration(test.TestConfiguration):
 
   def CreateTestCases(self, test_path, path, filename, mode, arch):
     """Given a .dart filename, create a StandardTestCase from it."""
+    # Look for VM specified as comments in the source file. If
+    # several sets of VM options are specified create a separate
+    # test for each set.
+    source = file(filename).read()
+    vm_options_list = utils.ParseTestOptionsMultiple(VM_OPTIONS_PATTERN,
+                                                     source,
+                                                     test_path)
     tags = {}
     if filename.endswith('.dart'):
       tags = self.SplitMultiTest(test_path, filename)
@@ -63,8 +70,15 @@ class StandardTestConfiguration(test.TestConfiguration):
       if tags:
         return []
       else:
-        return [test_case.BrowserTestCase(
-            self.context, test_path, filename, False, mode, arch)]
+        if vm_options_list:
+          tests = []
+          for options in vm_options_list:
+            tests.append(test_case.BrowserTestCase(
+                self.context, test_path, filename, False, mode, arch, options))
+          return tests
+        else:
+          return [test_case.BrowserTestCase(
+              self.context, test_path, filename, False, mode, arch)]
     else:
       tests = []
       if tags:
@@ -78,13 +92,6 @@ class StandardTestConfiguration(test.TestConfiguration):
                                                kind,
                                                mode, arch))
       else:
-        # Look for VM specified as comments in the source file. If
-        # several sets of VM options are specified create a separate
-        # test for each set.
-        source = file(filename).read()
-        vm_options_list = utils.ParseTestOptionsMultiple(VM_OPTIONS_PATTERN,
-                                                         source,
-                                                         test_path)
         if vm_options_list:
           for options in vm_options_list:
             tests.append(test_case.StandardTestCase(self.context,
