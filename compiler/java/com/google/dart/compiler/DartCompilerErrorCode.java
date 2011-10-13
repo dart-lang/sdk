@@ -165,6 +165,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR(
       "Parameter initializers cannot be used with redirected constructors"),
   PARAMETER_NOT_MATCH_FIELD("Could not match parameter initializer '%s' with any field"),
+  RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),

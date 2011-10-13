@@ -97,8 +97,6 @@ FunctionTypeAliasTest: Crash # Bug 4519208.
 # Other bugs (or unimplemented features) in dartc.
 SuperOperatorTest: Fail      # Bug 4995463.
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
-TryCatch6NegativeTest: Crash # Bug 5450070
-TryCatch7NegativeTest: Crash # Bug 5450070
 Throw7NegativeTest: Fail     # Bug 4208459.
 SwitchLabelTest: Fail        # Bug 4208467.
 Switch7NegativeTest: Fail    # Bug 4208467.

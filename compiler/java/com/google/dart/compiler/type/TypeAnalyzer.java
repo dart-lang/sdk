@@ -169,6 +169,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final Type nullType;
     private final InterfaceType functionType;
 
+    /**
+     * Keeps track of the number of nested catches, used to detect re-throws
+     * outside of any catch block.
+     */
+    private int catchDepth = 0;
+
     Analyzer(DartCompilerContext context, CoreTypeProvider typeProvider,
              ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements,
              Set<ClassElement> diagnosedAbstractClasses) {
@@ -1125,15 +1131,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitThrowStatement(DartThrowStatement node) {
+      if (catchDepth == 0 && node.getException() == null) {
+        context.compilationError(new DartCompilationError(node,
+            DartCompilerErrorCode.RETHROW_NOT_IN_CATCH));
+      }
       return typeAsVoid(node);
     }
 
     @Override
     public Type visitCatchBlock(DartCatchBlock node) {
+      ++catchDepth;
       typeOf(node.getException());
       // TODO(karlklose) Check type of stack trace variable.
       typeOf(node.getStackTrace());
       typeOf(node.getBlock());
+      --catchDepth;
       return voidType;
     }
 

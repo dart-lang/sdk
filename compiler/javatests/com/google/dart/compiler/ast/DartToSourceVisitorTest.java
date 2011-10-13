@@ -16,7 +16,17 @@ public class DartToSourceVisitorTest extends CompilerTestCase {
      testStmt("x.y");
      testStmt("x + 1.0");
      testStmt("x.y()");
-     testStmt("throw");
+     // rethrow is an error outside a catch block
+     String rethrow =
+       "  m() {\n" +
+       "    try {\n" +
+       "    }\n" + 
+       "    catch (var e) {\n" +
+       "      throw;\n" +
+       "    }\n" +
+       "  }\n";
+     testClassMemeber(rethrow);
+
      testStmt("throw e");
      testStmt("Array<String> strings");
    }
