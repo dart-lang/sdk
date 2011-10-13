@@ -10,7 +10,9 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    if (length < 0) throw new IllegalArgumentException(length);
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
     Arrays.copy(from, startFrom, this, start, length);
   }
 
@@ -19,7 +21,7 @@ class GrowableObjectArray<T> implements Array<T> {
       return;
     }
     if (length < 0) {
-      throw const IllegalArgumentException();
+      throw new IllegalArgumentException("negative length $length");
     }
     if (start < 0 || start >= this.length) {
       throw new IndexOutOfRangeException(start);

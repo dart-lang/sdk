@@ -29,7 +29,7 @@ class ArrayFactory {
       length = 0;
       isFixed = false;
     } else if (length < 0) {
-      throw new IllegalArgumentException(length);
+      throw new IllegalArgumentException("negative length $length");
     }
     // TODO(floitsch): make array creation more efficient. Currently we allocate
     // a new TypeToken at every allocation. Either we can optimize them away,
@@ -71,7 +71,7 @@ class ListFactory {
       length = 0;
       isFixed = false;
     } else if (length < 0) {
-      throw new IllegalArgumentException(length);
+      throw new IllegalArgumentException("negative length $length");
     }
     // TODO(floitsch): make array creation more efficient. Currently we allocate
     // a new TypeToken at every allocation. Either we can optimize them away,
@@ -159,7 +159,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
       return;
     }
     if (length < 0) {
-      throw const IllegalArgumentException();
+      throw new IllegalArgumentException("negative length $length");
     }
     Arrays.copy(from, startFrom, this, start, length);
   }
@@ -173,7 +173,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
       return;
     }
     if (length < 0) {
-      throw const IllegalArgumentException();
+      throw new IllegalArgumentException("negative length $length");
     }
     if (start < 0 || start >= this.length) {
       throw new IndexOutOfRangeException(start);

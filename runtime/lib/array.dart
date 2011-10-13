@@ -93,7 +93,9 @@ class ObjectArray<T> implements Array<T> {
       native "ObjectArray_copyFromObjectArray";
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    if (length < 0) throw new IllegalArgumentException(length);
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
     copyFrom(from, start, startFrom, count);
   }
 
