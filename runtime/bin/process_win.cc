@@ -73,18 +73,29 @@ static void RemoveProcess(intptr_t pid) {
 }
 
 
+// Types of pipes to create.
+enum NamedPipeType {
+  kInheritRead,
+  kInheritWrite,
+  kInheritNone
+};
+
+
 // Create a pipe for communicating with a new process. The handles array
-// will contain the read and write ends of the pipe. Based on the is_input
-// argument either the read or the write end of the handle will be
-// non-inherited.
+// will contain the read and write ends of the pipe. Based on the type
+// one of the handles will be inheritable.
+// NOTE: If this function returns false the handles might have been allocated
+// and the caller should make sure to close them in case of an error.
 static bool CreateProcessPipe(HANDLE handles[2],
                               char* pipe_name,
-                              bool is_input) {
-  SECURITY_ATTRIBUTES security_attributes;
-  security_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
-  security_attributes.bInheritHandle = TRUE;
-  security_attributes.lpSecurityDescriptor = NULL;
-  if (is_input) {
+                              NamedPipeType type) {
+  // Security attributes describing an inheritable handle.
+  SECURITY_ATTRIBUTES inherit_handle;
+  inherit_handle.nLength = sizeof(SECURITY_ATTRIBUTES);
+  inherit_handle.bInheritHandle = TRUE;
+  inherit_handle.lpSecurityDescriptor = NULL;
+
+  if (type == kInheritRead) {
     handles[kWriteHandle] =
         CreateNamedPipe(pipe_name,
                         PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED,
@@ -104,7 +115,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
         CreateFile(pipe_name,
                    GENERIC_READ,
                    0,
-                   &security_attributes,
+                   &inherit_handle,
                    OPEN_EXISTING,
                    FILE_READ_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
                    NULL);
@@ -113,6 +124,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
       return false;
     }
   } else {
+    ASSERT(type == kInheritWrite || type == kInheritNone);
     handles[kReadHandle] =
         CreateNamedPipe(pipe_name,
                         PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
@@ -132,7 +144,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
         CreateFile(pipe_name,
                    GENERIC_WRITE,
                    0,
-                   &security_attributes,
+                   (type == kInheritWrite) ? &inherit_handle : NULL,
                    OPEN_EXISTING,
                    FILE_WRITE_ATTRIBUTES | FILE_FLAG_OVERLAPPED,
                    NULL);
@@ -156,6 +168,16 @@ static void CloseProcessPipe(HANDLE handles[2]) {
   }
 }
 
+
+static void CloseProcessPipes(HANDLE handles1[2],
+                              HANDLE handles2[2],
+                              HANDLE handles3[2],
+                              HANDLE handles4[2]) {
+  CloseProcessPipe(handles1);
+  CloseProcessPipe(handles2);
+  CloseProcessPipe(handles3);
+  CloseProcessPipe(handles4);
+}
 
 static int SetOsErrorMessage(char* os_error_message,
                               int os_error_message_len) {
@@ -208,36 +230,34 @@ int Process::Start(const char* path,
   pipe_id++;
   snprintf(pipe_name, sizeof(pipe_name),
            "\\\\.\\Pipe\\dart%d_%d_1", current_pid, pipe_id);
-  if (!CreateProcessPipe(stdin_handles, pipe_name, true)) {
+  if (!CreateProcessPipe(stdin_handles, pipe_name, kInheritRead)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipe(stdin_handles);
+    CloseProcessPipes(
+        stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
   snprintf(pipe_name, sizeof(pipe_name),
            "\\\\.\\Pipe\\dart%d_%d_2", current_pid, pipe_id);
-  if (!CreateProcessPipe(stdout_handles, pipe_name, false)) {
+  if (!CreateProcessPipe(stdout_handles, pipe_name, kInheritWrite)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipe(stdin_handles);
-    CloseProcessPipe(stdout_handles);
+    CloseProcessPipes(
+        stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
   snprintf(pipe_name, sizeof(pipe_name),
            "\\\\.\\Pipe\\dart%d_%d_3", current_pid, pipe_id);
-  if (!CreateProcessPipe(stderr_handles, pipe_name, false)) {
+  if (!CreateProcessPipe(stderr_handles, pipe_name, kInheritWrite)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipe(stdin_handles);
-    CloseProcessPipe(stdout_handles);
-    CloseProcessPipe(stderr_handles);
+    CloseProcessPipes(
+        stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
   snprintf(pipe_name, sizeof(pipe_name),
            "\\\\.\\Pipe\\dart%d_%d_4", current_pid, pipe_id);
-  if (!CreateProcessPipe(exit_handles, pipe_name, false)) {
+  if (!CreateProcessPipe(exit_handles, pipe_name, kInheritNone)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipe(stdin_handles);
-    CloseProcessPipe(stdout_handles);
-    CloseProcessPipe(stderr_handles);
-    CloseProcessPipe(exit_handles);
+    CloseProcessPipes(
+        stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
 
@@ -264,10 +284,8 @@ int Process::Start(const char* path,
   static const int kMaxCommandLineLength = 32768;
   if (command_line_length > kMaxCommandLineLength) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipe(stdin_handles);
-    CloseProcessPipe(stdout_handles);
-    CloseProcessPipe(stderr_handles);
-    CloseProcessPipe(exit_handles);
+    CloseProcessPipes(
+        stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
 
@@ -303,10 +321,8 @@ int Process::Start(const char* path,
 
   if (result == 0) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
-    CloseProcessPipe(stdin_handles);
-    CloseProcessPipe(stdout_handles);
-    CloseProcessPipe(stderr_handles);
-    CloseProcessPipe(exit_handles);
+    CloseProcessPipes(
+        stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
 
