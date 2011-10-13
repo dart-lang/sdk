@@ -28,7 +28,7 @@ HOW TO
 
 7. Select root directory. Browse to: compiler/eclipse.workspace.
 
-8. It should find and select three projects (dartc and tests).
+8. It should find and select two projects (dartc and tests).
 
 9. Click Finish. (At this point Eclipse may get stuck, if so, exit
    Eclipse by right-clicking on the dock icon, and restart).
