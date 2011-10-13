@@ -845,6 +845,7 @@ void CodeGenerator::VisitTypeNode(TypeNode* node) {
 }
 
 
+// TODO(regis): Consider merging all 3 closure node flavors into a single one.
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const int current_context_level = state()->context_level();
   const ContextScope& context_scope = ContextScope::ZoneHandle(
@@ -854,10 +855,21 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   ASSERT(!function.HasCode());
   ASSERT(function.context_scope() == ContextScope::null());
   function.set_context_scope(context_scope);
+  // The function type of a closure may be parameterized. In that case, pass
+  // the type arguments of the instantiator.
+  const Class& cls = Class::Handle(function.signature_class());
+  ASSERT(!cls.IsNull());
+  const bool is_cls_parameterized = cls.IsParameterized();
+  if (is_cls_parameterized) {
+    GenerateInstantiatorTypeArguments();
+  }
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
   GenerateCall(node->token_index(), &label);
+  if (is_cls_parameterized) {
+    __ popl(ECX);  // Pop type arguments.
+  }
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }
@@ -885,10 +897,21 @@ void CodeGenerator::VisitImplicitInstanceClosureNode(
   ASSERT(function.IsImplicitInstanceClosureFunction());
   ASSERT(function.context_scope() != ContextScope::null());
   node->receiver()->Visit(this);
+  // The function type of a closure may be parameterized. In that case, pass
+  // the type arguments of the instantiator.
+  const Class& cls = Class::Handle(function.signature_class());
+  ASSERT(!cls.IsNull());
+  const bool is_cls_parameterized = cls.IsParameterized();
+  if (is_cls_parameterized) {
+    GenerateInstantiatorTypeArguments();
+  }
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
   GenerateCall(node->token_index(), &label);
+  if (is_cls_parameterized) {
+    __ popl(ECX);  // Pop type arguments.
+  }
   __ popl(ECX);  // Pop receiver.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -1436,24 +1459,9 @@ void CodeGenerator::GenerateInstanceOf(intptr_t token_index,
   __ pushl(EAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
-    ASSERT(parsed_function().instantiator() != NULL);
-    parsed_function().instantiator()->Visit(this);  // Instantiator on stack.
-    if (!parsed_function().function().IsInFactoryScope()) {
-      __ popl(EAX);  // Pop instantiator.
-      const Class& instantiator_class =
-          Class::Handle(parsed_function().function().owner());
-      // The instantiator is the receiver of the caller, which is not a factory.
-      // The receiver cannot be null; extract its TypeArguments object.
-      // Note that in the factory case, the instantiator is the first parameter
-      // of the factory, i.e. already a TypeArguments object.
-      intptr_t type_arguments_instance_field_offset =
-          instantiator_class.type_arguments_instance_field_offset();
-      ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
-      __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
-      __ pushl(EAX);  // Push instantiator.
-    }
+    GenerateInstantiatorTypeArguments();
   } else {
-    __ PushObject(TypeArguments::ZoneHandle());  // Null instantiator.
+    __ pushl(raw_null);  // Null instantiator.
   }
   GenerateCallRuntime(token_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
@@ -1608,24 +1616,9 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   if (!dst_type.IsInstantiated()) {
-    ASSERT(parsed_function().instantiator() != NULL);
-    parsed_function().instantiator()->Visit(this);  // Instantiator on stack.
-    if (!parsed_function().function().IsInFactoryScope()) {
-      __ popl(EAX);  // Pop instantiator.
-      const Class& instantiator_class =
-          Class::Handle(parsed_function().function().owner());
-      // The instantiator is the receiver of the caller, which is not a factory.
-      // The receiver cannot be null; extract its TypeArguments object.
-      // Note that in the factory case, the instantiator is the first parameter
-      // of the factory, i.e. already a TypeArguments object.
-      intptr_t type_arguments_instance_field_offset =
-          instantiator_class.type_arguments_instance_field_offset();
-      ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
-      __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
-      __ pushl(EAX);  // Push instantiator.
-    }
+    GenerateInstantiatorTypeArguments();
   } else {
-    __ PushObject(TypeArguments::ZoneHandle());  // Null instantiator.
+    __ pushl(raw_null);  // Null instantiator.
   }
   __ PushObject(dst_name);  // Push the name of the destination.
   GenerateCallRuntime(token_index, kTypeCheckRuntimeEntry);
@@ -2205,6 +2198,27 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 }
 
 
+// Pushes the type arguments of the instantiator on the stack.
+void CodeGenerator::GenerateInstantiatorTypeArguments() {
+  ASSERT(parsed_function().instantiator() != NULL);
+  parsed_function().instantiator()->Visit(this);
+  if (!parsed_function().function().IsInFactoryScope()) {
+    __ popl(EAX);  // Pop instantiator.
+    const Class& instantiator_class =
+        Class::Handle(parsed_function().function().owner());
+    // The instantiator is the receiver of the caller, which is not a factory.
+    // The receiver cannot be null; extract its TypeArguments object.
+    // Note that in the factory case, the instantiator is the first parameter
+    // of the factory, i.e. already a TypeArguments object.
+    intptr_t type_arguments_instance_field_offset =
+        instantiator_class.type_arguments_instance_field_offset();
+    ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
+    __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
+    __ pushl(EAX);
+  }
+}
+
+
 // Pushes the type arguments on the stack in preparation of a constructor or
 // factory call.
 // For a factory call, instantiates (possibly requiring an additional run time
@@ -2219,6 +2233,8 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 // e.g. class A extends Array<int>.
 void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
                                           bool is_cls_parameterized) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Instantiate the type arguments if necessary.
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
@@ -2227,33 +2243,18 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       __ PushObject(node->type_arguments());
       if (!node->constructor().IsFactory()) {
         // The allocator additionally requires the instantiator type arguments.
-        __ PushObject(TypeArguments::ZoneHandle());  // Null instantiator.
+        __ pushl(raw_null);  // Null instantiator.
       }
     }
   } else {
     // The type arguments are uninstantiated.
-    ASSERT(parsed_function().instantiator() != NULL);
     ASSERT(node->constructor().IsFactory() || is_cls_parameterized);
-    parsed_function().instantiator()->Visit(this);
+    GenerateInstantiatorTypeArguments();
     __ popl(EAX);  // Pop instantiator.
-    if (!parsed_function().function().IsInFactoryScope()) {
-      const Class& instantiator_class =
-          Class::Handle(parsed_function().function().owner());
-      // The instantiator is the receiver of the caller, which is not a factory.
-      // The receiver cannot be null; extract its TypeArguments object.
-      // Note that in the factory case, the instantiator is the first parameter
-      // of the factory, i.e. already a TypeArguments object.
-      intptr_t type_arguments_instance_field_offset =
-          instantiator_class.type_arguments_instance_field_offset();
-      ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
-      __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
-    }
     // EAX is the instantiator TypeArguments object (or null).
     // If EAX is null, no need to instantiate the type arguments, use null, and
     // allocate an object of a raw type.
     Label type_arguments_instantiated, type_arguments_uninstantiated;
-    const Immediate raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ cmpl(EAX, raw_null);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
 
@@ -2294,7 +2295,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
       __ Bind(&type_arguments_instantiated);
       __ pushl(EAX);  // Instantiated type arguments.
-      __ PushObject(TypeArguments::ZoneHandle());  // Null instantiator.
+      __ pushl(raw_null);  // Null instantiator.
       __ Bind(&type_arguments_pushed);
     }
   }

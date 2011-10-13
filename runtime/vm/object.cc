@@ -976,23 +976,29 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    const Script& script,
                                    intptr_t token_index) {
   ASSERT(!signature_function.IsNull());
+  Type& super_type = Type::Handle(Type::ObjectType());
   Array& type_parameters = Array::Handle();
   TypeArray& type_parameter_extends = TypeArray::Handle();
   if (!signature_function.is_static()) {
-    const Class& function_class =
-        Class::Handle(signature_function.owner());
-    ASSERT(!function_class.IsNull());
-    type_parameters = function_class.type_parameters();
-    type_parameter_extends = function_class.type_parameter_extends();
+    const Class& owner_class = Class::Handle(signature_function.owner());
+    ASSERT(!owner_class.IsNull());
+    ASSERT(!owner_class.is_interface());
+    if (owner_class.IsParameterized()) {
+      // Share the function owner super class as the super class of the
+      // signature class, so that the type argument vector of the closure at
+      // run time  matches the type argument vector of the closure instantiator.
+      type_parameters = owner_class.type_parameters();
+      type_parameter_extends = owner_class.type_parameter_extends();
+      super_type = owner_class.super_type();
+    }
   }
   Class& result = Class::Handle(New<Closure>(name, script));
+  result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
   result.set_type_parameter_extends(type_parameter_extends);
   result.SetFields(Array::Handle(Array::Empty()));
   result.SetFunctions(Array::Handle(Array::Empty()));
-  // Set super class to Object.
-  result.set_super_type(Type::Handle(Type::ObjectType()));
   // Implements interface Function.
   const Type& function_interface = Type::Handle(Type::FunctionInterface());
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
@@ -4435,8 +4441,16 @@ bool Instance::TestType(TypeTestKind test,
   TypeArguments& type_arguments = TypeArguments::Handle();
   if (cls.IsParameterized()) {
     type_arguments = GetTypeArguments();
+    // Verify that the number of type arguments in the instance matches the
+    // number of type arguments expected by the instance class.
+    // A discrepancy is allowed for closures, which borrow the type argument
+    // vector of their instantiator, which may be of a super class of the class
+    // defining the closure. Truncating the vector to the correct length on
+    // instantiation is unnecessary. The vector may therefore be longer.
     ASSERT(type_arguments.IsNull() ||
-           (type_arguments.Length() == cls.NumTypeArguments()));
+           (type_arguments.Length() == cls.NumTypeArguments()) ||
+           (cls.IsSignatureClass() &&
+            (type_arguments.Length() > cls.NumTypeArguments())));
   }
   Class& other_class = Class::Handle();
   TypeArguments& other_type_arguments = TypeArguments::Handle();

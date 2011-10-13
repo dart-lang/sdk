@@ -221,18 +221,22 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 
 // Allocate a new closure.
 // Arg0: local function.
-// TODO(regis): Arg1: type arguments of the closure.
+// Arg1: type arguments of the closure.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 1) {
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   ASSERT(arguments.Count() == kAllocateClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
   ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
-  // TODO(regis): Process type arguments unless the closure is static.
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.At(1));
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   // The current context was saved in the Isolate structure when entering the
   // runtime.
   const Context& context = Context::Handle(Isolate::Current()->top_context());
   ASSERT(!context.IsNull());
-  arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
+  const Closure& closure = Closure::Handle(Closure::New(function, context));
+  closure.SetTypeArguments(type_arguments);
+  arguments.SetReturn(closure);
 }
 
 
@@ -254,19 +258,23 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
 // Allocate a new implicit instance closure.
 // Arg0: local function.
 // Arg1: receiver object.
-// TODO(regis): Arg2: type arguments of the closure.
+// Arg2: type arguments of the closure.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 2) {
+DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
   ASSERT(arguments.Count() ==
          kAllocateImplicitInstanceClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
   ASSERT(function.IsImplicitInstanceClosureFunction());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(1));
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.At(2));
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   Context& context = Context::Handle();
   context = Context::New(1);
   context.SetAt(0, receiver);
-  arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
-  // TODO(regis): Set type arguments.
+  const Closure& closure = Closure::Handle(Closure::New(function, context));
+  closure.SetTypeArguments(type_arguments);
+  arguments.SetReturn(closure);
 }
 
 

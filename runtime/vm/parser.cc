@@ -838,10 +838,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       ParseFormalParameterList(no_explicit_default_values, &func_params);
       // Change the name of the parameter type to be the signature of the
       // function type.
-      // Note that the function type signature may involve parameters of a type
-      // that is a type parameter of the enclosing class, so we parameterize the
-      // signature with the type parameters of the enclosing class, if any.
-      // TODO(regis): Revisit if this is not the right thing to do.
       const bool is_static =
           current_function().IsNull() || current_function().is_static();
       const Function& signature_function = Function::Handle(
@@ -1130,6 +1126,15 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
   if (receiver == NULL) {
     return new ImplicitStaticClosureNode(token_pos, implicit_closure_function);
   } else {
+    // If we create an implicit instance closure from inside a closure of a
+    // parameterized class, make sure that the receiver is captured as
+    // instantiator.
+    if (current_block_->scope->function_level() > 0) {
+      const Class& signature_class = Class::Handle(func.signature_class());
+      if (signature_class.IsParameterized()) {
+        CaptureReceiver();
+      }
+    }
     return new ImplicitInstanceClosureNode(token_pos,
                                           implicit_closure_function,
                                           receiver);
@@ -1601,10 +1606,10 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     ParseInitializers(cls);
   }
 
-  if (current_block_->scope->function_level() > 0) {
+  if (FLAG_enable_type_checks &&
+      (current_block_->scope->function_level() > 0)) {
     // We are parsing, but not compiling, a local function.
-    // The instantiator may be required at run time for generic type checks or
-    // allocation of generic types.
+    // The instantiator may be required at run time for generic type checks.
     if (current_class().IsParameterized() &&
         (!current_function().is_static() ||
          current_function().IsInFactoryScope())) {
@@ -1612,9 +1617,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       // (or implicit first parameter of an enclosing factory) is marked as
       // captured if type checks are enabled, because they may access the
       // receiver to instantiate types.
-      if (FLAG_enable_type_checks) {
-        CaptureReceiver();
-      }
+      CaptureReceiver();
     }
   }
 
@@ -3378,22 +3381,28 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                                    current_function(),
                                    token_index_));
   function.set_result_type(result_type);
+
+  // The function type does not need to be determined at compile time, unless
+  // the closure is assigned to a function variable and type checks are enabled.
+  // At run time, the function type is derived from the signature class of the
+  // closure function and from the type arguments of the instantiator.
+
   LocalVariable* function_variable = NULL;
   ParameterizedType& function_type = ParameterizedType::ZoneHandle();
   if (variable_name != NULL) {
-    // Add the function variable to the scope before parsing the function in
-    // order to allow self reference from inside the function.
-    // The type of the implicitly declared const variable is defined by the
-    // local function signature class and the type arguments of the current
-    // receiver (if in a non-static scope). However, the signature is not yet
-    // known, since the formal parameter list is not parsed yet. Therefore, we
-    // set the type to a new parameterized type to be patched after the actual
-    // type is known. We temporarily use the class of the Function interface.
+    // Since the function type depends on the signature of the closure function,
+    // it cannot be determined before the formal parameter list of the closure
+    // function is parsed. Therefore, we set the function type to a new
+    // parameterized type to be patched after the actual type is known.
+    // We temporarily use the class of the Function interface.
     const Class& unknown_signature_class = Class::Handle(
         Type::Handle(Type::FunctionInterface()).type_class());
     function_type = ParameterizedType::New(unknown_signature_class,
                                            TypeArguments::Handle());
     function_type.set_is_finalized();  // No real finalization needed.
+
+    // Add the function variable to the scope before parsing the function in
+    // order to allow self reference from inside the function.
     function_variable = new LocalVariable(ident_pos,
                                           *variable_name,
                                           function_type);
@@ -3431,23 +3440,53 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // finalized.
   ASSERT(current_class().is_finalized());
 
-  if (function_variable != NULL) {
-    ASSERT(function_variable->type().raw() == function_type.raw());
-    // Patch the function variable type now that the signature is known.
+  // Make sure that the instantiator is captured.
+  if (signature_class.IsParameterized() &&
+      (current_block_->scope->function_level() > 0)) {
+    CaptureReceiver();
+  }
+
+  if (variable_name != NULL) {
+    // Patch the function type now that the signature is known.
     // We need to create a new type for proper finalization, since the existing
     // type is already marked as finalized.
-    // TODO(regis): Set proper signature_type_arguments if in non-static scope
-    // and if the signature involves generic types.
-    const TypeArguments& signature_type_arguments = TypeArguments::Handle();
+    TypeArguments& signature_type_arguments = TypeArguments::Handle();
+    if (signature_class.IsParameterized()) {
+      const intptr_t num_type_params = signature_class.NumTypeParameters();
+      const Array& type_params = Array::Handle(
+          signature_class.type_parameters());
+      signature_type_arguments = TypeArguments::NewTypeArray(num_type_params);
+      String& type_param_name = String::Handle();
+      Type& type_param = Type::Handle();
+      for (int i = 0; i < num_type_params; i++) {
+        type_param_name ^= type_params.At(i);
+        type_param = Type::NewTypeParameter(i, type_param_name);
+        signature_type_arguments.SetTypeAt(i, type_param);
+      }
+    }
+    const ParameterizedType& actual_function_type = ParameterizedType::Handle(
+        ParameterizedType::New(signature_class, signature_type_arguments));
     const String& errmsg = String::Handle(
-        ClassFinalizer::FinalizeTypeWhileParsing(ParameterizedType::Handle(
-            ParameterizedType::New(signature_class,
-                                   signature_type_arguments))));
+        ClassFinalizer::FinalizeTypeWhileParsing(actual_function_type));
     if (!errmsg.IsNull()) {
       ErrorMsg(errmsg.ToCString());
     }
+    // The call to ClassFinalizer::FinalizeTypeWhileParsing may have extended
+    // the vector of type arguments.
+    signature_type_arguments = actual_function_type.arguments();
+    ASSERT(signature_type_arguments.IsNull() ||
+           (signature_type_arguments.Length() ==
+            signature_class.NumTypeArguments()));
+    // The signature_class should not have changed.
+    ASSERT(actual_function_type.type_class() == signature_class.raw());
+
+    // Now patch the function type of the variable.
     function_type.set_type_class(signature_class);
     function_type.set_arguments(signature_type_arguments);
+
+    // The function variable type should have been patched above.
+    ASSERT((function_variable == NULL) ||
+           (function_variable->type().raw() == function_type.raw()));
   }
 
   // The code generator does not compile the closure function when visiting
