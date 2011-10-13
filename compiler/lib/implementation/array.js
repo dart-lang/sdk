@@ -4,13 +4,13 @@
 
 function native_ArrayFactory__new(typeToken, length) {
   return RTT.setTypeInfo(
-      new Array(length), 
+      new Array(length),
       Array.$lookupRTT(RTT.getTypeInfo(typeToken).typeArgs));
 }
 
 function native_ListFactory__new(typeToken, length) {
   return RTT.setTypeInfo(
-      new Array(length), 
+      new Array(length),
       Array.$lookupRTT(RTT.getTypeInfo(typeToken).typeArgs));
 }
 
@@ -39,4 +39,8 @@ function $inlineArrayIndexCheck(array, index) {
     return index;
   }
   native__ArrayJsUtil__throwIndexOutOfRangeException(index);
+}
+
+function native_ObjectArray__splice(start, length) {
+  this.splice(start, length);
 }

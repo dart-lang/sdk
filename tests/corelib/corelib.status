@@ -13,11 +13,12 @@ DoubleCompareTest: Fail  # Bug 5427703
 
 
 [ $arch == dartc || $arch == chromium ]
-ConstListLiteralTest: Fail # Bug 3341367
-ConstListSetRangeTest: Fail # Bug 3341367
-CoreRuntimeTypesTest: Fail # Bug 5196164
-StringTest: Fail           # Bug 5196164
-DoubleCompareTest: Fail    # Bug 5427706
+ConstListLiteralTest: Fail      # Bug 5202940
+ConstListSetRangeTest: Fail     # Bug 5202940
+ConstListRemoveRangeTest: Fail  # Bug 5202940
+CoreRuntimeTypesTest: Fail      # Bug 5196164
+StringTest: Fail                # Bug 5196164
+DoubleCompareTest: Fail         # Bug 5427706
 *VMTest: Skip
 
 

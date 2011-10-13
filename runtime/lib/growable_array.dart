@@ -10,11 +10,29 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
+    if (length < 0) throw new IllegalArgumentException(length);
     Arrays.copy(from, startFrom, this, start, length);
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    if (length == 0) {
+      return;
+    }
+    if (length < 0) {
+      throw const IllegalArgumentException();
+    }
+    if (start < 0 || start >= this.length) {
+      throw new IndexOutOfRangeException(start);
+    }
+    if (start + length > this.length) {
+      throw new IndexOutOfRangeException(start + length);
+    }
+    Arrays.copy(backingArray,
+                start + length,
+                backingArray,
+                start,
+                this.length - length - start);
+    this.length = this.length - length;
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
