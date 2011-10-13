@@ -37,6 +37,7 @@ FieldOverrideTest/none: Fail # Bug 5384222
 FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
 ConstructorDefaultTest: Fail   # Bug 85
+Library1NegativeTest: Fail # Bug 5430449
 
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
@@ -69,6 +70,8 @@ BadNamedParametersTest: Fail             # Bug Bug 4202974 - release mode is not
 [ $arch == dartc || $arch == chromium ]
 Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
+Prefix14Test: Fail                       # Bug 5406175
+Prefix15Test: Fail                       # Bug 5406175
 FunctionTypeParameterNegativeTest: Fail  # Bug 4568007
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
