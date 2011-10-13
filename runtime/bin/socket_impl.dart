@@ -25,7 +25,7 @@ class _SocketBase {
     _handlerMap = new List(_CLOSE_EVENT + 1);
     _handlerMask = 0;
     _canActivateHandlers = true;
-    _id = 0;
+    _id = -1;
     _handler.receive((var message, ignored) {
       _multiplex(message);
     });
@@ -92,10 +92,18 @@ class _SocketBase {
     if (_id >= 0) {
       EventHandler._sendData(_id, _handler, 1 << _CLOSE_COMMAND);
       _handler.close();
+      _handler = null;
       _id = -1;
     } else {
-      throw new
-          SocketIOException("Error: close failed - invalid socket handle");
+      // This is to support closing sockets created but never assigned
+      // any actual socket.
+      if (_handler == null) {
+        throw new
+            SocketIOException("Error: close failed - invalid socket handle");
+      } else {
+        _handler.close();
+        _handler = null;
+      }
     }
   }
 

@@ -122,10 +122,10 @@ class _Process implements Process {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
-    if (_in._id != 0) { _in.close(); }
-    if (_out._id != 0) { _out.close(); }
-    if (_err._id != 0) { _err.close(); }
-    if (_exitHandler._id != 0) { _exitHandler.close(); }
+    _in.close();
+    _out.close();
+    _err.close();
+    _exitHandler.close();
     _closed = true;
   }
 
