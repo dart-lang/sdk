@@ -82,28 +82,33 @@ public class ClosureJsBackend extends AbstractJsBackend {
   // Validate the generated JavaScript
   private final boolean validate;
 
+  // Whether the generated code is "checked".
+  private final boolean checkedMode;
+
   public ClosureJsBackend() {
-    this(false);
+    this(false, false);
   }
 
   /**
    * @param generateHumanReadableOutput - generates human readable javascript output.
    */
-  public ClosureJsBackend(boolean generateHumanReadableOutput) {
+  public ClosureJsBackend(boolean checkedMode, boolean generateHumanReadableOutput) {
     // Current default settings
-    this(false, true, false, true, generateHumanReadableOutput);
+    this(false, true, false, true, checkedMode, generateHumanReadableOutput);
   }
 
   public ClosureJsBackend(boolean fastOutput,
                           boolean produceSourceMap,
                           boolean incremental,
                           boolean validate,
+                          boolean checkedMode,
                           boolean generateHumanReadableOutput) {
     this.fastOutput = fastOutput;
     this.produceSourceMap = produceSourceMap;
     // can't currently produce a valid source map incrementally
     this.incremental = incremental && !produceSourceMap;
     this.validate = validate;
+    this.checkedMode = checkedMode;
     this.generateHumanReadableOutput = generateHumanReadableOutput;
   }
 
@@ -487,9 +492,11 @@ public class ClosureJsBackend extends AbstractJsBackend {
 
     /*
      * NOTE: We turn this off because TypeErrors or anything that relies on a type name will fail
-     * due to the renaming.
+     * due to the class renaming.
      */
-    options.setReplaceIdGenerators(false);
+    if (checkedMode) {
+      options.setReplaceIdGenerators(false);
+    }
 
     return options;
   }
@@ -576,7 +583,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
    * @return a mutable list
    * @throws IOException
    */
-  public static List<JSSourceFile> getDefaultExterns() throws IOException {
+  private static List<JSSourceFile> getDefaultExterns() throws IOException {
     Class<ClosureJsBackend> clazz = ClosureJsBackend.class;
     InputStream input = clazz.getResourceAsStream(
         "/com/google/javascript/jscomp/externs.zip");
