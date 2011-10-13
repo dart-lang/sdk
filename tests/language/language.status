@@ -74,7 +74,7 @@ Prefix3NegativeTest: Fail                # Bug 5406175
 Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
 Prefix14Test: Fail                       # Bug 5406175
-Prefix15Test: Fail                       # Bug 5406175
+Prefix15Test: Skip                       # Bug 5406175
 FunctionTypeParameterNegativeTest: Fail  # Bug 4568007
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
