@@ -225,9 +225,13 @@ class BatchRunner(TestRunner):
 
     # Scale the number of tasks to the nubmer of CPUs on the machine
     # 1:1 is too much of an overload on many machines in batch mode,
-    # so scale the ratio of threads to CPUs back.
+    # so scale the ratio of threads to CPUs back. On Windows running
+    # more than one task is not safe.
     if tasks == testing.USE_DEFAULT_CPUS:
-      tasks = .75 * testing.HOST_CPUS
+      if utils.IsWindows():
+        tasks = 1
+      else:
+        tasks = .75 * testing.HOST_CPUS
 
     # Start threads
     for i in xrange(tasks):
