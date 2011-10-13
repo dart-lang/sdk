@@ -144,22 +144,36 @@ def GetBuildRoot(target_os, mode=None, arch=None):
     return BUILD_ROOT[target_os]
 
 
+def RewritePathSeparator(path, workspace):
+  # Paths in test files are always specified using '/'
+  # as the path separator. Replace with the actual
+  # path separator before use.
+  if ('/' in path):
+    split_path = path.split('/')
+    path = os.sep.join(split_path)
+    path = os.path.join(workspace, path)
+    if not os.path.exists(path):
+      raise Exception(path)
+  return path
+
+
 def ParseTestOptions(pattern, source, workspace):
   match = pattern.search(source)
-  # Options should be a single line in the test case no splits.
   if match:
-    def rewrite(path, workspace):
-      # Paths in test files are always specified using '/'
-      # as the path separator. Replace with the actual
-      # path separator before use.
-      if ('/' in path):
-        split_path = path.split('/')
-        path = os.sep.join(split_path)
-        path = os.path.join(workspace, path)
-        if not os.path.exists(path):
-          raise Exception(path)
-      return path
-    return [rewrite(o, workspace) for o in match.group(1).split(' ')]
+    return [RewritePathSeparator(o, workspace) for o in match.group(1).split(' ')]
+  else:
+    return None
+
+
+def ParseTestOptionsMultiple(pattern, source, workspace):
+  matches = pattern.findall(source)
+  if matches:
+    result = []
+    for match in matches:
+      if len(match) > 0:
+        result.append(
+            [RewritePathSeparator(o, workspace) for o in match.split(' ')]);
+    return result
   else:
     return None
 

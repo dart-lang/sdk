@@ -97,16 +97,19 @@ class SocketInputStream implements InputStream {
   void readUntil(List<int> pattern, void callback(List<int> resultBuffer)) {
     void doRead() {
       List<int> newBuffer;
-      if (_buffer != null) {
-        newBuffer = _buffer;
-      } else {
-        int size = _socket.available();
-        List<int> buffer = new List<int>(size);
-        int result = _socket.readList(buffer, 0, size);
+      int available = _socket.available();
+      if (available > 0) {
+        List<int> buffer = new List<int>(available);
+        int result = _socket.readList(buffer, 0, buffer.length);
         if (result > 0) {
           // TODO(hpayer): Avoid copying of data before pattern matching.
           newBuffer = _getBufferedData(buffer, result);
         }
+      } else if (_buffer != null) {
+        newBuffer = _buffer;
+      } else {
+        _socket.setDataHandler(doRead);
+        return;
       }
 
       int index = _matchPattern(newBuffer, pattern, 0);

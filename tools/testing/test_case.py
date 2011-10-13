@@ -24,7 +24,7 @@ class Error(Exception):
 
 
 class StandardTestCase(test.TestCase):
-  def __init__(self, context, path, filename, mode, arch):
+  def __init__(self, context, path, filename, mode, arch, vm_options = []):
     super(StandardTestCase, self).__init__(context, path)
     self.filename = filename
     self.mode = mode
@@ -32,6 +32,9 @@ class StandardTestCase(test.TestCase):
     self.run_arch = architecture.GetArchitecture(self.arch, self.mode,
                                                  self.filename)
     for flag in context.flags:
+      self.run_arch.vm_options.append(flag)
+
+    for flag in vm_options:
       self.run_arch.vm_options.append(flag)
 
   def IsNegative(self):

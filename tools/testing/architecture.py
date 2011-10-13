@@ -106,8 +106,7 @@ main() {
 
 
 # Patterns for matching test options in .dart files.
-VM_OPTIONS_PATTERN = re.compile(r'// VMOptions=(.*)')
-DART_OPTIONS_PATTERN = re.compile(r'// DartOptions=(.*)')
+DART_OPTIONS_PATTERN = re.compile(r"// DartOptions=(.*)")
 
 # Pattern for checking if the test is a web test.
 DOM_IMPORT_PATTERN = re.compile(r'#import.*(dart:dom|html.dart).*\);',
@@ -154,11 +153,7 @@ class Architecture(object):
     self.test = test
     self.build_root = utils.GetBuildRoot(OS_GUESS, self.mode, self.arch)
     source = file(test).read()
-    self.vm_options = utils.ParseTestOptions(VM_OPTIONS_PATTERN,
-                                             source,
-                                             root_path)
-    if not self.vm_options: self.vm_options = []
-
+    self.vm_options = []
     self.dart_options = utils.ParseTestOptions(DART_OPTIONS_PATTERN,
                                                source,
                                                root_path)

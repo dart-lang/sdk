@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Echo server test program for testing sockets.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 class EchoServerTest {
 
@@ -34,6 +39,7 @@ class EchoServerGame {
   }
 
   void sendData() {
+    Socket _socket;
 
     void messageHandler() {
 
@@ -41,24 +47,16 @@ class EchoServerGame {
       int bytesRead = 0;
 
       void handleRead() {
-
-        if (_socket.available() > 0) {
-          bytesRead += _socket.readList(
-              bufferReceived, bytesRead, MSGSIZE - bytesRead);
-        }
+        bytesRead += _socket.readList(
+            bufferReceived, bytesRead, MSGSIZE - bytesRead);
         if (bytesRead < MSGSIZE) {
-          /*
-           * We check every time the whole buffer to verify data integrity.
-           */
+          // We check every time the whole buffer to verify data integrity.
           for (int i = 0; i < bytesRead; i++) {
             Expect.equals(FIRSTCHAR + i, bufferReceived[i]);
           }
           _socket.setDataHandler(handleRead);
-        }
-        else {
-          /*
-           * We check every time the whole buffer to verify data integrity.
-           */
+        } else {
+          // We check every time the whole buffer to verify data integrity.
           for (int i = 0; i < MSGSIZE; i++) {
             Expect.equals(FIRSTCHAR + i, bufferReceived[i]);
           }
@@ -130,7 +128,6 @@ class EchoServerGame {
   int _port;
   ReceivePort _receivePort;
   SendPort _sendPort;
-  Socket _socket;
   List<int> _buffer;
   int _messages;
 }
@@ -152,40 +149,37 @@ class EchoServer extends Isolate {
         int bytesRead = 0;
 
         void handleRead() {
-          if (_client.available() > 0) {
-            bytesRead += _client.readList(buffer, bytesRead, msgSize - bytesRead);
-          }
-          if (bytesRead < msgSize) {
-            /*
-             * We check every time the whole buffer to verify data integrity.
-             */
-            for (int i = 0; i < bytesRead; i++) {
-              Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
-            }
-            _client.setDataHandler(handleRead);
-          }
-          else {
-            /*
-             * We check every time the whole buffer to verify data integrity.
-             */
-            for (int i = 0; i < msgSize; i++) {
-              Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
-            }
-
-            void writeMessage() {
-
-              int bytesWritten = 0;
-
-              void handleWrite() {
-                bytesWritten += _client.writeList(
-                      buffer, bytesWritten, msgSize - bytesWritten);
-                if (bytesWritten < msgSize) {
-                  _client.setWriteHandler(handleWrite);
-                }
+          int read = _client.readList(buffer, bytesRead, msgSize - bytesRead);
+          if (read > 0) {
+            bytesRead += read;
+            if (bytesRead < msgSize) {
+              // We check every time the whole buffer to verify data integrity.
+              for (int i = 0; i < bytesRead; i++) {
+                Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
               }
-              handleWrite();
+              _client.setDataHandler(handleRead);
+            } else {
+              // We check every time the whole buffer to verify data integrity.
+              for (int i = 0; i < msgSize; i++) {
+                Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
+              }
+
+              void writeMessage() {
+
+                int bytesWritten = 0;
+
+                void handleWrite() {
+                  int written = _client.writeList(
+                        buffer, bytesWritten, msgSize - bytesWritten);
+                  bytesWritten += written;
+                  if (bytesWritten < msgSize) {
+                    _client.setWriteHandler(handleWrite);
+                  }
+                }
+                handleWrite();
+              }
+              writeMessage();
             }
-            writeMessage();
           }
         }
 

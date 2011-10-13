@@ -20,6 +20,9 @@ from os.path import join, exists, basename
 
 import utils
 
+# Patterns for matching test options in .dart files.
+VM_OPTIONS_PATTERN = re.compile(r"// VMOptions=(.*)")
+
 class Error(Exception):
   pass
 
@@ -70,8 +73,20 @@ class StandardTestConfiguration(test.TestConfiguration):
           tests.append(test_case.MultiTestCase(self.context,
               test_path + [tag], test_source, kind, mode, arch))
       else:
-        tests.append(test_case.StandardTestCase(self.context,
-            test_path, filename, mode, arch))
+        # Look for VM specified as comments in the source file. If
+        # several sets of VM options are specified create a separate
+        # test for each set.
+        source = file(filename).read()
+        vm_options_list = utils.ParseTestOptionsMultiple(VM_OPTIONS_PATTERN,
+                                                         source,
+                                                         test_path)
+        if vm_options_list:
+          for options in vm_options_list:
+            tests.append(test_case.StandardTestCase(self.context,
+                test_path, filename, mode, arch, options))
+        else:
+          tests.append(test_case.StandardTestCase(self.context,
+              test_path, filename, mode, arch))
       return tests
 
   def ListTests(self, current_path, path, mode, arch):
@@ -169,7 +184,7 @@ class BrowserTestCase(test_case.StandardTestCase):
 
   def IsBatchable(self):
     return True
-      
+
   def Run(self):
     command = self.run_arch.GetCompileCommand(self.fatal_static_type_errors)
     if command != None:
@@ -249,7 +264,7 @@ class CompilationTestConfiguration(test.TestConfiguration):
           filename.append(f) # Remove .lib or .app suffix.
           test_path = current_path + filename
           test_dart_file = os.path.join(root, f)
-          if ((not self.Contains(path, test_path)) 
+          if ((not self.Contains(path, test_path))
               or (not self.IsTest(test_dart_file))):
             continue
           tests.append(test_case.CompilationTestCase(test_path,

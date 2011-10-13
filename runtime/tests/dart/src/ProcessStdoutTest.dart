@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Process test program to test process communication.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 class ProcessStdoutTest {
 
@@ -25,9 +30,7 @@ class ProcessStdoutTest {
     List<int> readBuffer = new List<int>(BUFFERSIZE);
 
     void dataWritten() {
-      print("data written");
       void readData() {
-        print("data read");
         for (int i = 0; i < BUFFERSIZE; i++) {
           Expect.equals(buffer[i], readBuffer[i]);
         }
