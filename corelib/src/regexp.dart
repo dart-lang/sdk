@@ -13,7 +13,7 @@
  * [:
  *    RegExp exp = const RegExp(@"(\w+)");
  *    String str = "Parse my string";
- *    Iterable<Match> matches = exp.allMatches(str, exp);
+ *    Iterable<Match> matches = exp.allMatches(str);
  *    for (Match m in matches) {
  *      String match = m.group(0);
  *      print(match);
@@ -86,7 +86,7 @@ interface Match {
  * [:
  *    RegExp exp = const RegExp(@"(\w+)");
  *    String str = "Parse my string";
- *    Iterable<Match> matches = exp.allMatches(str, exp);
+ *    Iterable<Match> matches = exp.allMatches(str);
  * :]
  */
 interface RegExp extends Pattern factory JSSyntaxRegExp {
