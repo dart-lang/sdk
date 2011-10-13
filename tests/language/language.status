@@ -70,6 +70,7 @@ BadNamedParametersTest: Fail             # Bug Bug 4202974 - release mode is not
 
 
 [ $arch == dartc || $arch == chromium ]
+Prefix3NegativeTest: Fail                # Bug 5406175
 Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
 Prefix14Test: Fail                       # Bug 5406175
