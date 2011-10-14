@@ -162,6 +162,10 @@ public class TypeAnalyzerBench {
       @Override
       public void typeError(DartCompilationError event) {
       }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
+      }
     };
   }
 

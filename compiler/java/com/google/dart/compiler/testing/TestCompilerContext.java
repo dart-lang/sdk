@@ -12,6 +12,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 
@@ -150,5 +151,9 @@ public class TestCompilerContext extends DartCompilerListener implements DartCom
   @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     return null;
+  }
+
+  @Override
+  public void unitCompiled(DartUnit unit) {
   }
 }

@@ -276,6 +276,10 @@ abstract class ResolverTestCase extends TestCase {
       public void typeError(DartCompilationError event) {
         compilationError(event);
       }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
+      }
     };
   }
 

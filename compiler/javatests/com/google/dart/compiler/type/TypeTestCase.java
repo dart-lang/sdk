@@ -7,6 +7,7 @@ package com.google.dart.compiler.type;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.TypeVariableElement;
@@ -150,6 +151,10 @@ abstract class TypeTestCase extends TestCase {
     @Override
     public void typeError(DartCompilationError event) {
       compilationError(event);
+    }
+
+    @Override
+    public void unitCompiled(DartUnit unit) {
     }
   };
 

@@ -115,6 +115,10 @@ public abstract class CompilerTestCase extends TestCase {
     public LibraryUnit getLibraryUnitResult() {
       return result;
     }
+
+    @Override
+    public void unitCompiled(DartUnit unit) {
+    }
   }
 
   /**

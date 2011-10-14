@@ -648,6 +648,9 @@ public class DartCompiler {
               }
             }
 
+            // To help support the IDE, notify the listener that this unit is compiled.
+            context.unitCompiled(unit);
+
             if (checkOnly) {
               continue;
             }

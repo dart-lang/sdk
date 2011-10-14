@@ -79,8 +79,12 @@ public class TypeHeuristicImplementationTest extends CompilerTestCase {
       public void compilationWarning(DartCompilationError event) {
       }
 
-      @Override
+      @Override      
       public void compilationError(DartCompilationError event) {
+      }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
       }
     };
     LibraryUnit libUnit = DartCompiler.analyzeLibrary(lib, parsedUnits, config, provider,

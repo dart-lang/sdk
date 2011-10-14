@@ -9,6 +9,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
@@ -107,6 +108,10 @@ public class LibrarySourceFileTest extends AbstractSourceFileTest {
         @Override
         public void typeError(DartCompilationError event) {
           throw new RuntimeException(event.getMessage());
+        }
+
+        @Override
+        public void unitCompiled(DartUnit unit) {
         }
       };
 

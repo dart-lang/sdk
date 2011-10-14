@@ -92,6 +92,9 @@ public class SyntaxTest extends AbstractParserTest {
         @Override
         public void compilationError(DartCompilationError event) {
         }
+        @Override
+        public void unitCompiled(DartUnit unit) {
+        }
       });
       DartParser parser = new DartParser(context);
       parser.parseExpression();
