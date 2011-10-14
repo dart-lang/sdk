@@ -4,6 +4,7 @@
 
 
 class DirectoryException {
+  String toString() { return "DirectoryException: $message"; }
   const DirectoryException(String this.message);
   final String message;
 }
@@ -36,13 +37,36 @@ class _DirectoryListingIsolate extends Isolate {
 
 class _Directory implements Directory {
 
-  _Directory(String this._dir);
+  _Directory(String this._path);
+
+  bool exists() {
+    int exists = _exists(_path);
+    if (exists < 0) {
+      // TODO(ager): Supply a better error message.
+      throw new DirectoryException("Diretory exists test failed: $_path");
+    }
+    return (exists == 1);
+  }
+
+  void create() {
+    if (!_create(_path)) {
+      // TODO(ager): Supply a better error message.
+      throw new DirectoryException("Directory creation failed: $_path");
+    }
+  }
+
+  void delete() {
+    if (!_delete(_path)) {
+      // TODO(ager): Supply a better error message.
+      throw new DirectoryException("Directory deletion failed: $_path");
+    }
+  }
 
   void list([bool recursive = false]) {
     new _DirectoryListingIsolate().spawn().then((port) {
       // Build a map of parameters to the directory listing isolate.
       Map listingParameters = new Map();
-      listingParameters['dir'] = _dir;
+      listingParameters['dir'] = _path;
       listingParameters['recursive'] = recursive;
 
       // Setup ports to receive messages from listing.
@@ -118,10 +142,16 @@ class _Directory implements Directory {
     }
   }
 
+  String get path() { return _path; }
+
+  bool _exists(String path) native "Directory_Exists";
+  bool _create(String path) native "Directory_Create";
+  bool _delete(String path) native "Directory_Delete";
+
   var _dirHandler;
   var _fileHandler;
   var _doneHandler;
   var _errorHandler;
 
-  String _dir;
+  String _path;
 }

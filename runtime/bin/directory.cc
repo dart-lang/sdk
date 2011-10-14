@@ -9,7 +9,6 @@
 
 static intptr_t GetHandlerPort(Dart_Handle handle) {
   if (Dart_IsNull(handle)) {
-    // TODO(ager): Generalize this to Directory::kInvalidId.
     return 0;
   }
   return DartUtils::GetIntegerInstanceField(handle, DartUtils::kIdFieldName);
@@ -32,5 +31,43 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
                   file_port,
                   done_port,
                   error_port);
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle path = Dart_GetNativeArgument(args, 1);
+  ASSERT(Dart_IsString(path));
+  Directory::ExistsResult result =
+      Directory::Exists(DartUtils::GetStringValue(path));
+  int return_value = -1;
+  if (result == Directory::EXISTS) {
+    return_value = 1;
+  }
+  if (result == Directory::DOES_NOT_EXIST) {
+    return_value = 0;
+  }
+  Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle path = Dart_GetNativeArgument(args, 1);
+  ASSERT(Dart_IsString(path));
+  bool created = Directory::Create(DartUtils::GetStringValue(path));
+  Dart_SetReturnValue(args, Dart_NewBoolean(created));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle path = Dart_GetNativeArgument(args, 1);
+  ASSERT(Dart_IsString(path));
+  bool deleted = Directory::Delete(DartUtils::GetStringValue(path));
+  Dart_SetReturnValue(args, Dart_NewBoolean(deleted));
   Dart_ExitScope();
 }

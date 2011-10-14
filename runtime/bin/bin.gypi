@@ -74,8 +74,7 @@
         'dartutils.cc',
         'directory.h',
         'directory.cc',
-        'directory_linux.cc',
-        'directory_macos.cc',
+        'directory_posix.cc',
         'directory_win.cc',
         'eventhandler.cc',
         'eventhandler.h',
@@ -311,8 +310,7 @@
         'dartutils.cc',
         'directory.h',
         'directory.cc',
-        'directory_linux.cc',
-        'directory_macos.cc',
+        'directory_posix.cc',
         'directory_win.cc',
         'eventhandler.cc',
         'eventhandler.h',
@@ -373,7 +371,7 @@
       ],
       'conditions': [
         ['OS=="linux"', {'sources/' : [
-          ['include', 'directory_linux.cc'],
+          ['include', 'directory_posix.cc'],
           ['include', 'eventhandler_linux.cc'],
           ['include', 'eventhandler_linux.h'],
           ['include', 'fdutils.h'],
@@ -383,7 +381,7 @@
           ['include', 'socket_linux.cc'],
         ]}],
         ['OS=="mac"', {'sources/' : [
-          ['include', 'directory_macos.cc'],
+          ['include', 'directory_posix.cc'],
           ['include', 'eventhandler_macos.cc'],
           ['include', 'eventhandler_macos.h'],
           ['include', 'fdutils.h'],

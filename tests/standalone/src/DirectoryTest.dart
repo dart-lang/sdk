@@ -33,8 +33,19 @@ class DirectoryTest {
     Expect.isFalse(listedSomething);
   }
 
+  static void testExistsCreateDelete() {
+    // TODO(ager): This should be creating temporary directories.
+    Directory d = new Directory("____DIRECTORY_TEST_DIRECTORY____");
+    Expect.isFalse(d.exists());
+    d.create();
+    Expect.isTrue(d.exists());
+    d.delete();
+    Expect.isFalse(d.exists());
+  }
+
   static void testMain() {
     testListing();
+    testExistsCreateDelete();
   }
 }
 

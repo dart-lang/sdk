@@ -8,7 +8,24 @@ interface Directory factory _Directory {
    * relative to the directory in which the Dart VM was
    * started.
    */
-  Directory(String dir);
+  Directory(String path);
+
+  /**
+   * Returns whether a directory with this name already exists.
+   */
+  bool exists();
+
+  /**
+   * Creates the directory with this name if it does not exist.
+   * Throw an exception if the directory already exists.
+   */
+  void create();
+
+  /**
+   * Deletes the directory with this name. Throws an exception
+   * if the directory is not empty or if deletion failed.
+   */
+  void delete();
 
   /**
    * List the sub-directories and files of this
@@ -46,4 +63,9 @@ interface Directory factory _Directory {
    * directories.
    */
   void setErrorHandler(void errorHandler(String error));
+
+  /**
+   * Gets the path of this directory.
+   */
+  final String path;
 }

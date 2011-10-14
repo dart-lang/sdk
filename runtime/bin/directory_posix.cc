@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <dirent.h>
+#include <errno.h>
 #include <libgen.h>
 #include <string.h>
 #include <sys/param.h>
@@ -216,4 +217,45 @@ void Directory::List(const char* dir_name,
     Dart_Handle value = Dart_NewBoolean(completed);
     Dart_Post(done_port, value);
   }
+}
+
+
+Directory::ExistsResult Directory::Exists(const char* dir_name) {
+  struct stat entry_info;
+  int lstat_success = lstat(dir_name, &entry_info);
+  if (lstat_success == 0) {
+    if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
+      return EXISTS;
+    } else {
+      return DOES_NOT_EXIST;
+    }
+  } else {
+    if (errno == EACCES ||
+        errno == EBADF ||
+        errno == EFAULT ||
+        errno == ENOMEM ||
+        errno == EOVERFLOW) {
+      // Search permissions denied for one of the directories in the
+      // path or a low level error occured. We do not know if the
+      // directory exists.
+      return UNKNOWN;
+    }
+    ASSERT(errno == ELOOP ||
+           errno == ENAMETOOLONG ||
+           errno == ENOENT ||
+           errno == ENOTDIR);
+    return DOES_NOT_EXIST;
+  }
+}
+
+
+bool Directory::Create(const char* dir_name) {
+  // Create the directory with the permissions specified by the
+  // process umask.
+  return (mkdir(dir_name, 0777) == 0);
+}
+
+
+bool Directory::Delete(const char* dir_name) {
+  return (rmdir(dir_name) == 0);
 }

@@ -25,6 +25,9 @@ static const char Builtin_source_[] = {
 #define BUILTIN_NATIVE_LIST(V)                                                 \
   V(Logger_PrintString, 1)                                                     \
   V(Directory_List, 7)                                                         \
+  V(Directory_Exists, 2)                                                       \
+  V(Directory_Create, 2)                                                       \
+  V(Directory_Delete, 2)                                                       \
   V(File_OpenFile, 3)                                                          \
   V(File_Exists, 1)                                                            \
   V(File_Close, 1)                                                             \

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <errno.h>
+#include <sys/stat.h>
+
 #include "bin/directory.h"
 
 // Forward declaration.
@@ -155,6 +158,7 @@ static bool ListRecursively(const char* dir_name,
   return completed;
 }
 
+
 void Directory::List(const char* dir_name,
                      bool recursive,
                      Dart_Port dir_port,
@@ -171,4 +175,41 @@ void Directory::List(const char* dir_name,
     Dart_Handle value = Dart_NewBoolean(result);
     Dart_Post(done_port, value);
   }
+}
+
+
+Directory::ExistsResult Directory::Exists(const char* dir_name) {
+  struct stat entry_info;
+  int stat_success = stat(dir_name, &entry_info);
+  if (stat_success == 0) {
+    if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
+      return EXISTS;
+    } else {
+      return DOES_NOT_EXIST;
+    }
+  } else {
+    if (errno == EACCES ||
+        errno == EBADF ||
+        errno == EFAULT ||
+        errno == ENOMEM) {
+      // Search permissions denied for one of the directories in the
+      // path or a low level error occured. We do not know if the
+      // directory exists.
+      return UNKNOWN;
+    }
+    ASSERT(errno == ENAMETOOLONG ||
+           errno == ENOENT ||
+           errno == ENOTDIR);
+    return DOES_NOT_EXIST;
+  }
+}
+
+
+bool Directory::Create(const char* dir_name) {
+  return (CreateDirectory(dir_name, NULL) != 0);
+}
+
+
+bool Directory::Delete(const char* dir_name) {
+  return (RemoveDirectory(dir_name) != 0);
 }
