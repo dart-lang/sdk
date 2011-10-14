@@ -38,7 +38,30 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    if (length == 0) {
+      return;
+    }
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    if (start < 0 || start > this.length) {
+      throw new IndexOutOfRangeException(start);
+    }
+    if (this.length + length >= backingArray.length) {
+      grow(backingArray.length + length);
+    }
+    Arrays.copy(backingArray,
+                start,
+                backingArray,
+                start + length,
+                this.length - start);
+    print(backingArray[2]);
+    if (initialValue !== null) {
+      for (int i = start; i < start + length; i++) {
+        backingArray[i] = initialValue;
+      }
+    }
+    this.length = this.length + length;
   }
 
   List<T> getRange(int start, int length) {

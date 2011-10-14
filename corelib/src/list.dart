@@ -169,6 +169,8 @@ interface List<E> extends Collection<E> factory ListFactory {
    * Throws an [UnsupportedOperationException] if the list is
    * not extendable.
    * If [length] is 0, this method does not do anything.
+   * If [start] is the length of the array, this method inserts the
+   * range at the end of the array.
    * Throws an [IllegalArgumentException] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.

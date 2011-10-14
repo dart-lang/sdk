@@ -105,7 +105,8 @@ class ObjectArray<T> implements Array<T> {
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot insert range in a non-extendable array");
   }
 
   List<T> getRange(int start, int length) {
@@ -223,7 +224,8 @@ class ImmutableArray<T> implements Array<T> {
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot insert range in an immutable array");
   }
 
   List<T> getRange(int start, int length) {

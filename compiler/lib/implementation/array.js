@@ -41,6 +41,14 @@ function $inlineArrayIndexCheck(array, index) {
   native__ArrayJsUtil__throwIndexOutOfRangeException(index);
 }
 
-function native_ObjectArray__splice(start, length) {
+function native_ObjectArray__removeRange(start, length) {
   this.splice(start, length);
+}
+
+function native_ObjectArray__insertRange(start, length, initialValue) {
+  var array = [start, 0];
+  for (var i = 0; i < length; i++){
+    array.push(initialValue);
+  }
+  this.splice.apply(this, array);
 }

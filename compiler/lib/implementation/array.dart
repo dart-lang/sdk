@@ -120,7 +120,8 @@ class ObjectArray<T> implements Array<T> native "Array" {
   int get length() native;
   void _setLength(int length) native;
   void _add(T value) native;
-  void _splice(int start, int length) native;
+  void _removeRange(int start, int length) native;
+  void _insertRange(int start, int length, T initialValue) native;
 
   void forEach(void f(T element)) {
     Collections.forEach(this, f);
@@ -158,9 +159,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
     if (length == 0) {
       return;
     }
-    if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
-    }
+    Arrays.rangeCheck(this, start, length);
     Arrays.copy(from, startFrom, this, start, length);
   }
 
@@ -172,20 +171,25 @@ class ObjectArray<T> implements Array<T> native "Array" {
     if (length == 0) {
       return;
     }
-    if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
-    }
-    if (start < 0 || start >= this.length) {
-      throw new IndexOutOfRangeException(start);
-    }
-    if (start + length > this.length) {
-      throw new IndexOutOfRangeException(start + length);
-    }
-    _splice(start, length);
+    Arrays.rangeCheck(this, start, length);
+    _removeRange(start, length);
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    if (_isFixed) {
+      throw const UnsupportedOperationException(
+          "Cannot insert range in a non-extendable array");
+    }
+    if (length == 0) {
+      return;
+    }
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    if (start < 0 || start > this.length) {
+      throw new IndexOutOfRangeException(start);
+    }
+    _insertRange(start, length, initialValue);
   }
 
   List<T> getRange(int start, int length) {

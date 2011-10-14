@@ -68,7 +68,7 @@ class Arrays {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }
-    if (start < 0 || start > a.length) {
+    if (start < 0 || start >= a.length) {
       throw new IndexOutOfRangeException(start);
     }
     if (start + length > a.length) {
