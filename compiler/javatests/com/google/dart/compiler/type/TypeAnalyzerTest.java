@@ -546,12 +546,6 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testAssert() {
     analyze("assert(true);");
     analyze("assert(false);");
-    analyze("assert(true, 'message');");
-    analyze("assert(false, 'message');");
-    analyzeFail("assert('message', false);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("assert('message', true);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("assert('message');",
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("assert(null);");

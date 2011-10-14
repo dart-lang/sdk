@@ -98,6 +98,7 @@ import com.google.dart.compiler.backend.js.ast.JsConditional;
 import com.google.dart.compiler.backend.js.ast.JsContinue;
 import com.google.dart.compiler.backend.js.ast.JsDefault;
 import com.google.dart.compiler.backend.js.ast.JsDoWhile;
+import com.google.dart.compiler.backend.js.ast.JsEmpty;
 import com.google.dart.compiler.backend.js.ast.JsExprStmt;
 import com.google.dart.compiler.backend.js.ast.JsExpression;
 import com.google.dart.compiler.backend.js.ast.JsFor;
@@ -2301,6 +2302,10 @@ public class GenerateJavascriptAST {
       return translationContext.getProgram().getUndefinedLiteral();
     }
 
+    private JsEmpty empty() {
+      return translationContext.getProgram().getEmptyStmt();
+    }
+
     @Override
     public JsNode visitTypeNode(DartTypeNode x) {
       // This backend does not need types.
@@ -3423,16 +3428,19 @@ public class GenerateJavascriptAST {
 
     @Override
     public JsNode visitAssertion(DartAssertion node) {
-      JsExpression expression = (JsExpression) generate(node.getExpression());
-      JsExpression message = (JsExpression) generate(node.getMessage());
-      JsNameRef assertName = new JsNameRef("assert");
-      JsInvocation jsInvoke;
-      if (message == null) {
+      if (inDevMode()) {
+        JsExpression expression = (JsExpression) generate(node.getExpression());
+        JsNameRef assertName = new JsNameRef("assert");
+        JsInvocation jsInvoke;
         jsInvoke = AstUtil.newInvocation(assertName, expression);
-      } else {
-        jsInvoke = AstUtil.newInvocation(assertName, expression, message);
+        return new JsExprStmt(jsInvoke).setSourceRef(node);
       }
-      return new JsExprStmt(jsInvoke).setSourceRef(node);
+      // Just emit an empty statement if not in checked mode.
+      return empty();
+    }
+
+    private boolean inDevMode() {
+      return context.getCompilerConfiguration().developerModeChecks();
     }
 
     @Override

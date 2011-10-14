@@ -181,13 +181,10 @@ function $bind(fn, thisObj, var_args) {
  */
 var $Dart$Null = void 0;
 
-function assert(expr, msg) {
-  var val = typeof(expr) == 'function' ? expr() : expr;
-  if (!val) {
-    // TODO: throw a Dart AssertionError instead
-    var err = new Error('Assertion failed. ' + (msg || ''));
-    Error.captureStackTrace && Error.captureStackTrace(err);
-    throw err;
+function assert(expr) {
+  var val = typeof(expr) == 'function' ? $dartcall(expr, []) : expr;
+  if (val !== true) {
+    $Dart$ThrowException(native_ExceptionHelper_createAssertionError());
   }
 }
 

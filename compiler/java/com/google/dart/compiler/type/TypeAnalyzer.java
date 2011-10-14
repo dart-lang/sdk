@@ -637,7 +637,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           checkAssignable(conditionNode, boolType, condition);
           break;
       }
-      checkAssignable(stringType, node.getMessage());
       return voidType;
     }
 

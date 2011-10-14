@@ -2715,13 +2715,9 @@ public class DartParser extends CompletionHooksParserBase {
     if (peek(1) == Token.LPAREN && optionalPseudoKeyword(ASSERT_KEYWORD)) {
       consume(Token.LPAREN);
       DartExpression expression = parseConditionalExpression();
-      DartExpression message = null;
-      if (optional(Token.COMMA)) {
-        message = parseConditionalExpression();
-      }
       expectCloseParen();
       expectStatmentTerminator();
-      return done(new DartAssertion(expression, message));
+      return done(new DartAssertion(expression));
     }
     DartExpression expression = parseExpression();
     expectStatmentTerminator();
