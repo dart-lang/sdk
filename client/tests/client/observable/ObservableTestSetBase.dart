@@ -11,11 +11,11 @@ class ObservableTestSetBase extends TestSet {
   ObservableTestSetBase() : super();
 
   void checkEvent(ChangeEvent e, target, pName, index, type, newVal, oldVal) {
-    expect(e.target) == target;
-    expect(e.propertyName) == pName;
-    expect(e.index) == index;
-    expect(e.type) == type;
-    expect(e.newValue) == newVal;
-    expect(e.oldValue) == oldVal;
+    expect(e.target).equals(target);
+    expect(e.propertyName).equals(pName);
+    expect(e.index).equals(index);
+    expect(e.type).equals(type);
+    expect(e.newValue).equals(newVal);
+    expect(e.oldValue).equals(oldVal);
   }
 }

@@ -10,17 +10,17 @@ class ViewTests extends UnitTestSuite {
   void setUpTestSuite() {
     test('does not render immediately', () {
       final view = new TestView();
-      expect(view.isRendered) == false;
+      expect(view.isRendered).isFalse();
 
       view.addToDocument(document.body);
-      expect(view.isRendered) == true;
+      expect(view.isRendered).isTrue();
     });
 
     group('addToDocument()', () {
       test('causes view to render', () {
         final view = new TestView();
         view.addToDocument(document.body);
-        expect(view.isRendered) == true;
+        expect(view.isRendered).isTrue();
       });
 
       test('calls afterRender()', () {
@@ -35,7 +35,7 @@ class ViewTests extends UnitTestSuite {
 
 
         view.addToDocument(document.body);
-        expect(result) == 'renderafter';
+        expect(result).equals('renderafter');
       });
 
       test('calls enterDocument()', () {
@@ -44,7 +44,7 @@ class ViewTests extends UnitTestSuite {
         view.enterDocumentFn = () { entered = true; };
 
         view.addToDocument(document.body);
-        expect(entered) == true;
+        expect(entered).isTrue();
       });
     });
 
@@ -53,7 +53,7 @@ class ViewTests extends UnitTestSuite {
         final rendered = new Element.html('<div class="node"></div>');
         final view = new TestView();
         view.renderFn = () => rendered;
-        view.afterRenderFn = (node) { expect(node) == rendered; };
+        view.afterRenderFn = (node) { expect(node).equals(rendered); };
 
         view.addToDocument(document.body);
       });
@@ -72,7 +72,7 @@ class ViewTests extends UnitTestSuite {
         parent.childViews = [child];
         parent.childViewAdded(child);
 
-        expect(entered) == true;
+        expect(entered).isTrue();
       });
 
       test('does not call enterDocument() if parent is not in document', () {
@@ -86,7 +86,7 @@ class ViewTests extends UnitTestSuite {
         parent.childViews = [child];
         parent.childViewAdded(child);
 
-        expect(entered) == false;
+        expect(entered).isFalse();
       });
 
       test('calls enterDocument() each time added', () {
@@ -106,7 +106,7 @@ class ViewTests extends UnitTestSuite {
         parent.childViewAdded(child);
         parent.childViewRemoved(child);
 
-        expect(entered) == 3;
+        expect(entered).equals(3);
       });
     });
 
@@ -123,7 +123,7 @@ class ViewTests extends UnitTestSuite {
         parent.childViews = [];
         parent.childViewRemoved(child);
 
-        expect(exited) == true;
+        expect(exited).isTrue();
       });
 
       test('does not call exitDocument() if parent is not in document', () {
@@ -137,7 +137,7 @@ class ViewTests extends UnitTestSuite {
         parent.childViews = [];
         parent.childViewRemoved(child);
 
-        expect(exited) == false;
+        expect(exited).isFalse();
       });
 
       test('calls exitDocument() each time removed', () {
@@ -157,7 +157,7 @@ class ViewTests extends UnitTestSuite {
         parent.childViewAdded(child);
         parent.childViewRemoved(child);
 
-        expect(exited) == 3;
+        expect(exited).equals(3);
       });
     });
 
@@ -174,7 +174,7 @@ class ViewTests extends UnitTestSuite {
         parent.childViews = [child];
 
         parent.addToDocument(document.body);
-        expect(result) == 'childparent';
+        expect(result).equals('childparent');
       });
     });
   }

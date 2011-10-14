@@ -12,40 +12,40 @@ class ObservableValueTests extends ObservableTestSetBase {
   }
 
   void testObservableValue() {
-    final value = new ObservableValue<String>("initial");
-    expect(value.value) == "initial";
+    final value = new ObservableValue<String>('initial');
+    expect(value.value).equals('initial');
 
     // Set value.
-    value.value = "new";
-    expect(value.value) == "new";
+    value.value = 'new';
+    expect(value.value).equals('new');
 
     // Change event is sent when value is changed.
     EventSummary result = null;
     value.addChangeListener((summary) {
-      expect(result) == null;
+      expect(result).isNull();
       result = summary;
       expect(result).isNotNull();
     });
 
-    value.value = "newer";
+    value.value = 'newer';
 
     expect(result).isNotNull();
-    expect(result.events.length) == 1;
+    expect(result.events.length).equals(1);
     checkEvent(result.events[0],
-        value, "value", null, ChangeEvent.UPDATE, "newer", "new");
+        value, 'value', null, ChangeEvent.UPDATE, 'newer', 'new');
   }
 
   void testObservableValueDoesNotRaiseEventIfUnchanged() {
-    final value = new ObservableValue<String>("foo");
-    expect(value.value) == "foo";
+    final value = new ObservableValue<String>('foo');
+    expect(value.value).equals('foo');
 
     bool called = false;
     value.addChangeListener((summary) { called = true; });
 
     // Set it to the same value.
-    value.value = "foo";
+    value.value = 'foo';
 
     // Should not have gotten an event.
-    expect(called) == false;
+    expect(called).equals(false);
   }
 }

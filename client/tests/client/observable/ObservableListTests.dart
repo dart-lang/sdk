@@ -26,24 +26,24 @@ class ObservableListTests extends ObservableTestSetBase {
     // Add a listener that saves the events
     EventSummary res = null;
     arr.addChangeListener((summary) {
-      expect(res) == null;
+      expect(res).isNull();
       res = summary;
       expect(res).isNotNull();
     });
 
     // execute some code with readonly operations only
-    expect(res) == null;
+    expect(res).isNull();
     bool called = false;
     EventBatch.wrap((e) {
-      expect(arr.length) == 6;
-      expect(arr[0]) == 1;
+      expect(arr.length).equals(6);
+      expect(arr[0]).equals(1);
       // TODO(sigmund): why we need write startIndex? it should be optional.
-      Expect.equals(5, arr.indexOf(4, 0));
-      Expect.equals(0, arr.indexOf(1, 0));
-      Expect.equals(3, arr.indexOf(1, 1));
+      expect(arr.indexOf(4, 0)).equals(5);
+      expect(arr.indexOf(1, 0)).equals(0);
+      expect(arr.indexOf(1, 1)).equals(3);
       // TODO(rnystrom): Get rid of second arg when lastIndexOf has default.
-      Expect.equals(3, arr.lastIndexOf(1, arr.length - 1));
-      expect(arr.last() == 4);
+      expect(arr.lastIndexOf(1, arr.length - 1)).equals(3);
+      expect(arr.last()).equals(4);
       final copy = new List<int>();
       arr.forEach(f(i) {
         copy.add(i);
@@ -51,29 +51,29 @@ class ObservableListTests extends ObservableTestSetBase {
       expect(copy).equalsCollection([1, 2, 3, 1, 3, 4]);
       called = true;
     })(null);
-    Expect.isTrue(called);
-    expect(res) == null; // no change from read-only operators
+    expect(called).isTrue();
+    expect(res).isNull(); // no change from read-only operators
 
     // execute some code with mutations
-    expect(res) == null;
+    expect(res).isNull();
     called = false;
     expect(arr).equalsCollection([1, 2, 3, 1, 3, 4]);
     EventBatch.wrap((e) {
-      arr.add(5);                                // 1 2 3 1 3 4(5)
-      arr.add(6);                                // 1 2 3 1 3 4 5(6)
-      arr[1] = arr[arr.length - 1];              // 1(6)3 1 3 4 5 6
-      arr.add(7);                                // 1 6 3 1 3 4 5 6(7)
-      arr[5] = arr[8];                           // 1 6 3 1 3(7)5 6 7
-      arr.add(42);                               // 1 6 3 1 3 7 5 6 7(42)
-      expect(arr.removeAt(3) == 1);              // 1 6 3( )3 7 5 6 7 42
-      expect(arr.removeFirstElement(3) == true); // 1 6( )  3 7 5 6 7 42
-      expect(arr.removeLast() == 42);            // 1 6     3 7 5 6 7(  )
-      expect(arr.removeAllElements(6) == 2);     // 1( )    3 7 5( )7
+      arr.add(5);                                 // 1 2 3 1 3 4(5)
+      arr.add(6);                                 // 1 2 3 1 3 4 5(6)
+      arr[1] = arr[arr.length - 1];               // 1(6)3 1 3 4 5 6
+      arr.add(7);                                 // 1 6 3 1 3 4 5 6(7)
+      arr[5] = arr[8];                            // 1 6 3 1 3(7)5 6 7
+      arr.add(42);                                // 1 6 3 1 3 7 5 6 7(42)
+      expect(arr.removeAt(3)).equals(1);          // 1 6 3( )3 7 5 6 7 42
+      expect(arr.removeFirstElement(3)).isTrue(); // 1 6( )  3 7 5 6 7 42
+      expect(arr.removeLast()).equals(42);        // 1 6     3 7 5 6 7(  )
+      expect(arr.removeAllElements(6)).equals(2); // 1( )    3 7 5( )7
       called = true;
     })(null);
-    Expect.isTrue(called);
+    expect(called).isTrue();
     expect(res).isNotNull();
-    expect(res.events.length) == 11;
+    expect(res.events.length).equals(11);
     checkEvent(res.events[0], arr, null, 6, ChangeEvent.INSERT, 5, null);
     checkEvent(res.events[1], arr, null, 7, ChangeEvent.INSERT, 6, null);
     checkEvent(res.events[2], arr, null, 1, ChangeEvent.UPDATE, 6, 2);
@@ -88,7 +88,7 @@ class ObservableListTests extends ObservableTestSetBase {
     expect(arr).equalsCollection([1, 3, 7, 5, 7]);
 
     res = null;
-    expect(res) == null;
+    expect(res).isNull();
     called = false;
     // execute global mutations like sort and clear
     EventBatch.wrap((e) {
@@ -99,9 +99,9 @@ class ObservableListTests extends ObservableTestSetBase {
       arr.sort(int compare(int a, int b) { return a - b; });
       called = true;
     })(null);
-    Expect.isTrue(called);
+    expect(called).isTrue();
     expect(res).isNotNull();
-    expect(res.events.length) == 5;
+    expect(res.events.length).equals(5);
     checkEvent(res.events[0], arr, null, 5, ChangeEvent.INSERT, 1, null);
     checkEvent(res.events[1], arr, null, 6, ChangeEvent.INSERT, 4, null);
     checkEvent(res.events[2], arr, null, 7, ChangeEvent.INSERT, 10, null);
@@ -110,15 +110,15 @@ class ObservableListTests extends ObservableTestSetBase {
     expect(arr).equalsCollection([1, 1, 3, 4, 5, 7, 7, 9, 10]);
 
     res = null;
-    expect(res) == null;
+    expect(res).isNull();
     called = false;
     EventBatch.wrap((e) {
       arr.clear();
       called = true;
     })(null);
-    Expect.isTrue(called);
+    expect(called).isTrue();
     expect(res).isNotNull();
-    expect(res.events.length) == 1;
+    expect(res.events.length).equals(1);
     checkEvent(res.events[0], arr, null, null, ChangeEvent.GLOBAL, null, null);
     expect(arr).equalsCollection([]);
   }

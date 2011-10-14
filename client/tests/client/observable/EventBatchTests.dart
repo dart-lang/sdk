@@ -16,39 +16,39 @@ class EventBatchTests extends ObservableTestSetBase {
     final target = new AbstractObservable();
     EventSummary res = null;
     target.addChangeListener((summary) {
-      expect(res) == null;
+      expect(res).isNull();
       res = summary;
       expect(res).isNotNull();
     });
 
     final f = EventBatch.wrap((e) {
-      target.recordPropertyUpdate("pM", 10, 11);
-      target.recordPropertyUpdate("pL", "11", "13");
-      target.recordListUpdate(2, "a", "b");
-      target.recordListInsert(5, "a");
-      target.recordListRemove(4, "c");
+      target.recordPropertyUpdate('pM', 10, 11);
+      target.recordPropertyUpdate('pL', '11', '13');
+      target.recordListUpdate(2, 'a', 'b');
+      target.recordListInsert(5, 'a');
+      target.recordListRemove(4, 'c');
       target.recordGlobalChange();
     });
 
-    expect(res) == null;
+    expect(res).isNull();
     f(null);
     expect(res).isNotNull();
 
-    expect(res.events.length) == 6;
+    expect(res.events.length).equals(6);
     checkEvent(res.events[0],
-        target, "pM", null, ChangeEvent.UPDATE, 10, 11);
+        target, 'pM', null, ChangeEvent.UPDATE, 10, 11);
 
     checkEvent(res.events[1],
-        target, "pL", null, ChangeEvent.UPDATE, "11", "13");
+        target, 'pL', null, ChangeEvent.UPDATE, '11', '13');
 
     checkEvent(res.events[2],
-        target, null, 2, ChangeEvent.UPDATE, "a", "b");
+        target, null, 2, ChangeEvent.UPDATE, 'a', 'b');
 
     checkEvent(res.events[3],
-        target, null, 5, ChangeEvent.INSERT, "a", null);
+        target, null, 5, ChangeEvent.INSERT, 'a', null);
 
     checkEvent(res.events[4],
-        target, null, 4, ChangeEvent.REMOVE, null, "c");
+        target, null, 4, ChangeEvent.REMOVE, null, 'c');
 
     checkEvent(res.events[5],
         target, null, null, ChangeEvent.GLOBAL, null, null);

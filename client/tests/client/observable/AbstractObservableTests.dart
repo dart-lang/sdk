@@ -15,8 +15,8 @@ class AbstractObservableTests extends ObservableTestSetBase {
         final target = new AbstractObservable();
         final listener = (e) { };
 
-        expect(target.addChangeListener(listener)) == true;
-        expect(target.addChangeListener(listener)) == false;
+        expect(target.addChangeListener(listener)).isTrue();
+        expect(target.addChangeListener(listener)).isFalse();
       });
     });
   }
@@ -60,24 +60,24 @@ class AbstractObservableTests extends ObservableTestSetBase {
     final target = new AbstractObservable();
     EventSummary res = null;
     target.addChangeListener((summary) {
-      expect(res) == null;
+      expect(res).isNull();
       res = summary;
       expect(res).isNotNull();
     });
 
-    target.recordPropertyUpdate("pM", 10, 11);
+    target.recordPropertyUpdate('pM', 10, 11);
 
     expect(res).isNotNull();
-    expect(res.events.length) == 1;
+    expect(res.events.length).equals(1);
     checkEvent(res.events[0],
-        target, "pM", null, ChangeEvent.UPDATE, 10, 11);
+        target, 'pM', null, ChangeEvent.UPDATE, 10, 11);
     res = null;
 
-    target.recordPropertyUpdate("pL", "11", "13");
+    target.recordPropertyUpdate('pL', '11', '13');
 
     expect(res).isNotNull();
-    expect(res.events.length) == 1;
+    expect(res.events.length).equals(1);
     checkEvent(res.events[0],
-        target, "pL", null, ChangeEvent.UPDATE, "11", "13");
+        target, 'pL', null, ChangeEvent.UPDATE, '11', '13');
   }
 }

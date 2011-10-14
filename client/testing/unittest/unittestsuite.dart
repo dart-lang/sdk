@@ -299,24 +299,35 @@ class UnitTestSuite {
  * Wraps an value and provides an "==" operator that can be used to verify that
  * the value matches a given expectation.
  */
-// TODO(rnystrom): Note that because Dart does not currently allow overloading
-// != that this *cannot* be used with !=. If you do expect(1) != 2, it will do
-// the exact wrong thing. (It will invoke == which validates that 1 *does*
-// equal 2.) If we get an overloadable != operator, that can be fixed.
 class Expectation {
   final _value;
 
   Expectation(this._value);
 
   /** Asserts that the value is equivalent to the given expected value. */
-  operator ==(expected) {
+  bool equals(expected) {
     Expect.equals(expected, _value);
     return _value == expected;
+  }
+
+  /** Asserts that the value is null. */
+  void isNull() {
+    Expect.equals(null, _value);
   }
 
   /** Asserts that the value is not null. */
   void isNotNull() {
     Expect.notEquals(null, _value);
+  }
+
+  /** Asserts that the value is true. */
+  void isTrue() {
+    Expect.equals(true, _value);
+  }
+
+  /** Asserts that the value is null. */
+  void isFalse() {
+    Expect.equals(false, _value);
   }
 
   /** Asserts that the value has the same elements as the given collection. */
