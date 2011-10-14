@@ -183,7 +183,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartParser(Source source, DartCompilerListener listener) throws IOException {
     this(source, source.getSourceReader(), listener);
   }
-  
+
   private DartParser(Source source,
                     Reader sourceReader,
                     DartCompilerListener listener) throws IOException {
@@ -274,7 +274,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   /**
    * A version of the parser which only parses the directives of a library.
-   * 
+   *
    * TODO(jbrosenberg): consider parsing the whole file here, in order to avoid
    * duplicate work.  Probably requires removing use of LibraryUnit's, etc.
    * Also, this minimal parse does have benefit in the incremental compilation
@@ -640,7 +640,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   /**
    * Parse a field or method, which may be inside a class or at the top level.
-   * 
+   *
    * <pre>
    * // This rule is organized in a way that may not be most readable, but
    * // gives the best error messages.
@@ -730,7 +730,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     | NEGATE
    *     ;
    * </pre>
-   * 
+   *
    * @param allowStatic true if the static modifier is allowed
    * @return a {@link DartNode} representing the grammar fragment above
    */
@@ -2056,6 +2056,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartParameter> params = parseFormalParameterList();
     DartBlock body = parseFunctionStatementBody(isDeclaration);
     DartFunction function = new DartFunction(params, body, returnType);
+    doneWithoutConsuming(function);
     if (isDeclaration && namePtr[0] == null) {
       reportError(function, DartCompilerErrorCode.MISSING_FUNCTION_NAME);
     }
@@ -2824,7 +2825,7 @@ public class DartParser extends CompletionHooksParserBase {
    * <p>
    * Note that this is a crude heuristic that needs to be improved for better
    * error recovery.
-   * 
+   *
    * @return a {@link DartSyntheticErrorStatement}
    */
   private DartStatement parseErrorStatement() {
@@ -2879,7 +2880,7 @@ public class DartParser extends CompletionHooksParserBase {
         break;
     }
 
-    while (true) { 
+    while (true) {
       switch (peek(0)) {
         case EOS:
           return;
@@ -2897,7 +2898,7 @@ public class DartParser extends CompletionHooksParserBase {
             return;
           }
           break;
-     
+
         case LBRACE:
           ++braceCount;
           //$FALL-THROUGH$
@@ -2910,7 +2911,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   /**
    * Report an error without advancing past the next token.
-   * 
+   *
    * @param errCode the error code to report, which may take a string parameter
    *     containing the actual token found
    */
@@ -3183,7 +3184,7 @@ public class DartParser extends CompletionHooksParserBase {
         done = true;
         done(null);
       } else {
-        if (peek(0) != Token.EOS) { 
+        if (peek(0) != Token.EOS) {
           members.add(parseDefaultMember(label));
         }
         expectCloseBrace();
