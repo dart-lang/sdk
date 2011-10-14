@@ -144,7 +144,7 @@ class _Directory implements Directory {
 
   String get path() { return _path; }
 
-  bool _exists(String path) native "Directory_Exists";
+  int _exists(String path) native "Directory_Exists";
   bool _create(String path) native "Directory_Create";
   bool _delete(String path) native "Directory_Delete";
 
