@@ -30,7 +30,6 @@ BUILT_IN_TESTS = ['dartc', 'vm', 'standalone', 'corelib', 'language', 'co19',
                   'samples', 'isolate', 'stub-generator', 'client']
 
 # Patterns for matching test options in .dart files.
-VM_OPTIONS_PATTERN = re.compile(r'// VMOptions=(.*)')
 DART_OPTIONS_PATTERN = re.compile(r'// DartOptions=(.*)')
 ISOLATE_STUB_PATTERN = re.compile(r'// IsolateStubs=(.*)')
 
