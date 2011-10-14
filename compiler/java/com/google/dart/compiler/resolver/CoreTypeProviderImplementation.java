@@ -56,7 +56,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   }
 
   private static InterfaceType getType(String name, Scope scope, DartCompilerListener listener) {
-    ClassElement element = (ClassElement) scope.findElement(name);
+    ClassElement element = (ClassElement) scope.findElement(scope.getLibrary(), name);
     if (element == null) {
       Location location = null;
       DartCompilationError error =

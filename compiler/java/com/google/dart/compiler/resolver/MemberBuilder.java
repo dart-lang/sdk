@@ -293,7 +293,7 @@ public class MemberBuilder {
           element = currentHolder.lookupLocalElement(name);
       } else {
         // Top level nodes are not handled gracefully
-        element = topLevelContext.getScope().findElement(name);
+        element = topLevelContext.getScope().findElement(context.getScope().getLibrary(), name);
       }
 
       FieldElementImplementation fieldElement = null;

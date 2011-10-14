@@ -643,11 +643,25 @@ public class Resolver {
     }
 
     private Element resolveIdentifier(DartIdentifier x, boolean isQualifier) {
-      Element element = getContext().getScope().findElement(x.getTargetName());
+      Scope scope = getContext().getScope();
+      String name = x.getTargetName();
+      Element element = scope.findElement(scope.getLibrary(), name);
       if (element == null) {
+        // A private identifier could refer to a field in a different library. In this case
+        // we want to provide a more useful error message in the type analyzer.
+        if (DartIdentifier.isPrivateName(name)) {
+          Element found = scope.findElement(null, name);
+          if (found != null) {
+            Element enclosingElement = found.getEnclosingElement();
+            String referencedElementName = enclosingElement == null
+                ? name : String.format("%s.%s", enclosingElement.getName(), name);
+            resolutionError(x, DartCompilerErrorCode.ILLEGAL_ACCESS_TO_PRIVATE_MEMBER,
+                            name, referencedElementName);
+          }
+        }
         if (isStaticContextOrInitializer()) {
           if (!context.shouldWarnOnNoSuchType()) {
-            resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED, x.getTargetName());
+            resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
           }
         }
       } else {
@@ -655,18 +669,18 @@ public class Resolver {
           case FIELD:
             if (inStaticContext(currentMethod) && !inStaticContext(element)) {
               resolutionError(x, DartCompilerErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
-                  x.getTargetName());
+                  name);
             }
             break;
           case METHOD:
             if (inStaticContext(currentMethod) && !inStaticContext(element)) {
               resolutionError(x, DartCompilerErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC,
-                  x.getTargetName());
+                  name);
             }
             break;
           case CLASS:
             if (!isQualifier) {
-              resolutionError(x, DartCompilerErrorCode.IS_A_CLASS, x.getTargetName());
+              resolutionError(x, DartCompilerErrorCode.IS_A_CLASS, name);
             }
             break;
 
@@ -766,7 +780,8 @@ public class Resolver {
 
         case LIBRARY:
           // Library prefix, lookup the element in the reference library.
-          element = ((LibraryElement) qualifier).getScope().findElement(x.getPropertyName());
+          Scope scope = ((LibraryElement) qualifier).getScope();
+          element = scope.findElement(scope.getLibrary(), x.getPropertyName());
           if (element == null) {
             resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED_LIBRARY,
                 x.getPropertyName(), qualifier.getName());
@@ -819,7 +834,9 @@ public class Resolver {
 
         case LIBRARY:
           // Library prefix, lookup the element in the reference library.
-          element = ((LibraryElement) target).getScope().findElement(x.getFunctionNameString());
+          LibraryElement library = ((LibraryElement) target);
+          element = library.getScope().findElement(context.getScope().getLibrary(),
+                                                   x.getFunctionNameString());
           if (element == null) {
             diagnoseErrorInMethodInvocation(x, null, null);
           }
@@ -833,7 +850,8 @@ public class Resolver {
 
     @Override
     public Element visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
-      Element element = getContext().getScope().findElement(x.getTarget().getTargetName());
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), x.getTarget().getTargetName());
       ElementKind kind = ElementKind.of(element);
       if (!INVOKABLE_ELEMENTS.contains(kind)) {
         diagnoseErrorInUnqualifiedInvocation(x);
@@ -988,7 +1006,8 @@ public class Resolver {
 
     private void diagnoseErrorInUnqualifiedInvocation(DartUnqualifiedInvocation node) {
       String name = node.getTarget().getTargetName();
-      Element element = getContext().getScope().findElement(name);
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), name);
       ElementKind kind = ElementKind.of(element);
       switch (kind) {
         case NONE:
@@ -1020,7 +1039,8 @@ public class Resolver {
 
     private void diagnoseErrorInInitializer(DartIdentifier x) {
       String name = x.getTargetName();
-      Element element = getContext().getScope().findElement(name);
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), name);
       ElementKind kind = ElementKind.of(element);
       switch (kind) {
         case NONE:

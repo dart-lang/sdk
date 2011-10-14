@@ -191,7 +191,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
   VOID_FIELD("SyntaxError: field cannot be of type void"),
   VOID_PARAMETER("SyntaxError: parameter cannot be of type void"),
   VOID_VARIABLE("Variable cannot be of type void"),
-  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments"),
+  ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library");
 
   /**
    * The message format string used to create the message to be displayed for this error.

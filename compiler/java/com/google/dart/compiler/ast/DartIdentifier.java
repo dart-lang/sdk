@@ -83,4 +83,8 @@ public class DartIdentifier extends DartExpression implements ElementReference {
   public Element getReferencedElement() {
     return referencedElement;
   }
+
+  public static boolean isPrivateName(String name) {
+    return name.startsWith("_");
+  }
 }

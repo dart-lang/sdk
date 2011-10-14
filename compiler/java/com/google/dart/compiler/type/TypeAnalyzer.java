@@ -450,9 +450,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return dynamicType;
       }
       FunctionType ftype;
-      switch (ElementKind.of(member.getElement())) {
+      Element element = member.getElement();
+      switch (ElementKind.of(element)) {
         case METHOD: {
-          MethodElement method = (MethodElement) member.getElement();
+          MethodElement method = (MethodElement) element;
           if (method.getModifiers().isStatic()) {
             return typeError(diagnosticNode, DartCompilerErrorCode.IS_STATIC_METHOD_IN,
                              name, receiver);
@@ -461,7 +462,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
         }
         case FIELD: {
-          FieldElement field = (FieldElement) member.getElement();
+          FieldElement field = (FieldElement) element;
           if (field.getModifiers().isStatic()) {
             return typeError(diagnosticNode, DartCompilerErrorCode.IS_STATIC_FIELD_IN,
                              name, receiver);

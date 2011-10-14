@@ -51,10 +51,10 @@ abstract class ResolverTestCase extends TestCase {
   }
 
   static Scope resolve(DartUnit unit, TestCompilerContext context) {
-    Scope scope = new Scope("library");
+    Scope scope = new Scope("library", null);
     new TopLevelElementBuilder().exec(unit, context);
     new TopLevelElementBuilder().fillInUnitScope(unit, context, scope);
-    ClassElement object = (ClassElement) scope.findElement("Object");
+    ClassElement object = (ClassElement) scope.findElement(null, "Object");
     assertNotNull("Cannot resolve Object", object);
     CoreTypeProvider typeProvider = new MockCoreTypeProvider(object);
     new SupertypeResolver().exec(unit, context, scope, typeProvider);

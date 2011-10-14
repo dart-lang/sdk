@@ -1509,7 +1509,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
 
   private class MockScope extends Scope {
     private MockScope() {
-      super("test mock scope");
+      super("test mock scope", null);
     }
 
     @Override
@@ -1520,7 +1520,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
   }
 
   private Scope getMockScope(String name) {
-    return new Scope(name,  new MockScope());
+    return new Scope(name, null, new MockScope());
   }
 
   private class MockCoreTypeProvider implements CoreTypeProvider {

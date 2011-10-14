@@ -32,7 +32,7 @@ public class ResolverTest extends ResolverTestCase {
 
 
   private ClassElement findElementOrFail(Scope libScope, String elementName) {
-    Element element = libScope.findElement(elementName);
+    Element element = libScope.findElement(libScope.getLibrary(), elementName);
     assertEquals(ElementKind.CLASS, ElementKind.of(element));
     return (ClassElement) element;
   }
@@ -54,11 +54,13 @@ public class ResolverTest extends ResolverTestCase {
 
   public void testResolve() {
     Scope libScope = resolve(makeUnit(object, array, growableArray), getContext());
-    ClassElement objectElement = (ClassElement) libScope.findElement("Object");
+    LibraryElement library = libScope.getLibrary();
+    ClassElement objectElement = (ClassElement) libScope.findElement(library, "Object");
     Assert.assertNotNull(objectElement);
-    ClassElement arrayElement = (ClassElement) libScope.findElement("Array");
+    ClassElement arrayElement = (ClassElement) libScope.findElement(library, "Array");
     Assert.assertNotNull(arrayElement);
-    ClassElement growableArrayElement = (ClassElement) libScope.findElement("GrowableArray");
+    ClassElement growableArrayElement = (ClassElement) libScope.findElement(library,
+                                                                            "GrowableArray");
     Assert.assertNotNull(growableArrayElement);
 
     Type objectType = objectElement.getType();

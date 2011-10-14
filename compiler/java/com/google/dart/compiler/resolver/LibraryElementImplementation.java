@@ -10,7 +10,7 @@ import java.util.Collection;
 
 class LibraryElementImplementation extends AbstractElement implements LibraryElement {
 
-  private final Scope scope = new Scope("library");
+  private final Scope scope = new Scope("library", this);
   private LibraryUnit libraryUnit;
   private MethodElement entryPoint;
 
