@@ -22,7 +22,6 @@ SocketManyConnectionsTest: Skip
 [ $arch == ia32 && $system == win32]
 # Windows implementation of Process is still pending.
 Process*: Skip
-EchoServerStreamReadUntilTest: Skip        # Bug 5414270
 
 
 [ $arch == dartium ]
