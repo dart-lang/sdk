@@ -174,7 +174,10 @@ var __dom_type_map = {
 $!MAP
   // Patches for non-WebKit browsers
   'Window': native__DOMWindowWrappingImplementation_create__DOMWindowWrappingImplementation,
-  'global': native__DOMWindowWrappingImplementation_create__DOMWindowWrappingImplementation
+  'global': native__DOMWindowWrappingImplementation_create__DOMWindowWrappingImplementation,
+  'KeyEvent': native__KeyboardEventWrappingImplementation_create__KeyboardEventWrappingImplementation, // Opera
+  'HTMLPhraseElement': native__HTMLElementWrappingImplementation_create__HTMLElementWrappingImplementation, // IE9
+  'MSStyleCSSProperties': native__CSSStyleDeclarationWrappingImplementation_create__CSSStyleDeclarationWrappingImplementation // IE9
 };
 
 function __dom_get_class_chrome(ptr) {
@@ -182,16 +185,25 @@ function __dom_get_class_chrome(ptr) {
 }
 
 function __dom_get_class_generic(ptr) {
-  var isolatetoken = __dom_isolate_token();
-  var result = __dom_get_cached('dart_class', ptr.__proto__, isolatetoken);
-  if (result) {
-    return result;
-  }
   var str = Object.prototype.toString.call(ptr);
   var name = str.substring(8, str.length - 1);
   var cls = __dom_type_map[name];
-  __dom_set_cached('dart_class', ptr.__proto__, isolatetoken, cls);
   return cls;
+}
+
+if (Object.__proto__) {
+  __dom_get_class_generic = function(ptr) {
+    var isolatetoken = __dom_isolate_token();
+    var result = __dom_get_cached('dart_class', ptr.__proto__, isolatetoken);
+    if (result) {
+      return result;
+    }
+    var str = Object.prototype.toString.call(ptr);
+    var name = str.substring(8, str.length - 1);
+    var cls = __dom_type_map[name];
+    __dom_set_cached('dart_class', ptr.__proto__, isolatetoken, cls);
+    return cls;
+  }
 }
 
 var __dom_get_class = __dom_get_class_generic;
