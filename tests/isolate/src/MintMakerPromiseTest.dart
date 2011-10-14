@@ -49,7 +49,7 @@ class PurseImpl implements Purse {
     if (source._balance < amount) throw "Not enough dough.";
     _balance += amount;
     source._balance -= amount;
-    print("Moved $amount, leaving ${source._balance}");
+    //print("Moved $amount, leaving ${source._balance}");
     return _balance;
   }
 
@@ -103,7 +103,7 @@ class MintMakerPromiseTest {
       results = new List<Promise>();
     }
     results.add(promise.then((int actual) {
-      print("done $expected/$actual");
+      //print("done $expected/$actual");
       Expect.equals(expected, actual);
     }));
   }
@@ -115,7 +115,7 @@ class MintMakerPromiseTest {
       Promise done = new Promise();
       done.waitFor(results, results.length);
       done.then((ignored) {
-        print("expectDone $n/${results.length}");
+        //print("expectDone $n/${results.length}");
         Expect.equals(n, results.length);
       });
     }
@@ -210,7 +210,7 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
 
   void process(var message, void reply(var response)) {
     String command = message[0];
-    print("command $command");
+    //print("command $command");
     if (command == "balance") {
       int balance = target.queryBalance();
       reply(balance);
@@ -231,7 +231,7 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
       // TODO: Send an exception back.
       reply("Exception: Command not understood");
     }
-    print("command $command done");
+    //print("command $command done");
   }
 
 }

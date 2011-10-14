@@ -108,7 +108,7 @@ class MintMakerPromiseWithStubsTest {
       results = new List<Promise>();
     }
     results.add(promise.then((int actual) {
-      print("done $expected/$actual");
+      //print("done $expected/$actual");
       Expect.equals(expected, actual);
     }));
   }
@@ -116,13 +116,13 @@ class MintMakerPromiseWithStubsTest {
   static void expectDone(int n) {
     if (results === null) {
       Expect.equals(0, n);
-      print('##DONE##');
+      //print('##DONE##');
     } else {
       Promise done = new Promise();
       done.waitFor(results, results.length);
       done.then((ignored) {
         Expect.equals(n, results.length);
-        print('##DONE##');
+        //print('##DONE##');
       });
     }
   }

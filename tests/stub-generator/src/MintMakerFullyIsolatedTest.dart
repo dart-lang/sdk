@@ -81,13 +81,13 @@ class PromiseMap<S extends Promise, T> {
 class MintImpl implements Mint {
 
   MintImpl() {
-    print('mint');
+    //print('mint');
     if (_power == null)
       _power = new Map<Purse$Proxy, PowerfulPurse$Proxy>();
   }
 
   Purse$Proxy createPurse(int balance) {
-    print('createPurse');
+    //print('createPurse');
     PowerfulPurse$ProxyImpl purse =
       new PowerfulPurse$ProxyImpl.createIsolate();
     Mint$Proxy thisProxy = new Mint$ProxyImpl.localProxy(this);
@@ -95,9 +95,9 @@ class MintImpl implements Mint {
 
     Purse$Proxy weakPurse = purse.weak();
     weakPurse.addCompleteHandler(() {
-      print('cP1');
+      //print('cP1');
       _power[weakPurse] = purse;
-      print('cP2');
+      //print('cP2');
     });
     return weakPurse;
   }
@@ -105,7 +105,7 @@ class MintImpl implements Mint {
   PowerfulPurse$Proxy promote(Purse$Proxy purse) {
     // FIXME(benl): we should be using a PromiseMap here. But we get
     // away with it in this test for now.
-    print('promote $purse/${_power[purse]}');
+    //print('promote $purse/${_power[purse]}');
     return _power[purse];
   }
 
@@ -129,16 +129,16 @@ class PurseImpl implements PowerfulPurse {
   }
 
   Purse$Proxy sproutPurse() {
-    print('sprout');
+    //print('sprout');
     return _mint.createPurse(0);
   }
 
   Promise<int> deposit(int amount, Purse$Proxy proxy) {
-    print('deposit');
+    //print('deposit');
     Promise<int> grabbed = _mint.promote(proxy).grab(amount);
     Promise<int> done = new Promise<int>();
     grabbed.then((int) {
-      print("deposit done");
+      //print("deposit done");
       _balance += amount;
       done.complete(_balance);
     });
@@ -146,7 +146,7 @@ class PurseImpl implements PowerfulPurse {
   }
 
   int grab(int amount) {
-    print("grab");
+    //print("grab");
     if (_balance < amount) throw "Not enough dough.";
     _balance -= amount;
     return amount;
@@ -200,7 +200,7 @@ class MintMakerFullyIsolatedTest {
       results = new List<Promise>();
     }
     results.add(promise.then((String actual) {
-      print('done ' + expected + '/' + actual);
+      //print('done ' + expected + '/' + actual);
       Expect.equals(expected, actual);
     }));
   }
@@ -210,7 +210,7 @@ class MintMakerFullyIsolatedTest {
       results = new List<Promise>();
     }
     results.add(promise.then((int actual) {
-      print('done ' + expected + '/' + actual);
+      //print('done ' + expected + '/' + actual);
       Expect.equals(expected, actual);
     }));
   }
@@ -218,14 +218,14 @@ class MintMakerFullyIsolatedTest {
   static void expectDone(int n) {
     if (results === null) {
       Expect.equals(0, n);
-      print('##DONE##');
+      //print('##DONE##');
     } else {
       Promise done = new Promise();
       done.waitFor(results, results.length);
       done.then((ignored) { 
-        print('done all ' + n + '/' + results.length);
+        //print('done all ' + n + '/' + results.length);
         Expect.equals(n, results.length);
-        print('##DONE##');
+        //print('##DONE##');
       });
     }
   }
