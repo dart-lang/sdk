@@ -15,14 +15,14 @@ import java.util.List;
  */
 public class ErrorMessageLocationTest extends TestCase {
   /**
-   * Test that unexpected token highlights the correct location in the file. 
+   * Test that unexpected token highlights the correct location in the file.
    */
   public void testUnexpectedTokenErrorMessage() {
-    String sourceCode = 
+    String sourceCode =
         "// Empty comment\n" +
         "interface foo default Bar {\n" +
         "}";
-        
+
     DartParserRunner runner = DartParserRunner.parse(getName(), sourceCode);
     List<DartCompilationError> actualErrors = runner.getErrors();
 
@@ -33,6 +33,26 @@ public class ErrorMessageLocationTest extends TestCase {
     assertEquals(15, actualError.getColumnNumber());
     assertEquals(errorTokenString.length(), actualError.getLength());
     assertEquals(2, actualError.getLineNumber());
+    assertEquals(sourceCode.indexOf(errorTokenString), actualError.getStartPosition());
+  }
+
+  public void testExpectedLeftParenErrorMessage1() {
+    String sourceCode =
+        "// comment to change the line\n" +
+        "main () {\n" +
+        "  var x = new PART1.PART2.PART3.PART4();\n" +
+        "}\n";
+
+    DartParserRunner runner = DartParserRunner.parse(getName(), sourceCode);
+    List<DartCompilationError> actualErrors = runner.getErrors();
+
+    // Due to error recovery more than a single error is generated
+    DartCompilationError actualError = actualErrors.get(0);
+
+    String errorTokenString = "PART4";
+    assertEquals(33, actualError.getColumnNumber());
+    assertEquals(errorTokenString.length(), actualError.getLength());
+    assertEquals(3, actualError.getLineNumber());
     assertEquals(sourceCode.indexOf(errorTokenString), actualError.getStartPosition());
   }
 }

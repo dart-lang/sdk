@@ -2156,7 +2156,8 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeNode> parts = new ArrayList<DartTypeNode>();
     beginConstructor();
     do {
-      parts.add(new DartTypeNode(parseIdentifier(), parseTypeArgumentsOpt()));
+      beginConstructorNamePart();
+      parts.add(done(new DartTypeNode(parseIdentifier(), parseTypeArgumentsOpt())));
     } while (optional(Token.PERIOD));
     assert parts.size() > 0;
 

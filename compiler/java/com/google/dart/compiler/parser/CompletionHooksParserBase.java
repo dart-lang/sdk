@@ -18,7 +18,7 @@ import com.google.dart.compiler.common.HasSourceInfo;
  * <li>remember start positions to set source location information on AST
  * nodes
  * <li>provide an event mechanism that is useful for an IDE operating on code
- * being edited - for example, for error recovery or code completion 
+ * being edited - for example, for error recovery or code completion
  * </ol>
  * <p>
  * Every call to {@code beginFoo} must be balanced with exactly one call
@@ -90,7 +90,7 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
 
   /**
    * Set the context the parser will use.
-   * 
+   *
    * @param ctx the {@link ParserContext} to use
    */
   public CompletionHooksParserBase(ParserContext ctx) {
@@ -142,6 +142,10 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
   }
 
   protected void beginConstructor() {
+    begin();
+  }
+
+  protected void beginConstructorNamePart() {
     begin();
   }
 
@@ -392,7 +396,7 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
   /**
    * Terminates a grammatical structure, saving the source location in the
    * supplied AST node.
-   * 
+   *
    * @param <T> type of the AST node
    * @param result the AST node to return, if any - if it implements
    *     {@link HasSourceInfo}, the source location is set based on the
@@ -408,7 +412,7 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
    * subcomponents of the AST. This may only be called within an active
    * {@link #begin()} call, which must still be terminated with either
    * {@link #done(Object)} or {@link #rollback()}.
-   * 
+   *
    * @param <T> type of the AST node
    * @param result the AST node to return - if it implements
    *    {@link HasSourceInfo}, the source location is set based on the
