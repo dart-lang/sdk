@@ -12,6 +12,7 @@
     'duration.dart',
     'exceptions.dart',
     'expect.dart',
+    'future.dart',
     'function.dart',
     'int.dart',
     'hashable.dart',

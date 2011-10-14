@@ -19,6 +19,7 @@
 #source("src/exceptions.dart");
 #source("src/expect.dart");
 #source("src/function.dart");
+#source("src/future.dart");
 #source("src/hashable.dart");
 #source("src/int.dart");
 #source("src/isolate.dart");
