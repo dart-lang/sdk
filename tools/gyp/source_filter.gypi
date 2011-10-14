@@ -8,6 +8,7 @@
       ['OS!="linux"', {'sources/': [['exclude', '_linux\\.(cc|h)$']]}],
       ['OS!="mac"', {'sources/': [['exclude', '_macos\\.(cc|h)$']]}],
       ['OS!="win"', {'sources/': [['exclude', '_win\\.(cc|h)$']]}],
+      ['OS=="win"', {'sources/': [['exclude', '_posix\\.(cc|h)$']]}],
     ],
   },
 }
