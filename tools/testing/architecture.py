@@ -305,7 +305,6 @@ class BrowserArchitecture(Architecture):
 
     unused_status, output, err = ExecutePipedCommand(command, verbose)
     if not self.HasFailed(output):
-      self.Cleanup()
       return 0
 
     # TODO(sigmund): print better error message, including how to run test

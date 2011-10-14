@@ -154,3 +154,7 @@ class CompilationTestCase(test.TestCase):
 
   def GetName(self):
     return self.path[-1]
+
+  def Cleanup(self):
+    if not self.context.keep_temporary_files:
+      self.run_arch.Cleanup()
