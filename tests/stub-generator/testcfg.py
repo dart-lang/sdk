@@ -5,6 +5,7 @@
 import os
 import re
 import shutil
+import sys
 import tempfile
 
 import test
@@ -79,7 +80,7 @@ class DartStubTestConfiguration(test_configuration.StandardTestConfiguration):
   def ListTests(self, current_path, path, mode, arch):
     dartc = self.context.GetDartC(mode, 'dartc')
     if not os.access(dartc[0], os.X_OK):
-      print "Can't find dartc at", str(dartc) + ", skipping"
+      print >> sys.stderr, "Can't find dartc at", str(dartc) + ", skipping"
       return []
     tests = []
     for root, dirs, files in os.walk(join(self.root, 'src')):
