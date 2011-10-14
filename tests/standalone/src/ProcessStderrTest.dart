@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Process test program to test process communication.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 class ProcessStderrTest {
 

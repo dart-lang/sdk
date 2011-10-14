@@ -173,6 +173,8 @@ def ParseTestOptionsMultiple(pattern, source, workspace):
       if len(match) > 0:
         result.append(
             [RewritePathSeparator(o, workspace) for o in match.split(' ')]);
+      else:
+        result.append([])
     return result
   else:
     return None

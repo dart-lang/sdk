@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Echo server test program to test socket streams.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 class EchoServerStreamTest {
 
