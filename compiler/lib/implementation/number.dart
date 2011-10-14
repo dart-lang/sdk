@@ -55,8 +55,7 @@ class NumberImplementation implements int, double native "Number" {
     return truncated;
   }
 
-  NumberImplementation toDouble() { return this; }
-
+  NumberImplementation toDouble() native;
   String toString() native;
   String toStringAsFixed(int fractionDigits) native;
   String toStringAsExponential(int fractionDigits) native;
@@ -64,4 +63,5 @@ class NumberImplementation implements int, double native "Number" {
   String toRadixString(int radix) native;
 
   int hashCode() native;
+  get dynamic() { return toDouble(); }
 }

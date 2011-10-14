@@ -15,14 +15,7 @@ function native_StringImplementation_get$length() {
 }
 
 function native_StringImplementation_EQ(other) {
-  if (typeof other == 'string') {
-    return this == other;
-  } else if (other instanceof String) {
-    // Must convert other to a primitive for value equality to work.
-    return this == String(other);
-  } else {
-    return false;
-  }
+  return typeof other == 'string' && this == other;
 }
 
 function native_StringImplementation_indexOf(other, startIndex) {

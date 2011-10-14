@@ -84,14 +84,7 @@ function native_NumberImplementation_GTE(other) {
 }
 
 function native_NumberImplementation_EQ(other) {
-  if (typeof other == 'number') {
-    return this == other;
-  } else if (other instanceof Number) {
-    // Must convert other to a primitive for value equality to work
-    return this == Number(other);
-  } else {
-    return false;
-  }
+  return typeof other == 'number' && this == other;
 }
 
 function native_NumberImplementation_BIT_NOT() {
@@ -122,6 +115,10 @@ function native_NumberImplementation_isOdd() { return ((this & 1) == 1); }
 function native_NumberImplementation_isNaN() { return isNaN(this); }
 function native_NumberImplementation_isInfinite() {
   return (this == Infinity) || (this == -Infinity);
+}
+
+function native_NumberImplementation_toDouble() {
+  return this.valueOf();
 }
 
 function native_NumberImplementation_toString() {

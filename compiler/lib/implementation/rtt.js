@@ -269,7 +269,7 @@ function $cls(cls) {
  * @return {boolean}
  */
 function $isBool(o) {
-  return typeof o == 'boolean' || o instanceof Boolean;
+  return typeof o == 'boolean';
 }
 
 /**
@@ -277,7 +277,7 @@ function $isBool(o) {
  * @return {boolean}
  */
 function $isNum(o) {
-  return typeof o == 'number' || o instanceof Number;
+  return typeof o == 'number';
 }
 
 /**
@@ -285,5 +285,5 @@ function $isNum(o) {
  * @return {boolean}
  */
 function $isString(o) {
-  return typeof o == 'string' || o instanceof String;
+  return typeof o == 'string';
 }

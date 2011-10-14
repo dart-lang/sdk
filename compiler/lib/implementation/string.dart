@@ -145,7 +145,8 @@ class StringImplementation implements String native "String" {
     while (ix < str.length) {
       int foundIx = str.indexOf(this, ix);
       if (foundIx < 0) break;
-      result.add(new _StringMatch(foundIx, str, this));
+      // Call "toString" to coerce the "this" back to a primitive string.
+      result.add(new _StringMatch(foundIx, str, this.toString()));
       ix = foundIx + length;
     }
     return result;
@@ -184,6 +185,8 @@ class StringImplementation implements String native "String" {
   String _replace(Pattern from, String to) native;
   String _replaceAll(Pattern from, String to) native;
   Array<String> _split(Pattern pattern) native;
+
+  get dynamic() { return toString(); }
 }
 
 class _StringJsUtil {
