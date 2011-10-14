@@ -496,12 +496,15 @@ def writeOut(contents, filepath):
     f.write(contents)
   print "Generated output in: " + abspath(filepath)
 
-def convertForDartium(filename, outfile, verbose):
+def convertForDartium(filename, outdirBase, outfile, verbose):
   """ Converts a file for a dartium target. """
   with open(filename, 'r') as f:
     contents = f.read()
   prefix_path = dirname(filename)
-  converter = DartToDartHTMLConverter(prefix_path, dirname(outfile), verbose)
+
+  # outdirBase is the directory to place all subdirectories for other dart files
+  # and resources.
+  converter = DartToDartHTMLConverter(prefix_path, outdirBase, verbose)
   converter.feed(contents)
   converter.close()
   writeOut(converter.getResult(), outfile)
@@ -555,7 +558,7 @@ def main():
       convertForChromium(filename, options.optimize, options.extra_flags,
           outfile.replace(extension, '-js' + extension), options.verbose)
     if 'dartium' in options.target:
-      convertForDartium(filename,
+      convertForDartium(filename, options.out,
           outfile.replace(extension, '-dart' + extension), options.verbose)
   except Exception as e:
     print "%sERROR%s: %s" % (RED_COLOR, NO_COLOR, str(e))

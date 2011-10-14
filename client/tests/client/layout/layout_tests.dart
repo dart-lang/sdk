@@ -14,6 +14,7 @@
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');
 #source('GridLayoutTests.dart');
+#source('CSS.dart');
 
 main() {
   GridLayoutTests.main();

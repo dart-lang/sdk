@@ -49,7 +49,7 @@ class GridLayoutTests extends UnitTestSuite {
   // individual test and see the resulting layout.
 
   void usingGrid(String example, void test(View grid)) {
-    final grid = createGrid(GridExamples.STYLES[example]);
+    final grid = createGrid(GridExamples.styles[example]);
     try {
       grid.addToDocument(document.body);
       test(grid);

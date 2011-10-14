@@ -7,14 +7,17 @@
  */
 
 /** Creates a grid view structure given the CSS styles. */
-View createGrid(String css) {
-  final styles = _parseExampleStyles(css);
-
-  final gridStyle = styles.remove('grid');
+View createGrid(Map<String, Map<String, String>> styles) {
+  final gridStyle = styles['#grid'];
 
   final children = new List<MockView>();
-  for (final id in styles.getKeys()) {
-    children.add(new MockView(id, styles[id]));
+  for (final String id in styles.getKeys()) {
+    // All selectors in this test are id selectors string the # prefix.
+    assert(id.startsWith('#'));
+    String elemId = id.substring(1);
+    if (elemId != 'grid') {
+      children.add(new MockView(elemId, styles[id]));
+    }
   }
 
   return new MockCompositeView('grid', gridStyle, children);
@@ -25,13 +28,13 @@ void _onLoad() {
   if (query != null && query.length == 1) {
     query = Uri.decodeComponent(query[0]);
     addGridStyles('100%', '100%', 'margin:0px;');
-    final view = createGrid(GridExamples.STYLES[query]);
+    final view = createGrid(GridExamples.styles[query]);
     view.addToDocument(document.body);
     _addColorStyles();
     printMetrics(query);
   } else {
     final html = new StringBuffer();
-    for (String ex in GridExamples.STYLES.getKeys()) {
+    for (String ex in GridExamples.styles.getKeys()) {
       html.add('<div><a href="?q=$ex">Grid Example $ex</a></div>');
     }
     document.body.innerHTML = html.toString();
@@ -71,33 +74,6 @@ void _addColorStyles() {
     }
     node = node.nextElementSibling;
   }
-}
-
-/** Returns a map from view IDs to their CSS property map. */
-_parseExampleStyles(String css) {
-  final result = new LinkedHashMap<String, Map<String, String>>();
-  for (String item in css.split('}')) {
-    final parts = item.split('{');
-    if (parts.length != 2) {
-      continue;
-    }
-    String id = parts[0].trim().substring(1);
-    result[id] = _parseStyleProps(parts[1]);
-  }
-  return result;
-}
-
-/** Parses a set of style properties separated by ";" */
-_parseStyleProps(String css) {
-  final result = new LinkedHashMap<String, String>();
-  for (String prop in css.split(';')) {
-    final parts = prop.split(':');
-    if (parts.length != 2) {
-      continue;
-    }
-    result[parts[0].trim()] = parts[1].trim();
-  }
-  return result;
 }
 
 class MockCompositeView extends CompositeView {
