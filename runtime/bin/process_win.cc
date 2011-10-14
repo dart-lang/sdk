@@ -180,11 +180,23 @@ static void CloseProcessPipes(HANDLE handles1[2],
 }
 
 static int SetOsErrorMessage(char* os_error_message,
-                              int os_error_message_len) {
+                             int os_error_message_len) {
   int error_code = GetLastError();
-  // TODO(sgjesse): Use FormatMessage to get the error message.
-  char message[80];
-  snprintf(os_error_message, os_error_message_len, "OS Error %d", error_code);
+  DWORD message_size =
+      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    NULL,
+                    error_code,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    os_error_message,
+                    os_error_message_len,
+                    NULL);
+  if (message_size == 0) {
+    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+      fprintf(stderr, "FormatMessage failed %d\n", GetLastError());
+    }
+    snprintf(os_error_message, os_error_message_len, "OS Error %d", error_code);
+  }
+  os_error_message[os_error_message_len - 1] = '\0';
   return error_code;
 }
 
