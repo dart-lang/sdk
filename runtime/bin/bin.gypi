@@ -134,7 +134,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
        }]],
     },
@@ -161,7 +161,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
        }]],
     },
@@ -187,7 +187,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
        }]],
     },
@@ -248,7 +248,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
        }]],
     },
@@ -277,7 +277,7 @@
       'conditions': [
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
        }]],
     },
@@ -402,7 +402,7 @@
         ]}],
         ['OS=="win"', {
           'link_settings': {
-            'libraries': [ '-lws2_32.lib' ],
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
         }],
       ],

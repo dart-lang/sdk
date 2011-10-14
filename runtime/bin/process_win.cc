@@ -222,39 +222,55 @@ int Process::Start(const char* path,
   HANDLE stdout_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
   HANDLE stderr_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
   HANDLE exit_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-  // TODO(sgjesse): Find a better way of generating unique pipe names
-  // (e.g. UUID).
-  DWORD current_pid = GetCurrentProcessId();
-  static int pipe_id = 0;
-  char pipe_name[80];
-  pipe_id++;
-  snprintf(pipe_name, sizeof(pipe_name),
-           "\\\\.\\Pipe\\dart%d_%d_1", current_pid, pipe_id);
-  if (!CreateProcessPipe(stdin_handles, pipe_name, kInheritRead)) {
+
+  // Generate unique pipe names for the four named pipes needed.
+  char pipe_names[4][80];
+  UUID uuid;
+  RPC_STATUS status = UuidCreateSequential(&uuid);
+  if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
+    fprintf(stderr, "UuidCreateSequential failed %d\n", status);
+    SetOsErrorMessage(os_error_message, os_error_message_len);
+    return status;
+  }
+  RPC_CSTR uuid_string;
+  status = UuidToString(&uuid, &uuid_string);
+  if (status != RPC_S_OK) {
+    fprintf(stderr, "UuidToString failed %d\n", status);
+    SetOsErrorMessage(os_error_message, os_error_message_len);
+    return status;
+  }
+  for (int i = 0; i < 4; i++) {
+    static const char* prefix = "\\\\.\\Pipe\\dart";
+    snprintf(pipe_names[i],
+             sizeof(pipe_names[i]),
+             "%s_%s_%d", prefix, uuid_string, i + 1);
+  }
+  status = RpcStringFree(&uuid_string);
+  if (status != RPC_S_OK) {
+    fprintf(stderr, "RpcStringFree failed %d\n", status);
+    SetOsErrorMessage(os_error_message, os_error_message_len);
+    return status;
+  }
+
+  if (!CreateProcessPipe(stdin_handles, pipe_names[0], kInheritRead)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
-  snprintf(pipe_name, sizeof(pipe_name),
-           "\\\\.\\Pipe\\dart%d_%d_2", current_pid, pipe_id);
-  if (!CreateProcessPipe(stdout_handles, pipe_name, kInheritWrite)) {
+  if (!CreateProcessPipe(stdout_handles, pipe_names[1], kInheritWrite)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
-  snprintf(pipe_name, sizeof(pipe_name),
-           "\\\\.\\Pipe\\dart%d_%d_3", current_pid, pipe_id);
-  if (!CreateProcessPipe(stderr_handles, pipe_name, kInheritWrite)) {
+  if (!CreateProcessPipe(stderr_handles, pipe_names[2], kInheritWrite)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
     return error_code;
   }
-  snprintf(pipe_name, sizeof(pipe_name),
-           "\\\\.\\Pipe\\dart%d_%d_4", current_pid, pipe_id);
-  if (!CreateProcessPipe(exit_handles, pipe_name, kInheritNone)) {
+  if (!CreateProcessPipe(exit_handles, pipe_names[3], kInheritNone)) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
     CloseProcessPipes(
         stdin_handles, stdout_handles, stderr_handles, exit_handles);
