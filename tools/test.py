@@ -612,7 +612,8 @@ class Context(object):
   def GetDartC(self, mode, arch):
     """Returns the path to the Dart --> JS compiler."""
     dartc = os.path.abspath(os.path.join(
-        self.GetBuildRoot(mode, arch), 'compiler', 'bin', 'dartc'))
+        utils.GetBaseDir(), 'compiler', self.GetBuildRoot(mode, arch),
+        'compiler', 'bin', 'dartc'))
     if utils.IsWindows(): dartc += '.exe'
     command = [dartc]
 

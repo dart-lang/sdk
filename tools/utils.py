@@ -134,6 +134,9 @@ def GetBuildConf(mode, arch):
 # instead of 'dartc'.
 RUN_FROM_TOP_DIR = os.path.basename(os.path.abspath(os.curdir)) == 'dart'
 ARCH_GUESS = GuessArchitecture()
+BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
+if RUN_FROM_TOP_DIR:
+  BASE_DIR = os.path.abspath(os.curdir)
 
 def GetBuildRoot(target_os, mode=None, arch=None):
   if arch == 'dartc' and RUN_FROM_TOP_DIR: arch = ARCH_GUESS
@@ -143,6 +146,8 @@ def GetBuildRoot(target_os, mode=None, arch=None):
   else:
     return BUILD_ROOT[target_os]
 
+def GetBaseDir():
+  return BASE_DIR
 
 def RewritePathSeparator(path, workspace):
   # Paths in test files are always specified using '/'

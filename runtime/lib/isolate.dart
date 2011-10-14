@@ -48,7 +48,6 @@ class ReceivePortImpl implements ReceivePort {
     ReceivePort port = _portMap[id];
     SendPort replyTo = (replyId == 0) ? null : new SendPortImpl(replyId);
     (port._onMessage)(message, replyTo);
-    PromiseQueue.process();
   }
 
   // Call into the VM to close the VM maintained mappings.
@@ -89,17 +88,7 @@ class ReceivePortSingleShotImpl implements ReceivePort {
 class SendPortImpl implements SendPort {
   /*--- public interface ---*/
   void send(var message, [SendPort replyTo = null]) {
-    if (PromiseQueue.isEmpty()) {
-      this._sendNow(message, replyTo);
-    } else {
-      _enqueueSend(message, replyTo);
-    }
-  }
-
-  void _enqueueSend(var message, SendPort replyTo) {
-    PromiseQueue.enqueue(const []).then((ignored) {
-      this._sendNow(message, replyTo);
-    });
+    this._sendNow(message, replyTo);
   }
 
   void _sendNow(var message, SendPort replyTo) {

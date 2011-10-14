@@ -9,8 +9,8 @@
 typedef void AsynchronousTestFunction(TestExpectation check);
 
 
-void runTests(List tests) {
-  TestRunner runner = new TestRunner(new TestSuite(tests));
+void runTests(List tests, [bool guarded = true]) {
+  TestRunner runner = new TestRunner(new TestSuite(tests), guarded);
   TestResult result = new TestResult(runner);
   runner.run(result);
 }
@@ -87,6 +87,9 @@ class TestResult {
   }
 
   runGuarded(TestCase testCase, Function fn) {
+    if (!runner.guarded) {
+      return fn();
+    }
     var result = null;
     try {
       result = fn();
@@ -113,7 +116,7 @@ class TestResult {
 
 class TestRunner {
 
-  TestRunner(this.suite);
+  TestRunner(this.suite, this.guarded);
 
   void run(TestResult result) {
     if (waitForDoneCallback !== null) {
@@ -150,6 +153,7 @@ class TestRunner {
   }
 
   final TestSuite suite;
+  final bool guarded;
   static Function waitForDoneCallback;
   static Function doneCallback;
 

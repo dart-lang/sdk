@@ -5,11 +5,9 @@
 prefix stub-generator
 
 [ $arch == ia32 ]
-MintMakerFullyIsolatedTest: Skip  # Bug 5283149
-MintMakerPromiseWithStubsTest: Skip # Bug 5384756
+MintMakerFullyIsolatedTest: Skip  # issue 115
 
 [ $arch == dartc ]
-MintMakerFullyIsolatedTest: Fail  # benl
 
 [ $arch == x64 ]
 *: Skip

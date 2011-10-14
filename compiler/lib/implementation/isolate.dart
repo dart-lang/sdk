@@ -7,17 +7,8 @@ class SendPortImpl implements SendPort {
   const SendPortImpl(this._workerId, this._isolateId, this._receivePortId);
 
   void send(var message, [SendPort replyTo = null]) {
-    if (PromiseQueue.isEmpty()) {
-      this._sendNow(message, replyTo);
-    } else {
-      _enqueueSend(message, replyTo);
-    }
-  }
-
-  void _enqueueSend(var message, SendPort replyTo) {
-    PromiseQueue.enqueue(const []).then((ignored) {
-      this._sendNow(message, replyTo);
-    });
+    // TODO(kasperl): get rid of _sendNow.
+    this._sendNow(message, replyTo);
   }
 
   void _sendNow(var message, SendPort replyTo) native;
@@ -179,10 +170,6 @@ class IsolateNatives {
 
 
 class _IsolateJsUtil {
-  static void _promiseQueueProcess() native {
-    PromiseQueue.process();
-  }
-
   static void _startIsolate(Isolate isolate, SendPort replyTo) native {
     ReceivePort port = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());

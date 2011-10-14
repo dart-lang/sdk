@@ -26,7 +26,7 @@ interface Purse {
 
   int queryBalance();
   Purse sproutPurse();
-  void deposit(int amount, Purse$Proxy source);
+  int deposit(int amount, Purse$Proxy source);
 
 }
 
@@ -43,12 +43,14 @@ class PurseImpl implements Purse {
     return _mint.createPurse(0);
   }
 
-  void deposit(int amount, Purse$Proxy purse) {
+  int deposit(int amount, Purse$Proxy purse) {
     Purse$ProxyImpl impl = purse.dynamic;  // TODO: Get rid of this 'cast'.
     PurseImpl source = impl.local;
     if (source._balance < amount) throw "Not enough dough.";
     _balance += amount;
     source._balance -= amount;
+    print("Moved $amount, leaving ${source._balance}");
+    return _balance;
   }
 
   Mint _mint;
@@ -67,15 +69,25 @@ class MintMakerPromiseTest {
     Purse$Proxy sprouted = purse.sproutPurse();
     expectEquals(0, sprouted.queryBalance());
 
-    sprouted.deposit(5, purse);
-    expectEquals(0 + 5, sprouted.queryBalance());
-    expectEquals(100 - 5, purse.queryBalance());
+    Promise<int> balance = sprouted.deposit(5, purse);
+    expectEquals(0 + 5, balance);
+    // FIXME(benl): because we have no ordering constraints we have to
+    // manually order the messages or it all falls apart. We should
+    // implement E-ORDER.
+    balance.addCompleteHandler((_) {
+      expectEquals(0 + 5, sprouted.queryBalance());
+      expectEquals(100 - 5, purse.queryBalance());
 
-    sprouted.deposit(42, purse);
-    expectEquals(0 + 5 + 42, sprouted.queryBalance());
-    expectEquals(100 - 5 - 42, purse.queryBalance());
+      balance = sprouted.deposit(42, purse);
+      expectEquals(0 + 5 + 42, balance);
+      balance.addCompleteHandler((_) {
+        expectEquals(0 + 5 + 42, sprouted.queryBalance());
+        expectEquals(100 - 5 - 42, purse.queryBalance());
+        // FIXME(benl): once more we could "pass" by not running anything much.
+        expectDone(8);
+      });
+    });
 
-    expectDone(6);
   }
 
   static Mint$Proxy createMint() {
@@ -91,6 +103,7 @@ class MintMakerPromiseTest {
       results = new List<Promise>();
     }
     results.add(promise.then((int actual) {
+      print("done $expected/$actual");
       Expect.equals(expected, actual);
     }));
   }
@@ -102,6 +115,7 @@ class MintMakerPromiseTest {
       Promise done = new Promise();
       done.waitFor(results, results.length);
       done.then((ignored) {
+        print("expectDone $n/${results.length}");
         Expect.equals(n, results.length);
       });
     }
@@ -166,7 +180,7 @@ interface Purse$Proxy {
 
   Promise<int> queryBalance();
   Purse$Proxy sproutPurse();
-  void deposit(int amount, Purse$Proxy source);  // Promise<int> amount.
+  Promise<int> deposit(int amount, Purse$Proxy source);  // Promise<int> amount.
 
 }
 
@@ -179,8 +193,8 @@ class Purse$ProxyImpl extends Proxy implements Purse$Proxy {
     return this.call(["balance"]);
   }
 
-  void deposit(int amount, Purse$Proxy source) {
-    this.send(["deposit", amount, source]);
+  Promise<int> deposit(int amount, Purse$Proxy source) {
+    return this.call(["deposit", amount, source]);
   }
 
   Purse$Proxy sproutPurse() {
@@ -196,14 +210,19 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
 
   void process(var message, void reply(var response)) {
     String command = message[0];
+    print("command $command");
     if (command == "balance") {
       int balance = target.queryBalance();
       reply(balance);
     } else if (command == "deposit") {
       int amount = message[1];
-      Promise<SendPort> port = new Promise<SendPort>.fromValue(message[2]);
-      Purse$Proxy source = new Purse$ProxyImpl(port);
-      target.deposit(amount, source);
+      Promise<SendPort> port =
+        new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(message[2]));
+      port.addCompleteHandler((_) {
+        Purse$Proxy source = new Purse$ProxyImpl(port);
+        int balance = target.deposit(amount, source);
+        reply(balance);
+      });
     } else if (command == "sprout") {
       Purse purse = target.sproutPurse();
       SendPort port = Dispatcher.serve(new Purse$Dispatcher(purse));
@@ -212,6 +231,7 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
       // TODO: Send an exception back.
       reply("Exception: Command not understood");
     }
+    print("command $command done");
   }
 
 }

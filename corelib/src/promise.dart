@@ -143,3 +143,20 @@ class Dispatcher<T> {
   T target;
 
 }
+
+// When a promise is sent across a port, it is converted to a
+// Promise<SendPort> down which we must send a port to receive the
+// completion value. Hand the Promise<SendPort> to this class to deal
+// with it.
+
+class PromiseProxy<T> extends PromiseImpl<T> {
+  PromiseProxy(Promise<SendPort> sendCompleter) {
+    ReceivePort completer = new ReceivePort.singleShot();
+    completer.receive((var msg, SendPort _) {
+      complete(msg[0]);
+    });
+    sendCompleter.addCompleteHandler((SendPort port) {
+      port.send([completer.toSendPort()], null);
+    });
+  }
+}

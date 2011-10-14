@@ -275,6 +275,19 @@ class ProxyImpl {
     _promise = port;
   }
 
+  // Note that comparing proxies or using them in maps is illegal
+  // until they complete.
+  bool operator ==(var other) {
+    return (other is ProxyImpl) && _promise.value == other._promise.value;
+  }
+
+  int hashCode() => _promise.value.hashCode();
+
+  // TODO: consider making this extend Promise<SendPort> instead?
+  void addCompleteHandler(void completeHandler()) {
+    _promise.addCompleteHandler((_) => completeHandler());
+  }
+
   static ReceivePort register(Dispatcher dispatcher) {
     if (_dispatchers === null) {
       _dispatchers = new Map<SendPort, Dispatcher>();
@@ -289,7 +302,7 @@ class ProxyImpl {
       Dispatcher dispatcher = _dispatchers[_promise.value];
       if (dispatcher !== null) return dispatcher.target;
     }
-    throw "Cannot access object of non-local proxy.";
+    throw new Exception("Cannot access object of non-local proxy.");
   }
 
   void send(List message) {
@@ -315,39 +328,46 @@ class ProxyImpl {
     });
   }
 
-  bool operator ==(var other) {
-    return this === other;
-  }
-
-  // FIXME(benl): generate a more useful hashCode.
-  int hashCode() => 0;
-
   // Marshal the [message] and pass it to the [process] callback
-  // function once this proxy and all proxies in the message are
-  // resolved.
-  Promise _marshal(List message, process(List marshalled)) {
-    final promises = new List<Promise>();
-    promises.add(_promise);
+  // function. Any promises are converted to a port which expects to
+  // receive a port from the other side down which the remote promise
+  // can be completed by sending the promise's completion value.
+   Promise _marshal(List message, process(List marshalled)) {
+    return _promise.then((SendPort port) {
+      List marshalled = new List(message.length);
 
-    var marshalled = new List(message.length);
-    for (int i = 0; i < marshalled.length; i++) {
-      var entry = message[i];
-      marshalled[i] = entry;  // TODO(kasperl): We probably have to copy here.
-      if (entry is Proxy) {
-        promises.add(entry._promise);
-      } else if (entry is Promise) {
-        promises.add(entry);
-      }
-    }
-
-    return PromiseQueue.enqueue(promises).then((ignored) {
       for (int i = 0; i < marshalled.length; i++) {
-        var entry = marshalled[i];
+        var entry = message[i];
         if (entry is Proxy) {
-          marshalled[i] = entry._promise.value;
-        } else if (entry is Promise) {
-          marshalled[i] = entry.value;
+          entry = entry._promise;
         }
+        // Obviously this will be true if [entry] was a Proxy.
+        if (entry is Promise) {
+          // Note that we could optimise this by just sending the value
+          // if the promise is already complete. Let's get this working
+          // first!
+
+          // This port will receive a SendPort that can be used to
+          // signal completion of this promise to the corresponding
+          // promise that the other end has created.
+          ReceivePort receiveCompleter = new ReceivePort.singleShot();
+          marshalled[i] = receiveCompleter.toSendPort();
+          Promise<SendPort> completer = new Promise<SendPort>();
+          receiveCompleter.receive((var msg, SendPort replyPort) {
+            completer.complete(msg[0]);
+          });
+          entry.addCompleteHandler((value) {
+            completer.addCompleteHandler((SendPort port) {
+              port.send([value], null);
+            });
+          });
+        } else {
+          // FIXME(kasperl, benl): this should probably be a copy?
+          marshalled[i] = entry;
+        }
+        if (marshalled[i] is ReceivePort) {
+          throw new Exception("Despite the documentation, you cannot send a ReceivePort");
+        } 
       }
       return process(marshalled);
     }).flatten();
@@ -355,62 +375,5 @@ class ProxyImpl {
 
   Promise<SendPort> _promise;
   static Map<SendPort, Dispatcher> _dispatchers;
-
-}
-
-
-class PromiseQueue {
-
-  // Enqueue an element that depends on a list of promises. The
-  // returned promise is resolved when all the input promises have
-  // been resolved.
-  static Promise enqueue(List<Promise> dependencies) {
-    if (_queue === null) {
-      _queue = new Queue<Function>();
-    }
-
-    // Keep track of how many unresolved promises we're waiting for.
-    int unresolved = dependencies.length;
-    void notifyResolved(ignored) {
-      assert(unresolved > 0);
-      unresolved--;
-    }
-
-    // Register a callback on each of the dependencies.
-    for (Promise promise in dependencies) {
-      promise.then(notifyResolved);
-    }
-
-    final Promise result = new Promise();
-    _queue.addLast(() {
-      if (unresolved > 0) return false;
-      // TODO(kasperl): It seems a bit weird to pass back null. Maybe
-      // the resulting promise should be a Promise<bool> that
-      // indicates whether or not we successfully got the enqueued
-      // element through the queue?
-      result.complete(null);
-      return true;
-    });
-
-    // Before returning the resulting promise, we make sure to process
-    // any fully resolved enqueued elements.
-    process();
-    return result;
-  }
-
-  static bool isEmpty() {
-    return (_queue === null) ? true : _queue.isEmpty();
-  }
-
-  static void process() {
-    if (_queue === null) {
-      return;
-    }
-    while (!_queue.isEmpty() && (_queue.first())()) {
-      _queue.removeFirst();
-    }
-  }
-
-  static Queue<Function> _queue;
 
 }

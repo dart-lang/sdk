@@ -30,9 +30,61 @@ interface Mint factory MintImpl {
   PowerfulPurse$Proxy promote(Purse$Proxy purse);
 }
 
+// Because promises can't be used as keys in maps until they have
+// completed, provide a wrapper. Note that if any key promise fails to
+// resolve, then get()'s return may also fail to resolve.  Also,
+// although the logic is fine, this can't be used for a
+// ProxyMap. Perhaps both Proxy and Promise should inherit from
+// Completable?
+// NB: not tested and known to be buggy. Will fix in a future change.
+class PromiseMap<S extends Promise, T> {
+
+  PromiseMap() {
+    _map = new Map<S, T>();
+    _incomplete = new Set<S>();
+  }
+
+  T add(S s, T t) {
+    _incomplete.add(s);
+    s.addCompleteHandler((_) {
+      _map[s] = t;
+      _incomplete.remove(s);
+    });
+    return t;
+  }
+
+  Promise<T> find(S s) {
+    T t = _map[s];
+    if (t != null)
+      return new Promise<T>.fromValue(t);
+    Promise<T> p = new Promise<T>();
+    int counter = _incomplete.length;
+    p.join(_incomplete, bool (S completed) {
+      if (completed != s) {
+        if (--counter == 0) {
+          p.complete(null);
+          return true;
+        }
+        return false;
+      }
+      p.complete(_map[s]);
+      return true;
+    });
+    return p;
+  }
+
+  Set<S> _incomplete;
+  Map<S, T> _map;
+
+}
+
 class MintImpl implements Mint {
 
-  MintImpl() { print('mint'); }
+  MintImpl() {
+    print('mint');
+    if (_power == null)
+      _power = new Map<Purse$Proxy, PowerfulPurse$Proxy>();
+  }
 
   Purse$Proxy createPurse(int balance) {
     print('createPurse');
@@ -42,17 +94,18 @@ class MintImpl implements Mint {
     purse.init(thisProxy, balance);
 
     Purse$Proxy weakPurse = purse.weak();
-    if (_power === null)
-      _power = new Map<Purse$Proxy, PowerfulPurse$Proxy>();
-    print('cP1');
-    print(weakPurse.hashCode());
-    _power[weakPurse] = purse;
-    print('cP2');
+    weakPurse.addCompleteHandler(() {
+      print('cP1');
+      _power[weakPurse] = purse;
+      print('cP2');
+    });
     return weakPurse;
   }
 
   PowerfulPurse$Proxy promote(Purse$Proxy purse) {
-    print('promote');
+    // FIXME(benl): we should be using a PromiseMap here. But we get
+    // away with it in this test for now.
+    print('promote $purse/${_power[purse]}');
     return _power[purse];
   }
 
@@ -128,16 +181,16 @@ class MintMakerFullyIsolatedTest {
     done.then((int) {
       expectEquals(0 + 5, sprouted.queryBalance());
       expectEquals(100 - 5, purse.queryBalance());
-    });
 
-    done = sprouted.deposit(42, purse); 
-    expectEquals(42, done);
-    done.then((int) {
-      expectEquals(0 + 5 + 42, sprouted.queryBalance());
-      expectEquals(100 - 5 - 42, purse.queryBalance());
-    });
+      done = sprouted.deposit(42, purse); 
+      expectEquals(5 + 42, done);
+      done.then((int) {
+        expectEquals(0 + 5 + 42, sprouted.queryBalance());
+        expectEquals(100 - 5 - 42, purse.queryBalance());
 
-    expectDone(8);
+        expectDone(8);
+      });
+    });
   }
 
   static List<Promise> results;

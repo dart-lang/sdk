@@ -317,6 +317,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
         final boolean isVoid = isVoid(returnTypeNode);
         final boolean isSimple = isSimpleType(returnTypeNode);
         final boolean isProxy = isProxyType(returnTypeNode);
+        final boolean isPromise = isPromise(returnTypeNode);
         if (!isVoid) {
           p("return ");
           if (!isSimple) {
@@ -327,6 +328,16 @@ public class DartIsolateStubGenerator extends AbstractBackend {
             }
             p("Impl(");
           }
+        }
+        if (isProxy) {
+          // Note that Promises are Proxies.
+          p("new PromiseProxy");
+          if (isPromise) {
+            printTypeArguments(returnTypeNode);
+          } else {
+            p("<SendPort>");
+          }
+          p("(");
         }
         p("this.");
         if (isVoid) {
@@ -353,6 +364,9 @@ public class DartIsolateStubGenerator extends AbstractBackend {
         };
         params.acceptList(func.getParams());
         p("])");
+        if (isProxy) {
+          p(")");
+        }
         if (!isSimple) {
           p(")");
         }
@@ -396,8 +410,23 @@ public class DartIsolateStubGenerator extends AbstractBackend {
       printFunctionName(member);
       p("\") {");
       nl();
-      unpackParams(member);
-      callTarget((DartMethodDefinition)member);
+      int proxies = unpackParams(member);
+      String extra = "";
+      if (proxies != 0) {
+        p("      Promise done = new Promise();");
+        nl();
+        p("      done.waitFor(promises, " + proxies + ");");
+        nl();
+        p("      done.addCompleteHandler((_) {");
+        nl();
+        gatherProxies(member);
+        extra = "  ";
+      }
+      callTarget((DartMethodDefinition)member, extra);
+      if (proxies != 0) {
+        p("      });");
+        nl();
+      }
       p("    }");
       first = false;
     }
@@ -411,11 +440,11 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     nl();
   }
 
-  private void callTarget(DartMethodDefinition member) {
+  private void callTarget(DartMethodDefinition member, String extra) {
     if (isConstructor(member)) {
       return;
     }
-    p("      ");
+    p(extra + "      ");
     boolean isVoid = isVoid(member.getFunction().getReturnTypeNode());
     if (!isVoid) {
       printReturnType(member);
@@ -431,14 +460,14 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     nl();
     String returnType = stringReturnType(member);
     if (stubInterfaces.contains(returnType)) {
-      p("      SendPort port = Dispatcher.serve(new " + returnType + "$Dispatcher(");
+      p(extra + "      SendPort port = Dispatcher.serve(new " + returnType + "$Dispatcher(");
       printFunctionName(member);
       p("));");
       nl();
-      p("      reply(port);");
+      p(extra + "      reply(port);");
       nl();
     } else if (!isVoid) {
-      p("      reply(");
+      p(extra + "      reply(");
       printFunctionName(member);
       p(");");
       nl();
@@ -521,9 +550,10 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     return strType.toString();
   }
 
-  private void unpackParams(DartNode member) {
-    DartVisitor visitor = new DartVisitor() {
+  private int unpackParams(DartNode member) {
+    class UnpackVisitor extends DartVisitor {
       private int pos;
+      int proxies;
 
       @Override
       public boolean visit(DartTypeNode x, DartContext ctx) {
@@ -541,6 +571,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
       @Override
       public boolean visit(DartMethodDefinition x, DartContext ctx) {
         pos = 1;
+        proxies = 0;
         for (DartParameter param : x.getFunction().getParams()) {
           p("      ");
           accept(param);
@@ -554,23 +585,85 @@ public class DartIsolateStubGenerator extends AbstractBackend {
       public boolean visit(DartParameter x, DartContext ctx) {
         boolean isSimpleType = isSimpleType(x.getTypeNode());
 
-        accept(x.getTypeNode());
-        p(" ");
-        accept(x.getName());
-        p(" = ");
-        if (!isSimpleType) {
-          p("new ");
+        if (isSimpleType) {
           accept(x.getTypeNode());
-          p("Impl(new Promise<SendPort>.fromValue(");
+          p(" ");
+          accept(x.getName());
+          p(" = ");
+        } else {
+          if (proxies == 0) {
+             p("List<Promise<SendPort>> promises = new List<Promise<SendPort>>();");
+             nl();
+             p("      ");
+          }
+          p("promises.add(new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(");
+          ++proxies;
+          //p("new ");
+          //accept(x.getTypeNode());
+          //p("Impl(new Promise<SendPort>.fromValue(");
         }
         p("message[" + pos + "]");
         if (!isSimpleType) {
-          p("))");
+          p(")))");
         }
         p(";");
         return false;
       }
     };
+    
+    UnpackVisitor visitor = new UnpackVisitor();
+    
+    visitor.accept(member);
+    return visitor.proxies;
+  }
+
+  private void gatherProxies(DartNode member) {
+    class GatherVisitor extends DartVisitor {
+      private int proxies;
+
+      @Override
+      public boolean visit(DartTypeNode x, DartContext ctx) {
+        accept(x.getIdentifier());
+        printTypeArguments(x);
+        return false;
+      }
+
+      @Override
+      public boolean visit(DartIdentifier x, DartContext ctx) {
+        p(x.getTargetName());
+        return false;
+      }
+
+      @Override
+      public boolean visit(DartMethodDefinition x, DartContext ctx) {
+        proxies = 0;
+        for (DartParameter param : x.getFunction().getParams()) {
+          accept(param);
+        }
+        return false;
+      }
+
+      @Override
+      public boolean visit(DartParameter x, DartContext ctx) {
+        boolean isSimpleType = isSimpleType(x.getTypeNode());
+
+        if (!isSimpleType) {
+          p("        ");
+          accept(x.getTypeNode());
+          p(" ");
+          accept(x.getName());
+          p(" = new ");
+          accept(x.getTypeNode());
+          p("Impl(promises[" + proxies + "]);");
+          ++proxies;
+          nl();
+        }
+        return false;
+      }
+    };
+    
+    GatherVisitor visitor = new GatherVisitor();
+    
     visitor.accept(member);
   }
 
@@ -608,8 +701,14 @@ public class DartIsolateStubGenerator extends AbstractBackend {
    *       reply(port);
    *     } else if (command == "deposit") {
    *       int amount = message[1];
-   *       Proxy<Purse> source = new Proxy<Purse>.forPort(message[2]);
-   *       target.deposit(amount, source);
+   *       Promise<SendPort> port =
+   *           new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(message[2]));
+   *       port.addCompletionHandler((_) {
+   *         Purse$Proxy source = new Purse$ProxyImpl(port);
+   *         target.deposit(amount, source);
+   *       });
+   *       //Proxy<Purse> source = new Proxy<Purse>.forPort(message[2]);
+   *       //target.deposit(amount, source);
    *     } else {
    *       // TODO(kasperl,benl): Somehow throw an exception instead.
    *       reply("Exception: command not understood.");

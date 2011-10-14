@@ -66,7 +66,6 @@ function isolate$receiveMessage(port, isolate,
     var message = isolate$deserializeMessage(serializedMessage);
     var replyTo = isolate$deserializeMessage(serializedReplyTo);
     native_ReceivePortImpl__invokeCallback(port, message, replyTo);
-    native__IsolateJsUtil__promiseQueueProcess();
   });
 }
 

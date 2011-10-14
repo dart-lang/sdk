@@ -18,7 +18,7 @@ interface Purse factory PurseImpl {
 
   int queryBalance();
   Purse sproutPurse();
-  void deposit(int amount, Purse$Proxy source);
+  int deposit(int amount, Purse$Proxy source);
 
 }
 
@@ -55,7 +55,7 @@ class PurseImpl implements Purse {
     return _mint.createPurse(0);
   }
 
-  void deposit(int amount, Purse$Proxy proxy) {
+  int deposit(int amount, Purse$Proxy proxy) {
     if (amount < 0) throw "Ha ha";
     // Because we are in the same isolate as the other purse, we can
     // retrieve the proxy's local PurseImpl object and act on it
@@ -65,6 +65,7 @@ class PurseImpl implements Purse {
     if (source._balance < amount) throw "Not enough dough.";
     _balance += amount;
     source._balance -= amount;
+    return _balance;
   }
 
   Mint _mint;
@@ -82,15 +83,22 @@ class MintMakerPromiseWithStubsTest {
     Purse$Proxy sprouted = purse.sproutPurse();
     expectEquals(0, sprouted.queryBalance());
 
-    sprouted.deposit(5, purse);
-    expectEquals(0 + 5, sprouted.queryBalance());
-    expectEquals(100 - 5, purse.queryBalance());
+    // FIXME(benl): We should not have to manually order the calls
+    // like this.
+    Promise<int> result = sprouted.deposit(5, purse);
+    expectEquals(5, result);
+    result.addCompleteHandler((_) {
+      expectEquals(0 + 5, sprouted.queryBalance());
+      expectEquals(100 - 5, purse.queryBalance());
 
-    sprouted.deposit(42, purse);
-    expectEquals(0 + 5 + 42, sprouted.queryBalance());
-    expectEquals(100 - 5 - 42, purse.queryBalance());
-
-    expectDone(6);
+      result = sprouted.deposit(42, purse);
+      expectEquals(5 + 42, result);
+      result.addCompleteHandler((_) {
+        expectEquals(0 + 5 + 42, sprouted.queryBalance());
+        expectEquals(100 - 5 - 42, purse.queryBalance());
+        expectDone(8);
+      });
+    });
   }
 
   static List<Promise> results;
@@ -100,6 +108,7 @@ class MintMakerPromiseWithStubsTest {
       results = new List<Promise>();
     }
     results.add(promise.then((int actual) {
+      print("done $expected/$actual");
       Expect.equals(expected, actual);
     }));
   }
