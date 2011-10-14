@@ -116,13 +116,13 @@ class MintMakerPromiseWithStubsTest {
   static void expectDone(int n) {
     if (results === null) {
       Expect.equals(0, n);
-      //print('##DONE##');
+      print('##DONE##');
     } else {
       Promise done = new Promise();
       done.waitFor(results, results.length);
       done.then((ignored) {
         Expect.equals(n, results.length);
-        //print('##DONE##');
+        print('##DONE##');
       });
     }
   }
