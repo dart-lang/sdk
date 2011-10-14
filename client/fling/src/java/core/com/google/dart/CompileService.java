@@ -26,6 +26,7 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 
 /**
@@ -143,6 +144,10 @@ public class CompileService {
     public void typeError(DartCompilationError error) {
       typeErrors.add(CompileError.from(error));
     }
+
+    @Override
+    public void unitCompiled(DartUnit unit) {
+    }
   }
   
   /**
@@ -191,6 +196,10 @@ public class CompileService {
             @Override
             public void typeError(DartCompilationError error) {
               throw new RuntimeException("Unable to build runtime lib: " + error);
+            }
+
+            @Override
+            public void unitCompiled(DartUnit unit) { 
             }
           });
       return snapshot;
