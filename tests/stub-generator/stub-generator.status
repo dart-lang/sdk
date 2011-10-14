@@ -6,7 +6,6 @@ prefix stub-generator
 
 [ $arch == ia32 ]
 MintMakerFullyIsolatedTest: Skip  # issue 115
-MintMakerPromiseWithStubsTest: Fail
 
 [ $arch == dartc ]
 
