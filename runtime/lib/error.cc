@@ -68,34 +68,35 @@ static void SetLocationFields(const Instance& instance,
 }
 
 
-// Allocate and throw a new AssertError.
+// Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
 // Arg1: index of the first token after the failed assertion.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(AssertError_throwNew, 2) {
+DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   intptr_t assertion_start = Smi::CheckedHandle(arguments->At(0)).Value();
   intptr_t assertion_end = Smi::CheckedHandle(arguments->At(1)).Value();
 
-  // Allocate a new instance of type AssertError.
-  const Instance& assert_error = Instance::Handle(NewInstance("AssertError"));
+  // Allocate a new instance of type AssertionError.
+  const Instance& assertion_error = Instance::Handle(
+      NewInstance("AssertionError"));
 
   // Initialize 'url', 'line', and 'column' fields.
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(GetCallerScript(&iterator));
-  const Class& cls = Class::Handle(assert_error.clazz());
-  SetLocationFields(assert_error, cls, script, assertion_start);
+  const Class& cls = Class::Handle(assertion_error.clazz());
+  SetLocationFields(assertion_error, cls, script, assertion_start);
 
   // Initialize field 'failed_assertion' with source snippet.
   intptr_t from_line, from_column;
   script.GetTokenLocation(assertion_start, &from_line, &from_column);
   intptr_t to_line, to_column;
   script.GetTokenLocation(assertion_end, &to_line, &to_column);
-  SetField(assert_error, cls, "failedAssertion", String::Handle(
+  SetField(assertion_error, cls, "failedAssertion", String::Handle(
       script.GetSnippet(from_line, from_column, to_line, to_column)));
 
-  // Throw AssertError instance.
-  Exceptions::Throw(assert_error);
+  // Throw AssertionError instance.
+  Exceptions::Throw(assertion_error);
   UNREACHABLE();
 }
 
@@ -112,18 +113,21 @@ static void ThrowTypeError(intptr_t location,
   DartFrameIterator iterator;
   const Script& script = Script::Handle(GetCallerScript(&iterator));
   const Class& cls = Class::Handle(type_error.clazz());
-  // Location fields are defined in AssertError, the superclass of TypeError.
-  const Class& assert_error_class = Class::Handle(cls.SuperClass());
-  SetLocationFields(type_error, assert_error_class, script, location);
+  // Location fields are defined in AssertionError, the superclass of TypeError.
+  const Class& assertion_error_class = Class::Handle(cls.SuperClass());
+  SetLocationFields(type_error, assertion_error_class, script, location);
 
-  // Initialize field 'failedAssertion' in AssertError superclass.
+  // Initialize field 'failedAssertion' in AssertionError superclass.
   // Printing the src_obj value would be possible, but ToString() is expensive
   // and not meaningful for all classes, so we just print '$expr instanceof...'.
   // Users should look at TypeError.ToString(), which contains more useful
-  // information than AssertError.failedAssertion.
+  // information than AssertionError.failedAssertion.
   String& failed_assertion = String::Handle(String::New("$expr instanceof "));
   failed_assertion = String::Concat(failed_assertion, dst_type_name);
-  SetField(type_error, assert_error_class, "failedAssertion", failed_assertion);
+  SetField(type_error,
+           assertion_error_class,
+           "failedAssertion",
+           failed_assertion);
 
   // Initialize field 'srcType'.
   SetField(type_error, cls, "srcType", src_type_name);

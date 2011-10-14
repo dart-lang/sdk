@@ -28,7 +28,7 @@ DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, true, "Silence warnings.");
 
 // All references to Dart names are listed here.
-static const char* kAssertErrorName = "AssertError";
+static const char* kAssertionErrorName = "AssertionError";
 static const char* kFallThroughErrorName = "FallThroughError";
 static const char* kThrowNewName = "throwNew";
 static const char* kGrowableObjectArrayFromArrayName =
@@ -4204,7 +4204,7 @@ AstNode* Parser::MakeAssertCall(intptr_t begin, intptr_t end) {
       Integer::ZoneHandle(Integer::New(begin))));
   arguments->Add(new LiteralNode(end,
       Integer::ZoneHandle(Integer::New(end))));
-  return MakeStaticCall(kAssertErrorName, kThrowNewName, arguments);
+  return MakeStaticCall(kAssertionErrorName, kThrowNewName, arguments);
 }
 
 
@@ -4212,7 +4212,7 @@ AstNode* Parser::ParseAssertStatement() {
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
   const intptr_t condition_pos = token_index_;
-  if (!FLAG_enable_asserts) {  // always enable assert for now...
+  if (!FLAG_enable_asserts && !FLAG_enable_type_checks) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
