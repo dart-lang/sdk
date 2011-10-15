@@ -26739,7 +26739,7 @@ function __dom_get_cached(hashtablename, obj, isolatetoken) {
 function __dom_set_cached(hashtablename, obj, isolatetoken, value) {
   var hashtable;
   if (!obj.hasOwnProperty(hashtablename)) {
-    hashtable = [];
+    hashtable = {};
     obj[hashtablename] = hashtable;
   } else {
     hashtable = obj[hashtablename];
