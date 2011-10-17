@@ -176,7 +176,6 @@ class DartCompiler(object):
            '--out', self.outputFileName(inputfile, outdir)]
     if self.optimize:
       cmd.append('--optimize')
-      cmd.append('--disable-type-optimizations')
     cmd.append(self.extra_flags);
     cmd.append(inputfile)
     return cmd
