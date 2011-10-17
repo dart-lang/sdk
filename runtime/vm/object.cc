@@ -5260,7 +5260,7 @@ RawString* String::New(const char* str, Heap::Space space) {
   intptr_t width = 0;
   intptr_t len = Utf8::CodePointCount(str, &width);
   if (width == 1) {
-    OneByteString& onestr
+    const OneByteString& onestr
         = OneByteString::Handle(OneByteString::New(len, space));
     if (len > 0) {
       NoGCScope no_gc;
@@ -5268,14 +5268,14 @@ RawString* String::New(const char* str, Heap::Space space) {
     }
     return onestr.raw();
   } else if (width == 2) {
-    TwoByteString& twostr =
+    const TwoByteString& twostr =
         TwoByteString::Handle(TwoByteString::New(len, space));
     NoGCScope no_gc;
     Utf8::Decode(str, twostr.CharAddr(0), len);
     return twostr.raw();
   }
   ASSERT(width == 4);
-  FourByteString& fourstr =
+  const FourByteString& fourstr =
       FourByteString::Handle(FourByteString::New(len, space));
   NoGCScope no_gc;
   Utf8::Decode(str, fourstr.CharAddr(0), len);
@@ -5744,7 +5744,8 @@ RawOneByteString* OneByteString::New(intptr_t len,
 RawOneByteString* OneByteString::New(const uint8_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5753,7 +5754,8 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
 RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5762,7 +5764,8 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
 RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5771,7 +5774,8 @@ RawOneByteString* OneByteString::New(const uint32_t* characters,
 RawOneByteString* OneByteString::New(const OneByteString& str,
                                      Heap::Space space) {
   intptr_t len = str.Length();
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, str, 0, len);
   return result.raw();
 }
@@ -5783,7 +5787,8 @@ RawOneByteString* OneByteString::Concat(const String& str1,
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
   return result.raw();
@@ -5793,7 +5798,8 @@ RawOneByteString* OneByteString::Concat(const String& str1,
 RawOneByteString* OneByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   OneByteString& str = OneByteString::Handle();
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
@@ -5851,7 +5857,8 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
 RawTwoByteString* TwoByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5860,7 +5867,8 @@ RawTwoByteString* TwoByteString::New(const uint16_t* characters,
 RawTwoByteString* TwoByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5869,7 +5877,8 @@ RawTwoByteString* TwoByteString::New(const uint32_t* characters,
 RawTwoByteString* TwoByteString::New(const TwoByteString& str,
                                      Heap::Space space) {
   intptr_t len = str.Length();
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, str, 0, len);
   return result.raw();
 }
@@ -5878,11 +5887,11 @@ RawTwoByteString* TwoByteString::New(const TwoByteString& str,
 RawTwoByteString* TwoByteString::Concat(const String& str1,
                                         const String& str2,
                                         Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle();
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  result ^= TwoByteString::New(len, space);
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
   return result.raw();
@@ -5892,7 +5901,8 @@ RawTwoByteString* TwoByteString::Concat(const String& str1,
 RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String& str = String::Handle();
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
@@ -5951,7 +5961,7 @@ RawFourByteString* FourByteString::New(intptr_t len,
 RawFourByteString* FourByteString::New(const uint32_t* characters,
                                        intptr_t len,
                                        Heap::Space space) {
-  FourByteString& result =
+  const FourByteString& result =
       FourByteString::Handle(FourByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
@@ -5970,7 +5980,7 @@ RawFourByteString* FourByteString::Concat(const String& str1,
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  FourByteString& result =
+  const FourByteString& result =
       FourByteString::Handle(FourByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
@@ -5981,7 +5991,7 @@ RawFourByteString* FourByteString::Concat(const String& str1,
 RawFourByteString* FourByteString::ConcatAll(const Array& strings,
                                              intptr_t len,
                                              Heap::Space space) {
-  FourByteString& result =
+  const FourByteString& result =
       FourByteString::Handle(FourByteString::New(len, space));
   String& str = String::Handle();
   {
