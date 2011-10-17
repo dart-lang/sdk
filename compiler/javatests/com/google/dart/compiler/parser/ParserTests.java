@@ -26,6 +26,7 @@ public class ParserTests extends TestSetup {
     suite.addTestSuite(CommentTest.class);
     suite.addTestSuite(ErrorMessageLocationTest.class);
     suite.addTestSuite(ParserEventsTest.class);
+    suite.addTestSuite(TruncatedSourceParserTest.class);
     return new ParserTests(suite);
   }
 }
