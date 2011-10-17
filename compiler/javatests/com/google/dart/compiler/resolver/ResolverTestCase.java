@@ -102,32 +102,47 @@ abstract class ResolverTestCase extends TestCase {
     private final InterfaceType stringType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicType;
-    private final InterfaceType defaultMapType;
-    private final InterfaceType defaultArrayType;
+    private final InterfaceType defaultMapLiteralType;
+    private final InterfaceType defaultListType;
     private final ClassElement objectElement;
 
 
     {
+      ClassElement dynamicElement = Elements.classNamed("Dynamic");
+      dynamicType = Types.interfaceType(dynamicElement, Collections.<Type>emptyList());
+      dynamicElement.setType(dynamicType);
+
       ClassElement boolElement = Elements.classNamed("bool");
       boolType = Types.interfaceType(boolElement, Collections.<Type>emptyList());
+      boolElement.setType(boolType);
+
       ClassElement intElement = Elements.classNamed("int");
       intType = Types.interfaceType(intElement, Collections.<Type>emptyList());
+      intElement.setType(intType);
+
       ClassElement doubleElement = Elements.classNamed("double");
       doubleType = Types.interfaceType(doubleElement, Collections.<Type>emptyList());
+      doubleElement.setType(doubleType);
+
       ClassElement numElement = Elements.classNamed("num");
       numType = Types.interfaceType(numElement, Collections.<Type>emptyList());
+      numElement.setType(numType);
+
       ClassElement stringElement = Elements.classNamed("String");
       stringType = Types.interfaceType(stringElement, Collections.<Type>emptyList());
       intElement.setType(intType);
+
       ClassElement functionElement = Elements.classNamed("Function");
       functionType = Types.interfaceType(functionElement, Collections.<Type>emptyList());
-      ClassElement dynamicElement = Elements.classNamed("Dynamic");
-      dynamicType = Types.interfaceType(dynamicElement, Collections.<Type>emptyList());
-      ClassElement mapElement = Elements.classNamed("Map");
-      defaultMapType = Types.interfaceType(mapElement, Lists.newArrayList(stringType, dynamicType));
-      ClassElement listElement = Elements.classNamed("List");
-      defaultArrayType = Types.interfaceType(listElement, Lists.newArrayList(dynamicType));
       functionElement.setType(functionType);
+
+      ClassElement mapElement = Elements.classNamed("Map");
+      defaultMapLiteralType = Types.interfaceType(mapElement, Lists.newArrayList(stringType, dynamicType));
+      mapElement.setType(defaultMapLiteralType);
+
+      ClassElement listElement = Elements.classNamed("List");
+      defaultListType = Types.interfaceType(listElement, Lists.newArrayList(dynamicType));
+      listElement.setType(defaultListType);
     }
 
     MockCoreTypeProvider(ClassElement objectElement) {
@@ -166,7 +181,7 @@ abstract class ResolverTestCase extends TestCase {
 
     @Override
     public InterfaceType getArrayType(Type elementType) {
-      return defaultArrayType;
+      return defaultListType;
     }
 
     @Override
@@ -191,7 +206,7 @@ abstract class ResolverTestCase extends TestCase {
 
     @Override
     public InterfaceType getMapType(Type key, Type value) {
-      return defaultMapType;
+      return defaultMapLiteralType;
     }
 
     @Override
@@ -206,12 +221,12 @@ abstract class ResolverTestCase extends TestCase {
 
     @Override
     public InterfaceType getArrayLiteralType(Type value) {
-      return defaultArrayType;
+      return defaultListType;
     }
 
     @Override
     public InterfaceType getMapLiteralType(Type key, Type value) {
-      return defaultMapType;
+      return defaultMapLiteralType;
     }
 
     @Override
@@ -380,7 +395,7 @@ abstract class ResolverTestCase extends TestCase {
     if (encounteredErrors.size() != 0) {
       printSource(source);
       printEncountered(encounteredErrors);
-      assertEquals("Expected no errors in parse step:", 0, encountered.size());
+      assertEquals("Expected no errors in parse step:", 0, encounteredErrors.size());
     }
     resolve(unit, ctx);
     checkExpectedErrors(encountered, errorCodes, source);

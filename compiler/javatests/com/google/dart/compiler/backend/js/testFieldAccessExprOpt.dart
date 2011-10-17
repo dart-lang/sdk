@@ -5,9 +5,9 @@
 class A {
   int x;
 
-  static final A a = new A();
+  const A() : this.x = 1;
 
-  A(){}
+  static final A a = const A();
 }
 
 class WillNotOptimizeFieldAccess {

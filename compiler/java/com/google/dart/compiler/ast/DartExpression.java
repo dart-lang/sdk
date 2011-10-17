@@ -4,10 +4,13 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.dart.compiler.type.Type;
+
 /**
  * Abstract base class for Dart expressions.
  */
 public abstract class DartExpression extends DartNode {
+  Type type;
 
   public boolean isAssignable() {
     // By default you cannot assign to expressions.
@@ -17,5 +20,15 @@ public abstract class DartExpression extends DartNode {
   @Override
   public DartExpression getNormalizedNode() {
     return (DartExpression) super.getNormalizedNode();
+  }
+
+  @Override
+  public void setType(Type type) {
+   this.type = type;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
   }
 }

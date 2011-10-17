@@ -1210,12 +1210,12 @@ public class TypeAnalyzerTest extends TypeTestCase {
     Map<String, ClassElement> classes = loadSource(
         "class GoodField {",
         "  static final int i = 1;",
-        "}",
-        "class BadField {",
-        "  static final int i = '';",
         "}");
     analyzeClass(classes.get("GoodField"), 0);
-    analyzeClass(classes.get("BadField"), 1);
+
+    // Note, the TypeAnalyzer doesn't get a chance
+    // to get its hands on bad initializers anymore
+    // due to type checking in CompileTimeConstVisitor.
   }
 
   public void testGetAllSupertypes()

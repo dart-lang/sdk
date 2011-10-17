@@ -22,10 +22,13 @@ class StringInterpolateTest {
   static final String A = "svin";
   static final String B = "hest";
   static final int N = 1 + 1;
-  static final String Printers = "Printers: $A and $B";
-  static final String AAR_Printers = "AAR has $N $Printers.";
+  static String Printers;
+  static String AAR_Printers;
 
   static testMain() {
+    Printers = "Printers: $A and $B";
+    AAR_Printers  = "AAR has $N $Printers.";
+    
     var x = 1;
     var s = "eins und \$x macht zwei.";
     print(s);

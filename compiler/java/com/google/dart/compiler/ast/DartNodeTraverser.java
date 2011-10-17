@@ -31,8 +31,9 @@ import java.util.List;
  * @Override
  * public R visitArrayAccess(DartArrayAccess node) {
  *   // Actions before visiting subnodes.
- *   this.visitChildren(node);
+ *   node.visitChildren(this);
  *   // Actions after visiting subnodes.
+ *   return node;
  * }
  * </pre>
  *

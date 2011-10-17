@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Types;
 
@@ -150,7 +151,12 @@ public class TopLevelElementBuilder {
 
     @Override
     public Void visitField(DartField node) {
-      node.setSymbol(Elements.fieldFromNode(node, library, node.getModifiers()));
+      Modifiers modifiers = node.getModifiers();
+      if (modifiers.isFinal()) {
+        // final toplevel fields are implicitly compile-time constants.
+        modifiers = modifiers.makeConstant();
+      }
+      node.setSymbol(Elements.fieldFromNode(node, library, modifiers));
       return null;
     }
   }

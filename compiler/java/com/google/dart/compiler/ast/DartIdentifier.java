@@ -50,6 +50,10 @@ public class DartIdentifier extends DartExpression implements ElementReference {
     return targetName;
   }
 
+ /**
+  * Different access from getSymbol() to help distinguish parts of an expression
+  * when walking a DartPropertyAccess.
+  */
   public Element getTargetSymbol() {
     return targetSymbol;
   }

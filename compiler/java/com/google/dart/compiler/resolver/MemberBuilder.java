@@ -223,9 +223,17 @@ public class MemberBuilder {
 
     private FieldElement buildField(DartField fieldNode, Type type) {
       assert !fieldNode.getModifiers().isAbstractField();
+      Modifiers modifiers = fieldNode.getModifiers();
+      if (modifiers.isFinal() && (modifiers.isStatic() || context == topLevelContext)) {
+        // final toplevel fields are implicitly compile-time constants.
+        modifiers = modifiers.makeStatic();
+        // Set the "const" modifier so that it is easy to compare a constant field to other
+        // types of constant expressions.
+        modifiers = modifiers.makeConstant();
+      }
       FieldElement fieldElement = fieldNode.getSymbol();
       if (fieldElement == null) {
-        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getModifiers());
+        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, modifiers);
         addField(currentHolder, fieldElement);
       } else {
         // This is a top-level element, and an element was already created in

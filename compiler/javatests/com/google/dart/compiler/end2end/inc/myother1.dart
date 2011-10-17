@@ -2,10 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Other1 {
-  // The existence of this final triggers b/5078969.
-  static final Function FN = () { return 42; };
 
-  Other1() { }
+class Other1 {
+
+  static Function FN;
+
+  Other1() {
+
+    if (FN == null) {
+      FN = () { return 42; };
+    }
+  }
   void newMethod() { }
 }

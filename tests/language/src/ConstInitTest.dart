@@ -26,29 +26,8 @@ class ConstInitTest {
     Expect.equals(6, P);
     Expect.equals(0, Q.x_);
     Expect.equals(0, Q.y_);
-
-    // class order doesn't matter.
-    Expect.equals(1, C2.N);
-    Expect.equals(4, C2.O);
-    Expect.equals(6, C2.P);
-    Expect.equals(0, C2.Q.x_);
-    Expect.equals(0, C2.Q.y_);
-
-    // Nor the order of top level constants
-    Expect.equals(1, X.x_);
-    Expect.equals(4, X.y_);
   }
 }
-
-class C2 {
-  static final Q = const Point(0, 0);
-  static final P = 2 * (O - N);
-  static final O = 1 + 3;
-  static final N = 1;
-}
-
-// Top level final
-final X = const Point(C2.N, C2.O);
 
 main() {
   ConstInitTest.testMain();

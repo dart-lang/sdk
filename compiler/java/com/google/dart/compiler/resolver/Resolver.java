@@ -34,13 +34,13 @@ import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLabel;
-import com.google.dart.compiler.ast.DartLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -54,7 +54,6 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartTypedLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
@@ -338,20 +337,15 @@ public class Resolver {
       return member;
     }
 
-    private void resolveConstantExpression(DartExpression defaultExpr) {
-      resolve(defaultExpr);
-      checkConstantExpression(defaultExpr);
+    private void resolveConstantExpression(DartExpression expr) {
+      resolve(expr);
+      checkConstantExpression(expr);
     }
 
-    private void checkConstantExpression(DartExpression defaultExpr) {
-      // See bug 4568007.
-    }
-
-    private void checkConstantLiteral(DartExpression defaultExpr) {
-      if ((!(defaultExpr instanceof DartLiteral))
-          || ((defaultExpr instanceof DartTypedLiteral)
-              && (!((DartTypedLiteral) defaultExpr).isConst()))) {
-        resolutionError(defaultExpr, DartCompilerErrorCode.EXPECTED_CONSTANT_LITERAL);
+    private void checkConstantExpression(DartExpression expr) {
+      if (expr != null) {
+        DartNodeTraverser<Void> v = CompileTimeConstVisitor.create(typeProvider, context);
+        expr.accept(v);
       }
     }
 
@@ -363,19 +357,23 @@ public class Resolver {
       boolean isFinal = modifiers.isFinal();
       boolean isTopLevel = ElementKind.of(currentHolder).equals(ElementKind.LIBRARY);
 
+      if (isTopLevel && isFinal) {
+        modifiers.makeStatic();
+      }
+
       if (expression != null) {
-        if (isStatic || isTopLevel) {
-          checkConstantExpression(expression);
-        } else {
-          // TODO(5200401): Only allow constant literals for inline field initializers for now.
-          checkConstantLiteral(expression);
-        }
         resolve(expression);
+        checkConstantExpression(expression);
+        // Now, this constant has a type. Save it for future reference.
+        Element element = node.getSymbol();
+        if (expression.getType() != null) {
+          Elements.setType(element, expression.getType());
+        }
       } else if (isStatic && isFinal) {
         resolutionError(node, DartCompilerErrorCode.STATIC_FINAL_REQUIRES_VALUE);
       }
 
-      // If field is an acessor, both getter and setter need to be visited (if present).
+      // If field is an accessor, both getter and setter need to be visited (if present).
       FieldElement field = node.getSymbol();
       if (field.getGetter() != null) {
         resolve(field.getGetter().getNode());
@@ -872,7 +870,14 @@ public class Resolver {
 
     @Override
     public Element visitNewExpression(DartNewExpression x) {
+
       this.visit(x.getArgs());
+
+      if (x.isConst()) {
+        for (DartExpression arg : x.getArgs()) {
+         checkConstantExpression(arg);
+        }
+      }
 
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
@@ -1244,13 +1249,15 @@ public class Resolver {
     private void checkVariableStatement(DartVariableStatement node,
                                         DartVariable variable,
                                         boolean isImplicitlyInitialized) {
-      if (node.getModifiers().isFinal()) {
+      Modifiers modifiers = node.getModifiers();
+      if (modifiers.isFinal()) {
         if (!isImplicitlyInitialized && (variable.getValue() == null)) {
           resolutionError(variable.getName(), DartCompilerErrorCode.CONSTANTS_MUST_BE_INITIALIZED);
         } else if (isImplicitlyInitialized && (variable.getValue() != null)) {
           resolutionError(variable.getName(), DartCompilerErrorCode.CANNOT_BE_INITIALIZED);
-        } else {
-          checkConstantExpression(variable.getValue());
+        } else if (modifiers.isStatic() && modifiers.isFinal() && variable.getValue() != null) {
+          resolveConstantExpression(variable.getValue());
+          node.setType(variable.getValue().getType());
         }
       }
     }

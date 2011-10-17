@@ -37,12 +37,13 @@ FieldOverrideTest/none: Fail # Bug 5384222
 FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
 Library1NegativeTest: Fail # Bug 5430449
-
+StringInterpolationNegativeTest: Fail # Bug 5463856
 ConstructorTest: Fail          # Bug 4995181, execution order
 ParameterInitializerTest: Fail # Bug 4995181, execution order
 
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
+StringInterpolation7NegativeTest: Fail # Bug 5463856
 
 
 # Regular bugs which should be fixed.
@@ -63,7 +64,8 @@ NullPointerExceptionTest: Fail           # Bug 5391976
 CallThroughNullGetterTest: Fail          # Bug 5391976
 Private3Test: Fail                       # Bug 5391976
 Switch3NegativeTest: Crash               # Bug 5318228
-BadNamedParametersTest: Fail             # Bug Bug 4202974 - release mode is not throwing NSME
+BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not throwing NSME
+CTConst2Test: Fail                       # Codesite issue 124
 
 # Problems specific to dartc debug mode
 [ ($arch == dartc || $arch == chromium) && $mode == debug ]
@@ -75,9 +77,9 @@ Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
 Prefix14Test: Fail                       # Bug 5406175
 Prefix15Test: Skip                       # Bug 5406175
-FunctionTypeParameterNegativeTest: Fail  # Bug 4568007
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
+CTConst3Test: Fail                       # Codesite Issue 120
 ConstructorSetterNegativeTest: FAIL      # Bug 92
 
 MathTest: FAIL                           # Bug 5165080
@@ -91,7 +93,6 @@ NamedParameters4NegativeTest: Fail   # Implementation in progress.
 NamedParameters6NegativeTest: Crash  # Implementation in progress.
 NamedParametersNamedCountTest: Fail  # Bug 5447476
 NamedParametersWithObjectPropertyNamesTest: Fail  # Bug 5447476
-InstFieldInitializerTest: Fail       # Cannot deal with static final values in const expression.
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
@@ -135,7 +136,6 @@ OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
 CharEscapeTest: Fail
-FunctionTypeParameter2NegativeTest: Fail # Bug 4568007
 
 # The following tests use missing error classes. Bug 4385894.
 AssertTest: Fail             # Uses AssertError class.
