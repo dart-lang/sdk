@@ -1,0 +1,15 @@
+This bundle provides rules to TextMate that describe minimal rules for display of the dart source code. At this point the dart bundle provides:
+  - syntax highlighting of keywords
+  - syntax highlighting of strings
+  - Preferences for comments so that you can use CMD-/ to (de)comment source lines.
+
+The bundle identifies dart source by the file extension (.dart).
+
+INSTALLATION
+============
+From the command line. From the root of the dart repo, type:
+open tools/utils/Dart.tmbundle
+
+-OR-
+From TextMate:
+Open (File->Open...) the Dart.tmbundle file from tools/utils/textmate
