@@ -916,11 +916,19 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
   function.set_invocation_counter(0);
   function.set_deoptimization_counter(function.deoptimization_counter() + 1);
 
-  // Get unoptimized code. Compilation restores (reenables) the entry of
-  // unoptimized code.
-  Compiler::CompileFunction(function);
+  // We have to skip the following otherwise the compiler will complain
+  // when it attempts to install unoptimized code into a function that
+  // was already deoptimized.
+  if (!Code::Handle(function.code()).is_optimized()) {
+    // Get unoptimized code. Compilation restores (reenables) the entry of
+    // unoptimized code.
+    Compiler::CompileFunction(function);
 
-  DisableOldCode(function, optimized_code, unoptimized_code);
+    DisableOldCode(function, optimized_code, unoptimized_code);
+  }
+  // TODO(srdjan): Handle better complex cases, e.g. when an older optimized
+  // code is alive on frame and gets deoptimized after the function was
+  // optimized a second time.
   if (FLAG_trace_deopt) {
     OS::Print("After patching ->0x%x:\n", continue_at_pc);
   }
