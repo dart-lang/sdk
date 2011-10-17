@@ -144,7 +144,7 @@ Key bindings:
 	mode-name "Dart"
 	local-abbrev-table dart-mode-abbrev-table
 	abbrev-mode t)
-  (use-local-map c-mode-map)
+  (use-local-map dart-mode-map)
   ;; `c-init-language-vars' is a macro that is expanded at compile
   ;; time to a large `setq' with all the language variables and their
   ;; customized values for our language.
