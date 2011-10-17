@@ -119,7 +119,8 @@ public abstract class DartNode extends AbstractNode implements DartVisitable {
 
   protected <T extends DartNode> T becomeParentOf(T child) {
     if (child != null) {
-       child.setParent(this);
+      DartNode node = child; // Java 7 access rules require a temp of a concrete type.
+      node.setParent(this);
     }
     return child;
   }
