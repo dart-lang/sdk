@@ -38,6 +38,18 @@ FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
 Library1NegativeTest: Fail # Bug 5430449
 StringInterpolationNegativeTest: Fail # Bug 5463856
+
+BlackListedTest/01: Fail # Bug 5469684
+BlackListedTest/02: Fail # Bug 5469684
+BlackListedTest/03: Fail # Bug 5469684
+BlackListedTest/04: Fail # Bug 5469684
+BlackListedTest/05: Fail # Bug 5469684
+BlackListedTest/06: Fail # Bug 5469684
+BlackListedTest/07: Fail # Bug 5469684
+BlackListedTest/08: Fail # Bug 5469684
+BlackListedTest/09: Fail # Bug 5469684
+BlackListedTest/10: Fail # Bug 5469684
+
 ConstructorTest: Fail          # Bug 4995181, execution order
 ParameterInitializerTest: Fail # Bug 4995181, execution order
 
@@ -139,6 +151,17 @@ CharEscapeTest: Fail
 AssertTest: Fail             # Uses AssertError class.
 
 ThirdTest: Fail              # Bug 5339586
+
+BlackListedTest/01: Fail # Bug 5469684
+BlackListedTest/02: Fail # Bug 5469684
+BlackListedTest/03: Fail # Bug 5469684
+BlackListedTest/04: Fail # Bug 5469684
+BlackListedTest/05: Fail # Bug 5469684
+BlackListedTest/06: Fail # Bug 5469684
+BlackListedTest/07: Fail # Bug 5469684
+BlackListedTest/08: Fail # Bug 5469684
+BlackListedTest/09: Fail # Bug 5469684
+BlackListedTest/10: Fail # Bug 5469684
 
 
 # VM specific tests that should not be run by DartC.
