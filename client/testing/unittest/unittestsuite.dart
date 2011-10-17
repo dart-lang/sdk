@@ -2,17 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(rnystrom): This code is gradually moving from a Java/JUnit style to
+// something closer to JS/Jasmine. Eventually, the UnitTestSuite class can go
+// away completely (or become private to this library) and the only exposed API
+// will be group()/test()/expect(). Until then, both ways are supported, which
+// is why things look a bit weird in here.
+
+UnitTestSuite _currentSuite;
+
+/**
+ * Description text of the current test group. If multiple groups are nested,
+ * this will contain all of their text concatenated.
+ */
+String _currentGroup = '';
+
 /** Base class for unit test suites run in a browser. */
 class UnitTestSuite {
 
   /** Tests executed in this suite. */
   List<TestCase> _tests;
-
-  /**
-   * Description text of the current test group. If multiple groups are nested,
-   * this will contain all of their text concatenated.
-   */
-  String _group;
 
   /** Whether this suite is run within dartium layout tests. */
   bool _isLayoutTest;
@@ -31,6 +39,8 @@ class UnitTestSuite {
   bool _uncaughtError;
   EventListener _onErrorClosure;
 
+  bool _queuedToRun = false;
+
   // TODO(sigmund): remove isLayoutTest argument after converting all DOM tests
   // to use the named constructor below.
   // TODO(vsm): remove the ignoredWindow parameter once all tests are fixed.
@@ -40,22 +50,33 @@ class UnitTestSuite {
       _currentTest = 0,
       _callbacksCalled = 0 {
     _onErrorClosure = (e) { _onError(e); };
+    if (_currentSuite != null) {
+      throw 'Cannot have two UnitTestSuites in flight at the same time.';
+    }
+    _currentSuite = this;
+
+    // Immediately queue the suite up. It will run after a timeout (i.e. after
+    // main() has returned).
+    run();
   }
 
   // TODO(jacobr): remove the ignoredWindow parameter once all tests are fixed.
-  UnitTestSuite.forLayoutTests([var ignoredWindow = null])
-    : _isLayoutTest = true,
-      _tests = new List<TestCase>(),
-      _currentTest = 0,
-      _callbacksCalled = 0 {}
+  UnitTestSuite.forLayoutTests([var ignoredWindow = null]) : this(null, true);
 
   /** Starts running the testsuite. */
   void run() {
-    final listener = (e) {
-      _group = '';
+    if (_queuedToRun) {
+      return;
+    }
+
+    _queuedToRun = true;
+
+    listener(e) {
+      _currentGroup = '';
       setUpTestSuite();
       runTests();
     };
+
     try {
       window.dynamic.on.contentLoaded.add(listener);
     } catch(var e) {
@@ -68,7 +89,9 @@ class UnitTestSuite {
   void setUpTestSuite() {}
 
   /** Enqueues a synchronous test. */
-  UnitTestSuite addTest(TestFunction body) => test(null, body);
+  UnitTestSuite addTest(TestFunction body) {
+    test(null, body);
+  }
 
   /** Adds the tests defined by the given TestSet to this suite. */
   void addTestSet(TestSet test) {
@@ -84,8 +107,9 @@ class UnitTestSuite {
   }
 
   /** Enqueues an asynchronous test that waits for [callbacks] callbacks. */
-  UnitTestSuite addAsyncTest(TestFunction body, int callbacks) =>
-      asyncTest(null, callbacks, body);
+  void addAsyncTest(TestFunction body, int callbacks) {
+    asyncTest(null, callbacks, body);
+  }
 
   /** Runs all queued tests, one at a time. */
   void runTests() {
@@ -118,63 +142,6 @@ class UnitTestSuite {
       }
     }
   }
-
-  /**
-   * Creates a new test case with the given description and body. The
-   * description will include the descriptions of any surrounding group()
-   * calls.
-   */
-  UnitTestSuite test(String spec, TestFunction body) {
-    _tests.add(new TestCase(_tests.length + 1, _fullSpec(spec), body, 0));
-    return this;
-  }
-
-  /**
-   * Creates a new async test case with the given description and body. The
-   * description will include the descriptions of any surrounding group()
-   * calls.
-   */
-  UnitTestSuite asyncTest(String spec, int callbacks, TestFunction body) {
-    final testCase =
-        new TestCase(_tests.length + 1, _fullSpec(spec), body, callbacks);
-    _tests.add(testCase);
-    if (callbacks < 1) {
-      testCase.recordError(
-          'Async tests must wait for at least one callback ', '');
-    }
-    return this;
-  }
-
-  /**
-   * Creates a new named group of tests. Calls to group() or test() within the
-   * body of the function passed to this will inherit this group's description.
-   */
-  void group(String description, void body()) {
-    // Concatenate the new group.
-    final oldGroup = _group;
-    if (_group != '') {
-      // Add a space.
-      _group = '$_group $description';
-    } else {
-      // The first group.
-      _group = description;
-    }
-
-    try {
-      body();
-    } finally {
-      // Now that the group is over, restore the previous one.
-      _group = oldGroup;
-    }
-  }
-
-  String _fullSpec(String spec) {
-    if (spec === null) return '$_group';
-    return _group != '' ? '$_group $spec' : spec;
-  }
-
-  /** Creates an expectation for the given value. */
-  Expectation expect(value) => new Expectation(value);
 
   /** Called by subclasses to indicate that an asynchronous test completed. */
   void callbackDone() {
@@ -247,6 +214,10 @@ class UnitTestSuite {
       // TODO(jacobr): remove this horrible hack to work around dartc bugs.
       window.dynamic.onerror = null;
     }
+
+    // This suite is done now, so discard it.
+    _currentSuite = null;
+
     int testsFailed = 0;
     int testsErrors = 0;
     int testsPassed = 0;
@@ -295,6 +266,89 @@ class UnitTestSuite {
   }
 }
 
+/** Creates an expectation for the given value. */
+Expectation expect(value) => new Expectation(value);
+
+/**
+ * Creates a new test case with the given description and body. The
+ * description will include the descriptions of any surrounding group()
+ * calls.
+ */
+void test(String spec, TestFunction body) {
+  _ensureActiveSuite();
+
+  _currentSuite._tests.add(new TestCase(
+      _currentSuite._tests.length + 1, _fullSpec(spec), body, 0));
+}
+
+/**
+ * Creates a new async test case with the given description and body. The
+ * description will include the descriptions of any surrounding group()
+ * calls.
+ */
+void asyncTest(String spec, int callbacks, TestFunction body) {
+  _ensureActiveSuite();
+
+  final testCase = new TestCase(
+    _currentSuite._tests.length + 1, _fullSpec(spec), body, callbacks);
+  _currentSuite._tests.add(testCase);
+
+  if (callbacks < 1) {
+    testCase.recordError(
+        'Async tests must wait for at least one callback ', '');
+  }
+}
+
+/**
+ * Creates a new named group of tests. Calls to group() or test() within the
+ * body of the function passed to this will inherit this group's description.
+ */
+void group(String description, void body()) {
+  _ensureActiveSuite();
+
+  // Concatenate the new group.
+  final oldGroup = _currentGroup;
+  if (_currentGroup != '') {
+    // Add a space.
+    _currentGroup = '$_currentGroup $description';
+  } else {
+    // The first group.
+    _currentGroup = description;
+  }
+
+  try {
+    body();
+  } finally {
+    // Now that the group is over, restore the previous one.
+    _currentGroup = oldGroup;
+  }
+}
+
+void callbackDone() {
+  if (_currentSuite == null) {
+    throw 'There is no currently-running test suite.';
+  }
+  _currentSuite.callbackDone();
+}
+
+String _fullSpec(String spec) {
+  if (spec === null) return '$_currentGroup';
+  return _currentGroup != '' ? '$_currentGroup $spec' : spec;
+}
+
+/**
+ * Lazily creates a UnitTestSuite if there isn't already an active one. Returns
+ * whether or not one was created.
+ */
+_ensureActiveSuite() {
+  if (_currentSuite != null) {
+    return false;
+  }
+
+  _currentSuite = new UnitTestSuite();
+  return true;
+}
+
 /**
  * Wraps an value and provides an "==" operator that can be used to verify that
  * the value matches a given expectation.
@@ -304,6 +358,9 @@ class Expectation {
 
   Expectation(this._value);
 
+  // TODO(rnystrom): Get rid of this and use .equals(). After some discussion,
+  // we decided this is the wrong approach for a bunch of reasons, clever as it
+  // may be.
   /** Asserts that the value is equivalent to the given expected value. */
   bool equals(expected) {
     Expect.equals(expected, _value);
@@ -342,13 +399,13 @@ class Expectation {
  * (test(), group(), expect(), etc.) but defers to a parent suite that owns it.
  */
 class TestSet {
-  UnitTestSuite _suite = null;
+  UnitTestSuite _currentSuite = null;
 
   // TODO(rnystrom): Remove this when default constructors are supported.
   TestSet();
 
   void _bindToSuite(UnitTestSuite suite) {
-    _suite = suite;
+    _currentSuite = suite;
   }
 
   /** Override this to define the specifications for this test set. */
@@ -358,43 +415,23 @@ class TestSet {
 
   /** Enqueues a synchronous test. */
   void addTest(TestFunction test) {
-    _suite.addTest(test);
+    _currentSuite.addTest(test);
   }
 
   /** Adds the tests defined by the given TestSet to this suite. */
   void addTestSet(TestSet test) {
-    _suite.addTestSet(test);
+    _currentSuite.addTestSet(test);
   }
 
   /** Adds the tests defined by the given TestSets to this suite. */
   void addTestSets(Iterable<TestSet> tests) {
-    _suite.addTestSets(tests);
+    _currentSuite.addTestSets(tests);
   }
 
   /** Enqueues an asynchronous test that waits for [callbacks] callbacks. */
   void addAsyncTest(TestFunction test, int callbacks) {
-    _suite.addAsyncTest(test, callbacks);
+    _currentSuite.addAsyncTest(test, callbacks);
   }
-
-  /**
-   * Creates a new test case with the given description and body. The
-   * description will include the descriptions of any surrounding group()
-   * calls.
-   */
-  void test(String spec, void body()) {
-    _suite.test(spec, body);
-  }
-
-  /**
-   * Creates a new named group of tests. Calls to group() or test() within the
-   * body of the function passed to this will inherit this group's description.
-   */
-  void group(String description, void body()) {
-    _suite.group(description, body);
-  }
-
-  /** Creates an expectation for the given value. */
-  Expectation expect(value) => _suite.expect(value);
 }
 
 /** Summarizes information about a single test case. */
