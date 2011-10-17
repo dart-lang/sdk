@@ -9,7 +9,7 @@ samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 
 
 [ $arch == chromium ]
-layout/layout_tests: Skip  # I'm investigating (floitsch).
+layout/layout_tests: Skip  # Issue 152.
 
 
 # 'client' tests import the DOM library, so they only make sense in
