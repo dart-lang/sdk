@@ -21,6 +21,9 @@ StringTest: Fail                # Bug 5196164
 *VMTest: Skip
 
 
+[ $arch == dartc || $mode == release ]
+DoubleCompareTest: Fail         # Issue 146
+
 [ $arch == dartium ]
 # print is not available
 SortTest: Fail
