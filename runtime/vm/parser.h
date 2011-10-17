@@ -399,7 +399,6 @@ class Parser : ValueObject {
                           const char* function_name,
                           ArgumentListNode* arguments);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
-  String& Interpolate(ArrayNode* strings);
 
   void CheckFunctionIsCallable(intptr_t token_index, const Function& function);
 

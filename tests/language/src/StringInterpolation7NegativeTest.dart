@@ -6,8 +6,9 @@
 
 class A {
   static final x = 1;
-  static final y = "Two is greater than ${x}";  // ERROR: String interpolation 
+  static final y = "Two is greater than ${x}";  // ERROR: String interpolation
 }
 
 main() {
+  var a = A.y;
 }

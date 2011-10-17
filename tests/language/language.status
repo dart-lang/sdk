@@ -37,7 +37,6 @@ FieldOverrideTest/none: Fail # Bug 5384222
 FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
 Library1NegativeTest: Fail # Bug 5430449
-StringInterpolationNegativeTest: Fail # Bug 5463856
 
 BlackListedTest/01: Fail # Bug 5469684
 BlackListedTest/02: Fail # Bug 5469684
@@ -55,7 +54,6 @@ ParameterInitializerTest: Fail # Bug 4995181, execution order
 
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
-StringInterpolation7NegativeTest: Fail # Bug 5463856
 
 
 # Regular bugs which should be fixed.
