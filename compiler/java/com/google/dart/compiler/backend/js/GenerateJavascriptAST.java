@@ -1189,7 +1189,8 @@ public class GenerateJavascriptAST {
           continue;
         }
 
-        JsExpression paramName = string(jsParam.getName().getShortIdent());
+        String paramNameStr = getPropNameForNamedParameter(jsParam);
+        JsExpression paramName = string(getPropNameForNamedParameter(jsParam));
         if (generateClosureCompatibleCode) {
           paramName = AstUtil.call(null,
               AstUtil.nameref(null, "JSCompiler_renameProperty"), paramName);
@@ -1198,7 +1199,7 @@ public class GenerateJavascriptAST {
 
         JsExpression ppSeen = AstUtil.preinc(null, seen.makeRef());
         JsBinaryOperation thenExpr = AstUtil.comma(null, ppSeen,
-            AstUtil.newNameRef(namedParam.getName().makeRef(), jsParam.getName()));
+            AstUtil.newNameRef(namedParam.getName().makeRef(), paramNameStr));
 
         DartExpression defaultValue = param.getDefaultExpr();
         JsExpression elseExpr = (defaultValue != null)
@@ -1249,6 +1250,18 @@ public class GenerateJavascriptAST {
       stmts.add(new JsReturn(jsInvoke));
 
       return tramp;
+    }
+
+    private String mangleNamedParameterName(String name) {
+      return "$p_" + name;
+    }
+
+    private String getPropNameForNamedParameter(JsParameter jsParam) {
+      return mangleNamedParameterName(jsParam.getName().getShortIdent());
+    }
+
+    private String getPropNameForNamedParameter(DartNamedExpression namedExpr) {
+      return mangleNamedParameterName(namedExpr.getName().getTargetName());
     }
 
     /**
@@ -2716,9 +2729,9 @@ public class GenerateJavascriptAST {
         for (DartExpression arg : args) {
           if (arg instanceof DartNamedExpression) {
             DartNamedExpression namedExpr = ((DartNamedExpression) arg);
-            String targetName = namedExpr.getName().getTargetName();
+            JsExpression targetName = string(getPropNameForNamedParameter(namedExpr));
             JsPropertyInitializer propInit = new JsPropertyInitializer(
-                string(targetName),
+                targetName,
                 (JsExpression) generate(namedExpr.getExpression()));
             bag.getPropertyInitializers().add(propInit);
           }

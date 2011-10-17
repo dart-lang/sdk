@@ -91,8 +91,6 @@ NamedParameters2NegativeTest: Fail   # Implementation in progress.
 NamedParameters3NegativeTest: Fail   # Implementation in progress.
 NamedParameters4NegativeTest: Fail   # Implementation in progress.
 NamedParameters6NegativeTest: Crash  # Implementation in progress.
-NamedParametersNamedCountTest: Fail  # Bug 5447476
-NamedParametersWithObjectPropertyNamesTest: Fail  # Bug 5447476
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
