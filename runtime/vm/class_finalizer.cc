@@ -125,6 +125,7 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
   ASSERT(!cls.is_interface());
   GrowableArray<const Class*> interfaces;
   CollectInterfaces(cls, &interfaces);
+  const String& class_name = String::Handle(cls.Name());
   for (int i = 0; i < interfaces.length(); i++) {
     const String& interface_name = String::Handle(interfaces[i]->Name());
     const Array& interface_functions =
@@ -152,13 +153,11 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
         class_function = test_class.LookupDynamicFunction(function_name);
       }
       if (class_function.IsNull()) {
-        const String& class_name = String::Handle(cls.Name());
         OS::Print("%s implements '%s' missing: '%s'\n",
             class_name.ToCString(),
             interface_name.ToCString(),
             function_name.ToCString());
-      } else if (!class_function.IsSubtypeOf(interface_function)) {
-        const String& class_name = String::Handle(cls.Name());
+      } else if (class_function.IsSubtypeOf(interface_function)) {
         OS::Print("The type of instance method '%s' in class '%s' is not a "
                   "subtype of the type of '%s' in interface '%s'\n",
                   function_name.ToCString(),
