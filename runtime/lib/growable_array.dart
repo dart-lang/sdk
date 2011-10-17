@@ -55,7 +55,6 @@ class GrowableObjectArray<T> implements Array<T> {
                 backingArray,
                 start + length,
                 this.length - start);
-    print(backingArray[2]);
     if (initialValue !== null) {
       for (int i = start; i < start + length; i++) {
         backingArray[i] = initialValue;
