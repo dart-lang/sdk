@@ -32,11 +32,33 @@ class NumberImplementation implements int, double native "Number" {
 
   // CompareTo has to give a complete order, including -0/+0, NaN and
   // Infinities.
+  // Order is: -Inf < .. < -0.0 < 0.0 .. < +inf < NaN.
   NumberImplementation compareTo(NumberImplementation other) {
-    // TODO(5427706): NumberImplementation.compareTo is broken, since it
-    // doesn't take NaNs and -0.0 into account.
-    // And it doesn't return an int...
-    return this - other;
+    // Don't use the 'this' object (which is a JS Number object), but get the
+    // primitive JS number by invoking toDouble().
+    num thisValue = toDouble();
+    // Remember that NaN return false for any comparison.
+    if (thisValue < other) {
+      return -1;
+    } else if (thisValue > other) {
+      return 1;
+    } else if (thisValue == other) {
+      if (thisValue == 0) {
+        bool thisIsNegative = isNegative();
+        bool otherIsNegative = other.isNegative();
+        if (thisIsNegative == otherIsNegative) return 0;
+        if (thisIsNegative) return -1;
+        return 1;
+      }
+      return 0;
+    } else if (isNaN()) {
+      if (other.isNaN()) {
+        return 0;
+      }
+      return 1;
+    } else {
+      return -1;
+    }
   }
 
   bool isNegative() native;
