@@ -21,7 +21,7 @@ StringTest: Fail                # Bug 5196164
 *VMTest: Skip
 
 
-[ $arch == dartc || $mode == release ]
+[ ($arch == dartc || $arch == chromium) && $mode == release ]
 DoubleCompareTest: Fail         # Issue 146
 
 [ $arch == dartium ]
