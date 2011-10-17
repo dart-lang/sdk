@@ -109,7 +109,7 @@ main() {
 DART_OPTIONS_PATTERN = re.compile(r"// DartOptions=(.*)")
 
 # Pattern for checking if the test is a web test.
-DOM_IMPORT_PATTERN = re.compile(r'#import.*dart:(dom|html).*\);',
+DOM_IMPORT_PATTERN = re.compile(r'#import.*(dart:(dom|html)|html\.dart).*\);',
                                 re.MULTILINE)
 
 # Pattern for matching the output of a browser test.
