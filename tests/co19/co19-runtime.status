@@ -168,12 +168,17 @@ LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t
 LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t09: Skip
 LibTest/core/DateTime/DateTime.withTimeZone/DateTime/DateTime.withTimeZone/A01/t10: Skip
 
+# Following tests should fail in checked mode only.
+LangGuideTest/07_Overriding/A02/t01: Skip
+LangGuideTest/07_Overriding/A02/t02: Skip
+LangGuideTest/07_Overriding/A03/t01: Skip
+LangGuideTest/07_Overriding/A03/t02: Skip
+LangGuideTest/07_Overriding/A03/t03: Skip
+LangGuideTest/07_Overriding/A04/t01: Skip
+LangGuideTest/07_Overriding/A05/t01: Skip
+
 # Following tests define a main with an argument, per new specification
 # we do not pass any argument to main.
-LangGuideTest/07_Overriding/A05/t01: Fail,Okay
-LangGuideTest/07_Overriding/A03/t01: Fail,Okay
-LangGuideTest/07_Overriding/A03/t03: Fail,Okay
-LangGuideTest/07_Overriding/A03/t02: Fail,Okay
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t06: Fail,Okay
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t11: Fail,Okay
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A01/t01: Fail,Okay

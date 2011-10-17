@@ -152,17 +152,19 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
         class_function = test_class.LookupDynamicFunction(function_name);
       }
       if (class_function.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
         OS::Print("%s implements '%s' missing: '%s'\n",
-            cls.ToCString(),
+            class_name.ToCString(),
             interface_name.ToCString(),
             function_name.ToCString());
-      } else if (!class_function.IsAssignableTo(interface_function)) {
-        // TODO(regis): Shouldn't this be IsSubtypeOf instead of IsAssignableTo?
-        OS::Print("%s implements '%s' with wrong result type, wrong number of "
-                  "parameters, or wrong parameter types: '%s'\n",
-            cls.ToCString(),
-            interface_name.ToCString(),
-            function_name.ToCString());
+      } else if (!class_function.IsSubtypeOf(interface_function)) {
+        const String& class_name = String::Handle(cls.Name());
+        OS::Print("The type of instance method '%s' in class '%s' is not a "
+                  "subtype of the type of '%s' in interface '%s'\n",
+                  function_name.ToCString(),
+                  class_name.ToCString(),
+                  function_name.ToCString(),
+                  interface_name.ToCString());
       }
     }
   }
@@ -820,33 +822,39 @@ void ClassFinalizer::CheckForLegalOverrides(const Class& cls) {
   if (super.IsNull()) {
     return;
   }
-  // Check functions.
-  // TODO(regis): It is not clear from the spec that we should be checking this.
-  const Array& functions_array = Array::Handle(cls.functions());
-  Function& function = Function::Handle();
-  String& function_name = String::Handle();
-  intptr_t len = functions_array.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    function ^= functions_array.At(i);
-    if (!function.is_static()) {
-      function_name ^= function.name();
-      Function& overridden_function =
-          Function::Handle(super.LookupDynamicFunction(function_name));
-      if (!overridden_function.IsNull() &&
-          !function.HasCompatibleParametersWith(overridden_function)) {
-        const String& class_name = String::Handle(cls.Name());
-        ReportError("class '%s' overrides function '%s' with incompatible "
-                    "parameters.\n",
-                    class_name.ToCString(), function_name.ToCString());
+  if (FLAG_enable_type_checks) {
+    // Check functions.
+    const Array& functions_array = Array::Handle(cls.functions());
+    Function& function = Function::Handle();
+    String& function_name = String::Handle();
+    const intptr_t len = functions_array.Length();
+    for (intptr_t i = 0; i < len; i++) {
+      function ^= functions_array.At(i);
+      if (!function.is_static()) {
+        function_name ^= function.name();
+        Function& overridden_function =
+            Function::Handle(super.LookupDynamicFunction(function_name));
+        if (!overridden_function.IsNull() &&
+            !function.IsSubtypeOf(overridden_function)) {
+          const String& class_name = String::Handle(cls.Name());
+          const String& super_class_name = String::Handle(
+              Class::Handle(overridden_function.owner()).Name());
+          ReportError("The type of instance method '%s' in class '%s' is "
+                      "not a subtype of the type of overriden instance "
+                      "method '%s' in class '%s'\n",
+                      function_name.ToCString(),
+                      class_name.ToCString(),
+                      function_name.ToCString(),
+                      super_class_name.ToCString());
+        }
       }
-      // Function types are purposely not checked for assignability.
     }
   }
   // Check fields.
   const Array& fields_array = Array::Handle(cls.fields());
   Field& field = Field::Handle();
   String& field_name = String::Handle();
-  len = fields_array.Length();
+  const intptr_t len = fields_array.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= fields_array.At(i);
     field_name ^= field.name();
