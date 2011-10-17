@@ -267,20 +267,6 @@ void AstPrinter::VisitClosureNode(ClosureNode* node) {
 }
 
 
-void AstPrinter::VisitImplicitStaticClosureNode(
-    ImplicitStaticClosureNode* node) {
-  const char* function_fullname = node->function().ToFullyQualifiedCString();
-  OS::Print("static (%s '%s')", node->Name(), function_fullname);
-}
-
-
-void AstPrinter::VisitImplicitInstanceClosureNode(
-    ImplicitInstanceClosureNode* node) {
-  const char* function_fullname = node->function().ToFullyQualifiedCString();
-  OS::Print("(%s '%s')", node->Name(), function_fullname);
-}
-
-
 void AstPrinter::VisitClosureCallNode(ClosureCallNode* node) {
   VisitGenericAstNode(node);
 }

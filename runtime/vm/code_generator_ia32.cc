@@ -840,22 +840,28 @@ void CodeGenerator::VisitTypeNode(TypeNode* node) {
 }
 
 
-// TODO(regis): Consider merging all 3 closure node flavors into a single one.
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
-  const int current_context_level = state()->context_level();
-  const ContextScope& context_scope = ContextScope::ZoneHandle(
-      node->scope()->PreserveOuterScope(current_context_level));
   const Function& function = node->function();
-  ASSERT(function.IsNonImplicitClosureFunction());
-  ASSERT(!function.HasCode());
-  ASSERT(function.context_scope() == ContextScope::null());
-  function.set_context_scope(context_scope);
+  if (function.IsNonImplicitClosureFunction()) {
+    const int current_context_level = state()->context_level();
+    const ContextScope& context_scope = ContextScope::ZoneHandle(
+        node->scope()->PreserveOuterScope(current_context_level));
+    ASSERT(!function.HasCode());
+    ASSERT(function.context_scope() == ContextScope::null());
+    function.set_context_scope(context_scope);
+  } else {
+    ASSERT(function.context_scope() != ContextScope::null());
+    if (function.IsImplicitInstanceClosureFunction()) {
+      node->receiver()->Visit(this);
+    }
+  }
   // The function type of a closure may be parameterized. In that case, pass
   // the type arguments of the instantiator.
   const Class& cls = Class::Handle(function.signature_class());
   ASSERT(!cls.IsNull());
   const bool is_cls_parameterized = cls.IsParameterized();
   if (is_cls_parameterized) {
+    ASSERT(!function.IsImplicitStaticClosureFunction());
     GenerateInstantiatorTypeArguments();
   }
   const Code& stub = Code::Handle(
@@ -865,49 +871,9 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   if (is_cls_parameterized) {
     __ popl(ECX);  // Pop type arguments.
   }
-  if (IsResultNeeded(node)) {
-    __ pushl(EAX);
+  if (function.IsImplicitInstanceClosureFunction()) {
+    __ popl(ECX);  // Pop receiver.
   }
-}
-
-
-void CodeGenerator::VisitImplicitStaticClosureNode(
-    ImplicitStaticClosureNode* node) {
-  const Function& function = node->function();
-  ASSERT(function.IsImplicitStaticClosureFunction());
-  ASSERT(function.context_scope() != ContextScope::null());
-  const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForClosure(function));
-  const ExternalLabel label(function.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label);
-  if (IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
-}
-
-
-void CodeGenerator::VisitImplicitInstanceClosureNode(
-    ImplicitInstanceClosureNode* node) {
-  const Function& function = node->function();
-  ASSERT(function.IsImplicitInstanceClosureFunction());
-  ASSERT(function.context_scope() != ContextScope::null());
-  node->receiver()->Visit(this);
-  // The function type of a closure may be parameterized. In that case, pass
-  // the type arguments of the instantiator.
-  const Class& cls = Class::Handle(function.signature_class());
-  ASSERT(!cls.IsNull());
-  const bool is_cls_parameterized = cls.IsParameterized();
-  if (is_cls_parameterized) {
-    GenerateInstantiatorTypeArguments();
-  }
-  const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForClosure(function));
-  const ExternalLabel label(function.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label);
-  if (is_cls_parameterized) {
-    __ popl(ECX);  // Pop type arguments.
-  }
-  __ popl(ECX);  // Pop receiver.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }

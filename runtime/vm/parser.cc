@@ -1122,9 +1122,7 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
                                            AstNode* receiver) {
   Function& implicit_closure_function =
       Function::ZoneHandle(func.ImplicitClosureFunction());
-  if (receiver == NULL) {
-    return new ImplicitStaticClosureNode(token_pos, implicit_closure_function);
-  } else {
+  if (receiver != NULL) {
     // If we create an implicit instance closure from inside a closure of a
     // parameterized class, make sure that the receiver is captured as
     // instantiator.
@@ -1134,10 +1132,8 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
         CaptureReceiver();
       }
     }
-    return new ImplicitInstanceClosureNode(token_pos,
-                                          implicit_closure_function,
-                                          receiver);
   }
+  return new ClosureNode(token_pos, implicit_closure_function, receiver, NULL);
 }
 
 
@@ -3498,7 +3494,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // variables are not relevant for the compilation of the enclosing function.
   // This pruning is done by omitting to hook the local scope in its parent
   // scope in the constructor of LocalScope.
-  AstNode* closure = new ClosureNode(ident_pos, function, statements->scope());
+  AstNode* closure =
+      new ClosureNode(ident_pos, function, NULL, statements->scope());
 
   if (function_variable == NULL) {
     ASSERT(is_literal);
