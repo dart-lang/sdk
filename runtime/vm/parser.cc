@@ -832,18 +832,17 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     if (!var_seen && !parameter.is_final) {
       // The parsed parameter type is actually the function result type.
       const Type& result_type = Type::Handle(parameter.type->raw());
+
       // Finish parsing the function type parameter.
       ParamList func_params;
       const bool no_explicit_default_values = false;
       ParseFormalParameterList(no_explicit_default_values, &func_params);
-      // Change the name of the parameter type to be the signature of the
-      // function type.
-      const bool is_static =
-          current_function().IsNull() || current_function().is_static();
+
+      // The field 'is_static' has no meaning for signature functions.
       const Function& signature_function = Function::Handle(
           Function::New(*parameter.name,
                         RawFunction::kSignatureFunction,
-                        is_static,
+                        /* is_static = */ false,
                         /* is_const = */ false,
                         parameter.name_pos));
       signature_function.set_owner(current_class());
@@ -864,10 +863,10 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       ASSERT(!Function::Handle(signature_class.signature_function()).IsNull());
       ASSERT(Class::Handle(signature_function.signature_class()).IsNull());
       signature_function.set_signature_class(signature_class);
-      // The type of the parameter is now the signature class.
-      // TODO(regis): What are the type arguments?
-      parameter.type = &Type::ZoneHandle(Type::NewRawType(signature_class));
-      if (!is_top_level_) {
+
+      // The type of the parameter is now the signature type.
+      parameter.type = &Type::ZoneHandle(signature_class.SignatureType());
+      if (!is_top_level_ && !parameter.type->IsFinalized()) {
         const String& errmsg = String::Handle(
             ClassFinalizer::FinalizeTypeWhileParsing(*parameter.type));
         if (!errmsg.IsNull()) {
@@ -2390,10 +2389,11 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   const String* alias_name = CurrentLiteral();
   ConsumeToken();
 
-  // Allocate a class to hold the type parameters and their 'extends'
+  // Allocate an interface to hold the type parameters and their 'extends'
   // constraints. Make it the owner of the function type descriptor.
   const Class& alias_owner = Class::Handle(
       Class::New(String::Handle(String::NewSymbol("")), Script::Handle()));
+  alias_owner.set_is_interface();
   set_current_class(alias_owner);
   ParseTypeParameters(alias_owner);
   if (CurrentToken() != Token::kLPAREN) {
@@ -2408,8 +2408,7 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   ParamList func_params;
   const bool no_explicit_default_values = false;
   ParseFormalParameterList(no_explicit_default_values, &func_params);
-  // TODO(regis): If no type parameters were specified, the function could be
-  // static. Revisit.
+  // The field 'is_static' has no meaning for signature functions.
   Function& signature_function = Function::Handle(
       Function::New(*alias_name,
                     RawFunction::kSignatureFunction,
@@ -3450,35 +3449,26 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // Patch the function type now that the signature is known.
     // We need to create a new type for proper finalization, since the existing
     // type is already marked as finalized.
-    TypeArguments& signature_type_arguments = TypeArguments::Handle();
-    if (signature_class.IsParameterized()) {
-      const intptr_t num_type_params = signature_class.NumTypeParameters();
-      const Array& type_params = Array::Handle(
-          signature_class.type_parameters());
-      signature_type_arguments = TypeArguments::NewTypeArray(num_type_params);
-      String& type_param_name = String::Handle();
-      Type& type_param = Type::Handle();
-      for (int i = 0; i < num_type_params; i++) {
-        type_param_name ^= type_params.At(i);
-        type_param = Type::NewTypeParameter(i, type_param_name);
-        signature_type_arguments.SetTypeAt(i, type_param);
+    const Type& signature_type = Type::Handle(signature_class.SignatureType());
+    const TypeArguments& signature_type_arguments = TypeArguments::Handle(
+        signature_type.arguments());
+
+    // Since the signature type is cached by the signature class, it may have
+    // been finalized already.
+    if (!signature_type.IsFinalized()) {
+      const String& errmsg = String::Handle(
+          ClassFinalizer::FinalizeTypeWhileParsing(signature_type));
+      if (!errmsg.IsNull()) {
+        ErrorMsg(errmsg.ToCString());
       }
+      // The call to ClassFinalizer::FinalizeTypeWhileParsing may have extended
+      // the vector of type arguments.
+      ASSERT(signature_type_arguments.IsNull() ||
+             (signature_type_arguments.Length() ==
+              signature_class.NumTypeArguments()));
+      // The signature_class should not have changed.
+      ASSERT(signature_type.type_class() == signature_class.raw());
     }
-    const ParameterizedType& actual_function_type = ParameterizedType::Handle(
-        ParameterizedType::New(signature_class, signature_type_arguments));
-    const String& errmsg = String::Handle(
-        ClassFinalizer::FinalizeTypeWhileParsing(actual_function_type));
-    if (!errmsg.IsNull()) {
-      ErrorMsg(errmsg.ToCString());
-    }
-    // The call to ClassFinalizer::FinalizeTypeWhileParsing may have extended
-    // the vector of type arguments.
-    signature_type_arguments = actual_function_type.arguments();
-    ASSERT(signature_type_arguments.IsNull() ||
-           (signature_type_arguments.Length() ==
-            signature_class.NumTypeArguments()));
-    // The signature_class should not have changed.
-    ASSERT(actual_function_type.type_class() == signature_class.raw());
 
     // Now patch the function type of the variable.
     function_type.set_type_class(signature_class);

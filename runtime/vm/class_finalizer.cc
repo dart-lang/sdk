@@ -438,7 +438,7 @@ void ClassFinalizer::FinalizeType(const Type& type) {
   ParameterizedType& parameterized_type = ParameterizedType::Handle();
   parameterized_type ^= type.raw();
 
-  if (parameterized_type.is_being_finalized()) {
+  if (parameterized_type.IsBeingFinalized()) {
     ReportError("type '%s' illegally refers to itself\n",
                 String::Handle(parameterized_type.Name()).ToCString());
   }
@@ -540,11 +540,11 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   function.set_result_type(type);
   FinalizeType(type);
   // Resolve formal parameter types.
-  intptr_t num_parameters = function.NumberOfParameters();
-  for (intptr_t p = 0; p < num_parameters; p++) {
-    type = function.ParameterTypeAt(p);
+  const intptr_t num_parameters = function.NumberOfParameters();
+  for (intptr_t i = 0; i < num_parameters; i++) {
+    type = function.ParameterTypeAt(i);
     type = ResolveType(cls, type);
-    function.SetParameterTypeAt(p, type);
+    function.SetParameterTypeAt(i, type);
     FinalizeType(type);
   }
 }
@@ -642,10 +642,10 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       }
     }
   }
-  // Resolve type of signature function.
+  // Resolve the signature type if this class is a signature class.
   if (cls.IsSignatureClass()) {
-    ResolveAndFinalizeSignature(cls,
-                                Function::Handle(cls.signature_function()));
+    const Type& signature_type = Type::Handle(cls.SignatureType());
+    FinalizeType(signature_type);
   }
 }
 

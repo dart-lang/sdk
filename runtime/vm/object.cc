@@ -696,6 +696,39 @@ RawString* Class::Name() const {
 }
 
 
+RawType* Class::SignatureType() const {
+  // Return the cached signature type if any.
+  if (raw_ptr()->signature_type_ != Type::null()) {
+    return raw_ptr()->signature_type_;
+  }
+  ASSERT(IsSignatureClass());
+  TypeArguments& signature_type_arguments = TypeArguments::Handle();
+  const intptr_t num_type_params = NumTypeParameters();
+  // If the signature class extends a parameterized class, the type arguments of
+  // the super class will be prepended to the type argument vector during type
+  // finalization. We only need to provide the type parameters of the signature
+  // class here.
+  if (num_type_params > 0) {
+    const Array& type_params = Array::Handle(type_parameters());
+    signature_type_arguments = TypeArguments::NewTypeArray(num_type_params);
+    String& type_param_name = String::Handle();
+    Type& type_param = Type::Handle();
+    for (int i = 0; i < num_type_params; i++) {
+      type_param_name ^= type_params.At(i);
+      type_param = Type::NewTypeParameter(i, type_param_name);
+      signature_type_arguments.SetTypeAt(i, type_param);
+    }
+  }
+  const ParameterizedType& signature_type = ParameterizedType::Handle(
+      ParameterizedType::New(*this, signature_type_arguments));
+
+  // Cache and return the still unfinalized signature type.
+  ASSERT(!signature_type.IsFinalized());
+  set_signature_type(signature_type);
+  return signature_type.raw();
+}
+
+
 template <class FakeObject>
 RawClass* Class::New() {
   Class& class_class = Class::Handle(Object::class_class());
@@ -766,6 +799,11 @@ void Class::set_signature_function(const Function& value) const {
 }
 
 
+void Class::set_signature_type(const Type& value) const {
+  StorePointer(&raw_ptr()->signature_type_, value.raw());
+}
+
+
 void Class::set_class_state(int8_t state) const {
   ASSERT(state == RawClass::kAllocated ||
          state == RawClass::kPreFinalized ||
@@ -802,7 +840,8 @@ intptr_t Class::NumTypeParameters() const {
 intptr_t Class::NumTypeArguments() const {
   intptr_t num_type_args = NumTypeParameters();
   const Class& superclass = Class::Handle(SuperClass());
-  if (!superclass.IsNull()) {
+  // Object is its own super class during bootstrap.
+  if (!superclass.IsNull() && (superclass.raw() != raw())) {
     num_type_args += superclass.NumTypeArguments();
   }
   return num_type_args;
@@ -977,19 +1016,21 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    intptr_t token_index) {
   ASSERT(!signature_function.IsNull());
   Type& super_type = Type::Handle(Type::ObjectType());
+  const Class& owner_class = Class::Handle(signature_function.owner());
+  ASSERT(!owner_class.IsNull());
   Array& type_parameters = Array::Handle();
   TypeArray& type_parameter_extends = TypeArray::Handle();
   if (!signature_function.is_static()) {
-    const Class& owner_class = Class::Handle(signature_function.owner());
-    ASSERT(!owner_class.IsNull());
-    ASSERT(!owner_class.is_interface());
-    if (owner_class.IsParameterized()) {
+    if (owner_class.IsParameterized() &&
+        !signature_function.HasInstantiatedSignature()) {
       // Share the function owner super class as the super class of the
       // signature class, so that the type argument vector of the closure at
       // run time  matches the type argument vector of the closure instantiator.
       type_parameters = owner_class.type_parameters();
       type_parameter_extends = owner_class.type_parameter_extends();
-      super_type = owner_class.super_type();
+      if (!owner_class.is_interface()) {
+        super_type = owner_class.super_type();
+      }
     }
   }
   Class& result = Class::Handle(New<Closure>(name, script));
@@ -1586,6 +1627,13 @@ bool Type::IsFinalized() const {
 }
 
 
+bool Type::IsBeingFinalized() const {
+  // Type is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 RawType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
@@ -1606,11 +1654,22 @@ RawString* Type::Name() const {
     class_name = cls.Name();
     num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
     if (num_type_params > num_args) {
-      ASSERT(!IsFinalized());
+      ASSERT(num_args == 0);  // Type is raw.
       // We fill up with "var".
       first_type_param_index = 0;
     } else {
       first_type_param_index = num_args - num_type_params;
+    }
+    if (cls.IsSignatureClass()) {
+      const Function& signature_function = Function::Handle(
+          cls.signature_function());
+      // We may be reporting an error about an illformed function type. In that
+      // case, avoid instantiating the signature, since it may lead to cycles.
+      if (IsBeingFinalized()) {
+        return class_name.raw();
+      }
+      return signature_function.InstantiatedSignatureFrom(
+          args, first_type_param_index);
     }
   } else {
     const UnresolvedClass& type = UnresolvedClass::Handle(unresolved_class());
@@ -1645,7 +1704,7 @@ RawString* Type::Name() const {
     ASSERT(s == num_strings);
     type_name = String::ConcatAll(strings);
   }
-  // The name is only used for naming function types and for debugging purposes.
+  // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
   return String::NewSymbol(type_name);
@@ -1842,7 +1901,7 @@ void ParameterizedType::set_is_finalized() const {
 
 
 void ParameterizedType::set_is_being_finalized() const {
-  ASSERT(!IsFinalized() && !is_being_finalized());
+  ASSERT(!IsFinalized() && !IsBeingFinalized());
   set_type_state(RawParameterizedType::kBeingFinalized);
 }
 
@@ -1901,8 +1960,11 @@ RawType* ParameterizedType::InstantiateFrom(
     type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
                                                     offset);
   }
+  const Class& cls = Class::Handle(type_class());
   ParameterizedType& instantiated_type = ParameterizedType::Handle(
-      ParameterizedType::New(Object::Handle(type_class()), type_arguments));
+      ParameterizedType::New(cls, type_arguments));
+  ASSERT(type_arguments.IsNull() ||
+         (type_arguments.Length() == cls.NumTypeArguments()));
   instantiated_type.set_is_finalized();
   return instantiated_type.raw();
 }
@@ -2910,21 +2972,21 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 }
 
 
-// Build a string of the form '<T>(A, [b: B, c: C]) => R)' representing the
-// signature of the given function.
-RawString* Function::Signature() const {
+RawString* Function::BuildSignature(bool instantiate,
+                                    const TypeArguments& instantiator,
+                                    intptr_t offset) const {
   GrowableArray<const String*> pieces;
-  const String& kSpaceExtendsSpace =
-      String::Handle(String::NewSymbol(" extends "));
   const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
   const String& kColonSpace = String::Handle(String::NewSymbol(": "));
-  const String& kLAngleBracket = String::Handle(String::NewSymbol("<"));
-  const String& kRAngleBracket = String::Handle(String::NewSymbol(">"));
   const String& kLParen = String::Handle(String::NewSymbol("("));
   const String& kRParen = String::Handle(String::NewSymbol(") => "));
   const String& kLBracket = String::Handle(String::NewSymbol("["));
   const String& kRBracket = String::Handle(String::NewSymbol("]"));
-  if (!is_static()) {
+  if (!instantiate && !is_static()) {
+    const String& kSpaceExtendsSpace =
+        String::Handle(String::NewSymbol(" extends "));
+    const String& kLAngleBracket = String::Handle(String::NewSymbol("<"));
+    const String& kRAngleBracket = String::Handle(String::NewSymbol(">"));
     const Class& function_class = Class::Handle(owner());
     ASSERT(!function_class.IsNull());
     const Array& type_parameters = Array::Handle(
@@ -2960,6 +3022,9 @@ RawString* Function::Signature() const {
   for (intptr_t i = 0; i < num_fixed_params; i++) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
+    if (instantiate && !param_type.IsInstantiated()) {
+      param_type = param_type.InstantiateFrom(instantiator, offset);
+    }
     pieces.Add(&String::ZoneHandle(param_type.Name()));
     if (i != (num_params - 1)) {
       pieces.Add(&kCommaSpace);
@@ -2971,6 +3036,9 @@ RawString* Function::Signature() const {
       pieces.Add(&String::ZoneHandle(ParameterNameAt(i)));
       pieces.Add(&kColonSpace);
       param_type = ParameterTypeAt(i);
+      if (instantiate && !param_type.IsInstantiated()) {
+        param_type = param_type.InstantiateFrom(instantiator, offset);
+      }
       ASSERT(!param_type.IsNull());
       pieces.Add(&String::ZoneHandle(param_type.Name()));
       if (i != (num_params - 1)) {
@@ -2980,10 +3048,29 @@ RawString* Function::Signature() const {
     pieces.Add(&kRBracket);
   }
   pieces.Add(&kRParen);
-  const Type& res_type = Type::Handle(result_type());
+  Type& res_type = Type::Handle(result_type());
+  if (instantiate && !res_type.IsInstantiated()) {
+    res_type = res_type.InstantiateFrom(instantiator, offset);
+  }
   pieces.Add(&String::Handle(res_type.Name()));
   const Array& strings = Array::Handle(NewArray<const String>(pieces));
   return String::NewSymbol(String::Handle(String::ConcatAll(strings)));
+}
+
+
+bool Function::HasInstantiatedSignature() const {
+  Type& type = Type::Handle(result_type());
+  if (!type.IsInstantiated()) {
+    return false;
+  }
+  const intptr_t num_parameters = NumberOfParameters();
+  for (intptr_t i = 0; i < num_parameters; i++) {
+    type = ParameterTypeAt(i);
+    if (!type.IsInstantiated()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 

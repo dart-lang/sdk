@@ -1385,6 +1385,7 @@ void CodeGenerator::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
 void CodeGenerator::GenerateInstanceOf(intptr_t token_index,
                                        const Type& type,
                                        bool negate_result) {
+  ASSERT(type.IsFinalized());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
@@ -1504,7 +1505,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
   ASSERT(FLAG_enable_type_checks);
   ASSERT(token_index >= 0);
   ASSERT(!dst_type.IsNull());
-  ASSERT(dst_type.IsResolved());
+  ASSERT(dst_type.IsFinalized());
 
   // Any expression is assignable to the VarType. Skip the test.
   if (dst_type.IsVarType()) {
