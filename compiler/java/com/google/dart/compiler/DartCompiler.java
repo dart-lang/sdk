@@ -81,6 +81,7 @@ public class DartCompiler {
     private final boolean collectComments;
     private CoreTypeProvider typeProvider;
     private final boolean incremental;
+    private final boolean usePrecompiledDartLibs;
     private final List<DartCompilationPhase> phases;
     private final List<Backend> backends;
     private final LibrarySource coreLibrarySource;
@@ -107,8 +108,10 @@ public class DartCompiler {
       if (config.shouldOptimize()) {
         // Optimizing turns off incremental compilation.
         incremental = false;
+        usePrecompiledDartLibs = false;
       } else {
         incremental = config.incremental();
+        usePrecompiledDartLibs = true;
       }
     }
 
@@ -193,7 +196,8 @@ public class DartCompiler {
           boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
           LibraryUnit apiLib = new LibraryUnit(libSrc);
           LibraryNode selfSourcePath = lib.getSelfSourcePath();
-          boolean persist = !incremental || !apiLib.loadApi(context, context);
+          boolean shouldLoadApi = incremental || (libIsDartUri && usePrecompiledDartLibs);
+          boolean apiOutOfDate = !(shouldLoadApi && apiLib.loadApi(context, context));
 
           // Parse each compilation unit and update the API to reflect its contents.
           for (LibraryNode libNode : lib.getSourcePaths()) {
@@ -214,7 +218,7 @@ public class DartCompiler {
                   lib.setSelfDartUnit(unit);
                 }
                 lib.putUnit(unit);
-                persist = true;
+                apiOutOfDate = true;
               }
             } else {
               if (libNode == selfSourcePath) {
@@ -225,7 +229,7 @@ public class DartCompiler {
           }
 
           // Persist the api file.
-          if (persist) {
+          if (apiOutOfDate) {
             context.setFilesHaveChanged();
             if (!checkOnly) {
               lib.saveApi(context);
@@ -620,8 +624,6 @@ public class DartCompiler {
         // The two following for loops can be parallelized.
         for (LibraryUnit lib : libraries.values()) {
           boolean persist = false;
-          boolean isAppLibUnit = (lib == context.getAppLibraryUnit());
-          DartUnit libSelfUnit = lib.getSelfDartUnit();
 
           // Compile all the units in this library.
           for (DartUnit unit : lib.getUnits()) {
