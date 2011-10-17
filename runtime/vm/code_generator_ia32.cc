@@ -351,17 +351,17 @@ void CodeGenerator::GeneratePreEntryCode() {
 // - No two descriptors of same kind have the same PC.
 // A function without unique ids is marked as non-optimizable (e.g., because of
 // finally blocks).
-static bool VerifyPcDescriptors(const PcDescriptors& descriptors,
+static void VerifyPcDescriptors(const PcDescriptors& descriptors,
                                 bool check_ids) {
 #if defined(DEBUG)
   // TODO(srdjan): Implement a more efficient way to check, currently drop
   // the check for too large number of descriptors.
-  if (descriptors.Length() > 1000) {
+  if (descriptors.Length() > 3000) {
     if (FLAG_trace_compiler) {
       OS::Print("Not checking pc decriptors, length %d\n",
                 descriptors.Length());
     }
-    return false;
+    return;
   }
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     intptr_t pc = descriptors.PC(i);
@@ -384,7 +384,6 @@ static bool VerifyPcDescriptors(const PcDescriptors& descriptors,
     }
   }
 #endif  // DEBUG
-  return true;
 }
 
 
@@ -392,12 +391,8 @@ void CodeGenerator::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  bool ok = VerifyPcDescriptors(
+  VerifyPcDescriptors(
       descriptors, parsed_function_.function().is_optimizable());
-  if (!ok) {
-    // TODO(5442338) Fix bad pc descriptor generation.
-    parsed_function_.function().set_is_optimizable(false);
-  }
   code.set_pc_descriptors(descriptors);
 }
 
