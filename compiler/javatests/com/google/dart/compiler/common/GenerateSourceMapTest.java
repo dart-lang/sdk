@@ -8,9 +8,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.Backend;
+import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.backend.dart.DartBackend;
 import com.google.dart.compiler.backend.js.ClosureJsBackend;
@@ -273,6 +275,15 @@ public class GenerateSourceMapTest extends CompilerTestCase {
         assertEquals("__" + inputToken.tokenName + "__", originalName);
       }
     }
+  }
+
+  @Override
+  protected CompilerConfiguration getCompilerConfiguration(Backend backend) {
+    return new DefaultCompilerConfiguration(
+        backend, new com.google.dart.compiler.CommandLineOptions.CompilerOptions(){
+          @Override
+          public boolean generateSourceMaps() { return true; }
+        });
   }
 
   protected RunResult getResultForCompile(String fileName, String sourceCode, String part,

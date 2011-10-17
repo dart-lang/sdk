@@ -373,26 +373,29 @@ public class DartRunner {
       Backend backend = config.getBackends().get(0);
 
       SourceMapping mapping = null;
-      Reader mr = provider.getArtifactReader(app, "", backend.getSourceMapExtension());
-      if (mr != null) {
-        String mapContents = CharStreams.toString(mr);
-        try {
-          mapping = SourceMapConsumerFactory.parse(mapContents, new SourceMapSupplier() {
+      if (config.getCompilerOptions().generateSourceMaps()) {
+        Reader mr = provider.getArtifactReader(app, "", backend.getSourceMapExtension());
+        if (mr != null) {
+          try {
+            String mapContents = CharStreams.toString(mr);
+            mapping = SourceMapConsumerFactory.parse(mapContents, new SourceMapSupplier() {
 
-            @Override
-            public String getSourceMap(String url) {
-              String contents = provider.getGeneratedFileContents(url);
-              if (contents == null || contents.isEmpty()) {
-                return null;
+              @Override
+              public String getSourceMap(String url) {
+                String contents = provider.getGeneratedFileContents(url);
+                if (contents == null || contents.isEmpty()) {
+                  return null;
+                }
+                return contents;
               }
-              return contents;
-            }
 
-          });
-        } catch (SourceMapParseException e) {
-          throw new AssertionError(e);
+            });
+          } catch (SourceMapParseException e) {
+            throw new AssertionError(e);
+          } finally {
+            mr.close();
+          }
         }
-        mr.close();
       }
 
       Reader r = provider.getArtifactReader(app, "", backend.getAppExtension());

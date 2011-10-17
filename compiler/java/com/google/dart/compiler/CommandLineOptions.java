@@ -66,6 +66,10 @@ public class CommandLineOptions {
         usage = "Classes to generate stubs\n (comma-separated list)")
     private String generateIsolateStubs = null;
 
+    @Option(name = "--generate_source_maps",
+        usage = "Generate source maps")
+    private boolean generateSourceMaps = false;
+
     @Option(name = "--human-readable-output",
         usage = "Write human readable javascript")
     private boolean generateHumanReadableOutput = false;
@@ -223,6 +227,10 @@ public class CommandLineOptions {
 
     public boolean disableTypeOptimizations() {
       return disableTypeOptimizations;
+    }
+
+    public boolean generateSourceMaps() {
+      return generateSourceMaps;
     }
 
     public boolean generateHumanReadableOutput() {

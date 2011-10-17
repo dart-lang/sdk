@@ -78,7 +78,6 @@ public class ClosureJsBackend extends AbstractJsBackend {
   // if we aren't building source maps.
   private final boolean incremental;
 
-  private final boolean produceSourceMap;
   // Validate the generated JavaScript
   private final boolean validate;
 
@@ -94,19 +93,17 @@ public class ClosureJsBackend extends AbstractJsBackend {
    */
   public ClosureJsBackend(boolean checkedMode, boolean generateHumanReadableOutput) {
     // Current default settings
-    this(false, true, false, true, checkedMode, generateHumanReadableOutput);
+    this(false, false, true, checkedMode, generateHumanReadableOutput);
   }
 
   public ClosureJsBackend(boolean fastOutput,
-                          boolean produceSourceMap,
                           boolean incremental,
                           boolean validate,
                           boolean checkedMode,
                           boolean generateHumanReadableOutput) {
     this.fastOutput = fastOutput;
-    this.produceSourceMap = produceSourceMap;
     // can't currently produce a valid source map incrementally
-    this.incremental = incremental && !produceSourceMap;
+    this.incremental = incremental;
     this.validate = validate;
     this.checkedMode = checkedMode;
     this.generateHumanReadableOutput = generateHumanReadableOutput;
@@ -233,15 +230,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     Writer out = context.getArtifactWriter(app, "", getAppExtension());
     boolean failed = true;
     try {
-      Writer srcMapOut = context.getArtifactWriter(app, "", getSourceMapExtension());
-      boolean failed2 = true;
-      try {
-        compileModule(
-            getCompilerOptions(), mainModule, sourcesByName, out, srcMapOut, context);
-        failed2 = false;
-      } finally {
-        Closeables.close(srcMapOut, failed2);
-      }
+      compileModule(app, context, mainModule, sourcesByName, out);
       failed = false;
     } finally {
       Closeables.close(out, failed);
@@ -334,11 +323,12 @@ public class ClosureJsBackend extends AbstractJsBackend {
   }
 
   private void compileModule(
-      CompilerOptions options, JSModule module,
+      LibrarySource src, DartCompilerContext context,
+      JSModule module,
       Map<String, Source> sourcesByName,
-      Writer out, Writer srcMapOut,
-      DartCompilerContext context) throws IOException {
+      Writer out) throws IOException {
     // Turn off Closure Compiler logging
+    CompilerOptions options = getClosureCompilerOptions(context);
     Logger.getLogger("com.google.javascript.jscomp").setLevel(Level.OFF);
 
     Compiler compiler = new Compiler();
@@ -348,7 +338,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     modules.add(module);
     Result result = compiler.compileModules(externs, modules, options);
 
-    if (processResults(compiler, result, module, out, srcMapOut) != 0) {
+    if (processResults(src, context, compiler, result, module, out) != 0) {
       for (JSError error : result.errors) {
         // Use the real dart source object when we can.
         Source source = sourcesByName.get(error.sourceName);
@@ -366,14 +356,13 @@ public class ClosureJsBackend extends AbstractJsBackend {
     }
 
     out.close();
-    srcMapOut.close();
   }
 
   /**
    * Processes the results of the compile job, and returns an error code.
    */
-  private int processResults(Compiler compiler, Result result, JSModule module,
-      Writer out, Writer srcMapOut)
+  private int processResults(LibrarySource src, DartCompilerContext context, Compiler compiler,
+      Result result, JSModule module, Writer out)
       throws IOException {
     if (result.success) {
       // TODO(johnlenz): Append directly to the writer.
@@ -381,8 +370,15 @@ public class ClosureJsBackend extends AbstractJsBackend {
       out.append(output);
       out.append('\n');
 
-      if (produceSourceMap) {
-        compiler.getSourceMap().appendTo(srcMapOut, module.getName());
+      if (generateSourceMap(context)) {
+        Writer srcMapOut = context.getArtifactWriter(src, "", getSourceMapExtension());
+        boolean failed = true;
+        try {
+          compiler.getSourceMap().appendTo(srcMapOut, module.getName());
+          failed = false;
+        } finally {
+          Closeables.close(srcMapOut, failed);
+        }
       }
       totalJsOutputCharCount = output.length();
     }
@@ -391,7 +387,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     return Math.min(result.errors.length, 0x7f);
   }
 
-  private CompilerOptions getCompilerOptions() {
+  private CompilerOptions getClosureCompilerOptions(DartCompilerContext context) {
     CompilerOptions options = new CompilerOptions();
     options.setCodingConvention(new ClosureJsCodingConvention());
 
@@ -436,7 +432,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
       options.removeUnusedPrototypePropertiesInExterns = false;
     }
 
-    if (produceSourceMap) {
+    if (generateSourceMap(context)) {
       options.sourceMapOutputPath = "placeholder"; // anything will do
       options.sourceMapDetailLevel = DetailLevel.SYMBOLS;
       options.sourceMapFormat = Format.V3;

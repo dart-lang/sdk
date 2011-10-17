@@ -63,6 +63,8 @@ public abstract class AbstractJsBackend extends AbstractBackend {
   private static final String STATICS_PART_NAME = "$statics$";
   private static final String SEPARATOR_PART_NAME = "$seperator$";
 
+  protected final DartMangler mangler = new DollarMangler();
+
   protected static class Part {
     final LibraryUnit lib;
     final DartUnit unit;
@@ -313,8 +315,6 @@ public abstract class AbstractJsBackend extends AbstractBackend {
     }
   }
 
-  protected final DartMangler mangler = new DollarMangler();
-
   protected Map<String, JsProgram> translateToJS(DartUnit unit, DartCompilerContext context,
       CoreTypeProvider typeProvider) {
     TraceEvent logEvent =
@@ -529,7 +529,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
        * Currently, out of date checks require that we write a JS file even if it is empty.
        * However, we should not write a map file if it is.
        */
-      if (!globalBlock.getStatements().isEmpty()) {
+      if (!globalBlock.getStatements().isEmpty() && generateSourceMap(context)) {
         TraceEvent sourcemapEvent =
             Tracer.canTrace() ? Tracer.start(DartEventType.WRITE_SOURCE_MAP, "src", srcName,
                 "name", name) : null;
@@ -554,5 +554,9 @@ public abstract class AbstractJsBackend extends AbstractBackend {
 
   protected boolean generateClosureCompatibleCode() {
     return false;
+  }
+
+  protected boolean generateSourceMap(DartCompilerContext context) {
+    return context.getCompilerConfiguration().getCompilerOptions().generateSourceMaps();
   }
 }
