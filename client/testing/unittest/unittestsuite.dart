@@ -89,7 +89,7 @@ class UnitTestSuite {
   void setUpTestSuite() {}
 
   /** Enqueues a synchronous test. */
-  UnitTestSuite addTest(TestFunction body) {
+  void addTest(TestFunction body) {
     test(null, body);
   }
 
@@ -290,7 +290,7 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
   _ensureActiveSuite();
 
   final testCase = new TestCase(
-    _currentSuite._tests.length + 1, _fullSpec(spec), body, callbacks);
+      _currentSuite._tests.length + 1, _fullSpec(spec), body, callbacks);
   _currentSuite._tests.add(testCase);
 
   if (callbacks < 1) {
@@ -347,11 +347,10 @@ String _fullSpec(String spec) {
  */
 _ensureActiveSuite() {
   if (_currentSuite != null) {
-    return false;
+    return;
   }
 
   _currentSuite = new UnitTestSuite();
-  return true;
 }
 
 /**
