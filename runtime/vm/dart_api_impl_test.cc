@@ -448,6 +448,29 @@ UNIT_TEST_CASE(Isolates) {
 }
 
 
+static bool MyPostMessageCallback(Dart_Isolate dest_isolate,
+                                  Dart_Port send_port,
+                                  Dart_Port reply_port,
+                                  Dart_Message message) {
+  return true;
+}
+
+
+static void MyClosePortCallback(Dart_Isolate dest_isolate,
+                                Dart_Port port) {
+}
+
+
+UNIT_TEST_CASE(SetMessageCallbacks) {
+  Dart_Isolate dart_isolate = Dart_CreateIsolate(NULL, NULL);
+  Dart_SetMessageCallbacks(&MyPostMessageCallback, &MyClosePortCallback);
+  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
+  EXPECT_EQ(&MyPostMessageCallback, isolate->post_message_callback());
+  EXPECT_EQ(&MyClosePortCallback, isolate->close_port_callback());
+  Dart_ShutdownIsolate();
+}
+
+
 #if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
 
 UNIT_TEST_CASE(FieldAccess) {

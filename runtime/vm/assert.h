@@ -39,6 +39,9 @@ class DynamicAssertionHelper {
   template<typename E, typename A>
   void Equals(const E& expected, const A& actual);
 
+  template<typename E, typename A>
+  void NotEquals(const E& not_expected, const A& actual);
+
   template<typename E, typename A, typename T>
   void FloatEquals(const E& expected, const A& actual, const T& tol);
 
@@ -92,6 +95,17 @@ void DynamicAssertionHelper::Equals(const E& expected, const A& actual) {
   ass << actual;
   std::string es = ess.str(), as = ass.str();
   Fail("expected: <%s> but was: <%s>", es.c_str(), as.c_str());
+}
+
+
+template<typename E, typename A>
+void DynamicAssertionHelper::NotEquals(const E& not_expected,
+                                       const A& actual) {
+  if (actual != not_expected) return;
+  std::stringstream ness;
+  ness << not_expected;
+  std::string nes = ness.str();
+  Fail("did not expect: <%s>", nes.c_str());
 }
 
 
@@ -224,6 +238,9 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
 
 #define EXPECT_EQ(expected, actual)                                            \
   dart::Expect(__FILE__, __LINE__).Equals((expected), (actual))
+
+#define EXPECT_NE(not_expected, actual)                                        \
+  dart::Expect(__FILE__, __LINE__).NotEquals((not_expected), (actual))
 
 #define EXPECT_FLOAT_EQ(expected, actual, tol)                                 \
   dart::Expect(__FILE__, __LINE__).FloatEquals((expected), (actual), (tol))

@@ -83,6 +83,80 @@ static void SetupErrorResult(Dart_Result* result) {
 }
 
 
+DART_EXPORT void Dart_SetMessageCallbacks(
+    Dart_PostMessageCallback post_message_callback,
+    Dart_ClosePortCallback close_port_callback) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ASSERT(post_message_callback != NULL);
+  ASSERT(close_port_callback != NULL);
+  isolate->set_post_message_callback(post_message_callback);
+  isolate->set_close_port_callback(close_port_callback);
+}
+
+
+static RawInstance* DeserializeMessage(void* data) {
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  ASSERT(snapshot->IsPartialSnapshot());
+
+  // Read object back from the snapshot.
+  Isolate* isolate = Isolate::Current();
+  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  Instance& instance = Instance::Handle();
+  instance ^= reader.ReadObject();
+  return instance.raw();
+}
+
+
+static void ProcessUnhandledException(const UnhandledException& uhe) {
+  const Instance& exception = Instance::Handle(uhe.exception());
+  Instance& strtmp = Instance::Handle(DartLibraryCalls::ToString(exception));
+  const char* str = strtmp.ToCString();
+  fprintf(stderr, "%s\n", str);
+  const Instance& stack = Instance::Handle(uhe.stacktrace());
+  strtmp = DartLibraryCalls::ToString(stack);
+  str = strtmp.ToCString();
+  fprintf(stderr, "%s\n", str);
+  exit(255);
+}
+
+
+DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
+                                    Dart_Port reply_port,
+                                    Dart_Message dart_message) {
+  const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
+  const String& class_name =
+      String::Handle(String::NewSymbol("ReceivePortImpl"));
+  const String& function_name =
+      String::Handle(String::NewSymbol("handleMessage_"));
+  const int kNumArguments = 3;
+  const Array& kNoArgumentNames = Array::Handle();
+  const Function& function = Function::Handle(
+      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+                              class_name,
+                              function_name,
+                              kNumArguments,
+                              kNoArgumentNames,
+                              Resolver::kIsQualified));
+  GrowableArray<const Object*> arguments(kNumArguments);
+  arguments.Add(&Integer::Handle(Integer::New(dest_port)));
+  arguments.Add(&Integer::Handle(Integer::New(reply_port)));
+  arguments.Add(&msg);
+  const Object& result = Object::Handle(
+      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  if (result.IsUnhandledException()) {
+    UnhandledException& uhe = UnhandledException::Handle();
+    uhe ^= result.raw();
+    // TODO(turnidge): Instead of exiting here, just return the
+    // exception so that the embedder can choose how to handle this
+    // case.
+    ProcessUnhandledException(uhe);
+  }
+  ASSERT(result.IsNull());
+}
+
+
 DART_EXPORT Dart_Result Dart_RunLoop() {
   Isolate* isolate = Isolate::Current();
   LongJump* base = isolate->long_jump_base();
@@ -90,15 +164,7 @@ DART_EXPORT Dart_Result Dart_RunLoop() {
   Dart_Result result;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    // Keep listening until there are no active receive ports.
-    while (isolate->active_ports() > 0) {
-      Zone zone;
-      HandleScope handle_scope;
-
-      PortMessage* message = PortMap::ReceiveMessage(0);
-      message->Handle();
-      delete message;
-    }
+    isolate->StandardRunLoop();
     result.type_ = kRetCBool;
     result.retval_.bool_value = true;
   } else {
@@ -1490,10 +1556,8 @@ DART_EXPORT Dart_Result Dart_PostIntArray(Dart_Port port,
 
   writer.WriteMessage(field_count, data);
 
-  // Post the message at the given port. The allocated message and
-  // buffer are deallocated after the message is processed.
-  PortMessage* portMessage = new PortMessage(port, 0, buffer);
-  bool result = PortMap::PostMessage(portMessage);
+  // Post the message at the given port.
+  bool result = PortMap::PostMessage(port, kNoReplyPort, buffer);
   RETURN_CBOOLEAN(result);
 }
 
@@ -1506,8 +1570,7 @@ DART_EXPORT Dart_Result Dart_Post(Dart_Port port, Dart_Handle handle) {
   SnapshotWriter writer(false, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
-  PortMessage* message = new PortMessage(port, 0, data);
-  bool result = PortMap::PostMessage(message);
+  bool result = PortMap::PostMessage(port, kNoReplyPort, data);
   RETURN_CBOOLEAN(result);
 }
 

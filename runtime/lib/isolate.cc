@@ -37,20 +37,6 @@ class IsolateStartData {
 };
 
 
-static RawInstance* DeserializeMessage(void* data) {
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
-  ASSERT(snapshot->IsPartialSnapshot());
-
-  // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
-  Instance& instance = Instance::Handle();
-  instance ^= reader.ReadObject();
-  return instance.raw();
-}
-
-
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -144,36 +130,6 @@ static RawInstance* SendPortCreate(intptr_t port_id) {
 }
 
 
-void PortMessage::Handle() {
-  const Instance& msg = Instance::Handle(DeserializeMessage(data()));
-  const String& class_name =
-      String::Handle(String::NewSymbol("ReceivePortImpl"));
-  const String& function_name =
-      String::Handle(String::NewSymbol("handleMessage_"));
-  const int kNumArguments = 3;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(dest_id())));
-  arguments.Add(&Integer::Handle(Integer::New(reply_id())));
-  arguments.Add(&msg);
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  if (result.IsUnhandledException()) {
-    UnhandledException& uhe = UnhandledException::Handle();
-    uhe ^= result.raw();
-    ProcessUnhandledException(uhe);
-  }
-  ASSERT(result.IsNull());
-}
-
-
 static void RunIsolate(uword parameter) {
   IsolateStartData* data = reinterpret_cast<IsolateStartData*>(parameter);
   Isolate* isolate = data->isolate_;
@@ -246,16 +202,8 @@ static void RunIsolate(uword parameter) {
     }
     ASSERT(result.IsNull());
     free(class_name);
+    isolate->StandardRunLoop();
 
-    // Keep listening until there are no active receive ports.
-    while (isolate->active_ports() > 0) {
-      Zone zone;
-      HandleScope handle_scope;
-
-      PortMessage* message = PortMap::ReceiveMessage(0);
-      message->Handle();
-      delete message;
-    }
   } else {
     Zone zone;
     HandleScope handle_scope;
@@ -389,8 +337,8 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
   // TODO(iposva): Allow for arbitrary messages to be sent.
   void* data = SerializeObject(Instance::CheckedHandle(arguments->At(2)));
 
-  PortMessage* message = new PortMessage(send_id, reply_id, data);
-  PortMap::PostMessage(message);
+  // TODO(turnidge): Throw an exception when the return value is false?
+  PortMap::PostMessage(send_id, reply_id, data);
 }
 
 }  // namespace dart

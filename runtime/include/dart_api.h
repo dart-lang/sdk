@@ -79,13 +79,17 @@ typedef enum {
 typedef void Dart_Snapshot;
 
 typedef int64_t Dart_Port;
+typedef void* Dart_Message;
 
-// Allow the embedder to intercept isolate creation. Both at startup and when
-// spawning new isolates from Dart code.
-// The result returned from this callback is handed to all isolates spawned
-// from the isolate currently being initialized.
-// Return NULL if an error is encountered. The isolate being initialized will
-// be shutdown. No Dart code will execute in before it is shutdown.
+// Allow the embedder to intercept isolate creation. Both at startup
+// and when spawning new isolates from Dart code. The result returned
+// from this callback is handed to all isolates spawned from the
+// isolate currently being initialized.
+//
+// Return NULL if an error is encountered. The isolate being
+// initialized will be shutdown. No Dart code will execute before it
+// is shutdown.
+//
 // TODO(iposva): Pass a specification of the app file being spawned.
 typedef void* (*Dart_IsolateInitCallback)(void* data);
 
@@ -190,7 +194,64 @@ DART_EXPORT Dart_Isolate Dart_CurrentIsolate();
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_ExitIsolate();
 
+// A convenience routine which processes any incoming messages for the
+// current isolate. The routine exits when all ports to the current
+// isolate are closed.
+//
+// This routine may only be used when the embedder has not provided an
+// alternate message delivery mechanism with Dart_SetPostMessageCallback.
 DART_EXPORT Dart_Result Dart_RunLoop();
+
+// Messages/ports
+
+// A post message callback allows the embedder to provide an alternate
+// delivery mechanism for inter-isolate messages. It is the
+// responsibility of the embedder to call Dart_HandleMessage to
+// process the message.
+//
+// If there is no reply port, then the constant 'kNoReplyPort' is
+// passed as the 'reply_port' parameter.
+//
+// The memory pointed to by 'message' has been allocated by malloc.  It
+// is the responsibility of the callback to ensure that free(message)
+// is called once the message has been processed.
+//
+// The callback should return false if it runs into a problem
+// processing this message.
+//
+// Todo(turnidge): Add a Dart_ReleaseMessage to hide allocation details?
+typedef bool (*Dart_PostMessageCallback)(Dart_Isolate dest_isolate,
+                                         Dart_Port dest_port,
+                                         Dart_Port reply_port,
+                                         Dart_Message message);
+const Dart_Port kNoReplyPort = 0;
+
+// A close port callback allows the embedder to receive notification
+// when a port is closed. The constant 'kCloseAllPorts' is passed as
+// the 'port' parameter when all active ports are being closed at
+// once.
+typedef void (*Dart_ClosePortCallback)(Dart_Isolate isolate,
+                                       Dart_Port port);
+const Dart_Port kCloseAllPorts = 0;
+
+// Allows embedders to provide an alternative mechanism for sending
+// inter-isolate messages. This setting only applies to the current
+// isolate.
+//
+// Most embedders will only call this function once, before isolate
+// execution begins.  If this function is called after isolate
+// execution begins, the embedder is responsible for threading issues.
+//
+// TODO(turnidge): Consider moving this to isolate creation so that it
+// is impossible to mess up.
+DART_EXPORT void Dart_SetMessageCallbacks(
+    Dart_PostMessageCallback post_message_callback,
+    Dart_ClosePortCallback close_port_callback);
+
+// Handle a message on the current isolate.
+DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
+                                    Dart_Port reply_port,
+                                    Dart_Message dart_message);
 
 
 // Object.

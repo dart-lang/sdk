@@ -13,6 +13,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/debuginfo.h"
 #include "vm/heap.h"
+#include "vm/message_queue.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
@@ -32,8 +33,9 @@ DECLARE_FLAG(bool, generate_gdb_symbols);
 
 Isolate::Isolate()
     : store_buffer_(),
-      monitor_(NULL),
       message_queue_(NULL),
+      post_message_callback_(NULL),
+      close_port_callback_(NULL),
       active_ports_(0),
       heap_(NULL),
       object_store_(NULL),
@@ -62,7 +64,6 @@ Isolate::Isolate()
 
 
 Isolate::~Isolate() {
-  delete monitor_;
   delete message_queue_;
   delete heap_;
   delete object_store_;
@@ -74,6 +75,31 @@ Isolate::~Isolate() {
 }
 
 
+static bool StandardPostMessageCallback(Dart_Isolate dart_isolate,
+                                        Dart_Port dest_port,
+                                        Dart_Port reply_port,
+                                        Dart_Message dart_message) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
+  ASSERT(isolate != NULL);
+  PortMessage* message = new PortMessage(dest_port, reply_port, dart_message);
+  isolate->message_queue()->Enqueue(message);
+  return true;
+}
+
+
+static void StandardClosePortCallback(Dart_Isolate dart_isolate,
+                                      Dart_Port port) {
+  // Remove the pending messages for this port.
+  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
+  ASSERT(isolate != NULL);
+  if (port == kCloseAllPorts) {
+    isolate->message_queue()->FlushAll();
+  } else {
+    isolate->message_queue()->Flush(port);
+  }
+}
+
+
 Isolate* Isolate::Init() {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
@@ -82,14 +108,12 @@ Isolate* Isolate::Init() {
   // the current isolate.
   SetCurrent(result);
 
-  // Setup the isolate monitor.
-  Monitor* monitor = new Monitor();
-  ASSERT(monitor != NULL);
-  result->set_monitor(monitor);
-
+  // Set up the isolate message queue.
   MessageQueue* queue = new MessageQueue();
   ASSERT(queue != NULL);
   result->set_message_queue(queue);
+  result->set_post_message_callback(&StandardPostMessageCallback);
+  result->set_close_port_callback(&StandardClosePortCallback);
 
   // Setup the Dart API state.
   ApiState* state = new ApiState();
@@ -179,10 +203,6 @@ void Isolate::Shutdown() {
   delete message_queue();
   set_message_queue(NULL);
 
-  // Remove the monitor associated with this isolate.
-  delete monitor();
-  set_monitor(NULL);
-
   // Dump all accumalated timer data for the isolate.
   timer_list_.ReportTimers();
   if (FLAG_report_invocation_count) {
@@ -209,6 +229,24 @@ void Isolate::SetInitCallback(Dart_IsolateInitCallback callback) {
 
 Dart_IsolateInitCallback Isolate::InitCallback() {
   return init_callback_;
+}
+
+
+void Isolate::StandardRunLoop() {
+  ASSERT(long_jump_base() != NULL);
+  ASSERT(post_message_callback() == &StandardPostMessageCallback);
+  ASSERT(close_port_callback() == &StandardClosePortCallback);
+
+  while (active_ports() > 0) {
+    Zone zone;
+    HandleScope handle_scope;
+
+    PortMessage* message = message_queue()->Dequeue(0);
+    ASSERT(message != NULL);
+    Dart_HandleMessage(
+        message->dest_port(), message->reply_port(), message->data());
+    delete message;
+  }
 }
 
 
