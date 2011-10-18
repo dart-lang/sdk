@@ -104,14 +104,14 @@ void printMetrics(String example) {
   final node = document.body.query('#grid');
   String exampleId = example.split(' ')[0];
   final sb = new StringBuffer();
-  sb.add('void testSpecExample${exampleId}() {\n');
+  sb.add("test('Spec Example $exampleId', () {\n");
   sb.add("  verifyExample('$example', {\n");
   final elems = new List.from(node.elements);
   for (Element child in node.elements) {
     _appendMetrics(sb, child, '    ');
   }
   sb.add('  });\n');
-  sb.add('}\n\n');
+  sb.add('});\n\n');
   window.console.log(sb.toString());
 }
 
