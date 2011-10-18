@@ -4,6 +4,3 @@
 
 prefix vm
 
-[ $arch == ia32 && $system == win32]
-MessageQueue_FlushAll: CRASH
-

@@ -90,7 +90,7 @@ void MessageQueue::FlushAll() {
   tail_ = NULL;
   while (cur != NULL) {
     PortMessage* next = cur->next_;
-    delete next;
+    delete cur;
     cur = next;
   }
 }
