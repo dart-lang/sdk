@@ -2431,10 +2431,10 @@ class OneByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawOneByteString* SubString(const OneByteString& str,
-                                     intptr_t begin_index,
-                                     intptr_t length,
-                                     Heap::Space space);
+  static RawString* SubString(const OneByteString& str,
+                              intptr_t begin_index,
+                              intptr_t length,
+                              Heap::Space space);
 
  private:
   uint8_t* CharAddr(intptr_t index) const {
@@ -2482,10 +2482,10 @@ class TwoByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawTwoByteString* SubString(const TwoByteString& str,
-                                     intptr_t begin_index,
-                                     intptr_t length,
-                                     Heap::Space space);
+  static RawString* SubString(const TwoByteString& str,
+                              intptr_t begin_index,
+                              intptr_t length,
+                              Heap::Space space);
 
  private:
   uint16_t* CharAddr(intptr_t index) const {
@@ -2529,10 +2529,10 @@ class FourByteString : public String {
                                       intptr_t len,
                                       Heap::Space space);
 
-  static RawFourByteString* SubString(const FourByteString& str,
-                                      intptr_t begin_index,
-                                      intptr_t length,
-                                      Heap::Space space);
+  static RawString* SubString(const FourByteString& str,
+                              intptr_t begin_index,
+                              intptr_t length,
+                              Heap::Space space);
 
  private:
   uint32_t* CharAddr(intptr_t index) const {

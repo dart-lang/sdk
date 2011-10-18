@@ -1266,6 +1266,66 @@ TEST_CASE(StringConcat) {
 }
 
 
+TEST_CASE(StringSubStringDifferentWidth) {
+  // Create 1-byte substring from a 1-byte source string.
+  const char* onechars =
+      "\xC3\xB6\xC3\xB1\xC3\xA9";
+
+  const String& onestr = String::Handle(String::New(onechars));
+  EXPECT(!onestr.IsNull());
+  EXPECT(onestr.IsOneByteString());
+
+  const String& onesub = String::Handle(String::SubString(onestr, 0));
+  EXPECT(!onesub.IsNull());
+  EXPECT(onestr.IsOneByteString());
+  EXPECT_EQ(onesub.Length(), 3);
+
+  // Create 1- and 2-byte substrings from a 2-byte source string.
+  const char* twochars =
+      "\xC3\xB6\xC3\xB1\xC3\xA9"
+      "\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93";
+
+  const String& twostr = String::Handle(String::New(twochars));
+  EXPECT(!twostr.IsNull());
+  EXPECT(twostr.IsTwoByteString());
+
+  const String& twosub1 = String::Handle(String::SubString(twostr, 0, 3));
+  EXPECT(!twosub1.IsNull());
+  EXPECT(twosub1.IsOneByteString());
+  EXPECT_EQ(twosub1.Length(), 3);
+
+  const String& twosub2 = String::Handle(String::SubString(twostr, 3));
+  EXPECT(!twosub2.IsNull());
+  EXPECT(twosub2.IsTwoByteString());
+  EXPECT_EQ(twosub2.Length(), 3);
+
+  // Create 1-, 2-, and 4-byte substrings from a 4-byte source string.
+  const char* fourchars =
+      "\xC3\xB6\xC3\xB1\xC3\xA9"
+      "\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"
+      "\xF0\x9D\x96\xBF\xF0\x9D\x97\x88\xF0\x9D\x97\x8E\xF0\x9D\x97\x8B";
+
+  const String& fourstr = String::Handle(String::New(fourchars));
+  EXPECT(!fourstr.IsNull());
+  EXPECT(fourstr.IsFourByteString());
+
+  const String& foursub1 = String::Handle(String::SubString(fourstr, 0, 3));
+  EXPECT(!foursub1.IsNull());
+  EXPECT(foursub1.IsOneByteString());
+  EXPECT_EQ(foursub1.Length(), 3);
+
+  const String& foursub2 = String::Handle(String::SubString(fourstr, 3, 3));
+  EXPECT(!foursub2.IsNull());
+  EXPECT(foursub2.IsTwoByteString());
+  EXPECT_EQ(foursub2.Length(), 3);
+
+  const String& foursub4 = String::Handle(String::SubString(fourstr, 6));
+  EXPECT_EQ(foursub4.Length(), 4);
+  EXPECT(!foursub4.IsNull());
+  EXPECT(foursub4.IsFourByteString());
+}
+
+
 TEST_CASE(StringFromUtf8Literal) {
   // Create a 1-byte string from a UTF-8 encoded string literal.
   {

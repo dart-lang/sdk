@@ -5817,10 +5817,10 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
 }
 
 
-RawOneByteString* OneByteString::SubString(const OneByteString& str,
-                                           intptr_t begin_index,
-                                           intptr_t length,
-                                           Heap::Space space) {
+RawString* OneByteString::SubString(const OneByteString& str,
+                                    intptr_t begin_index,
+                                    intptr_t length,
+                                    Heap::Space space) {
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
   OneByteString& result = OneByteString::Handle();
@@ -5920,15 +5920,26 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
 }
 
 
-RawTwoByteString* TwoByteString::SubString(const TwoByteString& str,
-                                           intptr_t begin_index,
-                                           intptr_t length,
-                                           Heap::Space space) {
+RawString* TwoByteString::SubString(const TwoByteString& str,
+                                    intptr_t begin_index,
+                                    intptr_t length,
+                                    Heap::Space space) {
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
-  TwoByteString& result = TwoByteString::Handle();
+  String& result = String::Handle();
   if (length <= (str.Length() - begin_index)) {
-    result ^= TwoByteString::New(length, space);
+    bool is_one_byte_string = true;
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+        break;
+      }
+    }
+    if (is_one_byte_string) {
+      result ^= OneByteString::New(length, space);
+    } else {
+      result ^= TwoByteString::New(length, space);
+    }
     String::Copy(result, 0, str, begin_index, length);
   }
   // TODO(5418937): return a non-null object on error.
@@ -6012,15 +6023,32 @@ RawFourByteString* FourByteString::ConcatAll(const Array& strings,
 }
 
 
-RawFourByteString* FourByteString::SubString(const FourByteString& str,
-                                             intptr_t begin_index,
-                                             intptr_t length,
-                                             Heap::Space space) {
+RawString* FourByteString::SubString(const FourByteString& str,
+                                     intptr_t begin_index,
+                                     intptr_t length,
+                                     Heap::Space space) {
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
-  FourByteString& result = FourByteString::Handle();
+  String& result = String::Handle();
   if (length <= (str.Length() - begin_index)) {
-    result ^= FourByteString::New(length, space);
+    bool is_one_byte_string = true;
+    bool is_two_byte_string = true;
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFFFF) {
+        is_one_byte_string = false;
+        is_two_byte_string = false;
+        break;
+      } else if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+      }
+    }
+    if (is_one_byte_string) {
+      result ^= OneByteString::New(length, space);
+    } else if (is_two_byte_string) {
+      result ^= TwoByteString::New(length, space);
+    } else {
+      result ^= FourByteString::New(length, space);
+    }
     String::Copy(result, 0, str, begin_index, length);
   }
   // TODO(5418937): return a non-null object on error.
