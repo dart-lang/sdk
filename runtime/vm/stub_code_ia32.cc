@@ -1258,9 +1258,9 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const bool is_implicit_instance_closure =
       func.IsImplicitInstanceClosureFunction();
   const Class& cls = Class::ZoneHandle(func.signature_class());
-  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
+  const bool has_type_arguments = cls.HasTypeArguments();
   const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
-  const intptr_t kReceiverOffset = (is_cls_parameterized ? 2 : 1) * kWordSize;
+  const intptr_t kReceiverOffset = (has_type_arguments ? 2 : 1) * kWordSize;
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
@@ -1334,7 +1334,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     }
 
     // Set the type arguments field in the newly allocated closure.
-    if (is_cls_parameterized) {
+    if (has_type_arguments) {
       ASSERT(!is_implicit_static_closure);
       // Use the passed-in type arguments.
       __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
@@ -1353,7 +1353,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 
     __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
+  if (has_type_arguments) {
     __ movl(ECX, Address(ESP, kTypeArgumentsOffset));
   }
   if (is_implicit_instance_closure) {
@@ -1364,7 +1364,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const Closure& new_closure = Closure::ZoneHandle();
   __ PushObject(new_closure);  // Push Null closure for return value.
   __ PushObject(func);
-  if (is_cls_parameterized) {
+  if (has_type_arguments) {
     __ pushl(ECX);  // Push type arguments of closure to be allocated.
   } else {
     __ pushl(raw_null);  // Push null type arguments.

@@ -356,11 +356,6 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the object class and type.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
-  // The bootstrap script is not compiled yet, so the superclass of Object does
-  // not yet point to itself, therefore, Type::NewNonParameterizedType(cls)
-  // can safely assert that cls.NumTypeArguments() == 0 without entering an
-  // endless loop.
-  ASSERT(cls.SuperClass() == Class::null());
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
 
@@ -1338,7 +1333,7 @@ bool Class::TestType(TypeTestKind test,
   if (raw() != other.raw()) {
     return false;
   }
-  ASSERT(NumTypeArguments() > 0);  // Or IsMoreSpecificThan would be true.
+  ASSERT(HasTypeArguments());  // Otherwise, IsMoreSpecificThan would be true.
   return false;
 }
 
@@ -1866,7 +1861,7 @@ RawType* Type::NewRawType(const Class& type_class) {
 
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
-  ASSERT(type_class.NumTypeArguments() == 0);
+  ASSERT(!type_class.HasTypeArguments());
   const TypeArguments& no_type_arguments = TypeArguments::Handle();
   ParameterizedType& type = ParameterizedType::Handle();
   type ^= ParameterizedType::New(
@@ -4486,7 +4481,7 @@ RawType* Instance::GetType() const {
   }
   const Class& cls = Class::Handle(clazz());
   TypeArguments& type_arguments = TypeArguments::Handle();
-  if (cls.NumTypeArguments() > 0) {
+  if (cls.HasTypeArguments()) {
     type_arguments = GetTypeArguments();
   }
   return Type::NewParameterizedType(cls, type_arguments);

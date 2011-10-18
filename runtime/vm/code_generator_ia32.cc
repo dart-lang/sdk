@@ -855,12 +855,12 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
       node->receiver()->Visit(this);
     }
   }
-  // The function type of a closure may be parameterized. In that case, pass
+  // The function type of a closure may have type arguments. In that case, pass
   // the type arguments of the instantiator.
   const Class& cls = Class::Handle(function.signature_class());
   ASSERT(!cls.IsNull());
-  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
-  if (is_cls_parameterized) {
+  const bool requires_type_arguments = cls.HasTypeArguments();
+  if (requires_type_arguments) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
     GenerateInstantiatorTypeArguments();
   }
@@ -868,7 +868,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
   GenerateCall(node->token_index(), &label);
-  if (is_cls_parameterized) {
+  if (requires_type_arguments) {
     __ popl(ECX);  // Pop type arguments.
   }
   if (function.IsImplicitInstanceClosureFunction()) {
@@ -1379,13 +1379,13 @@ void CodeGenerator::GenerateInstanceOf(intptr_t token_index,
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
-    const bool is_type_class_parameterized = type_class.NumTypeArguments() > 0;
+    const bool requires_type_arguments = type_class.HasTypeArguments();
     // A Smi object cannot be the instance of a parameterized class.
     // A class equality check is only applicable to a non-parameterized class.
     // TODO(regis): Should we still inline a Smi type check when checking for a
     // parameterized type and return false for a Smi's without calling the
     // runtime?
-    if (!is_type_class_parameterized) {
+    if (!requires_type_arguments) {
       Label compare_classes;
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
@@ -1498,11 +1498,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
   // checking whether the assigned instance is a Smi.
   if (dst_type.IsInstantiated()) {
     const Class& dst_type_class = Class::ZoneHandle(dst_type.type_class());
-    const bool is_dst_type_parameterized =
-        dst_type_class.NumTypeArguments() > 0;
+    const bool dst_has_type_arguments = dst_type_class.HasTypeArguments();
     // A Smi object cannot be the instance of a parameterized class.
     // A class equality check is only applicable to a non-parameterized class.
-    if (!is_dst_type_parameterized) {
+    if (!dst_has_type_arguments) {
       Label compare_classes;
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
@@ -2195,13 +2194,13 @@ void CodeGenerator::GenerateInstantiatorTypeArguments() {
 // Note that a class without proper type parameters may still be parameterized,
 // e.g. class A extends Array<int>.
 void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
-                                          bool is_cls_parameterized) {
+                                          bool requires_type_arguments) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Instantiate the type arguments if necessary.
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    if (node->constructor().IsFactory() || is_cls_parameterized) {
+    if (node->constructor().IsFactory() || requires_type_arguments) {
       // A factory requires the type arguments as first parameter.
       __ PushObject(node->type_arguments());
       if (!node->constructor().IsFactory()) {
@@ -2211,7 +2210,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     }
   } else {
     // The type arguments are uninstantiated.
-    ASSERT(node->constructor().IsFactory() || is_cls_parameterized);
+    ASSERT(node->constructor().IsFactory() || requires_type_arguments);
     GenerateInstantiatorTypeArguments();
     __ popl(EAX);  // Pop instantiator.
     // EAX is the instantiator TypeArguments object (or null).
@@ -2267,8 +2266,8 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
 void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
-  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
-  GenerateTypeArguments(node, is_cls_parameterized);
+  const bool requires_type_arguments = cls.HasTypeArguments();
+  GenerateTypeArguments(node, requires_type_arguments);
   if (node->constructor().IsFactory()) {
     // The top of stack is an instantiated TypeArguments object (or null).
     int num_args = node->arguments()->length() + 1;  // +1 to include type args.
@@ -2291,7 +2290,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
   GenerateCall(node->token_index(), &label);
-  if (is_cls_parameterized) {
+  if (requires_type_arguments) {
     __ popl(ECX);  // Pop type arguments.
     __ popl(ECX);  // Pop instantiator type arguments.
   }

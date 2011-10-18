@@ -426,6 +426,15 @@ class Class : public Object {
   void set_type_arguments_instance_field_offset(intptr_t value) const {
     raw_ptr()->type_arguments_instance_field_offset_ = value;
   }
+  bool HasTypeArguments() const {
+    if (is_finalized() || is_prefinalized()) {
+      // More efficient than calling NumTypeArguments().
+      return type_arguments_instance_field_offset() != kNoTypeArguments;
+    } else {
+      // No need to check NumTypeArguments() if class has type parameters.
+      return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
+    }
+  }
 
   // The super type of this class, Object type if not explicitly specified.
   RawType* super_type() const { return raw_ptr()->super_type_; }
