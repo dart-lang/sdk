@@ -35,14 +35,12 @@ abstract class TypeTestCase extends TestCase {
   final ClassElement doubleElement = element("double", itype(number));
   final ClassElement bool = element("bool", itype(object));
   final ClassElement string = element("String", itype(object));
-  final ClassElement array = element("Array", itype(object), typeVar("E", itype(object)));
-  final ClassElement growableArray = makeGrowableArray(array);
+  final ClassElement list = element("List", itype(object), typeVar("E", itype(object)));
   final ClassElement map = element("Map", itype(object),
                                    typeVar("K", itype(object)), typeVar("V", itype(object)));
   final ClassElement stackTrace = element("StackTrace", itype(object));
   final ClassElement reverseMap = makeReverseMap(map);
-  final InterfaceType objectArray = itype(array, itype(object));
-  final InterfaceType growableObjectArray = itype(growableArray, itype(object));
+  final InterfaceType objectList = itype(list, itype(object));
   final InterfaceType objectMap = itype(map, itype(object), itype(object));
   final InterfaceType reverseObjectMap = itype(reverseMap, itype(object), itype(object));
   final InterfaceType stringIntMap = itype(map, itype(string), itype(intElement));
@@ -78,11 +76,6 @@ abstract class TypeTestCase extends TestCase {
     TypeVariableElement element = Elements.typeVariableElement(null, name, null);
     element.setBound(bound);
     return new TypeVariableImplementation(element);
-  }
-
-  private ClassElement makeGrowableArray(ClassElement array) {
-    TypeVariable E = typeVar("E", itype(object));
-    return element("GrowableArray", itype(array, E), E);
   }
 
   private ClassElement makeReverseMap(ClassElement map) {
