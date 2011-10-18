@@ -421,8 +421,6 @@ public class GenerateJavascriptAST {
         }
       }
 
-      maybeInjectIsolateMethods(classElement);
-
       if (classElement.isInterface()) {
         rtt.generateRuntimeTypeInfo(x);
 
@@ -448,6 +446,7 @@ public class GenerateJavascriptAST {
           globalBlock.getStatements().add(inherits.makeStmt());
         }
 
+        maybeInjectIsolateMethods(classElement);
         rtt.generateRuntimeTypeInfo(x);
 
         List<Element> classMembers = new ArrayList<Element>();
