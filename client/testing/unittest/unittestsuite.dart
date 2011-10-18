@@ -331,6 +331,11 @@ void callbackDone() {
   _currentSuite.callbackDone();
 }
 
+void forLayoutTests() {
+  _ensureActiveSuite();
+  _currentSuite._isLayoutTest = true;
+}
+
 String _fullSpec(String spec) {
   if (spec === null) return '$_currentGroup';
   return _currentGroup != '' ? '$_currentGroup $spec' : spec;
