@@ -96,7 +96,8 @@ public class Elements {
     }
   }
 
-  static void addMethod(EnclosingElement holder, MethodElement method) {
+  @VisibleForTesting
+  public static void addMethod(EnclosingElement holder, MethodElement method) {
     if (ElementKind.of(holder).equals(ElementKind.CLASS)) {
       ((ClassElementImplementation) holder).addMethod(method);
     } else if (ElementKind.of(holder).equals(ElementKind.LIBRARY)) {
@@ -119,7 +120,9 @@ public class Elements {
     return MethodElementImplementation.fromFunctionExpression(node, modifiers);
   }
 
-  static MethodElement methodFromMethodNode(DartMethodDefinition node, EnclosingElement holder) {
+  @VisibleForTesting
+  public static MethodElement methodFromMethodNode(DartMethodDefinition node, 
+      EnclosingElement holder) {
     return MethodElementImplementation.fromMethodNode(node, holder);
   }
 
@@ -131,7 +134,8 @@ public class Elements {
                                                            constructorType);
   }
 
-  static void setType(Element element, Type type) {
+  @VisibleForTesting
+  public static void setType(Element element, Type type) {
     ((AbstractElement) element).setType(type);
   }
 

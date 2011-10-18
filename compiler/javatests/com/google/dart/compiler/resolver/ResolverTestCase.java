@@ -238,6 +238,11 @@ abstract class ResolverTestCase extends TestCase {
     public InterfaceType getIsolateType() {
       throw new AssertionError();
     }
+
+    @Override
+    public InterfaceType getIteratorType(Type elementType) {
+      throw new AssertionError();
+    }
   }
 
   protected static DartTypeNode makeType(String name, String... arguments) {

@@ -98,6 +98,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_STATIC("SyntaxError: A factory cannot be static"),
   FACTORY_MEMBER_IN_INTERFACE("SyntaxError: factory members are not allowed in interfaces"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
+  FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
+  FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
   FOR_IN_WITH_COMPLEX_VARIABLE("Only simple variables can be assigned to in a for-in construct"),
   FOR_IN_WITH_MULTIPLE_VARIABLES("Too many variable declarations in a for-in construct"),
   FOR_IN_WITH_VARIABLE_INITIALIZER("Cannot initialize for-in variables"),

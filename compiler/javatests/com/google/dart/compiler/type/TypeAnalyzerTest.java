@@ -751,7 +751,47 @@ public class TypeAnalyzerTest extends TypeTestCase {
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("for (;'';) {}",
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    
+    // Foreach tests
+    analyze("{ List<String> strings = ['1','2','3']; for (String s in strings) {} }");
+    analyzeFail("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
+        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("for (String s in true) {}", DartCompilerErrorCode.INTERFACE_HAS_NO_METHOD_NAMED);
   }
+
+  public void testForEachStatement() {
+    Map<String, ClassElement> invalidReturnType = loadSource(
+        "class A {",
+        "  Iterator<int> iterator() {}",
+        "}",
+        "class B {",
+        "  main() { for (int i in new A()) {}}",
+        "}");
+    analyzeClasses(invalidReturnType);
+  }
+
+  public void testForEachStatement_Negative1() {
+    Map<String, ClassElement> fieldNotMethod = loadSource(
+        "class A {",
+        "  int iterator;",
+        "}",
+        "class B {",
+        "  main() { for (int i in new A()) {}}",
+        "}");
+    analyzeClasses(fieldNotMethod, DartCompilerErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
+  }
+  
+  public void testForEachStatement_Negative2() {
+    Map<String, ClassElement> invalidReturnType = loadSource(
+        "class A {",
+        "  int iterator() {}",
+        "}",
+        "class B {",
+        "  main() { for (int i in new A()) {}}",
+        "}");
+    analyzeClasses(invalidReturnType, DartCompilerErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE);
+  }
+
 
   public void testIfStatement() {
     analyze("if (true) {}");
@@ -1611,6 +1651,12 @@ public class TypeAnalyzerTest extends TypeTestCase {
     @Override
     public InterfaceType getIsolateType() {
       throw new AssertionError();
+    }
+
+    @Override
+    public InterfaceType getIteratorType(Type elementType) {
+      InterfaceType iteratorType = iterElement.getType();
+      return iteratorType.subst(Arrays.asList(elementType), iterElement.getTypeParameters());
     }
   }
 }

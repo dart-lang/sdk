@@ -105,6 +105,7 @@ import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType.Member;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -168,12 +169,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType intType;
     private final Type nullType;
     private final InterfaceType functionType;
-
+    private final InterfaceType dynamicIteratorType;
+    
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
      * outside of any catch block.
      */
     private int catchDepth = 0;
+
 
     Analyzer(DartCompilerContext context, CoreTypeProvider typeProvider,
              ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements,
@@ -191,6 +194,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.intType = typeProvider.getIntType();
       this.nullType = typeProvider.getNullType();
       this.functionType = typeProvider.getFunctionType();
+      this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
     }
 
     @VisibleForTesting
@@ -798,6 +802,35 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitForInStatement(DartForInStatement node) {
+      Type variableType;
+      if (node.introducesVariable()) {
+        variableType = typeOf(node.getVariableStatement());
+      } else {
+        variableType = typeOf(node.getIdentifier()); 
+      }
+      DartExpression iterableExpression = node.getIterable();
+      Type iterableType = typeOf(iterableExpression);
+      Member iteratorMember = lookupMember(iterableType, "iterator", iterableExpression);
+      if (iteratorMember != null) {
+        if (TypeKind.of(iteratorMember.getType()) == TypeKind.FUNCTION) {
+          FunctionType iteratorMethod = (FunctionType) iteratorMember.getType();
+          InterfaceType asInstanceOf = types.asInstanceOf(iteratorMethod.getReturnType(), 
+              dynamicIteratorType.getElement());
+          if (asInstanceOf != null) {
+            checkAssignable(iterableExpression, variableType, asInstanceOf.getArguments().get(0));  
+          } else {
+            InterfaceType expectedIteratorType = dynamicIteratorType.subst(
+                Arrays.asList(variableType), dynamicIteratorType.getElement().getTypeParameters());
+            typeError(iterableExpression,
+                DartCompilerErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE,
+                expectedIteratorType);
+          }
+        } else {
+          // Not a function
+          typeError(iterableExpression, DartCompilerErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
+        }
+      }
+      
       return typeAsVoid(node);
     }
 

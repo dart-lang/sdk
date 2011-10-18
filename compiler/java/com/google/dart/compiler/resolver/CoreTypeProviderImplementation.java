@@ -33,6 +33,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   private final InterfaceType objectType;
   private final InterfaceType isolateType;
   private final InterfaceType stringImplementation;
+  private final InterfaceType iteratorType;
 
   public CoreTypeProviderImplementation(Scope scope, DartCompilerListener listener) {
     this.intType = getType("int", scope, listener);
@@ -53,6 +54,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.objectType = getType("Object", scope, listener);
     this.isolateType = getType("Isolate", scope, listener);
     this.stringImplementation = getType("StringImplementation", scope, listener);
+    iteratorType = getType("Iterator", scope, listener);
   }
 
   private static InterfaceType getType(String name, Scope scope, DartCompilerListener listener) {
@@ -157,5 +159,11 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   @Override
   public InterfaceType getIsolateType() {
     return isolateType;
+  }
+
+  @Override
+  public InterfaceType getIteratorType(Type elementType) {
+    return iteratorType.subst(Arrays.asList(elementType), 
+        iteratorType.getElement().getTypeParameters());
   }
 }
