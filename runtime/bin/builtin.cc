@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <string>
 
 #include "include/dart_api.h"
 
@@ -19,6 +16,7 @@ void PrintString(FILE* out, Dart_Handle string) {
   const char* cstring = Dart_IsValidResult(result) ?
       Dart_GetResultAsCString(result) : Dart_GetErrorCString(result);
   fprintf(out, "%s\n", cstring);
+  fflush(out);
 }
 
 
