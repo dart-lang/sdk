@@ -1770,8 +1770,11 @@ bool Type::IsMoreSpecificThan(const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::IsMoreSpecificThan().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
+    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
+    return
+        (!IsTypeParameter() && other.IsTypeParameter()) ||
+        (IsTypeParameter() && other.IsTypeParameter() &&
+         (Index() == other.Index()));
   }
   const Class& cls = Class::Handle(type_class());
   return cls.IsMoreSpecificThan(TypeArguments::Handle(arguments()),
@@ -1785,8 +1788,11 @@ bool Type::Test(TypeTestKind test, const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::TestType().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
+    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
+    return
+        (!IsTypeParameter() && other.IsTypeParameter()) ||
+        (IsTypeParameter() && other.IsTypeParameter() &&
+         (Index() == other.Index()));
   }
   const Class& cls = Class::Handle(type_class());
   if (test == kIsSubtypeOf) {
