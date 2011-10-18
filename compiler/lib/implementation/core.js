@@ -302,11 +302,11 @@ function GTE$operator(val1, val2) {
 function EQ$operator(val1, val2) {
   if (val1 === $Dart$Null) {
     return val2 === $Dart$Null;
-  } else {
-    return (typeof(val1) == 'number' && typeof(val2) == 'number')
-        ? val1 == val2
-        : val1.EQ$operator(val2);
-  }
+  } else if (typeof(val1) == typeof(val2) && typeof val1 != 'object') {
+    // number, boolean, string
+    return val1 === val2;
+  } 
+  return val1.EQ$operator(val2);
 }
 
 function NE$operator(val1, val2) {
