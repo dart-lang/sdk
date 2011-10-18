@@ -63,18 +63,19 @@ void MessageReceiver_start(uword unused) {
 
   // Create a message queue and share it.
   MessageQueue* queue = new MessageQueue();
+  MessageQueueTestPeer peer(queue);
   shared_queue = queue;
 
-  // Tell the other thread to fill the queue a bit.
+  // Tell the other thread that the shared queue is ready.
   {
     MonitorLocker ml(sync);
     ml.Notify();
   }
 
   // Wait for the other thread to fill the queue a bit.
-  {
+  while (!peer.HasMessage()) {
     MonitorLocker ml(sync);
-    ml.Wait(0);
+    ml.Wait(5);
   }
 
   for (int i = 0; i < 3; i++) {
@@ -106,9 +107,9 @@ TEST_CASE(MessageQueue_WaitNotify) {
   EXPECT(thread != NULL);
 
   // Wait for the shared queue to be created.
-  {
+  while (shared_queue == NULL) {
     MonitorLocker ml(sync);
-    ml.Wait(0);
+    ml.Wait(5);
   }
   ASSERT(shared_queue != NULL);
 
