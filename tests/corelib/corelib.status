@@ -25,7 +25,7 @@ StringTest: Fail                # Bug 5196164
 DoubleCompareTest: Fail         # Issue 146
 
 [ $arch == dartium ]
-# print is not available
+# Bug 5476054: print is only available if DOM is imported.
 SortTest: Fail
 ListSortTest: Fail
 

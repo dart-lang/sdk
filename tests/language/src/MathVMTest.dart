@@ -14,7 +14,6 @@ class MathTest {
       Math.parseInt(x);
       return true;
     } catch (var e) {
-      print(e);
       return false;
     }
   }
@@ -24,7 +23,6 @@ class MathTest {
       Math.sqrt(x);
       return true;
     } catch (var e) {
-      print(e);
       return false;
     }
   }

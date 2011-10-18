@@ -166,10 +166,9 @@ BlackListedTest/10: Fail # Bug 5469684
 
 
 [ $arch == dartium ]
-# print is only available if DOM is imported
+# Bug 5476054: print is only available if DOM is imported.
 Throw5Test: Fail
 ExceptionTest: Fail
-MathTest: Fail
 ExpectTest: Fail
 StringInterpolateTest: Fail
 ExecuteFinally7Test: Fail
