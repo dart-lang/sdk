@@ -137,6 +137,9 @@ TEST_CASE(MessageQueue_WaitNotify) {
 
   sync = NULL;
   delete sync;
+
+  // Give the spawned thread enough time to properly exit.
+  OS::Sleep(20);
 }
 
 
