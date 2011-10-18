@@ -1184,7 +1184,7 @@ public class GenerateJavascriptAST {
       jsSwitch.setExpr(countParam.getName().makeRef());
       for (int i = 0; i < func.getParams().size(); ++i) {
         DartParameter param = func.getParams().get(i);
-        JsParameter jsParam = tramp.getParameters().get(i + 2);
+        JsParameter jsParam = tramp.getParameters().get(i + 2 + numClosureScopes);
         if (!param.getModifiers().isNamed()) {
           continue;
         }

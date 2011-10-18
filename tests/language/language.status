@@ -94,7 +94,6 @@ ConstructorSetterNegativeTest: FAIL      # Bug 92
 
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.
-NamedParametersWithConversionsTest: Fail # Implementation in progress.
 NamedParametersNegativeTest: Fail    # Implementation in progress.
 NamedParameters2NegativeTest: Fail   # Implementation in progress.
 NamedParameters3NegativeTest: Fail   # Implementation in progress.
