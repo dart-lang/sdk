@@ -20,10 +20,6 @@ CoreRuntimeTypesTest: Fail      # Bug 5196164
 StringTest: Fail                # Bug 5196164
 *VMTest: Skip
 
-
-[ ($arch == dartc || $arch == chromium) && $mode == release ]
-DoubleCompareTest: Fail         # Issue 146
-
 [ $arch == dartium ]
 # Bug 5476054: print is only available if DOM is imported.
 SortTest: Fail
