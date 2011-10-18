@@ -32,7 +32,7 @@ function $inlineArrayIndexCheck(array, index) {
   if (index >= 0 && index < array.length) {
     return index;
   }
-  native__ArrayJsUtil__throwIndexOutOfRangeException(index);
+  native__ListJsUtil__throwIndexOutOfRangeException(index);
 }
 
 function native_ListImplementation__removeRange(start, length) {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class GrowableObjectArray<T> implements List<T> {
+class GrowableObjectArray<T> implements Array<T> {
   ObjectArray<T> backingArray;
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
