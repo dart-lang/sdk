@@ -7,5 +7,5 @@ prefix vm
 [ $arch == ia32 && $system == win32]
 MessageQueue_FlushAll: CRASH
 
-[ $arch == x64 && $system == macos && $mode == release]
+[ $system == macos && $mode == release]
 MessageQueue_WaitNotify: CRASH, PASS
