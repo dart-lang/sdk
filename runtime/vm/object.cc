@@ -838,6 +838,8 @@ intptr_t Class::NumTypeParameters() const {
 
 
 intptr_t Class::NumTypeArguments() const {
+  // To work properly, this call requires the super class of this class to be
+  // resolved, which is checked by the SuperClass() call.
   intptr_t num_type_args = NumTypeParameters();
   const Class& superclass = Class::Handle(SuperClass());
   // Object is its own super class during bootstrap.
@@ -1021,7 +1023,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   Array& type_parameters = Array::Handle();
   TypeArray& type_parameter_extends = TypeArray::Handle();
   if (!signature_function.is_static()) {
-    if (owner_class.IsParameterized() &&
+    if ((owner_class.NumTypeParameters() > 0) &&
         !signature_function.HasInstantiatedSignature()) {
       // Share the function owner super class as the super class of the
       // signature class, so that the type argument vector of the closure at
@@ -1214,12 +1216,12 @@ bool Class::IsMoreSpecificThan(
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
-    if (!IsParameterized()) {
+    const intptr_t len = NumTypeArguments();
+    if (len == 0) {
       return true;
     }
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
-    const intptr_t len = NumTypeArguments();
     // Check for covariance.
     if (type_arguments.IsNull() ||
         other_type_arguments.IsNull() ||
@@ -1336,7 +1338,7 @@ bool Class::TestType(TypeTestKind test,
   if (raw() != other.raw()) {
     return false;
   }
-  ASSERT(IsParameterized());  // Otherwise IsMoreSpecificThan would be true.
+  ASSERT(NumTypeArguments() > 0);  // Or IsMoreSpecificThan would be true.
   return false;
 }
 
@@ -4478,7 +4480,7 @@ RawType* Instance::GetType() const {
   }
   const Class& cls = Class::Handle(clazz());
   TypeArguments& type_arguments = TypeArguments::Handle();
-  if (cls.IsParameterized()) {
+  if (cls.NumTypeArguments() > 0) {
     type_arguments = GetTypeArguments();
   }
   return Type::NewParameterizedType(cls, type_arguments);
@@ -4526,7 +4528,8 @@ bool Instance::TestType(TypeTestKind test,
   }
   const Class& cls = Class::Handle(clazz());
   TypeArguments& type_arguments = TypeArguments::Handle();
-  if (cls.IsParameterized()) {
+  const intptr_t num_type_arguments = cls.NumTypeArguments();
+  if (num_type_arguments > 0) {
     type_arguments = GetTypeArguments();
     // Verify that the number of type arguments in the instance matches the
     // number of type arguments expected by the instance class.
@@ -4535,9 +4538,9 @@ bool Instance::TestType(TypeTestKind test,
     // defining the closure. Truncating the vector to the correct length on
     // instantiation is unnecessary. The vector may therefore be longer.
     ASSERT(type_arguments.IsNull() ||
-           (type_arguments.Length() == cls.NumTypeArguments()) ||
+           (type_arguments.Length() == num_type_arguments) ||
            (cls.IsSignatureClass() &&
-            (type_arguments.Length() > cls.NumTypeArguments())));
+            (type_arguments.Length() > num_type_arguments)));
   }
   Class& other_class = Class::Handle();
   TypeArguments& other_type_arguments = TypeArguments::Handle();

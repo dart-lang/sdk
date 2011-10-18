@@ -1258,7 +1258,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const bool is_implicit_instance_closure =
       func.IsImplicitInstanceClosureFunction();
   const Class& cls = Class::ZoneHandle(func.signature_class());
-  const bool is_cls_parameterized = cls.IsParameterized();
+  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
   const intptr_t kReceiverOffset = (is_cls_parameterized ? 2 : 1) * kWordSize;
   const intptr_t closure_size = Closure::InstanceSize();

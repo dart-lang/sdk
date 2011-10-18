@@ -579,7 +579,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 
   // The instantiator may be required at run time for generic type checks or
   // allocation of generic types.
-  if (parser.current_class().IsParameterized() &&
+  if ((parser.current_class().NumTypeParameters() > 0) &&
       (!parser.current_function().is_static() ||
        parser.current_function().IsInFactoryScope())) {
     // In the case of a local function, only set the instantiator if the
@@ -1128,7 +1128,7 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
     // instantiator.
     if (current_block_->scope->function_level() > 0) {
       const Class& signature_class = Class::Handle(func.signature_class());
-      if (signature_class.IsParameterized()) {
+      if (signature_class.NumTypeParameters() > 0) {
         CaptureReceiver();
       }
     }
@@ -1605,7 +1605,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       (current_block_->scope->function_level() > 0)) {
     // We are parsing, but not compiling, a local function.
     // The instantiator may be required at run time for generic type checks.
-    if (current_class().IsParameterized() &&
+    if ((current_class().NumTypeParameters() > 0) &&
         (!current_function().is_static() ||
          current_function().IsInFactoryScope())) {
       // Make sure that the receiver of the enclosing instance function
@@ -3436,7 +3436,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   ASSERT(current_class().is_finalized());
 
   // Make sure that the instantiator is captured.
-  if (signature_class.IsParameterized() &&
+  if ((signature_class.NumTypeParameters() > 0) &&
       (current_block_->scope->function_level() > 0)) {
     CaptureReceiver();
   }

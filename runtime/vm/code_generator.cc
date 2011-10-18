@@ -149,7 +149,8 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   const Class& cls = Class::CheckedHandle(arguments.At(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
-  if (!cls.IsParameterized()) {
+  const intptr_t num_type_arguments = cls.NumTypeArguments();
+  if (num_type_arguments > 0) {
     // No type arguments required for a non-parameterized type.
     ASSERT(Instance::CheckedHandle(arguments.At(1)).IsNull());
     return;
@@ -160,7 +161,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
     ASSERT(Instance::CheckedHandle(arguments.At(2)).IsNull());
     return;
   }
-  ASSERT(type_arguments.Length() == cls.NumTypeArguments());
+  ASSERT(type_arguments.Length() == num_type_arguments);
   const TypeArguments& instantiator =
       TypeArguments::CheckedHandle(arguments.At(2));
   if (instantiator.IsNull()) {

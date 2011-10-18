@@ -859,7 +859,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   // the type arguments of the instantiator.
   const Class& cls = Class::Handle(function.signature_class());
   ASSERT(!cls.IsNull());
-  const bool is_cls_parameterized = cls.IsParameterized();
+  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   if (is_cls_parameterized) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
     GenerateInstantiatorTypeArguments();
@@ -1379,7 +1379,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t token_index,
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
-    const bool is_type_class_parameterized = type_class.IsParameterized();
+    const bool is_type_class_parameterized = type_class.NumTypeArguments() > 0;
     // A Smi object cannot be the instance of a parameterized class.
     // A class equality check is only applicable to a non-parameterized class.
     // TODO(regis): Should we still inline a Smi type check when checking for a
@@ -1498,7 +1498,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
   // checking whether the assigned instance is a Smi.
   if (dst_type.IsInstantiated()) {
     const Class& dst_type_class = Class::ZoneHandle(dst_type.type_class());
-    const bool is_dst_type_parameterized = dst_type_class.IsParameterized();
+    const bool is_dst_type_parameterized =
+        dst_type_class.NumTypeArguments() > 0;
     // A Smi object cannot be the instance of a parameterized class.
     // A class equality check is only applicable to a non-parameterized class.
     if (!is_dst_type_parameterized) {
@@ -2266,7 +2267,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
 void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
-  const bool is_cls_parameterized = cls.IsParameterized();
+  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   GenerateTypeArguments(node, is_cls_parameterized);
   if (node->constructor().IsFactory()) {
     // The top of stack is an instantiated TypeArguments object (or null).

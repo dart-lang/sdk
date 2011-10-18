@@ -1667,8 +1667,7 @@ class ConstructorCallNode : public AstNode {
     ASSERT(type_arguments_.IsZoneHandle());
     ASSERT(constructor_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
-    ASSERT(!Class::Handle(constructor_.owner()).IsParameterized() ||
-           type_arguments_.IsNull() ||
+    ASSERT(type_arguments_.IsNull() ||
            (type_arguments_.Length() ==
             Class::Handle(constructor_.owner()).NumTypeArguments()));
   }
