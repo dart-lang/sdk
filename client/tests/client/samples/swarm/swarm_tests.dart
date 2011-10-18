@@ -11,32 +11,31 @@
 #import('../../../../view/view.dart');
 #import('../../../../util/utilslib.dart');
 
-void main() {
-  new SwarmTests().run();
-}
-
 // TODO(jmesserly): these would probably be easier to debug if they were written
 // in the WebKit layout test style, so we could easy compare that the DOM is
 // what we expect it to be after performing some simulated user actions.
 
-class SwarmTests extends UnitTestSuite {
-  Swarm swarm;
-  UIStateProxy state;
+void main() {
+  Swarm swarm = new Swarm();
+  UIStateProxy state = new UIStateProxy(swarm.sections);
+  swarm.state = state;
+  swarm.run();
 
-  SwarmTests() : super() {
-    swarm = new Swarm();
-    swarm.state = state = new UIStateProxy(swarm.sections);
-    swarm.run();
-  }
+  // TODO(jmesserly): should be adding the full stylesheet here
+  Dom.addStyle('''
+      .story-content {
+        -webkit-column-width: 300px;
+        -webkit-column-gap: 26px; /* 2em */
+      }''');
 
-  Element get storyNode() => swarm.frontView.storyView.node;
+  getStoryNode() => swarm.frontView.storyView.node;
 
-  View getView(Section section) {
+  getView(Section section) {
     return CollectionUtils.find(swarm.frontView.sections.childViews,
         (view) => view.section == section);
   }
 
-  Map<String, String> getHistory(Article article) {
+  getHistory(Article article) {
     final feed = article.dataSource;
     return {
       'section': CollectionUtils.find(swarm.sections,
@@ -46,28 +45,7 @@ class SwarmTests extends UnitTestSuite {
     };
   }
 
-  void setUpTestSuite() {
-    // TODO(jmesserly): should be adding the full stylesheet here
-    Dom.addStyle('''
-        .story-content {
-          -webkit-column-width: 300px;
-          -webkit-column-gap: 26px; /* 2em */
-        }''');
-    addTest(testBackButton);
-    addTest(testStoryView);
-    addTest(testSliderMenu);
-  }
-
-  /** Triggers the click event, like [http://api.jquery.com/click/] */
-  _click(Element element) {
-    // TODO(rnystrom): This should be on the DOM API somewhere.
-    MouseEvent event = document.createEvent('MouseEvents');
-    event.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0,
-        false, false, false, false, 0, null);
-    element.on.click.dispatch(event);
-  }
-
-  void testBackButton() {
+  test('BackButton', () {
     Expect.equals(null, swarm.frontView.storyView); // verify initial state
 
     // Make sure we've transitioned to the section
@@ -81,18 +59,18 @@ class SwarmTests extends UnitTestSuite {
 
     Expect.equals(item, state.currentArticle.value);
 
-    Expect.isFalse(storyNode.classes.contains(CSS.HIDDEN_STORY));
+    Expect.isFalse(getStoryNode().classes.contains(CSS.HIDDEN_STORY));
 
     state.loadFromHistory({});
 
     Expect.equals(null, state.currentArticle.value);
-    Expect.isTrue(storyNode.classes.contains(CSS.HIDDEN_STORY));
-  }
+    Expect.isTrue(getStoryNode().classes.contains(CSS.HIDDEN_STORY));
+  });
 
-  void testStoryView() {
+  test('StoryView', () {
     state.clearHistory();
 
-    Expect.isTrue(storyNode.classes.contains(CSS.HIDDEN_STORY));
+    Expect.isTrue(getStoryNode().classes.contains(CSS.HIDDEN_STORY));
 
     final dataSourceView =
         swarm.frontView.currentSection.dataSourceView.getSubview(0);
@@ -101,25 +79,35 @@ class SwarmTests extends UnitTestSuite {
     // running without the correct CSS to size the window so that some items
     // are visible.
     if (itemView != null) {
-      _click(itemView.node);
+      click(itemView.node);
       state.expectHistory([getHistory(itemView.item)]);
     }
-  }
+  });
 
-  void testSliderMenu() {
+  test('SliderMenu', () {
     Expect.equals(getView(swarm.sections[0]), swarm.frontView.currentSection);
 
     // Find the first slider menu item, and click on the one next after it.
-    _click(document.queryAll('.${CSS.SM_ITEM}')[1]);
+    click(document.queryAll('.${CSS.SM_ITEM}')[1]);
 
     Expect.equals(getView(swarm.sections[1]), swarm.frontView.currentSection);
 
     // Find the first menu item again and click on it.
-    _click(document.query('.${CSS.SM_ITEM}'));
+    click(document.query('.${CSS.SM_ITEM}'));
 
     Expect.equals(getView(swarm.sections[0]), swarm.frontView.currentSection);
-  }
+  });
 }
+
+/** Triggers the click event, like [http://api.jquery.com/click/] */
+click(Element element) {
+  // TODO(rnystrom): This should be on the DOM API somewhere.
+  MouseEvent event = document.createEvent('MouseEvents');
+  event.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0,
+      false, false, false, false, 0, null);
+  element.on.click.dispatch(event);
+}
+
 
 /** A proxy so we can intercept history calls */
 class UIStateProxy extends SwarmState {
