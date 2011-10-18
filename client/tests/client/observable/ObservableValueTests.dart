@@ -2,16 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ObservableValueTests extends ObservableTestSetBase {
-  // TODO(rnystrom): Remove this when default constructors are supported.
-  ObservableValueTests() : super();
-
-  setup() {
-    addTest(testObservableValue);
-    addTest(testObservableValueDoesNotRaiseEventIfUnchanged);
-  }
-
-  void testObservableValue() {
+testObservableValue() {
+  test('ObservableValue', () {
     final value = new ObservableValue<String>('initial');
     expect(value.value).equals('initial');
 
@@ -31,11 +23,10 @@ class ObservableValueTests extends ObservableTestSetBase {
 
     expect(result).isNotNull();
     expect(result.events.length).equals(1);
-    checkEvent(result.events[0],
-        value, 'value', null, ChangeEvent.UPDATE, 'newer', 'new');
-  }
+    validateUpdate(result.events[0], value, 'value', null, 'newer', 'new');
+  });
 
-  void testObservableValueDoesNotRaiseEventIfUnchanged() {
+  test('does not raise event if unchanged', () {
     final value = new ObservableValue<String>('foo');
     expect(value.value).equals('foo');
 
@@ -47,5 +38,5 @@ class ObservableValueTests extends ObservableTestSetBase {
 
     // Should not have gotten an event.
     expect(called).equals(false);
-  }
+  });
 }

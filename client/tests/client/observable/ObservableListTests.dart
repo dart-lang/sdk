@@ -2,15 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ObservableListTests extends ObservableTestSetBase {
-  // TODO(rnystrom): Remove this when default constructors are supported.
-  ObservableListTests() : super();
-
-  setup() {
-    addTest(testObservableList);
-  }
-
-  void testObservableList() {
+testObservableList() {
+  test('ObservableList', () {
     final arr = new ObservableList<int>();
 
     // Add some initial data before listening
@@ -74,17 +67,17 @@ class ObservableListTests extends ObservableTestSetBase {
     expect(called).isTrue();
     expect(res).isNotNull();
     expect(res.events.length).equals(11);
-    checkEvent(res.events[0], arr, null, 6, ChangeEvent.INSERT, 5, null);
-    checkEvent(res.events[1], arr, null, 7, ChangeEvent.INSERT, 6, null);
-    checkEvent(res.events[2], arr, null, 1, ChangeEvent.UPDATE, 6, 2);
-    checkEvent(res.events[3], arr, null, 8, ChangeEvent.INSERT, 7, null);
-    checkEvent(res.events[4], arr, null, 5, ChangeEvent.UPDATE, 7, 4);
-    checkEvent(res.events[5], arr, null, 9, ChangeEvent.INSERT, 42, null);
-    checkEvent(res.events[6], arr, null, 3, ChangeEvent.REMOVE, null, 1);
-    checkEvent(res.events[7], arr, null, 2, ChangeEvent.REMOVE, null, 3);
-    checkEvent(res.events[8], arr, null, 7, ChangeEvent.REMOVE, null, 42);
-    checkEvent(res.events[9], arr, null, 1, ChangeEvent.REMOVE, null, 6);
-    checkEvent(res.events[10], arr, null, 4, ChangeEvent.REMOVE, null, 6);
+    validateInsert(res.events[0], arr, null, 6, 5);
+    validateInsert(res.events[1], arr, null, 7, 6);
+    validateUpdate(res.events[2], arr, null, 1, 6, 2);
+    validateInsert(res.events[3], arr, null, 8, 7);
+    validateUpdate(res.events[4], arr, null, 5, 7, 4);
+    validateInsert(res.events[5], arr, null, 9, 42);
+    validateRemove(res.events[6], arr, null, 3, 1);
+    validateRemove(res.events[7], arr, null, 2, 3);
+    validateRemove(res.events[8], arr, null, 7, 42);
+    validateRemove(res.events[9], arr, null, 1, 6);
+    validateRemove(res.events[10], arr, null, 4, 6);
     expect(arr).equalsCollection([1, 3, 7, 5, 7]);
 
     res = null;
@@ -102,11 +95,11 @@ class ObservableListTests extends ObservableTestSetBase {
     expect(called).isTrue();
     expect(res).isNotNull();
     expect(res.events.length).equals(5);
-    checkEvent(res.events[0], arr, null, 5, ChangeEvent.INSERT, 1, null);
-    checkEvent(res.events[1], arr, null, 6, ChangeEvent.INSERT, 4, null);
-    checkEvent(res.events[2], arr, null, 7, ChangeEvent.INSERT, 10, null);
-    checkEvent(res.events[3], arr, null, 8, ChangeEvent.INSERT, 9, null);
-    checkEvent(res.events[4], arr, null, null, ChangeEvent.GLOBAL, null, null);
+    validateInsert(res.events[0], arr, null, 5, 1);
+    validateInsert(res.events[1], arr, null, 6, 4);
+    validateInsert(res.events[2], arr, null, 7, 10);
+    validateInsert(res.events[3], arr, null, 8, 9);
+    validateGlobal(res.events[4], arr);
     expect(arr).equalsCollection([1, 1, 3, 4, 5, 7, 7, 9, 10]);
 
     res = null;
@@ -119,7 +112,7 @@ class ObservableListTests extends ObservableTestSetBase {
     expect(called).isTrue();
     expect(res).isNotNull();
     expect(res.events.length).equals(1);
-    checkEvent(res.events[0], arr, null, null, ChangeEvent.GLOBAL, null, null);
+    validateGlobal(res.events[0], arr);
     expect(arr).equalsCollection([]);
-  }
+  });
 }
