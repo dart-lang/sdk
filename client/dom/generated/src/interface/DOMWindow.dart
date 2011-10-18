@@ -482,14 +482,6 @@ interface Window extends EventTarget {
 
   bool confirm(String message);
 
-  FileReader createFileReader();
-
-  WebKitCSSMatrix createWebKitCSSMatrix([String cssValue]);
-
-  WebKitPoint createWebKitPoint(num x, num y);
-
-  XMLHttpRequest createXMLHttpRequest();
-
   bool dispatchEvent(Event evt);
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);

@@ -26201,46 +26201,6 @@ function native__WorkerContextWrappingImplementation__setTimeout(_this, callback
   return __dom_native_TimeoutHander_method(_this, callback, timeout, 'setTimeout');
 }
 
-function native__DOMWindowWrappingImplementation__createFileReader(_this) {
-  try {
-    return __dom_wrap(new FileReader());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createWebKitCSSMatrix(_this) {
-  try {
-    return __dom_wrap(new WebKitCSSMatrix());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createWebKitCSSMatrix_2(_this, cssValue) {
-  try {
-    return __dom_wrap(new WebKitCSSMatrix(__dom_unwrap(cssValue)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createWebKitPoint(_this, x, y) {
-  try {
-    return __dom_wrap(new WebKitPoint(x, y));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createXMLHttpRequest(_this) {
-  try {
-    return __dom_wrap(new XMLHttpRequest());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__CanvasRenderingContext2DWrappingImplementation__setFillStyle(_this, color_OR_gradient_OR_pattern) {
   try {
     _this.$dom.fillStyle = __dom_unwrap(color_OR_gradient_OR_pattern);

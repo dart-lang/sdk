@@ -65,10 +65,6 @@ _evasive_types = set(['CanvasPixelArray',
 # Custom methods that must be implemented by hand.
 #
 _custom_methods = set([
-    ('DOMWindow', 'createFileReader'),
-    ('DOMWindow', 'createWebKitCSSMatrix'),
-    ('DOMWindow', 'createWebKitPoint'),
-    ('DOMWindow', 'createXMLHttpRequest'),
     ('DOMWindow', 'setInterval'),
     ('DOMWindow', 'setTimeout'),
     ('WorkerContext', 'setInterval'),

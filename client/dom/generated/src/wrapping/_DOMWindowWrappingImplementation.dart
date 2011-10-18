@@ -758,31 +758,6 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static bool _confirm(receiver, message) native;
 
-  FileReader createFileReader() {
-    return _createFileReader(this);
-  }
-  static FileReader _createFileReader(receiver) native;
-
-  WebKitCSSMatrix createWebKitCSSMatrix([String cssValue = null]) {
-    if (cssValue === null) {
-      return _createWebKitCSSMatrix(this);
-    } else {
-      return _createWebKitCSSMatrix_2(this, cssValue);
-    }
-  }
-  static WebKitCSSMatrix _createWebKitCSSMatrix(receiver) native;
-  static WebKitCSSMatrix _createWebKitCSSMatrix_2(receiver, cssValue) native;
-
-  WebKitPoint createWebKitPoint(num x, num y) {
-    return _createWebKitPoint(this, x, y);
-  }
-  static WebKitPoint _createWebKitPoint(receiver, x, y) native;
-
-  XMLHttpRequest createXMLHttpRequest() {
-    return _createXMLHttpRequest(this);
-  }
-  static XMLHttpRequest _createXMLHttpRequest(receiver) native;
-
   bool dispatchEvent(Event evt) {
     return _dispatchEvent(this, evt);
   }
