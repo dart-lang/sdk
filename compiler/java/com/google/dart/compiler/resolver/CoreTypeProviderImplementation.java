@@ -62,7 +62,8 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     if (element == null) {
       Location location = null;
       DartCompilationError error =
-          new DartCompilationError(location, DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
+          new DartCompilationError(null, Location.NONE,
+              DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
       listener.compilationError(error);
       return Types.newDynamicType();
     }

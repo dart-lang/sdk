@@ -417,7 +417,7 @@ public class DartCompiler {
             }
           }
         }
-        
+
         if (filesHaveChanged) {
           context.setFilesHaveChanged();
         }
@@ -500,7 +500,7 @@ public class DartCompiler {
         Tracer.end(logEvent);
       }
     }
-    
+
     private void validateLibraryDirectives() {
       LibraryUnit appLibUnit = context.getAppLibraryUnit();
       for (LibraryUnit lib : libraries.values()) {
@@ -576,7 +576,7 @@ public class DartCompiler {
     private void setEntryPoint() {
       LibraryUnit lib = context.getAppLibraryUnit();
       lib.setEntryNode(new LibraryNode(MAIN_ENTRY_POINT_NAME));
-      // this ensures that if we find it, it's a top-level static element 
+      // this ensures that if we find it, it's a top-level static element
       Element element = lib.getElement().lookupLocalElement(MAIN_ENTRY_POINT_NAME);
       switch (ElementKind.of(element)) {
         case NONE:
@@ -587,13 +587,13 @@ public class DartCompiler {
           MethodElement methodElement = (MethodElement) element;
           Modifiers modifiers = methodElement.getModifiers();
           if (modifiers.isGetter()) {
-            context.compilationError(new DartCompilationError(Location.NONE,
+            context.compilationError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER, MAIN_ENTRY_POINT_NAME));
           } else if (modifiers.isSetter()) {
-            context.compilationError(new DartCompilationError(Location.NONE,
+            context.compilationError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER, MAIN_ENTRY_POINT_NAME));
           } else if (methodElement.getParameters().size() > 0) {
-            context.compilationError(new DartCompilationError(Location.NONE,
+            context.compilationError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS,
                 MAIN_ENTRY_POINT_NAME));
           } else {
@@ -602,7 +602,7 @@ public class DartCompiler {
           break;
 
         default:
-          context.compilationError(new DartCompilationError(Location.NONE,
+          context.compilationError(new DartCompilationError(element.getNode(),
               DartCompilerErrorCode.NOT_A_STATIC_METHOD, MAIN_ENTRY_POINT_NAME));
           break;
       }
@@ -711,7 +711,8 @@ public class DartCompiler {
           // when generating documentation.
           if (context.getApplicationUnit().getEntryNode() == null && !collectComments) {
             if (config.expectEntryPoint()) {
-              context.compilationError(new DartCompilationError(Location.NONE,
+              context.compilationError(new DartCompilationError(
+                  context.getApplicationUnit().getSource(), Location.NONE,
                   DartCompilerErrorCode.NO_ENTRY_POINT));
             }
             return;
@@ -1172,7 +1173,7 @@ public class DartCompiler {
     }
     return null;
   }
-  
+
   public static LibraryUnit getCoreLib(LibraryUnit libraryUnit) {
     return findLibrary(libraryUnit, "corelib.dart", new HashSet<LibraryElement>());
   }

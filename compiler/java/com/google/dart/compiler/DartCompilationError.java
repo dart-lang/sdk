@@ -165,17 +165,6 @@ public class DartCompilationError {
   /**
    * Instantiate a new instance representing a compilation error at the specified location.
    *
-   * @param location the source range where the error occurred
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  public DartCompilationError(Location location, ErrorCode errorCode, Object... arguments) {
-    this((Source)null, location, errorCode, arguments);
-  }
-
-  /**
-   * Instantiate a new instance representing a compilation error at the specified location.
-   *
    * @param source the source reference
    * @param location the source range where the error occurred
    * @param errorCode the error code to be associated with this error
