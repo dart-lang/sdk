@@ -100,11 +100,12 @@ void MessageReceiver_start(uword unused) {
 
 
 TEST_CASE(MessageQueue_WaitNotify) {
+  sync = new Monitor();
+
   Thread* thread = new Thread(MessageReceiver_start, 0);
   EXPECT(thread != NULL);
 
   // Wait for the shared queue to be created.
-  sync = new Monitor();
   {
     MonitorLocker ml(sync);
     ml.Wait(0);
