@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class StringBase {
-  static String createFromCharCodes(Array<int> charCodes) native;
+  static String createFromCharCodes(List<int> charCodes) native;
 
-  static String join(Array<String> strings, String separator) {
+  static String join(List<String> strings, String separator) {
     String s = "";
     for (int i = 0; i < strings.length; i++) {
       if (i > 0) {
@@ -16,7 +16,7 @@ class StringBase {
     return s;
   }
 
-  static String concatAll(Array<String> strings) {
+  static String concatAll(List<String> strings) {
     return join(strings, "");
   }
 

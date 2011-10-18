@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(ngeoffray): Rename to Lists.
 class Arrays {
 
   static void copy(List<Object> src, int srcStart,
@@ -64,7 +65,7 @@ class Arrays {
     return -1;
   }
 
-  static void rangeCheck(Array a, int start, int length) {
+  static void rangeCheck(List a, int start, int length) {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }

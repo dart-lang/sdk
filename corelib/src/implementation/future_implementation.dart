@@ -41,14 +41,14 @@ class FutureImpl<T> implements Future<T> {
   /**
    * Listeners waiting to receive the value of this future.
    */
-  final Array<Function> _listeners;
+  final List<Function> _listeners;
 
   /**
    * Exception handlers waiting for exceptions.
    */
-  final Array<Function> _exceptionHandlers;
+  final List<Function> _exceptionHandlers;
 
-  FutureImpl() : _listeners = new Array(), _exceptionHandlers = new Array() {
+  FutureImpl() : _listeners = new List(), _exceptionHandlers = new List() {
     _isComplete = false;
   }
 

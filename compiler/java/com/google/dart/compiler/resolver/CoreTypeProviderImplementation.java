@@ -41,7 +41,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.numType = getType("num", scope, listener);
     this.stringType = getType("String", scope, listener);
     this.functionType = getType("Function", scope, listener);
-    this.arrayType = getType("Array", scope, listener);
+    this.arrayType = getType("List", scope, listener);
     this.dynamicType = Types.newDynamicType();
     this.voidType = Types.newVoidType();
     // Currently, there is no need for a special null type.
@@ -49,7 +49,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.fallThroughError = getType("FallThroughError", scope, listener);
     this.mapType = getType("Map", scope, listener);
     this.mapLiteralType = getType("LinkedHashMapImplementation", scope, listener);
-    this.objectArrayType = getType("ObjectArray", scope, listener);
+    this.objectArrayType = getType("ListImplementation", scope, listener);
     this.objectType = getType("Object", scope, listener);
     this.isolateType = getType("Isolate", scope, listener);
     this.stringImplementation = getType("StringImplementation", scope, listener);

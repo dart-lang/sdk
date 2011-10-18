@@ -110,7 +110,7 @@ function native_StringImplementation_compareTo(other) {
 
 function native_StringImplementation__newFromValues(array) {
   if (!(array instanceof Array)) {
-    var length = native__ArrayJsUtil__arrayLength(array);
+    var length = native__ListJsUtil__listLength(array);
     var tmp = new Array(length);
     for (var i = 0; i < length; i++) {
       tmp[i] = INDEX$operator(array, i);

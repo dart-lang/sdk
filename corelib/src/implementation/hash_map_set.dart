@@ -5,22 +5,22 @@
 // Hash map implementation with open addressing and quadratic probing.
 class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
 
-  // The [keys_] list contains the keys inserted in the map.
-  // The [keys_] list must be a raw list because it
-  // will contain both elements of type K, and the [deletedKey_] of type
+  // The [_keys] list contains the keys inserted in the map.
+  // The [_keys] list must be a raw list because it
+  // will contain both elements of type K, and the [_deletedKey] of type
   // Object.
-  // The alternative of declaring the [keys_] list as of type Object
+  // The alternative of declaring the [_keys] list as of type Object
   // does not work, because the HashSetIterator constructor would fail:
-  //  HashSetIterator(HashSet<E> set_)
+  //  HashSetIterator(HashSet<E> set)
   //    : _nextValidIndex = -1,
   //      _entries = set_._backingMap._keys {
   //    _advance();
   //  }
   // With K being type int, for example, it would fail because
-  // ObjectArray<Object> is not assignable to type List<int> of entries_.
+  // List<Object> is not assignable to type List<int> of entries.
   List _keys;
 
-  // The values_ inserted in the map. For a filled entry index in this
+  // The values inserted in the map. For a filled entry index in this
   // list, there is always the corresponding key in the [keys_] list
   // at the same entry index.
   List<V> _values;

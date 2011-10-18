@@ -20,7 +20,7 @@ class StringBase {
       objectArray = charCodes;
     } else {
       int len = charCodes.length;
-      objectArray = new Array(len);
+      objectArray = new ObjectArray(len);
       for (int i = 0; i < len; i++) {
         objectArray[i] = charCodes[i];
       }
@@ -151,7 +151,7 @@ class StringBase {
 
   String substringUnchecked_(int startIndex, int endIndex) {
     int len = endIndex - startIndex;
-    Array<int> charCodes = new Array<int>(len);
+    List<int> charCodes = new List<int>(len);
     for (int i = 0; i < len; i++) {
       charCodes[i] = this.charCodeAt(startIndex + i);
     }
@@ -252,19 +252,19 @@ class StringBase {
    * Convert all objects in [values] to strings and concat them
    * into a result string.
    */
-  static String _interpolate(Array values) {
+  static String _interpolate(List values) {
     int numValues = values.length;
-    Array<String> stringArray = new Array<String>(numValues);
+    List<String> stringList = new List<String>(numValues);
     int resultLength = 0;
     for (int i = 0; i < numValues; i++) {
       String str = values[i].toString();
       resultLength += str.length;
-      stringArray[i] = str;
+      stringList[i] = str;
     }
-    Array<int> codepoints = new Array<int>(resultLength);
+    List<int> codepoints = new List<int>(resultLength);
     int intArrayIx = 0;
     for (int i = 0; i < numValues; i++) {
-      String str = stringArray[i];
+      String str = stringList[i];
       int strLength = str.length;
       for (int k = 0; k < strLength; k++) {
         codepoints[intArrayIx++] = str.charCodeAt(k);
@@ -274,7 +274,7 @@ class StringBase {
   }
 
   Iterable<Match> allMatches(String str) {
-    GrowableObjectArray<Match> result = new GrowableObjectArray<Match>();
+    List<Match> result = new List<Match>();
     if (this.isEmpty()) return result;
     int length = this.length;
 
@@ -288,11 +288,11 @@ class StringBase {
     return result;
   }
 
-  Array<String> split(Pattern pattern) {
+  List<String> split(Pattern pattern) {
     if (pattern is RegExp) {
       throw "Unimplemented split with RegExp";
     }
-    GrowableObjectArray<String> result = new GrowableObjectArray<String>();
+    List<String> result = new List<String>();
     if (pattern.isEmpty()) {
       for (int i = 0; i < this.length; i++) {
         result.add(this.substring(i, i+1));
@@ -316,18 +316,18 @@ class StringBase {
     return result;
   }
 
-  Array<String> splitChars() {
+  List<String> splitChars() {
     int len = this.length;
-    final result = new Array<String>(len);
+    final result = new List<String>(len);
     for (int i = 0; i < len; i++) {
       result[i] = this[i];
     }
     return result;
   }
 
-  Array<int> charCodes() {
+  List<int> charCodes() {
     int len = this.length;
-    final result = new Array<int>(len);
+    final result = new List<int>(len);
     for (int i = 0; i < len; i++) {
       result[i] = this.charCodeAt(i);
     }
@@ -358,7 +358,7 @@ class StringBase {
     }
     if (i == len) return str;
 
-    Array<int> charCodes = new Array<int>(len);
+    List<int> charCodes = new List<int>(len);
     for (i = 0; i < len; i++) {
       int code = str.charCodeAt(i);
       if ((startCode <= code) && (code <= endCode)) {
@@ -372,37 +372,37 @@ class StringBase {
 
 
   // Implementations of Strings methods follow below.
-  static String join(Array<String> strings, String separator) {
+  static String join(List<String> strings, String separator) {
     final int length = strings.length;
     if (length === 0) {
       return "";
     }
 
-    Array strings_array = strings;
+    List stringsList = strings;
     if (separator.length != 0) {
-      strings_array = new Array(2 * length - 1);
-      strings_array[0] = strings[0];
+      stringsList = new List(2 * length - 1);
+      stringsList[0] = strings[0];
       int j = 1;
       for (int i = 1; i < length; i++) {
-        strings_array[j++] = separator;
-        strings_array[j++] = strings[i];
+        stringsList[j++] = separator;
+        stringsList[j++] = strings[i];
       }
     }
-    return concatAll(strings_array);
+    return concatAll(stringsList);
   }
 
-  static String concatAll(Array<String> strings) {
-    ObjectArray strings_array;
+  static String concatAll(List<String> strings) {
+    ObjectArray stringsArray;
     if (strings is ObjectArray) {
-      strings_array = strings;
+      stringsArray = strings;
     } else {
       int len = strings.length;
-      strings_array = new Array(len);
+      stringsArray = new ObjectArray(len);
       for (int i = 0; i < len; i++) {
-        strings_array[i] = strings[i];
+        stringsArray[i] = strings[i];
       }
     }
-    return _concatAll(strings_array);
+    return _concatAll(stringsArray);
   }
 
   static String _concatAll(ObjectArray<String> strings)
@@ -463,8 +463,8 @@ class _StringMatch implements Match {
     return pattern;
   }
 
-  Array<String> groups(Array<int> groups) {
-    Array<String> result = new Array<String>();
+  List<String> groups(List<int> groups) {
+    List<String> result = new List<String>();
     for (int g in groups) {
       result.add(group(g));
     }

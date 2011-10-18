@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class StringImplementation implements String native "String" {
-  factory StringImplementation.fromValues(Array<int> values) {
+  factory StringImplementation.fromValues(List<int> values) {
     return _newFromValues(values);
   }
 
@@ -128,7 +128,7 @@ class StringImplementation implements String native "String" {
     }
   }
 
-  Array<String> split(Pattern pattern) {
+  List<String> split(Pattern pattern) {
     if (pattern is String || pattern is JSSyntaxRegExp) {
       return _split(pattern);
     } else {
@@ -152,13 +152,13 @@ class StringImplementation implements String native "String" {
     return result;
   }
 
-  Array<String> splitChars() {
+  List<String> splitChars() {
     return _split("");
   }
 
-  Array<int> charCodes() {
+  List<int> charCodes() {
     int len = length;
-    Array<int> result = new Array<int>(len);
+    List<int> result = new List<int>(len);
     for (int i = 0; i < len; i++) {
       // It is safe to call the private function (which doesn't do
       // range-checks).
@@ -178,13 +178,13 @@ class StringImplementation implements String native "String" {
 
   int compareTo(String other) native;
 
-  static String _newFromValues(Array<int> values) native;
+  static String _newFromValues(List<int> values) native;
   String _indexOperator(int index) native;
   int _charCodeAt(int index) native;
   String _substringUnchecked(int startIndex, int endIndex) native;
   String _replace(Pattern from, String to) native;
   String _replaceAll(Pattern from, String to) native;
-  Array<String> _split(Pattern pattern) native;
+  List<String> _split(Pattern pattern) native;
 
   get dynamic() { return toString(); }
 }
@@ -213,8 +213,8 @@ class _StringMatch implements Match {
     return pattern;
   }
 
-  Array<String> groups(Array<int> groups) {
-    Array<String> result = new Array<String>();
+  List<String> groups(List<int> groups) {
+    List<String> result = new List<String>();
     for (int g in groups) {
       result.add(group(g));
     }

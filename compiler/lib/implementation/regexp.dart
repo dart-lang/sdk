@@ -42,8 +42,8 @@ class JSSyntaxMatch implements Match {
     return this.group(group);
   }
 
-  Array<String> groups(Array<int> groups) {
-    Array<String> strings = new Array<String>();
+  List<String> groups(List<int> groups) {
+    List<String> strings = new List<String>();
     groups.forEach((int group) {
       strings.add(this.group(group));
     });
@@ -76,7 +76,7 @@ class _LazyAllMatches implements Collection<Match> {
   }
 
   Collection<Match> filter(bool f(Match match)) {
-    Array<Match> result = new Array<Match>();
+    List<Match> result = new List<Match>();
     for (Match match in this) {
       if (f(match)) result.add(match);
     }

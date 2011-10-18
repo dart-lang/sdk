@@ -64,7 +64,7 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   Iterable<Match> allMatches(String str) {
-    var jsregexMatches = new GrowableObjectArray<JSRegExpMatch>();
+    var jsregexMatches = new List<JSRegExpMatch>();
     List match = _ExecuteMatch(str, 0);
     if (match !== null) {
       jsregexMatches.add(new JSRegExpMatch(this, str, match));

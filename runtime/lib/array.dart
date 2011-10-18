@@ -2,34 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ArrayFactory<T> {
-  factory Array.from(Iterable<T> other) {
-    GrowableObjectArray<T> array = new GrowableObjectArray<T>();
-    for (final e in other) {
-      array.add(e);
-    }
-    return array;
-  }
-
-  factory Array.fromArray(Array<T> other, int startIndex, int endIndex) {
-    Array array = new Array<T>();
-    if (endIndex > other.length) endIndex = other.length;
-    if (startIndex < 0) startIndex = 0;
-    int count = endIndex - startIndex;
-    if (count > 0) {
-      array.length = count;
-      Arrays.copy(other, startIndex, array, 0, count);
-    }
-    return array;
-  }
-
-  factory Array([int length = null]) {
-    if (length === null) {
-      return new GrowableObjectArray<T>();
-    } else {
-      return new ObjectArray<T>(length);
-    }
-  }
+// TODO(ngeoffray): Temporary definition until we remove all uses of 'Array'.
+interface Array<T> extends List<T> {
 }
 
 class ListFactory<T> {

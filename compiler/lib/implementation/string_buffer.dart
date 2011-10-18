@@ -60,7 +60,7 @@ class StringBufferImpl implements StringBuffer {
    * Clears the string buffer. Returns [this].
    */
   StringBuffer clear() {
-    _buffer = new Array<String>();
+    _buffer = new List<String>();
     _length = 0;
     return this;
   }
@@ -79,6 +79,6 @@ class StringBufferImpl implements StringBuffer {
     return result;
   }
 
-  Array<String> _buffer;
+  List<String> _buffer;
   int _length;
 }

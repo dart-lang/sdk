@@ -9,7 +9,7 @@
 class GrowableObjectArray2Test {
   static testMain() {
     var g = new GrowableObjectArray();
-    Expect.equals(true, g is Array);
+    Expect.equals(true, g is List);
     Expect.equals(true, g is GrowableObjectArray);
     Expect.equals(true, g.isEmpty());
     for (int i = 0; i < 100; i++) {
@@ -24,29 +24,29 @@ class GrowableObjectArray2Test {
     Expect.equals(100, g.length);
 
     var f = new GrowableObjectArray();
-    var object_array = new Array(20);
-    for (int i = 0; i < object_array.length; i++) {
+    var list = new List(20);
+    for (int i = 0; i < list.length; i++) {
       f.add(2);
-      object_array[i] = 5;
+      list[i] = 5;
     }
-    object_array.copyFrom(f, 0, 0, f.length);
+    list.copyFrom(f, 0, 0, f.length);
     for (int i = 0; i < f.length; i++) {
-      Expect.equals(2, object_array[i]);
+      Expect.equals(2, list[i]);
     }
     f.copyFrom(g, 10, 0, 2);
     Expect.equals(20, f.length);
 
-    bool exception_caught = false;
+    bool exceptionCaught = false;
     try {
       var elem = g[g.length];
     } catch (IndexOutOfRangeException e) {
-      exception_caught = true;
+      exceptionCaught = true;
     }
-    Expect.equals(true, exception_caught);
+    Expect.equals(true, exceptionCaught);
 
-    Array<int> plain_array = [4, 3, 9, 12, -4, 9];
+    List<int> plainArray = [4, 3, 9, 12, -4, 9];
     GrowableObjectArray h = new GrowableObjectArray.withCapacity(4);
-    plain_array.forEach((elem) { h.add(elem); });
+    plainArray.forEach((elem) { h.add(elem); });
     int compare(a, b) {
       if (a < b) return -1;
       if (a > b) return 1;
@@ -63,7 +63,7 @@ class GrowableObjectArray2Test {
     Expect.equals(5, t.length);
 
     h.clear();
-    Array array = const [0, 1, 2, 3, 4];
+    List array = const [0, 1, 2, 3, 4];
     h.addAll(array);
     Expect.equals(5, h.length);
   }

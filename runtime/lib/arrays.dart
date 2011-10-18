@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(ngeoffray): Rename to Lists.
 class Arrays {
 
-  static String asString(Array array) {
+  static String asString(List list) {
     String result = "[";
-    int len = array.length;
+    int len = list.length;
     for (int i = 0; i < len; i++) {
       // TODO(4466785): Deal with recursion and formatting.
-      result += array[i].toString() + ", ";
+      result += list[i].toString() + ", ";
     }
     result += "]";
     return result;
   }
 
-  static void copy(Array src, int srcStart,
-                   Array dst, int dstStart, int count) {
+  static void copy(List src, int srcStart,
+                   List dst, int dstStart, int count) {
     if (srcStart === null) srcStart = 0;
     if (dstStart === null) dstStart = 0;
 
@@ -32,9 +33,9 @@ class Arrays {
     }
   }
 
-  static bool areEqual(Array a, Object b) {
+  static bool areEqual(List a, Object b) {
     if (a === b) return true;
-    if (!(b is Array)) return false;
+    if (!(b is List)) return false;
     int length = a.length;
     if (length != b.length) return false;
 
@@ -45,11 +46,11 @@ class Arrays {
   }
 
   /**
-   * Returns the index in the array [a] of the given [element], starting
+   * Returns the index in the list [a] of the given [element], starting
    * the search at index [startIndex] to [endIndex] (exclusive).
    * Returns -1 if [element] is not found.
    */
-  static int indexOf(Array a,
+  static int indexOf(List a,
                      Object element,
                      int startIndex,
                      int endIndex) {
@@ -68,11 +69,11 @@ class Arrays {
   }
 
   /**
-   * Returns the last index in the array [a] of the given [element], starting
+   * Returns the last index in the list [a] of the given [element], starting
    * the search at index [startIndex] to 0.
    * Returns -1 if [element] is not found.
    */
-  static int lastIndexOf(Array a, Object element, int startIndex) {
+  static int lastIndexOf(List a, Object element, int startIndex) {
     if (startIndex < 0) {
       return -1;
     }
@@ -87,7 +88,7 @@ class Arrays {
     return -1;
   }
 
-  static void rangeCheck(Array a, int start, int length) {
+  static void rangeCheck(List a, int start, int length) {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }

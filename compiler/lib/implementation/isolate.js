@@ -489,7 +489,7 @@ function native_Serializer__dartListToJsArrayNoCopy(list) {
     RTT.removeTypeInfo(list);
     return list;
   } else {
-    var len = native__ArrayJsUtil__arrayLength(list);
+    var len = native__ListJsUtil__listLength(list);
     var array = new Array(len);
     for (var i = 0; i < len; i++) {
       array[i] = INDEX$operator(list, i);
