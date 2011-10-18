@@ -92,7 +92,6 @@ ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
 ConstructorSetterNegativeTest: FAIL      # Bug 92
 
-MathTest: FAIL                           # Bug 5165080
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.
 NamedParametersWithConversionsTest: Fail # Implementation in progress.
