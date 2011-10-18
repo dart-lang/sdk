@@ -363,13 +363,19 @@ class Expectation {
 
   Expectation(this._value);
 
-  // TODO(rnystrom): Get rid of this and use .equals(). After some discussion,
-  // we decided this is the wrong approach for a bunch of reasons, clever as it
-  // may be.
   /** Asserts that the value is equivalent to the given expected value. */
-  bool equals(expected) {
+  void equals(expected) {
     Expect.equals(expected, _value);
-    return _value == expected;
+  }
+
+  /**
+   * Failure if the difference between expected and actual is greater than the
+   * given tolerance. If no tolerance is given, tolerance is assumed to be the
+   * value 4 significant digits smaller than the value given for expected.
+   */
+  void approxEquals(num expected,
+      [num tolerance = null, String reason = null]) {
+    Expect.approxEquals(expected, _value, tolerance: tolerance, reason: reason);
   }
 
   /** Asserts that the value is null. */

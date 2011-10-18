@@ -6,10 +6,12 @@ prefix client
 
 [ $arch == dartium ]
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
+touch/touch_tests: Skip  # Issue 157.
 
 
 [ $arch == chromium ]
 layout/layout_tests: Skip  # Issue 152.
+touch/touch_tests: Skip  # Issue 157.
 
 
 # 'client' tests import the DOM library, so they only make sense in
