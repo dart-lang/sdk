@@ -549,10 +549,6 @@ void Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
-  name = String::NewSymbol("Array");
-  cls = Class::NewInterface(name, script);
-  core_impl_lib.AddClass(cls);
-
   // The classes 'null', 'var', and 'void' are not registered in the class
   // dictionary and are not named, but corresponding types are stored in the
   // object store.

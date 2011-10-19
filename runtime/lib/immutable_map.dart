@@ -97,7 +97,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
 class MutableMap {
   // [elements] contains n key-value pairs. The keys are at position
   // 2*n, the values at position 2*n+1.
-  static fromLiteral(Array elements) {
+  static fromLiteral(List elements) {
     var map = new LinkedHashMap();
     var len = elements.length;
     for (int i = 1; i < len; i += 2) {

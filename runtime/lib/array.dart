@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(ngeoffray): Temporary definition until we remove all uses of 'Array'.
-interface Array<T> extends List<T> {
-}
-
 class ListFactory<T> {
 
   factory List.from(Iterable<T> other) {
@@ -38,7 +34,7 @@ class ListFactory<T> {
 }
 
 // TODO(srdjan): Use shared array implementation.
-class ObjectArray<T> implements Array<T> {
+class ObjectArray<T> implements List<T> {
 
   factory ObjectArray(int length) native "ObjectArray_allocate";
 
@@ -52,7 +48,7 @@ class ObjectArray<T> implements Array<T> {
 
   int get length() native "ObjectArray_getLength";
 
-  void copyFrom(Array src, int srcStart, int dstStart, int count) {
+  void copyFrom(List src, int srcStart, int dstStart, int count) {
     if (src is ObjectArray) {
       _copyFromObjectArray(src, srcStart, dstStart, count);
     } else {
@@ -171,7 +167,7 @@ class ObjectArray<T> implements Array<T> {
 // classes (and inline cache misses) versus a field in the native
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
-class ImmutableArray<T> implements Array<T> {
+class ImmutableArray<T> implements List<T> {
 
   T operator [](int index) native "ObjectArray_getIndexed";
 
@@ -182,7 +178,7 @@ class ImmutableArray<T> implements Array<T> {
 
   int get length() native "ObjectArray_getLength";
 
-  void copyFrom(Array src, int srcStart, int dstStart, int count) {
+  void copyFrom(List src, int srcStart, int dstStart, int count) {
     throw const UnsupportedOperationException(
         "Cannot modify an immutable array");
   }
@@ -290,7 +286,7 @@ class ImmutableArray<T> implements Array<T> {
 
 // Iterator for arrays with fixed size.
 class FixedSizeArrayIterator<T> implements Iterator<T> {
-  FixedSizeArrayIterator(Array array)
+  FixedSizeArrayIterator(List array)
       : _array = array, _length = array.length, _pos = 0 {
     assert(array is ObjectArray || array is ImmutableArray);
   }
@@ -306,7 +302,7 @@ class FixedSizeArrayIterator<T> implements Iterator<T> {
     return _array[_pos++];
   }
 
-  final Array<T> _array;
+  final List<T> _array;
   final int _length;  // Cache array length for faster access.
   int _pos;
 }

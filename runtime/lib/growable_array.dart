@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class GrowableObjectArray<T> implements Array<T> {
+class GrowableObjectArray<T> implements List<T> {
   ObjectArray<T> backingArray;
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
@@ -87,7 +87,7 @@ class GrowableObjectArray<T> implements Array<T> {
     backingArray = new ObjectArray<T>(capacity);
   }
 
-  GrowableObjectArray._usingArray(Array<T> array) {
+  GrowableObjectArray._usingArray(List<T> array) {
     backingArray = array;
     _length = array.length;
     if (_length == 0) {
@@ -96,7 +96,7 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   factory GrowableObjectArray.from(Collection<T> other) {
-    Array result = new GrowableObjectArray();
+    List result = new GrowableObjectArray();
     result.addAll(other);
     return result;
   }
