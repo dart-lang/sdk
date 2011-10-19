@@ -136,7 +136,9 @@ class StandardTestConfiguration(test.TestConfiguration):
     for line in lines:
       m = re.match("#(source|import)\(['\"](.*)['\"]\);", line)
       if m:
-        referenced_files.append(m.group(2))
+        file_name = m.group(2)
+        if not file_name.startswith('dart:'):
+          referenced_files.append(file_name)
     return referenced_files
 
   def SplitMultiTest(self, test_path, filename):
