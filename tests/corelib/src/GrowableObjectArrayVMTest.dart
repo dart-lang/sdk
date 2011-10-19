@@ -81,7 +81,7 @@ class GrowableObjectArrayTest {
     testOutOfBoundForIndexOf();
 
     GrowableObjectArray<int> h = new GrowableObjectArray<int>.withCapacity(10);
-    Array constArray = const [0, 1, 2, 3, 4];
+    List constArray = const [0, 1, 2, 3, 4];
     h.addAll(constArray);
     Expect.equals(5, h.length);
   }
