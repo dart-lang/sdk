@@ -41,6 +41,9 @@ class UnitTestSuite {
 
   bool _queuedToRun = false;
 
+  /** Whether a test is currently being executed by [runTest]. */
+  bool _testIsRunning = false;
+
   // TODO(sigmund): remove isLayoutTest argument after converting all DOM tests
   // to use the named constructor below.
   // TODO(vsm): remove the ignoredWindow parameter once all tests are fixed.
@@ -159,8 +162,10 @@ class UnitTestSuite {
       _uncaughtError = true;
     } else if (_callbacksCalled == testCase.callbacks) {
       testCase.recordSuccess();
-      _currentTest++;
-      _nextBatch();
+      if (!_testIsRunning) {
+        _currentTest++;
+        _nextBatch();
+      }
     }
   }
 
@@ -189,6 +194,7 @@ class UnitTestSuite {
     _uncaughtError = false;
     _callbacksCalled = 0;
     try {
+      _testIsRunning = true;
       (testCase.test)();
       if (!_uncaughtError) {
         if (testCase.callbacks == _callbacksCalled) {
@@ -203,6 +209,8 @@ class UnitTestSuite {
       if (!_uncaughtError) {
         testCase.recordError('Caught ${e}', trace.toString());
       }
+    } finally {
+      _testIsRunning = false;
     }
   }
 
