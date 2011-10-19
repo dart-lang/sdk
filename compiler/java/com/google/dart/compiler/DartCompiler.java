@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -69,6 +70,49 @@ public class DartCompiler {
 
   public static final String CORELIB_URL_SPEC = "dart:core";
   public static final String MAIN_ENTRY_POINT_NAME = "main";
+
+  private static class NamedPlaceHolderLibrarySource implements LibrarySource {
+    private final String name;
+
+    public NamedPlaceHolderLibrarySource(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public boolean exists() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public long getLastModified() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    public Reader getSourceReader() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public URI getUri() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public LibrarySource getImportFor(String relPath) {
+      throw new AssertionError();
+    }
+
+    @Override
+    public DartSource getSourceFor(String relPath) {
+      throw new AssertionError();
+    }
+  }
 
   private static class Compiler {
     private final LibrarySource app;
@@ -1053,6 +1097,16 @@ public class DartCompiler {
                                   DartCompilerListener listener) throws IOException {
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener,
                                                                   config);
+    if (config.getCompilerOptions().shouldExposeCoreImpl()) {
+      if (embeddedLibraries == null) {
+        embeddedLibraries = Lists.newArrayList();
+      }
+      // use a place-holder LibrarySource instance, to be replaced when embedded
+      // in the compiler, where the dart uri can be resolved.
+      embeddedLibraries.add(new NamedPlaceHolderLibrarySource("dart:coreimpl"));
+    }
+
+
     new Compiler(lib, embeddedLibraries, config, context).compile();
     int errorCount = context.getErrorCount();
     if (config.typeErrorsAreFatal()) {

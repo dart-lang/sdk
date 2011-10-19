@@ -38,6 +38,9 @@ public class CommandLineOptions {
         usage = "Do not generate output, only analyze")
     private boolean checkOnly = false;
 
+    @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
+    private boolean exposeCoreImpl = false;
+
     @Option(name = "--warn_no_such_type",
         usage = "Treat some type checks as warnings\n instead of fatal errors")
     private boolean shouldWarnOnNoSuchType = false;
@@ -150,6 +153,13 @@ public class CommandLineOptions {
      */
     public boolean checkOnly() {
       return checkOnly;
+    }
+
+    /**
+     * @return <code>true</code> to automatically import dart:coreimpl
+     */
+    public boolean shouldExposeCoreImpl() {
+      return exposeCoreImpl;
     }
 
     /**
@@ -301,9 +311,6 @@ public class CommandLineOptions {
     @Option(name = "--compile-only", usage = "Compile but do not execute")
     private boolean compileOnly = false;
 
-    @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
-    private boolean exposeCoreImpl = false;
-
     @Option(name = "--verbose", usage = "Extra diagnostic output")
     private boolean verbose = false;
 
@@ -319,13 +326,6 @@ public class CommandLineOptions {
     @Override
     public boolean shouldCompileOnly() {
       return compileOnly;
-    }
-
-    /**
-     * @return <code>true</code> to automatically import dart:coreimpl
-     */
-    public boolean shouldExposeCoreImpl() {
-      return exposeCoreImpl;
     }
 
     /**
