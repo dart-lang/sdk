@@ -63,8 +63,6 @@ CanonicalConstTest: Fail        # Bug 5270133
 OverrideFieldTest/none: Fail    # Bug 5384222
 GenericParameterizedExtendsTest: Skip  # Bug 5391643
 
-GetterClosureExecutionOrderTest: Fail # Bug 5481868
-
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
 
