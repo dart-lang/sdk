@@ -6,12 +6,11 @@ prefix standalone
 
 [ $arch == ia32]
 ManyEchoServerTest: Skip        # Bug 5103754
-
+TimerCancel1Test: Skip
 
 [ $arch == ia32 && $mode == release]
 # Currently process tests are bound to debug mode.
 Process*: Skip
-
 
 [ $arch == ia32 && $system == macos]
 # Currently process tests are not working on Mac OS.
@@ -39,6 +38,8 @@ TimerTest: Skip # Uses EventHandler
 TimerRepeatTest: Skip # Uses EventHandler
 MultipleTimerTest: Skip # Uses EventHandler
 TimerCancelTest: Skip # Uses EventHandler
+TimerCancel1Test: Skip # Uses EventHandler
+TimerCancel2Test: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory

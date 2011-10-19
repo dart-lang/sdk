@@ -9,7 +9,7 @@ class TimerCancel1Test {
     var cancelerTimer;
 
     void timeoutHandlerUnreachable(Timer timer) {
-      Expect.fails("A canceled timeout handler should be unreachable.");
+      Expect.fail("A canceled timeout handler should be unreachable.");
     }
 
     void cancelHandler(Timer timer) {
