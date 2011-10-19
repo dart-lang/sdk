@@ -32,4 +32,6 @@ interface Node extends EventTarget {
   // insertBefore or we switch NodeList to implement LinkedList rather than
   // array.
   Node insertBefore(Node newChild, Node refChild);
+
+  Node clone(bool deep);
 }

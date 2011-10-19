@@ -20303,6 +20303,8 @@ interface Node extends EventTarget {
   // insertBefore or we switch NodeList to implement LinkedList rather than
   // array.
   Node insertBefore(Node newChild, Node refChild);
+
+  Node clone(bool deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20524,9 +20526,7 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
         LevelDom.unwrap(newChild), LevelDom.unwrap(refChild)));
   }
 
-  // TODO(jacobr): required for some benchmarks. Added to this class but not Node while
-  // we decide what to do with it.
-  Node cloneNode(bool deep) {
+  Node clone(bool deep) {
     return LevelDom.wrapNode(_ptr.cloneNode(deep));
   }
 }
