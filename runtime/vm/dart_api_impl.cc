@@ -1392,8 +1392,8 @@ DART_EXPORT Dart_Result Dart_GetStaticField(Dart_Handle cls,
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   Dart_Result result = LookupStaticField(cls, name, kGetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Object& retval = Object::Handle();
   const Object& obj = Object::Handle(Api::UnwrapHandle(Dart_GetResult(result)));
@@ -1407,7 +1407,7 @@ DART_EXPORT Dart_Result Dart_GetStaticField(Dart_Handle cls,
     func ^= obj.raw();
     GrowableArray<const Object*> args;
     InvokeStatic(func, args, &result);
-    if (Dart_IsValidResult(result)) {
+    if (::Dart_IsValidResult(result)) {
       Dart_Handle result_obj = Dart_GetResult(result);
       if (Dart_ExceptionOccurred(result_obj)) {
         RETURN_FAILURE("An exception occurred when getting the static field");
@@ -1425,8 +1425,8 @@ DART_EXPORT Dart_Result Dart_SetStaticField(Dart_Handle cls,
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   Dart_Result result = LookupStaticField(cls, name, kSetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Field& fld = Field::Handle();
   fld ^= Api::UnwrapHandle(Dart_GetResult(result));
@@ -1452,14 +1452,14 @@ DART_EXPORT Dart_Result Dart_GetInstanceField(Dart_Handle obj,
   Instance& object = Instance::Handle();
   object ^= param.raw();
   Dart_Result result = LookupInstanceField(object, name, kGetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Function& func = Function::Handle();
   func ^= Api::UnwrapHandle(Dart_GetResult(result));
   GrowableArray<const Object*> arguments;
   InvokeDynamic(object, func, arguments, &result);
-  if (Dart_IsValidResult(result)) {
+  if (::Dart_IsValidResult(result)) {
     Dart_Handle result_obj = Dart_GetResult(result);
     if (Dart_ExceptionOccurred(result_obj)) {
       RETURN_FAILURE("An exception occurred when accessing the instance field");
@@ -1481,8 +1481,8 @@ DART_EXPORT Dart_Result Dart_SetInstanceField(Dart_Handle obj,
   Instance& object = Instance::Handle();
   object ^= param.raw();
   Dart_Result result = LookupInstanceField(object, name, kSetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Function& func = Function::Handle();
   func ^= Api::UnwrapHandle(Dart_GetResult(result));
@@ -1490,7 +1490,7 @@ DART_EXPORT Dart_Result Dart_SetInstanceField(Dart_Handle obj,
   const Object& arg = Object::Handle(Api::UnwrapHandle(value));
   arguments.Add(&arg);
   InvokeDynamic(object, func, arguments, &result);
-  if (Dart_IsValidResult(result)) {
+  if (::Dart_IsValidResult(result)) {
     Dart_Handle result_obj = Dart_GetResult(result);
     if (Dart_ExceptionOccurred(result_obj)) {
       RETURN_FAILURE("An exception occurred when setting the instance field");
