@@ -27,6 +27,56 @@
 
 namespace dart {
 
+DART_EXPORT bool Dart_IsValidResult(const Dart_Result& result) {
+  ASSERT(Isolate::Current() != NULL);
+  if (result.type_ == kRetObject) {
+    Zone zone;  // Setup a VM zone as we are creating some handles.
+    HandleScope scope;  // Setup a VM handle scope.
+
+    // Make sure that the object isn't an ApiFailure.
+    const Object& obj =
+        Object::Handle(Api::UnwrapHandle(result.retval_.obj_value));
+    return !obj.IsApiFailure();
+  }
+  return true;
+}
+
+DART_EXPORT const char* Dart_GetErrorCString(const Dart_Result& result) {
+  ASSERT(Isolate::Current() != NULL);
+  ASSERT(result.type_ == kRetObject);
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& obj = Object::Handle(
+      Api::UnwrapHandle(result.retval_.obj_value));
+  if (!obj.IsApiFailure()) {
+    return "";
+  }
+  ApiFailure& failure = ApiFailure::Handle();
+  failure ^= obj.raw();
+  const String& message = String::Handle(failure.message());
+  const char* msg = message.ToCString();
+  intptr_t len = strlen(msg) + 1;
+  char* msg_copy = reinterpret_cast<char*>(Api::Allocate(len));
+  OS::SNPrint(msg_copy, len, "%s", msg);
+  return msg_copy;
+}
+
+
+DART_EXPORT Dart_Result Dart_ErrorResult(const char* value) {
+  ASSERT(Isolate::Current() != NULL);
+
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const String& message = String::Handle(String::New(value));
+  const Object& obj = Object::Handle(ApiFailure::New(message));
+
+  Dart_Result result;
+  result.type_ = kRetObject;
+  result.retval_.obj_value = Api::NewLocalHandle(obj);
+  return result;
+}
+
+
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
 DART_EXPORT bool Dart_Initialize(int argc,
                                  char** argv,
@@ -74,12 +124,9 @@ static void SetupErrorResult(Dart_Result* result) {
   // may get deallocated when we return back from the Dart API call.
   const String& error = String::Handle(
       Isolate::Current()->object_store()->sticky_error());
-  const char* errmsg = error.ToCString();
-  intptr_t errlen = strlen(errmsg) + 1;
-  char* msg = reinterpret_cast<char*>(Api::Allocate(errlen));
-  OS::SNPrint(msg, errlen, "%s", errmsg);
-  result->type_ = kRetError;
-  result->retval_.errmsg = msg;
+  const Object& obj = Object::Handle(ApiFailure::New(error));
+  result->type_ = kRetObject;
+  result->retval_.obj_value = Api::NewLocalHandle(obj);
 }
 
 
@@ -1157,13 +1204,13 @@ DART_EXPORT Dart_Result Dart_GetStacktrace(Dart_Handle unhandled_excp) {
 DART_EXPORT Dart_Result Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     RETURN_FAILURE("No Dart frames on stack, cannot throw exception");
   }
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
   const Instance& excp = Instance::CheckedHandle(Api::UnwrapHandle(exception));
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.

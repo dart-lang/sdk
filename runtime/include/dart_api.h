@@ -53,7 +53,6 @@ typedef enum {
   kRetCInt64,
   kRetCDouble,
   kRetLibSpec,
-  kRetError,
 } Dart_ReturnType;
 
 typedef struct {
@@ -65,7 +64,6 @@ typedef struct {
     Dart_Handle obj_value;
     int64_t int64_value;
     double double_value;
-    const char* errmsg;
   } retval_;
 } Dart_Result;
 
@@ -103,9 +101,8 @@ typedef Dart_Result (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
 
 // Return value handling after a Dart API call.
-inline bool Dart_IsValidResult(const Dart_Result& result) {
-  return (result.type_ != kRetError);
-}
+DART_EXPORT bool Dart_IsValidResult(const Dart_Result& result);
+
 inline intptr_t Dart_GetResultAsCIntptr(const Dart_Result& result) {
   assert(result.type_ == kRetCIntptr);  // Valid to access result as C int.
   return result.retval_.int_value;
@@ -167,17 +164,8 @@ inline  Dart_Result Dart_ResultAsCDouble(double value) {
   result.retval_.double_value = value;
   return result;
 }
-inline const char* Dart_GetErrorCString(const Dart_Result& result) {
-  assert(result.type_ == kRetError);  // Valid to access only on failure.
-  return result.retval_.errmsg;
-}
-inline  Dart_Result Dart_ErrorResult(const char* value) {
-  // Assumes passed in string value will be available on return.
-  Dart_Result result;
-  result.type_ = kRetError;
-  result.retval_.errmsg = value;
-  return result;
-}
+DART_EXPORT const char* Dart_GetErrorCString(const Dart_Result& result);
+DART_EXPORT Dart_Result Dart_ErrorResult(const char* value);
 
 
 // Initialize the VM with commmand line flags.

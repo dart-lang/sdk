@@ -139,6 +139,7 @@ class Object {
     kExceptionHandlersClass,
     kContextClass,
     kContextScopeClass,
+    kApiFailureClass,
     kMaxId,
     kInvalidIndex = -1,
   };
@@ -238,6 +239,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* context_class() { return context_class_; }
   static RawClass* context_scope_class() { return context_scope_class_; }
+  static RawClass* api_failure_class() { return api_failure_class_; }
 
   static int GetSingletonClassIndex(const RawClass* raw_class);
   static RawClass* GetSingletonClass(int index);
@@ -330,6 +332,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* api_failure_class_;  // Class of ApiFailure.
 
   friend class Class;
 
@@ -1980,6 +1983,28 @@ class UnhandledException : public Object {
   void set_stacktrace(const Instance& stacktrace) const;
 
   HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Object);
+  friend class Class;
+};
+
+
+class ApiFailure : public Object {
+ public:
+  RawString* message() const { return raw_ptr()->message_; }
+  static intptr_t message_offset() {
+    return OFFSET_OF(RawApiFailure, message_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawApiFailure));
+  }
+
+  static RawApiFailure* New(const String& message,
+                            Heap::Space space = Heap::kNew);
+
+ private:
+  void set_message(const String& message) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(ApiFailure, Object);
   friend class Class;
 };
 

@@ -74,6 +74,7 @@ RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::api_failure_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
@@ -124,6 +125,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kContextClass;
   } else if (raw_class == context_scope_class()) {
     return kContextScopeClass;
+  } else if (raw_class == api_failure_class()) {
+    return kApiFailureClass;
   }
   return kInvalidIndex;
 }
@@ -155,6 +158,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kExceptionHandlersClass: return exception_handlers_class();
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
+    case kApiFailureClass: return api_failure_class();
     default: break;
   }
   UNREACHABLE();
@@ -187,6 +191,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kExceptionHandlersClass: return "ExceptionHandlers";
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
+    case kApiFailureClass: return "ApiFailure";
     default: break;
   }
   UNREACHABLE();
@@ -316,6 +321,9 @@ void Object::InitOnce() {
 
   cls = Class::New<ContextScope>();
   context_scope_class_ = cls.raw();
+
+  cls = Class::New<ApiFailure>();
+  api_failure_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 }
@@ -4407,6 +4415,31 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 
 const char* UnhandledException::ToCString() const {
   return "UnhandledException";
+}
+
+
+RawApiFailure* ApiFailure::New(const String& message, Heap::Space space) {
+  const Class& cls = Class::Handle(Object::api_failure_class());
+  ApiFailure& result = ApiFailure::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls,
+                                      ApiFailure::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_message(message);
+  return result.raw();
+}
+
+
+void ApiFailure::set_message(const String& message) const {
+  StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+const char* ApiFailure::ToCString() const {
+  return "ApiFailure";
 }
 
 

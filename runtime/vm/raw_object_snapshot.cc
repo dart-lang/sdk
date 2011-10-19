@@ -841,6 +841,21 @@ void RawUnhandledException::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawApiFailure* ApiFailure::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    bool classes_serialized) {
+  UNIMPLEMENTED();
+  return ApiFailure::null();
+}
+
+
+void RawApiFailure::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            bool serialize_classes) {
+  UNIMPLEMENTED();
+}
+
+
 RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 bool classes_serialized) {

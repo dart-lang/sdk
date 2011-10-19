@@ -341,6 +341,13 @@ intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
 }
 
 
+intptr_t RawApiFailure::VisitApiFailurePointers(
+    RawApiFailure* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ApiFailure::InstanceSize();
+}
+
+
 intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
