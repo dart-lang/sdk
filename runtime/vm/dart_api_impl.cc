@@ -125,6 +125,8 @@ static void ProcessUnhandledException(const UnhandledException& uhe) {
 DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
                                     Dart_Port reply_port,
                                     Dart_Message dart_message) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
   const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
   const String& class_name =
       String::Handle(String::NewSymbol("ReceivePortImpl"));
