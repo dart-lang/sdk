@@ -2764,6 +2764,10 @@ public class DartParser extends CompletionHooksParserBase {
           ++parenCount;
           break;
 
+        case EOS:
+          reportErrorWithoutAdvancing(DartCompilerErrorCode.UNEXPECTED_TOKEN);
+          return;
+
         case LBRACE:
         case SEMICOLON:
           return;

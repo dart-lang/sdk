@@ -132,7 +132,7 @@ public class DartScanner {
 
     @Override
     public String toString() {
-      return "ofs=" + baseOffset;  
+      return "ofs=" + baseOffset;
     }
   }
 
@@ -186,7 +186,7 @@ public class DartScanner {
        * Push a new mode on state stack.  If the new mode is
        * {@link Mode#IN_STRING_EMBEDDED_EXPRESSION}, mark that we have seen an
        * opening brace.
-       * 
+       *
        * @param mode
        * @param quote
        * @param multiLine
@@ -209,7 +209,7 @@ public class DartScanner {
 
       /**
        * Mark that we have seen a closing brace.
-       * 
+       *
        * @return true if the current mode is now complete and should be popped
        * off the stack
        */
@@ -343,7 +343,7 @@ public class DartScanner {
 
     /**
      * Mark that we have seen a close brace.
-     * 
+     *
      * @return true if the current mode is now complete and should be popped
      */
     protected boolean closeBrace() {
@@ -380,7 +380,7 @@ public class DartScanner {
      * Remove all modes, returning to the default state.
      */
     public void resetModes() {
-      stringStateStack.clear(); 
+      stringStateStack.clear();
     }
 
     /**
@@ -940,6 +940,11 @@ public class DartScanner {
         return Token.ILLEGAL;
       } else if (c == '\\') {
         advance();
+        if (isEos()) {
+          // Unterminated string (either multi-line or not).
+          internalState.resetModes();
+          return Token.EOS;
+        }
         c = lookahead(0);
         advance();
         switch (c) {
@@ -967,12 +972,22 @@ public class DartScanner {
             // uXXXX or (backslash) u{X*} where X is a hexadecimal digit - the delimited form must
             // be between 1 and 6 digits.
             int len = (c == 'u') ? 4 : 2;
+            if (isEos()) {
+              // Unterminated string (either multi-line or not).
+              internalState.resetModes();
+              return Token.EOS;
+            }
             c = lookahead(0);
             int unicodeCodePoint = 0;
             // count of characters remaining or negative if delimited
             if (c == '{') {
               len = -1;
               advance();
+              if (isEos()) {
+                // Unterminated string (either multi-line or not).
+                internalState.resetModes();
+                return Token.EOS;
+              }
               c = lookahead(0);
             }
             while (len != 0) {
@@ -988,6 +1003,11 @@ public class DartScanner {
               if (len-- < 0 && c == '}') {
                 advance();
                 break;
+              }
+              if (isEos()) {
+                // Unterminated string (either multi-line or not).
+                internalState.resetModes();
+                return Token.EOS;
               }
               if (len < -6) {
                 // TODO(jat): better way to indicate error
@@ -1292,7 +1312,7 @@ public class DartScanner {
     int start = currPos.pos;
     int line = currPos.line;
     int col = currPos.col;
-    
+
     // Skip over the #! if it exists and consider it a comment
     if (start == 0) {
       if (lookahead(1) == '!') {
@@ -1303,11 +1323,11 @@ public class DartScanner {
         return Token.COMMENT;
       }
     }
-    
+
     // Directives must start at the beginning of a line
     if (start > 0 && !isLineTerminator(source.codePointBefore(start)))
       return select(Token.ILLEGAL);
-    
+
     // Determine which directive is being specified
     advance();
     while (true) {
