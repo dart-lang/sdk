@@ -63,6 +63,8 @@ CanonicalConstTest: Fail        # Bug 5270133
 OverrideFieldTest/none: Fail    # Bug 5384222
 GenericParameterizedExtendsTest: Skip  # Bug 5391643
 
+GetterClosureExecutionOrderTest: Fail # Bug 5481868
+
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
 
@@ -142,6 +144,7 @@ OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
 CharEscapeTest: Fail
+GetterClosureExecutionOrderTest: Fail # Bug 5481595
 
 # The following tests use missing error classes. Bug 4385894.
 AssertTest: Fail             # Uses AssertError class.
