@@ -93,8 +93,10 @@ class _Timer implements Timer {
 
   void _notifyEventHandler() {
     if (_timers.firstEntry() === null) {
-      EventHandler._sendData(-1, _receivePort, _NO_TIMER);
-      _shutdownTimerHandler();
+      if (_receivePort != null) {
+        EventHandler._sendData(-1, _receivePort, _NO_TIMER);
+        _shutdownTimerHandler();
+      }
     } else {
       EventHandler._sendData(-1,
                              _receivePort,
@@ -113,16 +115,15 @@ class _Timer implements Timer {
       int currentTime = (new Date.now()).value + _TIMER_JITTER;
 
       DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
-      DoubleLinkedQueueEntry<_Timer> current;
       while (entry !== null) {
-        current = entry;
-        _Timer timer = current.element;
-        entry = entry.nextEntry();
+        _Timer timer = entry.element;
         if (timer._wakeupTime <= currentTime) {
-          current.remove();
-          (current.element._callback)(current.element);
-          if (current.element._repeating) {
-            current.element._advanceWakeupTime();
+          entry.remove();
+          timer._callback(timer);
+          // Always process the event with the earliest wakeupTime first.
+          entry = _timers.firstEntry();
+          if (timer._repeating) {
+            timer._advanceWakeupTime();
             timer._addTimerToList();
             _notifyEventHandler();
           }
