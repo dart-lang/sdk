@@ -919,7 +919,7 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
   // We have to skip the following otherwise the compiler will complain
   // when it attempts to install unoptimized code into a function that
   // was already deoptimized.
-  if (!Code::Handle(function.code()).is_optimized()) {
+  if (Code::Handle(function.code()).is_optimized()) {
     // Get unoptimized code. Compilation restores (reenables) the entry of
     // unoptimized code.
     Compiler::CompileFunction(function);
