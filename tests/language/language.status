@@ -36,7 +36,6 @@ OverrideMethodWithFieldTest: Fail # Bug 5384453
 FieldOverrideTest/none: Fail # Bug 5384222
 FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
-Library1NegativeTest: Fail # Bug 5430449
 
 BlackListedTest/01: Fail # Bug 5469684
 BlackListedTest/02: Fail # Bug 5469684
@@ -84,6 +83,7 @@ CTConst2Test: Fail                       # Codesite issue 124
 
 
 [ $arch == dartc || $arch == chromium ]
+Library4NegativeTest: Fail               # Bug 5406175
 Prefix3NegativeTest: Fail                # Bug 5406175
 Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
