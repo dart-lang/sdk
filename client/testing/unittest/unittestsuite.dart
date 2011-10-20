@@ -160,12 +160,10 @@ class UnitTestSuite {
           'More calls to callbackDone() than expected. '
           + 'Actual: ${_callbacksCalled}, expected: ${expected}', '');
       _uncaughtError = true;
-    } else if (_callbacksCalled == testCase.callbacks) {
+    } else if (_callbacksCalled == testCase.callbacks && !_testIsRunning) {
       testCase.recordSuccess();
-      if (!_testIsRunning) {
-        _currentTest++;
-        _nextBatch();
-      }
+      _currentTest++;
+      _nextBatch();
     }
   }
 
