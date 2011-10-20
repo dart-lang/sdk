@@ -5,22 +5,8 @@
 prefix isolate
 
 [ $arch == dartium ]
-ConstructorTest: Fail   # Bug 5246195
-MandelIsolateTest: Fail # Bug 5246195
-SpawnTest: Fail         # Bug 5246195
-MessageTest: Fail       # Bug 5246195
-Message2Test: Fail       # Bug 5246195
-IsolateComplexMessagesTest: Fail # Bug 5246195
-CountTest: Fail         # Bug 5246195
-PromiseBasedTest: Fail  # Bug 5246195
-StaticStateTest: Fail   # Bug 5246195
-RequestReplyTest: Crash, Fail # Bug 5395487
-CrossIsolateMessageTest: Fail  # Bug 5246195
-NestedSpawnTest: Fail   # Bug 5246195
-NestedSpawn2Test: Fail  # Bug 5246195
-MixedTest: Fail         # Bug 5246195
-Mixed2Test: Fail        # Bug 5246195
-
+MintMakerPromiseTest: Skip     # Bug 5491853
+MintMakerTest: Skip            # Bug 5491853
 
 [ $arch == ia32 ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.

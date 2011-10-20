@@ -199,6 +199,7 @@ HelloScriptTest: Fail
 ImportCoreImplNoPrefixTest: Fail
 ImportCoreNoPrefixTest: Fail
 Private3Test: Fail
+GetterClosureExecutionOrderTest: Fail # Bug 5481595
 
 TypedMessageTest: Fail # Bug 5246195
 
