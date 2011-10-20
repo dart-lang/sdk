@@ -53,12 +53,13 @@ public class SystemLibrary {
     if (!dirOrZip.exists()) {
       throw new RuntimeException("System library for " + dartUri + " does not exist: " + dirOrZip.getPath());
     }
-    String spec = "file:" + dirOrZip.getPath();
-    if (dirOrZip.isFile()) {
-      spec = "jar:" + spec + "!";
-    }
     try {
-      return new URI(spec + dartUri.getPath());
+      URI dirOrZipURI = dirOrZip.toURI();
+      if (dirOrZip.isFile()) {
+        return new URI("jar", "file:" + dirOrZipURI.getPath() + "!" + dartUri.getPath(), null);
+      } else {
+        return dirOrZipURI.resolve("." + dartUri.getPath());
+      }
     } catch (URISyntaxException e) {
       throw new AssertionError();
     }

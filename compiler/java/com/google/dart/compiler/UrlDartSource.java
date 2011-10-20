@@ -41,7 +41,7 @@ public class UrlDartSource extends UrlSource implements DartSource {
   public String getName() {
     try {
       String uriSafeName = new URI(null, null, relPath, null).toString();
-      return lib.getName() + File.separatorChar + uriSafeName;
+      return lib.getName() + "/" + uriSafeName;
     } catch (URISyntaxException e) {
       throw new AssertionError(e);
     }
