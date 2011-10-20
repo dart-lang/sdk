@@ -602,8 +602,13 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     return LevelDom.wrapClientRect(_ptr.getBoundingClientRect());
   }
 
-  ClientRectList getClientRects() {
-    return LevelDom.wrapClientRectList(_ptr.getClientRects());
+  List<ClientRect> getClientRects() {
+    var rects = _ptr.getClientRects();
+    var out = new List(rects.length);
+    for (var i = 0; i < rects.length; i++) {
+      out.add(LevelDom.wrapClientRect(rects.item(i)));
+    }
+    return out;
   }
 
   Element insertAdjacentElement([String where = null, Element element = null]) {

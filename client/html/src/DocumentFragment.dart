@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DocumentFragment extends Node factory DocumentFragmentWrappingImplementation {
+interface DocumentFragment extends Element factory DocumentFragmentWrappingImplementation {
  
   DocumentFragment();
 
-  Element query(String selectors);
-
-  ElementList queryAll(String selectors);
+  DocumentFragment.html(String html);
 }

@@ -50,7 +50,6 @@
 #source('generated/src/interface/CanvasRenderingContext2D.dart');
 #source('generated/src/interface/CharacterData.dart');
 #source('generated/src/interface/ClientRect.dart');
-#source('generated/src/interface/ClientRectList.dart');
 #source('generated/src/interface/Clipboard.dart');
 #source('generated/src/interface/CloseEvent.dart');
 #source('generated/src/interface/Comment.dart');
@@ -312,7 +311,6 @@
 #source('generated/src/wrapping/_CanvasRenderingContext2DWrappingImplementation.dart');
 #source('generated/src/wrapping/_CanvasRenderingContextWrappingImplementation.dart');
 #source('generated/src/wrapping/_CharacterDataWrappingImplementation.dart');
-#source('generated/src/wrapping/_ClientRectListWrappingImplementation.dart');
 #source('generated/src/wrapping/_ClientRectWrappingImplementation.dart');
 #source('generated/src/wrapping/_ClipboardWrappingImplementation.dart');
 #source('generated/src/wrapping/_CloseEventWrappingImplementation.dart');
