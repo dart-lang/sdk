@@ -1425,21 +1425,36 @@ class Script : public Object {
 };
 
 
-class ClassDictionaryIterator : public ValueObject {
+class DictionaryIterator : public ValueObject {
  public:
-  explicit ClassDictionaryIterator(const Library& library);
-  bool HasNext() const {
-    return next_ix_ < size_;
-  }
-  // Returns a non-null raw object.
-  RawClass* GetNext();
+  explicit DictionaryIterator(const Library& library);
+
+  bool HasNext() const { return next_ix_ < size_; }
+
+  // Returns next non-null raw object.
+  RawObject* GetNext();
 
  private:
-  void MoveToNextClass();
+  void MoveToNextObject();
 
   const Array& array_;
   const int size_;  // Number of elements to iterate over.
   int next_ix_;  // Index of next element.
+
+  friend class ClassDictionaryIterator;
+  DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
+};
+
+
+class ClassDictionaryIterator : public DictionaryIterator {
+ public:
+  explicit ClassDictionaryIterator(const Library& library);
+
+  // Returns a non-null raw class.
+  RawClass* GetNextClass();
+
+ private:
+  void MoveToNextClass();
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
@@ -1483,6 +1498,7 @@ class Library : public Object {
 
   void Register() const;
   static RawLibrary* LookupLibrary(const String& url);
+  static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
@@ -1495,23 +1511,39 @@ class Library : public Object {
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
+  static const int kInitialImportedIntoCapacity = 1;
+  static const int kImportedIntoCapacityIncrement = 2;
   static RawLibrary* New();
 
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   void set_num_imports(intptr_t value) const {
     raw_ptr()->num_imports_ = value;
   }
+  intptr_t num_imported_into() const { return raw_ptr()->num_imported_into_; }
+  void set_num_imported_into(intptr_t value) const {
+    raw_ptr()->num_imported_into_ = value;
+  }
   RawArray* imports() const { return raw_ptr()->imports_; }
+  RawArray* imported_into() const { return raw_ptr()->imported_into_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
   void InitClassDictionary() const;
   void InitImportList() const;
+  void InitImportedIntoList() const;
   void GrowDictionary(const Array& dict, intptr_t dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
+  void AddImportedInto(const Library& library) const;
+  RawObject* LookupObjectFiltered(const String& name,
+                                  const Library& filter_lib) const;
+  RawLibrary* LookupObjectInImporter(const String& name) const;
+  RawString* DuplicateDefineErrorString(const String& entry_name,
+                                        const Library& conflicting_lib) const;
+  RawString* FindDuplicateDefinition(Library* conflicting_lib) const;
+
   HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
-  friend class ClassDictionaryIterator;
+  friend class DictionaryIterator;
   friend class Isolate;
 };
 

@@ -171,7 +171,7 @@ void Isolate::PrintInvokedFunctions() {
     Class& cls = Class::Handle();
     ClassDictionaryIterator iter(library);
     while (iter.HasNext()) {
-      cls = iter.GetNext();
+      cls = iter.GetNextClass();
       const Array& functions = Array::Handle(cls.functions());
       for (int j = 0; j < functions.Length(); j++) {
         Function& function = Function::Handle();

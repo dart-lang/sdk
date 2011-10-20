@@ -1946,7 +1946,7 @@ TEST_CASE(ClassDictionaryIterator) {
   int count = 0;
   Class& cls = Class::Handle();
   while (iterator.HasNext()) {
-    cls = iterator.GetNext();
+    cls = iterator.GetNextClass();
     ASSERT((cls.raw() == ae66.raw()) || (cls.raw() == re44.raw()));
     count++;
   }

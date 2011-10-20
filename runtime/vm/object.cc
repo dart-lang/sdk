@@ -3414,22 +3414,46 @@ const char* Script::ToCString() const {
 }
 
 
-ClassDictionaryIterator::ClassDictionaryIterator(const Library& library)
+DictionaryIterator::DictionaryIterator(const Library& library)
     : array_(Array::Handle(library.dictionary())),
       // Last element in array is a Smi.
       size_(Array::Handle(library.dictionary()).Length() - 1),
       next_ix_(0) {
+  MoveToNextObject();
+}
+
+
+RawObject* DictionaryIterator::GetNext() {
+  ASSERT(HasNext());
+  int ix = next_ix_++;
+  MoveToNextObject();
+  ASSERT(array_.At(ix) != Object::null());
+  return array_.At(ix);
+}
+
+
+void DictionaryIterator::MoveToNextObject() {
+  Object& obj = Object::Handle(array_.At(next_ix_));
+  while (obj.IsNull() && HasNext()) {
+    next_ix_++;
+    obj = array_.At(next_ix_);
+  }
+}
+
+
+ClassDictionaryIterator::ClassDictionaryIterator(const Library& library)
+    : DictionaryIterator(library) {
   MoveToNextClass();
 }
 
 
-RawClass* ClassDictionaryIterator::GetNext() {
+RawClass* ClassDictionaryIterator::GetNextClass() {
   ASSERT(HasNext());
   int ix = next_ix_++;
+  Object& obj = Object::Handle(array_.At(ix));
   MoveToNextClass();
-  ASSERT(array_.At(ix) != Object::null());
   Class& cls = Class::Handle();
-  cls ^= array_.At(ix);
+  cls ^= obj.raw();
   return cls.raw();
 }
 
@@ -3585,21 +3609,122 @@ RawObject* Library::LookupLocalObject(const String& name) const {
 }
 
 
-RawObject* Library::LookupObject(const String& name) const {
+RawObject* Library::LookupObjectFiltered(const String& name,
+                                         const Library& filter_lib) const {
+  // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull()) {
     return obj.raw();
   }
-  Library& import = Library::Handle();
-  Array& imports = Array::Handle(this->imports());
-  for (intptr_t i = 0; i < num_imports(); i++) {
-    import ^= imports.At(i);
-    obj = import.LookupLocalObject(name);
+  // Now check if name is found in the top level scope of any imported libs.
+  const Array& imports = Array::Handle(this->imports());
+  Library& import_lib = Library::Handle();
+  for (intptr_t j = 0; j < this->num_imports(); j++) {
+    import_lib ^= imports.At(j);
+    // Skip over the library that we need to filter out.
+    if (!filter_lib.IsNull() && import_lib.raw() == filter_lib.raw()) {
+      continue;
+    }
+    obj = import_lib.LookupLocalObject(name);
     if (!obj.IsNull()) {
       return obj.raw();
     }
   }
   return Object::null();
+}
+
+
+RawObject* Library::LookupObject(const String& name) const {
+  return LookupObjectFiltered(name, Library::Handle());
+}
+
+
+RawLibrary* Library::LookupObjectInImporter(const String& name) const {
+  const Array& imported_into_libs = Array::Handle(this->imported_into());
+  Library& lib = Library::Handle();
+  Object& obj = Object::Handle();
+  for (intptr_t i = 0; i < this->num_imported_into(); i++) {
+    lib ^= imported_into_libs.At(i);
+    obj = lib.LookupObjectFiltered(name, *this);
+    if (!obj.IsNull()) {
+      // If the object found is a class, field or function extract the
+      // library in which it is defined as it might be defined in one of
+      // the imported libraries.
+      Class& cls = Class::Handle();
+      Function& func = Function::Handle();
+      Field& field = Field::Handle();
+      if (obj.IsClass()) {
+        cls ^= obj.raw();
+        lib ^= cls.library();
+      } else if (obj.IsFunction()) {
+        func ^= obj.raw();
+        cls ^= func.owner();
+        lib ^= cls.library();
+      } else if (obj.IsField()) {
+        field ^= obj.raw();
+        cls ^= field.owner();
+        lib ^= cls.library();
+      }
+      return lib.raw();
+    }
+  }
+  return Library::null();
+}
+
+
+RawString* Library::DuplicateDefineErrorString(const String& entry_name,
+                                               const Library& conflict) const {
+  String& errstr = String::Handle();
+  Array& array = Array::Handle(Array::New(7));
+  errstr = String::New("'");
+  array.SetAt(0, errstr);
+  array.SetAt(1, entry_name);
+  errstr = String::New("' is defined in '");
+  array.SetAt(2, errstr);
+  errstr = url();
+  array.SetAt(3, errstr);
+  errstr = String::New("' and '");
+  array.SetAt(4, errstr);
+  errstr = conflict.url();
+  array.SetAt(5, errstr);
+  errstr = String::New("'");
+  array.SetAt(6, errstr);
+  errstr = String::ConcatAll(array);
+  return errstr.raw();
+}
+
+
+RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
+  DictionaryIterator it(*this);
+  Object& obj = Object::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  Field& field = Field::Handle();
+  String& entry_name = String::Handle();
+  while (it.HasNext()) {
+    obj = it.GetNext();
+    ASSERT(!obj.IsNull());
+    if (obj.IsClass()) {
+      cls ^= obj.raw();
+      entry_name = cls.Name();
+    } else if (obj.IsFunction()) {
+      func ^= obj.raw();
+      entry_name = func.name();
+    } else if (obj.IsField()) {
+      field ^= obj.raw();
+      entry_name = field.name();
+    } else {
+      // We don't check for library prefixes defined in this library because
+      // they are not visible in the importing scope and hence cannot
+      // cause any duplicate definitions.
+      continue;
+    }
+    *conflicting_lib = LookupObjectInImporter(entry_name);
+    if (!conflicting_lib->IsNull()) {
+      return entry_name.raw();
+    }
+  }
+  return String::null();
 }
 
 
@@ -3662,6 +3787,21 @@ void Library::AddImport(const Library& library) const {
   intptr_t index = num_imports();
   imports.SetAt(index, library);
   set_num_imports(index + 1);
+  library.AddImportedInto(*this);
+}
+
+
+void Library::AddImportedInto(const Library& library) const {
+  Array& imported_into = Array::Handle(this->imported_into());
+  intptr_t capacity = imported_into.Length();
+  if (num_imported_into() == capacity) {
+    capacity = capacity + kImportedIntoCapacityIncrement;
+    imported_into = Array::Grow(imported_into, capacity);
+    StorePointer(&raw_ptr()->imported_into_, imported_into.raw());
+  }
+  intptr_t index = num_imported_into();
+  imported_into.SetAt(index, library);
+  set_num_imported_into(index + 1);
 }
 
 
@@ -3682,6 +3822,14 @@ void Library::InitImportList() const {
       Array::Handle(Array::New(kInitialImportsCapacity, Heap::kOld));
   StorePointer(&raw_ptr()->imports_, imports.raw());
   raw_ptr()->num_imports_ = 0;
+}
+
+
+void Library::InitImportedIntoList() const {
+  const Array& imported_into =
+      Array::Handle(Array::New(kInitialImportedIntoCapacity, Heap::kOld));
+  StorePointer(&raw_ptr()->imported_into_, imported_into.raw());
+  raw_ptr()->num_imported_into_ = 0;
 }
 
 
@@ -3710,6 +3858,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->loaded_ = false;
   result.InitClassDictionary();
   result.InitImportList();
+  result.InitImportedIntoList();
   if (import_core_lib) {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
@@ -3758,6 +3907,26 @@ RawLibrary* Library::LookupLibrary(const String &url) {
     lib = lib.next_registered();
   }
   return Library::null();
+}
+
+
+RawString* Library::CheckForDuplicateDefinition() {
+  Library& lib = Library::Handle();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ObjectStore* object_store = isolate->object_store();
+  ASSERT(object_store != NULL);
+  lib ^= object_store->registered_libraries();
+  String& entry_name = String::Handle();
+  Library& conflicting_lib = Library::Handle();
+  while (!lib.IsNull()) {
+    entry_name = lib.FindDuplicateDefinition(&conflicting_lib);
+    if (!entry_name.IsNull()) {
+      return lib.DuplicateDefineErrorString(entry_name, conflicting_lib);
+    }
+    lib ^= lib.next_registered();
+  }
+  return String::null();
 }
 
 
@@ -3854,7 +4023,7 @@ void Library::CompileAll() {
   while (!lib.IsNull()) {
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
-      cls ^= it.GetNext();
+      cls ^= it.GetNextClass();
       if (!cls.is_interface()) {
         Compiler::CompileAllFunctions(cls);
       }

@@ -268,6 +268,7 @@ DART_EXPORT Dart_Result Dart_LoadScript(Dart_Handle url,
   isolate->set_library_tag_handler(handler);
   library = Library::New(url_str);
   library.Register();
+  isolate->object_store()->set_root_library(library);
   Dart_Result result;
   CompileSource(library, url_str, source_str, RawScript::kScript, &result);
   return result;

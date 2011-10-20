@@ -1420,6 +1420,238 @@ UNIT_TEST_CASE(NullReceiver) {
   Dart_ShutdownIsolate();
 }
 
+
+static Dart_Result library_handler(Dart_LibraryTag tag,
+                                   Dart_Handle library,
+                                   Dart_Handle url) {
+  if (tag == kCanonicalizeUrl) {
+    return Dart_ResultAsObject(url);
+  }
+  return Dart_ResultAsObject(Dart_NewBoolean(true));
+}
+
+
+UNIT_TEST_CASE(ImportLibrary1) {
+  const char* kScriptChars =
+      "#import('library1.dart');"
+      "#import('library2.dart');"
+      "var foo;  // library2 defines foo, so should be error."
+      "main() {}";
+  const char* kLibrary1Chars =
+      "#library('library1.dart');"
+      "#import('library2.dart');"
+      "var foo1;";
+  const char* kLibrary2Chars =
+      "#library('library2.dart');"
+      "var foo;";
+  Dart_Result result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle url = Dart_NewString(TestCase::url());
+    Dart_Handle source = Dart_NewString(kScriptChars);
+    result = Dart_LoadScript(url, source, library_handler);
+
+    url = Dart_NewString("library1.dart");
+    source = Dart_NewString(kLibrary1Chars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("library2.dart");
+    source = Dart_NewString(kLibrary2Chars);
+    Dart_LoadLibrary(url, source);
+
+    result = Dart_InvokeStatic(Dart_GetResult(result),
+                               Dart_NewString(""),
+                               Dart_NewString("main"),
+                               0,
+                               NULL);
+    assert(!Dart_IsValidResult(result));
+    EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
+                 " 'library2.dart' and 'dart:test-lib'\n",
+                 Dart_GetErrorCString(result));
+
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(ImportLibrary2) {
+  const char* kScriptChars =
+      "#import('library1.dart');"
+      "var foo;"
+      "main() {}";
+  const char* kLibrary1Chars =
+      "#library('library1.dart');"
+      "#import('library2.dart');"
+      "var foo1;";
+  const char* kLibrary2Chars =
+      "#library('library2.dart');"
+      "#import('library1.dart');"
+      "var foo;";
+  Dart_Result result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle url = Dart_NewString(TestCase::url());
+    Dart_Handle source = Dart_NewString(kScriptChars);
+    result = Dart_LoadScript(url, source, library_handler);
+
+    url = Dart_NewString("library1.dart");
+    source = Dart_NewString(kLibrary1Chars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("library2.dart");
+    source = Dart_NewString(kLibrary2Chars);
+    Dart_LoadLibrary(url, source);
+
+    result = Dart_InvokeStatic(Dart_GetResult(result),
+                               Dart_NewString(""),
+                               Dart_NewString("main"),
+                               0,
+                               NULL);
+    assert(Dart_IsValidResult(result));
+
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(ImportLibrary3) {
+  const char* kScriptChars =
+      "#import('library2.dart');"
+      "#import('library1.dart');"
+      "var foo_top = 10;  // foo has dup def. So should be an error."
+      "main() {}";
+  const char* kLibrary1Chars =
+      "#library('library1.dart');"
+      "var foo;";
+  const char* kLibrary2Chars =
+      "#library('library2.dart');"
+      "var foo;";
+  Dart_Result result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle url = Dart_NewString(TestCase::url());
+    Dart_Handle source = Dart_NewString(kScriptChars);
+    result = Dart_LoadScript(url, source, library_handler);
+
+    url = Dart_NewString("library2.dart");
+    source = Dart_NewString(kLibrary2Chars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("library1.dart");
+    source = Dart_NewString(kLibrary1Chars);
+    Dart_LoadLibrary(url, source);
+
+    result = Dart_InvokeStatic(Dart_GetResult(result),
+                               Dart_NewString(""),
+                               Dart_NewString("main"),
+                               0,
+                               NULL);
+    assert(!Dart_IsValidResult(result));
+    EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
+                 " 'library1.dart' and 'library2.dart'\n",
+                 Dart_GetErrorCString(result));
+
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(ImportLibrary4) {
+  const char* kScriptChars =
+      "#import('libraryA.dart');"
+      "#import('libraryB.dart');"
+      "#import('libraryD.dart');"
+      "#import('libraryE.dart');"
+      "var fooApp;"
+      "main() {}";
+  const char* kLibraryAChars =
+      "#library('libraryA.dart');"
+      "#import('libraryC.dart');"
+      "var fooA;";
+  const char* kLibraryBChars =
+      "#library('libraryB.dart');"
+      "#import('libraryC.dart');"
+      "var fooB;";
+  const char* kLibraryCChars =
+      "#library('libraryC.dart');"
+      "var fooC;";
+  const char* kLibraryDChars =
+      "#library('libraryD.dart');"
+      "#import('libraryF.dart');"
+      "var fooD;";
+  const char* kLibraryEChars =
+      "#library('libraryE.dart');"
+      "#import('libraryC.dart');"
+      "#import('libraryF.dart');"
+      "var fooE = 10;  //fooC has duplicate def. so should be an error.";
+  const char* kLibraryFChars =
+      "#library('libraryF.dart');"
+      "var fooC;";
+  Dart_Result result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle url = Dart_NewString(TestCase::url());
+    Dart_Handle source = Dart_NewString(kScriptChars);
+    result = Dart_LoadScript(url, source, library_handler);
+
+    url = Dart_NewString("libraryA.dart");
+    source = Dart_NewString(kLibraryAChars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("libraryC.dart");
+    source = Dart_NewString(kLibraryCChars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("libraryB.dart");
+    source = Dart_NewString(kLibraryBChars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("libraryD.dart");
+    source = Dart_NewString(kLibraryDChars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("libraryF.dart");
+    source = Dart_NewString(kLibraryFChars);
+    Dart_LoadLibrary(url, source);
+
+    url = Dart_NewString("libraryE.dart");
+    source = Dart_NewString(kLibraryEChars);
+    Dart_LoadLibrary(url, source);
+
+    result = Dart_InvokeStatic(Dart_GetResult(result),
+                               Dart_NewString(""),
+                               Dart_NewString("main"),
+                               0,
+                               NULL);
+    assert(!Dart_IsValidResult(result));
+    EXPECT_STREQ("Duplicate definition : 'fooC' is defined in"
+                 " 'libraryF.dart' and 'libraryC.dart'\n",
+                 Dart_GetErrorCString(result));
+
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
+
 #endif  // TARGET_ARCH_IA32.
 
 }  // namespace dart

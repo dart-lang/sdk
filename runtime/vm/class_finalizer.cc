@@ -93,6 +93,13 @@ bool ClassFinalizer::FinalizePendingClasses() {
     }
     // Clear pending classes array.
     object_store->set_pending_classes(Array::Handle(Array::Empty()));
+
+    // Check to ensure there are no duplicate definitions in the library
+    // hierarchy.
+    const String& str = String::Handle(Library::CheckForDuplicateDefinition());
+    if (!str.IsNull()) {
+      ReportError("Duplicate definition : %s\n", str.ToCString());
+    }
   } else {
     retval = false;
   }
