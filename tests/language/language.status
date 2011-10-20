@@ -48,6 +48,8 @@ BlackListedTest/07: Fail # Bug 5469684
 BlackListedTest/08: Fail # Bug 5469684
 BlackListedTest/09: Fail # Bug 5469684
 BlackListedTest/10: Fail # Bug 5469684
+BlackListedTest/11: Fail # Bug 5469684
+BlackListedTest/12: Fail # Bug 5469684
 
 ConstructorTest: Fail          # Bug 4995181, execution order
 ParameterInitializerTest: Fail # Bug 4995181, execution order
@@ -159,7 +161,8 @@ BlackListedTest/07: Fail # Bug 5469684
 BlackListedTest/08: Fail # Bug 5469684
 BlackListedTest/09: Fail # Bug 5469684
 BlackListedTest/10: Fail # Bug 5469684
-
+BlackListedTest/11: Fail # Bug 5469684
+BlackListedTest/12: Fail # Bug 5469684
 
 # VM specific tests that should not be run by DartC.
 *VMTest: Skip

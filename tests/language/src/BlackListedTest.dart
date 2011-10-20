@@ -26,5 +26,9 @@ interface MyDoubleInterface extends double {}  /// 08: compile-time error
 class MyString implements String {}            /// 09: compile-time error
 interface MyStringInterface extends String {}  /// 10: compile-time error
 
+// Function.
+class MyFunction implements Function {}        /// 11: compile-time error
+interface MyFunctionInterface extends Function {}  /// 12: compile-time error
+
 main() {
 }
