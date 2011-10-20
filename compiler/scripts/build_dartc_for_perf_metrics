@@ -10,23 +10,15 @@ DARTC_REVISION=$1
 USERNAME=$2
 PASSWORD=$3
 
-# Assume that revisions prior to 2694 are handled by the metrics system
-# and do not need to be handled here.
-if [ $DARTC_REVISION -lt 2694 ]
-then
-  echo "Exiting; don't know how to build revisions prior to r2694"
-  exit 1
-fi
-
 # Checkout the depot tools
 svn checkout --quiet http://src.chromium.org/svn/trunk/tools/depot_tools depot_tools
 GCLIENT_CMD=./depot_tools/gclient
 
 # Make a gclient with the compiler deps only
-$GCLIENT_CMD config svn://svn.chromium.org/dash/trunk/deps/compiler.deps
+$GCLIENT_CMD config https://dart.googlecode.com/svn/branches/bleeding_edge/deps/compiler.deps
 
 # Make sure that we have access
-svn ls --username $USERNAME --password "$PASSWORD" svn://svn.chromium.org/dash
+svn ls --username $USERNAME --password "$PASSWORD" https://dart.googlecode.com/svn/
 
 # Try to sync to a particular revision transitively; muffle the output
 $GCLIENT_CMD sync -r $DARTC_REVISION -t > gclient.sync.txt
@@ -46,15 +38,7 @@ mkdir -p prebuilt
 cd prebuilt
 COMPILER_OUTDIR=../compiler/out/Release_dartc
 cp -r $COMPILER_OUTDIR/compiler ./compiler
-
-if [ $DARTC_REVISION -lt 2773 ]
-then
-  GENERATED_SCRIPT_DIR=obj.target/geni
-else
-  # Path for revisions 2773 and later.
-  GENERATED_SCRIPT_DIR=obj.target/geni/dartc
-fi 
-
+GENERATED_SCRIPT_DIR=obj.target/geni/dartc
 PATH_TO_METRICS_SCRIPT=$COMPILER_OUTDIR/$GENERATED_SCRIPT_DIR
 cp -r $PATH_TO_METRICS_SCRIPT/dartc_run.sh .
 cp -r $PATH_TO_METRICS_SCRIPT/dartc_size.sh .
