@@ -511,7 +511,6 @@ void ClassFinalizer::FinalizeType(const Type& type) {
 
 
 RawString* ClassFinalizer::FinalizeTypeWhileParsing(const Type& type) {
-  String& msg = String::Handle();
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -519,12 +518,15 @@ RawString* ClassFinalizer::FinalizeTypeWhileParsing(const Type& type) {
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     FinalizeType(type);
+    isolate->set_long_jump_base(base);
+    return String::null();
   } else {
     // Error occured: Get the error message.
-    msg = isolate->object_store()->sticky_error();
+    isolate->set_long_jump_base(base);
+    return isolate->object_store()->sticky_error();
   }
-  isolate->set_long_jump_base(base);
-  return msg.raw();
+  UNREACHABLE();
+  return String::null();
 }
 
 
