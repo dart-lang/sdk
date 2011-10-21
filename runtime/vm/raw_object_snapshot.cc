@@ -999,18 +999,13 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Allocate a one byte character area.
-  uint8_t* chars = new uint8_t[len];
-  for (int i = 0; i < len; i++) {
-    chars[i] = reader->Read<uint8_t>();
-  }
-
   // Set up the one byte string object.
   OneByteString& str_obj = OneByteString::ZoneHandle(
-      OneByteString::New(chars,
-                         len,
-                         classes_serialized ? Heap::kOld : Heap::kNew));
-  delete[] chars;
+      OneByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  for (intptr_t i = 0; i < len; i++) {
+    *str_obj.CharAddr(i) = reader->Read<uint8_t>();
+  }
+
   reader->AddBackwardReference(object_id, &str_obj);
   RawOneByteString* raw_str = str_obj.raw();
   raw_str->ptr()->hash_ = smi_hash;
@@ -1052,18 +1047,13 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Allocate a two byte character area.
-  uint16_t* chars = new uint16_t[len];
-  for (int i = 0; i < len; i++) {
-    chars[i] = reader->Read<uint16_t>();
-  }
-
   // Set up the two byte string object.
   TwoByteString& str_obj = TwoByteString::ZoneHandle(
-      TwoByteString::New(chars,
-                         len,
-                         classes_serialized ? Heap::kOld : Heap::kNew));
-  delete[] chars;
+      TwoByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  for (int i = 0; i < len; i++) {
+    *str_obj.CharAddr(i) = reader->Read<uint16_t>();
+  }
+
   reader->AddBackwardReference(object_id, &str_obj);
   RawTwoByteString* raw_str = str_obj.raw();
   raw_str->ptr()->hash_ = smi_hash;
@@ -1105,18 +1095,13 @@ RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Allocate a four byte character area.
-  uint32_t* chars = new uint32_t[len];
-  for (int i = 0; i < len; i++) {
-    chars[i] = reader->Read<uint32_t>();
-  }
-
   // Set up the four byte string object.
   FourByteString& str_obj = FourByteString::ZoneHandle(
-      FourByteString::New(chars,
-                         len,
-                         classes_serialized ? Heap::kOld : Heap::kNew));
-  delete[] chars;
+      FourByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  for (intptr_t i = 0; i < len; i++) {
+    *str_obj.CharAddr(i) = reader->Read<uint32_t>();
+  }
+
   reader->AddBackwardReference(object_id, &str_obj);
   RawFourByteString* raw_str = str_obj.raw();
   raw_str->ptr()->hash_ = smi_hash;
