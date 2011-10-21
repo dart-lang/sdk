@@ -376,6 +376,10 @@ class Parser : ValueObject {
                                       const QualIdent& qual_ident,
                                       bool resolve_locally);
   AstNode* ResolveVarOrField(intptr_t ident_pos, const String &ident);
+  AstNode* OptimizeBinaryOpNode(intptr_t op_pos,
+                                Token::Kind binary_op,
+                                AstNode* lhs,
+                                AstNode* rhs);
   AstNode* ExpandAssignableOp(intptr_t op_pos,
                               Token::Kind assignment_op,
                               AstNode* lhs,

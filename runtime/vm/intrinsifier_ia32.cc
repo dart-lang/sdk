@@ -62,6 +62,7 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(Double, /, Double_div)                                                     \
   V(Double, toDouble, Double_toDouble)                                         \
   V(Double, mulFromInteger, Double_mulFromInteger)                             \
+  V(Double, Double.fromInteger, Double_fromInteger)                            \
   V(ObjectArray, ObjectArray., ObjectArray_Allocate)                           \
   V(ObjectArray, get:length, Array_getLength)                                  \
   V(ObjectArray, [], Array_getIndexed)                                         \
@@ -586,16 +587,19 @@ static bool Smi_bitNegate(Assembler* assembler) {
 }
 
 
-// Check if the last argument is a double, otherwise jumps to Label
-// 'not_double'. Returns the last argument in EAX.
-static void TestLastArgumentsIsDouble(Assembler* assembler, Label* not_double) {
+// Check if the last argument is a double, jump to label 'is_smi' if smi
+// (easy to convert to double), otherwise jump to label 'not_double_smi',
+// Returns the last argument in EAX.
+static void TestLastArgumentIsDouble(Assembler* assembler,
+                                     Label* is_smi,
+                                     Label* not_double_smi) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(ZERO, not_double, Assembler::kNearJump);  // Jump if Smi.
+  __ j(ZERO, is_smi, Assembler::kNearJump);  // Jump if Smi.
   __ LoadObject(EBX, Class::ZoneHandle(
       Isolate::Current()->object_store()->double_class()));
   __ cmpl(EBX, FieldAddress(EAX, Object::class_offset()));
-  __ j(NOT_EQUAL, not_double, Assembler::kNearJump);  // Jump if not double.
+  __ j(NOT_EQUAL, not_double_smi, Assembler::kNearJump);
   // Fall through if double.
 }
 
@@ -607,10 +611,11 @@ static void TestLastArgumentsIsDouble(Assembler* assembler, Label* not_double) {
 static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  Label fall_through, is_false, is_true;
-  TestLastArgumentsIsDouble(assembler, &fall_through);
+  Label fall_through, is_false, is_true, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in EAX.
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ Bind(&double_op);
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument.
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
   __ comisd(XMM0, XMM1);
@@ -623,6 +628,10 @@ static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ Bind(&is_true);
   __ LoadObject(EAX, bool_true);
   __ ret();
+  __ Bind(&is_smi);
+  __ SmiUntag(EAX);
+  __ cvtsi2sd(XMM1, EAX);
+  __ jmp(&double_op);
   __ Bind(&fall_through);
   return false;
 }
@@ -669,7 +678,7 @@ static bool Double_toDouble(Assembler* assembler) {
 // argument is double, right argument is of unknown type.
 static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   Label fall_through;
-  TestLastArgumentsIsDouble(assembler, &fall_through);
+  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
   // Both arguments are double, right operand is in EAX, class in EBX.
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument.
@@ -743,12 +752,36 @@ static bool Double_mulFromInteger(Assembler* assembler) {
 }
 
 
+static bool Double_fromInteger(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  // Is Smi.
+  __ SmiUntag(EAX);
+  __ cvtsi2sd(XMM0, EAX);
+  const Class& double_class = Class::ZoneHandle(
+      Isolate::Current()->object_store()->double_class());
+  __ LoadObject(EBX, double_class);
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               EBX,  // Class register.
+                               &fall_through,
+                               EAX);  // Result register.
+  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Argument type is not known
 static bool Math_sqrt(Assembler* assembler) {
-  Label fall_through;
-  TestLastArgumentsIsDouble(assembler, &fall_through);
+  Label fall_through, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Argument is double and is in EAX, class in EBX.
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ Bind(&double_op);
   __ sqrtsd(XMM0, XMM1);
   const Class& double_class = Class::ZoneHandle(
       Isolate::Current()->object_store()->double_class());
@@ -759,6 +792,10 @@ static bool Math_sqrt(Assembler* assembler) {
                                EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
+  __ Bind(&is_smi);
+  __ SmiUntag(EAX);
+  __ cvtsi2sd(XMM1, EAX);
+  __ jmp(&double_op);
   __ Bind(&fall_through);
   return false;
 }

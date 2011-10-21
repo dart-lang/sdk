@@ -4923,7 +4923,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           str_concat->AddExpr(right_operand);
           left_operand = str_concat;
         } else {
-          left_operand = new BinaryOpNode(
+          left_operand = OptimizeBinaryOpNode(
               op_pos, op_kind, left_operand, right_operand);
         }
       }
@@ -5033,6 +5033,31 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
     return getter;
   }
   return node;
+}
+
+
+// TODO(srdjan): Implement other optimizations.
+AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
+                                      Token::Kind binary_op,
+                                      AstNode* lhs,
+                                      AstNode* rhs) {
+  LiteralNode* lhs_literal = lhs->AsLiteralNode();
+  LiteralNode* rhs_literal = rhs->AsLiteralNode();
+  if ((lhs_literal != NULL) && (rhs_literal != NULL)) {
+    if (lhs_literal->literal().IsDouble() &&
+        rhs_literal->literal().IsDouble()) {
+      Double& dbl_obj = Double::ZoneHandle();
+      dbl_obj ^= lhs_literal->literal().raw();
+      double left_double = dbl_obj.value();
+      dbl_obj ^= rhs_literal->literal().raw();
+      double right_double = dbl_obj.value();
+      if (binary_op == Token::kDIV) {
+        dbl_obj = Double::New(left_double / right_double);
+        return new LiteralNode(op_pos, dbl_obj);
+      }
+    }
+  }
+  return new BinaryOpNode(op_pos, binary_op, lhs, rhs);
 }
 
 
