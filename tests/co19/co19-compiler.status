@@ -14,6 +14,14 @@ LibTest/core/Set/contains/Set/contains/A01/t04: Fail              # Bug 5392511
 LibTest/core/Set/containsAll/Set/containsAll/A01/t04: Fail        # Bug 5392511
 LibTest/core/Set/remove/Set/remove/A01/t05: Fail                  # Bug 5392511
 
+LibTest/core/List/List/List/A01/t04: Skip
+LibTest/core/Date/Date.withTimeZone/Date/Date.withTimeZone/A01/t09: Skip
+LibTest/core/Queue/Queue.from/Queue/Queue.from/A01/t01: Skip
+LibTest/core/Queue/Queue.from/Queue/Queue.from/A01/t02: Skip
+LibTest/core/Set/remove/Set/remove/A01/t05: Skip
+LangGuideTest/02_Language_Constructs/02_11_Exceptions/A09/t04: Skip
+LangGuideTest/02_Language_Constructs/02_11_Exceptions/A09/t02: Skip
+
 
 #
 # Tests that pass in release mode but fail in debug mode
