@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_THREAD_H_
-#define RUNTIME_VM_THREAD_H_
+#ifndef VM_THREAD_H_
+#define VM_THREAD_H_
 
 #include "vm/assert.h"
 #include "vm/allocation.h"
@@ -70,7 +70,6 @@ class Monitor {
   void Exit();
 
   // Wait for notification or timeout.
-  // May return too early due to spurious wakeups. Callers should test for this.
   WaitResult Wait(int64_t millis);
 
   // Notify waiting threads.
@@ -119,7 +118,6 @@ class MonitorLocker : public StackResource {
     // TODO(iposva): Consider decrementing the no GC scope here.
   }
 
-  // May return too early due to spurious wakeups. Callers should test for this.
   Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout) {
     return monitor_->Wait(millis);
   }
@@ -141,4 +139,4 @@ class MonitorLocker : public StackResource {
 }  // namespace dart
 
 
-#endif  // RUNTIME_VM_THREAD_H_
+#endif  // VM_THREAD_H_

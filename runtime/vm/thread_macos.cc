@@ -193,8 +193,6 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   Monitor::WaitResult retval = kNotified;
   if (millis == 0) {
     // Wait forever.
-    // If the thread receives a signal, pthread_cond_wait may return 0,
-    // because of a spurious wakeup.
     int result = pthread_cond_wait(data_.cond(), data_.mutex());
     VALIDATE_PTHREAD_RESULT(result);
   } else {

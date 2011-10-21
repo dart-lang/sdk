@@ -45,7 +45,6 @@ UNIT_TEST_CASE(Monitor) {
     int64_t wait_time = 2017;
     Monitor::WaitResult wait_result = ml.Wait(wait_time);
     int64_t stop = OS::GetCurrentTimeMillis();
-    // Note: This may fail due to spurious wakeups in pthread_cond_wait().
     EXPECT_EQ(Monitor::kTimedOut, wait_result);
     const int kAcceptableTimeJitter = 20;  // Measured in milliseconds.
     EXPECT_LE(wait_time - kAcceptableTimeJitter, stop - start);
