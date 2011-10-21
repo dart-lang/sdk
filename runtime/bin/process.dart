@@ -21,17 +21,17 @@ interface Process factory _Process {
   /*
    * Returns an input stream of the process stdout.
    */
-  InputStream get stdoutStream();
+  InputStream get stdout();
 
   /*
    * Returns an input stream of the process stderr.
    */
-  InputStream get stderrStream();
+  InputStream get stderr();
 
   /*
    * Returns an output stream to the process stdin.
    */
-  OutputStream get stdinStream();
+  OutputStream get stdin();
 
   /*
    * Sets an exit handler which gets invoked when the process terminates.

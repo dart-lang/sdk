@@ -22,8 +22,8 @@ class ProcessStdoutTest {
     }
     buffer[BUFFERSIZE - 1] = 10;
 
-    SocketInputStream input = process.stdoutStream;
-    SocketOutputStream output = process.stdinStream;
+    InputStream input = process.stdout;
+    OutputStream output = process.stdin;
 
     process.start();
 
