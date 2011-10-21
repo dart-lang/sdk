@@ -3139,6 +3139,22 @@ RawString* Field::SetterName(const String& field_name) {
 }
 
 
+RawString* Field::NameFromGetter(const String& getter_name) {
+  String& str = String::Handle();
+  str = String::New("get:");
+  str = String::SubString(getter_name, str.Length());
+  return String::NewSymbol(str);
+}
+
+
+RawString* Field::NameFromSetter(const String& setter_name) {
+  String& str = String::Handle();
+  str = String::New("set:");
+  str = String::SubString(setter_name, str.Length());
+  return String::NewSymbol(str);
+}
+
+
 void Field::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());

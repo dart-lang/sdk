@@ -560,46 +560,64 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
 }
 
 
-static bool FuncNameExistsInSuper(const Class& cls,
-                                  const String& name) {
+static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
+                                                const String& name) {
+  Class& super_class = Class::Handle();
+  Function& function = Function::Handle();
+  Field& field = Field::Handle();
+  super_class = cls.SuperClass();
+  while (!super_class.IsNull()) {
+    // Check if an instance member of same name exists in any super class.
+    function = super_class.LookupFunction(name);
+    if (!function.IsNull() && !function.is_static()) {
+      return super_class.raw();
+    }
+    field = super_class.LookupField(name);
+    if (!field.IsNull() && !field.is_static()) {
+      return super_class.raw();
+    }
+    super_class = super_class.SuperClass();
+  }
+  return Class::null();
+}
+
+
+static RawClass* FindSuperOwnerOfFunction(const Class& cls,
+                                          const String& name) {
   Class& super_class = Class::Handle();
   Function& function = Function::Handle();
   super_class = cls.SuperClass();
   while (!super_class.IsNull()) {
-    // Check if a field of same name exists in any super class.
+    // Check if a function of same name exists in any super class.
     function = super_class.LookupFunction(name);
     if (!function.IsNull()) {
-      return true;
+      return super_class.raw();
     }
     super_class = super_class.SuperClass();
   }
-  return false;
-}
-
-
-static bool FieldNameExistsInSuper(const Class& cls, const String& name) {
-  Class& super_class = Class::Handle();
-  Field& field = Field::Handle();
-  super_class = cls.SuperClass();
-  while (!super_class.IsNull()) {
-    // Check if a function of same name exists in any super class.
-    field = super_class.LookupField(name);
-    if (!field.IsNull()) {
-      return true;
-    }
-    super_class = super_class.SuperClass();
-  }
-  return false;
+  return Class::null();
 }
 
 
 void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
-  // Resolve type of fields.
+  // Note that getters and setters are explicitly listed as such in the list of
+  // functions of a class, so we do not need to consider fields as implicitly
+  // generating getters and setters.
+  // The only compile errors we report are therefore:
+  // - a getter having the same name as a method (but not a getter) in a super
+  //   class or in a subclass.
+  // - a setter having the same name as a method (but not a setter) in a super
+  //   class or in a subclass.
+  // - a static field, instance field, or static method (but not an instance
+  //   method) having the same name as an instance member in a super class.
+
+  // Resolve type of fields and check for conflicts in super classes.
   Array& array = Array::Handle(cls.fields());
   Field& field = Field::Handle();
   Type& type = Type::Handle();
-  intptr_t num_fields = array.Length();
   String& name = String::Handle();
+  Class& super_class = Class::Handle();
+  intptr_t num_fields = array.Length();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
@@ -607,48 +625,109 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     field.set_type(type);
     FinalizeType(type);
     name = field.name();
-    if (FuncNameExistsInSuper(cls, name)) {
-      ReportError("field '%s' overrides a function in the super class.\n",
-                  name.ToCString());
+    super_class = FindSuperOwnerOfInstanceMember(cls, name);
+    if (!super_class.IsNull()) {
+      const String& class_name = String::Handle(cls.Name());
+      const String& super_class_name = String::Handle(super_class.Name());
+      ReportError("field '%s' of class '%s' conflicts with instance "
+                  "member '%s' of super class '%s'.\n",
+                  name.ToCString(),
+                  class_name.ToCString(),
+                  name.ToCString(),
+                  super_class_name.ToCString());
     }
   }
-  // Resolve function signatures.
+  // Resolve function signatures and check for conflicts in super classes.
   array = cls.functions();
   Function& function = Function::Handle();
+  Function& overridden_function = Function::Handle();
   intptr_t num_functions = array.Length();
-  String& func_name = String::Handle();
+  String& function_name = String::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     function ^= array.At(i);
     ResolveAndFinalizeSignature(cls, function);
-    func_name = function.name();
-    if (FieldNameExistsInSuper(cls, func_name)) {
-      ReportError("function '%s' overrides a field in the super class.\n",
-                  func_name.ToCString());
-    }
-    name = Field::GetterName(func_name);
-    if (FuncNameExistsInSuper(cls, name)) {
-      ReportError("function '%s' overrides a getter in the super class.\n",
-                  name.ToCString());
-    }
-    name = Field::SetterName(func_name);
-    if (FuncNameExistsInSuper(cls, name)) {
-      ReportError("function '%s' overrides a setter in the super class.\n",
-                  name.ToCString());
-    }
-    if (function.kind() == RawFunction::kGetterFunction) {
-      name = String::New("get:");
-      name = String::SubString(func_name, name.Length());
-      if (FuncNameExistsInSuper(cls, name)) {
-        ReportError("'%s' overrides a function in the super class.\n",
-                    func_name.ToCString());
+    function_name = function.name();
+    if (function.is_static()) {
+      super_class = FindSuperOwnerOfInstanceMember(cls, function_name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        ReportError("static function '%s' of class '%s' conflicts with "
+                    "instance member '%s' of super class '%s'.\n",
+                    function_name.ToCString(),
+                    class_name.ToCString(),
+                    function_name.ToCString(),
+                    super_class_name.ToCString());
+      }
+    } else {
+      // TODO(regis): This arity check is still being debated. Revisit.
+      super_class = cls.SuperClass();
+      while (!super_class.IsNull()) {
+        overridden_function = super_class.LookupDynamicFunction(function_name);
+        if (!overridden_function.IsNull() &&
+          !function.HasCompatibleParametersWith(overridden_function)) {
+          // Function types are purposely not checked for subtyping.
+          const String& class_name = String::Handle(cls.Name());
+          const String& super_class_name = String::Handle(super_class.Name());
+          ReportError("class '%s' overrides function '%s' of super class '%s' "
+                      "with incompatible parameters.\n",
+                      class_name.ToCString(),
+                      function_name.ToCString(),
+                      super_class_name.ToCString());
+        }
+        super_class = super_class.SuperClass();
       }
     }
-    if (function.kind() == RawFunction::kSetterFunction) {
-      name = String::New("set:");
-      name = String::SubString(func_name, name.Length());
-      if (FuncNameExistsInSuper(cls, name)) {
-        ReportError("'%s' overrides a function in the super class.\n",
-                    func_name.ToCString());
+    if (function.kind() == RawFunction::kGetterFunction) {
+      name = Field::NameFromGetter(function_name);
+      super_class = FindSuperOwnerOfFunction(cls, name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        ReportError("getter '%s' of class '%s' conflicts with "
+                    "function '%s' of super class '%s'.\n",
+                    name.ToCString(),
+                    class_name.ToCString(),
+                    name.ToCString(),
+                    super_class_name.ToCString());
+      }
+    } else if (function.kind() == RawFunction::kSetterFunction) {
+      name = Field::NameFromSetter(function_name);
+      super_class = FindSuperOwnerOfFunction(cls, name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        ReportError("setter '%s' of class '%s' conflicts with "
+                    "function '%s' of super class '%s'.\n",
+                    name.ToCString(),
+                    class_name.ToCString(),
+                    name.ToCString(),
+                    super_class_name.ToCString());
+      }
+    } else {
+      name = Field::GetterName(function_name);
+      super_class = FindSuperOwnerOfFunction(cls, name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        ReportError("function '%s' of class '%s' conflicts with "
+                    "getter '%s' of super class '%s'.\n",
+                    function_name.ToCString(),
+                    class_name.ToCString(),
+                    function_name.ToCString(),
+                    super_class_name.ToCString());
+      }
+      name = Field::SetterName(function_name);
+      super_class = FindSuperOwnerOfFunction(cls, name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        ReportError("function '%s' of class '%s' conflicts with "
+                    "setter '%s' of super class '%s'.\n",
+                    function_name.ToCString(),
+                    class_name.ToCString(),
+                    function_name.ToCString(),
+                    super_class_name.ToCString());
       }
     }
   }
@@ -707,9 +786,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   cls.Finalize();
   ResolveAndFinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
-  if (!cls.is_interface()) {
-    CheckForLegalOverrides(cls);
-  }
   if (cls.is_const()) {
     CheckForLegalConstClass(cls);
   }
@@ -821,64 +897,6 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     ResolveInterfaces(interface_class, visited);
   }
   visited->RemoveLast();
-}
-
-
-void ClassFinalizer::CheckForLegalOverrides(const Class& cls) {
-  HANDLESCOPE();
-  const Class& super = Class::Handle(cls.SuperClass());
-  if (super.IsNull()) {
-    return;
-  }
-  if (FLAG_enable_type_checks) {
-    // Check functions.
-    const Array& functions_array = Array::Handle(cls.functions());
-    Function& function = Function::Handle();
-    String& function_name = String::Handle();
-    const intptr_t len = functions_array.Length();
-    for (intptr_t i = 0; i < len; i++) {
-      function ^= functions_array.At(i);
-      if (!function.is_static()) {
-        function_name ^= function.name();
-        Function& overridden_function =
-            Function::Handle(super.LookupDynamicFunction(function_name));
-        if (!overridden_function.IsNull() &&
-            !function.IsSubtypeOf(overridden_function)) {
-          const String& class_name = String::Handle(cls.Name());
-          const String& super_class_name = String::Handle(
-              Class::Handle(overridden_function.owner()).Name());
-          ReportError("The type of instance method '%s' in class '%s' is "
-                      "not a subtype of the type of overriden instance "
-                      "method '%s' in class '%s'\n",
-                      function_name.ToCString(),
-                      class_name.ToCString(),
-                      function_name.ToCString(),
-                      super_class_name.ToCString());
-        }
-      }
-    }
-  }
-  // Check fields.
-  const Array& fields_array = Array::Handle(cls.fields());
-  Field& field = Field::Handle();
-  String& field_name = String::Handle();
-  const intptr_t len = fields_array.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    field ^= fields_array.At(i);
-    field_name ^= field.name();
-    Field& super_field = Field::Handle(super.LookupStaticField(field_name));
-    if (super_field.IsNull()) {
-      super_field = super.LookupInstanceField(field_name);
-    }
-    if (!super_field.IsNull()) {
-      // A static field may "override" a static field.
-      if (!super_field.is_static() || !field.is_static()) {
-        const String& class_name = String::Handle(cls.Name());
-        ReportError("class '%s' cannot override field '%s'.\n",
-                    class_name.ToCString(), field_name.ToCString());
-      }
-    }
-  }
 }
 
 

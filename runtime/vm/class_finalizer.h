@@ -55,7 +55,6 @@ class ClassFinalizer : public AllStatic {
  private:
   static void FinalizeClass(const Class& cls);
   static bool IsSuperCycleFree(const Class& cls);
-  static void CheckForLegalOverrides(const Class& cls);
   static void CheckForLegalConstClass(const Class& cls);
   static void ResolveSuperClass(const Class& cls);
   static void ResolveDefaultClass(const Class& cls);

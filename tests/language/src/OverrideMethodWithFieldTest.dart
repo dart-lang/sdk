@@ -11,9 +11,9 @@ class Super {
 }
 
 class Sub extends Super {
-  Sub() : super(), this.instanceMethod = 87;
+  Sub() : super();
 
-  var instanceMethod; // Intentional static type error.
+  var instanceMethod = 87;  /// 01: compile-time error
 
   superInstanceMethod() => super.instanceMethod();
 }
@@ -22,10 +22,7 @@ main() {
   var s = new Sub();
   Super sup = s;
   Sub sub = s;
-  Expect.equals(87, s.instanceMethod);
   Expect.equals(42, s.superInstanceMethod());
-  Expect.equals(87, sup.instanceMethod);
   Expect.equals(42, sup.superInstanceMethod()); // Intentional static type error.
-  Expect.equals(87, sub.instanceMethod);
   Expect.equals(42, sub.superInstanceMethod());
 }

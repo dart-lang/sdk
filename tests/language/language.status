@@ -28,13 +28,7 @@ TypeVariableBoundsTest/04: Fail # Bug 5257789
 TypeVariableBoundsTest/07: Fail # Bug 5257789
 TypeVariableScopeTest/03: Fail # Bug 5349550, was 5316513
 TypeVariableScopeTest/04: Fail # Bug 5349550, was 5316513
-FauxverrideTest/01: Fail # Bug 5328413
-FauxverrideTest/02: Fail # Bug 5328413
-FauxverrideTest/03: Fail # Bug 5328413
 ImpliedInterfaceTest: Fail # Bug 5349944
-OverrideMethodWithFieldTest: Fail # Bug 5384453
-FieldOverrideTest/none: Fail # Bug 5384222
-FieldOverrideTest/01: Fail # Bug 5384222
 CallThroughNullGetterTest: Fail # Bug 4968741
 
 BlackListedTest/01: Fail # Bug 5469684
@@ -61,7 +55,6 @@ ExampleConstructorTest: Fail    # Bug 4995181
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
 CanonicalConstTest: Fail        # Bug 5270133
-OverrideFieldTest/none: Fail    # Bug 5384222
 GenericParameterizedExtendsTest: Skip  # Bug 5391643
 
 # DartC specific tests that should not be run by the VM.
@@ -143,6 +136,10 @@ OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
+FieldOverrideTest/01: Fail	       # Bug 5215249
+FieldOverrideTest/02: Fail	       # Bug 5215249
+OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
+OverrideFieldTest/04: Fail	       # Bug 5215249
 CharEscapeTest: Fail
 GetterClosureExecutionOrderTest: Fail # Bug 5481595
 

@@ -1316,9 +1316,11 @@ class Field : public Object {
     raw_ptr()->has_initializer_ = has_initializer;
   }
 
-  // Constructs getter and setter names for fields.
+  // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* SetterName(const String& field_name);
+  static RawString* NameFromGetter(const String& getter_name);
+  static RawString* NameFromSetter(const String& setter_name);
 
  private:
   void set_name(const String& value) const;
