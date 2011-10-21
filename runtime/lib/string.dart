@@ -334,42 +334,9 @@ class StringBase {
     return result;
   }
 
-  String toLowerCase() {
-    final int aCode = "A".charCodeAt(0);
-    final int zCode = "Z".charCodeAt(0);
-    final int delta = aCode - "a".charCodeAt(0);
-    return _convert(this, aCode, zCode, delta);
-  }
+  String toUpperCase() native "String_toUpperCase";
 
-  String toUpperCase() {
-    final int aCode = "a".charCodeAt(0);
-    final int zCode = "z".charCodeAt(0);
-    final int delta = aCode - "A".charCodeAt(0);
-    return _convert(this, aCode, zCode, delta);
-  }
-
-  static String _convert(String str, int startCode, int endCode, int delta) {
-    final int len = str.length;
-    int i = 0;
-    // Check if we can just return the string.
-    for (; i < len; i++) {
-      int code = str.charCodeAt(i);
-      if ((startCode <= code) && (code <= endCode)) break;
-    }
-    if (i == len) return str;
-
-    List<int> charCodes = new List<int>(len);
-    for (i = 0; i < len; i++) {
-      int code = str.charCodeAt(i);
-      if ((startCode <= code) && (code <= endCode)) {
-        code = code - delta;
-      }
-      charCodes[i] = code;
-    }
-    return StringBase.createFromCharCodes(charCodes);
-  }
-
-
+  String toLowerCase() native "String_toLowerCase";
 
   // Implementations of Strings methods follow below.
   static String join(List<String> strings, String separator) {

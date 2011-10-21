@@ -5942,6 +5942,48 @@ const char* String::ToCString() const {
 }
 
 
+RawString* String::Transform(int32_t (*mapping)(int32_t ch),
+                             const String& str,
+                             Heap::Space space) {
+  ASSERT(!str.IsNull());
+  bool has_mapping = false;
+  int32_t dst_max = 0;
+  intptr_t len = str.Length();
+  // TODO(cshapiro): assume a transform is required, rollback if not.
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t src = str.CharAt(i);
+    int32_t dst = mapping(src);
+    if (src != dst) {
+      has_mapping = true;
+    }
+    dst_max = Utils::Maximum(dst_max, dst);
+  }
+  if (!has_mapping) {
+    return str.raw();
+  }
+  if (dst_max <= 0xFF) {
+    return OneByteString::Transform(mapping, str, space);
+  }
+  if (dst_max <= 0xFFFF) {
+    return TwoByteString::Transform(mapping, str, space);
+  }
+  ASSERT(dst_max > 0xFFFF);
+  return FourByteString::Transform(mapping, str, space);
+}
+
+
+RawString* String::ToUpperCase(const String& str, Heap::Space space) {
+  // TODO(cshapiro): create a fast-path for OneByteString instances.
+  return Transform(CaseMapping::ToUpper, str, space);
+}
+
+
+RawString* String::ToLowerCase(const String& str, Heap::Space space) {
+  // TODO(cshapiro): create a fast-path for OneByteString instances.
+  return Transform(CaseMapping::ToLower, str, space);
+}
+
+
 RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
@@ -6046,6 +6088,22 @@ RawString* OneByteString::SubString(const OneByteString& str,
     String::Copy(result, 0, str, begin_index, length);
   }
   // TODO(5418937): return a non-null object on error.
+  return result.raw();
+}
+
+
+RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
+                                           const String& str,
+                                           Heap::Space space) {
+  ASSERT(!str.IsNull());
+  intptr_t len = str.Length();
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t ch = mapping(str.CharAt(i));
+    ASSERT(ch >= 0 && ch <= 0xFF);
+    *result.CharAddr(i) = ch;
+  }
   return result.raw();
 }
 
@@ -6164,10 +6222,25 @@ RawString* TwoByteString::SubString(const TwoByteString& str,
 }
 
 
+RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
+                                           const String& str,
+                                           Heap::Space space) {
+  ASSERT(!str.IsNull());
+  intptr_t len = str.Length();
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t ch = mapping(str.CharAt(i));
+    ASSERT(ch >= 0 && ch <= 0xFFFF);
+    *result.CharAddr(i) = ch;
+  }
+  return result.raw();
+}
+
+
 const char* TwoByteString::ToCString() const {
   return String::ToCString();
 }
-
 
 
 RawFourByteString* FourByteString::New(intptr_t len,
@@ -6269,6 +6342,22 @@ RawString* FourByteString::SubString(const FourByteString& str,
     String::Copy(result, 0, str, begin_index, length);
   }
   // TODO(5418937): return a non-null object on error.
+  return result.raw();
+}
+
+
+RawFourByteString* FourByteString::Transform(int32_t (*mapping)(int32_t ch),
+                                             const String& str,
+                                             Heap::Space space) {
+  ASSERT(!str.IsNull());
+  intptr_t len = str.Length();
+  const FourByteString& result =
+      FourByteString::Handle(FourByteString::New(len, space));
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t ch = mapping(str.CharAt(i));
+    ASSERT(ch >= 0 && ch <= 0x10FFFF);
+    *result.CharAddr(i) = ch;
+  }
   return result.raw();
 }
 

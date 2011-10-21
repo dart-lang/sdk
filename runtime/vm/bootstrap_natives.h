@@ -72,6 +72,8 @@ namespace dart {
   V(String_charAt, 2)                                                          \
   V(String_charCodeAt, 2)                                                      \
   V(String_concat, 2)                                                          \
+  V(String_toLowerCase, 1)                                                     \
+  V(String_toUpperCase, 1)                                                     \
   V(Strings_concatAll, 1)                                                      \
   V(MathNatives_sqrt, 1)                                                       \
   V(MathNatives_sin, 1)                                                        \

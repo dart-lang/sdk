@@ -227,6 +227,7 @@
     'token.h',
     'unicode.cc',
     'unicode.h',
+    'unicode_data.cc',
     'unicode_test.cc',
     'unit_test.cc',
     'unit_test.h',

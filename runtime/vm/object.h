@@ -2424,6 +2424,15 @@ class String : public Instance {
                               intptr_t length,
                               Heap::Space space = Heap::kNew);
 
+  static RawString* Transform(int32_t (*mapping)(int32_t ch),
+                              const String& str,
+                              Heap::Space space = Heap::kNew);
+
+  static RawString* ToUpperCase(const String& str,
+                                Heap::Space space = Heap::kNew);
+  static RawString* ToLowerCase(const String& str,
+                                Heap::Space space = Heap::kNew);
+
   static RawString* NewSymbol(const char* str);
   template<typename T>
   static RawString* NewSymbol(const T* characters, intptr_t len);
@@ -2495,6 +2504,10 @@ class OneByteString : public String {
                               intptr_t length,
                               Heap::Space space);
 
+  static RawOneByteString* Transform(int32_t (*mapping)(int32_t ch),
+                                     const String& str,
+                                     Heap::Space space);
+
  private:
   uint8_t* CharAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
@@ -2546,6 +2559,10 @@ class TwoByteString : public String {
                               intptr_t length,
                               Heap::Space space);
 
+  static RawTwoByteString* Transform(int32_t (*mapping)(int32_t ch),
+                                     const String& str,
+                                     Heap::Space space);
+
  private:
   uint16_t* CharAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
@@ -2592,6 +2609,10 @@ class FourByteString : public String {
                               intptr_t begin_index,
                               intptr_t length,
                               Heap::Space space);
+
+  static RawFourByteString* Transform(int32_t (*mapping)(int32_t ch),
+                                      const String& str,
+                                      Heap::Space space);
 
  private:
   uint32_t* CharAddr(intptr_t index) const {
