@@ -166,14 +166,22 @@ public class CompileService {
   private final static String FAKE_NAME = "tator";
 
   public static CompileService create() {
-    final CompilerConfiguration config = config(true);
-    final LibrarySource lib = config.getSystemLibraryFor("dart:core");
-    return new CompileService(buildArtifactsFor(config, lib), lib);
+    return create(false);
+  }
+  
+  public static CompileService create(LibrarySource lib) {
+    return create(lib, false);
   }
 
-  public static CompileService create(LibrarySource lib) {
-    final CompilerConfiguration config = config(true);
-    return new CompileService(buildArtifactsFor(config, lib), lib);
+  public static CompileService create(boolean useCheckedMode) {
+    final CompilerConfiguration config = config(true, useCheckedMode);
+    final LibrarySource lib = config.getSystemLibraryFor("dart:core");
+    return new CompileService(buildArtifactsFor(config, lib), lib, useCheckedMode);
+  }
+
+  public static CompileService create(LibrarySource lib, boolean useCheckedMode) {
+    final CompilerConfiguration config = config(true, useCheckedMode);
+    return new CompileService(buildArtifactsFor(config, lib), lib, useCheckedMode);
   }
 
   private static ThreadSafeArtifacts buildArtifactsFor(CompilerConfiguration config, LibrarySource lib) {
@@ -209,11 +217,21 @@ public class CompileService {
 
   }
 
-  private static CompilerConfiguration config(final boolean incremental) {
+  private static CompilerConfiguration config(final boolean incremental, final boolean checked) {
     return new DefaultCompilerConfiguration() {
       @Override
       public boolean incremental() {
         return incremental;
+      }
+      
+      @Override
+      public boolean shouldWarnOnNoSuchType() {
+        return true;
+      }
+      
+      @Override
+      public boolean developerModeChecks() {
+        return checked;
       }
     };
   }
@@ -222,9 +240,13 @@ public class CompileService {
   
   private final LibrarySource runtimeLibrary;
   
-  private CompileService(ThreadSafeArtifacts artifactCache, LibrarySource runtimeLibrary) {
+  private final boolean useCheckedMode;
+  
+  private CompileService(ThreadSafeArtifacts artifactCache, LibrarySource runtimeLibrary,
+      boolean useCheckedMode) {
     this.artifactCache = artifactCache;
     this.runtimeLibrary = runtimeLibrary;
+    this.useCheckedMode = useCheckedMode;
   }
 
   public CompileResult build(File appFile) {
@@ -260,7 +282,7 @@ public class CompileService {
     final long startedAt = System.currentTimeMillis();
     try {
       DartCompiler.compileLib(source,
-          config(true),
+          config(true, useCheckedMode),
           artifacts,
           listener);
       return new CompileResult(artifacts.getJavaScriptFor(source),
