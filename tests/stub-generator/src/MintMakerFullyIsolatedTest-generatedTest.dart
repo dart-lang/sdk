@@ -1,4 +1,4 @@
-/* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 10) */
+/* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 7) */
 
 interface Purse$Proxy {
   Promise<int> queryBalance();
@@ -75,7 +75,7 @@ class Purse$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = PowerfulPurse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 19) */
+/* class = PowerfulPurse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 16) */
 
 interface PowerfulPurse$Proxy {
   void init(Mint$Proxy mint, int balance);
@@ -153,7 +153,7 @@ class PowerfulPurse$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = Mint (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 29) */
+/* class = Mint (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 26) */
 
 interface Mint$Proxy {
   Purse$Proxy createPurse(int balance);
@@ -225,9 +225,6 @@ class Mint$Dispatcher$Isolate extends Isolate {
 // BSD-style license that can be found in the LICENSE file.
 
 // IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
-
-//#library("MintMakerFullyIsolatedTest");
-//#import("../../isolate/src/TestFramework.dart");
 
 interface Purse {
   Purse();
@@ -459,5 +456,4 @@ class MintMakerFullyIsolatedTest {
 
 main() {
   MintMakerFullyIsolatedTest.testMain();
-  //runTests([MintMakerFullyIsolatedTest.testMain]);
 }

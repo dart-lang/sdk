@@ -87,6 +87,10 @@ class DartStubTestConfiguration(test_configuration.StandardTestConfiguration):
     self.context.generate = os.access(dartc[0], os.X_OK)
     tests = []
     for root, dirs, files in os.walk(join(self.root, 'src')):
+      # Skip remnants from the subdirectory that used to be used for
+      # generated code.
+      if root.endswith('generated'):
+        continue
       for f in [x for x in files if self.IsTest(x)]:
         # If we can generate code, do not use the checked-in generated
         # code.  Conversely, if we cannot, then only use the
