@@ -3706,6 +3706,9 @@ RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
     ASSERT(!obj.IsNull());
     if (obj.IsClass()) {
       cls ^= obj.raw();
+      if (cls.IsSignatureClass()) {
+        continue;
+      }
       entry_name = cls.Name();
     } else if (obj.IsFunction()) {
       func ^= obj.raw();

@@ -1652,6 +1652,45 @@ UNIT_TEST_CASE(ImportLibrary4) {
   Dart_ShutdownIsolate();
 }
 
+
+UNIT_TEST_CASE(ImportLibrary5) {
+  const char* kScriptChars =
+      "#import('lib.dart');"
+      "interface Y {"
+      "  void set handler(void callback(List<int> x));"
+      "}"
+      "void main() {}";
+  const char* kLibraryChars =
+      "#library('lib.dart');"
+      "interface X {"
+      "  void set handler(void callback(List<int> x));"
+      "}";
+  Dart_Result result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle url = Dart_NewString(TestCase::url());
+    Dart_Handle source = Dart_NewString(kScriptChars);
+    result = Dart_LoadScript(url, source, library_handler);
+
+    url = Dart_NewString("lib.dart");
+    source = Dart_NewString(kLibraryChars);
+    Dart_LoadLibrary(url, source);
+
+    result = Dart_InvokeStatic(Dart_GetResult(result),
+                               Dart_NewString(""),
+                               Dart_NewString("main"),
+                               0,
+                               NULL);
+    assert(Dart_IsValidResult(result));
+
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
 #endif  // TARGET_ARCH_IA32.
 
 }  // namespace dart
