@@ -14,6 +14,9 @@ import utils
 
 from os.path import join, exists, isdir
 
+def GeneratedName(src):
+  return re.sub('\.dart$', '-generatedTest.dart', src)
+
 class DartStubTestCase(test_case.StandardTestCase):
   def __init__(self, context, path, filename, mode, arch):
     super(DartStubTestCase, self).__init__(context, path, filename, mode, arch)
@@ -36,6 +39,8 @@ class DartStubTestCase(test_case.StandardTestCase):
     return output.exit_code != 0 or not '##DONE##' in output.stdout
 
   def BeforeRun(self):
+    if not self.context.generate:
+      return
     command = self.context.GetDartC(self.mode, 'dartc')
     (interface, classes, _) = self.GetStubs()
     d = join(self.GetPath(), 'generated')
@@ -43,7 +48,7 @@ class DartStubTestCase(test_case.StandardTestCase):
       os.mkdir(d)
     tmpdir = tempfile.mkdtemp()
     src = join(self.GetPath(), interface)
-    dest = join(self.GetPath(), 'generated', interface)
+    dest = join(self.GetPath(), GeneratedName(interface))
     self.RunCommand(command + [ src,
                                 # dartc generates output even if it has no
                                 # output to generate.
@@ -66,7 +71,7 @@ class DartStubTestCase(test_case.StandardTestCase):
 
     # Combine everything into a command array and return it.
     command = self.context.GetDart(self.mode, self.arch)
-    files = [ join(self.GetPath(), 'generated', interface) ]
+    files = [ join(self.GetPath(), GeneratedName(interface)) ]
     if vm_options: command += vm_options
     if dart_options: command += dart_options
     else: command +=  files
@@ -79,14 +84,15 @@ class DartStubTestConfiguration(test_configuration.StandardTestConfiguration):
 
   def ListTests(self, current_path, path, mode, arch):
     dartc = self.context.GetDartC(mode, 'dartc')
-    if not os.access(dartc[0], os.X_OK):
-      print >> sys.stderr, "Can't find dartc at", str(dartc) + ", skipping"
-      return []
+    self.context.generate = os.access(dartc[0], os.X_OK)
     tests = []
     for root, dirs, files in os.walk(join(self.root, 'src')):
-      if root.endswith('/generated'):
-        continue
       for f in [x for x in files if self.IsTest(x)]:
+        # If we can generate code, do not use the checked-in generated
+        # code.  Conversely, if we cannot, then only use the
+        # checked-in generated code.
+        if self.context.generate == f.endswith('-generatedTest.dart'):
+          continue
         test_path = current_path + [ f[:-5] ]  # Remove .dart suffix.
         if not self.Contains(path, test_path):
           continue
