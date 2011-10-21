@@ -40,9 +40,13 @@ void MessageQueue::Enqueue(PortMessage* msg) {
 PortMessage* MessageQueue::Dequeue(int64_t millis) {
   MonitorLocker ml(&monitor_);
   PortMessage* result = head_;
-  if (result == NULL) {
+  // Wait may wake up prematurely, so we need to loop until result != NULL
+  while (result == NULL) {
     ml.Wait(millis);
     result = head_;
+    // If there's a time-out the caller must check for NULL anyway.
+    if (0 < millis)
+      break;
   }
   if (result != NULL) {
     head_ = result->next_;
