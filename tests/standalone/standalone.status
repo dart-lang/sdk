@@ -6,7 +6,6 @@ prefix standalone
 
 [ $arch == ia32]
 ManyEchoServerTest: Skip        # Bug 5103754
-TimerCancel1Test: Skip
 
 BlackListedTest/01: Fail # Bug 5469684
 BlackListedTest/02: Fail # Bug 5469684
