@@ -77,6 +77,7 @@ CTConst2Test: Fail                       # Codesite issue 124
 
 [ $arch == dartc || $arch == chromium ]
 Library4NegativeTest: Fail               # Bug 5406175
+Library5Test: Skip                       # Bug 5406175
 Prefix3NegativeTest: Fail                # Bug 5406175
 Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
