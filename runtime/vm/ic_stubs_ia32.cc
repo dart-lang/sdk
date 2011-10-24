@@ -193,14 +193,6 @@ bool ICStubs::ParseICStub(uword ic_entry_point,
   Instructions& inst = Instructions::Handle(
       Instructions::FromEntryPoint(ic_entry_point));
   ASSERT(!inst.IsNull());
-  ICData ic_data(Code::Handle(inst.code()));
-  if (patch_code) {
-    const Function& from_function =
-        Function::Handle(ci_table->LookupFunction(from));
-    const Function& to_function =
-        Function::Handle(ci_table->LookupFunction(to));
-    ic_data.ChangeTargets(from_function, to_function);
-  }
 
   if (!StubCode::InCallInstanceFunctionStubCode(test_smi.TargetAddress())) {
     // Jump is an IC success.
@@ -234,12 +226,6 @@ bool ICStubs::ParseICStub(uword ic_entry_point,
     ICCheckReceiverClass check_class(instruction_address);
     if (!check_class.IsValid()) {
       // Done parsing.
-#if defined(DEBUG)
-      // Classes can be set to NULL if we do not care about collecting them.
-      if (classes != NULL) {
-        ic_data.CheckIsSame(classes, targets);
-      }
-#endif
       return true;
     }
     if (patch_code && (check_class.TargetAddress() == from)) {
@@ -362,14 +348,6 @@ RawCode* ICStubs::GetICStub(const GrowableArray<const Class*>& classes,
     OS::Print("}\n");
   }
 
-  ICData ic_data(ic_stub_code);
-  ic_data.SetICDataArray(1, classes.length());
-  ASSERT(classes.length() == targets.length());
-  for (intptr_t i = 0; i < classes.length(); i++) {
-    GrowableArray<const Class*> temp_classes;
-    temp_classes.Add(classes[i]);
-    ic_data.SetCheckAt(i, temp_classes, *(targets[i]));
-  }
   return ic_stub_code.raw();
 #undef __
 }

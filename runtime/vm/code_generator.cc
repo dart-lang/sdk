@@ -9,6 +9,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/ic_data.h"
 #include "vm/ic_stubs.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
@@ -552,7 +553,7 @@ static RawFunction* LookupDynamicFunction(const Class& in_cls,
 // Resolve an implicit closure by checking if an instance function
 // of the same name exists and creating a closure object of the function.
 // Arg0: receiver object.
-// Arg1: original function name.
+// Arg1: ic-data array.
 // Returns: Closure object or NULL (instance function not found).
 // This is called by the megamorphic stub when it is unable to resolve an
 // instance method. This is done just before the call to noSuchMethod.
@@ -560,10 +561,12 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   ASSERT(arguments.Count() ==
          kResolveImplicitClosureFunctionRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const String& original_func_name = String::CheckedHandle(arguments.At(1));
+  const Array& ic_data_array = Array::CheckedHandle(arguments.At(1));
+  ICData ic_data(ic_data_array);
+  const String& original_function_name = String::Handle(ic_data.FunctionName());
   const String& getter_prefix = String::Handle(String::New("get:"));
   Closure& closure = Closure::Handle();
-  if (!original_func_name.StartsWith(getter_prefix)) {
+  if (!original_function_name.StartsWith(getter_prefix)) {
     // This is not a getter so can't be the case where we are trying to
     // create an implicit closure of an instance function.
     arguments.SetReturn(closure);
@@ -573,7 +576,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   receiver_class ^= receiver.clazz();
   ASSERT(!receiver_class.IsNull());
   String& func_name = String::Handle();
-  func_name = String::SubString(original_func_name, getter_prefix.Length());
+  func_name = String::SubString(original_function_name, getter_prefix.Length());
   func_name = String::NewSymbol(func_name);
   const Function& function =
       Function::Handle(LookupDynamicFunction(receiver_class, func_name));
@@ -596,7 +599,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
 // Resolve an implicit closure by invoking getter and checking if the return
 // value from getter is a closure.
 // Arg0: receiver object.
-// Arg1: original function name.
+// Arg1: ic-data array.
 // Returns: Closure object or NULL (closure not found).
 // This is called by the megamorphic stub when it is unable to resolve an
 // instance method. This is done just before the call to noSuchMethod.
@@ -604,7 +607,9 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
   ASSERT(arguments.Count() ==
          kResolveImplicitClosureThroughGetterRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const String& original_function_name = String::CheckedHandle(arguments.At(1));
+  const Array& ic_data_array = Array::CheckedHandle(arguments.At(1));
+  ICData ic_data(ic_data_array);
+  const String& original_function_name = String::Handle(ic_data.FunctionName());
   const int kNumArguments = 1;
   const int kNumNamedArguments = 0;
   const String& getter_function_name =
@@ -718,14 +723,16 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
 
 // Invoke appropriate noSuchMethod function.
 // Arg0: receiver.
-// Arg1: original function name.
+// Arg1: ic-data array.
 // Arg2: original arguments descriptor array.
 // Arg3: original arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   ASSERT(arguments.Count() ==
          kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const String& original_function_name = String::CheckedHandle(arguments.At(1));
+  const Array& ic_data_array = Array::CheckedHandle(arguments.At(1));
+  ICData ic_data(ic_data_array);
+  const String& original_function_name = String::Handle(ic_data.FunctionName());
   ASSERT(!Array::CheckedHandle(arguments.At(2)).IsNull());
   const Array& orig_arguments = Array::CheckedHandle(arguments.At(3));
   // TODO(regis): The signature of the "noSuchMethod" method has to change from

@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
 #include "vm/cpu.h"
+#include "vm/ic_data.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -107,7 +108,7 @@ class StaticCall : public DartCallPattern {
 
 
 // The expected pattern of a dart instance call:
-//  mov ECX, function_name
+//  mov ECX, ic-data array
 //  mov EDX, argument_descriptor_array
 //  call target_address
 //  <- return address
@@ -116,10 +117,10 @@ class InstanceCall : public DartCallPattern {
   explicit InstanceCall(uword return_address)
       : DartCallPattern(return_address) {}
 
-  RawString* function_name() const {
-    String& str = String::Handle();
-    str ^= reinterpret_cast<RawObject*>(immediate_one());
-    return str.raw();
+  RawArray* ic_data() const {
+    Array& array = Array::Handle();
+    array ^= reinterpret_cast<RawObject*>(immediate_one());
+    return array.raw();
   }
 
  private:
@@ -244,7 +245,8 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
   *num_arguments = call.argument_count();
   *num_named_arguments = call.named_argument_count();
   *target = call.target();
-  *function_name = call.function_name();
+  ICData ic_data(Array::ZoneHandle(call.ic_data()));
+  *function_name = ic_data.FunctionName();
 }
 
 

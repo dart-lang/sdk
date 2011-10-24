@@ -10,6 +10,7 @@
 #include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/dart_entry.h"
+#include "vm/ic_data.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -256,7 +257,7 @@ void CodeGenerator::GenerateCode() {
     AstPrinter::PrintFunctionNodes(parsed_function_);
   }
   if (FLAG_trace_functions) {
-    // Preserve ECX (function name or object) and EDX (arguments descriptor).
+    // Preserve ECX (ic-data array or object) and EDX (arguments descriptor).
     __ pushl(ECX);
     __ pushl(EDX);
     const Function& function =
@@ -474,7 +475,8 @@ void CodeGenerator::GenerateInstanceCall(
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
-  __ LoadObject(ECX, function_name);
+  ICData ic_data(function_name, 1);
+  __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
   __ call(&StubCode::CallInstanceFunctionLabel());
@@ -698,12 +700,13 @@ void CodeGenerator::GenerateEntryCode() {
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
-      __ LoadObject(ECX, String::ZoneHandle(function.name()));
+      ICData ic_data(String::Handle(function.name()), 1);
+      __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
       // EBP : points to previous frame pointer.
       // EBP + 4 : points to return address.
       // EBP + 8 : address of last argument (arg n-1).
       // ESP + 8 + 4*(n-1) : address of first argument (arg 0).
-      // ECX : function name.
+      // ECX : ic-data array.
       // EDX : arguments descriptor array.
       __ call(&StubCode::CallNoSuchMethodFunctionLabel());
     }

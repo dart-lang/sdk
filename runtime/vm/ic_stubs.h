@@ -27,55 +27,6 @@ class Code;
 class Function;
 class RawCode;
 
-// Class that interprets the array stored in ICData::ic_data_.
-// The array format is:
-// - number of arguments checked, i.e.,  N number of classes in each check.
-// - group of checks, each check containing:
-//   - N classes.
-//   - 1 target function.
-// Whenever first N arguments of a dynamic call have the same class as the
-// check, jump to the matching target function.
-// Array is terminated with a null group (all classes and target are NULL).
-// The array does not contain Null-Classes. Null objects cannot be added.
-class ICData : public ValueObject {
- public:
-  explicit ICData(const Code& ic_stub);
-
-  intptr_t NumberOfClasses() const;
-  intptr_t NumberOfChecks() const;
-
-  // 'index' is 0..NumberOfChecks-1.
-  void GetCheckAt(intptr_t index,
-                  GrowableArray<const Class*>* classes,
-                  Function* target) const;
-  void SetCheckAt(intptr_t index,
-                  const GrowableArray<const Class*>& classes,
-                  const Function& target);
-
-  // Changes all 'from' targets to 'to' targets.
-  void ChangeTargets(const Function& from, const Function& to);
-
-  // Create and set an ic_data array in ic_stub_.
-  // Use 'SetCheckAt' to populate the array.
-  void SetICDataArray(intptr_t num_classes, intptr_t num_checks);
-
-  void AddCheck(const GrowableArray<const Class*>& classes,
-                const Function& target);
-
-  void Print();
-
-  // Temporary helper method to check that the existing inline
-  // cache information matches the ICData.
-  // TODO(srdjan): Remove once transitioned to IC data.
-  void CheckIsSame(const GrowableArray<const Class*>* classes,
-                   const GrowableArray<const Function*>* targets) const;
-
- private:
-  const Code& ic_stub_;
-  DISALLOW_COPY_AND_ASSIGN(ICData);
-};
-
-
 class ICStubs : public AllStatic {
  public:
   // Returns an IC stub that jumps to targets' entry points if the receiver
