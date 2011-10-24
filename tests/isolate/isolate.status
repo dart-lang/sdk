@@ -5,8 +5,6 @@
 prefix isolate
 
 [ $arch == dartium ]
-MintMakerPromiseTest: Skip     # Bug 5491853
-MintMakerTest: Skip            # Bug 5491853
 
 [ $arch == ia32 ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
