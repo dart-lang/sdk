@@ -112,7 +112,10 @@ public class Elements {
   }
 
   static Element findElement(ClassElement cls, String name) {
-    return ((ClassElementImplementation) cls).findElement(name);
+    if (cls instanceof  ClassElementImplementation) {
+      return ((ClassElementImplementation) cls).findElement(name);
+    }
+    return null;
   }
 
   public static MethodElement methodFromFunctionExpression(DartFunctionExpression node,

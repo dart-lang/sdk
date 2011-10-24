@@ -11,6 +11,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.testing.TestCompilerContext;
 import com.google.dart.compiler.testing.TestCompilerContext.EventKind;
+import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
@@ -533,6 +534,23 @@ public class ResolverTest extends ResolverTestCase {
         "class B {",
         "  foo() { return new Foo<T>(); }",
         "}"),
+        DartCompilerErrorCode.NO_SUCH_TYPE);
+  }
+
+  /**
+   * When {@link SupertypeResolver} can not find "UnknownA", it uses {@link DynamicType}, which
+   * returns {@link DynamicElement}. By itself, this is OK. However when we later try to resolve
+   * second unknown type "UnknownB", we expect in {@link Elements#findElement()} specific
+   * {@link ClassElement} implementation and {@link DynamicElement} is not valid.
+   */
+  public void test_classDynamicElement_fieldDynamicElement() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass implements UnknownA {",
+        "  UnknownB field;",
+        "}"),
+        DartCompilerErrorCode.NO_SUCH_TYPE,
+        DartCompilerErrorCode.NOT_A_CLASS_OR_INTERFACE,
         DartCompilerErrorCode.NO_SUCH_TYPE);
   }
 }
