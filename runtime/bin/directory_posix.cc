@@ -27,46 +27,15 @@ static bool ListRecursively(const char* dir_name,
 static void ComputeFullPath(const char* dir_name,
                             char* path,
                             int* path_length) {
-  size_t written = 0;
-
-  if (!File::IsAbsolutePath(dir_name)) {
-    ASSERT(getcwd(path, PATH_MAX) != NULL);
-    *path_length = strlen(path);
-    written = snprintf(path + *path_length,
-                       PATH_MAX - *path_length,
-                       "%s",
-                       File::PathSeparator());
-    ASSERT(written == strlen(File::PathSeparator()));
-    *path_length += written;
-  }
-
-  // Use dirname and basename to canonicalize the provided directory
-  // name.
-  char* dir_name_copy = strdup(dir_name);
-  char* dir = dirname(dir_name_copy);
-  if (strcmp(dir, ".") != 0) {
-    written = snprintf(path + *path_length,
-                       PATH_MAX - *path_length,
-                       "%s%s",
-                       dir,
-                       File::PathSeparator());
-    ASSERT(written == (strlen(dir) + strlen(File::PathSeparator())));
-    *path_length += written;
-  }
-  char* base_name_copy = strdup(dir_name);
-  char* base = basename(base_name_copy);
-  if (strcmp(base, ".") != 0) {
-    written = snprintf(path + *path_length,
-                       PATH_MAX - *path_length,
-                       "%s%s",
-                       base,
-                       File::PathSeparator());
-    ASSERT(written == (strlen(base) + strlen(File::PathSeparator())));
-    *path_length += written;
-  }
-
-  free(dir_name_copy);
-  free(base_name_copy);
+  char* abs_path = realpath(dir_name, path);
+  ASSERT(abs_path != NULL);
+  *path_length = strlen(path);
+  size_t written = snprintf(path + *path_length,
+                            PATH_MAX - *path_length,
+                            "%s",
+                            File::PathSeparator());
+  ASSERT(written == strlen(File::PathSeparator()));
+  *path_length += written;
 }
 
 
