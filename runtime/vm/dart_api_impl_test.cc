@@ -1298,6 +1298,58 @@ UNIT_TEST_CASE(ThrowException) {
 }
 
 
+void NativeArgumentCounter(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int count = Dart_GetNativeArgumentCount(args);
+  Dart_SetReturnValue(args, Dart_NewInteger(count));
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction gnac_lookup(Dart_Handle name, int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentCounter);
+}
+
+
+UNIT_TEST_CASE(GetNativeArgumentCount) {
+  const char* kScriptChars =
+      "class MyObject {"
+      "  int method1(int i, int j) native 'Name_Does_Not_Matter';"
+      "}"
+      "class Test {"
+      "  static testMain() {"
+      "    MyObject obj = new MyObject();"
+      "    return obj.method1(77, 125);"
+      "  }"
+      "}";
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();
+    Dart_Handle lib = TestCase::LoadTestScript(
+        kScriptChars,
+        reinterpret_cast<Dart_NativeEntryResolver>(gnac_lookup));
+
+    Dart_Result result = Dart_InvokeStatic(lib,
+                                           Dart_NewString("Test"),
+                                           Dart_NewString("testMain"),
+                                           0,
+                                           NULL);
+    EXPECT(Dart_IsValidResult(result));
+    Dart_Handle result_obj = Dart_GetResult(result);
+    EXPECT(Dart_IsInteger(result_obj));
+
+    result = Dart_IntegerValue(result_obj);
+    EXPECT(Dart_IsValidResult(result));
+    int64_t value = Dart_GetResultAsCInt64(result);
+    EXPECT_EQ(3, value);
+
+    Dart_ExitScope();
+  }
+  Dart_ShutdownIsolate();
+}
+
+
 UNIT_TEST_CASE(InstanceOf) {
   const char* kScriptChars =
       "class OtherClass {\n"

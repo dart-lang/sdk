@@ -1157,6 +1157,12 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 }
 
 
+DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  return arguments->Count();
+}
+
+
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   Zone zone;  // Setup a VM zone as we are creating some handles.

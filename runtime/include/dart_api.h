@@ -354,6 +354,7 @@ DART_EXPORT Dart_Result Dart_InvokeClosure(Dart_Handle closure,
 // Interaction with native methods.
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index);
+DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args);
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval);
 
