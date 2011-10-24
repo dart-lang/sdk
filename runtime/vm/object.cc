@@ -5360,7 +5360,7 @@ bool String::Equals(const char* str) const {
     }
     str += consumed;
   }
-  return true;
+  return *str == '\0';
 }
 
 

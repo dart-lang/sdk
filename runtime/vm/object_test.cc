@@ -656,6 +656,7 @@ TEST_CASE(StringConcat) {
     EXPECT(str7.IsOneByteString());
     EXPECT_EQ(6, str7.Length());
     EXPECT(str7.Equals("oneone"));
+    EXPECT(!str7.Equals("oneoneone"));
   }
 
   // Create a string by concatenating non-empty 1-byte strings.
