@@ -11,9 +11,11 @@
 namespace dart {
 
 // Forward declaration.
+class Array;
 class Code;
 class ExternalLabel;
 class Function;
+class RawArray;
 class String;
 
 class CodePatcher : public AllStatic {
@@ -53,6 +55,13 @@ class CodePatcher : public AllStatic {
                                 int* num_arguments,
                                 int* num_named_arguments,
                                 uword* target);
+
+  static RawArray* GetInstanceCallIcDataAt(uword return_address);
+
+  static void SetInstanceCallIcDataAt(uword return_address,
+                                      const Array& ic_data);
+
+  static intptr_t InstanceCallSizeInBytes();
 };
 
 }  // namespace dart

@@ -9,6 +9,9 @@ namespace dart {
 
 // ICData is a ValueObject, therefore 'data' need not be a ZoneObject.
 ICData::ICData(const Array& data) : data_(&data) {
+  // Check consistency.
+  ASSERT(!String::Handle(FunctionName()).IsNull());
+  ASSERT(NumberOfArgumentsChecked() > 0);
 }
 
 

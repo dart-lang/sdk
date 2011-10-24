@@ -21,10 +21,6 @@ namespace dart {
 //  3: call target_address
 //  <- return_address
 class DartCallPattern : public ValueObject {
- private:
-  static const int kNumInstructions = 3;
-  static const int kInstructionSize = 5;  // All instructions have same length.
-
  public:
   explicit DartCallPattern(uword return_address)
       : start_(return_address - (kNumInstructions * kInstructionSize)) {
@@ -50,6 +46,12 @@ class DartCallPattern : public ValueObject {
     return *reinterpret_cast<uint32_t*>(start_ + 1);
   }
 
+  void set_immediate_one(uint32_t value) {
+    uint32_t* target_addr = reinterpret_cast<uint32_t*>(start_ + 1);
+    *target_addr = value;
+    CPU::FlushICache(call_address(), kInstructionSize);
+  }
+
   uint32_t immediate_two() const {
     return *reinterpret_cast<uint32_t*>(start_ + kInstructionSize + 1);
   }
@@ -71,6 +73,9 @@ class DartCallPattern : public ValueObject {
     num_pos_args ^= args_desc.At(1);
     return num_args.Value() - num_pos_args.Value();
   }
+
+  static const int kNumInstructions = 3;
+  static const int kInstructionSize = 5;  // All instructions have same length.
 
  private:
   uword return_address() const {
@@ -121,6 +126,10 @@ class InstanceCall : public DartCallPattern {
     Array& array = Array::Handle();
     array ^= reinterpret_cast<RawObject*>(immediate_one());
     return array.raw();
+  }
+
+  void SetIcData(const Array& value) {
+    set_immediate_one(reinterpret_cast<int32_t>(value.raw()));
   }
 
  private:
@@ -253,6 +262,24 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
 void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
   InstanceCall call(return_address);
   call.set_target(new_target);
+}
+
+
+RawArray* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
+  InstanceCall call(return_address);
+  return call.ic_data();
+}
+
+
+void CodePatcher::SetInstanceCallIcDataAt(uword return_address,
+                                          const Array& ic_data) {
+  InstanceCall call(return_address);
+  call.SetIcData(ic_data);
+}
+
+
+intptr_t CodePatcher::InstanceCallSizeInBytes() {
+  return DartCallPattern::kNumInstructions * DartCallPattern::kInstructionSize;
 }
 
 }  // namespace dart
