@@ -849,21 +849,21 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       signature_function.set_result_type(result_type);
       AddFormalParamsToFunction(&func_params, signature_function);
       const String& signature = String::Handle(signature_function.Signature());
-      // Lookup the class named signature and only create a new class if it does
-      // not exist yet.
-      Class& signature_class = Class::ZoneHandle(LookupClass(signature));
+      // Lookup the signature class, i.e. the class whose name is the signature.
+      // We only lookup in the current library, but not in its imports, and only
+      // create a new canonical signature class if it does not exist yet.
+      Class& signature_class = Class::ZoneHandle(
+          library_.LookupLocalClass(signature));
       if (signature_class.IsNull()) {
         signature_class = Class::NewSignatureClass(signature,
                                                    signature_function,
-                                                   script_,
-                                                   parameter.name_pos);
-        // Record the function signature class in the library.
+                                                   script_);
+        // Record the function signature class in the current library.
         library_.AddClass(signature_class);
+      } else {
+        signature_function.set_signature_class(signature_class);
       }
-      ASSERT(!Function::Handle(signature_class.signature_function()).IsNull());
-      ASSERT(Class::Handle(signature_function.signature_class()).IsNull());
-      signature_function.set_signature_class(signature_class);
-
+      ASSERT(signature_function.signature_class() == signature_class.raw());
       // The type of the parameter is now the signature type.
       parameter.type = &Type::ZoneHandle(signature_class.SignatureType());
       if (!is_top_level_ && !parameter.type->IsFinalized()) {
@@ -2419,23 +2419,22 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
     OS::Print("TopLevel parsing function type alias '%s'\n",
               signature.ToCString());
   }
-  // Lookup the class by its signature and only create a new canonical signature
-  // class if it does not exist yet.
-  Class& signature_class = Class::ZoneHandle(LookupClass(signature));
+  // Lookup the signature class, i.e. the class whose name is the signature.
+  // We only lookup in the current library, but not in its imports, and only
+  // create a new canonical signature class if it does not exist yet.
+  Class& signature_class = Class::ZoneHandle(
+      library_.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     signature_class = Class::NewSignatureClass(signature,
                                                signature_function,
-                                               script_,
-                                               alias_name_pos);
-    // Record the function signature class in the library.
+                                               script_);
+    // Record the function signature class in the current library.
     library_.AddClass(signature_class);
-    ASSERT(Class::Handle(signature_function.signature_class()).IsNull());
-    signature_function.set_signature_class(signature_class);
   } else {
-    // Forget the just created function type desc and use the existing one.
+    // Forget the just created signature function and use the existing one.
     signature_function = signature_class.signature_function();
-    ASSERT(signature_function.signature_class() == signature_class.raw());
   }
+  ASSERT(signature_function.signature_class() == signature_class.raw());
   // Lookup the class by its alias name and report an error if it exists.
   Class& function_type_alias = Class::ZoneHandle(LookupClass(*alias_name));
   if (function_type_alias.IsNull()) {
@@ -2443,8 +2442,7 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
     // canonical signature class.
     function_type_alias = Class::NewSignatureClass(*alias_name,
                                                    signature_function,
-                                                   script_,
-                                                   alias_name_pos);
+                                                   script_);
     library_.AddClass(function_type_alias);
   } else {
     const char* format = function_type_alias.is_interface() ?
@@ -3415,22 +3413,22 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   SequenceNode* statements = Parser::ParseFunc(function,
                                                default_parameter_values);
 
-  // Now that the local function has formal parameters, lookup or create a new
-  // signature class for it.
+  // Now that the local function has formal parameters, lookup the signature
+  // class in the current library (but not in its imports) and only create a new
+  // canonical signature class if it does not exist yet.
   const String& signature = String::Handle(function.Signature());
-  Class& signature_class = Class::Handle(LookupClass(signature));
+  Class& signature_class = Class::ZoneHandle(
+      library_.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     signature_class = Class::NewSignatureClass(signature,
                                                function,
-                                               script_,
-                                               ident_pos);
-    // Record the function signature class in the library.
+                                               script_);
+    // Record the function signature class in the current library.
     library_.AddClass(signature_class);
+  } else {
+    function.set_signature_class(signature_class);
   }
-  ASSERT(!Function::Handle(signature_class.signature_function()).IsNull());
-  ASSERT(Class::Handle(function.signature_class()).IsNull());
-  function.set_signature_class(signature_class);
-
+  ASSERT(function.signature_class() == signature_class.raw());
   // Local functions are not registered in the enclosing class, which is already
   // finalized.
   ASSERT(current_class().is_finalized());

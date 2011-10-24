@@ -1013,8 +1013,7 @@ RawClass* Class::NewInterface(const String& name, const Script& script) {
 
 RawClass* Class::NewSignatureClass(const String& name,
                                    const Function& signature_function,
-                                   const Script& script,
-                                   intptr_t token_index) {
+                                   const Script& script) {
   ASSERT(!signature_function.IsNull());
   Type& super_type = Type::Handle(Type::ObjectType());
   const Class& owner_class = Class::Handle(signature_function.owner());
@@ -1046,6 +1045,12 @@ RawClass* Class::NewSignatureClass(const String& name,
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
   interfaces.SetAt(0, function_interface);
   result.set_interfaces(interfaces);
+  // Unless the signature function already has a signature class, create a
+  // canonical signature class by having the signature function pointing back to
+  // the signature class.
+  if (signature_function.signature_class() == Object::null()) {
+    signature_function.set_signature_class(result);
+  }
   return result.raw();
 }
 
@@ -1196,6 +1201,12 @@ void Class::set_allocation_stub(const Code& value) const {
 
 bool Class::IsObjectClass() const {
   return raw() == Type::Handle(Type::ObjectType()).type_class();
+}
+
+
+bool Class::IsCanonicalSignatureClass() const {
+  const Function& function = Function::Handle(signature_function());
+  return (!function.IsNull() && (function.signature_class() == raw()));
 }
 
 
@@ -2944,25 +2955,25 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
 
-  // Lookup or create a new function type for the closure function in the
+  // Lookup or create a new signature class for the closure function in the
   // library of the owner class.
   const Class& owner_class = Class::Handle(owner());
   ASSERT(!owner_class.IsNull() && (owner() == closure_function.owner()));
   const Library& library = Library::Handle(owner_class.library());
   ASSERT(!library.IsNull());
   const String& signature = String::Handle(closure_function.Signature());
-  Class& signature_class = Class::ZoneHandle(library.LookupClass(signature));
+  Class& signature_class = Class::ZoneHandle(
+      library.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     const Script& script = Script::Handle(owner_class.script());
     signature_class = Class::NewSignatureClass(signature,
                                                closure_function,
-                                               script,
-                                               token_index());
+                                               script);
     library.AddClass(signature_class);
+  } else {
+    closure_function.set_signature_class(signature_class);
   }
-  ASSERT(!Function::Handle(signature_class.signature_function()).IsNull());
-  ASSERT(Class::Handle(closure_function.signature_class()).IsNull());
-  closure_function.set_signature_class(signature_class);
+  ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
@@ -3547,7 +3558,9 @@ void Library::AddObject(const Object& obj, const String& name) const {
          obj.IsField() ||
          obj.IsLibraryPrefix());
   ASSERT((LookupObject(name) == Object::null()) ||
-         (obj.IsLibraryPrefix() &&
+         ((obj.IsLibraryPrefix() ||
+           (obj.IsClass() &&
+            Class::CheckedHandle(obj.raw()).IsCanonicalSignatureClass())) &&
           (LookupLocalObject(name) == Object::null())));
   const Array& dict = Array::Handle(dictionary());
   intptr_t dict_size = dict.Length() - 1;
@@ -3722,7 +3735,7 @@ RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
     ASSERT(!obj.IsNull());
     if (obj.IsClass()) {
       cls ^= obj.raw();
-      if (cls.IsSignatureClass()) {
+      if (cls.IsCanonicalSignatureClass()) {
         continue;
       }
       entry_name = cls.Name();

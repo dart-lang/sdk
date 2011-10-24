@@ -481,6 +481,10 @@ class Class : public Object {
     return signature_function() != Object::null();
   }
 
+  // Check if this class represents a canonical signature class, i.e. not an
+  // alias as defined in a typedef.
+  bool IsCanonicalSignatureClass() const;
+
   // Check the "more specific than" relationship.
   bool IsMoreSpecificThan(const TypeArguments& type_arguments,
                           const Class& other,
@@ -589,8 +593,7 @@ class Class : public Object {
   // class of signature_function.
   static RawClass* NewSignatureClass(const String& name,
                                      const Function& signature_function,
-                                     const Script& script,
-                                     intptr_t token_index);
+                                     const Script& script);
 
   // Return a class object corresponding to the specified kind. If
   // a canonicalized version of it exists then that object is returned

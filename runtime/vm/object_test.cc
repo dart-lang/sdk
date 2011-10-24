@@ -1746,11 +1746,11 @@ TEST_CASE(Closure) {
   const String& function_name = String::Handle(String::NewSymbol("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
   const Class& signature_class = Class::Handle(
-      Class::NewSignatureClass(function_name, function, script, 0));
-  function.set_signature_class(signature_class);
+      Class::NewSignatureClass(function_name, function, script));
   const Closure& closure = Closure::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT(closure_class.IsSignatureClass());
+  EXPECT(closure_class.IsCanonicalSignatureClass());
   EXPECT_EQ(closure_class.raw(), signature_class.raw());
   const Function& signature_function =
     Function::Handle(signature_class.signature_function());
