@@ -9,19 +9,14 @@
 namespace dart {
 
 static RawFunction* GetDummyTarget(const char* name) {
-  Assembler assembler;
-  assembler.ret();
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(name, &assembler));
-  const String& function_name =
-      String::ZoneHandle(String::NewSymbol(name));
-  const Function& function = Function::Handle(Function::New(
-      function_name, RawFunction::kFunction, true, false, 0));
-  function.SetCode(code);
-  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-  ASSERT(code_index_table != NULL);
-  code_index_table->AddFunction(function);
-  return function.raw();
+  const String& function_name = String::Handle(String::NewSymbol(name));
+  const bool is_static = false;
+  const bool is_const = false;
+  return Function::New(function_name,
+                       RawFunction::kFunction,
+                       is_static,
+                       is_const,
+                       0);
 }
 
 
