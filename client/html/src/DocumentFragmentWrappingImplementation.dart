@@ -106,7 +106,7 @@ class FilteredElementList implements ElementList {
   Element last() => _filtered.last();
 }
 
-class EmptyStyleDeclaration implements CSSStyleDeclaration {
+class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
   String get cssText() => "";
   int get length() => 0;
   CSSRule get parentRule() => null;

@@ -203,16 +203,16 @@ class View implements Positionable {
   /**
    * Gets whether the view is hidden.
    */
-  bool get hidden() => Css.getDisplay(_node.style) == 'none';
+  bool get hidden() => _node.style.display == 'none';
 
   /**
    * Sets whether the view is hidden.
    */
   void set hidden(bool hidden) {
     if (hidden) {
-      Css.setDisplay(node.style, 'none');
+      node.style.display = 'none';
     } else {
-      Css.setDisplay(node.style, '');
+      node.style.display = '';
     }
   }
 
@@ -226,7 +226,7 @@ class View implements Positionable {
 
   /** Sets the CSS3 transform applied to the view. */
   set transform(String transform) {
-    Css.setTransform(node.style, transform);
+    node.style.transform = transform;
   }
 
   // TODO(rnystrom): Get rid of this, or move into a separate class?

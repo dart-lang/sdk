@@ -1,0 +1,20 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Utils for device detection.
+ */
+class _Device {
+  /**
+   * Gets the browser's user agent. Using this function allows tests to inject
+   * the user agent.
+   * Returns the user agent.
+   */
+  static String get userAgent() => window.navigator.userAgent;
+
+  /**
+   * Determines if the current device is running Firefox.
+   */
+  static bool get isFirefox() => userAgent.contains("Firefox", 0);
+}

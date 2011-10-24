@@ -164,7 +164,7 @@ class SliderMenu extends View {
     // triangle) set its width the push the triangle to where we want it.
     String duration = animate ? '.3s' : '0s';
     final triangle = node.query('.sm-triangle');
-    Css.setTransitionDuration(triangle.style, duration);
+    triangle.style.transitionDuration = duration;
     FxUtil.setWebkitTransform(triangle, x, 0);
   }
 }

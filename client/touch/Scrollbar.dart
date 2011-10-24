@@ -298,7 +298,7 @@ class Scrollbar implements ScrollListener {
     if (show) {
       element.style.removeProperty("opacity");
     } else {
-      Css.setOpacity(element.style, '0');
+      element.style.opacity = '0';
     }
   }
 

@@ -26,23 +26,23 @@ class FxUtil {
       Element el, num duration,
       [String property = StyleUtil.TRANSFORM_STYLE,
        String timingFunction = TransitionTimingFunction.EASE_IN_OUT]) {
-    Css.setTransition(el.style, '${property} ${duration}ms ${timingFunction}');
+    el.style.transition = '${property} ${duration}ms ${timingFunction}';
   }
 
   /** Stops and clears the transition on an element. */
   static void clearWebkitTransition(Element el) {
-    Css.setTransition(el.style, '');
+    el.style.transition = '';
   }
 
   static void setPosition(Element el, Coordinate point) {
     num x = point.x;
     num y = point.y;
-    Css.setTransform(el.style, '${TRANSLATE_3D}(${x}px,${y}px,0px)');
+    el.style.transform = '${TRANSLATE_3D}(${x}px,${y}px,0px)';
   }
 
   /** Apply a transform using translate3d to an HTML element. */
   static void setTranslate(Element el, num x, num y, num z) {
-    Css.setTransform(el.style, '${TRANSLATE_3D}(${x}px,${y}px,${z}px)');
+    el.style.transform = '${TRANSLATE_3D}(${x}px,${y}px,${z}px)';
   }
 
   /** Apply a -webkit-transform using translate3d to an HTML element. */
@@ -61,10 +61,10 @@ class FxUtil {
     if (scale !== null) {
       transform = transform.concat(' ${SCALE}(${scale})');
     }
-    Css.setTransform(style, transform);
+    style.transform = transform;
     if (originX !== null || originY !== null) {
       assert(originX !== null && originY !== null);
-      Css.setTransformOrigin(style, '${originX}px ${originY}px');
+      style.transformOrigin = '${originX}px ${originY}px';
     }
   }
 
@@ -86,14 +86,14 @@ class FxUtil {
 
   /** Clear a -webkit-transform from an element. */
   static void clearWebkitTransform(Element el) {
-    Css.setTransform(el.style, '');
+    el.style.transform = '';
   }
 
   /**
    * Checks whether an element has a translate3d webkit transform applied.
    */
   static bool hasWebkitTransform(Element el) {
-    return Css.getTransform(el.style).indexOf(TRANSLATE_3D, 0) != -1;
+    return el.style.transform.indexOf(TRANSLATE_3D, 0) != -1;
   }
 
   /**
@@ -102,8 +102,8 @@ class FxUtil {
    */
   static void setLeftAndTop(Element el, num x, num y) {
     final style = el.style;
-    Css.setLeft(style, '${x}px');
-    Css.setTop(style, '${y}px');
+    style.left = '${x}px';
+    style.top = '${y}px';
   }
 }
 
@@ -122,9 +122,9 @@ class StyleUtil {
    * Limitations:
    * - Does not report border styles correctly in Webkit.
    */
-  static Css getComputedStyle(Element element) {
+  static CSSStyleDeclaration getComputedStyle(Element element) {
     // TODO(jmesserly): last param should be null, see b/5045788
-    return new Css(window.getComputedStyle(element, ''));
+    return window.getComputedStyle(element, '');
   }
 
   /** Retrieves the current transform of an element. */

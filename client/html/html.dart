@@ -546,6 +546,7 @@
 #source('src/DOMWrapperBase.dart');
 #source('src/Document.dart');
 #source('src/DataAttributeMap.dart');
+#source('src/Device.dart');
 #source('src/BodyElement.dart');
 #source('src/BodyElementWrappingImplementation.dart');
 #source('src/CssClassSet.dart');

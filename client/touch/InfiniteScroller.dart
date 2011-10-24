@@ -136,10 +136,10 @@ class InfiniteScroller {
   void _updateVisibility(bool isLoading, Element element,
                          Element loadingElement) {
     if (element != null) {
-      Css.setDisplay(element.style, isLoading ? "none" : "");
+      element.style.display = isLoading ? "none" : "";
     }
     if (loadingElement != null) {
-      Css.setDisplay(loadingElement.style, isLoading ? "" : "none");
+      loadingElement.style.display = isLoading ? "" : "none";
     }
   }
 }

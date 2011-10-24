@@ -211,8 +211,7 @@ class Scroller implements Draggable, MomentumDelegate {
       });
     // The scrollable element must be relatively positioned.
     assert(_scrollTechnique != ScrollerScrollTechnique.RELATIVE_POSITIONING ||
-           new Css(window.getComputedStyle(
-               _element, null)).position != "static");
+           window.getComputedStyle(_element, null).position != "static");
     _initLayer();
   }
 
@@ -620,8 +619,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
     // The scrollable element must be relatively positioned.
     assert(technique != ScrollerScrollTechnique.RELATIVE_POSITIONING ||
-        new Css(window.getComputedStyle(_element, null)).position
-          != "static");
+        window.getComputedStyle(_element, null).position != "static");
 
     if (technique != ScrollerScrollTechnique.TRANSFORM_3D) {
       FxUtil.clearWebkitTransition(_element);

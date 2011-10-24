@@ -13,8 +13,10 @@
 // import of dart:dom by Dartium.
 #import('dart:html', prefix: 'no_use');
 
+#source('CSSStyleDeclarationTests.dart');
 #source('DocumentFragmentTests.dart');
 
 main() {
+  CSSStyleDeclarationTests.main();
   DocumentFragmentTests.main();
 }
