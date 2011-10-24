@@ -28,6 +28,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_STATIC_MEMBER("cannot override static member %s of %s"),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
+  CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
   CANNOT_RESOLVE_CONSTRUCTOR("cannot resolve constructor %s"),
   CANNOT_RESOLVE_FIELD("cannot resolve field %s"),
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),

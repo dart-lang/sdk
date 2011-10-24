@@ -751,7 +751,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("for (;'';) {}",
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    
+
     // Foreach tests
     analyze("{ List<String> strings = ['1','2','3']; for (String s in strings) {} }");
     analyzeFail("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
@@ -780,7 +780,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "}");
     analyzeClasses(fieldNotMethod, DartCompilerErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
   }
-  
+
   public void testForEachStatement_Negative2() {
     Map<String, ClassElement> invalidReturnType = loadSource(
         "class A {",
@@ -1309,7 +1309,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testImplementsAndOverrides() {
     analyzeClasses(loadSource(
         "interface Interface {",
-        "  void foo();",
+        "  void foo([x = null]);",
         "  void bar();",
         "}",
         // Abstract class not reported until first instantiation.
@@ -1323,8 +1323,8 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "  Object bar() { return null; }",
         "}",
         "class SubSubClass extends Class {",
-        "  num bar() { return null; }", // TYPE_NOT_ASSIGNMENT_COMPATIBLE.
-        "  void foo([x = null]) {}", // TYPE_NOT_ASSIGNMENT_COMPATIBLE.
+        "  num bar() { return null; }", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
         "}",
         "class Usage {",
         "  m() {",
@@ -1335,13 +1335,26 @@ public class TypeAnalyzerTest extends TypeTestCase {
                                //ABSTRACT_CLASS.
         "  }",
         "}"),
-        DartCompilerErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
-        DartCompilerErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
+        DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+        DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
         DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
         DartCompilerErrorCode.ABSTRACT_CLASS,
         DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
         DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
         DartCompilerErrorCode.ABSTRACT_CLASS);
+  }
+
+  public void testImplementsAndOverrides2() {
+    analyzeClasses(loadSource(
+        "interface Interface {",
+        "  void foo([x = null]);",
+        "}",
+        // Abstract class not reported until first instantiation.
+        "class Class implements Interface {",
+        "  Class() {}",
+        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+        "}"),
+        DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
   }
 
   public void testOddStuff() {

@@ -170,7 +170,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final Type nullType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
-    
+
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
      * outside of any catch block.
@@ -806,7 +806,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.introducesVariable()) {
         variableType = typeOf(node.getVariableStatement());
       } else {
-        variableType = typeOf(node.getIdentifier()); 
+        variableType = typeOf(node.getIdentifier());
       }
       DartExpression iterableExpression = node.getIterable();
       Type iterableType = typeOf(iterableExpression);
@@ -814,10 +814,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (iteratorMember != null) {
         if (TypeKind.of(iteratorMember.getType()) == TypeKind.FUNCTION) {
           FunctionType iteratorMethod = (FunctionType) iteratorMember.getType();
-          InterfaceType asInstanceOf = types.asInstanceOf(iteratorMethod.getReturnType(), 
+          InterfaceType asInstanceOf = types.asInstanceOf(iteratorMethod.getReturnType(),
               dynamicIteratorType.getElement());
           if (asInstanceOf != null) {
-            checkAssignable(iterableExpression, variableType, asInstanceOf.getArguments().get(0));  
+            checkAssignable(iterableExpression, variableType, asInstanceOf.getArguments().get(0));
           } else {
             InterfaceType expectedIteratorType = dynamicIteratorType.subst(
                 Arrays.asList(variableType), dynamicIteratorType.getElement().getTypeParameters());
@@ -830,7 +830,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           typeError(iterableExpression, DartCompilerErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
         }
       }
-      
+
       return typeAsVoid(node);
     }
 
@@ -1609,7 +1609,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
       private void checkOverride(DartExpression node, Element member, Element superElement) {
         String name = member.getName();
         Type superMember = typeAsMemberOf(superElement, currentClass);
-        if (!types.isAssignable(superMember, member.getType())) {
+        if (member.getKind() == ElementKind.METHOD
+            && superElement.getKind() == ElementKind.METHOD) {
+          if (!types.isSubtype(member.getType(), superMember)) {
+            typeError(node, DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+                      name, superElement.getEnclosingElement().getName(),
+                      member.getType(), superMember);
+          }
+        } else if (!types.isAssignable(superMember, member.getType())) {
           typeError(node, DartCompilerErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
                     name, superElement.getEnclosingElement().getName(),
                     member.getType(), superMember);

@@ -158,6 +158,9 @@ public class Types {
    * covariant, and paramter types are contravariant), in Dart they must just be assignable.
    */
   private boolean isSubtypeOfFunction(FunctionType t, FunctionType s) {
+    if (s.getKind() == TypeKind.DYNAMIC || t.getKind() == TypeKind.DYNAMIC) {
+      return true;
+    }
     // Classic: return type is covariant; Dart: assignable.
     if (!isAssignable(t.getReturnType(), s.getReturnType())) {
       // A function that returns a value can be used as a function where you ignore the value.
@@ -178,25 +181,34 @@ public class Types {
     }
     Map<String, Type> tNamed = t.getNamedParameterTypes();
     Map<String, Type> sNamed = s.getNamedParameterTypes();
-    if ((tNamed == null) != (sNamed == null)) {
+    if (tNamed.isEmpty() && !sNamed.isEmpty()) {
       return false;
     }
-    if (tNamed != null) {
-      Map<String,Type> tMap = new LinkedHashMap<String, Type>(tNamed);
-      for (Entry<String, Type> sEntry : sNamed.entrySet()) {
-        Type type = tMap.remove(sEntry.getKey());
-        if (type == null) {
+
+    // T's named parameters must be in the same order and assignable to S's but
+    // maybe a superset.
+    if (!sNamed.isEmpty()) {
+      LinkedHashMap<String,Type> tMap = (LinkedHashMap<String, Type>)(tNamed);
+      LinkedHashMap<String,Type> sMap = (LinkedHashMap<String, Type>)(sNamed);
+      Iterator<Entry<String, Type>> tList = tMap.entrySet().iterator();
+      Iterator<Entry<String, Type>> sList = sMap.entrySet().iterator();
+      // t named parameters must start with the named parameters of s
+      while (sList.hasNext()) {
+        if (!tList.hasNext()) {
+          return false;
+        }
+        Entry<String, Type> sEntry = sList.next();
+        Entry<String, Type> tEntry = tList.next();
+        if (!sEntry.getKey().equals(tEntry.getKey())) {
           return false;
         }
         // Classic: parameter types are contravariant; Dart: assignable.
-        if (!isAssignable(sEntry.getValue(), type)) {
+        if (!isAssignable(tEntry.getValue(), sEntry.getValue())) {
           return false;
         }
       }
-      if (!tMap.isEmpty()) {
-        return false;
-      }
     }
+
     // Classic: parameter types are contravariant; Dart: assignable.
     return areAssignable(s.getParameterTypes().iterator(), t.getParameterTypes().iterator());
   }
