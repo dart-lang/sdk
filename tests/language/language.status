@@ -44,9 +44,6 @@ BlackListedTest/10: Fail # Bug 5469684
 BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
 
-ConstructorTest: Fail          # Bug 4995181, execution order
-ParameterInitializerTest: Fail # Bug 4995181, execution order
-
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
 

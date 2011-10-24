@@ -1363,7 +1363,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
 void Parser::ParseInitializers(const Class& cls) {
   TRACE_PARSER("ParseInitializers");
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
-  bool super_init_seen = false;
+  AstNode* super_init_statement = NULL;
   if (CurrentToken() == Token::kCOLON) {
     if ((LookaheadToken(1) == Token::kTHIS) &&
         ((LookaheadToken(2) == Token::kLPAREN) ||
@@ -1380,26 +1380,27 @@ void Parser::ParseInitializers(const Class& cls) {
 
     do {
       ConsumeToken();  // Colon or comma.
-      AstNode* init_statement = NULL;
       if (CurrentToken() == Token::kSUPER) {
-        if (super_init_seen) {
+        if (super_init_statement != NULL) {
           ErrorMsg("Duplicate call to super constructor");
         }
-        init_statement = ParseSuperInitializer(cls, receiver);
-        super_init_seen = true;
+        super_init_statement = ParseSuperInitializer(cls, receiver);
       } else {
-        init_statement = ParseInitializer(cls, receiver);
+        AstNode* init_statement = ParseInitializer(cls, receiver);
+        current_block_->statements->Add(init_statement);
       }
-      current_block_->statements->Add(init_statement);
     } while (CurrentToken() == Token::kCOMMA);
   }
 
-  // Generate implicit super() if we haven't seen an explicit super call
-  // or constructor redirection.
-  // Omit the implicit super() if there is no super class (i.e.
-  // we're not compiling class Object), or if the super class is an
-  // artificially generated "wrapper class" that has no constructor.
-  if (!super_init_seen) {
+  if (super_init_statement != NULL) {
+    // Move explicit supercall to the end of the initializer list to
+    // avoid executing constructor code on partially initialized objects.
+    // TODO(hausner): Fix issue 4995181, evaluation order of constructor
+    // initializer lists.
+    current_block_->statements->Add(super_init_statement);
+  } else {
+    // Generate implicit super() if we haven't seen an explicit super call
+    // or constructor redirection.
     GenerateSuperInitializerCall(cls, receiver);
   }
 
