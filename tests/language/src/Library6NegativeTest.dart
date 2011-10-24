@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+#library("Library6NegativeTest.dart");
 #import("Library5a.dart");
 
 typedef int Fun();  // Expect this to conflict during parsing

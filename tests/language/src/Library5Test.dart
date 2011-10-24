@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+#library("Library5Test.dart");
 #import("Library5a.dart", prefix : "lib5a");
 #import("Library5b.dart", prefix : "lib5b");
 
