@@ -180,6 +180,15 @@ class TestExpectation {
     return result;
   }
 
+  Promise completesWithValue(Promise promise, var expected) {
+    Promise result = new TestPromise(this);
+    promise.then((value) {
+      Expect.equals(expected, value);
+      result.complete(value);
+    });
+    return result;
+  }
+
   Function runs0(Function fn) {
     bool ran = false;  // We only check that the function is executed once.
     pendingCallbacks++;

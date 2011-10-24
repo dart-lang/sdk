@@ -1,4 +1,12 @@
-/* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 7) */
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
+
+#import("../../isolate/src/TestFramework.dart");
+
+/* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 9) */
 
 interface Purse$Proxy {
   Promise<int> queryBalance();
@@ -75,7 +83,7 @@ class Purse$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = PowerfulPurse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 16) */
+/* class = PowerfulPurse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 18) */
 
 interface PowerfulPurse$Proxy {
   void init(Mint$Proxy mint, int balance);
@@ -153,7 +161,7 @@ class PowerfulPurse$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = Mint (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 26) */
+/* class = Mint (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 28) */
 
 interface Mint$Proxy {
   Purse$Proxy createPurse(int balance);
@@ -220,12 +228,6 @@ class Mint$Dispatcher$Isolate extends Isolate {
     });
   }
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
-
 interface Purse {
   Purse();
   int queryBalance();
@@ -385,75 +387,46 @@ class PurseImpl implements PowerfulPurse {
 
 class MintMakerFullyIsolatedTest {
 
-  static void testMain() {
+  static void testMain(TestExpectation expect) {
     Mint$Proxy mint = new Mint$ProxyImpl.createIsolate();
     Purse$Proxy purse = mint.createPurse(100);
     // FIXME(benl): how do I write this?
     //PowerfulPurse$Proxy power = (PowerfulPurse$Proxy)purse;
     //expectEqualsStr("xxx", power.grab());
-    expectEquals(100, purse.queryBalance());
+    Promise<int> balance = purse.queryBalance();
+    expect.completesWithValue(balance, 100);
 
     Purse$Proxy sprouted = purse.sproutPurse();
-    expectEquals(0, sprouted.queryBalance());
+    expect.completesWithValue(sprouted.queryBalance(), 0);
 
     Promise<int> done = sprouted.deposit(5, purse);
+    Promise<int> d3 = expect.completesWithValue(done, 5);
+    Promise<int> inner = new Promise<int>();
+    Promise<int> inner2 = new Promise<int>();
     // FIXME(benl): it should not be necessary to wait here, I think,
     // but without this, the tests seem to execute prematurely.
-    expectEquals(5, done);
-    done.then((int) {
-      expectEquals(0 + 5, sprouted.queryBalance());
-      expectEquals(100 - 5, purse.queryBalance());
+    Promise<int> d1 = done.then((val) {
+      expect.completesWithValue(sprouted.queryBalance(), 0 + 5);
+      expect.completesWithValue(purse.queryBalance(), 100 - 5);
 
       done = sprouted.deposit(42, purse); 
-      expectEquals(5 + 42, done);
-      done.then((int) {
-        expectEquals(0 + 5 + 42, sprouted.queryBalance());
-        expectEquals(100 - 5 - 42, purse.queryBalance());
-
-        expectDone(8);
+      expect.completesWithValue(done, 5 + 42);
+      Promise<int> d2 = done.then((val) {
+        expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42)
+          .then((int value) => inner.complete(0));
+        expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42)
+          .then((int value) => inner2.complete(0));
       });
+      expect.completes(d2);
     });
-  }
-
-  static List<Promise> results;
-
-  static void expectEqualsStr(String expected, Promise<String> promise) {
-    if (results === null) {
-      results = new List<Promise>();
-    }
-    results.add(promise.then((String actual) {
-      //print('done ' + expected + '/' + actual);
-      Expect.equals(expected, actual);
-    }));
-  }
-
-  static void expectEquals(int expected, Promise<int> promise) {
-    if (results === null) {
-      results = new List<Promise>();
-    }
-    results.add(promise.then((int actual) {
-      //print('done ' + expected + '/' + actual);
-      Expect.equals(expected, actual);
-    }));
-  }
-
-  static void expectDone(int n) {
-    if (results === null) {
-      Expect.equals(0, n);
-      print('##DONE##');
-    } else {
-      Promise done = new Promise();
-      done.waitFor(results, results.length);
-      done.then((ignored) { 
-        //print('done all ' + n + '/' + results.length);
-        Expect.equals(n, results.length);
-        print('##DONE##');
-      });
-    }
+    expect.completes(d1);
+    Promise<int> allDone = new Promise<int>();
+    allDone.waitFor([d3, inner, inner2], 3);
+    allDone.then((_) => expect.succeeded());
   }
 
 }
 
 main() {
-  MintMakerFullyIsolatedTest.testMain();
+  runTests([MintMakerFullyIsolatedTest.testMain]);
 }

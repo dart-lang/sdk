@@ -31,33 +31,48 @@ class DartStubTestCase(test_case.StandardTestCase):
     source = self.GetSource()
     stub_classes = utils.ParseTestOptions(test.ISOLATE_STUB_PATTERN, source,
                                           self.context.workspace)
+    if stub_classes is None:
+      return (None, None, None)
     (interface, _, classes) = stub_classes[0].partition(':')
     (interface, _, implementation) = interface.partition('+')
     return (interface, classes, implementation)
 
-  def IsFailureOutput(self, output):
-    return output.exit_code != 0 or not '##DONE##' in output.stdout
-
   def BeforeRun(self):
     if not self.context.generate:
       return
-    command = self.context.GetDartC(self.mode, 'dartc')
     (interface, classes, _) = self.GetStubs()
+    if interface is None:
+      return
     d = join(self.GetPath(), 'generated')
     if not isdir(d):
       os.mkdir(d)
     tmpdir = tempfile.mkdtemp()
     src = join(self.GetPath(), interface)
     dest = join(self.GetPath(), GeneratedName(interface))
+    (_, tmp) = tempfile.mkstemp()
+    command = self.context.GetDartC(self.mode, 'dartc')
     self.RunCommand(command + [ src,
                                 # dartc generates output even if it has no
                                 # output to generate.
                                 '-out', tmpdir,
-                                '-isolate-stub-out', dest,
+                                '-isolate-stub-out', tmp,
                                 '-generate-isolate-stubs', classes ])
     shutil.rmtree(tmpdir)
-    d = open(dest, 'a')
+
+    # Copy comments and # commands from the beginning of the source to
+    # the beginning of the generated file, then copy the remaining
+    # source to the end.
+    d = open(dest, 'w')
     s = open(src, 'r')
+    t = open(tmp, 'r')
+    while True:
+      line = s.readline()
+      if not (re.match('^\s+$', line) or line.startswith('//') or line.startswith('#')):
+        break
+      d.write(line)
+    d.write(t.read())
+    os.remove(tmp)
+    d.write(line)
     d.write(s.read())
 
   def GetCommand(self):
@@ -71,7 +86,11 @@ class DartStubTestCase(test_case.StandardTestCase):
 
     # Combine everything into a command array and return it.
     command = self.context.GetDart(self.mode, self.arch)
-    files = [ join(self.GetPath(), GeneratedName(interface)) ]
+    if interface is None:
+      f = self.filename
+    else:
+      f = GeneratedName(interface)
+    files = [ join(self.GetPath(), f) ]
     if vm_options: command += vm_options
     if dart_options: command += dart_options
     else: command +=  files

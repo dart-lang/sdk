@@ -4,6 +4,8 @@
 
 // IsolateStubs=MintMakerPromiseWithStubsTest.dart:Mint,Purse
 
+#import("../../isolate/src/TestFramework.dart");
+
 interface Mint factory MintImpl {
 
   Mint();
@@ -75,60 +77,34 @@ class PurseImpl implements Purse {
 
 class MintMakerPromiseWithStubsTest {
 
-  static void testMain() {
+  static void testMain(TestExpectation expect) {
     Mint$Proxy mint = new Mint$ProxyImpl.createIsolate();
     Purse$Proxy purse = mint.createPurse(100);
-    expectEquals(100, purse.queryBalance());
+    expect.completesWithValue(purse.queryBalance(), 100);
 
     Purse$Proxy sprouted = purse.sproutPurse();
-    expectEquals(0, sprouted.queryBalance());
+    expect.completesWithValue(sprouted.queryBalance(), 0);
 
     // FIXME(benl): We should not have to manually order the calls
     // like this.
     Promise<int> result = sprouted.deposit(5, purse);
-    expectEquals(5, result);
+    expect.completesWithValue(result, 5);
     result.addCompleteHandler((_) {
-      expectEquals(0 + 5, sprouted.queryBalance());
-      expectEquals(100 - 5, purse.queryBalance());
+      expect.completesWithValue(sprouted.queryBalance(), 0 + 5);
+      expect.completesWithValue(purse.queryBalance(), 100 - 5);
 
       result = sprouted.deposit(42, purse);
-      expectEquals(5 + 42, result);
+      expect.completesWithValue(result, 5 + 42);
       result.addCompleteHandler((_) {
-        expectEquals(0 + 5 + 42, sprouted.queryBalance());
-        expectEquals(100 - 5 - 42, purse.queryBalance());
-        expectDone(8);
-      });
+        expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42);
+        expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42);
+        });
     });
-  }
-
-  static List<Promise> results;
-
-  static void expectEquals(int expected, Promise<int> promise) {
-    if (results === null) {
-      results = new List<Promise>();
-    }
-    results.add(promise.then((int actual) {
-      //print("done $expected/$actual");
-      Expect.equals(expected, actual);
-    }));
-  }
-
-  static void expectDone(int n) {
-    if (results === null) {
-      Expect.equals(0, n);
-      print('##DONE##');
-    } else {
-      Promise done = new Promise();
-      done.waitFor(results, results.length);
-      done.then((ignored) {
-        Expect.equals(n, results.length);
-        print('##DONE##');
-      });
-    }
+    expect.succeeded();
   }
 
 }
 
 main() {
-  MintMakerPromiseWithStubsTest.testMain();
+  runTests([MintMakerPromiseWithStubsTest.testMain]);
 }
