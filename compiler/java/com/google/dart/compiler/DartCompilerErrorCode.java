@@ -57,6 +57,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
       "expected an instance field in the super class, but got %s"),
   EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
+  EXPECTED_CLASS_DECLARATION_LBRACE("Expected '{' in class or interface declaration"),
   EXPECTED_COMMA_OR_RIGHT_BRACE("Expected ',' or '}'"),
   EXPECTED_COMMA_OR_RIGHT_PAREN("Expected ',' or ')', but got '%s'"),
   EXPECTED_COMPOUND_STATEMENT("SyntaxError: expected if, switch, while, do, or for"),

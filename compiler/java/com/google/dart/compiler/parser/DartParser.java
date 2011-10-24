@@ -519,15 +519,18 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     // Parse the members.
-    expect(Token.LBRACE);
     List<DartNode> members = new ArrayList<DartNode>();
-    while (!match(Token.RBRACE) && !EOS()) {
-      DartNode member = parseFieldOrMethod(true);
-      if (member != null) {
-        members.add(member);
+    if (optional(Token.LBRACE)) {
+      while (!match(Token.RBRACE) && !EOS()) {
+        DartNode member = parseFieldOrMethod(true);
+        if (member != null) {
+          members.add(member);
+        }
       }
+      expectCloseBrace();
+    } else {
+      reportErrorWithoutAdvancing(DartCompilerErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
     }
-    expectCloseBrace();
 
     if (isParsingInterface) {
       return done(new DartClass(name, superType, interfaces, members, typeParameters, factory));

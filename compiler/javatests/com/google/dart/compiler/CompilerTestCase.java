@@ -223,6 +223,23 @@ public abstract class CompilerTestCase extends TestCase {
   }
 
   /**
+   * Parse a single compilation unit with given name and source, and check for a set of expected errors.
+   *
+   * @param errors a sequence of errors represented as triples of the form
+   *        (String msg, int line, int column) or
+   *        (ErrorCode code, int line, int column)
+   */
+  protected DartUnit parseSourceUnitErrors(String sourceCode,  Object... errors) {
+    String srcName = "Test.dart";
+    DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
+    DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
+    ParserContext context = makeParserContext(src, sourceCode, listener);
+    DartUnit unit = makeParser(context).parseUnit(src);
+    listener.checkAllErrorsReported();
+    return unit;
+  }
+
+  /**
    * Parse a single compilation unit for the given input file, and check for a
    * set of expected errors.
    *
