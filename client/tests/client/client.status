@@ -7,7 +7,6 @@ prefix client
 [ $arch == dartium ]
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
-html/html_tests: Skip # Fix in progress.
 
 
 [ $arch == chromium ]
