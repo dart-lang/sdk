@@ -18,7 +18,6 @@ import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -63,6 +62,8 @@ public abstract class AbstractJsBackend extends AbstractBackend {
   private static final String ROOT_PART_NAME = "";
   private static final String STATICS_PART_NAME = "$statics$";
   private static final String SEPARATOR_PART_NAME = "$seperator$";
+
+  protected final DartMangler mangler = new DollarMangler();
 
   protected static class Part {
     final LibraryUnit lib;
@@ -314,8 +315,6 @@ public abstract class AbstractJsBackend extends AbstractBackend {
     }
   }
 
-  protected final DartMangler mangler = new DollarMangler();
-
   protected Map<String, JsProgram> translateToJS(DartUnit unit, DartCompilerContext context,
       CoreTypeProvider typeProvider) {
     TraceEvent logEvent =
@@ -378,7 +377,8 @@ public abstract class AbstractJsBackend extends AbstractBackend {
 
             // Generate the Javascript AST.
             GenerateJavascriptAST generator =
-                new GenerateJavascriptAST(unit, typeProvider, context, optimizationStrategy);
+                new GenerateJavascriptAST(unit, typeProvider, context, optimizationStrategy,
+                                          generateClosureCompatibleCode());
             generator.translateNode(translationContext, node, staticInitBlock);
 
             TraceEvent namerEvent =
@@ -403,7 +403,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
               nonClassTranslationContext = TranslationContext.createContext(unit,
                   nonClassStatements, mangler);
               nonClassGenerator = new GenerateJavascriptAST(unit, typeProvider, context,
-                  optimizationStrategy);
+                  optimizationStrategy, generateClosureCompatibleCode());
             } finally {
               Tracer.end(genInitEvent);
             }
@@ -529,7 +529,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
        * Currently, out of date checks require that we write a JS file even if it is empty.
        * However, we should not write a map file if it is.
        */
-      if (!globalBlock.getStatements().isEmpty()) {
+      if (!globalBlock.getStatements().isEmpty() && generateSourceMap(context)) {
         TraceEvent sourcemapEvent =
             Tracer.canTrace() ? Tracer.start(DartEventType.WRITE_SOURCE_MAP, "src", srcName,
                 "name", name) : null;
@@ -551,4 +551,12 @@ public abstract class AbstractJsBackend extends AbstractBackend {
   }
 
   protected abstract boolean shouldOptimize();
+
+  protected boolean generateClosureCompatibleCode() {
+    return false;
+  }
+
+  protected boolean generateSourceMap(DartCompilerContext context) {
+    return context.getCompilerConfiguration().getCompilerOptions().generateSourceMaps();
+  }
 }

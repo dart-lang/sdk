@@ -5,6 +5,7 @@
 package com.google.dart.compiler.end2end;
 
 import com.google.dart.compiler.end2end.inc.IncrementalCompilationTest;
+import com.google.dart.compiler.end2end.inc.IncrementalCompilationWithPrefixTest;
 
 import junit.extensions.TestSetup;
 import junit.framework.Test;
@@ -22,6 +23,7 @@ public class End2EndTests extends TestSetup {
     suite.addTestSuite(BasicTest.class);
     suite.addTestSuite(MainMethodTest.class);
     suite.addTestSuite(IncrementalCompilationTest.class);
+    suite.addTestSuite(IncrementalCompilationWithPrefixTest.class);
     return new End2EndTests(suite);
   }
 }

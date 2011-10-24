@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -17,6 +18,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.metrics.DartEventType;
 import com.google.dart.compiler.metrics.JvmMetrics;
@@ -69,6 +71,49 @@ public class DartCompiler {
   public static final String CORELIB_URL_SPEC = "dart:core";
   public static final String MAIN_ENTRY_POINT_NAME = "main";
 
+  private static class NamedPlaceHolderLibrarySource implements LibrarySource {
+    private final String name;
+
+    public NamedPlaceHolderLibrarySource(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public boolean exists() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public long getLastModified() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    public Reader getSourceReader() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public URI getUri() {
+      throw new AssertionError();
+    }
+
+    @Override
+    public LibrarySource getImportFor(String relPath) {
+      throw new AssertionError();
+    }
+
+    @Override
+    public DartSource getSourceFor(String relPath) {
+      throw new AssertionError();
+    }
+  }
+
   private static class Compiler {
     private final LibrarySource app;
     private final List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
@@ -80,6 +125,7 @@ public class DartCompiler {
     private final boolean collectComments;
     private CoreTypeProvider typeProvider;
     private final boolean incremental;
+    private final boolean usePrecompiledDartLibs;
     private final List<DartCompilationPhase> phases;
     private final List<Backend> backends;
     private final LibrarySource coreLibrarySource;
@@ -106,8 +152,10 @@ public class DartCompiler {
       if (config.shouldOptimize()) {
         // Optimizing turns off incremental compilation.
         incremental = false;
+        usePrecompiledDartLibs = false;
       } else {
         incremental = config.incremental();
+        usePrecompiledDartLibs = true;
       }
     }
 
@@ -150,11 +198,11 @@ public class DartCompiler {
         LibraryUnit library = updateLibraries(app);
         importEmbeddedLibraries();
         parseOutOfDateFiles();
-        if (!context.getFilesHaveChanged()) {
-          return library;
-        }
         if (incremental) {
           addOutOfDateDeps();
+        }
+        if (!context.getFilesHaveChanged()) {
+          return library;
         }
         if (!config.resolveDespiteParseErrors() && (context.getErrorCount() > 0)) {
           return library;
@@ -164,6 +212,7 @@ public class DartCompiler {
         typeProvider = new CoreTypeProviderImplementation(corelibUnit.getElement().getScope(),
                                                           context);
         resolveLibraries();
+        validateLibraryDirectives();
         return library;
       } finally {
         if(compilerMetrics != null) {
@@ -191,7 +240,8 @@ public class DartCompiler {
           boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
           LibraryUnit apiLib = new LibraryUnit(libSrc);
           LibraryNode selfSourcePath = lib.getSelfSourcePath();
-          boolean persist = !incremental || !apiLib.loadApi(context, context);
+          boolean shouldLoadApi = incremental || (libIsDartUri && usePrecompiledDartLibs);
+          boolean apiOutOfDate = !(shouldLoadApi && apiLib.loadApi(context, context));
 
           // Parse each compilation unit and update the API to reflect its contents.
           for (LibraryNode libNode : lib.getSourcePaths()) {
@@ -212,15 +262,18 @@ public class DartCompiler {
                   lib.setSelfDartUnit(unit);
                 }
                 lib.putUnit(unit);
-                persist = true;
+                apiOutOfDate = true;
               }
             } else {
+              if (libNode == selfSourcePath) {
+                lib.setSelfDartUnit(apiUnit);
+              }
               lib.putUnit(apiUnit);
             }
           }
 
           // Persist the api file.
-          if (persist) {
+          if (apiOutOfDate) {
             context.setFilesHaveChanged();
             if (!checkOnly) {
               lib.saveApi(context);
@@ -380,6 +433,7 @@ public class DartCompiler {
     private void addOutOfDateDeps() throws IOException {
       TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.ADD_OUTOFDATE) : null;
       try {
+        boolean filesHaveChanged = false;
         for (LibraryUnit lib : libraries.values()) {
 
           if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
@@ -395,6 +449,7 @@ public class DartCompiler {
           for (String sourceName : deps.getSourceNames()) {
             LibraryDeps.Source depSource = deps.getSource(sourceName);
             if (isSourceOutOfDate(lib, depSource)) {
+              filesHaveChanged = true;
               DartSource dartSrc = lib.getSource().getSourceFor(sourceName);
               if ((dartSrc != null) && (dartSrc.exists())) {
                 DartUnit unit = parse(dartSrc, lib.getPrefixes());
@@ -405,6 +460,10 @@ public class DartCompiler {
               }
             }
           }
+        }
+
+        if (filesHaveChanged) {
+          context.setFilesHaveChanged();
         }
       } finally {
         Tracer.end(logEvent);
@@ -486,9 +545,82 @@ public class DartCompiler {
       }
     }
 
+    private void validateLibraryDirectives() {
+      LibraryUnit appLibUnit = context.getAppLibraryUnit();
+      for (LibraryUnit lib : libraries.values()) {
+        // don't need to validate system libraries
+        if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
+          continue;
+        }
+
+        // check that each imported library has a library directive
+        for (LibraryUnit importedLib : lib.getImports()) {
+
+          if (SystemLibraryManager.isDartUri(importedLib.getSource().getUri())) {
+            // system libraries are always valid
+            continue;
+          }
+
+          // get the dart unit corresponding to this library
+          DartUnit unit = importedLib.getSelfDartUnit();
+          if (unit.isDiet()) {
+            // don't need to check a unit that hasn't changed
+            continue;
+          }
+
+          boolean foundLibraryDirective = false;
+          for (DartDirective directive : unit.getDirectives()) {
+            if (directive instanceof DartLibraryDirective) {
+              foundLibraryDirective = true;
+              break;
+            }
+          }
+          if (!foundLibraryDirective) {
+            // find the imported path node (which corresponds to the import
+            // directive node)
+            SourceInfo info = null;
+            for (LibraryNode importPath : lib.getImportPaths()) {
+              if (importPath.getText().equals(importedLib.getSelfSourcePath().getText())) {
+                info = importPath;
+                break;
+              }
+            }
+            if (info != null) {
+              context.compilationError(new DartCompilationError(info,
+                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE, unit.getSource()
+                      .getRelativePath()));
+            }
+          }
+        }
+
+        // check that all sourced units have no directives
+        for (DartUnit unit : lib.getUnits()) {
+          if (unit.isDiet()) {
+            // don't need to check a unit that hasn't changed
+            continue;
+          }
+          if (unit.getDirectives().size() > 0) {
+            // find corresponding source node for this unit
+            for (LibraryNode sourceNode : lib.getSourcePaths()) {
+              if (sourceNode == lib.getSelfSourcePath()) {
+                // skip the special synthetic selfSourcePath node
+                continue;
+              }
+              if (unit.getSource().getRelativePath().equals(sourceNode.getText())) {
+                context.compilationError(new DartCompilationError(unit.getDirectives().get(0),
+                    DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, unit.getSource()
+                        .getRelativePath()));
+              }
+            }
+          }
+        }
+      }
+    }
+
     private void setEntryPoint() {
       LibraryUnit lib = context.getAppLibraryUnit();
       lib.setEntryNode(new LibraryNode(MAIN_ENTRY_POINT_NAME));
+      // this ensures that if we find it, it's a top-level static element
       Element element = lib.getElement().lookupLocalElement(MAIN_ENTRY_POINT_NAME);
       switch (ElementKind.of(element)) {
         case NONE:
@@ -498,41 +630,26 @@ public class DartCompiler {
         case METHOD:
           MethodElement methodElement = (MethodElement) element;
           Modifiers modifiers = methodElement.getModifiers();
-          if (!modifiers.isGetter() && !modifiers.isSetter()
-              && (methodElement.getParameters() == null
-                  || methodElement.getParameters().size() == 0)) {
-            lib.getElement().setEntryPoint(methodElement);
-          } else if (modifiers.isGetter()) {
-            context.compilationError(new DartCompilationError(Location.NONE,
+          if (modifiers.isGetter()) {
+            context.compilationError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER, MAIN_ENTRY_POINT_NAME));
           } else if (modifiers.isSetter()) {
-            context.compilationError(new DartCompilationError(Location.NONE,
+            context.compilationError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER, MAIN_ENTRY_POINT_NAME));
-          } else {
-            context.compilationError(new DartCompilationError(Location.NONE,
+          } else if (methodElement.getParameters().size() > 0) {
+            context.compilationError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS,
                 MAIN_ENTRY_POINT_NAME));
+          } else {
+            lib.getElement().setEntryPoint(methodElement);
           }
           break;
 
         default:
-          context.compilationError(new DartCompilationError(Location.NONE,
+          context.compilationError(new DartCompilationError(element.getNode(),
               DartCompilerErrorCode.NOT_A_STATIC_METHOD, MAIN_ENTRY_POINT_NAME));
           break;
       }
-    }
-
-    private boolean checkUnitForLibraryDirective(DartUnit unit) {
-      List<DartDirective> directives = unit.getDirectives();
-      if (directives == null || directives.size() == 0) {
-        return false;
-      }
-      for (DartDirective directive : directives) {
-        if (directive instanceof DartLibraryDirective) {
-          return true;
-        }
-      }
-      return false;
     }
 
     private void compileLibraries() throws IOException {
@@ -551,32 +668,12 @@ public class DartCompiler {
         // The two following for loops can be parallelized.
         for (LibraryUnit lib : libraries.values()) {
           boolean persist = false;
-          boolean isAppLibUnit = (lib == context.getAppLibraryUnit());
-          DartUnit libSelfUnit = lib.getSelfDartUnit();
 
           // Compile all the units in this library.
           for (DartUnit unit : lib.getUnits()) {
             // Don't compile api-only units.
             if (unit.isDiet()) {
               continue;
-            }
-
-            if (!isAppLibUnit) {
-              // See if this unit was imported from another unit, and if so,
-              // it's required to have a #library directive
-              if (libSelfUnit == unit) {
-                if (!checkUnitForLibraryDirective(unit)) {
-                  context.compilationError(new DartCompilationError(Location.NONE,
-                      DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE, unit.getSourceName()));
-                }
-              } else {
-                // Else it's required not to have any directives
-                if (unit.getDirectives() != null) {
-                  context.compilationError(new DartCompilationError(Location.NONE,
-                      DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, libSelfUnit
-                          .getSourceName(), unit.getSourceName()));
-                }
-              }
             }
 
             // Run all compiler phases including AST simplification and symbol
@@ -596,6 +693,9 @@ public class DartCompiler {
                 return;
               }
             }
+
+            // To help support the IDE, notify the listener that this unit is compiled.
+            context.unitCompiled(unit);
 
             if (checkOnly) {
               continue;
@@ -655,7 +755,8 @@ public class DartCompiler {
           // when generating documentation.
           if (context.getApplicationUnit().getEntryNode() == null && !collectComments) {
             if (config.expectEntryPoint()) {
-              context.compilationError(new DartCompilationError(Location.NONE,
+              context.compilationError(new DartCompilationError(
+                  context.getApplicationUnit().getSource(), Location.NONE,
                   DartCompilerErrorCode.NO_ENTRY_POINT));
             }
             return;
@@ -996,6 +1097,16 @@ public class DartCompiler {
                                   DartCompilerListener listener) throws IOException {
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener,
                                                                   config);
+    if (config.getCompilerOptions().shouldExposeCoreImpl()) {
+      if (embeddedLibraries == null) {
+        embeddedLibraries = Lists.newArrayList();
+      }
+      // use a place-holder LibrarySource instance, to be replaced when embedded
+      // in the compiler, where the dart uri can be resolved.
+      embeddedLibraries.add(new NamedPlaceHolderLibrarySource("dart:coreimpl"));
+    }
+
+
     new Compiler(lib, embeddedLibraries, config, context).compile();
     int errorCount = context.getErrorCount();
     if (config.typeErrorsAreFatal()) {
@@ -1116,7 +1227,7 @@ public class DartCompiler {
     }
     return null;
   }
-  
+
   public static LibraryUnit getCoreLib(LibraryUnit libraryUnit) {
     return findLibrary(libraryUnit, "corelib.dart", new HashSet<LibraryElement>());
   }

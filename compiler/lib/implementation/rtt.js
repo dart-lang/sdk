@@ -263,3 +263,27 @@ RTT.setTypeInfo(Function.prototype, RTT.create($cls('Function$Dart')));
 function $cls(cls) {
   return "cls:" + cls;
 }
+
+/**
+ * @param {*} o
+ * @return {boolean}
+ */
+function $isBool(o) {
+  return typeof o == 'boolean';
+}
+
+/**
+ * @param {*} o
+ * @return {boolean}
+ */
+function $isNum(o) {
+  return typeof o == 'number';
+}
+
+/**
+ * @param {*} o
+ * @return {boolean}
+ */
+function $isString(o) {
+  return typeof o == 'string';
+}

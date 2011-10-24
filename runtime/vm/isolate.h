@@ -46,8 +46,19 @@ class Isolate {
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
 
-  Monitor* monitor() const { return monitor_; }
-  void set_monitor(Monitor* value) { monitor_ = value; }
+  Dart_PostMessageCallback post_message_callback() const {
+    return post_message_callback_;
+  }
+  void set_post_message_callback(Dart_PostMessageCallback value) {
+    post_message_callback_ = value;
+  }
+
+  Dart_ClosePortCallback close_port_callback() const {
+    return close_port_callback_;
+  }
+  void set_close_port_callback(Dart_ClosePortCallback value) {
+    close_port_callback_ = value;
+  }
 
   MessageQueue* message_queue() const { return message_queue_; }
   void set_message_queue(MessageQueue* value) { message_queue_ = value; }
@@ -209,6 +220,8 @@ class Isolate {
     stack_limit_ = stack_limit_on_overflow_exception_;
   }
 
+  void StandardRunLoop();
+
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
 
@@ -225,6 +238,8 @@ class Isolate {
   StoreBufferBlock store_buffer_;
   Monitor* monitor_;
   MessageQueue* message_queue_;
+  Dart_PostMessageCallback post_message_callback_;
+  Dart_ClosePortCallback close_port_callback_;
   intptr_t active_ports_;
   Heap* heap_;
   ObjectStore* object_store_;

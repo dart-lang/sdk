@@ -28,16 +28,14 @@ intptr_t Socket::Available(intptr_t fd) {
 
 
 intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
-  ASSERT(reinterpret_cast<Handle*>(fd)->is_client_socket());
-  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
-  return client_socket->Read(buffer, num_bytes);
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->Read(buffer, num_bytes);
 }
 
 
 intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
-  ASSERT(reinterpret_cast<Handle*>(fd)->is_client_socket());
-  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
-  return client_socket->Write(buffer, num_bytes);
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->Write(buffer, num_bytes);
 }
 
 

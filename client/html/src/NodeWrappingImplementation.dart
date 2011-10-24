@@ -211,9 +211,7 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
         LevelDom.unwrap(newChild), LevelDom.unwrap(refChild)));
   }
 
-  // TODO(jacobr): required for some benchmarks. Added to this class but not Node while
-  // we decide what to do with it.
-  Node cloneNode(bool deep) {
+  Node clone(bool deep) {
     return LevelDom.wrapNode(_ptr.cloneNode(deep));
   }
 }

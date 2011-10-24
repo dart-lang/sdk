@@ -32,7 +32,7 @@ fixed_length_file_out
 third_party/gyp/
 third_party/v8/
 third_party/closure_compiler_src/
-/co19/tests/co19/src/
+tests/co19/
 third_party/pyparsing/
 third_party/appengine-python/
 

@@ -21,10 +21,10 @@
 #source("implementation/string_buffer.dart");
 #source("implementation/time_zone_implementation.dart");
 #source("implementation/type_token.dart");
-#source("src/implementation/array.dart");
 #source("src/implementation/dual_pivot_quicksort.dart");
 #source("src/implementation/duration_implementation.dart");
 #source("src/implementation/exceptions.dart");
+#source("src/implementation/future_implementation.dart");
 #source("src/implementation/hash_map_set.dart");
 #source("src/implementation/linked_hash_map.dart");
 #source("src/implementation/maps.dart");

@@ -33,6 +33,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   private final InterfaceType objectType;
   private final InterfaceType isolateType;
   private final InterfaceType stringImplementation;
+  private final InterfaceType iteratorType;
 
   public CoreTypeProviderImplementation(Scope scope, DartCompilerListener listener) {
     this.intType = getType("int", scope, listener);
@@ -41,7 +42,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.numType = getType("num", scope, listener);
     this.stringType = getType("String", scope, listener);
     this.functionType = getType("Function", scope, listener);
-    this.arrayType = getType("Array", scope, listener);
+    this.arrayType = getType("List", scope, listener);
     this.dynamicType = Types.newDynamicType();
     this.voidType = Types.newVoidType();
     // Currently, there is no need for a special null type.
@@ -49,18 +50,20 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.fallThroughError = getType("FallThroughError", scope, listener);
     this.mapType = getType("Map", scope, listener);
     this.mapLiteralType = getType("LinkedHashMapImplementation", scope, listener);
-    this.objectArrayType = getType("ObjectArray", scope, listener);
+    this.objectArrayType = getType("ListImplementation", scope, listener);
     this.objectType = getType("Object", scope, listener);
     this.isolateType = getType("Isolate", scope, listener);
     this.stringImplementation = getType("StringImplementation", scope, listener);
+    iteratorType = getType("Iterator", scope, listener);
   }
 
   private static InterfaceType getType(String name, Scope scope, DartCompilerListener listener) {
-    ClassElement element = (ClassElement) scope.findElement(name);
+    ClassElement element = (ClassElement) scope.findElement(scope.getLibrary(), name);
     if (element == null) {
       Location location = null;
       DartCompilationError error =
-          new DartCompilationError(location, DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
+          new DartCompilationError(null, Location.NONE,
+              DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
       listener.compilationError(error);
       return Types.newDynamicType();
     }
@@ -157,5 +160,11 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   @Override
   public InterfaceType getIsolateType() {
     return isolateType;
+  }
+
+  @Override
+  public InterfaceType getIteratorType(Type elementType) {
+    return iteratorType.subst(Arrays.asList(elementType), 
+        iteratorType.getElement().getTypeParameters());
   }
 }

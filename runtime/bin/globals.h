@@ -16,6 +16,7 @@
 #define NOMCX
 
 #include <windows.h>
+#include <Rpc.h>
 #endif
 
 // Processor architecture detection.  For more info on what's defined, see:

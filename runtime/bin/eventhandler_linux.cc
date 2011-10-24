@@ -71,7 +71,7 @@ void EventHandlerImplementation::SetPort(intptr_t fd,
                                                     new_port_map_bytes));
     ASSERT(port_map_ != NULL);
     size_t port_map_bytes = port_map_size_ * sizeof(PortData);
-    memset(port_map_ + port_map_bytes,
+    memset(port_map_ + port_map_size_,
            0,
            new_port_map_bytes - port_map_bytes);
     port_map_size_ = new_port_map_size;

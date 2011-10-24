@@ -44,13 +44,13 @@ class Main {
             elems.add(telems[i]);
           }
         })
-        .test('cloneNode', () {
+        .test('clone', () {
           for (int i = 0; i < elems.length; i++) {
             // not supported by Dart... this will intentionally throw an exception.
             // TODO(jacobr): find the right solution.
-            ret = elems[i].dynamic.cloneNode(false);
-            ret = elems[i].dynamic.cloneNode(true);
-            ret = elems[i].dynamic.cloneNode(true);
+            ret = elems[i].dynamic.clone(false);
+            ret = elems[i].dynamic.clone(true);
+            ret = elems[i].dynamic.clone(true);
           }
         })
         .test('appendChild', () {

@@ -37,20 +37,20 @@ class ImmutableMap<K, V> implements Map<K, V> {
 
   Collection<K> getKeys() {
     int numKeys = length;
-    Array<K> array = new Array<K>(numKeys);
+    List<K> list = new List<K>(numKeys);
     for (int i = 0; i < numKeys; i++) {
-      array[i] = kvPairs_[i*2];
+      list[i] = kvPairs_[i*2];
     }
-    return array;
+    return list;
   }
 
   Collection<V> getValues() {
     int numValues = length;
-    Array<K> array = new Array<K>(numValues);
+    List<K> list = new List<K>(numValues);
     for (int i = 0; i < numValues; i++) {
-      array[i] = kvPairs_[i*2 + 1];
+      list[i] = kvPairs_[i*2 + 1];
     }
-    return array;
+    return list;
   }
 
   bool containsKey(K key) {
@@ -97,7 +97,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
 class MutableMap {
   // [elements] contains n key-value pairs. The keys are at position
   // 2*n, the values at position 2*n+1.
-  static fromLiteral(Array elements) {
+  static fromLiteral(List elements) {
     var map = new LinkedHashMap();
     var len = elements.length;
     for (int i = 1; i < len; i += 2) {

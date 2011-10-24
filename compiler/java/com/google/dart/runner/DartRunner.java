@@ -16,7 +16,6 @@ import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
-import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.DefaultDartCompilerListener;
 import com.google.dart.compiler.DefaultErrorFormatter;
@@ -125,13 +124,6 @@ public class DartRunner {
 
     LibrarySource app = new UrlLibrarySource(new File(script));
 
-    if (options.shouldExposeCoreImpl()) {
-      imports = new ArrayList<LibrarySource>(imports);
-      // use a place-holder LibrarySource instance, to be replaced when embedded
-      // in the compiler, where the dart uri can be resolved.
-      imports.add(new NamedPlaceHolderLibrarySource("dart:coreimpl"));
-    }
-
     File outFile =  options.getOutputFilename();
 
     DefaultDartCompilerListener listener = new DefaultDartCompilerListener() {
@@ -200,49 +192,6 @@ public class DartRunner {
     }
     usage.append(s);
     throw new RunnerError(usage.toString());
-  }
-
-  private static class NamedPlaceHolderLibrarySource implements LibrarySource {
-    private final String name;
-
-    public NamedPlaceHolderLibrarySource(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public boolean exists() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public long getLastModified() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public Reader getSourceReader() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public URI getUri() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public LibrarySource getImportFor(String relPath) {
-      throw new AssertionError();
-    }
-
-    @Override
-    public DartSource getSourceFor(String relPath) {
-      throw new AssertionError();
-    }
   }
 
   private static class RunnerDartArtifactProvider extends DartArtifactProvider {
@@ -337,7 +286,9 @@ public class DartRunner {
       final DartRunnerOptions options, DartCompilerListener listener) throws RunnerError {
     Backend backend;
     if (options.shouldOptimize()) {
-      backend = new ClosureJsBackend(options.generateHumanReadableOutput());
+      backend = new ClosureJsBackend(
+          options.developerModeChecks(),
+          options.generateHumanReadableOutput());
     } else {
       backend = new JavascriptBackend();
     }
@@ -371,26 +322,29 @@ public class DartRunner {
       Backend backend = config.getBackends().get(0);
 
       SourceMapping mapping = null;
-      Reader mr = provider.getArtifactReader(app, "", backend.getSourceMapExtension());
-      if (mr != null) {
-        String mapContents = CharStreams.toString(mr);
-        try {
-          mapping = SourceMapConsumerFactory.parse(mapContents, new SourceMapSupplier() {
+      if (config.getCompilerOptions().generateSourceMaps()) {
+        Reader mr = provider.getArtifactReader(app, "", backend.getSourceMapExtension());
+        if (mr != null) {
+          try {
+            String mapContents = CharStreams.toString(mr);
+            mapping = SourceMapConsumerFactory.parse(mapContents, new SourceMapSupplier() {
 
-            @Override
-            public String getSourceMap(String url) {
-              String contents = provider.getGeneratedFileContents(url);
-              if (contents == null || contents.isEmpty()) {
-                return null;
+              @Override
+              public String getSourceMap(String url) {
+                String contents = provider.getGeneratedFileContents(url);
+                if (contents == null || contents.isEmpty()) {
+                  return null;
+                }
+                return contents;
               }
-              return contents;
-            }
 
-          });
-        } catch (SourceMapParseException e) {
-          throw new AssertionError(e);
+            });
+          } catch (SourceMapParseException e) {
+            throw new AssertionError(e);
+          } finally {
+            mr.close();
+          }
         }
-        mr.close();
       }
 
       Reader r = provider.getArtifactReader(app, "", backend.getAppExtension());

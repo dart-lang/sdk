@@ -16,4 +16,8 @@ class BoolImplementation implements bool native "Boolean" {
   // TODO(floitsch): we should intercept toString for primitives, to avoid
   // creating a wrapper object.
   String toString() native;
+
+  BoolImplementation toBool() native;
+
+  get dynamic() { return toBool(); }
 }

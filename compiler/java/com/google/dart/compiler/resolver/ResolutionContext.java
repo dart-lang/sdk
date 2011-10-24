@@ -36,8 +36,9 @@ public class ResolutionContext implements ResolutionErrorListener {
   private final DartCompilerContext context;
   private final CoreTypeProvider typeProvider;
 
-  ResolutionContext(String name, DartCompilerContext context, CoreTypeProvider typeProvider) {
-    this(new Scope(name), context, typeProvider);
+  ResolutionContext(String name, LibraryElement library, DartCompilerContext context,
+                    CoreTypeProvider typeProvider) {
+    this(new Scope(name, library), context, typeProvider);
   }
 
   @VisibleForTesting
@@ -58,7 +59,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   ResolutionContext extend(String name) {
-    return new ResolutionContext(new Scope(name, scope), context, typeProvider);
+    return new ResolutionContext(new Scope(name, scope.getLibrary(), scope), context, typeProvider);
   }
 
   Scope getScope() {
@@ -74,7 +75,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   void pushScope(String name) {
-    scope = new Scope(name, scope);
+    scope = new Scope(name, scope.getLibrary(), scope);
   }
 
   void popScope() {
@@ -278,7 +279,8 @@ public class ResolutionContext implements ResolutionErrorListener {
       Element element = node.getQualifier().accept(this);
       switch (element.getKind()) {
         case LIBRARY:
-          return ((LibraryElement) element).getScope().findElement(node.getPropertyName());
+          Scope elementScope = ((LibraryElement) element).getScope();
+          return elementScope.findElement(scope.getLibrary(), node.getPropertyName());
 
         case CLASS:
           return Elements.findElement((ClassElement) element, node.getPropertyName());
@@ -291,7 +293,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     @Override
     public Element visitIdentifier(DartIdentifier node) {
       String name = node.getTargetName();
-      return scope.findElement(name);
+      return scope.findElement(scope.getLibrary(), name);
     }
   }
 }

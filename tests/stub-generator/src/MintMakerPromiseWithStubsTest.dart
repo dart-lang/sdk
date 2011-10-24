@@ -4,6 +4,8 @@
 
 // IsolateStubs=MintMakerPromiseWithStubsTest.dart:Mint,Purse
 
+#import("../../isolate/src/TestFramework.dart");
+
 interface Mint factory MintImpl {
 
   Mint();
@@ -18,7 +20,7 @@ interface Purse factory PurseImpl {
 
   int queryBalance();
   Purse sproutPurse();
-  void deposit(int amount, Purse$Proxy source);
+  int deposit(int amount, Purse$Proxy source);
 
 }
 
@@ -55,7 +57,7 @@ class PurseImpl implements Purse {
     return _mint.createPurse(0);
   }
 
-  void deposit(int amount, Purse$Proxy proxy) {
+  int deposit(int amount, Purse$Proxy proxy) {
     if (amount < 0) throw "Ha ha";
     // Because we are in the same isolate as the other purse, we can
     // retrieve the proxy's local PurseImpl object and act on it
@@ -65,6 +67,7 @@ class PurseImpl implements Purse {
     if (source._balance < amount) throw "Not enough dough.";
     _balance += amount;
     source._balance -= amount;
+    return _balance;
   }
 
   Mint _mint;
@@ -74,52 +77,34 @@ class PurseImpl implements Purse {
 
 class MintMakerPromiseWithStubsTest {
 
-  static void testMain() {
+  static void testMain(TestExpectation expect) {
     Mint$Proxy mint = new Mint$ProxyImpl.createIsolate();
     Purse$Proxy purse = mint.createPurse(100);
-    expectEquals(100, purse.queryBalance());
+    expect.completesWithValue(purse.queryBalance(), 100);
 
     Purse$Proxy sprouted = purse.sproutPurse();
-    expectEquals(0, sprouted.queryBalance());
+    expect.completesWithValue(sprouted.queryBalance(), 0);
 
-    sprouted.deposit(5, purse);
-    expectEquals(0 + 5, sprouted.queryBalance());
-    expectEquals(100 - 5, purse.queryBalance());
+    // FIXME(benl): We should not have to manually order the calls
+    // like this.
+    Promise<int> result = sprouted.deposit(5, purse);
+    expect.completesWithValue(result, 5);
+    result.addCompleteHandler((_) {
+      expect.completesWithValue(sprouted.queryBalance(), 0 + 5);
+      expect.completesWithValue(purse.queryBalance(), 100 - 5);
 
-    sprouted.deposit(42, purse);
-    expectEquals(0 + 5 + 42, sprouted.queryBalance());
-    expectEquals(100 - 5 - 42, purse.queryBalance());
-
-    expectDone(6);
-  }
-
-  static List<Promise> results;
-
-  static void expectEquals(int expected, Promise<int> promise) {
-    if (results === null) {
-      results = new List<Promise>();
-    }
-    results.add(promise.then((int actual) {
-      Expect.equals(expected, actual);
-    }));
-  }
-
-  static void expectDone(int n) {
-    if (results === null) {
-      Expect.equals(0, n);
-      print('##DONE##');
-    } else {
-      Promise done = new Promise();
-      done.waitFor(results, results.length);
-      done.then((ignored) {
-        Expect.equals(n, results.length);
-        print('##DONE##');
-      });
-    }
+      result = sprouted.deposit(42, purse);
+      expect.completesWithValue(result, 5 + 42);
+      result.addCompleteHandler((_) {
+        expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42);
+        expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42);
+        });
+    });
+    expect.succeeded();
   }
 
 }
 
 main() {
-  MintMakerPromiseWithStubsTest.testMain();
+  runTests([MintMakerPromiseWithStubsTest.testMain]);
 }

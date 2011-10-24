@@ -53,12 +53,6 @@ module window {
 };
 
 module html {
-  // Define factory for XMLHttpRequest.
-  [Supplemental]
-  interface Window {
-    XMLHttpRequest createXMLHttpRequest();
-  };
-
   [Supplemental]
   interface Console {
     [Suppressed] void debug();

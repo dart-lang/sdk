@@ -6,6 +6,7 @@
 #define VM_OBJECT_H_
 
 #include "vm/assert.h"
+#include "vm/dart.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/heap.h"
@@ -119,6 +120,7 @@ class Object {
     kNullClass,
     kVarClass,
     kVoidClass,
+    kUnresolvedClassClass,
     kParameterizedTypeClass,
     kTypeParameterClass,
     kInstantiatedTypeClass,
@@ -137,6 +139,7 @@ class Object {
     kExceptionHandlersClass,
     kContextClass,
     kContextScopeClass,
+    kApiFailureClass,
     kMaxId,
     kInvalidIndex = -1,
   };
@@ -209,6 +212,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* null_class() { return null_class_; }
   static RawClass* var_class() { return var_class_; }
   static RawClass* void_class() { return void_class_; }
+  static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* parameterized_type_class() {
       return parameterized_type_class_;
   }
@@ -235,6 +239,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* context_class() { return context_class_; }
   static RawClass* context_scope_class() { return context_scope_class_; }
+  static RawClass* api_failure_class() { return api_failure_class_; }
 
   static int GetSingletonClassIndex(const RawClass* raw_class);
   static RawClass* GetSingletonClass(int index);
@@ -296,10 +301,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return reinterpret_cast<cpp_vtable*>(reinterpret_cast<word>(this));
   }
 
-#if defined(DEBUG)
-  void ValidateHeapObject(RawObject* raw_obj);
-#endif  // defined(DEBUG)
-
   static cpp_vtable handle_vtable_;
 
   // The static values below are singletons shared between the different
@@ -312,6 +313,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* null_class_;  // Class of the null object.
   static RawClass* var_class_;  // Class of the 'var' type.
   static RawClass* void_class_;  // Class of the 'void' type.
+  static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* parameterized_type_class_;  // Class of ParameterizedType.
   static RawClass* type_parameter_class_;  // Class of TypeParameter vm object.
   static RawClass* instantiated_type_class_;  // Class of InstantiatedType.
@@ -330,6 +332,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* api_failure_class_;  // Class of ApiFailure.
 
   friend class Class;
 
@@ -391,6 +394,13 @@ class Class : public Object {
     return OFFSET_OF(RawClass, signature_function_);
   }
 
+  // Return the signature type of this signature class.
+  // For example, if this class represents a signature of the form
+  // '<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
+  // type with this class as the type class and type parameters 'T' and 'R'
+  // as its type argument vector.
+  RawType* SignatureType() const;
+
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
 
@@ -419,12 +429,13 @@ class Class : public Object {
   void set_type_arguments_instance_field_offset(intptr_t value) const {
     raw_ptr()->type_arguments_instance_field_offset_ = value;
   }
-  bool IsParameterized() const {
+  bool HasTypeArguments() const {
     if (is_finalized() || is_prefinalized()) {
       // More efficient than calling NumTypeArguments().
       return type_arguments_instance_field_offset() != kNoTypeArguments;
     } else {
-      return NumTypeArguments() > 0;
+      // No need to check NumTypeArguments() if class has type parameters.
+      return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
     }
   }
 
@@ -590,6 +601,7 @@ class Class : public Object {
   void set_name(const String& value) const;
   void set_script(const Script& value) const;
   void set_signature_function(const Function& value) const;
+  void set_signature_type(const Type& value) const;
   void set_class_state(int8_t state) const;
 
   void set_constants(const Array& value) const;
@@ -615,6 +627,35 @@ class Class : public Object {
 };
 
 
+// Unresolved class is used for storing unresolved names which will be resolved
+// to a class after all classes have been loaded and finalized.
+class UnresolvedClass : public Object {
+ public:
+  RawString* qualifier() const { return raw_ptr()->qualifier_; }
+  RawString* ident() const { return raw_ptr()->ident_; }
+  intptr_t token_index() const { return raw_ptr()->token_index_; }
+
+  RawString* Name() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUnresolvedClass));
+  }
+  static RawUnresolvedClass* New(intptr_t token_index,
+                                 const String& qualifier,
+                                 const String& ident);
+
+ private:
+  void set_token_index(intptr_t token_index) const;
+  void set_ident(const String& ident) const;
+  void set_qualifier(const String& qualifier) const;
+
+  static RawUnresolvedClass* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass, Object);
+  friend class Class;
+};
+
+
 // Type is an abstract superclass.
 // Subclasses of Type are ParameterizedType, TypeParameter, and
 // InstantiatedType.
@@ -625,10 +666,11 @@ class Class : public Object {
 class Type : public Object {
  public:
   virtual bool IsFinalized() const;
+  virtual bool IsBeingFinalized() const;
   virtual bool IsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
-  virtual RawString* unresolved_type_class() const;
+  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual bool IsInstantiated() const;
 
@@ -769,7 +811,7 @@ class ParameterizedType : public Type {
     return raw_ptr()->type_state_ == RawParameterizedType::kFinalized;
   }
   void set_is_finalized() const;
-  bool is_being_finalized() const {
+  virtual bool IsBeingFinalized() const {
     return raw_ptr()->type_state_ == RawParameterizedType::kBeingFinalized;
   }
   void set_is_being_finalized() const;
@@ -777,7 +819,7 @@ class ParameterizedType : public Type {
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
-  virtual RawString* unresolved_type_class() const;
+  virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   void set_arguments(const TypeArguments& value) const;
   virtual bool IsInstantiated() const;
@@ -810,6 +852,7 @@ class ParameterizedType : public Type {
 class TypeParameter : public Type {
  public:
   virtual bool IsFinalized() const { return true; }
+  virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const { return raw_ptr()->name_; }
@@ -847,6 +890,7 @@ class TypeParameter : public Type {
 class InstantiatedType : public Type {
  public:
   virtual bool IsFinalized() const { return true; }
+  virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return true; }
   virtual RawClass* type_class() const;
@@ -1012,7 +1056,25 @@ class InstantiatedTypeArguments : public TypeArguments {
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
-  RawString* Signature() const;
+
+  // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
+  // signature of the given function.
+  RawString* Signature() const {
+    return BuildSignature(false, TypeArguments::Handle(), 0);
+  }
+
+  // Build a string of the form '(A, [b: B, c: C]) => D' representing the
+  // signature of the given function, where all generic types (e.g. '<T, R>' in
+  // '<T, R>(T, [b: B, c: C]) => R') are instantiated using the given
+  // instantiator type argument vector (e.g. '<A, D>').
+  RawString* InstantiatedSignatureFrom(const TypeArguments& instantiator,
+                                       intptr_t offset) const {
+    return BuildSignature(true, instantiator, offset);
+  }
+
+  // Returns true if the signature of this function is instantiated, i.e. if it
+  // does not involve generic parameter types or generic result type.
+  bool HasInstantiatedSignature() const;
 
   RawClass* owner() const { return raw_ptr()->owner_; }
   void set_owner(const Class& value) const;
@@ -1071,7 +1133,6 @@ class Function : public Object {
     return kind() == RawFunction::kAbstract;
   }
   bool IsInFactoryScope() const;
-  bool IsInStaticScope() const;
 
   intptr_t token_index() const { return raw_ptr()->token_index_; }
 
@@ -1139,9 +1200,30 @@ class Function : public Object {
     return TestType(kIsAssignableTo, dst);
   }
 
-  // Returns true if this function represents a closure function.
+  // Returns true if this function represents a (possibly implicit) closure
+  // function.
   bool IsClosureFunction() const {
     return kind() == RawFunction::kClosureFunction;
+  }
+
+  // Returns true if this function represents an implicit closure function.
+  bool IsImplicitClosureFunction() const;
+
+  // Returns true if this function represents a non implicit closure function.
+  bool IsNonImplicitClosureFunction() const {
+    return IsClosureFunction() && !IsImplicitClosureFunction();
+  }
+
+  // Returns true if this function represents an implicit static closure
+  // function.
+  bool IsImplicitStaticClosureFunction() const {
+    return is_static() && IsImplicitClosureFunction();
+  }
+
+  // Returns true if this function represents an implicit instance closure
+  // function.
+  bool IsImplicitInstanceClosureFunction() const {
+    return !is_static() && IsImplicitClosureFunction();
   }
 
   // Returns true if this function represents a local function.
@@ -1182,6 +1264,10 @@ class Function : public Object {
   void set_token_index(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
   static RawFunction* New();
+
+  RawString* BuildSignature(bool instantiate,
+                            const TypeArguments& instantiator,
+                            intptr_t offset) const;
 
   // Checks the subtype or assignability relationship between the type of this
   // function and the type of the other function.
@@ -1230,9 +1316,11 @@ class Field : public Object {
     raw_ptr()->has_initializer_ = has_initializer;
   }
 
-  // Constructs getter and setter names for fields.
+  // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* SetterName(const String& field_name);
+  static RawString* NameFromGetter(const String& getter_name);
+  static RawString* NameFromSetter(const String& setter_name);
 
  private:
   void set_name(const String& value) const;
@@ -1339,21 +1427,36 @@ class Script : public Object {
 };
 
 
-class ClassDictionaryIterator : public ValueObject {
+class DictionaryIterator : public ValueObject {
  public:
-  explicit ClassDictionaryIterator(const Library& library);
-  bool HasNext() const {
-    return next_ix_ < size_;
-  }
-  // Returns a non-null raw object.
-  RawClass* GetNext();
+  explicit DictionaryIterator(const Library& library);
+
+  bool HasNext() const { return next_ix_ < size_; }
+
+  // Returns next non-null raw object.
+  RawObject* GetNext();
 
  private:
-  void MoveToNextClass();
+  void MoveToNextObject();
 
   const Array& array_;
   const int size_;  // Number of elements to iterate over.
   int next_ix_;  // Index of next element.
+
+  friend class ClassDictionaryIterator;
+  DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
+};
+
+
+class ClassDictionaryIterator : public DictionaryIterator {
+ public:
+  explicit ClassDictionaryIterator(const Library& library);
+
+  // Returns a non-null raw class.
+  RawClass* GetNextClass();
+
+ private:
+  void MoveToNextClass();
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
@@ -1397,6 +1500,7 @@ class Library : public Object {
 
   void Register() const;
   static RawLibrary* LookupLibrary(const String& url);
+  static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
@@ -1409,23 +1513,39 @@ class Library : public Object {
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
+  static const int kInitialImportedIntoCapacity = 1;
+  static const int kImportedIntoCapacityIncrement = 2;
   static RawLibrary* New();
 
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   void set_num_imports(intptr_t value) const {
     raw_ptr()->num_imports_ = value;
   }
+  intptr_t num_imported_into() const { return raw_ptr()->num_imported_into_; }
+  void set_num_imported_into(intptr_t value) const {
+    raw_ptr()->num_imported_into_ = value;
+  }
   RawArray* imports() const { return raw_ptr()->imports_; }
+  RawArray* imported_into() const { return raw_ptr()->imported_into_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
   void InitClassDictionary() const;
   void InitImportList() const;
+  void InitImportedIntoList() const;
   void GrowDictionary(const Array& dict, intptr_t dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
+  void AddImportedInto(const Library& library) const;
+  RawObject* LookupObjectFiltered(const String& name,
+                                  const Library& filter_lib) const;
+  RawLibrary* LookupObjectInImporter(const String& name) const;
+  RawString* DuplicateDefineErrorString(const String& entry_name,
+                                        const Library& conflicting_lib) const;
+  RawString* FindDuplicateDefinition(Library* conflicting_lib) const;
+
   HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
-  friend class ClassDictionaryIterator;
+  friend class DictionaryIterator;
   friend class Isolate;
 };
 
@@ -1901,6 +2021,28 @@ class UnhandledException : public Object {
 };
 
 
+class ApiFailure : public Object {
+ public:
+  RawString* message() const { return raw_ptr()->message_; }
+  static intptr_t message_offset() {
+    return OFFSET_OF(RawApiFailure, message_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawApiFailure));
+  }
+
+  static RawApiFailure* New(const String& message,
+                            Heap::Space space = Heap::kNew);
+
+ private:
+  void set_message(const String& message) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(ApiFailure, Object);
+  friend class Class;
+};
+
+
 // Instance is the base class for all instance objects (aka the Object class
 // in Dart source code.
 class Instance : public Object {
@@ -2282,6 +2424,15 @@ class String : public Instance {
                               intptr_t length,
                               Heap::Space space = Heap::kNew);
 
+  static RawString* Transform(int32_t (*mapping)(int32_t ch),
+                              const String& str,
+                              Heap::Space space = Heap::kNew);
+
+  static RawString* ToUpperCase(const String& str,
+                                Heap::Space space = Heap::kNew);
+  static RawString* ToLowerCase(const String& str,
+                                Heap::Space space = Heap::kNew);
+
   static RawString* NewSymbol(const char* str);
   template<typename T>
   static RawString* NewSymbol(const T* characters, intptr_t len);
@@ -2348,9 +2499,13 @@ class OneByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawOneByteString* SubString(const OneByteString& str,
-                                     intptr_t begin_index,
-                                     intptr_t length,
+  static RawString* SubString(const OneByteString& str,
+                              intptr_t begin_index,
+                              intptr_t length,
+                              Heap::Space space);
+
+  static RawOneByteString* Transform(int32_t (*mapping)(int32_t ch),
+                                     const String& str,
                                      Heap::Space space);
 
  private:
@@ -2399,9 +2554,13 @@ class TwoByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawTwoByteString* SubString(const TwoByteString& str,
-                                     intptr_t begin_index,
-                                     intptr_t length,
+  static RawString* SubString(const TwoByteString& str,
+                              intptr_t begin_index,
+                              intptr_t length,
+                              Heap::Space space);
+
+  static RawTwoByteString* Transform(int32_t (*mapping)(int32_t ch),
+                                     const String& str,
                                      Heap::Space space);
 
  private:
@@ -2446,9 +2605,13 @@ class FourByteString : public String {
                                       intptr_t len,
                                       Heap::Space space);
 
-  static RawFourByteString* SubString(const FourByteString& str,
-                                      intptr_t begin_index,
-                                      intptr_t length,
+  static RawString* SubString(const FourByteString& str,
+                              intptr_t begin_index,
+                              intptr_t length,
+                              Heap::Space space);
+
+  static RawFourByteString* Transform(int32_t (*mapping)(int32_t ch),
+                                      const String& str,
                                       Heap::Space space);
 
  private:
@@ -2747,17 +2910,22 @@ RawClass* Object::clazz() const {
 
 
 void Object::SetRaw(RawObject* value) {
+  // NOTE: The assignment "raw_ = value" should be the first statement in
+  // this function. Also do not use 'value' in this function after the
+  // assignment (use 'raw_' instead).
   raw_ = value;
-  uword raw_value = reinterpret_cast<uword>(value);
-  if ((raw_value & kSmiTagMask) == kSmiTag) {
+  if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
     return;
   }
-#if defined(DEBUG)
-  ValidateHeapObject(value);
-#endif  // defined(DEBUG)
-  set_vtable((value == null_) ?
-      handle_vtable_ : value->ptr()->class_->ptr()->handle_vtable_);
+#ifdef DEBUG
+  Heap* isolate_heap = Isolate::Current()->heap();
+  Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+  ASSERT(isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())) ||
+         vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
+#endif
+  set_vtable((raw_ == null_) ?
+      handle_vtable_ : raw_->ptr()->class_->ptr()->handle_vtable_);
 }
 
 

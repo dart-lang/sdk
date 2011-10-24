@@ -260,7 +260,6 @@ dom_externs.createElementNS;            // operation Document.createElementNS
 dom_externs.createEntityReference;      // operation Document.createEntityReference
 dom_externs.createEvent;                // operation Document.createEvent
 dom_externs.createExpression;           // operation XPathEvaluator.createExpression
-dom_externs.createFileReader;           // operation DOMWindow.createFileReader
 dom_externs.createFramebuffer;          // operation WebGLRenderingContext.createFramebuffer
 dom_externs.createHTMLDocument;         // operation DOMImplementation.createHTMLDocument
 dom_externs.createHTMLNotification;     // operation NotificationCenter.createHTMLNotification
@@ -286,10 +285,7 @@ dom_externs.createTextNode;             // operation Document.createTextNode
 dom_externs.createTexture;              // operation WebGLRenderingContext.createTexture
 dom_externs.createTreeWalker;           // operation Document.createTreeWalker
 dom_externs.createVertexArrayOES;       // operation OESVertexArrayObject.createVertexArrayOES
-dom_externs.createWebKitCSSMatrix;      // operation DOMWindow.createWebKitCSSMatrix
-dom_externs.createWebKitPoint;          // operation DOMWindow.createWebKitPoint
 dom_externs.createWriter;               // operation FileEntry.createWriter, operation FileEntrySync.createWriter
-dom_externs.createXMLHttpRequest;       // operation DOMWindow.createXMLHttpRequest
 dom_externs.crossOrigin;                // attribute HTMLImageElement.crossOrigin
 dom_externs.crypto;                     // attribute DOMWindow.crypto
 dom_externs.cssRules;                   // attribute CSSMediaRule.cssRules, attribute CSSStyleSheet.cssRules, attribute WebKitCSSKeyframesRule.cssRules

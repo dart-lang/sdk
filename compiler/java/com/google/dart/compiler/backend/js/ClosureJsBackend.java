@@ -78,32 +78,34 @@ public class ClosureJsBackend extends AbstractJsBackend {
   // if we aren't building source maps.
   private final boolean incremental;
 
-  private final boolean produceSourceMap;
   // Validate the generated JavaScript
   private final boolean validate;
 
+  // Whether the generated code is "checked".
+  private final boolean checkedMode;
+
   public ClosureJsBackend() {
-    this(false);
+    this(false, false);
   }
 
   /**
    * @param generateHumanReadableOutput - generates human readable javascript output.
    */
-  public ClosureJsBackend(boolean generateHumanReadableOutput) {
+  public ClosureJsBackend(boolean checkedMode, boolean generateHumanReadableOutput) {
     // Current default settings
-    this(false, true, false, true, generateHumanReadableOutput);
+    this(false, false, true, checkedMode, generateHumanReadableOutput);
   }
 
   public ClosureJsBackend(boolean fastOutput,
-                          boolean produceSourceMap,
                           boolean incremental,
                           boolean validate,
+                          boolean checkedMode,
                           boolean generateHumanReadableOutput) {
     this.fastOutput = fastOutput;
-    this.produceSourceMap = produceSourceMap;
     // can't currently produce a valid source map incrementally
-    this.incremental = incremental && !produceSourceMap;
+    this.incremental = incremental;
     this.validate = validate;
+    this.checkedMode = checkedMode;
     this.generateHumanReadableOutput = generateHumanReadableOutput;
   }
 
@@ -228,15 +230,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     Writer out = context.getArtifactWriter(app, "", getAppExtension());
     boolean failed = true;
     try {
-      Writer srcMapOut = context.getArtifactWriter(app, "", getSourceMapExtension());
-      boolean failed2 = true;
-      try {
-        compileModule(
-            getCompilerOptions(), mainModule, sourcesByName, out, srcMapOut, context);
-        failed2 = false;
-      } finally {
-        Closeables.close(srcMapOut, failed2);
-      }
+      compileModule(app, context, mainModule, sourcesByName, out);
       failed = false;
     } finally {
       Closeables.close(out, failed);
@@ -329,11 +323,12 @@ public class ClosureJsBackend extends AbstractJsBackend {
   }
 
   private void compileModule(
-      CompilerOptions options, JSModule module,
+      LibrarySource src, DartCompilerContext context,
+      JSModule module,
       Map<String, Source> sourcesByName,
-      Writer out, Writer srcMapOut,
-      DartCompilerContext context) throws IOException {
+      Writer out) throws IOException {
     // Turn off Closure Compiler logging
+    CompilerOptions options = getClosureCompilerOptions(context);
     Logger.getLogger("com.google.javascript.jscomp").setLevel(Level.OFF);
 
     Compiler compiler = new Compiler();
@@ -343,7 +338,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     modules.add(module);
     Result result = compiler.compileModules(externs, modules, options);
 
-    if (processResults(compiler, result, module, out, srcMapOut) != 0) {
+    if (processResults(src, context, compiler, result, module, out) != 0) {
       for (JSError error : result.errors) {
         // Use the real dart source object when we can.
         Source source = sourcesByName.get(error.sourceName);
@@ -361,14 +356,13 @@ public class ClosureJsBackend extends AbstractJsBackend {
     }
 
     out.close();
-    srcMapOut.close();
   }
 
   /**
    * Processes the results of the compile job, and returns an error code.
    */
-  private int processResults(Compiler compiler, Result result, JSModule module,
-      Writer out, Writer srcMapOut)
+  private int processResults(LibrarySource src, DartCompilerContext context, Compiler compiler,
+      Result result, JSModule module, Writer out)
       throws IOException {
     if (result.success) {
       // TODO(johnlenz): Append directly to the writer.
@@ -376,8 +370,15 @@ public class ClosureJsBackend extends AbstractJsBackend {
       out.append(output);
       out.append('\n');
 
-      if (produceSourceMap) {
-        compiler.getSourceMap().appendTo(srcMapOut, module.getName());
+      if (generateSourceMap(context)) {
+        Writer srcMapOut = context.getArtifactWriter(src, "", getSourceMapExtension());
+        boolean failed = true;
+        try {
+          compiler.getSourceMap().appendTo(srcMapOut, module.getName());
+          failed = false;
+        } finally {
+          Closeables.close(srcMapOut, failed);
+        }
       }
       totalJsOutputCharCount = output.length();
     }
@@ -386,7 +387,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     return Math.min(result.errors.length, 0x7f);
   }
 
-  private CompilerOptions getCompilerOptions() {
+  private CompilerOptions getClosureCompilerOptions(DartCompilerContext context) {
     CompilerOptions options = new CompilerOptions();
     options.setCodingConvention(new ClosureJsCodingConvention());
 
@@ -431,7 +432,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
       options.removeUnusedPrototypePropertiesInExterns = false;
     }
 
-    if (produceSourceMap) {
+    if (generateSourceMap(context)) {
       options.sourceMapOutputPath = "placeholder"; // anything will do
       options.sourceMapDetailLevel = DetailLevel.SYMBOLS;
       options.sourceMapFormat = Format.V3;
@@ -487,10 +488,12 @@ public class ClosureJsBackend extends AbstractJsBackend {
 
     /*
      * NOTE: We turn this off because TypeErrors or anything that relies on a type name will fail
-     * due to the renaming.
+     * due to the class renaming.
      */
-    options.setReplaceIdGenerators(false);
-    
+    if (checkedMode) {
+      options.setReplaceIdGenerators(false);
+    }
+
     return options;
   }
 
@@ -551,6 +554,8 @@ public class ClosureJsBackend extends AbstractJsBackend {
   // Add a declarations for the V8 logging function.
   private static final String UNIT_TEST_EXTERN_STUBS = "var write;";
 
+  private static final String CLOSURE_PRIMITIVES = "function JSCompiler_renameProperty() {};";
+
   // TODO(johnlenz): include json.js in the default set of externs.
   private static final String MISSING_EXTERNS =
       "var JSON = {};\n" +
@@ -574,7 +579,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
    * @return a mutable list
    * @throws IOException
    */
-  public static List<JSSourceFile> getDefaultExterns() throws IOException {
+  private static List<JSSourceFile> getDefaultExterns() throws IOException {
     Class<ClosureJsBackend> clazz = ClosureJsBackend.class;
     InputStream input = clazz.getResourceAsStream(
         "/com/google/javascript/jscomp/externs.zip");
@@ -615,6 +620,9 @@ public class ClosureJsBackend extends AbstractJsBackend {
     // Add methods used when running the unit tests.
     externs.add(JSSourceFile.fromCode("unitTestStubs", UNIT_TEST_EXTERN_STUBS));
 
+    // Add methods used by Closure Compiler itself.
+    externs.add(JSSourceFile.fromCode("closureCompilerPrimitives", CLOSURE_PRIMITIVES));
+
     return externs;
   }
 
@@ -645,5 +653,10 @@ public class ClosureJsBackend extends AbstractJsBackend {
   @Override
   protected boolean shouldOptimize() {
     return (fastOutput) ? false : true;
+  }
+
+  @Override
+  protected boolean generateClosureCompatibleCode() {
+    return true;
   }
 }

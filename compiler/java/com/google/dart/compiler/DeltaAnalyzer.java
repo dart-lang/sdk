@@ -211,5 +211,9 @@ class DeltaAnalyzer {
     public void typeError(DartCompilationError event) {
       listener.typeError(event);
     }
+
+    @Override
+    public void unitCompiled(DartUnit unit) {
+    }
   }
 }

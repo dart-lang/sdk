@@ -39,7 +39,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
   CONSTRUCTOR_MUST_CALL_SUPER("Constructors must call super constructor"),
-  CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A cconst onstructor cannot have a body"),
+  CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
@@ -60,6 +60,12 @@ public enum DartCompilerErrorCode implements ErrorCode {
   EXPECTED_COMMA_OR_RIGHT_BRACE("Expected ',' or '}'"),
   EXPECTED_COMMA_OR_RIGHT_PAREN("Expected ',' or ')', but got '%s'"),
   EXPECTED_COMPOUND_STATEMENT("SyntaxError: expected if, switch, while, do, or for"),
+  EXPECTED_CONSTANT_EXPRESSION("Expected constant expression"),
+  EXPECTED_CONSTANT_EXPRESSION_BOOLEAN("Expected constant expression of type bool, got %s"),
+  EXPECTED_CONSTANT_EXPRESSION_INT("Expected constant expression of type int, got %s"),
+  EXPECTED_CONSTANT_EXPRESSION_NUMBER("Expected constant expression of type num, got %s"),
+  EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL(
+      "Expected constant expression of type String, num or bool, got %s"),
   EXPECTED_CONSTANT_LITERAL("Expected a constant literal"),
   EXPECTED_EOS("Unexpected token '%s' (expected end of file)"),
   EXPECTED_FIELD_NOT_CLASS("%s is a class, expected a local field"),
@@ -92,6 +98,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_STATIC("SyntaxError: A factory cannot be static"),
   FACTORY_MEMBER_IN_INTERFACE("SyntaxError: factory members are not allowed in interfaces"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
+  FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
+  FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
   FOR_IN_WITH_COMPLEX_VARIABLE("Only simple variables can be assigned to in a for-in construct"),
   FOR_IN_WITH_MULTIPLE_VARIABLES("Too many variable declarations in a for-in construct"),
   FOR_IN_WITH_VARIABLE_INITIALIZER("Cannot initialize for-in variables"),
@@ -103,7 +111,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("SyntaxError: Illegal assignment to non-assignable "
       + "expression"),
   ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT("A source which was included by another source via a "
-      + "#source directive cannot itself contain directives: %s -> %s"),
+      + "#source directive cannot itself contain directives: %s"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   ILLEGAL_NUMBER_OF_ARGUMENTS("SyntaxError: Illegal number of arguments"),
@@ -125,7 +133,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   MISSING_ARGUMENT("missing argument of type %s"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),
-  MISSING_LIBRARY_DIRECTIVE("a library which was imported into another library is missing a "
+  MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a "
       + "#library directive: %s"),
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
   MISSING_SOURCE("Cannot find referenced source: %s"),
@@ -165,6 +173,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR(
       "Parameter initializers cannot be used with redirected constructors"),
   PARAMETER_NOT_MATCH_FIELD("Could not match parameter initializer '%s' with any field"),
+  RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),
@@ -190,7 +199,8 @@ public enum DartCompilerErrorCode implements ErrorCode {
   VOID_FIELD("SyntaxError: field cannot be of type void"),
   VOID_PARAMETER("SyntaxError: parameter cannot be of type void"),
   VOID_VARIABLE("Variable cannot be of type void"),
-  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments"),
+  ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library");
 
   /**
    * The message format string used to create the message to be displayed for this error.

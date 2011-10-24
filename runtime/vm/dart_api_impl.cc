@@ -27,6 +27,56 @@
 
 namespace dart {
 
+DART_EXPORT bool Dart_IsValidResult(const Dart_Result& result) {
+  ASSERT(Isolate::Current() != NULL);
+  if (result.type_ == kRetObject) {
+    Zone zone;  // Setup a VM zone as we are creating some handles.
+    HandleScope scope;  // Setup a VM handle scope.
+
+    // Make sure that the object isn't an ApiFailure.
+    const Object& obj =
+        Object::Handle(Api::UnwrapHandle(result.retval_.obj_value));
+    return !obj.IsApiFailure();
+  }
+  return true;
+}
+
+DART_EXPORT const char* Dart_GetErrorCString(const Dart_Result& result) {
+  ASSERT(Isolate::Current() != NULL);
+  ASSERT(result.type_ == kRetObject);
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& obj = Object::Handle(
+      Api::UnwrapHandle(result.retval_.obj_value));
+  if (!obj.IsApiFailure()) {
+    return "";
+  }
+  ApiFailure& failure = ApiFailure::Handle();
+  failure ^= obj.raw();
+  const String& message = String::Handle(failure.message());
+  const char* msg = message.ToCString();
+  intptr_t len = strlen(msg) + 1;
+  char* msg_copy = reinterpret_cast<char*>(Api::Allocate(len));
+  OS::SNPrint(msg_copy, len, "%s", msg);
+  return msg_copy;
+}
+
+
+DART_EXPORT Dart_Result Dart_ErrorResult(const char* value) {
+  ASSERT(Isolate::Current() != NULL);
+
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const String& message = String::Handle(String::New(value));
+  const Object& obj = Object::Handle(ApiFailure::New(message));
+
+  Dart_Result result;
+  result.type_ = kRetObject;
+  result.retval_.obj_value = Api::NewLocalHandle(obj);
+  return result;
+}
+
+
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
 DART_EXPORT bool Dart_Initialize(int argc,
                                  char** argv,
@@ -74,12 +124,85 @@ static void SetupErrorResult(Dart_Result* result) {
   // may get deallocated when we return back from the Dart API call.
   const String& error = String::Handle(
       Isolate::Current()->object_store()->sticky_error());
-  const char* errmsg = error.ToCString();
-  intptr_t errlen = strlen(errmsg) + 1;
-  char* msg = reinterpret_cast<char*>(Api::Allocate(errlen));
-  OS::SNPrint(msg, errlen, "%s", errmsg);
-  result->type_ = kRetError;
-  result->retval_.errmsg = msg;
+  const Object& obj = Object::Handle(ApiFailure::New(error));
+  result->type_ = kRetObject;
+  result->retval_.obj_value = Api::NewLocalHandle(obj);
+}
+
+
+DART_EXPORT void Dart_SetMessageCallbacks(
+    Dart_PostMessageCallback post_message_callback,
+    Dart_ClosePortCallback close_port_callback) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ASSERT(post_message_callback != NULL);
+  ASSERT(close_port_callback != NULL);
+  isolate->set_post_message_callback(post_message_callback);
+  isolate->set_close_port_callback(close_port_callback);
+}
+
+
+static RawInstance* DeserializeMessage(void* data) {
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  ASSERT(snapshot->IsPartialSnapshot());
+
+  // Read object back from the snapshot.
+  Isolate* isolate = Isolate::Current();
+  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  Instance& instance = Instance::Handle();
+  instance ^= reader.ReadObject();
+  return instance.raw();
+}
+
+
+static void ProcessUnhandledException(const UnhandledException& uhe) {
+  const Instance& exception = Instance::Handle(uhe.exception());
+  Instance& strtmp = Instance::Handle(DartLibraryCalls::ToString(exception));
+  const char* str = strtmp.ToCString();
+  fprintf(stderr, "%s\n", str);
+  const Instance& stack = Instance::Handle(uhe.stacktrace());
+  strtmp = DartLibraryCalls::ToString(stack);
+  str = strtmp.ToCString();
+  fprintf(stderr, "%s\n", str);
+  exit(255);
+}
+
+
+DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
+                                    Dart_Port reply_port,
+                                    Dart_Message dart_message) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
+  const String& class_name =
+      String::Handle(String::NewSymbol("ReceivePortImpl"));
+  const String& function_name =
+      String::Handle(String::NewSymbol("handleMessage_"));
+  const int kNumArguments = 3;
+  const Array& kNoArgumentNames = Array::Handle();
+  const Function& function = Function::Handle(
+      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+                              class_name,
+                              function_name,
+                              kNumArguments,
+                              kNoArgumentNames,
+                              Resolver::kIsQualified));
+  GrowableArray<const Object*> arguments(kNumArguments);
+  arguments.Add(&Integer::Handle(Integer::New(dest_port)));
+  arguments.Add(&Integer::Handle(Integer::New(reply_port)));
+  arguments.Add(&msg);
+  const Object& result = Object::Handle(
+      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  if (result.IsUnhandledException()) {
+    UnhandledException& uhe = UnhandledException::Handle();
+    uhe ^= result.raw();
+    // TODO(turnidge): Instead of exiting here, just return the
+    // exception so that the embedder can choose how to handle this
+    // case.
+    ProcessUnhandledException(uhe);
+  }
+  ASSERT(result.IsNull());
 }
 
 
@@ -90,15 +213,7 @@ DART_EXPORT Dart_Result Dart_RunLoop() {
   Dart_Result result;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    // Keep listening until there are no active receive ports.
-    while (isolate->active_ports() > 0) {
-      Zone zone;
-      HandleScope handle_scope;
-
-      PortMessage* message = PortMap::ReceiveMessage(0);
-      message->Handle();
-      delete message;
-    }
+    isolate->StandardRunLoop();
     result.type_ = kRetCBool;
     result.retval_.bool_value = true;
   } else {
@@ -153,6 +268,7 @@ DART_EXPORT Dart_Result Dart_LoadScript(Dart_Handle url,
   isolate->set_library_tag_handler(handler);
   library = Library::New(url_str);
   library.Register();
+  isolate->object_store()->set_root_library(library);
   Dart_Result result;
   CompileSource(library, url_str, source_str, RawScript::kScript, &result);
   return result;
@@ -1089,13 +1205,13 @@ DART_EXPORT Dart_Result Dart_GetStacktrace(Dart_Handle unhandled_excp) {
 DART_EXPORT Dart_Result Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     RETURN_FAILURE("No Dart frames on stack, cannot throw exception");
   }
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
   const Instance& excp = Instance::CheckedHandle(Api::UnwrapHandle(exception));
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
@@ -1277,8 +1393,8 @@ DART_EXPORT Dart_Result Dart_GetStaticField(Dart_Handle cls,
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   Dart_Result result = LookupStaticField(cls, name, kGetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Object& retval = Object::Handle();
   const Object& obj = Object::Handle(Api::UnwrapHandle(Dart_GetResult(result)));
@@ -1292,7 +1408,7 @@ DART_EXPORT Dart_Result Dart_GetStaticField(Dart_Handle cls,
     func ^= obj.raw();
     GrowableArray<const Object*> args;
     InvokeStatic(func, args, &result);
-    if (Dart_IsValidResult(result)) {
+    if (::Dart_IsValidResult(result)) {
       Dart_Handle result_obj = Dart_GetResult(result);
       if (Dart_ExceptionOccurred(result_obj)) {
         RETURN_FAILURE("An exception occurred when getting the static field");
@@ -1310,8 +1426,8 @@ DART_EXPORT Dart_Result Dart_SetStaticField(Dart_Handle cls,
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   Dart_Result result = LookupStaticField(cls, name, kSetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Field& fld = Field::Handle();
   fld ^= Api::UnwrapHandle(Dart_GetResult(result));
@@ -1337,14 +1453,14 @@ DART_EXPORT Dart_Result Dart_GetInstanceField(Dart_Handle obj,
   Instance& object = Instance::Handle();
   object ^= param.raw();
   Dart_Result result = LookupInstanceField(object, name, kGetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Function& func = Function::Handle();
   func ^= Api::UnwrapHandle(Dart_GetResult(result));
   GrowableArray<const Object*> arguments;
   InvokeDynamic(object, func, arguments, &result);
-  if (Dart_IsValidResult(result)) {
+  if (::Dart_IsValidResult(result)) {
     Dart_Handle result_obj = Dart_GetResult(result);
     if (Dart_ExceptionOccurred(result_obj)) {
       RETURN_FAILURE("An exception occurred when accessing the instance field");
@@ -1366,8 +1482,8 @@ DART_EXPORT Dart_Result Dart_SetInstanceField(Dart_Handle obj,
   Instance& object = Instance::Handle();
   object ^= param.raw();
   Dart_Result result = LookupInstanceField(object, name, kSetter);
-  if (!Dart_IsValidResult(result)) {
-    RETURN_FAILURE(Dart_GetErrorCString(result));
+  if (!::Dart_IsValidResult(result)) {
+    return result;
   }
   Function& func = Function::Handle();
   func ^= Api::UnwrapHandle(Dart_GetResult(result));
@@ -1375,7 +1491,7 @@ DART_EXPORT Dart_Result Dart_SetInstanceField(Dart_Handle obj,
   const Object& arg = Object::Handle(Api::UnwrapHandle(value));
   arguments.Add(&arg);
   InvokeDynamic(object, func, arguments, &result);
-  if (Dart_IsValidResult(result)) {
+  if (::Dart_IsValidResult(result)) {
     Dart_Handle result_obj = Dart_GetResult(result);
     if (Dart_ExceptionOccurred(result_obj)) {
       RETURN_FAILURE("An exception occurred when setting the instance field");
@@ -1490,10 +1606,8 @@ DART_EXPORT Dart_Result Dart_PostIntArray(Dart_Port port,
 
   writer.WriteMessage(field_count, data);
 
-  // Post the message at the given port. The allocated message and
-  // buffer are deallocated after the message is processed.
-  PortMessage* portMessage = new PortMessage(port, 0, buffer);
-  bool result = PortMap::PostMessage(portMessage);
+  // Post the message at the given port.
+  bool result = PortMap::PostMessage(port, kNoReplyPort, buffer);
   RETURN_CBOOLEAN(result);
 }
 
@@ -1506,8 +1620,7 @@ DART_EXPORT Dart_Result Dart_Post(Dart_Port port, Dart_Handle handle) {
   SnapshotWriter writer(false, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
-  PortMessage* message = new PortMessage(port, 0, data);
-  bool result = PortMap::PostMessage(message);
+  bool result = PortMap::PostMessage(port, kNoReplyPort, data);
   RETURN_CBOOLEAN(result);
 }
 

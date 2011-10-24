@@ -32,46 +32,6 @@ function native__WorkerContextWrappingImplementation__setTimeout(_this, callback
   return __dom_native_TimeoutHander_method(_this, callback, timeout, 'setTimeout');
 }
 
-function native__DOMWindowWrappingImplementation__createFileReader(_this) {
-  try {
-    return __dom_wrap(new FileReader());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createWebKitCSSMatrix(_this) {
-  try {
-    return __dom_wrap(new WebKitCSSMatrix());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createWebKitCSSMatrix_2(_this, cssValue) {
-  try {
-    return __dom_wrap(new WebKitCSSMatrix(__dom_unwrap(cssValue)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createWebKitPoint(_this, x, y) {
-  try {
-    return __dom_wrap(new WebKitPoint(x, y));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DOMWindowWrappingImplementation__createXMLHttpRequest(_this) {
-  try {
-    return __dom_wrap(new XMLHttpRequest());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__CanvasRenderingContext2DWrappingImplementation__setFillStyle(_this, color_OR_gradient_OR_pattern) {
   try {
     _this.$dom.fillStyle = __dom_unwrap(color_OR_gradient_OR_pattern);
@@ -174,7 +134,10 @@ var __dom_type_map = {
 $!MAP
   // Patches for non-WebKit browsers
   'Window': native__DOMWindowWrappingImplementation_create__DOMWindowWrappingImplementation,
-  'global': native__DOMWindowWrappingImplementation_create__DOMWindowWrappingImplementation
+  'global': native__DOMWindowWrappingImplementation_create__DOMWindowWrappingImplementation,
+  'KeyEvent': native__KeyboardEventWrappingImplementation_create__KeyboardEventWrappingImplementation, // Opera
+  'HTMLPhraseElement': native__HTMLElementWrappingImplementation_create__HTMLElementWrappingImplementation, // IE9
+  'MSStyleCSSProperties': native__CSSStyleDeclarationWrappingImplementation_create__CSSStyleDeclarationWrappingImplementation // IE9
 };
 
 function __dom_get_class_chrome(ptr) {
@@ -182,16 +145,25 @@ function __dom_get_class_chrome(ptr) {
 }
 
 function __dom_get_class_generic(ptr) {
-  var isolatetoken = __dom_isolate_token();
-  var result = __dom_get_cached('dart_class', ptr.__proto__, isolatetoken);
-  if (result) {
-    return result;
-  }
   var str = Object.prototype.toString.call(ptr);
   var name = str.substring(8, str.length - 1);
   var cls = __dom_type_map[name];
-  __dom_set_cached('dart_class', ptr.__proto__, isolatetoken, cls);
   return cls;
+}
+
+if (Object.__proto__) {
+  __dom_get_class_generic = function(ptr) {
+    var isolatetoken = __dom_isolate_token();
+    var result = __dom_get_cached('dart_class', ptr.__proto__, isolatetoken);
+    if (result) {
+      return result;
+    }
+    var str = Object.prototype.toString.call(ptr);
+    var name = str.substring(8, str.length - 1);
+    var cls = __dom_type_map[name];
+    __dom_set_cached('dart_class', ptr.__proto__, isolatetoken, cls);
+    return cls;
+  }
 }
 
 var __dom_get_class = __dom_get_class_generic;
@@ -221,7 +193,7 @@ function __dom_get_cached(hashtablename, obj, isolatetoken) {
 function __dom_set_cached(hashtablename, obj, isolatetoken, value) {
   var hashtable;
   if (!obj.hasOwnProperty(hashtablename)) {
-    hashtable = [];
+    hashtable = {};
     obj[hashtablename] = hashtable;
   } else {
     hashtable = obj[hashtablename];

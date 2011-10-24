@@ -2,36 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ArrayFactory<T> {
-  factory Array.from(Iterable<T> other) {
-    GrowableObjectArray<T> array = new GrowableObjectArray<T>();
-    for (final e in other) {
-      array.add(e);
-    }
-    return array;
-  }
-
-  factory Array.fromArray(Array<T> other, int startIndex, int endIndex) {
-    Array array = new Array<T>();
-    if (endIndex > other.length) endIndex = other.length;
-    if (startIndex < 0) startIndex = 0;
-    int count = endIndex - startIndex;
-    if (count > 0) {
-      array.length = count;
-      Arrays.copy(other, startIndex, array, 0, count);
-    }
-    return array;
-  }
-
-  factory Array([int length = null]) {
-    if (length === null) {
-      return new GrowableObjectArray<T>();
-    } else {
-      return new ObjectArray<T>(length);
-    }
-  }
-}
-
 class ListFactory<T> {
 
   factory List.from(Iterable<T> other) {
@@ -64,7 +34,7 @@ class ListFactory<T> {
 }
 
 // TODO(srdjan): Use shared array implementation.
-class ObjectArray<T> implements Array<T> {
+class ObjectArray<T> implements List<T> {
 
   factory ObjectArray(int length) native "ObjectArray_allocate";
 
@@ -78,7 +48,7 @@ class ObjectArray<T> implements Array<T> {
 
   int get length() native "ObjectArray_getLength";
 
-  void copyFrom(Array src, int srcStart, int dstStart, int count) {
+  void copyFrom(List src, int srcStart, int dstStart, int count) {
     if (src is ObjectArray) {
       _copyFromObjectArray(src, srcStart, dstStart, count);
     } else {
@@ -93,19 +63,26 @@ class ObjectArray<T> implements Array<T> {
       native "ObjectArray_copyFromObjectArray";
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    copyFrom(from, start, startFrom, count);
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot remove range of a non-extendable array");
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot insert range in a non-extendable array");
   }
 
   List<T> getRange(int start, int length) {
-    throw const NotImplementedException();
+    if (length == 0) return [];
+    Arrays.rangeCheck(this, start, length);
+    return new List<T>.fromList(this, start, start + length);
   }
 
   /**
@@ -190,7 +167,7 @@ class ObjectArray<T> implements Array<T> {
 // classes (and inline cache misses) versus a field in the native
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
-class ImmutableArray<T> implements Array<T> {
+class ImmutableArray<T> implements List<T> {
 
   T operator [](int index) native "ObjectArray_getIndexed";
 
@@ -201,25 +178,30 @@ class ImmutableArray<T> implements Array<T> {
 
   int get length() native "ObjectArray_getLength";
 
-  void copyFrom(Array src, int srcStart, int dstStart, int count) {
+  void copyFrom(List src, int srcStart, int dstStart, int count) {
     throw const UnsupportedOperationException(
         "Cannot modify an immutable array");
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot modify an immutable array");
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot remove range of an immutable array");
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException(
+        "Cannot insert range in an immutable array");
   }
 
   List<T> getRange(int start, int length) {
-    throw const NotImplementedException();
+    if (length == 0) return [];
+    Arrays.rangeCheck(this, start, length);
+    return new List<T>.fromList(this, start, start + length);
   }
 
   /**
@@ -304,7 +286,7 @@ class ImmutableArray<T> implements Array<T> {
 
 // Iterator for arrays with fixed size.
 class FixedSizeArrayIterator<T> implements Iterator<T> {
-  FixedSizeArrayIterator(Array array)
+  FixedSizeArrayIterator(List array)
       : _array = array, _length = array.length, _pos = 0 {
     assert(array is ObjectArray || array is ImmutableArray);
   }
@@ -320,7 +302,7 @@ class FixedSizeArrayIterator<T> implements Iterator<T> {
     return _array[_pos++];
   }
 
-  final Array<T> _array;
+  final List<T> _array;
   final int _length;  // Cache array length for faster access.
   int _pos;
 }

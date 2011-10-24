@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.dart.compiler.ast.DartIdentifier;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,16 +19,18 @@ public class Scope {
   private final Scope parent;
   private final String name;
   private LabelElement label;
+  private LibraryElement library;
 
   @VisibleForTesting
-  public Scope(String name, Scope parent) {
+  public Scope(String name, LibraryElement library, Scope parent) {
     this.name = name;
     this.parent = parent;
+    this.library = library;
   }
 
   @VisibleForTesting
-  public Scope(String name) {
-    this(name, null);
+  public Scope(String name, LibraryElement element) {
+    this(name, element, null);
   }
 
   public void clear() {
@@ -42,12 +45,27 @@ public class Scope {
     return elements.get(name);
   }
 
-  public Element findElement(String name) {
-    Element element = findLocalElement(name);
-    if (element == null && parent != null) {
-      element = parent.findElement(name);
+  public Element findElement(LibraryElement fromLibrary, String name) {
+    Element element = null;
+    // Only lookup a private name in this scope if we are in the correct library
+    // or we are ignoring libraries (i.e., fromLibrary == null).
+    if (fromLibrary == null
+        || !DartIdentifier.isPrivateName(name)
+        || library.equals(fromLibrary)) {
+      element = findLocalElement(name);
+    }
+    if (element == null) {
+      if (parent != null) {
+        element = parent.findElement(fromLibrary, name);
+      } else {
+        element = null;
+      }
     }
     return element;
+  }
+
+  public LibraryElement getLibrary() {
+    return library;
   }
 
   public Element findLabel(String targetName, MethodElement innermostFunction) {

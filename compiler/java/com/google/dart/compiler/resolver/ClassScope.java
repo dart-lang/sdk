@@ -13,7 +13,7 @@ class ClassScope extends Scope {
   private final ClassElement classElement;
 
   ClassScope(ClassElement classElement, Scope parent) {
-    super(classElement.getName(), parent);
+    super(classElement.getName(), parent.getLibrary(), parent);
     this.classElement = classElement;
   }
 
@@ -23,22 +23,28 @@ class ClassScope extends Scope {
   }
 
   @Override
-  public Element findElement(String name) {
-    Element element = super.findElement(name);
+  public Element findElement(LibraryElement inLibrary, String name) {
+    Element element = super.findElement(inLibrary, name);
     if (element != null) {
       return element;
     }
     InterfaceType superclass = classElement.getSupertype();
     if (superclass != null) {
-      InterfaceType.Member member = superclass.lookupMember(name);
-      if (member != null) {
-        return member.getElement();
+      Element enclosing = superclass.getElement().getEnclosingElement();
+      ClassScope scope = new ClassScope(superclass.getElement(),
+                                        new Scope("library", (LibraryElement) enclosing));
+      element = scope.findElement(inLibrary, name);
+      if (element != null) {
+        return element;
       }
     }
     for (InterfaceType supertype : classElement.getInterfaces()) {
-      InterfaceType.Member member = supertype.lookupMember(name);
-      if (member != null) {
-        return member.getElement();
+      Element enclosing = supertype.getElement().getEnclosingElement();
+      ClassScope scope = new ClassScope(supertype.getElement(),
+                                        new Scope("library", (LibraryElement) enclosing));
+      element = scope.findElement(inLibrary, name);
+      if (element != null) {
+        return element;
       }
     }
     return null;

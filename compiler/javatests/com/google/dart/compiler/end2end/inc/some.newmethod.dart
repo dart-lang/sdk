@@ -7,3 +7,10 @@ interface SomeClass factory SomeClassImpl {
   String get message();
   newMethod();
 }
+
+interface SomeInterface2 {
+}
+
+// myother7.dart/Baz depends on SomeClass2 which depends on SomeInterface2
+class SomeClass2 implements SomeInterface2 {
+}

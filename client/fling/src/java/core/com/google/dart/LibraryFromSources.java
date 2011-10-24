@@ -28,7 +28,6 @@ public class LibraryFromSources implements LibrarySource, DartSource {
     for (LibrarySource lib : libs) {
       this.libs.put(lib.getName(), lib);
     }
-    sources.put(name, this);
   }
 
   public void addNative(DartSource source) {
@@ -61,6 +60,10 @@ public class LibraryFromSources implements LibrarySource, DartSource {
 
   @Override
   public DartSource getSourceFor(String path) {
+    if (name.equals(path)) {
+      return this;
+    }
+
     final DartSource source = sources.get(path);
     if (source != null) {
       return source;

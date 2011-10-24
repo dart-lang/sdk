@@ -50,6 +50,10 @@ public class DartIdentifier extends DartExpression implements ElementReference {
     return targetName;
   }
 
+ /**
+  * Different access from getSymbol() to help distinguish parts of an expression
+  * when walking a DartPropertyAccess.
+  */
   public Element getTargetSymbol() {
     return targetSymbol;
   }
@@ -82,5 +86,9 @@ public class DartIdentifier extends DartExpression implements ElementReference {
   @Override
   public Element getReferencedElement() {
     return referencedElement;
+  }
+
+  public static boolean isPrivateName(String name) {
+    return name.startsWith("_");
   }
 }

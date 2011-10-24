@@ -32,8 +32,8 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
   public void format(DartCompilationError event) {
     Source sourceFile = event.getSource();
 
-    // if no source file is available, default to the basic error formatter
-    if (!(sourceFile instanceof DartSource)) {
+    // if this is an unknown source type, default to the basic error formatter
+    if (!(sourceFile instanceof DartSource) && !(sourceFile instanceof LibrarySource)) {
       super.format(event);
       return;
     }

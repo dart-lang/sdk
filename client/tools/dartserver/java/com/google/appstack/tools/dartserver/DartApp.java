@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
@@ -92,6 +93,9 @@ public class DartApp {
         errors.add(error);
       }
 
+      @Override
+      public void unitCompiled(DartUnit unit) {
+      }
     }
 
     private static String keyFor(Source source, String part, String extension) {

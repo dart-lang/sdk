@@ -82,7 +82,7 @@ public class RuntimeTypeInjector {
   private final JsBlock globalBlock;
   private final JsScope globalScope;
   // Maps builtin types to Javascript types implementations.
-  private final Map<ClassElement, String> builtinTypes;
+  private final Map<ClassElement, String> builtInTypeChecks;
   private CoreTypeProvider typeProvider;
   private final TranslationContext translationContext;
 
@@ -95,17 +95,17 @@ public class RuntimeTypeInjector {
     JsProgram program = translationContext.getProgram();
     this.globalBlock = program.getGlobalBlock();
     this.globalScope = program.getScope();
-    this.builtinTypes = makeBuiltinTypes(typeProvider);
+    this.builtInTypeChecks = makeBuiltinTypes(typeProvider);
     this.typeProvider = typeProvider;
     this.emitTypeChecks = emitTypeChecks;
   }
 
   private Map<ClassElement, String> makeBuiltinTypes(CoreTypeProvider typeProvider) {
     Map<ClassElement, String> builtinTypes = Maps.newHashMap();
-    builtinTypes.put(typeProvider.getBoolType().getElement(), "Boolean");
-    builtinTypes.put(typeProvider.getIntType().getElement(), "Number");
-    builtinTypes.put(typeProvider.getDoubleType().getElement(), "Number");
-    builtinTypes.put(typeProvider.getStringType().getElement(), "String");
+    builtinTypes.put(typeProvider.getBoolType().getElement(), "$isBool");
+    builtinTypes.put(typeProvider.getIntType().getElement(), "$isNum");
+    builtinTypes.put(typeProvider.getDoubleType().getElement(), "$isNum");
+    builtinTypes.put(typeProvider.getStringType().getElement(), "$isString");
     return builtinTypes;
   }
 
@@ -775,12 +775,9 @@ public class RuntimeTypeInjector {
       // Everything is an object, including null
       return this.translationContext.getProgram().getTrueLiteral();
     }
-    String builtin = builtinTypes.get(element);
+    String builtin = builtInTypeChecks.get(element);
     if (builtin != null) {
-      return call(src,
-                  nameref(src,
-                          nameref(src, builtin), "$instanceOf"),
-                          lhs);
+      return call(src, nameref(src, builtin), lhs);
     }
 
     // Due to implementing implied interfaces of classes, we always have to
@@ -819,7 +816,7 @@ public class RuntimeTypeInjector {
   /**
    * Optionally emit a runtime type check, which is a call to $chk passing the
    * runtime type object for the required type and an expression.
-   * 
+   *
    * @param enclosingClass enclosing class element
    * @param expr expression to check
    * @param type {@link Type} to check against, null is unknown
@@ -839,7 +836,7 @@ public class RuntimeTypeInjector {
 
   /**
    * Check if an assignment is statically known to have a type error.
-   * 
+   *
    * @param type
    * @param exprType
    * @param expr
@@ -872,7 +869,7 @@ public class RuntimeTypeInjector {
   /**
    * Optionally emit a type error, used when it is statically known that a
    * TypeError must be thrown.
-   * 
+   *
    * @param enclosingClass enclosing class element
    * @param expr expression that fails the check
    * @param type type to check against, null is unknown
@@ -891,7 +888,7 @@ public class RuntimeTypeInjector {
   /**
    * Optionally emit a runtime type check, which is a call to $chk passing the
    * runtime type object for the required type and an expression.
-   * 
+   *
    * @param enclosingClass enclosing class element
    * @param expr expression to check
    * @param type type to check against, null is unknown
@@ -909,7 +906,7 @@ public class RuntimeTypeInjector {
 
   /**
    * Get the runtime type object for a type.
-   * 
+   *
    * @param enclosingClass
    * @param expr
    * @param type

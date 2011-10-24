@@ -1,0 +1,73 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix standalone
+
+[ $arch == ia32]
+ManyEchoServerTest: Skip        # Bug 5103754
+
+BlackListedTest/01: Fail # Bug 5469684
+BlackListedTest/02: Fail # Bug 5469684
+BlackListedTest/03: Fail, Crash # Bug 5469684
+BlackListedTest/04: Fail, Crash # Bug 5469684
+BlackListedTest/05: Fail # Bug 5469684
+BlackListedTest/06: Fail # Bug 5469684
+BlackListedTest/07: Fail, Crash # Bug 5469684
+BlackListedTest/08: Fail # Bug 5469684
+BlackListedTest/09: Fail, Crash # Bug 5469684
+BlackListedTest/10: Fail, Crash # Bug 5469684
+BlackListedTest/11: Fail, Crash # Bug 5469684
+BlackListedTest/12: Fail, Crash # Bug 5469684
+
+[ $arch == ia32 && $mode == release]
+# Currently process tests are bound to debug mode.
+Process*: Skip
+
+[ $arch == ia32 && $system == macos]
+# Currently process tests are not working on Mac OS.
+Process*: Skip
+# This test fails with "Too many open files" on the Mac OS buildbot.
+SocketManyConnectionsTest: Skip
+
+[ $arch == ia32 && $system == win32]
+# Windows implementation of Process is still pending.
+Process*: Skip
+
+
+[ $arch == dartium ]
+# Server specific tests OK to fail in the browser
+EchoServerTest: Skip  # Uses Socket
+EchoServerStreamTest: Skip # Uses Socket
+EchoServerStreamReadUntilTest: Skip # Uses Socket
+ManyEchoServerTest: Skip # Uses Socket
+SocketCloseTest: Skip # Uses Socket
+SocketExceptionTest: Skip # Uses Socket
+SocketManyConnectionsTest: Skip # Uses Socket
+FileTest: Skip
+ManyEchoServerTest: Skip  # Uses Socket
+TimerTest: Skip # Uses EventHandler
+TimerRepeatTest: Skip # Uses EventHandler
+MultipleTimerTest: Skip # Uses EventHandler
+TimerCancelTest: Skip # Uses EventHandler
+TimerCancel1Test: Skip # Uses EventHandler
+TimerCancel2Test: Skip # Uses EventHandler
+FileInputStreamTest: Skip  # Uses TextFileInputStream.
+Process*: Skip # Uses Process
+Directory*: Skip # Uses Directory
+
+
+[ $arch == dartc || $arch == chromium ]
+*: Skip
+
+
+[ $arch == x64 ]
+*: Skip
+
+
+[ $arch == arm ]
+*: Skip
+
+
+[ $arch == simarm ]
+*: Skip

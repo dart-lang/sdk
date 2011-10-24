@@ -16,6 +16,7 @@ namespace dart {
 // Macrobatics to define the Object hierarchy of VM implementation classes.
 #define CLASS_LIST_NO_OBJECT(V)                                                \
   V(Class)                                                                     \
+  V(UnresolvedClass)                                                           \
   V(Type)                                                                      \
     V(ParameterizedType)                                                       \
     V(TypeParameter)                                                           \
@@ -36,6 +37,7 @@ namespace dart {
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(UnhandledException)                                                        \
+  V(ApiFailure)                                                                \
   V(Instance)                                                                  \
     V(Number)                                                                  \
       V(Integer)                                                               \
@@ -199,6 +201,7 @@ class RawClass : public RawObject {
   RawType* super_type_;
   RawType* factory_type_;
   RawFunction* signature_function_;  // Associated function for signature class.
+  RawType* signature_type_;  // Cached function type for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
@@ -222,6 +225,19 @@ class RawClass : public RawObject {
 };
 
 
+class RawUnresolvedClass : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->qualifier_);
+  }
+  RawString* qualifier_;  // Qualifier for the identifier.
+  RawString* ident_;  // name of the unresolved identifier.
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->ident_); }
+  intptr_t token_index_;
+};
+
+
 class RawType : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
@@ -242,7 +258,7 @@ class RawParameterizedType : public RawType {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_class_);
   }
-  RawObject* type_class_;  // Either resolved class or class name.
+  RawObject* type_class_;  // Either resolved class or unresolved class.
   RawTypeArguments* arguments_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->arguments_); }
   int8_t type_state_;
@@ -432,13 +448,16 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
-  RawArray* imports_;            // Imported libraries.
+  RawArray* imports_;            // List of libraries imported without prefix.
+  RawArray* imported_into_;      // List of libraries where this library
+                                 // is imported into without a prefix.
   RawLibrary* next_registered_;  // Linked list of registered libraries.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->next_registered_);
   }
 
   intptr_t num_imports_;         // Number of entries in imports_.
+  intptr_t num_imported_into_;   // Number of entries in imported_into_.
   intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   bool corelib_imported_;
@@ -570,6 +589,19 @@ class RawUnhandledException : public RawObject {
   RawInstance* stacktrace_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->stacktrace_);
+  }
+};
+
+
+class RawApiFailure : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ApiFailure);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+  RawString* message_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
 };
 

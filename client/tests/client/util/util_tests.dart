@@ -4,49 +4,41 @@
 
 #library('util_tests');
 
-#import('dart:html');
+#import('dart:html'); // TODO(rnystrom): Only needed to tell architecture.py
+                      // that this is a web test. Come up with cleaner solution.
 #import('../../../testing/unittest/unittest.dart');
 #import('../../../util/utilslib.dart');
 
 main() {
-  new UtilsTests().run();
-}
+  test('insertAt', () {
+    var a = [];
+    CollectionUtils.insertAt(a, 0, 1);
+    expect(a).equalsCollection([1]);
 
-class UtilsTests extends UnitTestSuite {
+    CollectionUtils.insertAt(a, 0, 2);
+    expect(a).equalsCollection([2, 1]);
 
-  UtilsTests() : super() {}
+    CollectionUtils.insertAt(a, 0, 5);
+    CollectionUtils.insertAt(a, 0, 4);
+    CollectionUtils.insertAt(a, 0, 3);
+    expect(a).equalsCollection([3, 4, 5, 2, 1]);
 
-  void setUpTestSuite() {
-    addTest(void testInsertAt() {
-      List a = new List();
-      CollectionUtils.insertAt(a, 0, 1);
-      Expect.listEquals([1], a);
+    a = [];
+    CollectionUtils.insertAt(a, 0, 1);
+    expect(a).equalsCollection([1]);
 
-      CollectionUtils.insertAt(a, 0, 2);
-      Expect.listEquals([2, 1], a);
+    CollectionUtils.insertAt(a, 1, 2);
+    expect(a).equalsCollection([1, 2]);
 
-      CollectionUtils.insertAt(a, 0, 5);
-      CollectionUtils.insertAt(a, 0, 4);
-      CollectionUtils.insertAt(a, 0, 3);
-      Expect.listEquals([3, 4, 5, 2, 1], a);
+    CollectionUtils.insertAt(a, 1, 3);
+    CollectionUtils.insertAt(a, 3, 4);
+    CollectionUtils.insertAt(a, 3, 5);
+    expect(a).equalsCollection([1, 3, 2, 5, 4]);
+  });
 
-      a = new List();
-      CollectionUtils.insertAt(a, 0, 1);
-      Expect.listEquals([1], a);
-
-      CollectionUtils.insertAt(a, 1, 2);
-      Expect.listEquals([1, 2], a);
-
-      CollectionUtils.insertAt(a, 1, 3);
-      CollectionUtils.insertAt(a, 3, 4);
-      CollectionUtils.insertAt(a, 3, 5);
-      Expect.listEquals([1, 3, 2, 5, 4], a);
-    });
-
-    addTest(void testDefaultString() {
-      Expect.equals('', StringUtils.defaultString(null));
-      Expect.equals('', StringUtils.defaultString(''));
-      Expect.equals('test', StringUtils.defaultString('test'));
-    });
-  }
+  test('defaultString', () {
+    expect(StringUtils.defaultString(null)).equals('');
+    expect(StringUtils.defaultString('')).equals('');
+    expect(StringUtils.defaultString('test')).equals('test');
+  });
 }

@@ -2,47 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ArrayFactory {
-  factory Array<E>.from(Iterable<E> other) {
-    Array<E> array = new Array<E>();
-    for (final e in other) {
-      array.add(e);
-    }
-    return array;
-  }
-
-  factory Array<E>.fromArray(Array<E> other, int startIndex, int endIndex) {
-    Array array = new Array<E>();
-    if (endIndex > other.length) endIndex = other.length;
-    if (startIndex < 0) startIndex = 0;
-    int count = endIndex - startIndex;
-    if (count > 0) {
-      array.length = count;
-      Arrays.copy(other, startIndex, array, 0, count);
-    }
-    return array;
-  }
-
-  factory Array<E>([int length = null]) {
-    bool isFixed = true;
-    if (length === null) {
-      length = 0;
-      isFixed = false;
-    } else if (length < 0) {
-      throw new IllegalArgumentException(length);
-    }
-    // TODO(floitsch): make array creation more efficient. Currently we allocate
-    // a new TypeToken at every allocation. Either we can optimize them away,
-    // or we need to find other ways to pass type-information from Dart to JS.
-    ObjectArray array = _new(new TypeToken<E>(), length);
-    array._isFixed = isFixed;
-    return array;
-  }
-
-  static ObjectArray _new(TypeToken typeToken, int length) native;
-}
-
-
 class ListFactory {
   factory List<E>.from(Iterable<E> other) {
     List<E> list = new List<E>();
@@ -52,8 +11,7 @@ class ListFactory {
     return list;
   }
 
-  // TODO(bak): Until the final transition Array type is needed for other
-  factory List<E>.fromList(Array<E> other, int startIndex, int endIndex) {
+  factory List<E>.fromList(List<E> other, int startIndex, int endIndex) {
     List list = new List<E>();
     if (endIndex > other.length) endIndex = other.length;
     if (startIndex < 0) startIndex = 0;
@@ -71,23 +29,23 @@ class ListFactory {
       length = 0;
       isFixed = false;
     } else if (length < 0) {
-      throw new IllegalArgumentException(length);
+      throw new IllegalArgumentException("negative length $length");
     }
-    // TODO(floitsch): make array creation more efficient. Currently we allocate
+    // TODO(floitsch): make list creation more efficient. Currently we allocate
     // a new TypeToken at every allocation. Either we can optimize them away,
     // or we need to find other ways to pass type-information from Dart to JS.
-    ObjectArray list = _new(new TypeToken<E>(), length);
+    ListImplementation list = _new(new TypeToken<E>(), length);
     list._isFixed = isFixed;
     return list;
   }
 
-  static ObjectArray _new(TypeToken typeToken, int length) native;
+  static ListImplementation _new(TypeToken typeToken, int length) native;
 }
 
 
-class ObjectArray<T> implements Array<T> native "Array" {
-  // ObjectArray maps directly to a JavaScript array. If the array is
-  // constructed by the ArrayFactory.Array constructor, it has an
+class ListImplementation<T> implements List<T> native "Array" {
+  // ListImplementation maps directly to a JavaScript array. If the list is
+  // constructed by the ListFactory.List constructor, it has an
   // additional named property for '_isFixed'. If it is a literal, the
   // code generator will not add the property. It will be 'undefined'
   // and coerce to false.
@@ -109,9 +67,9 @@ class ObjectArray<T> implements Array<T> native "Array" {
 
   Iterator<T> iterator() {
     if (_isFixed) {
-      return new FixedSizeArrayIterator<T>(this);
+      return new FixedSizeListIterator<T>(this);
     } else {
-      return new VariableSizeArrayIterator<T>(this);
+      return new VariableSizeListIterator<T>(this);
     }
   }
 
@@ -120,13 +78,15 @@ class ObjectArray<T> implements Array<T> native "Array" {
   int get length() native;
   void _setLength(int length) native;
   void _add(T value) native;
+  void _removeRange(int start, int length) native;
+  void _insertRange(int start, int length, T initialValue) native;
 
   void forEach(void f(T element)) {
     Collections.forEach(this, f);
   }
 
   Collection<T> filter(bool f(T element)) {
-    return Collections.filter(this, new Array<T>(), f);
+    return Collections.filter(this, new List<T>(), f);
   }
 
   bool every(bool f(T element)) {
@@ -145,24 +105,55 @@ class ObjectArray<T> implements Array<T> native "Array" {
     DualPivotQuicksort.sort(this, compare);
   }
 
-  void copyFrom(Array<Object> src, int srcStart, int dstStart, int count) {
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
     Arrays.copy(src, srcStart, this, dstStart, count);
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    if (_isFixed) {
+      throw const UnsupportedOperationException(
+          "Cannot remove range of a non-extendable list");
+    }
+    if (length == 0) {
+      return;
+    }
+    Arrays.rangeCheck(this, start, length);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    if (_isFixed) {
+      throw const UnsupportedOperationException(
+          "Cannot remove range of a non-extendable list");
+    }
+    if (length == 0) {
+      return;
+    }
+    Arrays.rangeCheck(this, start, length);
+    _removeRange(start, length);
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    if (_isFixed) {
+      throw const UnsupportedOperationException(
+          "Cannot insert range in a non-extendable list");
+    }
+    if (length == 0) {
+      return;
+    }
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    if (start < 0 || start > this.length) {
+      throw new IndexOutOfRangeException(start);
+    }
+    _insertRange(start, length, initialValue);
   }
 
   List<T> getRange(int start, int length) {
-    throw const NotImplementedException();
+    if (length == 0) return [];
+    Arrays.rangeCheck(this, start, length);
+    return new List<T>.fromList(this, start, start + length);
   }
 
   int indexOf(T element, int startIndex) {
@@ -176,7 +167,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
   void add(T element) {
     if (_isFixed) {
       throw const UnsupportedOperationException(
-          "Cannot add to a non-extendable array");
+          "Cannot add to a non-extendable list");
     } else {
       _add(element);
     }
@@ -189,7 +180,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
   void addAll(Collection<T> elements) {
     if (_isFixed) {
       throw const UnsupportedOperationException(
-          "Cannot add to a non-extendable array");
+          "Cannot add to a non-extendable list");
     } else {
       for (final e in elements) {
         _add(e);
@@ -200,7 +191,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
   void clear() {
     if (_isFixed) {
       throw const UnsupportedOperationException(
-          "Cannot clear a non-extendable array");
+          "Cannot clear a non-extendable list");
     } else {
       length = 0;
     }
@@ -209,7 +200,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
   void set length(int length) {
     if (_isFixed) {
       throw const UnsupportedOperationException(
-          "Cannot change the length of a non-extendable array");
+          "Cannot change the length of a non-extendable list");
     } else {
       _setLength(length);
     }
@@ -218,7 +209,7 @@ class ObjectArray<T> implements Array<T> native "Array" {
   T removeLast() {
     if (_isFixed) {
       throw const UnsupportedOperationException(
-          "Cannot remove in a non-extendable array");
+          "Cannot remove in a non-extendable list");
     } else {
       T element = last();
       length = length - 1;
@@ -232,51 +223,51 @@ class ObjectArray<T> implements Array<T> native "Array" {
 }
 
 
-// Iterator for arrays with fixed size.
-class FixedSizeArrayIterator<T> extends VariableSizeArrayIterator<T> {
-  FixedSizeArrayIterator(Array array)
-      : super(array),
-        _length = array.length {
+// Iterator for lists with fixed size.
+class FixedSizeListIterator<T> extends VariableSizeListIterator<T> {
+  FixedSizeListIterator(List list)
+      : super(list),
+        _length = list.length {
   }
 
   bool hasNext() {
     return _length > _pos;
   }
 
-  final int _length;  // Cache array length for faster access.
+  final int _length;  // Cache list length for faster access.
 }
 
 
-// Iterator for arrays with variable size.
-class VariableSizeArrayIterator<T> implements Iterator<T> {
-  VariableSizeArrayIterator(Array<T> array)
-      : _array = array,
+// Iterator for lists with variable size.
+class VariableSizeListIterator<T> implements Iterator<T> {
+  VariableSizeListIterator(List<T> list)
+      : _list = list,
         _pos = 0 {
   }
 
   bool hasNext() {
-    return _array.length > _pos;
+    return _list.length > _pos;
   }
 
   T next() {
     if (!hasNext()) {
       throw const NoMoreElementsException();
     }
-    return _array[_pos++];
+    return _list[_pos++];
   }
 
-  final Array<T> _array;
+  final List<T> _list;
   int _pos;
 }
 
 
-class _ArrayJsUtil {
-  static int _arrayLength(Array array) native {
-    return array.length;
+class _ListJsUtil {
+  static int _listLength(List list) native {
+    return list.length;
   }
 
-  static Array _newArray(int len) native {
-    return new Array(len);
+  static List _newList(int len) native {
+    return new List(len);
   }
 
   static void _throwIndexOutOfRangeException(int index) native {

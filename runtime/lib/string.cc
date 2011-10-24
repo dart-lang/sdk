@@ -140,6 +140,22 @@ DEFINE_NATIVE_ENTRY(String_concat, 2) {
 }
 
 
+DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
+  const String& str = String::CheckedHandle(arguments->At(0));
+  ASSERT(!str.IsNull());
+  const String& result = String::Handle(String::ToLowerCase(str));
+  arguments->SetReturn(result);
+}
+
+
+DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
+  const String& str = String::CheckedHandle(arguments->At(0));
+  ASSERT(!str.IsNull());
+  const String& result = String::Handle(String::ToUpperCase(str));
+  arguments->SetReturn(result);
+}
+
+
 DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
   const Array& strings = Array::CheckedHandle(arguments->At(0));
   ASSERT(!strings.IsNull());

@@ -97,6 +97,51 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
+                                              intptr_t object_id,
+                                              bool classes_serialized) {
+  ASSERT(reader != NULL);
+
+  // Allocate parameterized type object.
+  UnresolvedClass& unresolved_class =
+      UnresolvedClass::ZoneHandle(UnresolvedClass::New());
+  reader->AddBackwardReference(object_id, &unresolved_class);
+
+  // Set all non object fields.
+  unresolved_class.set_token_index(reader->Read<intptr_t>());
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (unresolved_class.raw()->to() -
+                       unresolved_class.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(unresolved_class.raw()->from() + i) = reader->ReadObject();
+  }
+  return unresolved_class.raw();
+}
+
+
+void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
+                                 intptr_t object_id,
+                                 bool serialize_classes) {
+  ASSERT(writer != NULL);
+  SnapshotWriterVisitor visitor(writer);
+
+  // Write out the serialization header value for this object.
+  writer->WriteObjectHeader(kInlined, object_id);
+
+  // Write out the class information.
+  writer->WriteObjectHeader(kObjectId, Object::kUnresolvedClassClass);
+
+  // Write out all the non object pointer fields.
+  writer->Write<intptr_t>(ptr()->token_index_);
+
+  // Write out all the object pointer fields.
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawType* Type::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         bool classes_serialized) {
@@ -268,7 +313,7 @@ RawTypeArray* TypeArray::ReadFrom(SnapshotReader* reader,
   TypeArray& type_array = TypeArray::Handle(TypeArray::New(len));
   reader->AddBackwardReference(object_id, &type_array);
   Type& type = Type::Handle();
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     type ^= reader->ReadObject();
     type_array.SetTypeAt(i, type);
   }
@@ -292,7 +337,7 @@ void RawTypeArray::WriteTo(SnapshotWriter* writer,
 
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     writer->WriteObject(ptr()->types_[i]);
   }
 }
@@ -462,7 +507,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
 
   // Read the token stream into the TokenStream.
   String& literal = String::Handle();
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     Token::Kind kind = static_cast<Token::Kind>(
         Smi::Value(GetSmi(reader->Read<intptr_t>())));
     literal ^= reader->ReadObject();
@@ -544,6 +589,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   library.raw_ptr()->num_imports_ = reader->Read<intptr_t>();
+  library.raw_ptr()->num_imported_into_ = reader->Read<intptr_t>();
   library.raw_ptr()->num_anonymous_ = reader->Read<intptr_t>();
   // The native resolver is not serialized.
   Dart_NativeEntryResolver resolver = reader->Read<Dart_NativeEntryResolver>();
@@ -575,6 +621,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(kObjectId, Object::kLibraryClass);
 
   writer->Write<intptr_t>(ptr()->num_imports_);
+  writer->Write<intptr_t>(ptr()->num_imported_into_);
   writer->Write<intptr_t>(ptr()->num_anonymous_);
   // We do not serialize the native resolver over, this needs to be explicitly
   // set after deserialization.
@@ -796,6 +843,21 @@ void RawUnhandledException::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawApiFailure* ApiFailure::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    bool classes_serialized) {
+  UNIMPLEMENTED();
+  return ApiFailure::null();
+}
+
+
+void RawApiFailure::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            bool serialize_classes) {
+  UNIMPLEMENTED();
+}
+
+
 RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 bool classes_serialized) {
@@ -937,18 +999,13 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Allocate a one byte character area.
-  uint8_t* chars = new uint8_t[len];
-  for (int i = 0; i < len; i++) {
-    chars[i] = reader->Read<uint8_t>();
-  }
-
   // Set up the one byte string object.
   OneByteString& str_obj = OneByteString::ZoneHandle(
-      OneByteString::New(chars,
-                         len,
-                         classes_serialized ? Heap::kOld : Heap::kNew));
-  delete[] chars;
+      OneByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  for (intptr_t i = 0; i < len; i++) {
+    *str_obj.CharAddr(i) = reader->Read<uint8_t>();
+  }
+
   reader->AddBackwardReference(object_id, &str_obj);
   RawOneByteString* raw_str = str_obj.raw();
   raw_str->ptr()->hash_ = smi_hash;
@@ -975,7 +1032,7 @@ void RawOneByteString::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(ptr()->hash_);
 
   // Write out the string.
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     writer->Write<uint8_t>(ptr()->data_[i]);
   }
 }
@@ -990,18 +1047,13 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Allocate a two byte character area.
-  uint16_t* chars = new uint16_t[len];
-  for (int i = 0; i < len; i++) {
-    chars[i] = reader->Read<uint16_t>();
-  }
-
   // Set up the two byte string object.
   TwoByteString& str_obj = TwoByteString::ZoneHandle(
-      TwoByteString::New(chars,
-                         len,
-                         classes_serialized ? Heap::kOld : Heap::kNew));
-  delete[] chars;
+      TwoByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  for (intptr_t i = 0; i < len; i++) {
+    *str_obj.CharAddr(i) = reader->Read<uint16_t>();
+  }
+
   reader->AddBackwardReference(object_id, &str_obj);
   RawTwoByteString* raw_str = str_obj.raw();
   raw_str->ptr()->hash_ = smi_hash;
@@ -1028,7 +1080,7 @@ void RawTwoByteString::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(ptr()->hash_);
 
   // Write out the string.
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     writer->Write<uint16_t>(ptr()->data_[i]);
   }
 }
@@ -1043,18 +1095,13 @@ RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Allocate a four byte character area.
-  uint32_t* chars = new uint32_t[len];
-  for (int i = 0; i < len; i++) {
-    chars[i] = reader->Read<uint32_t>();
-  }
-
   // Set up the four byte string object.
   FourByteString& str_obj = FourByteString::ZoneHandle(
-      FourByteString::New(chars,
-                         len,
-                         classes_serialized ? Heap::kOld : Heap::kNew));
-  delete[] chars;
+      FourByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  for (intptr_t i = 0; i < len; i++) {
+    *str_obj.CharAddr(i) = reader->Read<uint32_t>();
+  }
+
   reader->AddBackwardReference(object_id, &str_obj);
   RawFourByteString* raw_str = str_obj.raw();
   raw_str->ptr()->hash_ = smi_hash;
@@ -1081,7 +1128,7 @@ void RawFourByteString::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(ptr()->hash_);
 
   // Write out the string.
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     writer->Write<uint32_t>(ptr()->data_[i]);
   }
 }
@@ -1120,7 +1167,7 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
   result.SetTypeArguments(type_arguments);
 
   Object& obj = Object::Handle();
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     obj = reader->ReadObject();
     result.SetAt(i, obj);
   }
@@ -1168,7 +1215,7 @@ static void ArrayWriteTo(SnapshotWriter* writer,
   writer->WriteObject(type_arguments);
 
   // Write out the individual objects.
-  for (int i = 0; i < len; i++) {
+  for (intptr_t i = 0; i < len; i++) {
     writer->WriteObject(data[i]);
   }
 }

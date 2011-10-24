@@ -1,12 +1,14 @@
 #library('html');
 
-#import('bootstrap_hacks.dart');
+#import('dart:dom', prefix:'dom');
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // DO NOT EDIT
 // Auto-generated Dart HTML library.
+
+
 
 
 
@@ -318,20 +320,6 @@ interface BeforeLoadEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface BeforeProcessEvent extends Event {
-
-  String get text();
-
-  void set text(String value);
-
-  void initBeforeProcessEvent(String type, bool canBubble, bool cancelable);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface Blob {
 
   int get size();
@@ -346,21 +334,9 @@ interface Blob {
 
 interface BlobBuilder {
 
-  void append(var blob_OR_value, String endings);
+  void append(var blob_OR_value, [String endings]);
 
-  Blob getBlob(String contentType);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface BlockquoteElement extends Element {
-
-  String get cite();
-
-  void set cite(String value);
+  Blob getBlob([String contentType]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -512,8 +488,9 @@ interface CSSKeyframesRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-interface CSSMatrix factory CSSMatrixWrappingImplementation {
-  CSSMatrix([String cssValue]);
+interface CSSMatrix factory _CSSMatrixFactoryProvider {
+
+  CSSMatrix([String spec]);
 
   num get a();
 
@@ -805,7 +782,7 @@ interface CSSStyleSheet extends StyleSheet {
 
   CSSRuleList get rules();
 
-  int addRule(String selector, String style, int index);
+  int addRule(String selector, String style, [int index]);
 
   void deleteRule(int index);
 
@@ -925,7 +902,7 @@ interface CanvasElement extends Element {
 
   CanvasRenderingContext getContext([String contextId]);
 
-  String toDataURL([String type]);
+  String toDataURL(String type);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1169,18 +1146,6 @@ interface ClientRect {
 
 // WARNING: Do not edit - generated code.
 
-interface ClientRectList {
-
-  int get length();
-
-  ClientRect item(int index);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface Clipboard {
 
   String get dropEffect();
@@ -1195,7 +1160,7 @@ interface Clipboard {
 
   DataTransferItems get items();
 
-  void clearData(String type);
+  void clearData([String type]);
 
   void getData(String type);
 
@@ -1675,35 +1640,35 @@ interface DataTransferItems {
 
 interface DataView extends ArrayBufferView {
 
-  num getFloat32(int byteOffset, bool littleEndian);
+  num getFloat32(int byteOffset, [bool littleEndian]);
 
-  num getFloat64(int byteOffset, bool littleEndian);
+  num getFloat64(int byteOffset, [bool littleEndian]);
 
-  int getInt16(int byteOffset, bool littleEndian);
+  int getInt16(int byteOffset, [bool littleEndian]);
 
-  int getInt32(int byteOffset, bool littleEndian);
+  int getInt32(int byteOffset, [bool littleEndian]);
 
   int getInt8();
 
-  int getUint16(int byteOffset, bool littleEndian);
+  int getUint16(int byteOffset, [bool littleEndian]);
 
-  int getUint32(int byteOffset, bool littleEndian);
+  int getUint32(int byteOffset, [bool littleEndian]);
 
   int getUint8();
 
-  void setFloat32(int byteOffset, num value, bool littleEndian);
+  void setFloat32(int byteOffset, num value, [bool littleEndian]);
 
-  void setFloat64(int byteOffset, num value, bool littleEndian);
+  void setFloat64(int byteOffset, num value, [bool littleEndian]);
 
-  void setInt16(int byteOffset, int value, bool littleEndian);
+  void setInt16(int byteOffset, int value, [bool littleEndian]);
 
-  void setInt32(int byteOffset, int value, bool littleEndian);
+  void setInt32(int byteOffset, int value, [bool littleEndian]);
 
   void setInt8();
 
-  void setUint16(int byteOffset, int value, bool littleEndian);
+  void setUint16(int byteOffset, int value, [bool littleEndian]);
 
-  void setUint32(int byteOffset, int value, bool littleEndian);
+  void setUint32(int byteOffset, int value, [bool littleEndian]);
 
   void setUint8();
 }
@@ -1728,8 +1693,6 @@ interface DetailsElement extends Element {
 interface DeviceMotionEvent extends Event {
 
   num get interval();
-
-  void initDeviceMotionEvent(String type, bool bubbles, bool cancelable);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1757,11 +1720,11 @@ interface DirectoryEntry extends Entry {
 
   DirectoryReader createReader();
 
-  void getDirectory(String path, Flags flags, EntryCallback successCallback, ErrorCallback errorCallback);
+  void getDirectory(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void getFile(String path, Flags flags, EntryCallback successCallback, ErrorCallback errorCallback);
+  void getFile(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void removeRecursively(VoidCallback successCallback, ErrorCallback errorCallback);
+  void removeRecursively([VoidCallback successCallback, ErrorCallback errorCallback]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1787,7 +1750,7 @@ interface DirectoryEntrySync extends EntrySync {
 
 interface DirectoryReader {
 
-  void readEntries(EntriesCallback successCallback, ErrorCallback errorCallback);
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1893,15 +1856,15 @@ interface Entry {
 
   String get name();
 
-  void copyTo(DirectoryEntry parent, String name, EntryCallback successCallback, ErrorCallback errorCallback);
+  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void getMetadata(MetadataCallback successCallback, ErrorCallback errorCallback);
+  void getMetadata([MetadataCallback successCallback, ErrorCallback errorCallback]);
 
-  void getParent(EntryCallback successCallback, ErrorCallback errorCallback);
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void moveTo(DirectoryEntry parent, String name, EntryCallback successCallback, ErrorCallback errorCallback);
+  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void remove(VoidCallback successCallback, ErrorCallback errorCallback);
+  void remove([VoidCallback successCallback, ErrorCallback errorCallback]);
 
   String toURL();
 }
@@ -2147,9 +2110,9 @@ interface FileCallback {
 
 interface FileEntry extends Entry {
 
-  void createWriter(FileWriterCallback successCallback, ErrorCallback errorCallback);
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]);
 
-  void file(FileCallback successCallback, ErrorCallback errorCallback);
+  void file(FileCallback successCallback, [ErrorCallback errorCallback]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2253,7 +2216,9 @@ interface FileList {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader {
+interface FileReader factory _FileReaderFactoryProvider {
+
+  FileReader();
 
   static final int DONE = 2;
 
@@ -2299,7 +2264,7 @@ interface FileReader {
 
   void readAsDataURL(Blob blob);
 
-  void readAsText(Blob blob, String encoding);
+  void readAsText(Blob blob, [String encoding]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2315,7 +2280,7 @@ interface FileReaderSync {
 
   String readAsDataURL(Blob blob);
 
-  String readAsText(Blob blob, String encoding);
+  String readAsText(Blob blob, [String encoding]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2437,7 +2402,7 @@ interface Float32Array extends ArrayBufferView {
 
   int get length();
 
-  Float32Array subarray(int start, int end);
+  Float32Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2451,7 +2416,7 @@ interface Float64Array extends ArrayBufferView {
 
   int get length();
 
-  Float64Array subarray(int start, int end);
+  Float64Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2535,9 +2500,9 @@ interface Geolocation {
 
   void clearWatch(int watchId);
 
-  void getCurrentPosition(PositionCallback successCallback, PositionErrorCallback errorCallback);
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
 
-  int watchPosition(PositionCallback successCallback, PositionErrorCallback errorCallback);
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2645,9 +2610,9 @@ interface History {
 
   void go(int distance);
 
-  void pushState(Object data, String title, String url);
+  void pushState(Object data, String title, [String url]);
 
-  void replaceState(Object data, String title, String url);
+  void replaceState(Object data, String title, [String url]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2697,6 +2662,8 @@ interface IDBCursor {
 
   IDBAny get source();
 
+  void continueFunction([IDBKey key]);
+
   IDBRequest delete();
 
   IDBRequest update(String value);
@@ -2735,7 +2702,7 @@ interface IDBDatabase {
 
   String get version();
 
-  void addEventListener(String type, EventListener listener, bool useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close();
 
@@ -2745,7 +2712,7 @@ interface IDBDatabase {
 
   bool dispatchEvent(Event evt);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   IDBVersionChangeRequest setVersion(String version);
 }
@@ -2815,6 +2782,8 @@ interface IDBDatabaseException {
 
 interface IDBFactory {
 
+  IDBRequest getDatabaseNames();
+
   IDBRequest open(String name);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -2833,11 +2802,13 @@ interface IDBIndex {
 
   bool get unique();
 
+  IDBRequest getObject(IDBKey key);
+
   IDBRequest getKey(IDBKey key);
 
-  IDBRequest openCursor(IDBKeyRange range, int direction);
+  IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest openKeyCursor(IDBKeyRange range, int direction);
+  IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2863,13 +2834,13 @@ interface IDBKeyRange {
 
   bool get upperOpen();
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, bool lowerOpen, bool upperOpen);
+  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
 
-  IDBKeyRange lowerBound(IDBKey bound, bool open);
+  IDBKeyRange lowerBound(IDBKey bound, [bool open]);
 
   IDBKeyRange only(IDBKey value);
 
-  IDBKeyRange upperBound(IDBKey bound, bool open);
+  IDBKeyRange upperBound(IDBKey bound, [bool open]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2883,7 +2854,7 @@ interface IDBObjectStore {
 
   String get name();
 
-  IDBRequest add(String value, IDBKey key);
+  IDBRequest add(String value, [IDBKey key]);
 
   IDBRequest clear();
 
@@ -2893,11 +2864,13 @@ interface IDBObjectStore {
 
   void deleteIndex(String name);
 
+  IDBRequest getObject(IDBKey key);
+
   IDBIndex index(String name);
 
-  IDBRequest openCursor(IDBKeyRange range, int direction);
+  IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest put(String value, IDBKey key);
+  IDBRequest put(String value, [IDBKey key]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2931,11 +2904,11 @@ interface IDBRequest {
 
   String get webkitErrorMessage();
 
-  void addEventListener(String type, EventListener listener, bool useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event evt);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2969,13 +2942,13 @@ interface IDBTransaction {
 
   void abort();
 
-  void addEventListener(String type, EventListener listener, bool useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event evt);
 
   IDBObjectStore objectStore(String name);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3339,7 +3312,7 @@ interface InputElement extends Element {
 
   void setCustomValidity(String error);
 
-  void setSelectionRange([int start, int end, String direction]);
+  void setSelectionRange(int start, int end, [String direction]);
 
   void setValueForUser(String value);
 
@@ -3359,7 +3332,7 @@ interface Int16Array extends ArrayBufferView {
 
   int get length();
 
-  Int16Array subarray(int start, int end);
+  Int16Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3373,7 +3346,7 @@ interface Int32Array extends ArrayBufferView {
 
   int get length();
 
-  Int32Array subarray(int start, int end);
+  Int32Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3387,7 +3360,7 @@ interface Int8Array extends ArrayBufferView {
 
   int get length();
 
-  Int8Array subarray(int start, int end);
+  Int8Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4063,7 +4036,7 @@ interface LegendElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface LinkElement extends Element /*, common.LinkStyle */ {
+interface LinkElement extends Element {
 
   String get charset();
 
@@ -4287,6 +4260,10 @@ interface MediaElement extends Element {
 
   void set currentTime(num value);
 
+  bool get defaultMuted();
+
+  void set defaultMuted(bool value);
+
   num get defaultPlaybackRate();
 
   void set defaultPlaybackRate(num value);
@@ -4296,6 +4273,8 @@ interface MediaElement extends Element {
   bool get ended();
 
   MediaError get error();
+
+  num get initialTime();
 
   bool get loop();
 
@@ -4443,11 +4422,11 @@ interface MediaStream {
 
   MediaStreamTrackList get tracks();
 
-  void addEventListener(String type, EventListener listener, bool useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event event);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4696,6 +4675,32 @@ interface MutationEvent extends Event {
   Node get relatedNode();
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationRecord {
+
+  ElementList get addedNodes();
+
+  String get attributeName();
+
+  String get attributeNamespace();
+
+  Node get nextSibling();
+
+  String get oldValue();
+
+  Node get previousSibling();
+
+  ElementList get removedNodes();
+
+  Node get target();
+
+  String get type();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5121,7 +5126,8 @@ interface ParamElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface Point factory PointWrappingImplementation {
+interface Point factory _PointFactoryProvider {
+
   Point(num x, num y);
 
   num get x();
@@ -5142,7 +5148,7 @@ interface PopStateEvent extends Event {
 
   String get state();
 
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String stateArg);
+  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5204,7 +5210,7 @@ interface PreElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface ProcessingInstruction extends Node /*, common.LinkStyle */ {
+interface ProcessingInstruction extends Node {
 
   String get data();
 
@@ -5323,8 +5329,6 @@ interface Range {
   Range cloneRange();
 
   void collapse(bool toStart);
-
-  int compareBoundaryPoints();
 
   int compareNode(Node refNode);
 
@@ -5558,6 +5562,14 @@ interface SourceElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface SpanElement extends Element {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface SpeechInputEvent extends Event {
 
   SpeechInputResultList get results();
@@ -5638,9 +5650,9 @@ interface StorageInfo {
 
   static final int TEMPORARY = 0;
 
-  void queryUsageAndQuota(int storageType, StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback);
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
 
-  void requestQuota(int storageType, int newQuotaInBytes, StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback);
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5688,7 +5700,7 @@ interface StringCallback {
 
 // WARNING: Do not edit - generated code.
 
-interface StyleElement extends Element /*, common.LinkStyle */ {
+interface StyleElement extends Element {
 
   bool get disabled();
 
@@ -6088,13 +6100,17 @@ interface TextAreaElement extends Element {
 
   bool get willValidate();
 
+  String get wrap();
+
+  void set wrap(String value);
+
   bool checkValidity();
 
   void select();
 
   void setCustomValidity(String error);
 
-  void setSelectionRange(int start, int end, String direction);
+  void setSelectionRange(int start, int end, [String direction]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6310,7 +6326,7 @@ interface Uint16Array extends ArrayBufferView {
 
   int get length();
 
-  Uint16Array subarray(int start, int end);
+  Uint16Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6324,7 +6340,7 @@ interface Uint32Array extends ArrayBufferView {
 
   int get length();
 
-  Uint32Array subarray(int start, int end);
+  Uint32Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6338,7 +6354,7 @@ interface Uint8Array extends ArrayBufferView {
 
   int get length();
 
-  Uint8Array subarray(int start, int end);
+  Uint8Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7316,13 +7332,13 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass);
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, int format, int type, ArrayBufferView pixels);
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format, int type, ArrayBufferView pixels]);
 
   void texParameterf(int target, int pname, num param);
 
   void texParameteri(int target, int pname, int param);
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, int type, ArrayBufferView pixels);
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type, ArrayBufferView pixels]);
 
   void uniform1f(WebGLUniformLocation location, num x);
 
@@ -7584,8 +7600,6 @@ class AnchorElementWrappingImplementation extends ElementWrappingImplementation 
   String getParameter(String name) {
     return _ptr.getParameter(name);
   }
-
-  String get typeName() { return "AnchorElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7604,8 +7618,6 @@ class AnimationEventWrappingImplementation extends EventWrappingImplementation i
     _ptr.initWebKitAnimationEvent(typeArg, canBubbleArg, cancelableArg, animationNameArg, elapsedTimeArg);
     return;
   }
-
-  String get typeName() { return "AnimationEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7621,8 +7633,6 @@ class AnimationListWrappingImplementation extends DOMWrapperBase implements Anim
   Animation item(int index) {
     return LevelDom.wrapAnimation(_ptr.item(index));
   }
-
-  String get typeName() { return "AnimationList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7662,8 +7672,6 @@ class AnimationWrappingImplementation extends DOMWrapperBase implements Animatio
     _ptr.play();
     return;
   }
-
-  String get typeName() { return "Animation"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7719,8 +7727,6 @@ class AreaElementWrappingImplementation extends ElementWrappingImplementation im
   String get target() { return _ptr.target; }
 
   void set target(String value) { _ptr.target = value; }
-
-  String get typeName() { return "AreaElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7736,8 +7742,6 @@ class ArrayBufferViewWrappingImplementation extends DOMWrapperBase implements Ar
   int get byteLength() { return _ptr.byteLength; }
 
   int get byteOffset() { return _ptr.byteOffset; }
-
-  String get typeName() { return "ArrayBufferView"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7749,8 +7753,6 @@ class ArrayBufferWrappingImplementation extends DOMWrapperBase implements ArrayB
   ArrayBufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get byteLength() { return _ptr.byteLength; }
-
-  String get typeName() { return "ArrayBuffer"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7760,8 +7762,6 @@ class ArrayBufferWrappingImplementation extends DOMWrapperBase implements ArrayB
 
 class AudioElementWrappingImplementation extends MediaElementWrappingImplementation implements AudioElement {
   AudioElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "AudioElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7775,8 +7775,6 @@ class BRElementWrappingImplementation extends ElementWrappingImplementation impl
   String get clear() { return _ptr.clear; }
 
   void set clear(String value) { _ptr.clear = value; }
-
-  String get typeName() { return "BRElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7788,8 +7786,6 @@ class BarInfoWrappingImplementation extends DOMWrapperBase implements BarInfo {
   BarInfoWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   bool get visible() { return _ptr.visible; }
-
-  String get typeName() { return "BarInfo"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7807,8 +7803,6 @@ class BaseElementWrappingImplementation extends ElementWrappingImplementation im
   String get target() { return _ptr.target; }
 
   void set target(String value) { _ptr.target = value; }
-
-  String get typeName() { return "BaseElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7825,28 +7819,6 @@ class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation 
     _ptr.initBeforeLoadEvent(type, canBubble, cancelable, url);
     return;
   }
-
-  String get typeName() { return "BeforeLoadEvent"; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class BeforeProcessEventWrappingImplementation extends EventWrappingImplementation implements BeforeProcessEvent {
-  BeforeProcessEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get text() { return _ptr.text; }
-
-  void set text(String value) { _ptr.text = value; }
-
-  void initBeforeProcessEvent(String type, bool canBubble, bool cancelable) {
-    _ptr.initBeforeProcessEvent(type, canBubble, cancelable);
-    return;
-  }
-
-  String get typeName() { return "BeforeProcessEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7857,19 +7829,33 @@ class BeforeProcessEventWrappingImplementation extends EventWrappingImplementati
 class BlobBuilderWrappingImplementation extends DOMWrapperBase implements BlobBuilder {
   BlobBuilderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void append(var blob_OR_value, String endings) {
-    if (blob_OR_value is String) {
-      _ptr.append(LevelDom.unwrap(blob_OR_value), endings);
-      return;
+  void append(var blob_OR_value, [String endings = null]) {
+    if (blob_OR_value is Blob) {
+      if (endings === null) {
+        _ptr.append(LevelDom.unwrap(blob_OR_value));
+        return;
+      }
+    } else {
+      if (blob_OR_value is String) {
+        if (endings === null) {
+          _ptr.append(LevelDom.unwrap(blob_OR_value));
+          return;
+        } else {
+          _ptr.append(LevelDom.unwrap(blob_OR_value), endings);
+          return;
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
-  Blob getBlob(String contentType) {
-    return LevelDom.wrapBlob(_ptr.getBlob(contentType));
+  Blob getBlob([String contentType = null]) {
+    if (contentType === null) {
+      return LevelDom.wrapBlob(_ptr.getBlob());
+    } else {
+      return LevelDom.wrapBlob(_ptr.getBlob(contentType));
+    }
   }
-
-  String get typeName() { return "BlobBuilder"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7883,23 +7869,6 @@ class BlobWrappingImplementation extends DOMWrapperBase implements Blob {
   int get size() { return _ptr.size; }
 
   String get type() { return _ptr.type; }
-
-  String get typeName() { return "Blob"; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class BlockquoteElementWrappingImplementation extends ElementWrappingImplementation implements BlockquoteElement {
-  BlockquoteElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get cite() { return _ptr.cite; }
-
-  void set cite(String value) { _ptr.cite = value; }
-
-  String get typeName() { return "BlockquoteElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7975,8 +7944,6 @@ class ButtonElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "ButtonElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7986,8 +7953,6 @@ class ButtonElementWrappingImplementation extends ElementWrappingImplementation 
 
 class CDATASectionWrappingImplementation extends TextWrappingImplementation implements CDATASection {
   CDATASectionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "CDATASection"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8001,8 +7966,6 @@ class CSSCharsetRuleWrappingImplementation extends CSSRuleWrappingImplementation
   String get encoding() { return _ptr.encoding; }
 
   void set encoding(String value) { _ptr.encoding = value; }
-
-  String get typeName() { return "CSSCharsetRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8014,8 +7977,6 @@ class CSSFontFaceRuleWrappingImplementation extends CSSRuleWrappingImplementatio
   CSSFontFaceRuleWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
-
-  String get typeName() { return "CSSFontFaceRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8031,8 +7992,6 @@ class CSSImportRuleWrappingImplementation extends CSSRuleWrappingImplementation 
   MediaList get media() { return LevelDom.wrapMediaList(_ptr.media); }
 
   CSSStyleSheet get styleSheet() { return LevelDom.wrapCSSStyleSheet(_ptr.styleSheet); }
-
-  String get typeName() { return "CSSImportRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8048,8 +8007,6 @@ class CSSKeyframeRuleWrappingImplementation extends CSSRuleWrappingImplementatio
   void set keyText(String value) { _ptr.keyText = value; }
 
   CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
-
-  String get typeName() { return "CSSKeyframeRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8079,8 +8036,6 @@ class CSSKeyframesRuleWrappingImplementation extends CSSRuleWrappingImplementati
     _ptr.insertRule(rule);
     return;
   }
-
-  String get typeName() { return "CSSKeyframesRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8090,14 +8045,6 @@ class CSSKeyframesRuleWrappingImplementation extends CSSRuleWrappingImplementati
 
 class CSSMatrixWrappingImplementation extends DOMWrapperBase implements CSSMatrix {
   CSSMatrixWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-  factory CSSMatrixWrappingImplementation([String cssValue = null]) {
-    
-    if (cssValue === null) {
-      return LevelDom.wrapCSSMatrix(_rawWindow.createWebKitCSSMatrix());
-    } else {
-      return LevelDom.wrapCSSMatrix(_rawWindow.createWebKitCSSMatrix(cssValue));
-    }
-  }
 
   num get a() { return _ptr.a; }
 
@@ -8227,8 +8174,6 @@ class CSSMatrixWrappingImplementation extends DOMWrapperBase implements CSSMatri
   CSSMatrix translate(num x, num y, num z) {
     return LevelDom.wrapCSSMatrix(_ptr.translate(x, y, z));
   }
-
-  String get typeName() { return "CSSMatrix"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8251,8 +8196,6 @@ class CSSMediaRuleWrappingImplementation extends CSSRuleWrappingImplementation i
   int insertRule(String rule, int index) {
     return _ptr.insertRule(rule, index);
   }
-
-  String get typeName() { return "CSSMediaRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8268,8 +8211,6 @@ class CSSPageRuleWrappingImplementation extends CSSRuleWrappingImplementation im
   void set selectorText(String value) { _ptr.selectorText = value; }
 
   CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
-
-  String get typeName() { return "CSSPageRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8311,8 +8252,6 @@ class CSSPrimitiveValueWrappingImplementation extends CSSValueWrappingImplementa
     _ptr.setStringValue(stringType, stringValue);
     return;
   }
-
-  String get typeName() { return "CSSPrimitiveValue"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8328,8 +8267,6 @@ class CSSRuleListWrappingImplementation extends DOMWrapperBase implements CSSRul
   CSSRule item(int index) {
     return LevelDom.wrapCSSRule(_ptr.item(index));
   }
-
-  String get typeName() { return "CSSRuleList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8349,8 +8286,6 @@ class CSSRuleWrappingImplementation extends DOMWrapperBase implements CSSRule {
   CSSStyleSheet get parentStyleSheet() { return LevelDom.wrapCSSStyleSheet(_ptr.parentStyleSheet); }
 
   int get type() { return _ptr.type; }
-
-  String get typeName() { return "CSSRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8366,8 +8301,6 @@ class CSSStyleRuleWrappingImplementation extends CSSRuleWrappingImplementation i
   void set selectorText(String value) { _ptr.selectorText = value; }
 
   CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
-
-  String get typeName() { return "CSSStyleRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8384,8 +8317,12 @@ class CSSStyleSheetWrappingImplementation extends StyleSheetWrappingImplementati
 
   CSSRuleList get rules() { return LevelDom.wrapCSSRuleList(_ptr.rules); }
 
-  int addRule(String selector, String style, int index) {
-    return _ptr.addRule(selector, style, index);
+  int addRule(String selector, String style, [int index = null]) {
+    if (index === null) {
+      return _ptr.addRule(selector, style);
+    } else {
+      return _ptr.addRule(selector, style, index);
+    }
   }
 
   void deleteRule(int index) {
@@ -8401,8 +8338,6 @@ class CSSStyleSheetWrappingImplementation extends StyleSheetWrappingImplementati
     _ptr.removeRule(index);
     return;
   }
-
-  String get typeName() { return "CSSStyleSheet"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8414,8 +8349,6 @@ class CSSTransformValueWrappingImplementation extends CSSValueListWrappingImplem
   CSSTransformValueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get operationType() { return _ptr.operationType; }
-
-  String get typeName() { return "CSSTransformValue"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8425,8 +8358,6 @@ class CSSTransformValueWrappingImplementation extends CSSValueListWrappingImplem
 
 class CSSUnknownRuleWrappingImplementation extends CSSRuleWrappingImplementation implements CSSUnknownRule {
   CSSUnknownRuleWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "CSSUnknownRule"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8442,8 +8373,6 @@ class CSSValueListWrappingImplementation extends CSSValueWrappingImplementation 
   CSSValue item(int index) {
     return LevelDom.wrapCSSValue(_ptr.item(index));
   }
-
-  String get typeName() { return "CSSValueList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8459,8 +8388,6 @@ class CSSValueWrappingImplementation extends DOMWrapperBase implements CSSValue 
   void set cssText(String value) { _ptr.cssText = value; }
 
   int get cssValueType() { return _ptr.cssValueType; }
-
-  String get typeName() { return "CSSValue"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8480,14 +8407,16 @@ class CanvasElementWrappingImplementation extends ElementWrappingImplementation 
   void set width(int value) { _ptr.width = value; }
 
   CanvasRenderingContext getContext([String contextId = null]) {
-    return LevelDom.wrapCanvasRenderingContext(_ptr.getContext(contextId));
+    if (contextId === null) {
+      return LevelDom.wrapCanvasRenderingContext(_ptr.getContext());
+    } else {
+      return LevelDom.wrapCanvasRenderingContext(_ptr.getContext(contextId));
+    }
   }
 
-  String toDataURL([String type = null]) {
+  String toDataURL(String type) {
     return _ptr.toDataURL(type);
   }
-
-  String get typeName() { return "CanvasElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8502,8 +8431,6 @@ class CanvasGradientWrappingImplementation extends DOMWrapperBase implements Can
     _ptr.addColorStop(offset, color);
     return;
   }
-
-  String get typeName() { return "CanvasGradient"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8513,8 +8440,6 @@ class CanvasGradientWrappingImplementation extends DOMWrapperBase implements Can
 
 class CanvasPatternWrappingImplementation extends DOMWrapperBase implements CanvasPattern {
   CanvasPatternWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "CanvasPattern"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8532,23 +8457,23 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   }
 
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable Array.");
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
   void add(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void sort(int compare(int a, int b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable Array.");
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
@@ -8564,11 +8489,11 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   }
 
   int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable Array.");
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable Array.");
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   int last() {
@@ -8591,6 +8516,22 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }
@@ -8602,8 +8543,6 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   int item(int index) {
     return _ptr.item(index);
   }
-
-  String get typeName() { return "CanvasPixelArray"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8707,8 +8646,14 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
-    if (imagedata_OR_sw is num) {
-      return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw), sh));
+    if (imagedata_OR_sw is ImageData) {
+      if (sh === null) {
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw)));
+      }
+    } else {
+      if (imagedata_OR_sw is num) {
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw), sh));
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -8718,8 +8663,12 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   CanvasPattern createPattern(var canvas_OR_image, String repetitionType) {
-    if (canvas_OR_image is ImageElement) {
+    if (canvas_OR_image is CanvasElement) {
       return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+    } else {
+      if (canvas_OR_image is ImageElement) {
+        return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -8729,16 +8678,191 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
-    if (canvas_OR_image is CanvasElement) {
-      _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
+    if (canvas_OR_image is ImageElement) {
+      if (sw_OR_width === null) {
+        if (height_OR_sh === null) {
+          if (dx === null) {
+            if (dy === null) {
+              if (dw === null) {
+                if (dh === null) {
+                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                  return;
+                }
+              }
+            }
+          }
+        }
+      } else {
+        if (dx === null) {
+          if (dy === null) {
+            if (dw === null) {
+              if (dh === null) {
+                _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                return;
+              }
+            }
+          }
+        } else {
+          _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+          return;
+        }
+      }
+    } else {
+      if (canvas_OR_image is CanvasElement) {
+        if (sw_OR_width === null) {
+          if (height_OR_sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (dx === null) {
+            if (dy === null) {
+              if (dw === null) {
+                if (dh === null) {
+                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                  return;
+                }
+              }
+            }
+          } else {
+            _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+            return;
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void drawImageFromRect(ImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
-    _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
-    return;
+    if (sx === null) {
+      if (sy === null) {
+        if (sw === null) {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image));
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      if (sy === null) {
+        if (sw === null) {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else {
+        if (sw === null) {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (sh === null) {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh);
+                      return;
+                    }
+                  }
+                }
+              }
+            } else {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx);
+                      return;
+                    }
+                  }
+                }
+              } else {
+                if (dw === null) {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy);
+                      return;
+                    }
+                  }
+                } else {
+                  if (dh === null) {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw);
+                      return;
+                    }
+                  } else {
+                    if (compositeOperation === null) {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw, dh);
+                      return;
+                    } else {
+                      _ptr.drawImageFromRect(LevelDom.unwrap(image), sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   void fill() {
@@ -8752,8 +8876,13 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void fillText(String text, num x, num y, [num maxWidth = null]) {
-    _ptr.fillText(text, x, y, maxWidth);
-    return;
+    if (maxWidth === null) {
+      _ptr.fillText(text, x, y);
+      return;
+    } else {
+      _ptr.fillText(text, x, y, maxWidth);
+      return;
+    }
   }
 
   ImageData getImageData(num sx, num sy, num sw, num sh) {
@@ -8779,8 +8908,20 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
-    _ptr.putImageData(LevelDom.unwrap(imagedata), dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-    return;
+    if (dirtyX === null) {
+      if (dirtyY === null) {
+        if (dirtyWidth === null) {
+          if (dirtyHeight === null) {
+            _ptr.putImageData(LevelDom.unwrap(imagedata), dx, dy);
+            return;
+          }
+        }
+      }
+    } else {
+      _ptr.putImageData(LevelDom.unwrap(imagedata), dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) {
@@ -8824,17 +8965,74 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is num) {
-      _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
+    if (c_OR_color_OR_grayLevel_OR_r is String) {
+      if (alpha_OR_g_OR_m === null) {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              return;
+            }
+          }
+        }
+      } else {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              return;
+            }
+          }
+        }
+      }
+    } else {
+      if (c_OR_color_OR_grayLevel_OR_r is num) {
+        if (alpha_OR_g_OR_m === null) {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                return;
+              }
+            }
+          }
+        } else {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                return;
+              }
+            }
+          } else {
+            if (a === null) {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              return;
+            } else {
+              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              return;
+            }
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void setFillStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is CanvasPattern) {
+    if (color_OR_gradient_OR_pattern is String) {
       _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
       return;
+    } else {
+      if (color_OR_gradient_OR_pattern is CanvasGradient) {
+        _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+        return;
+      } else {
+        if (color_OR_gradient_OR_pattern is CanvasPattern) {
+          _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+          return;
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -8860,25 +9058,142 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is num) {
-      _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
+    if (c_OR_color_OR_grayLevel_OR_r === null) {
+      if (alpha_OR_g_OR_m === null) {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setShadow(width, height, blur);
+              return;
+            }
+          }
+        }
+      }
+    } else {
+      if (c_OR_color_OR_grayLevel_OR_r is String) {
+        if (alpha_OR_g_OR_m === null) {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                return;
+              }
+            }
+          }
+        } else {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                return;
+              }
+            }
+          }
+        }
+      } else {
+        if (c_OR_color_OR_grayLevel_OR_r is num) {
+          if (alpha_OR_g_OR_m === null) {
+            if (b_OR_y === null) {
+              if (a_OR_k === null) {
+                if (a === null) {
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                  return;
+                }
+              }
+            }
+          } else {
+            if (b_OR_y === null) {
+              if (a_OR_k === null) {
+                if (a === null) {
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                  return;
+                }
+              }
+            } else {
+              if (a === null) {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+                return;
+              } else {
+                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+                return;
+              }
+            }
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) {
-    if (c_OR_color_OR_grayLevel_OR_r is num) {
-      _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
+    if (c_OR_color_OR_grayLevel_OR_r is String) {
+      if (alpha_OR_g_OR_m === null) {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              return;
+            }
+          }
+        }
+      } else {
+        if (b_OR_y === null) {
+          if (a_OR_k === null) {
+            if (a === null) {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              return;
+            }
+          }
+        }
+      }
+    } else {
+      if (c_OR_color_OR_grayLevel_OR_r is num) {
+        if (alpha_OR_g_OR_m === null) {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                return;
+              }
+            }
+          }
+        } else {
+          if (b_OR_y === null) {
+            if (a_OR_k === null) {
+              if (a === null) {
+                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                return;
+              }
+            }
+          } else {
+            if (a === null) {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              return;
+            } else {
+              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              return;
+            }
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void setStrokeStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is CanvasPattern) {
+    if (color_OR_gradient_OR_pattern is String) {
       _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
       return;
+    } else {
+      if (color_OR_gradient_OR_pattern is CanvasGradient) {
+        _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+        return;
+      } else {
+        if (color_OR_gradient_OR_pattern is CanvasPattern) {
+          _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
+          return;
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -8894,13 +9209,23 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   }
 
   void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) {
-    _ptr.strokeRect(x, y, width, height, lineWidth);
-    return;
+    if (lineWidth === null) {
+      _ptr.strokeRect(x, y, width, height);
+      return;
+    } else {
+      _ptr.strokeRect(x, y, width, height, lineWidth);
+      return;
+    }
   }
 
   void strokeText(String text, num x, num y, [num maxWidth = null]) {
-    _ptr.strokeText(text, x, y, maxWidth);
-    return;
+    if (maxWidth === null) {
+      _ptr.strokeText(text, x, y);
+      return;
+    } else {
+      _ptr.strokeText(text, x, y, maxWidth);
+      return;
+    }
   }
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) {
@@ -8912,8 +9237,6 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
     _ptr.translate(tx, ty);
     return;
   }
-
-  String get typeName() { return "CanvasRenderingContext2D"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8925,8 +9248,6 @@ class CanvasRenderingContextWrappingImplementation extends DOMWrapperBase implem
   CanvasRenderingContextWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   CanvasElement get canvas() { return LevelDom.wrapCanvasElement(_ptr.canvas); }
-
-  String get typeName() { return "CanvasRenderingContext"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8966,25 +9287,6 @@ class CharacterDataWrappingImplementation extends NodeWrappingImplementation imp
   String substringData(int offset, int length) {
     return _ptr.substringData(offset, length);
   }
-
-  String get typeName() { return "CharacterData"; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class ClientRectListWrappingImplementation extends DOMWrapperBase implements ClientRectList {
-  ClientRectListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  ClientRect item(int index) {
-    return LevelDom.wrapClientRect(_ptr.item(index));
-  }
-
-  String get typeName() { return "ClientRectList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9006,8 +9308,6 @@ class ClientRectWrappingImplementation extends DOMWrapperBase implements ClientR
   num get top() { return _ptr.top; }
 
   num get width() { return _ptr.width; }
-
-  String get typeName() { return "ClientRect"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9030,9 +9330,14 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
 
   DataTransferItems get items() { return LevelDom.wrapDataTransferItems(_ptr.items); }
 
-  void clearData(String type) {
-    _ptr.clearData(type);
-    return;
+  void clearData([String type = null]) {
+    if (type === null) {
+      _ptr.clearData();
+      return;
+    } else {
+      _ptr.clearData(type);
+      return;
+    }
   }
 
   void getData(String type) {
@@ -9048,8 +9353,6 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
     _ptr.setDragImage(LevelDom.unwrap(image), x, y);
     return;
   }
-
-  String get typeName() { return "Clipboard"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9070,8 +9373,6 @@ class CloseEventWrappingImplementation extends EventWrappingImplementation imple
     _ptr.initCloseEvent(typeArg, canBubbleArg, cancelableArg, wasCleanArg, codeArg, reasonArg);
     return;
   }
-
-  String get typeName() { return "CloseEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9081,8 +9382,6 @@ class CloseEventWrappingImplementation extends EventWrappingImplementation imple
 
 class CommentWrappingImplementation extends CharacterDataWrappingImplementation implements Comment {
   CommentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "Comment"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9099,8 +9398,6 @@ class CompositionEventWrappingImplementation extends UIEventWrappingImplementati
     _ptr.initCompositionEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
     return;
   }
-
-  String get typeName() { return "CompositionEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9190,8 +9487,6 @@ class ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
     _ptr.warn(LevelDom.unwrapMaybePrimitive(arg));
     return;
   }
-
-  String get typeName() { return "Console"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9215,8 +9510,6 @@ class CoordinatesWrappingImplementation extends DOMWrapperBase implements Coordi
   num get longitude() { return _ptr.longitude; }
 
   num get speed() { return _ptr.speed; }
-
-  String get typeName() { return "Coordinates"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9232,8 +9525,6 @@ class CounterWrappingImplementation extends DOMWrapperBase implements Counter {
   String get listStyle() { return _ptr.listStyle; }
 
   String get separator() { return _ptr.separator; }
-
-  String get typeName() { return "Counter"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9248,8 +9539,6 @@ class CryptoWrappingImplementation extends DOMWrapperBase implements Crypto {
     _ptr.getRandomValues(LevelDom.unwrap(array));
     return;
   }
-
-  String get typeName() { return "Crypto"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9266,8 +9555,6 @@ class CustomEventWrappingImplementation extends EventWrappingImplementation impl
     _ptr.initCustomEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(detailArg));
     return;
   }
-
-  String get typeName() { return "CustomEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9281,8 +9568,6 @@ class DListElementWrappingImplementation extends ElementWrappingImplementation i
   bool get compact() { return _ptr.compact; }
 
   void set compact(bool value) { _ptr.compact = value; }
-
-  String get typeName() { return "DListElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9298,8 +9583,6 @@ class DOMExceptionWrappingImplementation extends DOMWrapperBase implements DOMEx
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "DOMException"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9313,8 +9596,6 @@ class DOMFileSystemSyncWrappingImplementation extends DOMWrapperBase implements 
   String get name() { return _ptr.name; }
 
   DirectoryEntrySync get root() { return LevelDom.wrapDirectoryEntrySync(_ptr.root); }
-
-  String get typeName() { return "DOMFileSystemSync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9328,8 +9609,6 @@ class DOMFileSystemWrappingImplementation extends DOMWrapperBase implements DOMF
   String get name() { return _ptr.name; }
 
   DirectoryEntry get root() { return LevelDom.wrapDirectoryEntry(_ptr.root); }
-
-  String get typeName() { return "DOMFileSystem"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9344,8 +9623,6 @@ class DOMFormDataWrappingImplementation extends DOMWrapperBase implements DOMFor
     _ptr.append(name, value);
     return;
   }
-
-  String get typeName() { return "DOMFormData"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9365,8 +9642,6 @@ class DOMMimeTypeArrayWrappingImplementation extends DOMWrapperBase implements D
   DOMMimeType namedItem(String name) {
     return LevelDom.wrapDOMMimeType(_ptr.namedItem(name));
   }
-
-  String get typeName() { return "DOMMimeTypeArray"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9384,8 +9659,6 @@ class DOMMimeTypeWrappingImplementation extends DOMWrapperBase implements DOMMim
   String get suffixes() { return _ptr.suffixes; }
 
   String get type() { return _ptr.type; }
-
-  String get typeName() { return "DOMMimeType"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9399,8 +9672,6 @@ class DOMParserWrappingImplementation extends DOMWrapperBase implements DOMParse
   Document parseFromString(String str, String contentType) {
     return LevelDom.wrapDocument(_ptr.parseFromString(str, contentType));
   }
-
-  String get typeName() { return "DOMParser"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9425,8 +9696,6 @@ class DOMPluginArrayWrappingImplementation extends DOMWrapperBase implements DOM
     _ptr.refresh(reload);
     return;
   }
-
-  String get typeName() { return "DOMPluginArray"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9452,8 +9721,6 @@ class DOMPluginWrappingImplementation extends DOMWrapperBase implements DOMPlugi
   DOMMimeType namedItem(String name) {
     return LevelDom.wrapDOMMimeType(_ptr.namedItem(name));
   }
-
-  String get typeName() { return "DOMPlugin"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9553,8 +9820,6 @@ class DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMSe
     _ptr.setPosition(LevelDom.unwrap(node), offset);
     return;
   }
-
-  String get typeName() { return "DOMSelection"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9568,8 +9833,6 @@ class DOMSettableTokenListWrappingImplementation extends DOMTokenListWrappingImp
   String get value() { return _ptr.value; }
 
   void set value(String value) { _ptr.value = value; }
-
-  String get typeName() { return "DOMSettableTokenList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9603,8 +9866,6 @@ class DOMTokenListWrappingImplementation extends DOMWrapperBase implements DOMTo
   bool toggle(String token) {
     return _ptr.toggle(token);
   }
-
-  String get typeName() { return "DOMTokenList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9623,8 +9884,6 @@ class DOMURLWrappingImplementation extends DOMWrapperBase implements DOMURL {
     _ptr.revokeObjectURL(url);
     return;
   }
-
-  String get typeName() { return "DOMURL"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9636,8 +9895,6 @@ class DataListElementWrappingImplementation extends ElementWrappingImplementatio
   DataListElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   ElementList get options() { return LevelDom.wrapElementList(_ptr.options); }
-
-  String get typeName() { return "DataListElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9660,8 +9917,6 @@ class DataTransferItemWrappingImplementation extends DOMWrapperBase implements D
     _ptr.getAsString(LevelDom.unwrap(callback));
     return;
   }
-
-  String get typeName() { return "DataTransferItem"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9687,8 +9942,6 @@ class DataTransferItemsWrappingImplementation extends DOMWrapperBase implements 
   DataTransferItem item(int index) {
     return LevelDom.wrapDataTransferItem(_ptr.item(index));
   }
-
-  String get typeName() { return "DataTransferItems"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9699,56 +9952,100 @@ class DataTransferItemsWrappingImplementation extends DOMWrapperBase implements 
 class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementation implements DataView {
   DataViewWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  num getFloat32(int byteOffset, bool littleEndian) {
-    return _ptr.getFloat32(byteOffset, littleEndian);
+  num getFloat32(int byteOffset, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      return _ptr.getFloat32(byteOffset);
+    } else {
+      return _ptr.getFloat32(byteOffset, littleEndian);
+    }
   }
 
-  num getFloat64(int byteOffset, bool littleEndian) {
-    return _ptr.getFloat64(byteOffset, littleEndian);
+  num getFloat64(int byteOffset, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      return _ptr.getFloat64(byteOffset);
+    } else {
+      return _ptr.getFloat64(byteOffset, littleEndian);
+    }
   }
 
-  int getInt16(int byteOffset, bool littleEndian) {
-    return _ptr.getInt16(byteOffset, littleEndian);
+  int getInt16(int byteOffset, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      return _ptr.getInt16(byteOffset);
+    } else {
+      return _ptr.getInt16(byteOffset, littleEndian);
+    }
   }
 
-  int getInt32(int byteOffset, bool littleEndian) {
-    return _ptr.getInt32(byteOffset, littleEndian);
+  int getInt32(int byteOffset, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      return _ptr.getInt32(byteOffset);
+    } else {
+      return _ptr.getInt32(byteOffset, littleEndian);
+    }
   }
 
   int getInt8() {
     return _ptr.getInt8();
   }
 
-  int getUint16(int byteOffset, bool littleEndian) {
-    return _ptr.getUint16(byteOffset, littleEndian);
+  int getUint16(int byteOffset, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      return _ptr.getUint16(byteOffset);
+    } else {
+      return _ptr.getUint16(byteOffset, littleEndian);
+    }
   }
 
-  int getUint32(int byteOffset, bool littleEndian) {
-    return _ptr.getUint32(byteOffset, littleEndian);
+  int getUint32(int byteOffset, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      return _ptr.getUint32(byteOffset);
+    } else {
+      return _ptr.getUint32(byteOffset, littleEndian);
+    }
   }
 
   int getUint8() {
     return _ptr.getUint8();
   }
 
-  void setFloat32(int byteOffset, num value, bool littleEndian) {
-    _ptr.setFloat32(byteOffset, value, littleEndian);
-    return;
+  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      _ptr.setFloat32(byteOffset, value);
+      return;
+    } else {
+      _ptr.setFloat32(byteOffset, value, littleEndian);
+      return;
+    }
   }
 
-  void setFloat64(int byteOffset, num value, bool littleEndian) {
-    _ptr.setFloat64(byteOffset, value, littleEndian);
-    return;
+  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      _ptr.setFloat64(byteOffset, value);
+      return;
+    } else {
+      _ptr.setFloat64(byteOffset, value, littleEndian);
+      return;
+    }
   }
 
-  void setInt16(int byteOffset, int value, bool littleEndian) {
-    _ptr.setInt16(byteOffset, value, littleEndian);
-    return;
+  void setInt16(int byteOffset, int value, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      _ptr.setInt16(byteOffset, value);
+      return;
+    } else {
+      _ptr.setInt16(byteOffset, value, littleEndian);
+      return;
+    }
   }
 
-  void setInt32(int byteOffset, int value, bool littleEndian) {
-    _ptr.setInt32(byteOffset, value, littleEndian);
-    return;
+  void setInt32(int byteOffset, int value, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      _ptr.setInt32(byteOffset, value);
+      return;
+    } else {
+      _ptr.setInt32(byteOffset, value, littleEndian);
+      return;
+    }
   }
 
   void setInt8() {
@@ -9756,22 +10053,30 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     return;
   }
 
-  void setUint16(int byteOffset, int value, bool littleEndian) {
-    _ptr.setUint16(byteOffset, value, littleEndian);
-    return;
+  void setUint16(int byteOffset, int value, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      _ptr.setUint16(byteOffset, value);
+      return;
+    } else {
+      _ptr.setUint16(byteOffset, value, littleEndian);
+      return;
+    }
   }
 
-  void setUint32(int byteOffset, int value, bool littleEndian) {
-    _ptr.setUint32(byteOffset, value, littleEndian);
-    return;
+  void setUint32(int byteOffset, int value, [bool littleEndian = null]) {
+    if (littleEndian === null) {
+      _ptr.setUint32(byteOffset, value);
+      return;
+    } else {
+      _ptr.setUint32(byteOffset, value, littleEndian);
+      return;
+    }
   }
 
   void setUint8() {
     _ptr.setUint8();
     return;
   }
-
-  String get typeName() { return "DataView"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9785,8 +10090,6 @@ class DetailsElementWrappingImplementation extends ElementWrappingImplementation
   bool get open() { return _ptr.open; }
 
   void set open(bool value) { _ptr.open = value; }
-
-  String get typeName() { return "DetailsElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9798,13 +10101,6 @@ class DeviceMotionEventWrappingImplementation extends EventWrappingImplementatio
   DeviceMotionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   num get interval() { return _ptr.interval; }
-
-  void initDeviceMotionEvent(String type, bool bubbles, bool cancelable) {
-    _ptr.initDeviceMotionEvent(type, bubbles, cancelable);
-    return;
-  }
-
-  String get typeName() { return "DeviceMotionEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9825,8 +10121,6 @@ class DeviceOrientationEventWrappingImplementation extends EventWrappingImplemen
     _ptr.initDeviceOrientationEvent(type, bubbles, cancelable, alpha, beta, gamma);
     return;
   }
-
-  String get typeName() { return "DeviceOrientationEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9853,8 +10147,6 @@ class DirectoryEntrySyncWrappingImplementation extends EntrySyncWrappingImplemen
     _ptr.removeRecursively();
     return;
   }
-
-  String get typeName() { return "DirectoryEntrySync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9869,22 +10161,77 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
     return LevelDom.wrapDirectoryReader(_ptr.createReader());
   }
 
-  void getDirectory(String path, Flags flags, EntryCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.getDirectory(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void getDirectory(String path, [Flags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (flags === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.getDirectory(path);
+          return;
+        }
+      }
+    } else {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.getDirectory(path, LevelDom.unwrap(flags));
+          return;
+        }
+      } else {
+        if (errorCallback === null) {
+          _ptr.getDirectory(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback));
+          return;
+        } else {
+          _ptr.getDirectory(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          return;
+        }
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  void getFile(String path, Flags flags, EntryCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.getFile(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void getFile(String path, [Flags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (flags === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.getFile(path);
+          return;
+        }
+      }
+    } else {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.getFile(path, LevelDom.unwrap(flags));
+          return;
+        }
+      } else {
+        if (errorCallback === null) {
+          _ptr.getFile(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback));
+          return;
+        } else {
+          _ptr.getFile(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          return;
+        }
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  void removeRecursively(VoidCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.removeRecursively(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (successCallback === null) {
+      if (errorCallback === null) {
+        _ptr.removeRecursively();
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _ptr.removeRecursively(LevelDom.unwrap(successCallback));
+        return;
+      } else {
+        _ptr.removeRecursively(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-
-  String get typeName() { return "DirectoryEntry"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9898,8 +10245,6 @@ class DirectoryReaderSyncWrappingImplementation extends DOMWrapperBase implement
   EntryArraySync readEntries() {
     return LevelDom.wrapEntryArraySync(_ptr.readEntries());
   }
-
-  String get typeName() { return "DirectoryReaderSync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9910,12 +10255,15 @@ class DirectoryReaderSyncWrappingImplementation extends DOMWrapperBase implement
 class DirectoryReaderWrappingImplementation extends DOMWrapperBase implements DirectoryReader {
   DirectoryReaderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void readEntries(EntriesCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.readEntries(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.readEntries(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.readEntries(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
-
-  String get typeName() { return "DirectoryReader"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9929,8 +10277,6 @@ class DivElementWrappingImplementation extends ElementWrappingImplementation imp
   String get align() { return _ptr.align; }
 
   void set align(String value) { _ptr.align = value; }
-
-  String get typeName() { return "DivElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9964,8 +10310,6 @@ class EmbedElementWrappingImplementation extends ElementWrappingImplementation i
   int get width() { return _ptr.width; }
 
   void set width(int value) { _ptr.width = value; }
-
-  String get typeName() { return "EmbedElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9975,8 +10319,6 @@ class EmbedElementWrappingImplementation extends ElementWrappingImplementation i
 
 class EntityReferenceWrappingImplementation extends NodeWrappingImplementation implements EntityReference {
   EntityReferenceWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "EntityReference"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9992,8 +10334,6 @@ class EntityWrappingImplementation extends NodeWrappingImplementation implements
   String get publicId() { return _ptr.publicId; }
 
   String get systemId() { return _ptr.systemId; }
-
-  String get typeName() { return "Entity"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10007,8 +10347,6 @@ class EntriesCallbackWrappingImplementation extends DOMWrapperBase implements En
   bool handleEvent(EntryArray entries) {
     return _ptr.handleEvent(LevelDom.unwrap(entries));
   }
-
-  String get typeName() { return "EntriesCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10024,8 +10362,6 @@ class EntryArraySyncWrappingImplementation extends DOMWrapperBase implements Ent
   EntrySync item(int index) {
     return LevelDom.wrapEntrySync(_ptr.item(index));
   }
-
-  String get typeName() { return "EntryArraySync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10041,8 +10377,6 @@ class EntryArrayWrappingImplementation extends DOMWrapperBase implements EntryAr
   Entry item(int index) {
     return LevelDom.wrapEntry(_ptr.item(index));
   }
-
-  String get typeName() { return "EntryArray"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10056,8 +10390,6 @@ class EntryCallbackWrappingImplementation extends DOMWrapperBase implements Entr
   bool handleEvent(Entry entry) {
     return _ptr.handleEvent(LevelDom.unwrap(entry));
   }
-
-  String get typeName() { return "EntryCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10102,8 +10434,6 @@ class EntrySyncWrappingImplementation extends DOMWrapperBase implements EntrySyn
   String toURL() {
     return _ptr.toURL();
   }
-
-  String get typeName() { return "EntrySync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10124,36 +10454,117 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
 
   String get name() { return _ptr.name; }
 
-  void copyTo(DirectoryEntry parent, String name, EntryCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.copyTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (name === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.copyTo(LevelDom.unwrap(parent));
+          return;
+        }
+      }
+    } else {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.copyTo(LevelDom.unwrap(parent), name);
+          return;
+        }
+      } else {
+        if (errorCallback === null) {
+          _ptr.copyTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback));
+          return;
+        } else {
+          _ptr.copyTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          return;
+        }
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  void getMetadata(MetadataCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.getMetadata(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void getMetadata([MetadataCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (successCallback === null) {
+      if (errorCallback === null) {
+        _ptr.getMetadata();
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _ptr.getMetadata(LevelDom.unwrap(successCallback));
+        return;
+      } else {
+        _ptr.getMetadata(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  void getParent(EntryCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.getParent(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (successCallback === null) {
+      if (errorCallback === null) {
+        _ptr.getParent();
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _ptr.getParent(LevelDom.unwrap(successCallback));
+        return;
+      } else {
+        _ptr.getParent(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  void moveTo(DirectoryEntry parent, String name, EntryCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.moveTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (name === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.moveTo(LevelDom.unwrap(parent));
+          return;
+        }
+      }
+    } else {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _ptr.moveTo(LevelDom.unwrap(parent), name);
+          return;
+        }
+      } else {
+        if (errorCallback === null) {
+          _ptr.moveTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback));
+          return;
+        } else {
+          _ptr.moveTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          return;
+        }
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  void remove(VoidCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.remove(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void remove([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (successCallback === null) {
+      if (errorCallback === null) {
+        _ptr.remove();
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _ptr.remove(LevelDom.unwrap(successCallback));
+        return;
+      } else {
+        _ptr.remove(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   String toURL() {
     return _ptr.toURL();
   }
-
-  String get typeName() { return "Entry"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10167,8 +10578,6 @@ class ErrorCallbackWrappingImplementation extends DOMWrapperBase implements Erro
   bool handleEvent(FileError error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "ErrorCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10189,8 +10598,6 @@ class ErrorEventWrappingImplementation extends EventWrappingImplementation imple
     _ptr.initErrorEvent(typeArg, canBubbleArg, cancelableArg, messageArg, filenameArg, linenoArg);
     return;
   }
-
-  String get typeName() { return "ErrorEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10206,8 +10613,6 @@ class EventExceptionWrappingImplementation extends DOMWrapperBase implements Eve
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "EventException"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10263,8 +10668,6 @@ class EventWrappingImplementation extends DOMWrapperBase implements Event {
     _ptr.stopPropagation();
     return;
   }
-
-  String get typeName() { return "Event"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10291,8 +10694,6 @@ class FieldSetElementWrappingImplementation extends ElementWrappingImplementatio
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "FieldSetElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10306,8 +10707,6 @@ class FileCallbackWrappingImplementation extends DOMWrapperBase implements FileC
   bool handleEvent(File file) {
     return _ptr.handleEvent(LevelDom.unwrap(file));
   }
-
-  String get typeName() { return "FileCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10325,8 +10724,6 @@ class FileEntrySyncWrappingImplementation extends EntrySyncWrappingImplementatio
   File file() {
     return LevelDom.wrapFile(_ptr.file());
   }
-
-  String get typeName() { return "FileEntrySync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10337,17 +10734,25 @@ class FileEntrySyncWrappingImplementation extends EntrySyncWrappingImplementatio
 class FileEntryWrappingImplementation extends EntryWrappingImplementation implements FileEntry {
   FileEntryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void createWriter(FileWriterCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.createWriter(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.createWriter(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.createWriter(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
 
-  void file(FileCallback successCallback, ErrorCallback errorCallback) {
-    _ptr.file(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.file(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.file(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
-
-  String get typeName() { return "FileEntry"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10359,8 +10764,6 @@ class FileErrorWrappingImplementation extends DOMWrapperBase implements FileErro
   FileErrorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get code() { return _ptr.code; }
-
-  String get typeName() { return "FileError"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10376,8 +10779,6 @@ class FileExceptionWrappingImplementation extends DOMWrapperBase implements File
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "FileException"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10393,8 +10794,6 @@ class FileListWrappingImplementation extends DOMWrapperBase implements FileList 
   File item(int index) {
     return LevelDom.wrapFile(_ptr.item(index));
   }
-
-  String get typeName() { return "FileList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10417,11 +10816,13 @@ class FileReaderSyncWrappingImplementation extends DOMWrapperBase implements Fil
     return _ptr.readAsDataURL(LevelDom.unwrap(blob));
   }
 
-  String readAsText(Blob blob, String encoding) {
-    return _ptr.readAsText(LevelDom.unwrap(blob), encoding);
+  String readAsText(Blob blob, [String encoding = null]) {
+    if (encoding === null) {
+      return _ptr.readAsText(LevelDom.unwrap(blob));
+    } else {
+      return _ptr.readAsText(LevelDom.unwrap(blob), encoding);
+    }
   }
-
-  String get typeName() { return "FileReaderSync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10482,12 +10883,15 @@ class FileReaderWrappingImplementation extends DOMWrapperBase implements FileRea
     return;
   }
 
-  void readAsText(Blob blob, String encoding) {
-    _ptr.readAsText(LevelDom.unwrap(blob), encoding);
-    return;
+  void readAsText(Blob blob, [String encoding = null]) {
+    if (encoding === null) {
+      _ptr.readAsText(LevelDom.unwrap(blob));
+      return;
+    } else {
+      _ptr.readAsText(LevelDom.unwrap(blob), encoding);
+      return;
+    }
   }
-
-  String get typeName() { return "FileReader"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10501,8 +10905,6 @@ class FileSystemCallbackWrappingImplementation extends DOMWrapperBase implements
   bool handleEvent(DOMFileSystem fileSystem) {
     return _ptr.handleEvent(LevelDom.unwrap(fileSystem));
   }
-
-  String get typeName() { return "FileSystemCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10520,8 +10922,6 @@ class FileWrappingImplementation extends BlobWrappingImplementation implements F
   Date get lastModifiedDate() { return _ptr.lastModifiedDate; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "File"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10535,8 +10935,6 @@ class FileWriterCallbackWrappingImplementation extends DOMWrapperBase implements
   bool handleEvent(FileWriter fileWriter) {
     return _ptr.handleEvent(LevelDom.unwrap(fileWriter));
   }
-
-  String get typeName() { return "FileWriterCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10565,8 +10963,6 @@ class FileWriterSyncWrappingImplementation extends DOMWrapperBase implements Fil
     _ptr.write(LevelDom.unwrap(data));
     return;
   }
-
-  String get typeName() { return "FileWriterSync"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10628,8 +11024,6 @@ class FileWriterWrappingImplementation extends DOMWrapperBase implements FileWri
     _ptr.write(LevelDom.unwrap(data));
     return;
   }
-
-  String get typeName() { return "FileWriter"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10647,8 +11041,6 @@ class FlagsWrappingImplementation extends DOMWrapperBase implements Flags {
   bool get exclusive() { return _ptr.exclusive; }
 
   void set exclusive(bool value) { _ptr.exclusive = value; }
-
-  String get typeName() { return "Flags"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10661,11 +11053,13 @@ class Float32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplemen
 
   int get length() { return _ptr.length; }
 
-  Float32Array subarray(int start, int end) {
-    return LevelDom.wrapFloat32Array(_ptr.subarray(start, end));
+  Float32Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapFloat32Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapFloat32Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Float32Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10678,11 +11072,13 @@ class Float64ArrayWrappingImplementation extends ArrayBufferViewWrappingImplemen
 
   int get length() { return _ptr.length; }
 
-  Float64Array subarray(int start, int end) {
-    return LevelDom.wrapFloat64Array(_ptr.subarray(start, end));
+  Float64Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapFloat64Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapFloat64Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Float64Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10704,8 +11100,6 @@ class FontElementWrappingImplementation extends ElementWrappingImplementation im
   String get size() { return _ptr.size; }
 
   void set size(String value) { _ptr.size = value; }
-
-  String get typeName() { return "FontElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10767,8 +11161,6 @@ class FormElementWrappingImplementation extends ElementWrappingImplementation im
     _ptr.submit();
     return;
   }
-
-  String get typeName() { return "FormElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10784,16 +11176,23 @@ class GeolocationWrappingImplementation extends DOMWrapperBase implements Geoloc
     return;
   }
 
-  void getCurrentPosition(PositionCallback successCallback, PositionErrorCallback errorCallback) {
-    _ptr.getCurrentPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _ptr.getCurrentPosition(LevelDom.unwrap(successCallback));
+      return;
+    } else {
+      _ptr.getCurrentPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return;
+    }
   }
 
-  int watchPosition(PositionCallback successCallback, PositionErrorCallback errorCallback) {
-    return _ptr.watchPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      return _ptr.watchPosition(LevelDom.unwrap(successCallback));
+    } else {
+      return _ptr.watchPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+    }
   }
-
-  String get typeName() { return "Geolocation"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10807,8 +11206,6 @@ class GeopositionWrappingImplementation extends DOMWrapperBase implements Geopos
   Coordinates get coords() { return LevelDom.wrapCoordinates(_ptr.coords); }
 
   int get timestamp() { return _ptr.timestamp; }
-
-  String get typeName() { return "Geoposition"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10834,8 +11231,6 @@ class HRElementWrappingImplementation extends ElementWrappingImplementation impl
   String get width() { return _ptr.width; }
 
   void set width(String value) { _ptr.width = value; }
-
-  String get typeName() { return "HRElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10859,8 +11254,6 @@ class HTMLAllCollectionWrappingImplementation extends DOMWrapperBase implements 
   ElementList tags(String name) {
     return LevelDom.wrapElementList(_ptr.tags(name));
   }
-
-  String get typeName() { return "HTMLAllCollection"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10879,8 +11272,6 @@ class HashChangeEventWrappingImplementation extends EventWrappingImplementation 
     _ptr.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
     return;
   }
-
-  String get typeName() { return "HashChangeEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10894,8 +11285,6 @@ class HeadElementWrappingImplementation extends ElementWrappingImplementation im
   String get profile() { return _ptr.profile; }
 
   void set profile(String value) { _ptr.profile = value; }
-
-  String get typeName() { return "HeadElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10909,8 +11298,6 @@ class HeadingElementWrappingImplementation extends ElementWrappingImplementation
   String get align() { return _ptr.align; }
 
   void set align(String value) { _ptr.align = value; }
-
-  String get typeName() { return "HeadingElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10938,17 +11325,25 @@ class HistoryWrappingImplementation extends DOMWrapperBase implements History {
     return;
   }
 
-  void pushState(Object data, String title, String url) {
-    _ptr.pushState(LevelDom.unwrapMaybePrimitive(data), title, url);
-    return;
+  void pushState(Object data, String title, [String url = null]) {
+    if (url === null) {
+      _ptr.pushState(LevelDom.unwrapMaybePrimitive(data), title);
+      return;
+    } else {
+      _ptr.pushState(LevelDom.unwrapMaybePrimitive(data), title, url);
+      return;
+    }
   }
 
-  void replaceState(Object data, String title, String url) {
-    _ptr.replaceState(LevelDom.unwrapMaybePrimitive(data), title, url);
-    return;
+  void replaceState(Object data, String title, [String url = null]) {
+    if (url === null) {
+      _ptr.replaceState(LevelDom.unwrapMaybePrimitive(data), title);
+      return;
+    } else {
+      _ptr.replaceState(LevelDom.unwrapMaybePrimitive(data), title, url);
+      return;
+    }
   }
-
-  String get typeName() { return "History"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10966,8 +11361,6 @@ class HtmlElementWrappingImplementation extends ElementWrappingImplementation im
   String get version() { return _ptr.version; }
 
   void set version(String value) { _ptr.version = value; }
-
-  String get typeName() { return "HtmlElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10977,8 +11370,6 @@ class HtmlElementWrappingImplementation extends ElementWrappingImplementation im
 
 class IDBAnyWrappingImplementation extends DOMWrapperBase implements IDBAny {
   IDBAnyWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "IDBAny"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10990,8 +11381,6 @@ class IDBCursorWithValueWrappingImplementation extends IDBCursorWrappingImplemen
   IDBCursorWithValueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   String get value() { return _ptr.value; }
-
-  String get typeName() { return "IDBCursorWithValue"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11010,6 +11399,16 @@ class IDBCursorWrappingImplementation extends DOMWrapperBase implements IDBCurso
 
   IDBAny get source() { return LevelDom.wrapIDBAny(_ptr.source); }
 
+  void continueFunction([IDBKey key = null]) {
+    if (key === null) {
+      _ptr.continueFunction();
+      return;
+    } else {
+      _ptr.continueFunction(LevelDom.unwrap(key));
+      return;
+    }
+  }
+
   IDBRequest delete() {
     return LevelDom.wrapIDBRequest(_ptr.delete());
   }
@@ -11017,8 +11416,6 @@ class IDBCursorWrappingImplementation extends DOMWrapperBase implements IDBCurso
   IDBRequest update(String value) {
     return LevelDom.wrapIDBRequest(_ptr.update(value));
   }
-
-  String get typeName() { return "IDBCursor"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11036,8 +11433,6 @@ class IDBDatabaseErrorWrappingImplementation extends DOMWrapperBase implements I
   String get message() { return _ptr.message; }
 
   void set message(String value) { _ptr.message = value; }
-
-  String get typeName() { return "IDBDatabaseError"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11053,8 +11448,6 @@ class IDBDatabaseExceptionWrappingImplementation extends DOMWrapperBase implemen
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "IDBDatabaseException"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11081,9 +11474,14 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
 
   String get version() { return _ptr.version; }
 
-  void addEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   void close() {
@@ -11104,16 +11502,19 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   IDBVersionChangeRequest setVersion(String version) {
     return LevelDom.wrapIDBVersionChangeRequest(_ptr.setVersion(version));
   }
-
-  String get typeName() { return "IDBDatabase"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11124,11 +11525,13 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
 class IDBFactoryWrappingImplementation extends DOMWrapperBase implements IDBFactory {
   IDBFactoryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
+  IDBRequest getDatabaseNames() {
+    return LevelDom.wrapIDBRequest(_ptr.getDatabaseNames());
+  }
+
   IDBRequest open(String name) {
     return LevelDom.wrapIDBRequest(_ptr.open(name));
   }
-
-  String get typeName() { return "IDBFactory"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11147,19 +11550,43 @@ class IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex 
 
   bool get unique() { return _ptr.unique; }
 
+  IDBRequest getObject(IDBKey key) {
+    return LevelDom.wrapIDBRequest(_ptr.getObject(LevelDom.unwrap(key)));
+  }
+
   IDBRequest getKey(IDBKey key) {
     return LevelDom.wrapIDBRequest(_ptr.getKey(LevelDom.unwrap(key)));
   }
 
-  IDBRequest openCursor(IDBKeyRange range, int direction) {
-    return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+    if (range === null) {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor());
+      }
+    } else {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range)));
+      } else {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest openKeyCursor(IDBKeyRange range, int direction) {
-    return LevelDom.wrapIDBRequest(_ptr.openKeyCursor(LevelDom.unwrap(range), direction));
+  IDBRequest openKeyCursor([IDBKeyRange range = null, int direction = null]) {
+    if (range === null) {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openKeyCursor());
+      }
+    } else {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openKeyCursor(LevelDom.unwrap(range)));
+      } else {
+        return LevelDom.wrapIDBRequest(_ptr.openKeyCursor(LevelDom.unwrap(range), direction));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-
-  String get typeName() { return "IDBIndex"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11178,23 +11605,40 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
 
   bool get upperOpen() { return _ptr.upperOpen; }
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, bool lowerOpen, bool upperOpen) {
-    return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper), lowerOpen, upperOpen));
+  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen = null, bool upperOpen = null]) {
+    if (lowerOpen === null) {
+      if (upperOpen === null) {
+        return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper)));
+      }
+    } else {
+      if (upperOpen === null) {
+        return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper), lowerOpen));
+      } else {
+        return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper), lowerOpen, upperOpen));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  IDBKeyRange lowerBound(IDBKey bound, bool open) {
-    return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound), open));
+  IDBKeyRange lowerBound(IDBKey bound, [bool open = null]) {
+    if (open === null) {
+      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound)));
+    } else {
+      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound), open));
+    }
   }
 
   IDBKeyRange only(IDBKey value) {
     return LevelDom.wrapIDBKeyRange(_ptr.only(LevelDom.unwrap(value)));
   }
 
-  IDBKeyRange upperBound(IDBKey bound, bool open) {
-    return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound), open));
+  IDBKeyRange upperBound(IDBKey bound, [bool open = null]) {
+    if (open === null) {
+      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound)));
+    } else {
+      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound), open));
+    }
   }
-
-  String get typeName() { return "IDBKeyRange"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11204,8 +11648,6 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
 
 class IDBKeyWrappingImplementation extends DOMWrapperBase implements IDBKey {
   IDBKeyWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "IDBKey"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11220,8 +11662,12 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
 
   String get name() { return _ptr.name; }
 
-  IDBRequest add(String value, IDBKey key) {
-    return LevelDom.wrapIDBRequest(_ptr.add(value, LevelDom.unwrap(key)));
+  IDBRequest add(String value, [IDBKey key = null]) {
+    if (key === null) {
+      return LevelDom.wrapIDBRequest(_ptr.add(value));
+    } else {
+      return LevelDom.wrapIDBRequest(_ptr.add(value, LevelDom.unwrap(key)));
+    }
   }
 
   IDBRequest clear() {
@@ -11241,19 +11687,36 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
     return;
   }
 
+  IDBRequest getObject(IDBKey key) {
+    return LevelDom.wrapIDBRequest(_ptr.getObject(LevelDom.unwrap(key)));
+  }
+
   IDBIndex index(String name) {
     return LevelDom.wrapIDBIndex(_ptr.index(name));
   }
 
-  IDBRequest openCursor(IDBKeyRange range, int direction) {
-    return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+    if (range === null) {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor());
+      }
+    } else {
+      if (direction === null) {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range)));
+      } else {
+        return LevelDom.wrapIDBRequest(_ptr.openCursor(LevelDom.unwrap(range), direction));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest put(String value, IDBKey key) {
-    return LevelDom.wrapIDBRequest(_ptr.put(value, LevelDom.unwrap(key)));
+  IDBRequest put(String value, [IDBKey key = null]) {
+    if (key === null) {
+      return LevelDom.wrapIDBRequest(_ptr.put(value));
+    } else {
+      return LevelDom.wrapIDBRequest(_ptr.put(value, LevelDom.unwrap(key)));
+    }
   }
-
-  String get typeName() { return "IDBObjectStore"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11284,21 +11747,29 @@ class IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBRequ
 
   String get webkitErrorMessage() { return _ptr.webkitErrorMessage; }
 
-  void addEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   bool dispatchEvent(Event evt) {
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
-
-  String get typeName() { return "IDBRequest"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11330,9 +11801,14 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
     return;
   }
 
-  void addEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   bool dispatchEvent(Event evt) {
@@ -11343,12 +11819,15 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
     return LevelDom.wrapIDBObjectStore(_ptr.objectStore(name));
   }
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
-
-  String get typeName() { return "IDBTransaction"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11360,8 +11839,6 @@ class IDBVersionChangeEventWrappingImplementation extends EventWrappingImplement
   IDBVersionChangeEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   String get version() { return _ptr.version; }
-
-  String get typeName() { return "IDBVersionChangeEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11375,8 +11852,6 @@ class IDBVersionChangeRequestWrappingImplementation extends IDBRequestWrappingIm
   EventListener get onblocked() { return LevelDom.wrapEventListener(_ptr.onblocked); }
 
   void set onblocked(EventListener value) { _ptr.onblocked = LevelDom.unwrap(value); }
-
-  String get typeName() { return "IDBVersionChangeRequest"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11434,8 +11909,6 @@ class IFrameElementWrappingImplementation extends ElementWrappingImplementation 
   String get width() { return _ptr.width; }
 
   void set width(String value) { _ptr.width = value; }
-
-  String get typeName() { return "IFrameElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11451,8 +11924,6 @@ class ImageDataWrappingImplementation extends DOMWrapperBase implements ImageDat
   int get height() { return _ptr.height; }
 
   int get width() { return _ptr.width; }
-
-  String get typeName() { return "ImageData"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11528,8 +11999,6 @@ class ImageElementWrappingImplementation extends ElementWrappingImplementation i
   int get x() { return _ptr.x; }
 
   int get y() { return _ptr.y; }
-
-  String get typeName() { return "ImageElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11739,9 +12208,14 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
     return;
   }
 
-  void setSelectionRange([int start = null, int end = null, String direction = null]) {
-    _ptr.setSelectionRange(start, end, direction);
-    return;
+  void setSelectionRange(int start, int end, [String direction = null]) {
+    if (direction === null) {
+      _ptr.setSelectionRange(start, end);
+      return;
+    } else {
+      _ptr.setSelectionRange(start, end, direction);
+      return;
+    }
   }
 
   void setValueForUser(String value) {
@@ -11750,16 +12224,24 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
   }
 
   void stepDown([int n = null]) {
-    _ptr.stepDown(n);
-    return;
+    if (n === null) {
+      _ptr.stepDown();
+      return;
+    } else {
+      _ptr.stepDown(n);
+      return;
+    }
   }
 
   void stepUp([int n = null]) {
-    _ptr.stepUp(n);
-    return;
+    if (n === null) {
+      _ptr.stepUp();
+      return;
+    } else {
+      _ptr.stepUp(n);
+      return;
+    }
   }
-
-  String get typeName() { return "InputElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11772,11 +12254,13 @@ class Int16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Int16Array subarray(int start, int end) {
-    return LevelDom.wrapInt16Array(_ptr.subarray(start, end));
+  Int16Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapInt16Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt16Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Int16Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11789,11 +12273,13 @@ class Int32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Int32Array subarray(int start, int end) {
-    return LevelDom.wrapInt32Array(_ptr.subarray(start, end));
+  Int32Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapInt32Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt32Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Int32Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11806,11 +12292,13 @@ class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementat
 
   int get length() { return _ptr.length; }
 
-  Int8Array subarray(int start, int end) {
-    return LevelDom.wrapInt8Array(_ptr.subarray(start, end));
+  Int8Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapInt8Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt8Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Int8Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11843,8 +12331,6 @@ class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation 
     _ptr.initKeyboardEvent(type, canBubble, cancelable, LevelDom.unwrap(view), keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
     return;
   }
-
-  String get typeName() { return "KeyboardEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11895,8 +12381,6 @@ class KeygenElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "KeygenElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11914,8 +12398,6 @@ class LIElementWrappingImplementation extends ElementWrappingImplementation impl
   int get value() { return _ptr.value; }
 
   void set value(int value) { _ptr.value = value; }
-
-  String get typeName() { return "LIElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11937,8 +12419,6 @@ class LabelElementWrappingImplementation extends ElementWrappingImplementation i
   String get htmlFor() { return _ptr.htmlFor; }
 
   void set htmlFor(String value) { _ptr.htmlFor = value; }
-
-  String get typeName() { return "LabelElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11958,8 +12438,6 @@ class LegendElementWrappingImplementation extends ElementWrappingImplementation 
   void set align(String value) { _ptr.align = value; }
 
   FormElement get form() { return LevelDom.wrapFormElement(_ptr.form); }
-
-  String get typeName() { return "LegendElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12007,8 +12485,6 @@ class LinkElementWrappingImplementation extends ElementWrappingImplementation im
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-
-  String get typeName() { return "LinkElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12023,8 +12499,6 @@ class LocalMediaStreamWrappingImplementation extends MediaStreamWrappingImplemen
     _ptr.stop();
     return;
   }
-
-  String get typeName() { return "LocalMediaStream"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12087,8 +12561,6 @@ class LocationWrappingImplementation extends DOMWrapperBase implements Location 
     _ptr.replace(url);
     return;
   }
-
-  String get typeName() { return "Location"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12108,8 +12580,6 @@ class LoseContextWrappingImplementation extends DOMWrapperBase implements LoseCo
     _ptr.restoreContext();
     return;
   }
-
-  String get typeName() { return "LoseContext"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12125,8 +12595,6 @@ class MapElementWrappingImplementation extends ElementWrappingImplementation imp
   String get name() { return _ptr.name; }
 
   void set name(String value) { _ptr.name = value; }
-
-  String get typeName() { return "MapElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12190,8 +12658,6 @@ class MarqueeElementWrappingImplementation extends ElementWrappingImplementation
     _ptr.stop();
     return;
   }
-
-  String get typeName() { return "MarqueeElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12218,6 +12684,10 @@ class MediaElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set currentTime(num value) { _ptr.currentTime = value; }
 
+  bool get defaultMuted() { return _ptr.defaultMuted; }
+
+  void set defaultMuted(bool value) { _ptr.defaultMuted = value; }
+
   num get defaultPlaybackRate() { return _ptr.defaultPlaybackRate; }
 
   void set defaultPlaybackRate(num value) { _ptr.defaultPlaybackRate = value; }
@@ -12227,6 +12697,8 @@ class MediaElementWrappingImplementation extends ElementWrappingImplementation i
   bool get ended() { return _ptr.ended; }
 
   MediaError get error() { return LevelDom.wrapMediaError(_ptr.error); }
+
+  num get initialTime() { return _ptr.initialTime; }
 
   bool get loop() { return _ptr.loop; }
 
@@ -12298,8 +12770,6 @@ class MediaElementWrappingImplementation extends ElementWrappingImplementation i
     _ptr.play();
     return;
   }
-
-  String get typeName() { return "MediaElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12311,8 +12781,6 @@ class MediaErrorWrappingImplementation extends DOMWrapperBase implements MediaEr
   MediaErrorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get code() { return _ptr.code; }
-
-  String get typeName() { return "MediaError"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12334,23 +12802,23 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   }
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable Array.");
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
   void add(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void sort(int compare(String a, String b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable Array.");
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
@@ -12366,11 +12834,11 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   }
 
   int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable Array.");
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
   }
 
   String removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable Array.");
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   String last() {
@@ -12391,6 +12859,22 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
 
   bool some(bool f(String element)) {
     return _Collections.some(this, f);
+  }
+
+  void setRange(int start, int length, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int length) {
+    throw new NotImplementedException();
   }
 
   bool isEmpty() {
@@ -12414,8 +12898,6 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   String item(int index) {
     return _ptr.item(index);
   }
-
-  String get typeName() { return "MediaList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12430,8 +12912,6 @@ class MediaQueryListListenerWrappingImplementation extends DOMWrapperBase implem
     _ptr.queryChanged(LevelDom.unwrap(list));
     return;
   }
-
-  String get typeName() { return "MediaQueryListListener"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12455,8 +12935,6 @@ class MediaQueryListWrappingImplementation extends DOMWrapperBase implements Med
     _ptr.removeListener(LevelDom.unwrap(listener));
     return;
   }
-
-  String get typeName() { return "MediaQueryList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12472,8 +12950,6 @@ class MediaStreamListWrappingImplementation extends DOMWrapperBase implements Me
   MediaStream item(int index) {
     return LevelDom.wrapMediaStream(_ptr.item(index));
   }
-
-  String get typeName() { return "MediaStreamList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12489,8 +12965,6 @@ class MediaStreamTrackListWrappingImplementation extends DOMWrapperBase implemen
   MediaStreamTrack item(int index) {
     return LevelDom.wrapMediaStreamTrack(_ptr.item(index));
   }
-
-  String get typeName() { return "MediaStreamTrackList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12508,8 +12982,6 @@ class MediaStreamTrackWrappingImplementation extends DOMWrapperBase implements M
   String get kind() { return _ptr.kind; }
 
   String get label() { return _ptr.label; }
-
-  String get typeName() { return "MediaStreamTrack"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12530,21 +13002,29 @@ class MediaStreamWrappingImplementation extends DOMWrapperBase implements MediaS
 
   MediaStreamTrackList get tracks() { return LevelDom.wrapMediaStreamTrackList(_ptr.tracks); }
 
-  void addEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
 
   bool dispatchEvent(Event event) {
     return _ptr.dispatchEvent(LevelDom.unwrap(event));
   }
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) {
-    _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
-    return;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
+      return;
+    }
   }
-
-  String get typeName() { return "MediaStream"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12558,8 +13038,6 @@ class MenuElementWrappingImplementation extends ElementWrappingImplementation im
   bool get compact() { return _ptr.compact; }
 
   void set compact(bool value) { _ptr.compact = value; }
-
-  String get typeName() { return "MenuElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12573,8 +13051,6 @@ class MessageChannelWrappingImplementation extends DOMWrapperBase implements Mes
   MessagePort get port1() { return LevelDom.wrapMessagePort(_ptr.port1); }
 
   MessagePort get port2() { return LevelDom.wrapMessagePort(_ptr.port2); }
-
-  String get typeName() { return "MessageChannel"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12599,8 +13075,6 @@ class MessageEventWrappingImplementation extends EventWrappingImplementation imp
     _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
     return;
   }
-
-  String get typeName() { return "MessageEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12626,8 +13100,6 @@ class MetaElementWrappingImplementation extends ElementWrappingImplementation im
   String get scheme() { return _ptr.scheme; }
 
   void set scheme(String value) { _ptr.scheme = value; }
-
-  String get typeName() { return "MetaElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12641,8 +13113,6 @@ class MetadataCallbackWrappingImplementation extends DOMWrapperBase implements M
   bool handleEvent(Metadata metadata) {
     return _ptr.handleEvent(LevelDom.unwrap(metadata));
   }
-
-  String get typeName() { return "MetadataCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12654,8 +13124,6 @@ class MetadataWrappingImplementation extends DOMWrapperBase implements Metadata 
   MetadataWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   Date get modificationTime() { return _ptr.modificationTime; }
-
-  String get typeName() { return "Metadata"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12693,8 +13161,6 @@ class MeterElementWrappingImplementation extends ElementWrappingImplementation i
   num get value() { return _ptr.value; }
 
   void set value(num value) { _ptr.value = value; }
-
-  String get typeName() { return "MeterElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12712,8 +13178,6 @@ class ModElementWrappingImplementation extends ElementWrappingImplementation imp
   String get dateTime() { return _ptr.dateTime; }
 
   void set dateTime(String value) { _ptr.dateTime = value; }
-
-  String get typeName() { return "ModElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12760,8 +13224,6 @@ class MouseEventWrappingImplementation extends UIEventWrappingImplementation imp
     _ptr.initMouseEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, LevelDom.unwrap(relatedTarget));
     return;
   }
-
-  String get typeName() { return "MouseEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12786,8 +13248,33 @@ class MutationEventWrappingImplementation extends EventWrappingImplementation im
     _ptr.initMutationEvent(type, canBubble, cancelable, LevelDom.unwrap(relatedNode), prevValue, newValue, attrName, attrChange);
     return;
   }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  String get typeName() { return "MutationEvent"; }
+// WARNING: Do not edit - generated code.
+
+class MutationRecordWrappingImplementation extends DOMWrapperBase implements MutationRecord {
+  MutationRecordWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  ElementList get addedNodes() { return LevelDom.wrapElementList(_ptr.addedNodes); }
+
+  String get attributeName() { return _ptr.attributeName; }
+
+  String get attributeNamespace() { return _ptr.attributeNamespace; }
+
+  Node get nextSibling() { return LevelDom.wrapNode(_ptr.nextSibling); }
+
+  String get oldValue() { return _ptr.oldValue; }
+
+  Node get previousSibling() { return LevelDom.wrapNode(_ptr.previousSibling); }
+
+  ElementList get removedNodes() { return LevelDom.wrapElementList(_ptr.removedNodes); }
+
+  Node get target() { return LevelDom.wrapNode(_ptr.target); }
+
+  String get type() { return _ptr.type; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12801,8 +13288,6 @@ class NavigatorUserMediaErrorCallbackWrappingImplementation extends DOMWrapperBa
   bool handleEvent(NavigatorUserMediaError error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "NavigatorUserMediaErrorCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12814,8 +13299,6 @@ class NavigatorUserMediaErrorWrappingImplementation extends DOMWrapperBase imple
   NavigatorUserMediaErrorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get code() { return _ptr.code; }
-
-  String get typeName() { return "NavigatorUserMediaError"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12829,8 +13312,6 @@ class NavigatorUserMediaSuccessCallbackWrappingImplementation extends DOMWrapper
   bool handleEvent(LocalMediaStream stream) {
     return _ptr.handleEvent(LevelDom.unwrap(stream));
   }
-
-  String get typeName() { return "NavigatorUserMediaSuccessCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12877,8 +13358,6 @@ class NavigatorWrappingImplementation extends DOMWrapperBase implements Navigato
   bool javaEnabled() {
     return _ptr.javaEnabled();
   }
-
-  String get typeName() { return "Navigator"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12892,8 +13371,6 @@ class NotationWrappingImplementation extends NodeWrappingImplementation implemen
   String get publicId() { return _ptr.publicId; }
 
   String get systemId() { return _ptr.systemId; }
-
-  String get typeName() { return "Notation"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12920,8 +13397,6 @@ class NotificationCenterWrappingImplementation extends DOMWrapperBase implements
     _ptr.requestPermission(LevelDom.unwrap(callback));
     return;
   }
-
-  String get typeName() { return "NotificationCenter"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12931,8 +13406,6 @@ class NotificationCenterWrappingImplementation extends DOMWrapperBase implements
 
 class OESStandardDerivativesWrappingImplementation extends DOMWrapperBase implements OESStandardDerivatives {
   OESStandardDerivativesWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "OESStandardDerivatives"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12942,8 +13415,6 @@ class OESStandardDerivativesWrappingImplementation extends DOMWrapperBase implem
 
 class OESTextureFloatWrappingImplementation extends DOMWrapperBase implements OESTextureFloat {
   OESTextureFloatWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "OESTextureFloat"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12971,8 +13442,6 @@ class OESVertexArrayObjectWrappingImplementation extends DOMWrapperBase implemen
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) {
     return _ptr.isVertexArrayOES(LevelDom.unwrap(arrayObject));
   }
-
-  String get typeName() { return "OESVertexArrayObject"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12994,8 +13463,6 @@ class OListElementWrappingImplementation extends ElementWrappingImplementation i
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-
-  String get typeName() { return "OListElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13088,8 +13555,6 @@ class ObjectElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "ObjectElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13105,8 +13570,6 @@ class OperationNotAllowedExceptionWrappingImplementation extends DOMWrapperBase 
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "OperationNotAllowedException"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13124,8 +13587,6 @@ class OptGroupElementWrappingImplementation extends ElementWrappingImplementatio
   String get label() { return _ptr.label; }
 
   void set label(String value) { _ptr.label = value; }
-
-  String get typeName() { return "OptGroupElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13161,8 +13622,6 @@ class OptionElementWrappingImplementation extends ElementWrappingImplementation 
   String get value() { return _ptr.value; }
 
   void set value(String value) { _ptr.value = value; }
-
-  String get typeName() { return "OptionElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13209,8 +13668,6 @@ class OutputElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "OutputElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13231,8 +13688,6 @@ class OverflowEventWrappingImplementation extends EventWrappingImplementation im
     _ptr.initOverflowEvent(orient, horizontalOverflow, verticalOverflow);
     return;
   }
-
-  String get typeName() { return "OverflowEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13249,8 +13704,6 @@ class PageTransitionEventWrappingImplementation extends EventWrappingImplementat
     _ptr.initPageTransitionEvent(typeArg, canBubbleArg, cancelableArg, persisted);
     return;
   }
-
-  String get typeName() { return "PageTransitionEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13264,8 +13717,6 @@ class ParagraphElementWrappingImplementation extends ElementWrappingImplementati
   String get align() { return _ptr.align; }
 
   void set align(String value) { _ptr.align = value; }
-
-  String get typeName() { return "ParagraphElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13291,8 +13742,6 @@ class ParamElementWrappingImplementation extends ElementWrappingImplementation i
   String get valueType() { return _ptr.valueType; }
 
   void set valueType(String value) { _ptr.valueType = value; }
-
-  String get typeName() { return "ParamElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13302,9 +13751,6 @@ class ParamElementWrappingImplementation extends ElementWrappingImplementation i
 
 class PointWrappingImplementation extends DOMWrapperBase implements Point {
   PointWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-  factory PointWrappingImplementation(num x, num y) {
-    return LevelDom.wrapPoint(_rawWindow.createWebKitPoint(x, y));
-  }
 
   num get x() { return _ptr.x; }
 
@@ -13313,8 +13759,6 @@ class PointWrappingImplementation extends DOMWrapperBase implements Point {
   num get y() { return _ptr.y; }
 
   void set y(num value) { _ptr.y = value; }
-
-  String get typeName() { return "Point"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13327,12 +13771,10 @@ class PopStateEventWrappingImplementation extends EventWrappingImplementation im
 
   String get state() { return _ptr.state; }
 
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String stateArg) {
-    _ptr.initPopStateEvent(typeArg, canBubbleArg, cancelableArg, stateArg);
+  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) {
+    _ptr.initPopStateEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(stateArg));
     return;
   }
-
-  String get typeName() { return "PopStateEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13346,8 +13788,6 @@ class PositionCallbackWrappingImplementation extends DOMWrapperBase implements P
   bool handleEvent(Geoposition position) {
     return _ptr.handleEvent(LevelDom.unwrap(position));
   }
-
-  String get typeName() { return "PositionCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13361,8 +13801,6 @@ class PositionErrorCallbackWrappingImplementation extends DOMWrapperBase impleme
   bool handleEvent(PositionError error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "PositionErrorCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13376,8 +13814,6 @@ class PositionErrorWrappingImplementation extends DOMWrapperBase implements Posi
   int get code() { return _ptr.code; }
 
   String get message() { return _ptr.message; }
-
-  String get typeName() { return "PositionError"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13395,8 +13831,6 @@ class PreElementWrappingImplementation extends ElementWrappingImplementation imp
   bool get wrap() { return _ptr.wrap; }
 
   void set wrap(bool value) { _ptr.wrap = value; }
-
-  String get typeName() { return "PreElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13414,8 +13848,6 @@ class ProcessingInstructionWrappingImplementation extends NodeWrappingImplementa
   StyleSheet get sheet() { return LevelDom.wrapStyleSheet(_ptr.sheet); }
 
   String get target() { return _ptr.target; }
-
-  String get typeName() { return "ProcessingInstruction"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13439,8 +13871,6 @@ class ProgressElementWrappingImplementation extends ElementWrappingImplementatio
   num get value() { return _ptr.value; }
 
   void set value(num value) { _ptr.value = value; }
-
-  String get typeName() { return "ProgressElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13461,8 +13891,6 @@ class ProgressEventWrappingImplementation extends EventWrappingImplementation im
     _ptr.initProgressEvent(typeArg, canBubbleArg, cancelableArg, lengthComputableArg, loadedArg, totalArg);
     return;
   }
-
-  String get typeName() { return "ProgressEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13476,8 +13904,6 @@ class QuoteElementWrappingImplementation extends ElementWrappingImplementation i
   String get cite() { return _ptr.cite; }
 
   void set cite(String value) { _ptr.cite = value; }
-
-  String get typeName() { return "QuoteElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13495,8 +13921,6 @@ class RGBColorWrappingImplementation extends DOMWrapperBase implements RGBColor 
   CSSPrimitiveValue get green() { return LevelDom.wrapCSSPrimitiveValue(_ptr.green); }
 
   CSSPrimitiveValue get red() { return LevelDom.wrapCSSPrimitiveValue(_ptr.red); }
-
-  String get typeName() { return "RGBColor"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13512,8 +13936,6 @@ class RangeExceptionWrappingImplementation extends DOMWrapperBase implements Ran
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "RangeException"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13549,10 +13971,6 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
   void collapse(bool toStart) {
     _ptr.collapse(toStart);
     return;
-  }
-
-  int compareBoundaryPoints() {
-    return _ptr.compareBoundaryPoints();
   }
 
   int compareNode(Node refNode) {
@@ -13647,8 +14065,6 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
   String toString() {
     return _ptr.toString();
   }
-
-  String get typeName() { return "Range"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13666,8 +14082,6 @@ class RectWrappingImplementation extends DOMWrapperBase implements Rect {
   CSSPrimitiveValue get right() { return LevelDom.wrapCSSPrimitiveValue(_ptr.right); }
 
   CSSPrimitiveValue get top() { return LevelDom.wrapCSSPrimitiveValue(_ptr.top); }
-
-  String get typeName() { return "Rect"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13693,8 +14107,6 @@ class ScreenWrappingImplementation extends DOMWrapperBase implements Screen {
   int get pixelDepth() { return _ptr.pixelDepth; }
 
   int get width() { return _ptr.width; }
-
-  String get typeName() { return "Screen"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13736,8 +14148,6 @@ class ScriptElementWrappingImplementation extends ElementWrappingImplementation 
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-
-  String get typeName() { return "ScriptElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13819,8 +14229,6 @@ class SelectElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  String get typeName() { return "SelectElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13842,8 +14250,15 @@ class SourceElementWrappingImplementation extends ElementWrappingImplementation 
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  String get typeName() { return "SourceElement"; }
+// WARNING: Do not edit - generated code.
+
+class SpanElementWrappingImplementation extends ElementWrappingImplementation implements SpanElement {
+  SpanElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13855,8 +14270,6 @@ class SpeechInputEventWrappingImplementation extends EventWrappingImplementation
   SpeechInputEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   SpeechInputResultList get results() { return LevelDom.wrapSpeechInputResultList(_ptr.results); }
-
-  String get typeName() { return "SpeechInputEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13872,8 +14285,6 @@ class SpeechInputResultListWrappingImplementation extends DOMWrapperBase impleme
   SpeechInputResult item(int index) {
     return LevelDom.wrapSpeechInputResult(_ptr.item(index));
   }
-
-  String get typeName() { return "SpeechInputResultList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13887,8 +14298,6 @@ class SpeechInputResultWrappingImplementation extends DOMWrapperBase implements 
   num get confidence() { return _ptr.confidence; }
 
   String get utterance() { return _ptr.utterance; }
-
-  String get typeName() { return "SpeechInputResult"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13913,8 +14322,6 @@ class StorageEventWrappingImplementation extends EventWrappingImplementation imp
     _ptr.initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, LevelDom.unwrap(storageAreaArg));
     return;
   }
-
-  String get typeName() { return "StorageEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13928,8 +14335,6 @@ class StorageInfoErrorCallbackWrappingImplementation extends DOMWrapperBase impl
   bool handleEvent(DOMException error) {
     return _ptr.handleEvent(LevelDom.unwrap(error));
   }
-
-  String get typeName() { return "StorageInfoErrorCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13943,8 +14348,6 @@ class StorageInfoQuotaCallbackWrappingImplementation extends DOMWrapperBase impl
   bool handleEvent(int grantedQuotaInBytes) {
     return _ptr.handleEvent(grantedQuotaInBytes);
   }
-
-  String get typeName() { return "StorageInfoQuotaCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13958,8 +14361,6 @@ class StorageInfoUsageCallbackWrappingImplementation extends DOMWrapperBase impl
   bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes) {
     return _ptr.handleEvent(currentUsageInBytes, currentQuotaInBytes);
   }
-
-  String get typeName() { return "StorageInfoUsageCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13970,17 +14371,41 @@ class StorageInfoUsageCallbackWrappingImplementation extends DOMWrapperBase impl
 class StorageInfoWrappingImplementation extends DOMWrapperBase implements StorageInfo {
   StorageInfoWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void queryUsageAndQuota(int storageType, StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback) {
-    _ptr.queryUsageAndQuota(storageType, LevelDom.unwrap(usageCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) {
+    if (usageCallback === null) {
+      if (errorCallback === null) {
+        _ptr.queryUsageAndQuota(storageType);
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _ptr.queryUsageAndQuota(storageType, LevelDom.unwrap(usageCallback));
+        return;
+      } else {
+        _ptr.queryUsageAndQuota(storageType, LevelDom.unwrap(usageCallback), LevelDom.unwrap(errorCallback));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
-  void requestQuota(int storageType, int newQuotaInBytes, StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback) {
-    _ptr.requestQuota(storageType, newQuotaInBytes, LevelDom.unwrap(quotaCallback), LevelDom.unwrap(errorCallback));
-    return;
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) {
+    if (quotaCallback === null) {
+      if (errorCallback === null) {
+        _ptr.requestQuota(storageType, newQuotaInBytes);
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _ptr.requestQuota(storageType, newQuotaInBytes, LevelDom.unwrap(quotaCallback));
+        return;
+      } else {
+        _ptr.requestQuota(storageType, newQuotaInBytes, LevelDom.unwrap(quotaCallback), LevelDom.unwrap(errorCallback));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-
-  String get typeName() { return "StorageInfo"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14015,8 +14440,6 @@ class StorageWrappingImplementation extends DOMWrapperBase implements Storage {
     _ptr.setItem(key, data);
     return;
   }
-
-  String get typeName() { return "Storage"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14030,8 +14453,6 @@ class StringCallbackWrappingImplementation extends DOMWrapperBase implements Str
   bool handleEvent(String data) {
     return _ptr.handleEvent(data);
   }
-
-  String get typeName() { return "StringCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14055,8 +14476,6 @@ class StyleElementWrappingImplementation extends ElementWrappingImplementation i
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-
-  String get typeName() { return "StyleElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14072,8 +14491,6 @@ class StyleMediaWrappingImplementation extends DOMWrapperBase implements StyleMe
   bool matchMedium(String mediaquery) {
     return _ptr.matchMedium(mediaquery);
   }
-
-  String get typeName() { return "StyleMedia"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14091,23 +14508,23 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   }
 
   void operator[]=(int index, StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable Array.");
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
   void add(StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addLast(StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void addAll(Collection<StyleSheet> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable Array.");
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
   void sort(int compare(StyleSheet a, StyleSheet b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable Array.");
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
@@ -14123,11 +14540,11 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   }
 
   int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable Array.");
+    throw new UnsupportedOperationException("Cannot clear immutable List.");
   }
 
   StyleSheet removeLast() {
-    throw new UnsupportedOperationException("Cannot removeLast on immutable Array.");
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
   StyleSheet last() {
@@ -14150,6 +14567,22 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<StyleSheet> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [StyleSheet initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<StyleSheet> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }
@@ -14161,8 +14594,6 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   StyleSheet item(int index) {
     return LevelDom.wrapStyleSheet(_ptr.item(index));
   }
-
-  String get typeName() { return "StyleSheetList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14188,8 +14619,6 @@ class StyleSheetWrappingImplementation extends DOMWrapperBase implements StyleSh
   String get title() { return _ptr.title; }
 
   String get type() { return _ptr.type; }
-
-  String get typeName() { return "StyleSheet"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14203,8 +14632,6 @@ class TableCaptionElementWrappingImplementation extends ElementWrappingImplement
   String get align() { return _ptr.align; }
 
   void set align(String value) { _ptr.align = value; }
-
-  String get typeName() { return "TableCaptionElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14272,8 +14699,6 @@ class TableCellElementWrappingImplementation extends ElementWrappingImplementati
   String get width() { return _ptr.width; }
 
   void set width(String value) { _ptr.width = value; }
-
-  String get typeName() { return "TableCellElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14307,8 +14732,6 @@ class TableColElementWrappingImplementation extends ElementWrappingImplementatio
   String get width() { return _ptr.width; }
 
   void set width(String value) { _ptr.width = value; }
-
-  String get typeName() { return "TableColElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14406,8 +14829,6 @@ class TableElementWrappingImplementation extends ElementWrappingImplementation i
   Element insertRow(int index) {
     return LevelDom.wrapElement(_ptr.insertRow(index));
   }
-
-  String get typeName() { return "TableElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14452,8 +14873,6 @@ class TableRowElementWrappingImplementation extends ElementWrappingImplementatio
   Element insertCell(int index) {
     return LevelDom.wrapElement(_ptr.insertCell(index));
   }
-
-  String get typeName() { return "TableRowElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14490,8 +14909,6 @@ class TableSectionElementWrappingImplementation extends ElementWrappingImplement
   Element insertRow(int index) {
     return LevelDom.wrapElement(_ptr.insertRow(index));
   }
-
-  String get typeName() { return "TableSectionElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14576,6 +14993,10 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
 
   bool get willValidate() { return _ptr.willValidate; }
 
+  String get wrap() { return _ptr.wrap; }
+
+  void set wrap(String value) { _ptr.wrap = value; }
+
   bool checkValidity() {
     return _ptr.checkValidity();
   }
@@ -14590,12 +15011,15 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
     return;
   }
 
-  void setSelectionRange(int start, int end, String direction) {
-    _ptr.setSelectionRange(start, end, direction);
-    return;
+  void setSelectionRange(int start, int end, [String direction = null]) {
+    if (direction === null) {
+      _ptr.setSelectionRange(start, end);
+      return;
+    } else {
+      _ptr.setSelectionRange(start, end, direction);
+      return;
+    }
   }
-
-  String get typeName() { return "TextAreaElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14612,8 +15036,6 @@ class TextEventWrappingImplementation extends UIEventWrappingImplementation impl
     _ptr.initTextEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
     return;
   }
-
-  String get typeName() { return "TextEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14625,8 +15047,6 @@ class TextMetricsWrappingImplementation extends DOMWrapperBase implements TextMe
   TextMetricsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   num get width() { return _ptr.width; }
-
-  String get typeName() { return "TextMetrics"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14646,8 +15066,6 @@ class TimeRangesWrappingImplementation extends DOMWrapperBase implements TimeRan
   num start(int index) {
     return _ptr.start(index);
   }
-
-  String get typeName() { return "TimeRanges"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14661,8 +15079,6 @@ class TitleElementWrappingImplementation extends ElementWrappingImplementation i
   String get text() { return _ptr.text; }
 
   void set text(String value) { _ptr.text = value; }
-
-  String get typeName() { return "TitleElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14691,8 +15107,6 @@ class TouchEventWrappingImplementation extends UIEventWrappingImplementation imp
     _ptr.initTouchEvent(LevelDom.unwrap(touches), LevelDom.unwrap(targetTouches), LevelDom.unwrap(changedTouches), type, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return;
   }
-
-  String get typeName() { return "TouchEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14769,6 +15183,22 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
     return _Collections.some(this, f);
   }
 
+  void setRange(int start, int length, List<Touch> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int length, [Touch initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Touch> getRange(int start, int length) {
+    throw new NotImplementedException();
+  }
+
   bool isEmpty() {
     return length == 0;
   }
@@ -14780,8 +15210,6 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
   Touch item(int index) {
     return LevelDom.wrapTouch(_ptr.item(index));
   }
-
-  String get typeName() { return "TouchList"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14815,8 +15243,6 @@ class TouchWrappingImplementation extends DOMWrapperBase implements Touch {
   int get webkitRadiusY() { return _ptr.webkitRadiusY; }
 
   num get webkitRotationAngle() { return _ptr.webkitRotationAngle; }
-
-  String get typeName() { return "Touch"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14846,8 +15272,6 @@ class TrackElementWrappingImplementation extends ElementWrappingImplementation i
   String get srclang() { return _ptr.srclang; }
 
   void set srclang(String value) { _ptr.srclang = value; }
-
-  String get typeName() { return "TrackElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14866,8 +15290,6 @@ class TransitionEventWrappingImplementation extends EventWrappingImplementation 
     _ptr.initWebKitTransitionEvent(typeArg, canBubbleArg, cancelableArg, propertyNameArg, elapsedTimeArg);
     return;
   }
-
-  String get typeName() { return "TransitionEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14900,8 +15322,6 @@ class UIEventWrappingImplementation extends EventWrappingImplementation implemen
     _ptr.initUIEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail);
     return;
   }
-
-  String get typeName() { return "UIEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14919,8 +15339,6 @@ class UListElementWrappingImplementation extends ElementWrappingImplementation i
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-
-  String get typeName() { return "UListElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14933,11 +15351,13 @@ class Uint16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplement
 
   int get length() { return _ptr.length; }
 
-  Uint16Array subarray(int start, int end) {
-    return LevelDom.wrapUint16Array(_ptr.subarray(start, end));
+  Uint16Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapUint16Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapUint16Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Uint16Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14950,11 +15370,13 @@ class Uint32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplement
 
   int get length() { return _ptr.length; }
 
-  Uint32Array subarray(int start, int end) {
-    return LevelDom.wrapUint32Array(_ptr.subarray(start, end));
+  Uint32Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapUint32Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapUint32Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Uint32Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14967,11 +15389,13 @@ class Uint8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Uint8Array subarray(int start, int end) {
-    return LevelDom.wrapUint8Array(_ptr.subarray(start, end));
+  Uint8Array subarray(int start, [int end = null]) {
+    if (end === null) {
+      return LevelDom.wrapUint8Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapUint8Array(_ptr.subarray(start, end));
+    }
   }
-
-  String get typeName() { return "Uint8Array"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14981,8 +15405,6 @@ class Uint8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
 class UnknownElementWrappingImplementation extends ElementWrappingImplementation implements UnknownElement {
   UnknownElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "UnknownElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15010,8 +15432,6 @@ class ValidityStateWrappingImplementation extends DOMWrapperBase implements Vali
   bool get valid() { return _ptr.valid; }
 
   bool get valueMissing() { return _ptr.valueMissing; }
-
-  String get typeName() { return "ValidityState"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15065,8 +15485,6 @@ class VideoElementWrappingImplementation extends MediaElementWrappingImplementat
     _ptr.webkitExitFullscreen();
     return;
   }
-
-  String get typeName() { return "VideoElement"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15081,8 +15499,6 @@ class VoidCallbackWrappingImplementation extends DOMWrapperBase implements VoidC
     _ptr.handleEvent();
     return;
   }
-
-  String get typeName() { return "VoidCallback"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15098,8 +15514,6 @@ class WebGLActiveInfoWrappingImplementation extends DOMWrapperBase implements We
   int get size() { return _ptr.size; }
 
   int get type() { return _ptr.type; }
-
-  String get typeName() { return "WebGLActiveInfo"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15109,8 +15523,6 @@ class WebGLActiveInfoWrappingImplementation extends DOMWrapperBase implements We
 
 class WebGLBufferWrappingImplementation extends DOMWrapperBase implements WebGLBuffer {
   WebGLBufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLBuffer"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15144,8 +15556,6 @@ class WebGLContextAttributesWrappingImplementation extends DOMWrapperBase implem
   bool get stencil() { return _ptr.stencil; }
 
   void set stencil(bool value) { _ptr.stencil = value; }
-
-  String get typeName() { return "WebGLContextAttributes"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15157,8 +15567,6 @@ class WebGLContextEventWrappingImplementation extends EventWrappingImplementatio
   WebGLContextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   String get statusMessage() { return _ptr.statusMessage; }
-
-  String get typeName() { return "WebGLContextEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15168,8 +15576,6 @@ class WebGLContextEventWrappingImplementation extends EventWrappingImplementatio
 
 class WebGLFramebufferWrappingImplementation extends DOMWrapperBase implements WebGLFramebuffer {
   WebGLFramebufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLFramebuffer"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15179,8 +15585,6 @@ class WebGLFramebufferWrappingImplementation extends DOMWrapperBase implements W
 
 class WebGLProgramWrappingImplementation extends DOMWrapperBase implements WebGLProgram {
   WebGLProgramWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLProgram"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15190,8 +15594,6 @@ class WebGLProgramWrappingImplementation extends DOMWrapperBase implements WebGL
 
 class WebGLRenderbufferWrappingImplementation extends DOMWrapperBase implements WebGLRenderbuffer {
   WebGLRenderbufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLRenderbuffer"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15267,17 +15669,32 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
   }
 
   void bufferData(int target, var data_OR_size, int usage) {
-    if (data_OR_size is int) {
+    if (data_OR_size is ArrayBuffer) {
       _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
       return;
+    } else {
+      if (data_OR_size is ArrayBufferView) {
+        _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+        return;
+      } else {
+        if (data_OR_size is int) {
+          _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+          return;
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
 
   void bufferSubData(int target, int offset, var data) {
-    if (data is ArrayBufferView) {
+    if (data is ArrayBuffer) {
       _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
       return;
+    } else {
+      if (data is ArrayBufferView) {
+        _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
+        return;
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -15682,10 +16099,43 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, int format, int type, ArrayBufferView pixels) {
-    if (border_OR_canvas_OR_image_OR_pixels is int) {
-      _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
-      return;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format = null, int type = null, ArrayBufferView pixels = null]) {
+    if (border_OR_canvas_OR_image_OR_pixels is ImageData) {
+      if (format === null) {
+        if (type === null) {
+          if (pixels === null) {
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+            return;
+          }
+        }
+      }
+    } else {
+      if (border_OR_canvas_OR_image_OR_pixels is ImageElement) {
+        if (format === null) {
+          if (type === null) {
+            if (pixels === null) {
+              _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+              return;
+            }
+          }
+        }
+      } else {
+        if (border_OR_canvas_OR_image_OR_pixels is CanvasElement) {
+          if (format === null) {
+            if (type === null) {
+              if (pixels === null) {
+                _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+                return;
+              }
+            }
+          }
+        } else {
+          if (border_OR_canvas_OR_image_OR_pixels is int) {
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
+            return;
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -15700,10 +16150,37 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, int type, ArrayBufferView pixels) {
-    if (canvas_OR_format_OR_image_OR_pixels is int) {
-      _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
-      return;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type = null, ArrayBufferView pixels = null]) {
+    if (canvas_OR_format_OR_image_OR_pixels is ImageData) {
+      if (type === null) {
+        if (pixels === null) {
+          _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+          return;
+        }
+      }
+    } else {
+      if (canvas_OR_format_OR_image_OR_pixels is ImageElement) {
+        if (type === null) {
+          if (pixels === null) {
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+            return;
+          }
+        }
+      } else {
+        if (canvas_OR_format_OR_image_OR_pixels is CanvasElement) {
+          if (type === null) {
+            if (pixels === null) {
+              _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+              return;
+            }
+          }
+        } else {
+          if (canvas_OR_format_OR_image_OR_pixels is int) {
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
+            return;
+          }
+        }
+      }
     }
     throw "Incorrect number or type of arguments";
   }
@@ -15862,8 +16339,6 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     _ptr.viewport(x, y, width, height);
     return;
   }
-
-  String get typeName() { return "WebGLRenderingContext"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15873,8 +16348,6 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
 
 class WebGLShaderWrappingImplementation extends DOMWrapperBase implements WebGLShader {
   WebGLShaderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLShader"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15884,8 +16357,6 @@ class WebGLShaderWrappingImplementation extends DOMWrapperBase implements WebGLS
 
 class WebGLTextureWrappingImplementation extends DOMWrapperBase implements WebGLTexture {
   WebGLTextureWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLTexture"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15895,8 +16366,6 @@ class WebGLTextureWrappingImplementation extends DOMWrapperBase implements WebGL
 
 class WebGLUniformLocationWrappingImplementation extends DOMWrapperBase implements WebGLUniformLocation {
   WebGLUniformLocationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLUniformLocation"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15906,8 +16375,6 @@ class WebGLUniformLocationWrappingImplementation extends DOMWrapperBase implemen
 
 class WebGLVertexArrayObjectOESWrappingImplementation extends DOMWrapperBase implements WebGLVertexArrayObjectOES {
   WebGLVertexArrayObjectOESWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get typeName() { return "WebGLVertexArrayObjectOES"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15952,8 +16419,6 @@ class WheelEventWrappingImplementation extends UIEventWrappingImplementation imp
     _ptr.initWheelEvent(wheelDeltaX, wheelDeltaY, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return;
   }
-
-  String get typeName() { return "WheelEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15969,8 +16434,6 @@ class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase imple
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-
-  String get typeName() { return "XMLHttpRequestException"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15984,8 +16447,6 @@ class XMLHttpRequestProgressEventWrappingImplementation extends ProgressEventWra
   int get position() { return _ptr.position; }
 
   int get totalSize() { return _ptr.totalSize; }
-
-  String get typeName() { return "XMLHttpRequestProgressEvent"; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16069,10 +16530,6 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BeforeLoadEventWrappingImplementation._wrap(raw);
   }
 
-  static BeforeProcessEvent wrapBeforeProcessEvent(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BeforeProcessEventWrappingImplementation._wrap(raw);
-  }
-
   static Blob wrapBlob(raw) {
     if (raw === null) { return null; }
     if (raw.dartObjectLocalStorage !== null) {
@@ -16090,10 +16547,6 @@ class LevelDom {
 
   static BlobBuilder wrapBlobBuilder(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BlobBuilderWrappingImplementation._wrap(raw);
-  }
-
-  static BlockquoteElement wrapBlockquoteElement(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BlockquoteElementWrappingImplementation._wrap(raw);
   }
 
   static BodyElement wrapBodyElement(raw) {
@@ -16293,10 +16746,6 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ClientRectWrappingImplementation._wrap(raw);
   }
 
-  static ClientRectList wrapClientRectList(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ClientRectListWrappingImplementation._wrap(raw);
-  }
-
   static Clipboard wrapClipboard(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ClipboardWrappingImplementation._wrap(raw);
   }
@@ -16478,8 +16927,6 @@ class LevelDom {
       case "HTMLBaseElement":
         return new BaseElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLBaseFontElement*/
-      case "HTMLBlockquoteElement":
-        return new BlockquoteElementWrappingImplementation._wrap(raw);
       case "HTMLBodyElement":
         return new BodyElementWrappingImplementation._wrap(raw);
       case "HTMLButtonElement":
@@ -16572,6 +17019,8 @@ class LevelDom {
         return new SelectElementWrappingImplementation._wrap(raw);
       case "HTMLSourceElement":
         return new SourceElementWrappingImplementation._wrap(raw);
+      case "HTMLSpanElement":
+        return new SpanElementWrappingImplementation._wrap(raw);
       case "HTMLStyleElement":
         return new StyleElementWrappingImplementation._wrap(raw);
       case "HTMLTableCaptionElement":
@@ -16687,8 +17136,6 @@ class LevelDom {
         return new AnimationEventWrappingImplementation._wrap(raw);
       case "BeforeLoadEvent":
         return new BeforeLoadEventWrappingImplementation._wrap(raw);
-      case "BeforeProcessEvent":
-        return new BeforeProcessEventWrappingImplementation._wrap(raw);
       case "CloseEvent":
         return new CloseEventWrappingImplementation._wrap(raw);
       case "CompositionEvent":
@@ -16778,8 +17225,6 @@ class LevelDom {
       case "HTMLBaseElement":
         return new BaseElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLBaseFontElement*/
-      case "HTMLBlockquoteElement":
-        return new BlockquoteElementWrappingImplementation._wrap(raw);
       case "HTMLBodyElement":
         return new BodyElementWrappingImplementation._wrap(raw);
       case "HTMLButtonElement":
@@ -16905,6 +17350,8 @@ class LevelDom {
         return new SharedWorkerWrappingImplementation._wrap(raw);
       case "HTMLSourceElement":
         return new SourceElementWrappingImplementation._wrap(raw);
+      case "HTMLSpanElement":
+        return new SpanElementWrappingImplementation._wrap(raw);
       case "HTMLStyleElement":
         return new StyleElementWrappingImplementation._wrap(raw);
       case "HTMLTableCaptionElement":
@@ -17324,6 +17771,10 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MutationEventWrappingImplementation._wrap(raw);
   }
 
+  static MutationRecord wrapMutationRecord(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MutationRecordWrappingImplementation._wrap(raw);
+  }
+
   static Navigator wrapNavigator(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new NavigatorWrappingImplementation._wrap(raw);
   }
@@ -17359,8 +17810,6 @@ class LevelDom {
       case "HTMLBaseElement":
         return new BaseElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLBaseFontElement*/
-      case "HTMLBlockquoteElement":
-        return new BlockquoteElementWrappingImplementation._wrap(raw);
       case "HTMLBodyElement":
         return new BodyElementWrappingImplementation._wrap(raw);
       case "HTMLButtonElement":
@@ -17474,6 +17923,8 @@ class LevelDom {
         return new SelectElementWrappingImplementation._wrap(raw);
       case "HTMLSourceElement":
         return new SourceElementWrappingImplementation._wrap(raw);
+      case "HTMLSpanElement":
+        return new SpanElementWrappingImplementation._wrap(raw);
       case "HTMLStyleElement":
         return new StyleElementWrappingImplementation._wrap(raw);
       case "HTMLTableCaptionElement":
@@ -17656,6 +18107,10 @@ class LevelDom {
 
   static SourceElement wrapSourceElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SourceElementWrappingImplementation._wrap(raw);
+  }
+
+  static SpanElement wrapSpanElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SpanElementWrappingImplementation._wrap(raw);
   }
 
   static SpeechInputEvent wrapSpeechInputEvent(raw) {
@@ -18154,6 +18609,7 @@ class DOMWrapperBase {
 	_ptr.dartObjectLocalStorage = this;
   }
 }
+
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18244,6 +18700,88 @@ interface Document extends Element /*, common.NodeSelector */ {
 
   DocumentEvents get on();
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Provides a Map abstraction on top of data-* attributes, similar to the
+ * dataSet in the old DOM.
+ */
+class _DataAttributeMap implements Map<String, String> {
+
+  final Map<String, String> _attributes;
+
+  _DataAttributeMap(this._attributes);
+
+  // interface Map
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool containsValue(String value) => getValues().some((v) => v == value);
+
+  bool containsKey(String key) => _attributes.containsKey(_attr(key));
+
+  String operator [](String key) => _attributes[_attr(key)];
+
+  void operator []=(String key, String value) {
+    _attributes[_attr(key)] = value;
+  }
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) {
+      return this[key] = ifAbsent();
+    }
+    return this[key];
+  }
+
+  String remove(String key) => _attributes.remove(_attr(key));
+
+  void clear() {
+    // Needs to operate on a snapshot since we are mutatiting the collection.
+    for (String key in getKeys()) {
+      remove(key);
+    }
+  }
+
+  void forEach(void f(String key, String value)) {
+    _attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        f(_strip(key), value);
+      }
+    });
+  }
+
+  Collection<String> getKeys() {
+    final keys = new List<String>();
+    _attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        keys.add(_strip(key));
+      }
+    });
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = new List<String>();
+    _attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        values.add(value);
+      }
+    });
+    return values;
+  }
+
+  int get length() => getKeys().length;
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool isEmpty() => length == 0;
+
+  // Helpers.
+  String _attr(String key) => 'data-$key';
+  bool _matches(String key) => key.startsWith('data-');
+  String _strip(String key) => key.substring(5);
+}
+
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18441,117 +18979,383 @@ class _CssClassSet implements Set<String> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Provides a Map abstraction on top of data-* attributes, similar to the
- * dataSet in the old DOM.
- */
-class _DataAttributeMap implements Map<String, String> {
-
-  final Map<String, String> _attributes;
-
-  _DataAttributeMap(this._attributes);
-
-  // interface Map
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => getValues().some((v) => v == value);
-
-  bool containsKey(String key) => _attributes.containsKey(_attr(key));
-
-  String operator [](String key) => _attributes[_attr(key)];
-
-  void operator []=(String key, String value) {
-    _attributes[_attr(key)] = value;
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) {
-    if (!containsKey(key)) {
-      return this[key] = ifAbsent();
-    }
-    return this[key];
-  }
-
-  String remove(String key) => _attributes.remove(_attr(key));
-
-  void clear() {
-    // Needs to operate on a snapshot since we are mutatiting the collection.
-    for (String key in getKeys()) {
-      remove(key);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    _attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        f(_strip(key), value);
-      }
-    });
-  }
-
-  Collection<String> getKeys() {
-    final keys = new List<String>();
-    _attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        keys.add(_strip(key));
-      }
-    });
-    return keys;
-  }
-
-  Collection<String> getValues() {
-    final values = new List<String>();
-    _attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        values.add(value);
-      }
-    });
-    return values;
-  }
-
-  int get length() => getKeys().length;
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
-
-  // Helpers.
-  String _attr(String key) => 'data-$key';
-  bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substringToEnd(5);
-}
-
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-interface DocumentFragment extends Node factory DocumentFragmentWrappingImplementation {
+interface DocumentFragment extends Element factory DocumentFragmentWrappingImplementation {
  
   DocumentFragment();
 
-  Element query(String selectors);
-
-  ElementList queryAll(String selectors);
+  DocumentFragment.html(String html);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class FilteredElementList implements ElementList {
+  final Node _node;
+  final NodeList _childNodes;
+
+  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+
+  // We can't memoize this, since it's possible that children will be messed
+  // with externally to this class.
+  //
+  // TODO(nweiz): Do we really need to copy the list to make the types work out?
+  List<Element> get _filtered() =>
+    new List.from(_childNodes.filter((n) => n is Element));
+
+  // Don't use _filtered.first so we can short-circuit once we find an element.
+  Element get first() {
+    for (var node in _childNodes) {
+      if (node is Element) {
+        return node;
+      }
+    }
+    return null;
+  }
+
+  void forEach(void f(Element element)) {
+    _filtered.forEach(f);
+  }
+
+  void operator []=(int index, Element value) {
+    this[index].replaceWith(value);
+  }
+
+  void set length(int newLength) {
+    var len = this.length;
+    if (newLength >= len) {
+      return;
+    } else if (newLength < 0) {
+      throw const IllegalArgumentException("Invalid list length");
+    }
+
+    removeRange(newLength - 1, len - newLength);
+  }
+
+  void add(Element value) {
+    _childNodes.add(value);
+  }
+
+  void addAll(Collection<Element> collection) {
+    collection.forEach(add);
+  }
+
+  void addLast(Element value) {
+    add(value);
+  }
+
+  void sort(int compare(Element a, Element b)) {
+    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw const NotImplementedException();
+  }
+
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    _filtered.getRange(start, length).forEach((el) => el.remove());
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  void clear() {
+    // Currently, ElementList#clear clears even non-element nodes, so we follow
+    // that behavior.
+    _childNodes.clear();
+  }
+
+  Element removeLast() {
+    var last = this.last();
+    if (last != null) {
+      last.remove();
+    }
+    return last;
+  }
+
+  Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
+  bool every(bool f(Element element)) => _filtered.every(f);
+  bool some(bool f(Element element)) => _filtered.some(f);
+  bool isEmpty() => _filtered.isEmpty();
+  int get length() => _filtered.length;
+  Element operator [](int index) => _filtered[index];
+  Iterator<Element> iterator() => _filtered.iterator();
+  List<Element> getRange(int start, int length) =>
+    _filtered.getRange(start, length);
+  int indexOf(Element element, int startIndex) =>
+    _filtered.indexOf(element, startIndex);
+  int lastIndexOf(Element element, int startIndex) =>
+    _filtered.lastIndexOf(element, startIndex);
+  Element last() => _filtered.last();
+}
+
+class EmptyStyleDeclaration implements CSSStyleDeclaration {
+  String get cssText() => "";
+  int get length() => 0;
+  CSSRule get parentRule() => null;
+  CSSValue getPropertyCSSValue(String propertyName) => null;
+  String getPropertyPriority(String propertyName) => "";
+  String getPropertyShorthand(String propertyName) => null;
+  String getPropertyValue(String propertyName) => null;
+  bool isPropertyImplicit(String propertyName) => false;
+  String item(int index) => "";
+
+  void set cssText(String value) {
+    throw new UnsupportedOperationException(
+        "Can't modify a frozen style declaration.");
+  }
+
+  String removeProperty(String propertyName) {
+    throw new UnsupportedOperationException(
+        "Can't modify a frozen style declaration.");
+  }
+
+  void setProperty(String propertyName, String value, [String priority]) {
+    throw new UnsupportedOperationException(
+        "Can't modify a frozen style declaration.");
+  }
+}
+
+class EmptyClientRect implements ClientRect {
+  num get bottom() => 0;
+  num get top() => 0;
+  num get left() => 0;
+  num get right() => 0;
+  num get height() => 0;
+  num get width() => 0;
+}
+
 class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation implements DocumentFragment {
+  ElementList _elements;
+
   DocumentFragmentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   factory DocumentFragmentWrappingImplementation() {
     return new DocumentFragmentWrappingImplementation._wrap(
-	    _rawDocument.createDocumentFragment());
+	    dom.document.createDocumentFragment());
   }
 
-  Element query(String selectors) {
-    return LevelDom.wrapElement(_ptr.querySelector(selectors));
+  factory DocumentFragmentWrappingImplementation.html(String html) {
+    var fragment = new DocumentFragment();
+    fragment.innerHTML = html;
+    return fragment;
   }
 
-  ElementList queryAll(String selectors) {
-    return LevelDom.wrapElementList(_ptr.querySelectorAll(selectors));
+  ElementList get elements() {
+    if (_elements == null) {
+      _elements = new FilteredElementList(this);
+    }
+    return _elements;
   }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+
+  // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  void set elements(value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(copy);
+  }
+
+  String get innerHTML() {
+    var e = new Element.tag("div");
+    e.nodes.add(this.clone(true));
+    return e.innerHTML;
+  }
+
+  String get outerHTML() => innerHTML;
+
+  void set innerHTML(String value) {
+    this.nodes.clear();
+
+    var e = new Element.tag("div");
+    e.innerHTML = value;
+
+    // Copy list first since we don't want liveness during iteration.
+    List nodes = new List.from(e.nodes);
+    this.nodes.addAll(nodes);
+  }
+
+  Node _insertAdjacentNode(String where, Node node) {
+    switch (where.toLowerCase()) {
+      case "beforebegin": return null;
+      case "afterend": return null;
+      case "afterbegin":
+        this.insertBefore(node, nodes.first);
+        return node;
+      case "beforeend":
+        this.nodes.add(node);
+        return node;
+      default:
+        throw new IllegalArgumentException("Invalid position ${where}");
+    }
+  }
+
+  Element insertAdjacentElement([String where = null, Element element = null])
+    => this._insertAdjacentNode(where, element);
+
+  void insertAdjacentText([String where = null, String text = null]) {
+    this._insertAdjacentNode(where, new Text(text));
+  }
+
+  void insertAdjacentHTML(
+      [String position_OR_where = null, String text = null]) {
+    this._insertAdjacentNode(
+      position_OR_where, new DocumentFragment.html(text));
+  }
+
+  ElementEvents get on() {
+    if (_on === null) {
+      _on = new ElementEventsImplementation._wrap(_ptr);
+    }
+    return _on;
+  }
+
+  Element query(String selectors) =>
+    LevelDom.wrapElement(_ptr.querySelector(selectors));
+
+  ElementList queryAll(String selectors) =>
+    LevelDom.wrapElementList(_ptr.querySelectorAll(selectors));
+
+  // If we can come up with a semi-reasonable default value for an Element
+  // getter, we'll use it. In general, these return the same values as an
+  // element that has no parent.
+  int get clientHeight() => 0;
+  int get clientWidth() => 0;
+  int get offsetHeight() => 0;
+  int get offsetWidth() => 0;
+  int get scrollHeight() => 0;
+  int get scrollWidth() => 0;
+  int get clientLeft() => 0;
+  int get clientTop() => 0;
+  int get offsetLeft() => 0;
+  int get offsetTop() => 0;
+  int get scrollLeft() => 0;
+  int get scrollTop() => 0;
+  String get contentEditable() => "false";
+  bool get isContentEditable() => false;
+  bool get draggable() => false;
+  bool get hidden() => false;
+  bool get spellcheck() => false;
+  int get tabIndex() => -1;
+  String get id() => "";
+  String get title() => "";
+  String get tagName() => "";
+  String get webkitdropzone() => "";
+  Element get firstElementChild() => elements.first();
+  Element get lastElementChild() => elements.last;
+  Element get nextElementSibling() => null;
+  Element get previousElementSibling() => null;
+  Element get offsetParent() => null;
+  Element get parent() => null;
+  Map<String, String> get attributes() => const {};
+  // Issue 174: this should be a const set.
+  Set<String> get classes() => new Set<String>();
+  Map<String, String> get dataAttributes() => const {};
+  CSSStyleDeclaration get style() => new EmptyStyleDeclaration();
+  ClientRect getBoundingClientRect() => new EmptyClientRect();
+  List<ClientRect> getClientRects() => const [];
+  bool matchesSelector([String selectors]) => false;
+
+  // Imperative Element methods are made into no-ops, as they are on parentless
+  // elements.
+  void blur() {}
+  void focus() {}
+  void scrollByLines([int lines]) {}
+  void scrollByPages([int pages]) {}
+  void scrollIntoView([bool centerIfNeeded]) {}
+
+  // Setters throw errors rather than being no-ops because we aren't going to
+  // retain the values that were set, and erroring out seems clearer.
+  void set attributes(Map<String, String> value) {
+    throw new UnsupportedOperationException(
+      "Attributes can't be set for document fragments.");
+  }
+
+  void set classes(Collection<String> value) {
+    throw new UnsupportedOperationException(
+      "Classes can't be set for document fragments.");
+  }
+
+  void set dataAttributes(Map<String, String> value) {
+    throw new UnsupportedOperationException(
+      "Data attributes can't be set for document fragments.");
+  }
+
+  void set contentEditable(String value) {
+    throw new UnsupportedOperationException(
+      "Content editable can't be set for document fragments.");
+  }
+
+  String get dir() {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support text direction.");
+  }
+
+  void set dir(String value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support text direction.");
+  }
+
+  void set draggable(bool value) {
+    throw new UnsupportedOperationException(
+      "Draggable can't be set for document fragments.");
+  }
+
+  void set hidden(bool value) {
+    throw new UnsupportedOperationException(
+      "Hidden can't be set for document fragments.");
+  }
+
+  void set id(String value) {
+    throw new UnsupportedOperationException(
+      "ID can't be set for document fragments.");
+  }
+
+  String get lang() {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support language.");
+  }
+
+  void set lang(String value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support language.");
+  }
+
+  void set scrollLeft(int value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support scrolling.");
+  }
+
+  void set scrollTop(int value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support scrolling.");
+  }
+
+  void set spellcheck(bool value) {
+     throw new UnsupportedOperationException(
+      "Spellcheck can't be set for document fragments.");
+  }
+
+  void set tabIndex(int value) {
+    throw new UnsupportedOperationException(
+      "Tab index can't be set for document fragments.");
+  }
+
+  void set title(String value) {
+    throw new UnsupportedOperationException(
+      "Title can't be set for document fragments.");
+  }
+
+  void set webkitdropzone(String value) {
+    throw new UnsupportedOperationException(
+      "WebKit drop zone can't be set for document fragments.");
+  }
+}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18568,6 +19372,7 @@ class DocumentEventsImplementation extends ElementEventsImplementation
 }
 
 class DocumentWrappingImplementation extends ElementWrappingImplementation implements Document {
+
   final _documentPtr;
 
   DocumentWrappingImplementation._wrap(this._documentPtr, ptr) : super._wrap(ptr) {
@@ -18756,7 +19561,10 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   ElementList get elements();
 
-  _CssClassSet get classes();
+  // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  void set elements(value);
+
+  Set<String> get classes();
 
   // TODO: The type of value should be Collection<String>. See http://b/5392897
   void set classes(value);
@@ -18860,7 +19668,7 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   ClientRect getBoundingClientRect();
 
-  ClientRectList getClientRects();
+  List<ClientRect> getClientRects();
 
   Element insertAdjacentElement([String where, Element element]);
 
@@ -18871,6 +19679,8 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   Element query(String selectors);
 
   ElementList queryAll(String selectors);
+
+  Element get parent();
 
   void scrollByLines([int lines]);
 
@@ -18968,14 +19778,9 @@ class _ChildrenElementList implements ElementList {
     return value;
   }
 
-  Element addLast(Element value) {
-    _element.appendChild(LevelDom.unwrap(value));
-    return value;
-  }
+  Element addLast(Element value) => add(value);
 
-  Iterator<Element> iterator() {
-    return _toList().iterator();
-  }
+  Iterator<Element> iterator() => _toList().iterator();
 
   void addAll(Collection<Element> collection) {
     for (Element element in collection) {
@@ -18991,20 +19796,41 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   int indexOf(Element element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.indexOf(this, element, startIndex, this.length);
   }
 
   int lastIndexOf(Element element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.lastIndexOf(this, element, startIndex);
   }
 
   void clear() {
-    throw 'Not impl yet. todo(jacobr)';
+    // It is unclear if we want to keep non element nodes?
+    _element.textContent = '';
   }
 
   Element removeLast() {
-    throw 'Not impl yet. todo(jacobr)';
+    final last = this.last();
+    if (last != null) {
+      _element.removeChild(LevelDom.unwrap(last));
+    }
+    return last;
   }
 
   Element last() {
@@ -19080,6 +19906,22 @@ class FrozenElementList implements ElementList {
 
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
     throw 'Not impl yet. todo(jacobr)';
+  }
+
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
   }
 
   int indexOf(Element element, int startIndex) {
@@ -19267,9 +20109,9 @@ class ElementEventsImplementation extends EventsImplementation implements Elemen
 }
 
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
- 
+
    factory ElementWrappingImplementation.html(String html) {
-    final temp = _rawDocument.createElement('div');
+    final temp = dom.document.createElement('div');
     temp.innerHTML = html;
 
     if (temp.childElementCount != 1) {
@@ -19280,12 +20122,13 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   factory ElementWrappingImplementation.tag(String tag) {
-    return LevelDom.wrapElement(_rawDocument.createElement(tag));
+    return LevelDom.wrapElement(dom.document.createElement(tag));
   }
 
   ElementWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
   ElementAttributeMap _elementAttributeMap;
+  ElementList _elements;
   _CssClassSet _cssClassSet;
   _DataAttributeMap _dataAttributes;
 
@@ -19304,7 +20147,20 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
   }
 
-  ElementList get elements() => new _ChildrenElementList._wrap(_ptr);
+  void set elements(Collection<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(copy);
+  }
+
+  ElementList get elements() {
+    if (_elements == null) {
+      _elements = new _ChildrenElementList._wrap(_ptr);
+    }
+    return _elements;
+  }
 
   Set<String> get classes() {
     if (_cssClassSet === null) {
@@ -19440,8 +20296,13 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     return LevelDom.wrapClientRect(_ptr.getBoundingClientRect());
   }
 
-  ClientRectList getClientRects() {
-    return LevelDom.wrapClientRectList(_ptr.getClientRects());
+  List<ClientRect> getClientRects() {
+    var rects = _ptr.getClientRects();
+    var out = new List(rects.length);
+    for (var i = 0; i < rects.length; i++) {
+      out.add(LevelDom.wrapClientRect(rects.item(i)));
+    }
+    return out;
   }
 
   Element insertAdjacentElement([String where = null, Element element = null]) {
@@ -19706,24 +20567,16 @@ var secretDocument;
 
 Window get window() {
   if (secretWindow === null) {
-    LevelDom.initialize(BootstrapHacks.getWindow());
+    LevelDom.initialize(dom.window);
   }
   return secretWindow;
 }
 
 Document get document() {
   if (secretWindow === null) {
-    LevelDom.initialize(BootstrapHacks.getWindow());
+    LevelDom.initialize(dom.window);
   }
   return secretDocument;
-}
-
-get _rawDocument() {
-  return document.dynamic._documentPtr;
-}
-
-get _rawWindow() {
-  return BootstrapHacks.getWindow();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19746,14 +20599,13 @@ class MessagePortWrappingImplementation extends EventTargetWrappingImplementatio
 interface Node extends EventTarget {
 
   NodeList get nodes();
-  // TODO(jacobr): add nodes setter that replaces all children.
+
+  // TODO: The type of value should be Collection<Node>. See http://b/5392897
+  void set nodes(value);
 
   Node get nextNode();
 
   Document get document();
-
-  // TODO(jacobr): should we remove parentElement?
-  Element get parentElement();
 
   Node get parent();
 
@@ -19767,14 +20619,14 @@ interface Node extends EventTarget {
 
   Node remove();
 
-  bool get inDocument();
-
   bool contains(Node otherNode);
 
   // TODO(jacobr): remove when/if Array supports a method similar to
   // insertBefore or we switch NodeList to implement LinkedList rather than
   // array.
   Node insertBefore(Node newChild, Node refChild);
+
+  Node clone(bool deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19890,20 +20742,40 @@ class _ChildrenNodeList implements NodeList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
+
   int indexOf(Node element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.indexOf(this, element, startIndex, this.length);
   }
 
   int lastIndexOf(Node element, int startIndex) {
-    throw 'Not impl yet. todo(jacobr)';
+    return _Lists.lastIndexOf(this, element, startIndex);
   }
 
   void clear() {
-    throw 'Not impl yet. todo(jacobr)';
+    _node.textContent = '';
   }
 
   Node removeLast() {
-    throw 'Not impl yet. todo(jacobr)';
+    final last = this.last();
+    if (last != null) {
+      _node.removeChild(LevelDom.unwrap(last));
+    }
+    return last;
   }
 
   Node last() {
@@ -19916,6 +20788,13 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
 
   NodeWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
+  void set nodes(Collection<Node> value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    nodes.clear();
+    nodes.addAll(copy);
+  }
+
   NodeList get nodes() {
     if (_nodes === null) {
       _nodes = new _ChildrenNodeList._wrap(_ptr);
@@ -19926,9 +20805,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   Node get nextNode() => LevelDom.wrapNode(_ptr.nextSibling);
 
   Document get document() => LevelDom.wrapDocument(_ptr.ownerDocument);
-
-  // TODO(jacobr): should we remove parentElement?
-  Element get parentElement() => LevelDom.wrapElement(_ptr.parentElement);
 
   Node get parent() => LevelDom.wrapNode(_ptr.parentNode);
 
@@ -19956,29 +20832,12 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
     return this;
   }
 
-  /**
-   * Returns whether the node is attached to a document.
-   */
-  bool get inDocument() {
-    var node = _ptr;
-    // TODO(jacobr): is there a faster way to compute this?
-    while(node !== null) {
-      if (node.nodeType == 9) {
-        return true;
-      }
-      node = node.parentNode;
-    }
-    return false;
-  }
-
-  // TODO(jacobr): implement this.  It is supported by Element.
   bool contains(Node otherNode) {
-    if (nodes.length > 0) {
-      // TODO(jacobr): implement.
-      throw 'Contains not implemented yet for non-leaf and non-element nodes.';
-    } else {
-      return false;
+    // TODO: Feature detect and use built in.
+    while (otherNode != null && otherNode != this) {
+      otherNode = otherNode.parent;
     }
+    return otherNode == this;
   }
 
   // TODO(jacobr): remove when/if List supports a method similar to
@@ -19989,9 +20848,7 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
         LevelDom.unwrap(newChild), LevelDom.unwrap(refChild)));
   }
 
-  // TODO(jacobr): required for some benchmarks. Added to this class but not Node while
-  // we decide what to do with it.
-  Node cloneNode(bool deep) {
+  Node clone(bool deep) {
     return LevelDom.wrapNode(_ptr.cloneNode(deep));
   }
 }
@@ -20115,7 +20972,8 @@ interface Text extends CharacterData factory TextWrappingImplementation {
 
 class TextWrappingImplementation extends CharacterDataWrappingImplementation implements Text {
   factory TextWrappingImplementation(String content) {
-    return new TextWrappingImplementation._wrap(_rawDocument.createTextNode(content));
+    return new TextWrappingImplementation._wrap(
+        dom.document.createTextNode(content));
   }
 
   TextWrappingImplementation._wrap(ptr) : super._wrap(ptr);
@@ -21449,133 +22307,6 @@ interface Worker extends AbstractWorker {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jacobr): move into a core library or at least merge with the copy
-// in client/dom/src
-class _Lists {
-
-  /**
-   * Returns the index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to [endIndex] (exclusive).
-   * Returns -1 if [element] is not found.
-   */
-  static int indexOf(List a,
-                     Object element,
-                     int startIndex,
-                     int endIndex) {
-    if (startIndex >= a.length) {
-      return -1;
-    }
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-    for (int i = startIndex; i < endIndex; i++) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the last index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to 0.
-   * Returns -1 if [element] is not found.
-   */
-  static int lastIndexOf(List a, Object element, int startIndex) {
-    if (startIndex < 0) {
-      return -1;
-    }
-    if (startIndex >= a.length) {
-      startIndex = a.length - 1;
-    }
-    for (int i = startIndex; i >= 0; i--) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// Iterator for lists with fixed size.
-class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
-  _FixedSizeListIterator(List<T> list)
-      : super(list),
-        _length = list.length;
-
-  bool hasNext() => _length > _pos;
-
-  final int _length;  // Cache list length for faster access.
-}
-
-// Iterator for lists with variable size.
-class _VariableSizeListIterator<T> implements Iterator<T> {
-  _VariableSizeListIterator(List<T> list)
-      : _list = list,
-        _pos = 0;
-
-  bool hasNext() => _list.length > _pos;
-
-  T next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
-    }
-    return _list[_pos++];
-  }
-
-  final List<T> _list;
-  int _pos;
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext();
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class WorkerEventsImplementation extends AbstractWorkerEventsImplementation
     implements WorkerEvents {
   WorkerEventsImplementation._wrap(_ptr) : super._wrap(_ptr);
@@ -21731,10 +22462,12 @@ class XMLHttpRequestEventsImplementation extends EventsImplementation
 }
 
 class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementation implements XMLHttpRequest {
-  XMLHttpRequestWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+  XMLHttpRequestWrappingImplementation._wrap(
+      dom.XMLHttpRequest ptr) : super._wrap(ptr);
 
   factory XMLHttpRequestWrappingImplementation() {
-    return LevelDom.wrapXMLHttpRequest(_rawWindow.createXMLHttpRequest());
+    return new XMLHttpRequestWrappingImplementation._wrap(
+        new dom.XMLHttpRequest());
   }
 
   factory XMLHttpRequestWrappingImplementation.getTEMPNAME(String url,
@@ -21841,5 +22574,161 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
       _on = new XMLHttpRequestEventsImplementation._wrap(_ptr);
     }
     return _on;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * The [Collections] class implements static methods useful when
+ * writing a class that implements [Collection] and the [iterator]
+ * method.
+ */
+class _Collections {
+  static void forEach(Iterable<Object> iterable, void f(Object o)) {
+    for (final e in iterable) {
+      f(e);
+    }
+  }
+
+  static bool some(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (f(e)) return true;
+    }
+    return false;
+  }
+
+  static bool every(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (!f(e)) return false;
+    }
+    return true;
+  }
+
+  static List filter(Iterable<Object> source,
+                     List<Object> destination,
+                     bool f(o)) {
+    for (final e in source) {
+      if (f(e)) destination.add(e);
+    }
+    return destination;
+  }
+
+  static bool isEmpty(Iterable<Object> iterable) {
+    return !iterable.iterator().hasNext();
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// These factory methods could all live in one factory provider class but dartc
+// has a bug (5399939) preventing that.
+
+class _FileReaderFactoryProvider {
+
+  factory FileReader() {
+    return new dom.FileReader();
+  }
+}
+
+class _CSSMatrixFactoryProvider {
+
+  factory CSSMatrix([String spec = '']) {
+    return new CSSMatrixWrappingImplementation._wrap(
+        new dom.WebKitCSSMatrix(spec));
+  }
+}
+
+class _PointFactoryProvider {
+
+  factory Point(num x, num y) {
+    return new PointWrappingImplementation._wrap(new dom.WebKitPoint(x, y));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Iterator for lists with fixed size.
+class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+  _FixedSizeListIterator(List<T> list)
+      : super(list),
+        _length = list.length;
+
+  bool hasNext() => _length > _pos;
+
+  final int _length;  // Cache list length for faster access.
+}
+
+// Iterator for lists with variable size.
+class _VariableSizeListIterator<T> implements Iterator<T> {
+  _VariableSizeListIterator(List<T> list)
+      : _list = list,
+        _pos = 0;
+
+  bool hasNext() => _list.length > _pos;
+
+  T next() {
+    if (!hasNext()) {
+      throw const NoMoreElementsException();
+    }
+    return _list[_pos++];
+  }
+
+  final List<T> _list;
+  int _pos;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO(jacobr): move into a core library or at least merge with the copy
+// in client/dom/src
+class _Lists {
+
+  /**
+   * Returns the index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to [endIndex] (exclusive).
+   * Returns -1 if [element] is not found.
+   */
+  static int indexOf(List a,
+                     Object element,
+                     int startIndex,
+                     int endIndex) {
+    if (startIndex >= a.length) {
+      return -1;
+    }
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+    for (int i = startIndex; i < endIndex; i++) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns the last index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to 0.
+   * Returns -1 if [element] is not found.
+   */
+  static int lastIndexOf(List a, Object element, int startIndex) {
+    if (startIndex < 0) {
+      return -1;
+    }
+    if (startIndex >= a.length) {
+      startIndex = a.length - 1;
+    }
+    for (int i = startIndex; i >= 0; i--) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
   }
 }

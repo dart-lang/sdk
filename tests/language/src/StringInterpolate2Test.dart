@@ -6,10 +6,12 @@
 
 class StringInterpolate2Test {
 
-  static final F1 = "1 + 5 = ${1+5}";
+  static var F1;
 
   static void testMain() {
-
+  
+    F1 = "1 + 5 = ${1+5}";
+    
     Expect.equals("1 + 5 = 6", F1);
 
     var fib = [1, 1, 2, 3, 5, 8, 13, 21];
@@ -26,8 +28,11 @@ class StringInterpolate2Test {
     Expect.equals("5 squared is 25", s);
 
     Expect.equals("8", "${fib.length}");
+    // test single quote
+    Expect.equals("8", '${fib.length}');
+    // test multi-line
     Expect.equals("8", '${fib.
-        length}');
+    length}');
 
     var map = { "red": 1, "green": 2, "blue": 3 };
     s = "green has value ${map["green"]}";

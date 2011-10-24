@@ -22,7 +22,7 @@ public class ResolverTests extends TestSetup {
 
     suite.addTestSuite(ResolverTest.class);
     suite.addTestSuite(NegativeResolverTest.class);
-
+    suite.addTestSuite(CompileTimeConstantTest.class);
     return suite;
   }
 }

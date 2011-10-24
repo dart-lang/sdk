@@ -29,7 +29,6 @@ class A implements Switzerland {
   static final architect1 = Spain.AG;
   static final array1 = const <int>[1, 2];
   static final map1 = const {"Monday": 1, "Tuesday": 2, };
-  static final map2 = const {"$s1$s3": b};
 }
 
 class StaticFinalFieldTest {
@@ -47,7 +46,6 @@ class StaticFinalFieldTest {
     Expect.equals(true, A.artist2 == "Alberto Giacometti");
     Expect.equals(true, A.architect1 == "Antoni Gaudi");
     Expect.equals(2, A.map1["Tuesday"]);
-    Expect.equals(8, A.map2["hulahop"]);
   }
 }
 

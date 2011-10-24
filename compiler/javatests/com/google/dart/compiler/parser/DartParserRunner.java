@@ -195,4 +195,8 @@ public class DartParserRunner extends DartCompilerListener implements Runnable {
   private boolean isAlive() {
     return parserWorker.isAlive();
   }
+
+  @Override
+  public void unitCompiled(DartUnit unit) {
+  }
 }

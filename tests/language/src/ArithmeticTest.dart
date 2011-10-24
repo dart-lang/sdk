@@ -322,8 +322,8 @@ class ArithmeticTest {
 
     // Math functions.
     Expect.equals(2.0, Math.sqrt(4.0));
-    Expect.equals(1.0, Math.sin(3.14159265 / 2.0));
-    Expect.equals(-1.0, Math.cos(3.14159265));
+    Expect.approxEquals(1.0, Math.sin(3.14159265 / 2.0));
+    Expect.approxEquals(-1.0, Math.cos(3.14159265));
 
     Expect.equals(12, Math.parseInt("12"));
     Expect.equals(-12, Math.parseInt("-12"));

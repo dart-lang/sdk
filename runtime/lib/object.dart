@@ -8,7 +8,7 @@ class Object {
   bool operator ==(other) {
     return this === other;
   }
-  void noSuchMethod(String function_name, Array args) native "Object_noSuchMethod";
+  void noSuchMethod(String function_name, List args) native "Object_noSuchMethod";
 
   /**
    * Return this object without type information.

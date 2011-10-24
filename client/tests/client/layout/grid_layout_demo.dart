@@ -13,6 +13,7 @@
 
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');
+#source('CSS.dart');
 
 void main() {
   Dom.ready(_onLoad);

@@ -134,6 +134,9 @@ def GetBuildConf(mode, arch):
 # instead of 'dartc'.
 RUN_FROM_TOP_DIR = os.path.basename(os.path.abspath(os.curdir)) == 'dart'
 ARCH_GUESS = GuessArchitecture()
+BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
+if RUN_FROM_TOP_DIR:
+  BASE_DIR = os.path.abspath(os.curdir)
 
 def GetBuildRoot(target_os, mode=None, arch=None):
   if arch == 'dartc' and RUN_FROM_TOP_DIR: arch = ARCH_GUESS
@@ -143,23 +146,41 @@ def GetBuildRoot(target_os, mode=None, arch=None):
   else:
     return BUILD_ROOT[target_os]
 
+def GetBaseDir():
+  return BASE_DIR
+
+def RewritePathSeparator(path, workspace):
+  # Paths in test files are always specified using '/'
+  # as the path separator. Replace with the actual
+  # path separator before use.
+  if ('/' in path):
+    split_path = path.split('/')
+    path = os.sep.join(split_path)
+    path = os.path.join(workspace, path)
+    if not os.path.exists(path):
+      raise Exception(path)
+  return path
+
 
 def ParseTestOptions(pattern, source, workspace):
   match = pattern.search(source)
-  # Options should be a single line in the test case no splits.
   if match:
-    def rewrite(path, workspace):
-      # Paths in test files are always specified using '/'
-      # as the path separator. Replace with the actual
-      # path separator before use.
-      if ('/' in path):
-        split_path = path.split('/')
-        path = os.sep.join(split_path)
-        path = os.path.join(workspace, path)
-        if not os.path.exists(path):
-          raise Exception(path)
-      return path
-    return [rewrite(o, workspace) for o in match.group(1).split(' ')]
+    return [RewritePathSeparator(o, workspace) for o in match.group(1).split(' ')]
+  else:
+    return None
+
+
+def ParseTestOptionsMultiple(pattern, source, workspace):
+  matches = pattern.findall(source)
+  if matches:
+    result = []
+    for match in matches:
+      if len(match) > 0:
+        result.append(
+            [RewritePathSeparator(o, workspace) for o in match.split(' ')]);
+      else:
+        result.append([])
+    return result
   else:
     return None
 
@@ -194,6 +215,20 @@ def Daemonize():
     os._exit(0)
     raise
   return True
+
+
+def PrintError(str):
+  """Writes and flushes a string to stderr."""
+  sys.stderr.write(str)
+  sys.stderr.write('\n')
+
+
+def CheckedUnlink(name):
+  """Unlink a file without throwing an exception."""
+  try:
+    os.unlink(name)
+  except OSError, e:
+    PrintError("os.unlink() " + str(e))
 
 
 def Main(argv):

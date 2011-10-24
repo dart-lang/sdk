@@ -90,7 +90,17 @@ public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
 
   @Override
   public Void visitPropertyAccess(DartPropertyAccess node) {
-    // Skip rhs of property accesses, so that all identifiers we visit will be unqualified.
+    if (node.getQualifier() instanceof DartIdentifier) {
+      DartIdentifier qualifier = (DartIdentifier) node.getQualifier();
+      Element target = qualifier.getTargetSymbol();
+      if (target != null && target.getKind() == ElementKind.LIBRARY) {
+        // Handle library prefixes normally (the prefix part of the qualifier
+        // doesn't contain any resolvable library source info)
+        return super.visitPropertyAccess(node);
+      }
+    }
+    // Skip rhs of property accesses, so that all identifiers we visit will be
+    // unqualified.
     return node.getQualifier().accept(this);
   }
 

@@ -4,80 +4,11 @@
 
 #include "vm/port.h"
 
+#include "vm/isolate.h"
+#include "vm/thread.h"
+#include "vm/utils.h"
+
 namespace dart {
-
-MessageQueue::~MessageQueue() {
-  // Ensure that all pending messages have been released.
-  ASSERT(head_ == NULL);
-}
-
-
-void MessageQueue::Enqueue(PortMessage* msg) {
-  // Make sure messages are not reused.
-  ASSERT(msg->next_ == NULL);
-  if (head_ == NULL) {
-    // Only element in the queue.
-    head_ = msg;
-    tail_ = msg;
-  } else {
-    ASSERT(tail_ != NULL);
-    // Append at the tail.
-    tail_->next_ = msg;
-    tail_ = msg;
-  }
-}
-
-
-PortMessage* MessageQueue::Dequeue() {
-  PortMessage* result = head_;
-  if (result != NULL) {
-    head_ = result->next_;
-    // The following update to tail_ is not strictly needed.
-    if (head_ == NULL) {
-      tail_ = NULL;
-    }
-#if DEBUG
-    result->next_ = result;  // Make sure to trigger ASSERT in Enqueue.
-#endif  // DEBUG
-  }
-  return result;
-}
-
-
-void MessageQueue::Flush(intptr_t port_id) {
-  PortMessage* cur = head_;
-  PortMessage* prev = NULL;
-  while (cur != NULL) {
-    PortMessage* next = cur->next_;
-    // If the message matches, then remove it from the queue and delete it.
-    if (cur->dest_id() == port_id) {
-      if (prev != NULL) {
-        prev->next_ = next;
-      } else {
-        head_ = next;
-      }
-      delete cur;
-    } else {
-      // Move prev forward.
-      prev = cur;
-    }
-    // Advance to the next message in the queue.
-    cur = next;
-  }
-  tail_ = prev;
-}
-
-
-void MessageQueue::FlushAll() {
-  PortMessage* cur = head_;
-  head_ = NULL;
-  tail_ = NULL;
-  while (cur != NULL) {
-    PortMessage* next = cur->next_;
-    delete next;
-    cur = next;
-  }
-}
 
 
 Mutex* PortMap::mutex_ = NULL;
@@ -88,15 +19,15 @@ intptr_t PortMap::capacity_ = 0;
 intptr_t PortMap::used_ = 0;
 intptr_t PortMap::deleted_ = 0;
 
-intptr_t PortMap::next_id_ = 7111;
+Dart_Port PortMap::next_port_ = 7111;
 
 
-intptr_t PortMap::FindId(intptr_t id) {
-  intptr_t index = id % capacity_;
+intptr_t PortMap::FindPort(Dart_Port port) {
+  intptr_t index = port % capacity_;
   intptr_t start_index = index;
   Entry entry = map_[index];
   while (entry.isolate != NULL) {
-    if (entry.id == id) {
+    if (entry.port == port) {
       return index;
     }
     index = (index + 1) % capacity_;
@@ -115,9 +46,9 @@ void PortMap::Rehash(intptr_t new_capacity) {
   for (intptr_t i = 0; i < capacity_; i++) {
     Entry entry = map_[i];
     // Skip free and deleted entries.
-    if (entry.id != 0) {
-      intptr_t new_index = entry.id % new_capacity;
-      while (new_ports[new_index].id != 0) {
+    if (entry.port != 0) {
+      intptr_t new_index = entry.port % new_capacity;
+      while (new_ports[new_index].port != 0) {
         new_index = (new_index + 1) % new_capacity;
       }
       new_ports[new_index] = entry;
@@ -130,14 +61,14 @@ void PortMap::Rehash(intptr_t new_capacity) {
 }
 
 
-intptr_t PortMap::AllocateId() {
-  intptr_t result = next_id_;
+Dart_Port PortMap::AllocatePort() {
+  Dart_Port result = next_port_;
 
   do {
     // TODO(iposva): Use an approved hashing function to have less predictable
     // port ids, or make them not accessible from Dart code or both.
-    next_id_++;
-  } while (FindId(next_id_) >= 0);
+    next_port_++;
+  } while (FindPort(next_port_) >= 0);
 
   ASSERT(result != 0);
   return result;
@@ -157,22 +88,22 @@ void PortMap::MaintainInvariants() {
 }
 
 
-intptr_t PortMap::CreatePort() {
+Dart_Port PortMap::CreatePort() {
   Isolate* isolate = Isolate::Current();
 
   MutexLocker ml(mutex_);
 
   Entry entry;
-  entry.id = AllocateId();
+  entry.port = AllocatePort();
   entry.isolate = isolate;
 
   // Search for the first unused slot. Make use of the knowledge that here is
   // currently no port with this id in the port map.
-  ASSERT(FindId(entry.id) < 0);
-  intptr_t index = entry.id % capacity_;
+  ASSERT(FindPort(entry.port) < 0);
+  intptr_t index = entry.port % capacity_;
   Entry cur = map_[index];
   // Stop the search at the first found unused (free or deleted) slot.
-  while (cur.id != 0) {
+  while (cur.port != 0) {
     index = (index + 1) % capacity_;
     cur = map_[index];
   }
@@ -180,7 +111,7 @@ intptr_t PortMap::CreatePort() {
   // Insert the newly created port at the index.
   ASSERT(index >= 0);
   ASSERT(index < capacity_);
-  ASSERT(map_[index].id == 0);
+  ASSERT(map_[index].port == 0);
   ASSERT((map_[index].isolate == NULL) ||
          (map_[index].isolate == deleted_entry_));
   if (map_[index].isolate == deleted_entry_) {
@@ -194,25 +125,25 @@ intptr_t PortMap::CreatePort() {
   used_++;
   MaintainInvariants();
 
-  return entry.id;
+  return entry.port;
 }
 
 
-void PortMap::ClosePort(intptr_t id) {
+void PortMap::ClosePort(Dart_Port port) {
   Isolate* isolate = Isolate::Current();
   {
     MutexLocker ml(mutex_);
-    intptr_t index = FindId(id);
+    intptr_t index = FindPort(port);
     if (index < 0) {
       return;
     }
     ASSERT(index < capacity_);
-    ASSERT(map_[index].id != 0);
+    ASSERT(map_[index].port != 0);
     ASSERT(map_[index].isolate == isolate);
     // Before releasing the lock mark the slot in the map as deleted. This makes
     // it possible to release the port map lock before flushing all of its
     // pending messages below.
-    map_[index].id = 0;
+    map_[index].port = 0;
     map_[index].isolate = deleted_entry_;
     isolate->decrement_active_ports();
 
@@ -220,11 +151,12 @@ void PortMap::ClosePort(intptr_t id) {
     deleted_++;
     MaintainInvariants();
   }
-  {
-    // Remove the pending messages for this port.
-    MonitorLocker ml(isolate->monitor());
-    isolate->message_queue()->Flush(id);
-  }
+
+  // Notify the embedder that this port is closed.
+  Dart_ClosePortCallback callback = isolate->close_port_callback();
+  ASSERT(callback);
+  ASSERT(port != kCloseAllPorts);
+  (*callback)(isolate, port);
 }
 
 
@@ -235,7 +167,7 @@ void PortMap::ClosePorts() {
     for (intptr_t i = 0; i < capacity_; i++) {
       if (map_[i].isolate == isolate) {
         // Mark the slot as deleted.
-        map_[i].id = 0;
+        map_[i].port = 0;
         map_[i].isolate = deleted_entry_;
         isolate->decrement_active_ports();
 
@@ -245,54 +177,43 @@ void PortMap::ClosePorts() {
     }
     MaintainInvariants();
   }
-  isolate->message_queue()->FlushAll();
+
+  // Notify the embedder that all ports are closed.
+  Dart_ClosePortCallback callback = isolate->close_port_callback();
+  ASSERT(callback);
+  (*callback)(isolate, kCloseAllPorts);
 }
 
 
-bool PortMap::IsActivePort(intptr_t id) {
+bool PortMap::IsActivePort(Dart_Port port) {
   MutexLocker ml(mutex_);
-  return (FindId(id) >= 0);
+  return (FindPort(port) >= 0);
 }
 
 
-bool PortMap::PostMessage(PortMessage* msg) {
-  intptr_t id = msg->dest_id();
+bool PortMap::PostMessage(Dart_Port dest_port,
+                          Dart_Port reply_port,
+                          Dart_Message message) {
   mutex_->Lock();
-  intptr_t index = FindId(id);
+  intptr_t index = FindPort(dest_port);
   if (index < 0) {
+    free(message);
     mutex_->Unlock();
     return false;
   }
   ASSERT(index >= 0);
   ASSERT(index < capacity_);
   Isolate* isolate = map_[index].isolate;
-  ASSERT(map_[index].id != 0);
+  ASSERT(map_[index].port != 0);
   ASSERT((isolate != NULL) && (isolate != deleted_entry_));
-  Monitor* monitor = isolate->monitor();
-  monitor->Enter();
-  isolate->message_queue()->Enqueue(msg);
-  monitor->Notify();
-  monitor->Exit();
+
+  // Delegate message delivery to the embedder.
+  Dart_PostMessageCallback callback = isolate->post_message_callback();
+  ASSERT(callback);
+  bool result = (*callback)(isolate, dest_port, reply_port, message);
+
   mutex_->Unlock();
-  return true;
-}
-
-
-PortMessage* PortMap::ReceiveMessage(int64_t millis) {
-  // Since only the isolate owning the port can close the port and remove it
-  // from the port map and flush its messages, we can safely assume that the
-  // all messages in the message queue are for active ports.
-  Isolate* isolate = Isolate::Current();
-  {
-    MonitorLocker ml(isolate->monitor());
-    PortMessage* result = isolate->message_queue()->Dequeue();
-    if (result == NULL) {
-      ml.Wait(millis);
-      result = isolate->message_queue()->Dequeue();
-      // We will return a NULL message for spurious wakeups or timeouts.
-    }
-    return result;
-  }
+  return result;
 }
 
 

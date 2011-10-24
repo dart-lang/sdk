@@ -82,27 +82,27 @@ public class TypeAnalyzerTest extends TypeTestCase {
 
     // break
     analyze("foo() { L: for (;true;) { break L; } }");
-    analyze("foo() { int x; Array<int> c; L: for (x  in c) { break L; } }");
-    analyze("foo() { Array<int> c; L: for (var x  in c) { break L; } }");
+    analyze("foo() { int x; List<int> c; L: for (x  in c) { break L; } }");
+    analyze("foo() { List<int> c; L: for (var x  in c) { break L; } }");
     analyze("foo() { L: while (true) { break L; } }");
     analyze("foo() { L: do { break L; } while (true); }");
 
     analyze("foo() { L: for (;true;) { for (;true;) { break L; } } }");
-    analyze("foo() { int x; Array<int> c; L: for (x  in c) { for (;true;) { break L; } } }");
-    analyze("foo() { Array<int> c; L: for (var x  in c) { for (;true;) { break L; } } }");
+    analyze("foo() { int x; List<int> c; L: for (x  in c) { for (;true;) { break L; } } }");
+    analyze("foo() { List<int> c; L: for (var x  in c) { for (;true;) { break L; } } }");
     analyze("foo() { L: while (true) { for (;true;) { break L; } } }");
     analyze("foo() { L: do { for (;true;) { break L; } } while (true); }");
 
     // continue
     analyze("foo() { L: for (;true;) { continue L; } }");
-    analyze("foo() { int x; Array<int> c; L: for (x  in c) { continue L; } }");
-    analyze("foo() { Array<int> c; L: for (var x  in c)  { continue L; } }");
+    analyze("foo() { int x; List<int> c; L: for (x  in c) { continue L; } }");
+    analyze("foo() { List<int> c; L: for (var x  in c)  { continue L; } }");
     analyze("foo() { L: do { continue L; } while (true); }");
 
     analyze("foo() { L: for (;true;) { for (;true;) { continue L; } } }");
     analyze(
-      "foo() { int x; Array<int> c; L: for (x  in c) { for (;true;) { continue L; } } }");
-    analyze("foo() { Array<int> c; L: for (var x  in c)  { for (;true;) { continue L; } } }");
+      "foo() { int x; List<int> c; L: for (x  in c) { for (;true;) { continue L; } } }");
+    analyze("foo() { List<int> c; L: for (var x  in c)  { for (;true;) { continue L; } } }");
     analyze("foo() { L: while (true) { for (;true;) { continue L; } } }");
     analyze("foo() { L: do { for (;true;) { continue L; } } while (true); }");
 
@@ -189,7 +189,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
 
   public void testMethodInvocations() {
     loadFile("class_with_methods.dart");
-    final String header = "{ ClassWithMethods c; int i, j; Array array; ";
+    final String header = "{ ClassWithMethods c; int i, j; ";
 
     analyze(header + "int k = c.untypedNoArgumentMethod(); }");
     analyze(header + "ClassWithMethods x = c.untypedNoArgumentMethod(); }");
@@ -224,7 +224,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
 
   public void testMethodInvocationArgumentCount() {
     loadFile("class_with_methods.dart");
-    final String header = "{ ClassWithMethods c; Array array; ";
+    final String header = "{ ClassWithMethods c; ";
 
     analyzeFail(header + "c.untypedNoArgumentMethod(1); }",
       DartCompilerErrorCode.EXTRA_ARGUMENT);
@@ -546,12 +546,6 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testAssert() {
     analyze("assert(true);");
     analyze("assert(false);");
-    analyze("assert(true, 'message');");
-    analyze("assert(false, 'message');");
-    analyzeFail("assert('message', false);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("assert('message', true);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("assert('message');",
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("assert(null);");
@@ -757,7 +751,47 @@ public class TypeAnalyzerTest extends TypeTestCase {
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("for (;'';) {}",
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    
+    // Foreach tests
+    analyze("{ List<String> strings = ['1','2','3']; for (String s in strings) {} }");
+    analyzeFail("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
+        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("for (String s in true) {}", DartCompilerErrorCode.INTERFACE_HAS_NO_METHOD_NAMED);
   }
+
+  public void testForEachStatement() {
+    Map<String, ClassElement> invalidReturnType = loadSource(
+        "class A {",
+        "  Iterator<int> iterator() {}",
+        "}",
+        "class B {",
+        "  main() { for (int i in new A()) {}}",
+        "}");
+    analyzeClasses(invalidReturnType);
+  }
+
+  public void testForEachStatement_Negative1() {
+    Map<String, ClassElement> fieldNotMethod = loadSource(
+        "class A {",
+        "  int iterator;",
+        "}",
+        "class B {",
+        "  main() { for (int i in new A()) {}}",
+        "}");
+    analyzeClasses(fieldNotMethod, DartCompilerErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
+  }
+  
+  public void testForEachStatement_Negative2() {
+    Map<String, ClassElement> invalidReturnType = loadSource(
+        "class A {",
+        "  int iterator() {}",
+        "}",
+        "class B {",
+        "  main() { for (int i in new A()) {}}",
+        "}");
+    analyzeClasses(invalidReturnType, DartCompilerErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE);
+  }
+
 
   public void testIfStatement() {
     analyze("if (true) {}");
@@ -1193,14 +1227,14 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("<String>['x'];");
     analyzeFail("<int>['x'];", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("<String>['x', 1];", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("Array<String> strings = ['x'];");
-    analyze("Array<String> strings = <String>['x'];");
-    analyze("Array array = ['x'];");
-    analyze("Array array = <String>['x'];");
-    analyze("Array<int> ints = ['x'];");
-    analyzeFail("Array<int> ints = <String>['x'];",
+    analyze("List<String> strings = ['x'];");
+    analyze("List<String> strings = <String>['x'];");
+    analyze("List array = ['x'];");
+    analyze("List array = <String>['x'];");
+    analyze("List<int> ints = ['x'];");
+    analyzeFail("List<int> ints = <String>['x'];",
                 DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Array<int, int> ints = [1];",
+    analyzeFail("List<int, int> ints = [1];",
       DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
   }
 
@@ -1216,12 +1250,12 @@ public class TypeAnalyzerTest extends TypeTestCase {
     Map<String, ClassElement> classes = loadSource(
         "class GoodField {",
         "  static final int i = 1;",
-        "}",
-        "class BadField {",
-        "  static final int i = '';",
         "}");
     analyzeClass(classes.get("GoodField"), 0);
-    analyzeClass(classes.get("BadField"), 1);
+
+    // Note, the TypeAnalyzer doesn't get a chance
+    // to get its hands on bad initializers anymore
+    // due to type checking in CompileTimeConstVisitor.
   }
 
   public void testGetAllSupertypes()
@@ -1509,7 +1543,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
 
   private class MockScope extends Scope {
     private MockScope() {
-      super("test mock scope");
+      super("test mock scope", null);
     }
 
     @Override
@@ -1520,7 +1554,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
   }
 
   private Scope getMockScope(String name) {
-    return new Scope(name,  new MockScope());
+    return new Scope(name, null, new MockScope());
   }
 
   private class MockCoreTypeProvider implements CoreTypeProvider {
@@ -1554,7 +1588,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
 
     @Override
     public InterfaceType getArrayType(Type elementType) {
-      return array.getType().subst(Arrays.asList(elementType), array.getTypeParameters());
+      return list.getType().subst(Arrays.asList(elementType), list.getTypeParameters());
     }
 
     @Override
@@ -1617,6 +1651,12 @@ public class TypeAnalyzerTest extends TypeTestCase {
     @Override
     public InterfaceType getIsolateType() {
       throw new AssertionError();
+    }
+
+    @Override
+    public InterfaceType getIteratorType(Type elementType) {
+      InterfaceType iteratorType = iterElement.getType();
+      return iteratorType.subst(Arrays.asList(elementType), iterElement.getTypeParameters());
     }
   }
 }

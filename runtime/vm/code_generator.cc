@@ -149,7 +149,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   const Class& cls = Class::CheckedHandle(arguments.At(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
-  if (!cls.IsParameterized()) {
+  if (!cls.HasTypeArguments()) {
     // No type arguments required for a non-parameterized type.
     ASSERT(Instance::CheckedHandle(arguments.At(1)).IsNull());
     return;
@@ -221,53 +221,60 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 
 // Allocate a new closure.
 // Arg0: local function.
-// TODO(regis): Arg1: type arguments of the closure.
-// TODO(regis): Arg2: type arguments of the instantiator.
+// Arg1: type arguments of the closure.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 1) {
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   ASSERT(arguments.Count() == kAllocateClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
-  // TODO(regis): Process type arguments unless the closure is static.
+  ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.At(1));
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   // The current context was saved in the Isolate structure when entering the
   // runtime.
   const Context& context = Context::Handle(Isolate::Current()->top_context());
   ASSERT(!context.IsNull());
-  arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
+  const Closure& closure = Closure::Handle(Closure::New(function, context));
+  closure.SetTypeArguments(type_arguments);
+  arguments.SetReturn(closure);
 }
 
 
-// Allocate a new static implicit closure.
+// Allocate a new implicit static closure.
 // Arg0: local function.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateStaticImplicitClosure, 1) {
+DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
   ASSERT(arguments.Count() ==
-         kAllocateStaticImplicitClosureRuntimeEntry.argument_count());
+         kAllocateImplicitStaticClosureRuntimeEntry.argument_count());
   ObjectStore* object_store = Isolate::Current()->object_store();
   ASSERT(object_store != NULL);
   const Function& function = Function::CheckedHandle(arguments.At(0));
-  ASSERT(function.is_static());  // Closure functions are always static for now.
+  ASSERT(function.IsImplicitStaticClosureFunction());
   const Context& context = Context::Handle(object_store->empty_context());
   arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
 }
 
 
-// Allocate a new implicit closure.
+// Allocate a new implicit instance closure.
 // Arg0: local function.
 // Arg1: receiver object.
-// TODO(regis): Arg2: type arguments of the closure.
-// TODO(regis): Arg3: type arguments of the instantiator.
+// Arg2: type arguments of the closure.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateImplicitClosure, 2) {
+DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
   ASSERT(arguments.Count() ==
-         kAllocateImplicitClosureRuntimeEntry.argument_count());
+         kAllocateImplicitInstanceClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
-  ASSERT(function.is_static());  // Closure functions are always static for now.
+  ASSERT(function.IsImplicitInstanceClosureFunction());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(1));
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.At(2));
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   Context& context = Context::Handle();
   context = Context::New(1);
   context.SetAt(0, receiver);
-  arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
-  // TODO(regis): Set type arguments.
+  const Closure& closure = Closure::Handle(Closure::New(function, context));
+  closure.SetTypeArguments(type_arguments);
+  arguments.SetReturn(closure);
 }
 
 
@@ -816,15 +823,19 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.Count() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
-  ASSERT(function.is_optimizable());
-  ASSERT(!Code::Handle(function.code()).is_optimized());
-  const Code& unoptimized_code = Code::Handle(function.code());
-  // Compilation patches the entry of unoptimized code.
-  Compiler::CompileOptimizedFunction(function);
-  const Code& optimized_code = Code::Handle(function.code());
-  ASSERT(!optimized_code.IsNull());
-  ASSERT(!unoptimized_code.IsNull());
-  DisableOldCode(function, unoptimized_code, optimized_code);
+  if (function.is_optimizable()) {
+    ASSERT(!Code::Handle(function.code()).is_optimized());
+    const Code& unoptimized_code = Code::Handle(function.code());
+    // Compilation patches the entry of unoptimized code.
+    Compiler::CompileOptimizedFunction(function);
+    const Code& optimized_code = Code::Handle(function.code());
+    ASSERT(!optimized_code.IsNull());
+    ASSERT(!unoptimized_code.IsNull());
+    DisableOldCode(function, unoptimized_code, optimized_code);
+  } else {
+    // TODO(5442338): Abort as this should not happen.
+    function.set_invocation_counter(0);
+  }
 }
 
 
@@ -905,11 +916,19 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
   function.set_invocation_counter(0);
   function.set_deoptimization_counter(function.deoptimization_counter() + 1);
 
-  // Get unoptimized code. Compilation restores (reenables) the entry of
-  // unoptimized code.
-  Compiler::CompileFunction(function);
+  // We have to skip the following otherwise the compiler will complain
+  // when it attempts to install unoptimized code into a function that
+  // was already deoptimized.
+  if (Code::Handle(function.code()).is_optimized()) {
+    // Get unoptimized code. Compilation restores (reenables) the entry of
+    // unoptimized code.
+    Compiler::CompileFunction(function);
 
-  DisableOldCode(function, optimized_code, unoptimized_code);
+    DisableOldCode(function, optimized_code, unoptimized_code);
+  }
+  // TODO(srdjan): Handle better complex cases, e.g. when an older optimized
+  // code is alive on frame and gets deoptimized after the function was
+  // optimized a second time.
   if (FLAG_trace_deopt) {
     OS::Print("After patching ->0x%x:\n", continue_at_pc);
   }

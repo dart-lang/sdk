@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.ast.DartUnit;
+
 /**
  * Abstract class that {@link DartCompiler} consumers can use to monitor
  * compilation progress and report various problems that occur during
@@ -22,4 +24,11 @@ public abstract class DartCompilerListener {
   public abstract void compilationWarning(DartCompilationError event);
 
   public abstract void typeError(DartCompilationError event);
+
+  /**
+   * Called by the compiler after the resolution and type analyzer phase for each unit.
+   *
+   * @param unit the DartUnit having just been compiled. (not <code>null</code>)
+   */
+  public abstract void unitCompiled(DartUnit unit);
 }

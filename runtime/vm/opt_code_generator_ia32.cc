@@ -1530,7 +1530,7 @@ bool OptimizingCodeGenerator::GenerateEqualityComparison(ComparisonNode* node) {
   if (num_classes == 0) {
     __ j(NOT_EQUAL, deopt_blob->label());
   } else {
-    __ j(EQUAL, &compare, Assembler::kNearJump);
+    __ j(EQUAL, &compare);
     // Smi causes deoptimization.
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());

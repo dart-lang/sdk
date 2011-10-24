@@ -8,7 +8,6 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.parser.DartScanner.Location;
 
 /**
  * Abstract base class for sharing common utility methods between implementation
@@ -91,13 +90,13 @@ abstract class AbstractParser {
    */
   protected void reportError(DartScanner.Position position, ErrorCode errorCode,
       Object... arguments) {
-    DartCompilationError dartError = new DartCompilationError(ctx.getTokenLocation(), errorCode,
-        arguments);
-    if (dartError.getStartPosition() <= lastErrorPosition) {
+    DartScanner.Location location = ctx.getTokenLocation();
+    if (location.getBegin().getPos() <= lastErrorPosition) {
       return;
     }
+    DartCompilationError dartError = new DartCompilationError(ctx.getSource(), location, errorCode,
+        arguments);
     lastErrorPosition = position.getPos();
-    dartError.setSource(ctx.getSource());
     ctx.error(dartError);
   }
 
@@ -128,9 +127,5 @@ abstract class AbstractParser {
     assert (result);
     next();
     return result;
-  }
-
-  public void error(Location location, DartCompilerErrorCode code, Object... arguments) {
-    ctx.error(new DartCompilationError(location, code, arguments));
   }
 }

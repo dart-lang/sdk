@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Other1 {
-  // The existence of this final triggers b/5078969.
-  static final Function FN = () { return 42; };
+  static Function FN;
 
-  Other1() { }
+  Other1() { FN = () { return 42; };}
 }

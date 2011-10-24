@@ -5,6 +5,7 @@
 package com.google.dart.corelib;
 
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
@@ -242,6 +243,10 @@ public class SharedTestCase extends TestCase {
       public void typeError(DartCompilationError event) {
         typeErrorCount.incrementAndGet();
         maybeThrow(event);
+      }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
       }
     };
     return listener;

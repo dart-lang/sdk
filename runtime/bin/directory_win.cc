@@ -2,62 +2,89 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <errno.h>
+#include <sys/stat.h>
+
 #include "bin/directory.h"
 
-bool Directory::Open(const char* path, intptr_t* dir) {
-  return true;
-}
+// Forward declaration.
+static bool ListRecursively(const char* dir_name,
+                            bool recursive,
+                            Dart_Port dir_port,
+                            Dart_Port file_port,
+                            Dart_Port done_port,
+                            Dart_Port error_port);
 
 
-bool Directory::Close(intptr_t dir) {
-  return true;
-}
-
-
-static void HandleDir(char* dir_name,
+static bool HandleDir(char* dir_name,
                       char* path,
                       int path_length,
-                      Dart_Port dir_handler) {
-  if (dir_handler != 0 &&
-      strcmp(dir_name, ".") != 0 &&
+                      bool recursive,
+                      Dart_Port dir_port,
+                      Dart_Port file_port,
+                      Dart_Port done_port,
+                      Dart_Port error_port) {
+  if (strcmp(dir_name, ".") != 0 &&
       strcmp(dir_name, "..") != 0) {
     size_t written = snprintf(path + path_length,
                               MAX_PATH - path_length,
                               "%s",
                               dir_name);
     ASSERT(written == strlen(dir_name));
-    Dart_Handle name = Dart_NewString(path);
-    Dart_Post(dir_handler, name);
+    if (dir_port != 0) {
+      Dart_Handle name = Dart_NewString(path);
+      Dart_Post(dir_port, name);
+    }
+    if (recursive) {
+      return ListRecursively(path,
+                             recursive,
+                             dir_port,
+                             file_port,
+                             done_port,
+                             error_port);
+    }
   }
+  return true;
 }
 
 
 static void HandleFile(char* file_name,
                        char* path,
                        int path_length,
-                       Dart_Port file_handler) {
-  if (file_handler != 0) {
+                       Dart_Port file_port) {
+  if (file_port != 0) {
     size_t written = snprintf(path + path_length,
                               MAX_PATH - path_length,
                               "%s",
                               file_name);
     ASSERT(written == strlen(file_name));
     Dart_Handle name = Dart_NewString(path);
-    Dart_Post(file_handler, name);
+    Dart_Post(file_port, name);
   }
 }
 
 
-static void HandleEntry(LPWIN32_FIND_DATA find_file_data,
+static bool HandleEntry(LPWIN32_FIND_DATA find_file_data,
                         char* path,
                         int path_length,
-                        Dart_Port file_handler,
-                        Dart_Port dir_handler) {
+                        bool recursive,
+                        Dart_Port dir_port,
+                        Dart_Port file_port,
+                        Dart_Port done_port,
+                        Dart_Port error_port) {
   DWORD attributes = find_file_data->dwFileAttributes;
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-    HandleDir(find_file_data->cFileName, path, path_length, dir_handler);
+    return HandleDir(find_file_data->cFileName,
+                     path,
+                     path_length,
+                     recursive,
+                     dir_port,
+                     file_port,
+                     done_port,
+                     error_port);
   } else {
-    HandleFile(find_file_data->cFileName, path, path_length, file_handler);
+    HandleFile(find_file_data->cFileName, path, path_length, file_port);
+    return true;
   }
 }
 
@@ -79,16 +106,13 @@ static void ComputeFullSearchPath(const char* dir_name,
   *path_length += written;
 }
 
-
-void Directory::List(const char* dir_name,
-                     intptr_t dir,
-                     bool recursive,
-                     Dart_Port dir_handler,
-                     Dart_Port file_handler,
-                     Dart_Port done_handler,
-                     Dart_Port dir_error_handler) {
-  // TODO(ager): Handle recursive listing.
-  char path[MAX_PATH];
+static bool ListRecursively(const char* dir_name,
+                            bool recursive,
+                            Dart_Port dir_port,
+                            Dart_Port file_port,
+                            Dart_Port done_port,
+                            Dart_Port error_port) {
+  char* path = static_cast<char*>(malloc(MAX_PATH));
   int path_length = 0;
   ComputeFullSearchPath(dir_name, path, &path_length);
 
@@ -100,21 +124,92 @@ void Directory::List(const char* dir_name,
   path[path_length] = '\0';
 
   if (find_handle == INVALID_HANDLE_VALUE) {
-    Dart_Handle value = Dart_NewBoolean(false);
-    Dart_Post(done_handler, value);
-    return;
+    // TODO(ager): Post on error port.
+    free(path);
+    return false;
   }
 
-  HandleEntry(&find_file_data, path, path_length, file_handler, dir_handler);
+  bool completed = HandleEntry(&find_file_data,
+                               path,
+                               path_length,
+                               recursive,
+                               dir_port,
+                               file_port,
+                               done_port,
+                               error_port);
+
   while (FindNextFile(find_handle, &find_file_data) != 0) {
-    HandleEntry(&find_file_data, path, path_length, file_handler, dir_handler);
+    completed = completed && HandleEntry(&find_file_data,
+                                         path,
+                                         path_length,
+                                         recursive,
+                                         dir_port,
+                                         file_port,
+                                         done_port,
+                                         error_port);
   }
 
-  bool result = GetLastError() == ERROR_NO_MORE_FILES;
-  BOOL closed = FindClose(find_handle);
-  if (!closed) {
-    result = false;
+  completed = completed && (GetLastError() == ERROR_NO_MORE_FILES);
+
+  // TODO(ager): Post on error port if close fails.
+  FindClose(find_handle);
+  free(path);
+
+  return completed;
+}
+
+
+void Directory::List(const char* dir_name,
+                     bool recursive,
+                     Dart_Port dir_port,
+                     Dart_Port file_port,
+                     Dart_Port done_port,
+                     Dart_Port error_port) {
+  bool result = ListRecursively(dir_name,
+                                recursive,
+                                dir_port,
+                                file_port,
+                                done_port,
+                                error_port);
+  if (done_port != 0) {
+    Dart_Handle value = Dart_NewBoolean(result);
+    Dart_Post(done_port, value);
   }
-  Dart_Handle value = Dart_NewBoolean(result);
-  Dart_Post(done_handler, value);
+}
+
+
+Directory::ExistsResult Directory::Exists(const char* dir_name) {
+  struct stat entry_info;
+  int stat_success = stat(dir_name, &entry_info);
+  if (stat_success == 0) {
+    if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
+      return EXISTS;
+    } else {
+      return DOES_NOT_EXIST;
+    }
+  } else {
+    if (errno == EACCES ||
+        errno == EBADF ||
+        errno == EFAULT ||
+        errno == ENOMEM) {
+      // Search permissions denied for one of the directories in the
+      // path or a low level error occured. We do not know if the
+      // directory exists.
+      return UNKNOWN;
+    }
+    ASSERT(errno == ENAMETOOLONG ||
+           errno == ENOENT ||
+           errno == ENOTDIR);
+    return DOES_NOT_EXIST;
+  }
+}
+
+
+bool Directory::Create(const char* dir_name) {
+  return (CreateDirectory(dir_name, NULL) != 0);
+}
+
+
+bool Directory::Delete(const char* dir_name) {
+  return (RemoveDirectory(dir_name) != 0);
 }

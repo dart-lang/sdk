@@ -10,19 +10,11 @@ import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.backend.js.ast.JsBlock;
-import com.google.dart.compiler.backend.js.ast.JsProgram;
 import com.google.dart.compiler.common.GenerateSourceMap;
 import com.google.dart.compiler.metrics.CompilerMetrics;
-import com.google.dart.compiler.metrics.DartEventType;
-import com.google.dart.compiler.metrics.Tracer;
-import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
-import com.google.dart.compiler.util.DefaultTextOutput;
-import com.google.dart.compiler.util.TextOutput;
 import com.google.debugging.sourcemap.FilePosition;
 import com.google.debugging.sourcemap.SourceMapSection;
 
@@ -31,7 +23,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A compiler backend that produces raw Javascript.

@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.ast.DartUnit;
+
 /**
  * A default implementation of {@link DartCompilerListener} which counts
  * compilation errors.
@@ -99,5 +101,9 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
    */
   protected void incrementTypeErrorCount() {
     typeErrorCount++;
+  }
+
+  @Override
+  public void unitCompiled(DartUnit unit) {
   }
 }

@@ -83,7 +83,7 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value);
 
-  _CssClassSet get classes();
+  Set<String> get classes();
 
   // TODO: The type of value should be Collection<String>. See http://b/5392897
   void set classes(value);
@@ -187,7 +187,7 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   ClientRect getBoundingClientRect();
 
-  ClientRectList getClientRects();
+  List<ClientRect> getClientRects();
 
   Element insertAdjacentElement([String where, Element element]);
 

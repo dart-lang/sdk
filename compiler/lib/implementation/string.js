@@ -2,14 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Extend the String prototype with members expected in dart.
- */
-
-String.$instanceOf = function(obj) {
-  return typeof obj == 'string' || obj instanceof String;
-};
-
 function native_StringImplementation__indexOperator(index) {
   return this[index];
 }
@@ -23,14 +15,7 @@ function native_StringImplementation_get$length() {
 }
 
 function native_StringImplementation_EQ(other) {
-  if (typeof other == 'string') {
-    return this == other;
-  } else if (other instanceof String) {
-    // Must convert other to a primitive for value equality to work.
-    return this == String(other);
-  } else {
-    return false;
-  }
+  return typeof other == 'string' && this == other;
 }
 
 function native_StringImplementation_indexOf(other, startIndex) {
@@ -58,7 +43,7 @@ function native_StringImplementation_trim() {
 }
 
 function native_StringImplementation__replace(from, to) {
-  if (String.$instanceOf(from)) {
+  if ($isString(from)) {
     return this.replace(from, to);
   } else {
     return this.replace($DartRegExpToJSRegExp(from), to);
@@ -66,7 +51,7 @@ function native_StringImplementation__replace(from, to) {
 }
 
 function native_StringImplementation__replaceAll(from, to) {
-  if (String.$instanceOf(from)) {
+  if ($isString(from)) {
     var regexp = new RegExp(
         from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'g');
     return this.replace(regexp, to);
@@ -77,7 +62,7 @@ function native_StringImplementation__replaceAll(from, to) {
 }
 
 function native_StringImplementation__split(pattern) {
-  if (String.$instanceOf(pattern)) {
+  if ($isString(pattern)) {
     return this.split(pattern);
   } else {
     return this.split($DartRegExpToJSRegExp(pattern));
@@ -125,7 +110,7 @@ function native_StringImplementation_compareTo(other) {
 
 function native_StringImplementation__newFromValues(array) {
   if (!(array instanceof Array)) {
-    var length = native__ArrayJsUtil__arrayLength(array);
+    var length = native__ListJsUtil__listLength(array);
     var tmp = new Array(length);
     for (var i = 0; i < length; i++) {
       tmp[i] = INDEX$operator(array, i);

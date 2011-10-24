@@ -115,6 +115,10 @@ public abstract class CompilerTestCase extends TestCase {
     public LibraryUnit getLibraryUnitResult() {
       return result;
     }
+
+    @Override
+    public void unitCompiled(DartUnit unit) {
+    }
   }
 
   /**
@@ -183,10 +187,17 @@ public abstract class CompilerTestCase extends TestCase {
      MockLibrarySource lib = new MockLibrarySource();
      DartSourceTest src = new DartSourceTest(name, code, lib);
      lib.addSource(src);
-     CompilerConfiguration config = new DefaultCompilerConfiguration(backend);
+     CompilerConfiguration config = getCompilerConfiguration(backend);
      DartCompilerListener listener = new DartCompilerListenerTest(src.getName());
      DartCompiler.compileLib(lib, config, provider, listener);
      return src;
+  }
+
+  /**
+   * Allow tests to override the configuration used.
+   */
+  protected CompilerConfiguration getCompilerConfiguration(Backend backend) {
+    return new DefaultCompilerConfiguration(backend);
   }
 
   /**

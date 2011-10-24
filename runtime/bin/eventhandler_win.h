@@ -139,6 +139,11 @@ class Handle {
 
   virtual ~Handle();
 
+  // Socket interface exposing normal socket operations.
+  int Available();
+  int Read(void* buffer, int num_bytes);
+  int Write(const void* buffer, int num_bytes);
+
   // Internal interface used by the event handler.
   virtual bool IssueRead();
   virtual bool IssueWrite();
@@ -202,6 +207,12 @@ class FileHandle : public Handle {
       : Handle(reinterpret_cast<HANDLE>(handle)) { type_ = kFile; }
   FileHandle(HANDLE handle, Dart_Port port)
       : Handle(reinterpret_cast<HANDLE>(handle), port) { type_ = kFile; }
+
+  virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
+  virtual bool IsClosed();
+
+ private:
+  virtual void AfterClose();
 };
 
 
@@ -276,11 +287,6 @@ class ClientSocket : public SocketHandle {
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == NULL);
   };
-
-  // Socket interface exposing normal socket operations.
-  int Available();
-  int Read(void* buffer, int num_bytes);
-  int Write(const void* buffer, int num_bytes);
 
   // Internal interface used by the event handler.
   virtual bool IssueRead();

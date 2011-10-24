@@ -7,8 +7,20 @@ package com.google.dart.compiler.type;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartInitializer;
+import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
+import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
@@ -17,6 +29,7 @@ import junit.framework.TestCase;
 import org.junit.Assert;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,14 +47,13 @@ abstract class TypeTestCase extends TestCase {
   final ClassElement doubleElement = element("double", itype(number));
   final ClassElement bool = element("bool", itype(object));
   final ClassElement string = element("String", itype(object));
-  final ClassElement array = element("Array", itype(object), typeVar("E", itype(object)));
-  final ClassElement growableArray = makeGrowableArray(array);
+  final ClassElement iterElement = element("Iterator", itype(object), typeVar("E", itype(object)));
+  final ClassElement list = makeListElement();
   final ClassElement map = element("Map", itype(object),
                                    typeVar("K", itype(object)), typeVar("V", itype(object)));
   final ClassElement stackTrace = element("StackTrace", itype(object));
   final ClassElement reverseMap = makeReverseMap(map);
-  final InterfaceType objectArray = itype(array, itype(object));
-  final InterfaceType growableObjectArray = itype(growableArray, itype(object));
+  final InterfaceType objectList = itype(list, itype(object));
   final InterfaceType objectMap = itype(map, itype(object), itype(object));
   final InterfaceType reverseObjectMap = itype(reverseMap, itype(object), itype(object));
   final InterfaceType stringIntMap = itype(map, itype(string), itype(intElement));
@@ -60,6 +72,27 @@ abstract class TypeTestCase extends TestCase {
 
   abstract Types getTypes();
 
+  ClassElement makeListElement() {
+    final TypeVariable typeVar = typeVar("E", itype(object));
+    final ClassElement element = element("List", itype(object), typeVar);
+    DartTypeNode returnTypeNode = new DartTypeNode(new DartIdentifier("Iterator"), 
+        Arrays.asList(new DartTypeNode(new DartIdentifier("E"))));
+    
+    DartMethodDefinition iteratorMethod = DartMethodDefinition.create(
+        new DartIdentifier("iterator"), new DartFunction(Collections.<DartParameter>emptyList(), 
+            new DartBlock(Collections.<DartStatement>emptyList()), returnTypeNode),
+        Modifiers.NONE,
+        Collections.<DartInitializer>emptyList(),
+        Collections.<DartTypeParameter>emptyList());
+    MethodElement iteratorMethodElement = Elements.methodFromMethodNode(iteratorMethod, element);
+    Type returnType = Types.interfaceType(iterElement, Arrays.asList(typeVar));
+    FunctionType functionType = ftype(function, returnType, Collections.<String,Type>emptyMap(), 
+         null);
+    Elements.setType(iteratorMethodElement, functionType);
+    Elements.addMethod(element, iteratorMethodElement);
+    return element;
+  }
+  
   protected void setExpectedTypeErrorCount(int count) {
     checkExpectedTypeErrorCount();
     expectedTypeErrors = count;
@@ -77,11 +110,6 @@ abstract class TypeTestCase extends TestCase {
     TypeVariableElement element = Elements.typeVariableElement(null, name, null);
     element.setBound(bound);
     return new TypeVariableImplementation(element);
-  }
-
-  private ClassElement makeGrowableArray(ClassElement array) {
-    TypeVariable E = typeVar("E", itype(object));
-    return element("GrowableArray", itype(array, E), E);
   }
 
   private ClassElement makeReverseMap(ClassElement map) {
@@ -150,6 +178,10 @@ abstract class TypeTestCase extends TestCase {
     @Override
     public void typeError(DartCompilationError event) {
       compilationError(event);
+    }
+
+    @Override
+    public void unitCompiled(DartUnit unit) {
     }
   };
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that static members cannot be overridden.
+// Test that static members cannot be overridden (static type error only).
 
 m() {}
 
@@ -18,13 +18,13 @@ class Super {
 
 class Sub extends Super {
   Sub() : super();
-  static m() {} /// 01: compile-time error
+  static m() {} /// 01: static type error
 
-  static var i; /// 02: compile-time error
+  static var i; /// 02: static type error
 
   static instanceMethod() {} /// 03: compile-time error
 
-  static i() {} /// 04: compile-time error
+  static i() {} /// 04: static type error
 
   static var instanceMethod; /// 05: compile-time error
 

@@ -37,6 +37,12 @@ class ListLiteralTest {
     Expect.equals(0, <String>[].length);
     Expect.equals(0, const <String>[].length);
     Expect.equals(0, const [].length);
+
+    e2 = [1, 2.0, 0x03, 2.0e5];
+    Expect.equals(1, e2[0]);
+    Expect.equals(2.0, e2[1]);
+    Expect.equals(3, e2[2]);
+    Expect.equals(200000.0, e2[3]);
   }
 }
 

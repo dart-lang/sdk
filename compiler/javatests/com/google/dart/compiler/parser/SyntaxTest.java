@@ -92,6 +92,9 @@ public class SyntaxTest extends AbstractParserTest {
         @Override
         public void compilationError(DartCompilationError event) {
         }
+        @Override
+        public void unitCompiled(DartUnit unit) {
+        }
       });
       DartParser parser = new DartParser(context);
       parser.parseExpression();
@@ -153,7 +156,7 @@ public class SyntaxTest extends AbstractParserTest {
     List<DartNode> nodes = unit.getTopLevelNodes();
     assertEquals(1, nodes.size());
     DartFieldDefinition f = (DartFieldDefinition)nodes.get(0);
-    DartField fieldX = (DartField)f.getFields().get(0);
+    DartField fieldX = f.getFields().get(0);
     DartArrayLiteral array = (DartArrayLiteral) fieldX.getValue();
     assertEquals(3, array.getExpressions().size());
     assertEquals(1, ((DartIntegerLiteral)array.getExpressions().get(0)).getValue().intValue());
@@ -166,7 +169,7 @@ public class SyntaxTest extends AbstractParserTest {
     List<DartNode> nodes = unit.getTopLevelNodes();
     assertEquals(1, nodes.size());
     DartFieldDefinition f = (DartFieldDefinition)nodes.get(0);
-    DartField fieldX = (DartField)f.getFields().get(0);
+    DartField fieldX = f.getFields().get(0);
     DartMapLiteral map = (DartMapLiteral) fieldX.getValue();
     assertEquals(3, map.getEntries().size());
     assertEquals(1, ((DartIntegerLiteral) (map.getEntries().get(0)).getValue()).getValue()

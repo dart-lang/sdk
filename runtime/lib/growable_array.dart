@@ -2,27 +2,71 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class GrowableObjectArray<T> implements Array<T> {
-  Array<T> backingArray;
+class GrowableObjectArray<T> implements List<T> {
+  ObjectArray<T> backingArray;
 
-  void copyFrom(Array<Object> src, int srcStart, int dstStart, int count) {
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
     Arrays.copy(src, srcStart, this, dstStart, count);
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    if (length == 0) {
+      return;
+    }
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    if (start < 0 || start >= this.length) {
+      throw new IndexOutOfRangeException(start);
+    }
+    if (start + length > this.length) {
+      throw new IndexOutOfRangeException(start + length);
+    }
+    Arrays.copy(backingArray,
+                start + length,
+                backingArray,
+                start,
+                this.length - length - start);
+    this.length = this.length - length;
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {
-    throw const NotImplementedException();
+    if (length == 0) {
+      return;
+    }
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    if (start < 0 || start > this.length) {
+      throw new IndexOutOfRangeException(start);
+    }
+    if (this.length + length >= backingArray.length) {
+      grow(backingArray.length + length);
+    }
+    Arrays.copy(backingArray,
+                start,
+                backingArray,
+                start + length,
+                this.length - start);
+    if (initialValue !== null) {
+      for (int i = start; i < start + length; i++) {
+        backingArray[i] = initialValue;
+      }
+    }
+    this.length = this.length + length;
   }
 
   List<T> getRange(int start, int length) {
-    throw const NotImplementedException();
+    if (length == 0) return [];
+    Arrays.rangeCheck(this, start, length);
+    return new List<T>.fromList(this, start, start + length);
   }
 
   // The length of this growable array. It is always less than the
@@ -43,7 +87,7 @@ class GrowableObjectArray<T> implements Array<T> {
     backingArray = new ObjectArray<T>(capacity);
   }
 
-  GrowableObjectArray._usingArray(Array<T> array) {
+  GrowableObjectArray._usingArray(List<T> array) {
     backingArray = array;
     _length = array.length;
     if (_length == 0) {
@@ -52,7 +96,7 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   factory GrowableObjectArray.from(Collection<T> other) {
-    Array result = new GrowableObjectArray();
+    List result = new GrowableObjectArray();
     result.addAll(other);
     return result;
   }
@@ -87,7 +131,7 @@ class GrowableObjectArray<T> implements Array<T> {
   }
 
   void grow(int capacity) {
-    Array<T> newArray = new ObjectArray<T>(capacity);
+    ObjectArray<T> newArray = new ObjectArray<T>(capacity);
     int length = backingArray.length;
     for (int i = 0; i < length; i++) {
       newArray[i] = backingArray[i];

@@ -173,6 +173,13 @@ intptr_t RawClass::VisitClassPointers(RawClass* raw_obj,
 }
 
 
+intptr_t RawUnresolvedClass::VisitUnresolvedClassPointers(
+    RawUnresolvedClass* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UnresolvedClass::InstanceSize();
+}
+
+
 intptr_t RawType::VisitTypePointers(RawType* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   // RawType is an abstract class.
@@ -331,6 +338,13 @@ intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
     RawUnhandledException* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return UnhandledException::InstanceSize();
+}
+
+
+intptr_t RawApiFailure::VisitApiFailurePointers(
+    RawApiFailure* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ApiFailure::InstanceSize();
 }
 
 

@@ -50,6 +50,8 @@ RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::unresolved_class_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::parameterized_type_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_parameter_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -72,6 +74,7 @@ RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::api_failure_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
@@ -84,6 +87,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kVarClass;
   } else if (raw_class == void_class()) {
     return kVoidClass;
+  } else if (raw_class == unresolved_class_class()) {
+    return kUnresolvedClassClass;
   } else if (raw_class == parameterized_type_class()) {
     return kParameterizedTypeClass;
   } else if (raw_class == type_parameter_class()) {
@@ -120,6 +125,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kContextClass;
   } else if (raw_class == context_scope_class()) {
     return kContextScopeClass;
+  } else if (raw_class == api_failure_class()) {
+    return kApiFailureClass;
   }
   return kInvalidIndex;
 }
@@ -131,6 +138,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kNullClass: return null_class();
     case kVarClass: return var_class();
     case kVoidClass: return void_class();
+    case kUnresolvedClassClass: return unresolved_class_class();
     case kParameterizedTypeClass: return parameterized_type_class();
     case kTypeParameterClass: return type_parameter_class();
     case kInstantiatedTypeClass: return instantiated_type_class();
@@ -150,6 +158,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kExceptionHandlersClass: return exception_handlers_class();
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
+    case kApiFailureClass: return api_failure_class();
     default: break;
   }
   UNREACHABLE();
@@ -163,6 +172,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kNullClass: return "Null";
     case kVarClass: return "var";
     case kVoidClass: return "void";
+    case kUnresolvedClassClass: return "UnresolvedClass";
     case kParameterizedTypeClass: return "ParameterizedType";
     case kTypeParameterClass: return "TypeParameter";
     case kInstantiatedTypeClass: return "InstantiatedType";
@@ -181,6 +191,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kExceptionHandlersClass: return "ExceptionHandlers";
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
+    case kApiFailureClass: return "ApiFailure";
     default: break;
   }
   UNREACHABLE();
@@ -248,6 +259,9 @@ void Object::InitOnce() {
   }
 
   // Allocate the remaining VM internal classes.
+  cls = Class::New<UnresolvedClass>();
+  unresolved_class_class_ = cls.raw();
+
   cls = Class::New<Instance>();
   var_class_ = cls.raw();
 
@@ -308,6 +322,9 @@ void Object::InitOnce() {
   cls = Class::New<ContextScope>();
   context_scope_class_ = cls.raw();
 
+  cls = Class::New<ApiFailure>();
+  api_failure_class_ = cls.raw();
+
   ASSERT(class_class() != null_);
 }
 
@@ -347,11 +364,6 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the object class and type.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
-  // The bootstrap script is not compiled yet, so the superclass of Object does
-  // not yet point to itself, therefore, Type::NewNonParameterizedType(cls)
-  // can safely assert that cls.NumTypeArguments() == 0 without entering an
-  // endless loop.
-  ASSERT(cls.SuperClass() == Class::null());
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
 
@@ -545,10 +557,6 @@ void Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
-  name = String::NewSymbol("Array");
-  cls = Class::NewInterface(name, script);
-  core_impl_lib.AddClass(cls);
-
   // The classes 'null', 'var', and 'void' are not registered in the class
   // dictionary and are not named, but corresponding types are stored in the
   // object store.
@@ -677,15 +685,6 @@ RawObject* Object::Allocate(const Class& cls,
 }
 
 
-#if defined(DEBUG)
-void Object::ValidateHeapObject(RawObject* raw_obj) {
-  uword addr = RawObject::ToAddr(raw_obj);
-  ASSERT(Isolate::Current()->heap()->Contains(addr) ||
-         Dart::vm_isolate()->heap()->Contains(addr));
-}
-#endif  // defined(DEBUG)
-
-
 RawString* Class::Name() const {
   if (raw_ptr()->name_ != String::null()) {
     return raw_ptr()->name_;
@@ -693,6 +692,39 @@ RawString* Class::Name() const {
   ASSERT(class_class() != null_);  // Or GetSingletonClassIndex will not work.
   intptr_t index = GetSingletonClassIndex(raw());
   return String::NewSymbol(GetSingletonClassName(index));
+}
+
+
+RawType* Class::SignatureType() const {
+  // Return the cached signature type if any.
+  if (raw_ptr()->signature_type_ != Type::null()) {
+    return raw_ptr()->signature_type_;
+  }
+  ASSERT(IsSignatureClass());
+  TypeArguments& signature_type_arguments = TypeArguments::Handle();
+  const intptr_t num_type_params = NumTypeParameters();
+  // If the signature class extends a parameterized class, the type arguments of
+  // the super class will be prepended to the type argument vector during type
+  // finalization. We only need to provide the type parameters of the signature
+  // class here.
+  if (num_type_params > 0) {
+    const Array& type_params = Array::Handle(type_parameters());
+    signature_type_arguments = TypeArguments::NewTypeArray(num_type_params);
+    String& type_param_name = String::Handle();
+    Type& type_param = Type::Handle();
+    for (int i = 0; i < num_type_params; i++) {
+      type_param_name ^= type_params.At(i);
+      type_param = Type::NewTypeParameter(i, type_param_name);
+      signature_type_arguments.SetTypeAt(i, type_param);
+    }
+  }
+  const ParameterizedType& signature_type = ParameterizedType::Handle(
+      ParameterizedType::New(*this, signature_type_arguments));
+
+  // Cache and return the still unfinalized signature type.
+  ASSERT(!signature_type.IsFinalized());
+  set_signature_type(signature_type);
+  return signature_type.raw();
 }
 
 
@@ -766,6 +798,11 @@ void Class::set_signature_function(const Function& value) const {
 }
 
 
+void Class::set_signature_type(const Type& value) const {
+  StorePointer(&raw_ptr()->signature_type_, value.raw());
+}
+
+
 void Class::set_class_state(int8_t state) const {
   ASSERT(state == RawClass::kAllocated ||
          state == RawClass::kPreFinalized ||
@@ -800,9 +837,12 @@ intptr_t Class::NumTypeParameters() const {
 
 
 intptr_t Class::NumTypeArguments() const {
+  // To work properly, this call requires the super class of this class to be
+  // resolved, which is checked by the SuperClass() call.
   intptr_t num_type_args = NumTypeParameters();
   const Class& superclass = Class::Handle(SuperClass());
-  if (!superclass.IsNull()) {
+  // Object is its own super class during bootstrap.
+  if (!superclass.IsNull() && (superclass.raw() != raw())) {
     num_type_args += superclass.NumTypeArguments();
   }
   return num_type_args;
@@ -976,23 +1016,31 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    const Script& script,
                                    intptr_t token_index) {
   ASSERT(!signature_function.IsNull());
+  Type& super_type = Type::Handle(Type::ObjectType());
+  const Class& owner_class = Class::Handle(signature_function.owner());
+  ASSERT(!owner_class.IsNull());
   Array& type_parameters = Array::Handle();
   TypeArray& type_parameter_extends = TypeArray::Handle();
   if (!signature_function.is_static()) {
-    const Class& function_class =
-        Class::Handle(signature_function.owner());
-    ASSERT(!function_class.IsNull());
-    type_parameters = function_class.type_parameters();
-    type_parameter_extends = function_class.type_parameter_extends();
+    if ((owner_class.NumTypeParameters() > 0) &&
+        !signature_function.HasInstantiatedSignature()) {
+      // Share the function owner super class as the super class of the
+      // signature class, so that the type argument vector of the closure at
+      // run time  matches the type argument vector of the closure instantiator.
+      type_parameters = owner_class.type_parameters();
+      type_parameter_extends = owner_class.type_parameter_extends();
+      if (!owner_class.is_interface()) {
+        super_type = owner_class.super_type();
+      }
+    }
   }
   Class& result = Class::Handle(New<Closure>(name, script));
+  result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
   result.set_type_parameter_extends(type_parameter_extends);
   result.SetFields(Array::Handle(Array::Empty()));
   result.SetFunctions(Array::Handle(Array::Empty()));
-  // Set super class to Object.
-  result.set_super_type(Type::Handle(Type::ObjectType()));
   // Implements interface Function.
   const Type& function_interface = Type::Handle(Type::FunctionInterface());
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
@@ -1167,12 +1215,12 @@ bool Class::IsMoreSpecificThan(
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
-    if (!IsParameterized()) {
+    const intptr_t len = NumTypeArguments();
+    if (len == 0) {
       return true;
     }
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
-    const intptr_t len = NumTypeArguments();
     // Check for covariance.
     if (type_arguments.IsNull() ||
         other_type_arguments.IsNull() ||
@@ -1289,7 +1337,7 @@ bool Class::TestType(TypeTestKind test,
   if (raw() != other.raw()) {
     return false;
   }
-  ASSERT(IsParameterized());  // Otherwise IsMoreSpecificThan would be true.
+  ASSERT(HasTypeArguments());  // Otherwise, IsMoreSpecificThan would be true.
   return false;
 }
 
@@ -1474,6 +1522,63 @@ const char* Class::ToCString() const {
 }
 
 
+RawUnresolvedClass* UnresolvedClass::New(intptr_t token_index,
+                                         const String& qualifier,
+                                         const String& ident) {
+  const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
+  type.set_token_index(token_index);
+  type.set_qualifier(qualifier);
+  type.set_ident(ident);
+  return type.raw();
+}
+
+
+RawUnresolvedClass* UnresolvedClass::New() {
+  const Class& unresolved_class_class =
+      Class::Handle(Object::unresolved_class_class());
+  RawObject* raw = Object::Allocate(unresolved_class_class,
+                                    UnresolvedClass::InstanceSize(),
+                                    Heap::kNew);
+  return reinterpret_cast<RawUnresolvedClass*>(raw);
+}
+
+
+void UnresolvedClass::set_token_index(intptr_t token_index) const {
+  raw_ptr()->token_index_ = token_index;
+}
+
+
+void UnresolvedClass::set_ident(const String& ident) const {
+  StorePointer(&raw_ptr()->ident_, ident.raw());
+}
+
+
+void UnresolvedClass::set_qualifier(const String& qualifier) const {
+  StorePointer(&raw_ptr()->qualifier_, qualifier.raw());
+}
+
+
+RawString* UnresolvedClass::Name() const {
+  if (qualifier() != String::null()) {
+    String& name = String::Handle();
+    name = qualifier();
+    String& str = String::Handle();
+    str = String::New(".");
+    name = String::Concat(name, str);
+    str = ident();
+    name = String::Concat(name, str);
+    return name.raw();
+  } else {
+    return ident();
+  }
+}
+
+
+const char* UnresolvedClass::ToCString() const {
+  return "UnresolvedClass";
+}
+
+
 bool Type::IsResolved() const {
   // Type is an abstract class.
   UNREACHABLE();
@@ -1495,10 +1600,10 @@ RawClass* Type::type_class() const {
 }
 
 
-RawString* Type::unresolved_type_class() const {
+RawUnresolvedClass* Type::unresolved_class() const {
   // Type is an abstract class.
   UNREACHABLE();
-  return String::null();
+  return UnresolvedClass::null();
 }
 
 
@@ -1517,6 +1622,13 @@ bool Type::IsInstantiated() const {
 
 
 bool Type::IsFinalized() const {
+  // Type is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+bool Type::IsBeingFinalized() const {
   // Type is an abstract class.
   UNREACHABLE();
   return false;
@@ -1543,14 +1655,26 @@ RawString* Type::Name() const {
     class_name = cls.Name();
     num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
     if (num_type_params > num_args) {
-      ASSERT(!IsFinalized());
+      ASSERT(num_args == 0);  // Type is raw.
       // We fill up with "var".
       first_type_param_index = 0;
     } else {
       first_type_param_index = num_args - num_type_params;
     }
+    if (cls.IsSignatureClass()) {
+      const Function& signature_function = Function::Handle(
+          cls.signature_function());
+      // We may be reporting an error about an illformed function type. In that
+      // case, avoid instantiating the signature, since it may lead to cycles.
+      if (IsBeingFinalized()) {
+        return class_name.raw();
+      }
+      return signature_function.InstantiatedSignatureFrom(
+          args, first_type_param_index);
+    }
   } else {
-    class_name = unresolved_type_class();
+    const UnresolvedClass& type = UnresolvedClass::Handle(unresolved_class());
+    class_name = type.Name();
     num_type_params = num_args;
     first_type_param_index = 0;
   }
@@ -1581,7 +1705,7 @@ RawString* Type::Name() const {
     ASSERT(s == num_strings);
     type_name = String::ConcatAll(strings);
   }
-  // The name is only used for naming function types and for debugging purposes.
+  // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
   return String::NewSymbol(type_name);
@@ -1599,7 +1723,7 @@ RawString* Type::ClassName() const {
   if (HasResolvedTypeClass()) {
     return Class::Handle(type_class()).Name();
   } else {
-    return unresolved_type_class();
+    return UnresolvedClass::Handle(unresolved_class()).Name();
   }
 }
 
@@ -1645,8 +1769,11 @@ bool Type::IsMoreSpecificThan(const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::IsMoreSpecificThan().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
+    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
+    return
+        (!IsTypeParameter() && other.IsTypeParameter()) ||
+        (IsTypeParameter() && other.IsTypeParameter() &&
+         (Index() == other.Index()));
   }
   const Class& cls = Class::Handle(type_class());
   return cls.IsMoreSpecificThan(TypeArguments::Handle(arguments()),
@@ -1660,8 +1787,11 @@ bool Type::Test(TypeTestKind test, const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::TestType().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
+    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
+    return
+        (!IsTypeParameter() && other.IsTypeParameter()) ||
+        (IsTypeParameter() && other.IsTypeParameter() &&
+         (Index() == other.Index()));
   }
   const Class& cls = Class::Handle(type_class());
   if (test == kIsSubtypeOf) {
@@ -1735,7 +1865,7 @@ RawType* Type::NewRawType(const Class& type_class) {
 
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
-  ASSERT(type_class.NumTypeArguments() == 0);
+  ASSERT(!type_class.HasTypeArguments());
   const TypeArguments& no_type_arguments = TypeArguments::Handle();
   ParameterizedType& type = ParameterizedType::Handle();
   type ^= ParameterizedType::New(
@@ -1778,7 +1908,7 @@ void ParameterizedType::set_is_finalized() const {
 
 
 void ParameterizedType::set_is_being_finalized() const {
-  ASSERT(!IsFinalized() && !is_being_finalized());
+  ASSERT(!IsFinalized() && !IsBeingFinalized());
   set_type_state(RawParameterizedType::kBeingFinalized);
 }
 
@@ -1806,11 +1936,12 @@ RawClass* ParameterizedType::type_class() const {
 }
 
 
-RawString* ParameterizedType::unresolved_type_class() const {
+RawUnresolvedClass* ParameterizedType::unresolved_class() const {
   ASSERT(!HasResolvedTypeClass());
-  String& unresolved_type_class = String::Handle();
-  unresolved_type_class ^= raw_ptr()->type_class_;
-  return unresolved_type_class.raw();
+  UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
+  unresolved_class ^= raw_ptr()->type_class_;
+  ASSERT(!unresolved_class.IsNull());
+  return unresolved_class.raw();
 }
 
 
@@ -1836,15 +1967,18 @@ RawType* ParameterizedType::InstantiateFrom(
     type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
                                                     offset);
   }
+  const Class& cls = Class::Handle(type_class());
   ParameterizedType& instantiated_type = ParameterizedType::Handle(
-      ParameterizedType::New(Object::Handle(type_class()), type_arguments));
+      ParameterizedType::New(cls, type_arguments));
+  ASSERT(type_arguments.IsNull() ||
+         (type_arguments.Length() == cls.NumTypeArguments()));
   instantiated_type.set_is_finalized();
   return instantiated_type.raw();
 }
 
 
 void ParameterizedType::set_type_class(const Object& value) const {
-  ASSERT(!value.IsNull() && (value.IsClass() || value.IsString()));
+  ASSERT(!value.IsNull() && (value.IsClass() || value.IsUnresolvedClass()));
   StorePointer(&raw_ptr()->type_class_, value.raw());
 }
 
@@ -2337,15 +2471,6 @@ bool Function::IsInFactoryScope() const {
 }
 
 
-bool Function::IsInStaticScope() const {
-  Function& outer_function = Function::Handle(raw());
-  while (outer_function.IsLocalFunction()) {
-    outer_function = outer_function.parent_function();
-  }
-  return outer_function.is_static();
-}
-
-
 void Function::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
@@ -2717,6 +2842,15 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
 }
 
 
+bool Function::IsImplicitClosureFunction() const {
+  if (!IsClosureFunction()) {
+    return false;
+  }
+  const Function& parent = Function::Handle(parent_function());
+  return parent.raw_ptr()->implicit_closure_function_ == raw();
+}
+
+
 RawFunction* Function::New() {
   const Class& function_class = Class::Handle(Object::function_class());
   RawObject* raw = Object::Allocate(function_class,
@@ -2757,7 +2891,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
   const Function& result = Function::Handle(
       Function::New(name,
                     RawFunction::kClosureFunction,
-                    /* is_static = */ true,
+                    /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
                     token_index));
   result.set_parent_function(parent);
@@ -2830,6 +2964,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   ASSERT(Class::Handle(closure_function.signature_class()).IsNull());
   closure_function.set_signature_class(signature_class);
   set_implicit_closure_function(closure_function);
+  ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
 }
 
@@ -2844,21 +2979,21 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 }
 
 
-// Build a string of the form '<T>(A, [b: B, c: C]) => R)' representing the
-// signature of the given function.
-RawString* Function::Signature() const {
+RawString* Function::BuildSignature(bool instantiate,
+                                    const TypeArguments& instantiator,
+                                    intptr_t offset) const {
   GrowableArray<const String*> pieces;
-  const String& kSpaceExtendsSpace =
-      String::Handle(String::NewSymbol(" extends "));
   const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
   const String& kColonSpace = String::Handle(String::NewSymbol(": "));
-  const String& kLAngleBracket = String::Handle(String::NewSymbol("<"));
-  const String& kRAngleBracket = String::Handle(String::NewSymbol(">"));
   const String& kLParen = String::Handle(String::NewSymbol("("));
   const String& kRParen = String::Handle(String::NewSymbol(") => "));
   const String& kLBracket = String::Handle(String::NewSymbol("["));
   const String& kRBracket = String::Handle(String::NewSymbol("]"));
-  if (!is_static()) {
+  if (!instantiate && !is_static()) {
+    const String& kSpaceExtendsSpace =
+        String::Handle(String::NewSymbol(" extends "));
+    const String& kLAngleBracket = String::Handle(String::NewSymbol("<"));
+    const String& kRAngleBracket = String::Handle(String::NewSymbol(">"));
     const Class& function_class = Class::Handle(owner());
     ASSERT(!function_class.IsNull());
     const Array& type_parameters = Array::Handle(
@@ -2894,6 +3029,9 @@ RawString* Function::Signature() const {
   for (intptr_t i = 0; i < num_fixed_params; i++) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
+    if (instantiate && !param_type.IsInstantiated()) {
+      param_type = param_type.InstantiateFrom(instantiator, offset);
+    }
     pieces.Add(&String::ZoneHandle(param_type.Name()));
     if (i != (num_params - 1)) {
       pieces.Add(&kCommaSpace);
@@ -2905,6 +3043,9 @@ RawString* Function::Signature() const {
       pieces.Add(&String::ZoneHandle(ParameterNameAt(i)));
       pieces.Add(&kColonSpace);
       param_type = ParameterTypeAt(i);
+      if (instantiate && !param_type.IsInstantiated()) {
+        param_type = param_type.InstantiateFrom(instantiator, offset);
+      }
       ASSERT(!param_type.IsNull());
       pieces.Add(&String::ZoneHandle(param_type.Name()));
       if (i != (num_params - 1)) {
@@ -2914,10 +3055,29 @@ RawString* Function::Signature() const {
     pieces.Add(&kRBracket);
   }
   pieces.Add(&kRParen);
-  const Type& res_type = Type::Handle(result_type());
+  Type& res_type = Type::Handle(result_type());
+  if (instantiate && !res_type.IsInstantiated()) {
+    res_type = res_type.InstantiateFrom(instantiator, offset);
+  }
   pieces.Add(&String::Handle(res_type.Name()));
   const Array& strings = Array::Handle(NewArray<const String>(pieces));
   return String::NewSymbol(String::Handle(String::ConcatAll(strings)));
+}
+
+
+bool Function::HasInstantiatedSignature() const {
+  Type& type = Type::Handle(result_type());
+  if (!type.IsInstantiated()) {
+    return false;
+  }
+  const intptr_t num_parameters = NumberOfParameters();
+  for (intptr_t i = 0; i < num_parameters; i++) {
+    type = ParameterTypeAt(i);
+    if (!type.IsInstantiated()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -2975,6 +3135,22 @@ RawString* Field::SetterName(const String& field_name) {
   String& str = String::Handle();
   str = String::New("set:");
   str = String::Concat(str, field_name);
+  return String::NewSymbol(str);
+}
+
+
+RawString* Field::NameFromGetter(const String& getter_name) {
+  String& str = String::Handle();
+  str = String::New("get:");
+  str = String::SubString(getter_name, str.Length());
+  return String::NewSymbol(str);
+}
+
+
+RawString* Field::NameFromSetter(const String& setter_name) {
+  String& str = String::Handle();
+  str = String::New("set:");
+  str = String::SubString(setter_name, str.Length());
   return String::NewSymbol(str);
 }
 
@@ -3254,22 +3430,46 @@ const char* Script::ToCString() const {
 }
 
 
-ClassDictionaryIterator::ClassDictionaryIterator(const Library& library)
+DictionaryIterator::DictionaryIterator(const Library& library)
     : array_(Array::Handle(library.dictionary())),
       // Last element in array is a Smi.
       size_(Array::Handle(library.dictionary()).Length() - 1),
       next_ix_(0) {
+  MoveToNextObject();
+}
+
+
+RawObject* DictionaryIterator::GetNext() {
+  ASSERT(HasNext());
+  int ix = next_ix_++;
+  MoveToNextObject();
+  ASSERT(array_.At(ix) != Object::null());
+  return array_.At(ix);
+}
+
+
+void DictionaryIterator::MoveToNextObject() {
+  Object& obj = Object::Handle(array_.At(next_ix_));
+  while (obj.IsNull() && HasNext()) {
+    next_ix_++;
+    obj = array_.At(next_ix_);
+  }
+}
+
+
+ClassDictionaryIterator::ClassDictionaryIterator(const Library& library)
+    : DictionaryIterator(library) {
   MoveToNextClass();
 }
 
 
-RawClass* ClassDictionaryIterator::GetNext() {
+RawClass* ClassDictionaryIterator::GetNextClass() {
   ASSERT(HasNext());
   int ix = next_ix_++;
+  Object& obj = Object::Handle(array_.At(ix));
   MoveToNextClass();
-  ASSERT(array_.At(ix) != Object::null());
   Class& cls = Class::Handle();
-  cls ^= array_.At(ix);
+  cls ^= obj.raw();
   return cls.raw();
 }
 
@@ -3425,21 +3625,125 @@ RawObject* Library::LookupLocalObject(const String& name) const {
 }
 
 
-RawObject* Library::LookupObject(const String& name) const {
+RawObject* Library::LookupObjectFiltered(const String& name,
+                                         const Library& filter_lib) const {
+  // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObject(name));
   if (!obj.IsNull()) {
     return obj.raw();
   }
-  Library& import = Library::Handle();
-  Array& imports = Array::Handle(this->imports());
-  for (intptr_t i = 0; i < num_imports(); i++) {
-    import ^= imports.At(i);
-    obj = import.LookupLocalObject(name);
+  // Now check if name is found in the top level scope of any imported libs.
+  const Array& imports = Array::Handle(this->imports());
+  Library& import_lib = Library::Handle();
+  for (intptr_t j = 0; j < this->num_imports(); j++) {
+    import_lib ^= imports.At(j);
+    // Skip over the library that we need to filter out.
+    if (!filter_lib.IsNull() && import_lib.raw() == filter_lib.raw()) {
+      continue;
+    }
+    obj = import_lib.LookupLocalObject(name);
     if (!obj.IsNull()) {
       return obj.raw();
     }
   }
   return Object::null();
+}
+
+
+RawObject* Library::LookupObject(const String& name) const {
+  return LookupObjectFiltered(name, Library::Handle());
+}
+
+
+RawLibrary* Library::LookupObjectInImporter(const String& name) const {
+  const Array& imported_into_libs = Array::Handle(this->imported_into());
+  Library& lib = Library::Handle();
+  Object& obj = Object::Handle();
+  for (intptr_t i = 0; i < this->num_imported_into(); i++) {
+    lib ^= imported_into_libs.At(i);
+    obj = lib.LookupObjectFiltered(name, *this);
+    if (!obj.IsNull()) {
+      // If the object found is a class, field or function extract the
+      // library in which it is defined as it might be defined in one of
+      // the imported libraries.
+      Class& cls = Class::Handle();
+      Function& func = Function::Handle();
+      Field& field = Field::Handle();
+      if (obj.IsClass()) {
+        cls ^= obj.raw();
+        lib ^= cls.library();
+      } else if (obj.IsFunction()) {
+        func ^= obj.raw();
+        cls ^= func.owner();
+        lib ^= cls.library();
+      } else if (obj.IsField()) {
+        field ^= obj.raw();
+        cls ^= field.owner();
+        lib ^= cls.library();
+      }
+      return lib.raw();
+    }
+  }
+  return Library::null();
+}
+
+
+RawString* Library::DuplicateDefineErrorString(const String& entry_name,
+                                               const Library& conflict) const {
+  String& errstr = String::Handle();
+  Array& array = Array::Handle(Array::New(7));
+  errstr = String::New("'");
+  array.SetAt(0, errstr);
+  array.SetAt(1, entry_name);
+  errstr = String::New("' is defined in '");
+  array.SetAt(2, errstr);
+  errstr = url();
+  array.SetAt(3, errstr);
+  errstr = String::New("' and '");
+  array.SetAt(4, errstr);
+  errstr = conflict.url();
+  array.SetAt(5, errstr);
+  errstr = String::New("'");
+  array.SetAt(6, errstr);
+  errstr = String::ConcatAll(array);
+  return errstr.raw();
+}
+
+
+RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
+  DictionaryIterator it(*this);
+  Object& obj = Object::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  Field& field = Field::Handle();
+  String& entry_name = String::Handle();
+  while (it.HasNext()) {
+    obj = it.GetNext();
+    ASSERT(!obj.IsNull());
+    if (obj.IsClass()) {
+      cls ^= obj.raw();
+      if (cls.IsSignatureClass()) {
+        continue;
+      }
+      entry_name = cls.Name();
+    } else if (obj.IsFunction()) {
+      func ^= obj.raw();
+      entry_name = func.name();
+    } else if (obj.IsField()) {
+      field ^= obj.raw();
+      entry_name = field.name();
+    } else {
+      // We don't check for library prefixes defined in this library because
+      // they are not visible in the importing scope and hence cannot
+      // cause any duplicate definitions.
+      continue;
+    }
+    *conflicting_lib = LookupObjectInImporter(entry_name);
+    if (!conflicting_lib->IsNull()) {
+      return entry_name.raw();
+    }
+  }
+  return String::null();
 }
 
 
@@ -3502,6 +3806,21 @@ void Library::AddImport(const Library& library) const {
   intptr_t index = num_imports();
   imports.SetAt(index, library);
   set_num_imports(index + 1);
+  library.AddImportedInto(*this);
+}
+
+
+void Library::AddImportedInto(const Library& library) const {
+  Array& imported_into = Array::Handle(this->imported_into());
+  intptr_t capacity = imported_into.Length();
+  if (num_imported_into() == capacity) {
+    capacity = capacity + kImportedIntoCapacityIncrement;
+    imported_into = Array::Grow(imported_into, capacity);
+    StorePointer(&raw_ptr()->imported_into_, imported_into.raw());
+  }
+  intptr_t index = num_imported_into();
+  imported_into.SetAt(index, library);
+  set_num_imported_into(index + 1);
 }
 
 
@@ -3522,6 +3841,14 @@ void Library::InitImportList() const {
       Array::Handle(Array::New(kInitialImportsCapacity, Heap::kOld));
   StorePointer(&raw_ptr()->imports_, imports.raw());
   raw_ptr()->num_imports_ = 0;
+}
+
+
+void Library::InitImportedIntoList() const {
+  const Array& imported_into =
+      Array::Handle(Array::New(kInitialImportedIntoCapacity, Heap::kOld));
+  StorePointer(&raw_ptr()->imported_into_, imported_into.raw());
+  raw_ptr()->num_imported_into_ = 0;
 }
 
 
@@ -3550,6 +3877,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->loaded_ = false;
   result.InitClassDictionary();
   result.InitImportList();
+  result.InitImportedIntoList();
   if (import_core_lib) {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
@@ -3598,6 +3926,26 @@ RawLibrary* Library::LookupLibrary(const String &url) {
     lib = lib.next_registered();
   }
   return Library::null();
+}
+
+
+RawString* Library::CheckForDuplicateDefinition() {
+  Library& lib = Library::Handle();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ObjectStore* object_store = isolate->object_store();
+  ASSERT(object_store != NULL);
+  lib ^= object_store->registered_libraries();
+  String& entry_name = String::Handle();
+  Library& conflicting_lib = Library::Handle();
+  while (!lib.IsNull()) {
+    entry_name = lib.FindDuplicateDefinition(&conflicting_lib);
+    if (!entry_name.IsNull()) {
+      return lib.DuplicateDefineErrorString(entry_name, conflicting_lib);
+    }
+    lib ^= lib.next_registered();
+  }
+  return String::null();
 }
 
 
@@ -3694,7 +4042,7 @@ void Library::CompileAll() {
   while (!lib.IsNull()) {
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
-      cls ^= it.GetNext();
+      cls ^= it.GetNextClass();
       if (!cls.is_interface()) {
         Compiler::CompileAllFunctions(cls);
       }
@@ -4258,6 +4606,31 @@ const char* UnhandledException::ToCString() const {
 }
 
 
+RawApiFailure* ApiFailure::New(const String& message, Heap::Space space) {
+  const Class& cls = Class::Handle(Object::api_failure_class());
+  ApiFailure& result = ApiFailure::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls,
+                                      ApiFailure::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_message(message);
+  return result.raw();
+}
+
+
+void ApiFailure::set_message(const String& message) const {
+  StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+const char* ApiFailure::ToCString() const {
+  return "ApiFailure";
+}
+
+
 bool Instance::Equals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
@@ -4325,7 +4698,7 @@ RawType* Instance::GetType() const {
   }
   const Class& cls = Class::Handle(clazz());
   TypeArguments& type_arguments = TypeArguments::Handle();
-  if (cls.IsParameterized()) {
+  if (cls.HasTypeArguments()) {
     type_arguments = GetTypeArguments();
   }
   return Type::NewParameterizedType(cls, type_arguments);
@@ -4373,10 +4746,19 @@ bool Instance::TestType(TypeTestKind test,
   }
   const Class& cls = Class::Handle(clazz());
   TypeArguments& type_arguments = TypeArguments::Handle();
-  if (cls.IsParameterized()) {
+  const intptr_t num_type_arguments = cls.NumTypeArguments();
+  if (num_type_arguments > 0) {
     type_arguments = GetTypeArguments();
+    // Verify that the number of type arguments in the instance matches the
+    // number of type arguments expected by the instance class.
+    // A discrepancy is allowed for closures, which borrow the type argument
+    // vector of their instantiator, which may be of a super class of the class
+    // defining the closure. Truncating the vector to the correct length on
+    // instantiation is unnecessary. The vector may therefore be longer.
     ASSERT(type_arguments.IsNull() ||
-           (type_arguments.Length() == cls.NumTypeArguments()));
+           (type_arguments.Length() == num_type_arguments) ||
+           (cls.IsSignatureClass() &&
+            (type_arguments.Length() > num_type_arguments)));
   }
   Class& other_class = Class::Handle();
   TypeArguments& other_type_arguments = TypeArguments::Handle();
@@ -5099,7 +5481,7 @@ RawString* String::New(const char* str, Heap::Space space) {
   intptr_t width = 0;
   intptr_t len = Utf8::CodePointCount(str, &width);
   if (width == 1) {
-    OneByteString& onestr
+    const OneByteString& onestr
         = OneByteString::Handle(OneByteString::New(len, space));
     if (len > 0) {
       NoGCScope no_gc;
@@ -5107,14 +5489,14 @@ RawString* String::New(const char* str, Heap::Space space) {
     }
     return onestr.raw();
   } else if (width == 2) {
-    TwoByteString& twostr =
+    const TwoByteString& twostr =
         TwoByteString::Handle(TwoByteString::New(len, space));
     NoGCScope no_gc;
     Utf8::Decode(str, twostr.CharAddr(0), len);
     return twostr.raw();
   }
   ASSERT(width == 4);
-  FourByteString& fourstr =
+  const FourByteString& fourstr =
       FourByteString::Handle(FourByteString::New(len, space));
   NoGCScope no_gc;
   Utf8::Decode(str, fourstr.CharAddr(0), len);
@@ -5560,6 +5942,48 @@ const char* String::ToCString() const {
 }
 
 
+RawString* String::Transform(int32_t (*mapping)(int32_t ch),
+                             const String& str,
+                             Heap::Space space) {
+  ASSERT(!str.IsNull());
+  bool has_mapping = false;
+  int32_t dst_max = 0;
+  intptr_t len = str.Length();
+  // TODO(cshapiro): assume a transform is required, rollback if not.
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t src = str.CharAt(i);
+    int32_t dst = mapping(src);
+    if (src != dst) {
+      has_mapping = true;
+    }
+    dst_max = Utils::Maximum(dst_max, dst);
+  }
+  if (!has_mapping) {
+    return str.raw();
+  }
+  if (dst_max <= 0xFF) {
+    return OneByteString::Transform(mapping, str, space);
+  }
+  if (dst_max <= 0xFFFF) {
+    return TwoByteString::Transform(mapping, str, space);
+  }
+  ASSERT(dst_max > 0xFFFF);
+  return FourByteString::Transform(mapping, str, space);
+}
+
+
+RawString* String::ToUpperCase(const String& str, Heap::Space space) {
+  // TODO(cshapiro): create a fast-path for OneByteString instances.
+  return Transform(CaseMapping::ToUpper, str, space);
+}
+
+
+RawString* String::ToLowerCase(const String& str, Heap::Space space) {
+  // TODO(cshapiro): create a fast-path for OneByteString instances.
+  return Transform(CaseMapping::ToLower, str, space);
+}
+
+
 RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
@@ -5583,7 +6007,8 @@ RawOneByteString* OneByteString::New(intptr_t len,
 RawOneByteString* OneByteString::New(const uint8_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5592,7 +6017,8 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
 RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5601,7 +6027,8 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
 RawOneByteString* OneByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5610,7 +6037,8 @@ RawOneByteString* OneByteString::New(const uint32_t* characters,
 RawOneByteString* OneByteString::New(const OneByteString& str,
                                      Heap::Space space) {
   intptr_t len = str.Length();
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, str, 0, len);
   return result.raw();
 }
@@ -5622,7 +6050,8 @@ RawOneByteString* OneByteString::Concat(const String& str1,
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
   return result.raw();
@@ -5632,7 +6061,8 @@ RawOneByteString* OneByteString::Concat(const String& str1,
 RawOneByteString* OneByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  OneByteString& result = OneByteString::Handle(OneByteString::New(len, space));
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
   OneByteString& str = OneByteString::Handle();
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
@@ -5646,10 +6076,10 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
 }
 
 
-RawOneByteString* OneByteString::SubString(const OneByteString& str,
-                                           intptr_t begin_index,
-                                           intptr_t length,
-                                           Heap::Space space) {
+RawString* OneByteString::SubString(const OneByteString& str,
+                                    intptr_t begin_index,
+                                    intptr_t length,
+                                    Heap::Space space) {
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
   OneByteString& result = OneByteString::Handle();
@@ -5658,6 +6088,22 @@ RawOneByteString* OneByteString::SubString(const OneByteString& str,
     String::Copy(result, 0, str, begin_index, length);
   }
   // TODO(5418937): return a non-null object on error.
+  return result.raw();
+}
+
+
+RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
+                                           const String& str,
+                                           Heap::Space space) {
+  ASSERT(!str.IsNull());
+  intptr_t len = str.Length();
+  const OneByteString& result =
+      OneByteString::Handle(OneByteString::New(len, space));
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t ch = mapping(str.CharAt(i));
+    ASSERT(ch >= 0 && ch <= 0xFF);
+    *result.CharAddr(i) = ch;
+  }
   return result.raw();
 }
 
@@ -5690,7 +6136,8 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
 RawTwoByteString* TwoByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5699,7 +6146,8 @@ RawTwoByteString* TwoByteString::New(const uint16_t* characters,
 RawTwoByteString* TwoByteString::New(const uint32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
 }
@@ -5708,7 +6156,8 @@ RawTwoByteString* TwoByteString::New(const uint32_t* characters,
 RawTwoByteString* TwoByteString::New(const TwoByteString& str,
                                      Heap::Space space) {
   intptr_t len = str.Length();
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, str, 0, len);
   return result.raw();
 }
@@ -5717,11 +6166,11 @@ RawTwoByteString* TwoByteString::New(const TwoByteString& str,
 RawTwoByteString* TwoByteString::Concat(const String& str1,
                                         const String& str2,
                                         Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle();
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  result ^= TwoByteString::New(len, space);
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
   return result.raw();
@@ -5731,7 +6180,8 @@ RawTwoByteString* TwoByteString::Concat(const String& str1,
 RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
                                            intptr_t len,
                                            Heap::Space space) {
-  TwoByteString& result = TwoByteString::Handle(TwoByteString::New(len, space));
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
   String& str = String::Handle();
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
@@ -5745,15 +6195,26 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
 }
 
 
-RawTwoByteString* TwoByteString::SubString(const TwoByteString& str,
-                                           intptr_t begin_index,
-                                           intptr_t length,
-                                           Heap::Space space) {
+RawString* TwoByteString::SubString(const TwoByteString& str,
+                                    intptr_t begin_index,
+                                    intptr_t length,
+                                    Heap::Space space) {
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
-  TwoByteString& result = TwoByteString::Handle();
+  String& result = String::Handle();
   if (length <= (str.Length() - begin_index)) {
-    result ^= TwoByteString::New(length, space);
+    bool is_one_byte_string = true;
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+        break;
+      }
+    }
+    if (is_one_byte_string) {
+      result ^= OneByteString::New(length, space);
+    } else {
+      result ^= TwoByteString::New(length, space);
+    }
     String::Copy(result, 0, str, begin_index, length);
   }
   // TODO(5418937): return a non-null object on error.
@@ -5761,10 +6222,25 @@ RawTwoByteString* TwoByteString::SubString(const TwoByteString& str,
 }
 
 
+RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
+                                           const String& str,
+                                           Heap::Space space) {
+  ASSERT(!str.IsNull());
+  intptr_t len = str.Length();
+  const TwoByteString& result =
+      TwoByteString::Handle(TwoByteString::New(len, space));
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t ch = mapping(str.CharAt(i));
+    ASSERT(ch >= 0 && ch <= 0xFFFF);
+    *result.CharAddr(i) = ch;
+  }
+  return result.raw();
+}
+
+
 const char* TwoByteString::ToCString() const {
   return String::ToCString();
 }
-
 
 
 RawFourByteString* FourByteString::New(intptr_t len,
@@ -5790,7 +6266,7 @@ RawFourByteString* FourByteString::New(intptr_t len,
 RawFourByteString* FourByteString::New(const uint32_t* characters,
                                        intptr_t len,
                                        Heap::Space space) {
-  FourByteString& result =
+  const FourByteString& result =
       FourByteString::Handle(FourByteString::New(len, space));
   String::Copy(result, 0, characters, len);
   return result.raw();
@@ -5809,7 +6285,7 @@ RawFourByteString* FourByteString::Concat(const String& str1,
   intptr_t len1 = str1.Length();
   intptr_t len2 = str2.Length();
   intptr_t len = len1 + len2;
-  FourByteString& result =
+  const FourByteString& result =
       FourByteString::Handle(FourByteString::New(len, space));
   String::Copy(result, 0, str1, 0, len1);
   String::Copy(result, len1, str2, 0, len2);
@@ -5820,7 +6296,7 @@ RawFourByteString* FourByteString::Concat(const String& str1,
 RawFourByteString* FourByteString::ConcatAll(const Array& strings,
                                              intptr_t len,
                                              Heap::Space space) {
-  FourByteString& result =
+  const FourByteString& result =
       FourByteString::Handle(FourByteString::New(len, space));
   String& str = String::Handle();
   {
@@ -5837,18 +6313,51 @@ RawFourByteString* FourByteString::ConcatAll(const Array& strings,
 }
 
 
-RawFourByteString* FourByteString::SubString(const FourByteString& str,
-                                             intptr_t begin_index,
-                                             intptr_t length,
-                                             Heap::Space space) {
+RawString* FourByteString::SubString(const FourByteString& str,
+                                     intptr_t begin_index,
+                                     intptr_t length,
+                                     Heap::Space space) {
   ASSERT(!str.IsNull());
   ASSERT(begin_index < str.Length());
-  FourByteString& result = FourByteString::Handle();
+  String& result = String::Handle();
   if (length <= (str.Length() - begin_index)) {
-    result ^= FourByteString::New(length, space);
+    bool is_one_byte_string = true;
+    bool is_two_byte_string = true;
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFFFF) {
+        is_one_byte_string = false;
+        is_two_byte_string = false;
+        break;
+      } else if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+      }
+    }
+    if (is_one_byte_string) {
+      result ^= OneByteString::New(length, space);
+    } else if (is_two_byte_string) {
+      result ^= TwoByteString::New(length, space);
+    } else {
+      result ^= FourByteString::New(length, space);
+    }
     String::Copy(result, 0, str, begin_index, length);
   }
   // TODO(5418937): return a non-null object on error.
+  return result.raw();
+}
+
+
+RawFourByteString* FourByteString::Transform(int32_t (*mapping)(int32_t ch),
+                                             const String& str,
+                                             Heap::Space space) {
+  ASSERT(!str.IsNull());
+  intptr_t len = str.Length();
+  const FourByteString& result =
+      FourByteString::Handle(FourByteString::New(len, space));
+  for (intptr_t i = 0; i < len; ++i) {
+    int32_t ch = mapping(str.CharAt(i));
+    ASSERT(ch >= 0 && ch <= 0x10FFFF);
+    *result.CharAddr(i) = ch;
+  }
   return result.raw();
 }
 

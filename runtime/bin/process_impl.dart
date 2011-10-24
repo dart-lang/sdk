@@ -81,21 +81,21 @@ class _Process implements Process {
 
   void _processExit(int pid) native "Process_Exit";
 
-  InputStream get stdoutStream() {
+  InputStream get stdout() {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
     return _in.inputStream;
   }
 
-  InputStream get stderrStream() {
+  InputStream get stderr() {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
     return _err.inputStream;
   }
 
-  OutputStream get stdinStream() {
+  OutputStream get stdin() {
     if (_closed) {
       throw new ProcessException("Process closed");
     }

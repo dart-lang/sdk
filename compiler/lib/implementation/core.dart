@@ -40,6 +40,10 @@ class ExceptionHelper {
   static TypeError createTypeError(String srcType, String dstType) native {
     return new TypeError(srcType, dstType);
   }
+  
+  static AssertionError createAssertionError() native {
+    return new AssertionError();
+  }
 }
 
 class _CoreJsUtil {

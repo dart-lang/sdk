@@ -4,12 +4,15 @@
 
 package com.google.dart.compiler;
 
+
+import com.google.dart.runner.DartRunner;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
  * Provides a framework to read command line options from stdin and feed them to
- * either the DartCompiler or TestRunner.
+ * either the {@link DartCompiler} or {@link DartRunner}.
  *
  */
 public class UnitTestBatchRunner {

@@ -6,6 +6,7 @@ import os
 from os.path import join, exists
 
 import test
+from testing import test_runner
 
 class VmTestCase(test.TestCase):
   def __init__(self, path, context, mode, arch, flags):
@@ -45,7 +46,7 @@ class VmTestConfiguration(test.TestConfiguration):
     if not arch in ['ia32', 'x64', 'arm', 'simarm']:
       return []
     run_tests = self.context.GetRunTests(mode, arch)
-    output = test.Execute(run_tests + ['--list'], self.context)
+    output = test_runner.Execute(run_tests + ['--list'], self.context)
     if output.exit_code != 0:
       print output.stdout
       print output.stderr

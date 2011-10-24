@@ -221,17 +221,20 @@ class Parser : ValueObject {
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,
            GrowableArray<FieldInitExpression>* initializers);
+  void GenerateSuperInitializerCall(const Class& cls, LocalVariable* receiver);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
   AstNode* ParseInitializer(const Class& cls, LocalVariable* receiver);
   void ParseConstructorRedirection(const Class& cls, LocalVariable* receiver);
-  void ParseInitializers(const Class& cls, LocalVariable* receiver);
+  void ParseInitializers(const Class& cls);
   String& ParseNativeDeclaration();
   RawArray* ParseInterfaceList();
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,
                      const Array& interfaces);
+  RawFunction* GetSuperFunction(intptr_t token_pos, const String& name);
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);
+  AstNode* ParseSuperOperator();
 
   static void SetupDefaultsForOptionalParams(const ParamList* params,
                                              Array& default_values);
@@ -373,6 +376,10 @@ class Parser : ValueObject {
                                       const QualIdent& qual_ident,
                                       bool resolve_locally);
   AstNode* ResolveVarOrField(intptr_t ident_pos, const String &ident);
+  AstNode* OptimizeBinaryOpNode(intptr_t op_pos,
+                                Token::Kind binary_op,
+                                AstNode* lhs,
+                                AstNode* rhs);
   AstNode* ExpandAssignableOp(intptr_t op_pos,
                               Token::Kind assignment_op,
                               AstNode* lhs,
@@ -396,7 +403,6 @@ class Parser : ValueObject {
                           const char* function_name,
                           ArgumentListNode* arguments);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
-  String& Interpolate(ArrayNode* strings);
 
   void CheckFunctionIsCallable(intptr_t token_index, const Function& function);
 

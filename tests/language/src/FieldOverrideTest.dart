@@ -17,13 +17,13 @@ class Super {
 class Sub extends Super {
   Sub() : super();
 
-  A field;
+  A field;  /// 01: compile-time error
 }
 
 class SubSub extends Super {
   SubSub() : super();
 
-  B2 field; /// 01: static type error
+  B2 field;  /// 02: compile-time error
 }
 
 main() {

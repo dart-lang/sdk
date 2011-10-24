@@ -299,24 +299,28 @@ public class DartParser extends CompletionHooksParserBase {
       } else {
         importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
       }
+      importPath.setSourceInfo(importDirective.getSourceInfo());
       libUnit.addImportPath(importPath);
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
       DartSourceDirective sourceDirective = done(parseSourceDirective());
       LibraryNode sourcePath = new LibraryNode(sourceDirective.getSourceUri().getValue());
+      sourcePath.setSourceInfo(sourceDirective.getSourceInfo());
       libUnit.addSourcePath(sourcePath);
     }
     while (peek(0) == Token.RESOURCE) {
       beginResourceDirective();
       DartResourceDirective resourceDirective = done(parseResourceDirective());
       LibraryNode resourcePath = new LibraryNode(resourceDirective.getResourceUri().getValue());
+      resourcePath.setSourceInfo(resourceDirective.getSourceInfo());
       libUnit.addResourcePath(resourcePath);
     }
     while (peek(0) == Token.NATIVE) {
       beginNativeDirective();
       DartNativeDirective nativeDirective = done(parseNativeDirective());
       LibraryNode nativePath = new LibraryNode(nativeDirective.getNativeUri().getValue());
+      nativePath.setSourceInfo(nativeDirective.getSourceInfo());
       libUnit.addNativePath(nativePath);
     }
 
@@ -2052,6 +2056,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartParameter> params = parseFormalParameterList();
     DartBlock body = parseFunctionStatementBody(isDeclaration);
     DartFunction function = new DartFunction(params, body, returnType);
+    doneWithoutConsuming(function);
     if (isDeclaration && namePtr[0] == null) {
       reportError(function, DartCompilerErrorCode.MISSING_FUNCTION_NAME);
     }
@@ -2151,7 +2156,8 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeNode> parts = new ArrayList<DartTypeNode>();
     beginConstructor();
     do {
-      parts.add(new DartTypeNode(parseIdentifier(), parseTypeArgumentsOpt()));
+      beginConstructorNamePart();
+      parts.add(done(new DartTypeNode(parseIdentifier(), parseTypeArgumentsOpt())));
     } while (optional(Token.PERIOD));
     assert parts.size() > 0;
 
@@ -2294,6 +2300,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartExpression expression = tryParseAssignableSelector(receiver);
     if (expression == null) {
       reportError(position(), DartCompilerErrorCode.EXPECTED_PERIOD_OR_LEFT_BRACKET);
+      expression = receiver;
     }
     return expression;
   }
@@ -2709,13 +2716,9 @@ public class DartParser extends CompletionHooksParserBase {
     if (peek(1) == Token.LPAREN && optionalPseudoKeyword(ASSERT_KEYWORD)) {
       consume(Token.LPAREN);
       DartExpression expression = parseConditionalExpression();
-      DartExpression message = null;
-      if (optional(Token.COMMA)) {
-        message = parseConditionalExpression();
-      }
       expectCloseParen();
       expectStatmentTerminator();
-      return done(new DartAssertion(expression, message));
+      return done(new DartAssertion(expression));
     }
     DartExpression expression = parseExpression();
     expectStatmentTerminator();

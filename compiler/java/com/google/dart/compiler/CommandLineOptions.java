@@ -38,6 +38,9 @@ public class CommandLineOptions {
         usage = "Do not generate output, only analyze")
     private boolean checkOnly = false;
 
+    @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
+    private boolean exposeCoreImpl = false;
+
     @Option(name = "--warn_no_such_type",
         usage = "Treat some type checks as warnings\n instead of fatal errors")
     private boolean shouldWarnOnNoSuchType = false;
@@ -65,6 +68,10 @@ public class CommandLineOptions {
     @Option(name = "--generate-isolate-stubs", aliases = { "-generate-isolate-stubs" },
         usage = "Classes to generate stubs\n (comma-separated list)")
     private String generateIsolateStubs = null;
+
+    @Option(name = "--generate_source_maps",
+        usage = "Generate source maps")
+    private boolean generateSourceMaps = false;
 
     @Option(name = "--human-readable-output",
         usage = "Write human readable javascript")
@@ -149,6 +156,13 @@ public class CommandLineOptions {
     }
 
     /**
+     * @return <code>true</code> to automatically import dart:coreimpl
+     */
+    public boolean shouldExposeCoreImpl() {
+      return exposeCoreImpl;
+    }
+
+    /**
      * Returns whether the option -generate-documentation is provided.
      */
     public boolean generateDocumentation() {
@@ -225,6 +239,10 @@ public class CommandLineOptions {
       return disableTypeOptimizations;
     }
 
+    public boolean generateSourceMaps() {
+      return generateSourceMaps;
+    }
+
     public boolean generateHumanReadableOutput() {
       return generateHumanReadableOutput;
     }
@@ -293,9 +311,6 @@ public class CommandLineOptions {
     @Option(name = "--compile-only", usage = "Compile but do not execute")
     private boolean compileOnly = false;
 
-    @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
-    private boolean exposeCoreImpl = false;
-
     @Option(name = "--verbose", usage = "Extra diagnostic output")
     private boolean verbose = false;
 
@@ -311,13 +326,6 @@ public class CommandLineOptions {
     @Override
     public boolean shouldCompileOnly() {
       return compileOnly;
-    }
-
-    /**
-     * @return <code>true</code> to automatically import dart:coreimpl
-     */
-    public boolean shouldExposeCoreImpl() {
-      return exposeCoreImpl;
     }
 
     /**

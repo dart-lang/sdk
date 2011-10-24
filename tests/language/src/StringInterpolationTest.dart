@@ -34,7 +34,6 @@ class StringInterpolationTest {
 
     // embedding static fields
     Expect.equals(" hi 1 ", " hi ${i} ");
-    Expect.equals(true, " hi ${i} " === " hi ${i} ");
     Expect.equals(" hi <hi> ", " hi ${a} ");
 
     // embedding method parameters

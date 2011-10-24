@@ -34,13 +34,13 @@ import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLabel;
-import com.google.dart.compiler.ast.DartLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -54,7 +54,6 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartTypedLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
@@ -338,20 +337,15 @@ public class Resolver {
       return member;
     }
 
-    private void resolveConstantExpression(DartExpression defaultExpr) {
-      resolve(defaultExpr);
-      checkConstantExpression(defaultExpr);
+    private void resolveConstantExpression(DartExpression expr) {
+      resolve(expr);
+      checkConstantExpression(expr);
     }
 
-    private void checkConstantExpression(DartExpression defaultExpr) {
-      // See bug 4568007.
-    }
-
-    private void checkConstantLiteral(DartExpression defaultExpr) {
-      if ((!(defaultExpr instanceof DartLiteral))
-          || ((defaultExpr instanceof DartTypedLiteral)
-              && (!((DartTypedLiteral) defaultExpr).isConst()))) {
-        resolutionError(defaultExpr, DartCompilerErrorCode.EXPECTED_CONSTANT_LITERAL);
+    private void checkConstantExpression(DartExpression expr) {
+      if (expr != null) {
+        DartNodeTraverser<Void> v = CompileTimeConstVisitor.create(typeProvider, context);
+        expr.accept(v);
       }
     }
 
@@ -363,19 +357,23 @@ public class Resolver {
       boolean isFinal = modifiers.isFinal();
       boolean isTopLevel = ElementKind.of(currentHolder).equals(ElementKind.LIBRARY);
 
+      if (isTopLevel && isFinal) {
+        modifiers.makeStatic();
+      }
+
       if (expression != null) {
-        if (isStatic || isTopLevel) {
-          checkConstantExpression(expression);
-        } else {
-          // TODO(5200401): Only allow constant literals for inline field initializers for now.
-          checkConstantLiteral(expression);
-        }
         resolve(expression);
+        checkConstantExpression(expression);
+        // Now, this constant has a type. Save it for future reference.
+        Element element = node.getSymbol();
+        if (expression.getType() != null) {
+          Elements.setType(element, expression.getType());
+        }
       } else if (isStatic && isFinal) {
         resolutionError(node, DartCompilerErrorCode.STATIC_FINAL_REQUIRES_VALUE);
       }
 
-      // If field is an acessor, both getter and setter need to be visited (if present).
+      // If field is an accessor, both getter and setter need to be visited (if present).
       FieldElement field = node.getSymbol();
       if (field.getGetter() != null) {
         resolve(field.getGetter().getNode());
@@ -643,11 +641,25 @@ public class Resolver {
     }
 
     private Element resolveIdentifier(DartIdentifier x, boolean isQualifier) {
-      Element element = getContext().getScope().findElement(x.getTargetName());
+      Scope scope = getContext().getScope();
+      String name = x.getTargetName();
+      Element element = scope.findElement(scope.getLibrary(), name);
       if (element == null) {
+        // A private identifier could refer to a field in a different library. In this case
+        // we want to provide a more useful error message in the type analyzer.
+        if (DartIdentifier.isPrivateName(name)) {
+          Element found = scope.findElement(null, name);
+          if (found != null) {
+            Element enclosingElement = found.getEnclosingElement();
+            String referencedElementName = enclosingElement == null
+                ? name : String.format("%s.%s", enclosingElement.getName(), name);
+            resolutionError(x, DartCompilerErrorCode.ILLEGAL_ACCESS_TO_PRIVATE_MEMBER,
+                            name, referencedElementName);
+          }
+        }
         if (isStaticContextOrInitializer()) {
           if (!context.shouldWarnOnNoSuchType()) {
-            resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED, x.getTargetName());
+            resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
           }
         }
       } else {
@@ -655,18 +667,18 @@ public class Resolver {
           case FIELD:
             if (inStaticContext(currentMethod) && !inStaticContext(element)) {
               resolutionError(x, DartCompilerErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
-                  x.getTargetName());
+                  name);
             }
             break;
           case METHOD:
             if (inStaticContext(currentMethod) && !inStaticContext(element)) {
               resolutionError(x, DartCompilerErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC,
-                  x.getTargetName());
+                  name);
             }
             break;
           case CLASS:
             if (!isQualifier) {
-              resolutionError(x, DartCompilerErrorCode.IS_A_CLASS, x.getTargetName());
+              resolutionError(x, DartCompilerErrorCode.IS_A_CLASS, name);
             }
             break;
 
@@ -766,7 +778,8 @@ public class Resolver {
 
         case LIBRARY:
           // Library prefix, lookup the element in the reference library.
-          element = ((LibraryElement) qualifier).getScope().findElement(x.getPropertyName());
+          Scope scope = ((LibraryElement) qualifier).getScope();
+          element = scope.findElement(scope.getLibrary(), x.getPropertyName());
           if (element == null) {
             resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED_LIBRARY,
                 x.getPropertyName(), qualifier.getName());
@@ -819,7 +832,9 @@ public class Resolver {
 
         case LIBRARY:
           // Library prefix, lookup the element in the reference library.
-          element = ((LibraryElement) target).getScope().findElement(x.getFunctionNameString());
+          LibraryElement library = ((LibraryElement) target);
+          element = library.getScope().findElement(context.getScope().getLibrary(),
+                                                   x.getFunctionNameString());
           if (element == null) {
             diagnoseErrorInMethodInvocation(x, null, null);
           }
@@ -833,7 +848,8 @@ public class Resolver {
 
     @Override
     public Element visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
-      Element element = getContext().getScope().findElement(x.getTarget().getTargetName());
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), x.getTarget().getTargetName());
       ElementKind kind = ElementKind.of(element);
       if (!INVOKABLE_ELEMENTS.contains(kind)) {
         diagnoseErrorInUnqualifiedInvocation(x);
@@ -854,7 +870,14 @@ public class Resolver {
 
     @Override
     public Element visitNewExpression(DartNewExpression x) {
+
       this.visit(x.getArgs());
+
+      if (x.isConst()) {
+        for (DartExpression arg : x.getArgs()) {
+         checkConstantExpression(arg);
+        }
+      }
 
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
@@ -988,7 +1011,8 @@ public class Resolver {
 
     private void diagnoseErrorInUnqualifiedInvocation(DartUnqualifiedInvocation node) {
       String name = node.getTarget().getTargetName();
-      Element element = getContext().getScope().findElement(name);
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), name);
       ElementKind kind = ElementKind.of(element);
       switch (kind) {
         case NONE:
@@ -1020,7 +1044,8 @@ public class Resolver {
 
     private void diagnoseErrorInInitializer(DartIdentifier x) {
       String name = x.getTargetName();
-      Element element = getContext().getScope().findElement(name);
+      Scope scope = getContext().getScope();
+      Element element = scope.findElement(scope.getLibrary(), name);
       ElementKind kind = ElementKind.of(element);
       switch (kind) {
         case NONE:
@@ -1224,13 +1249,15 @@ public class Resolver {
     private void checkVariableStatement(DartVariableStatement node,
                                         DartVariable variable,
                                         boolean isImplicitlyInitialized) {
-      if (node.getModifiers().isFinal()) {
+      Modifiers modifiers = node.getModifiers();
+      if (modifiers.isFinal()) {
         if (!isImplicitlyInitialized && (variable.getValue() == null)) {
           resolutionError(variable.getName(), DartCompilerErrorCode.CONSTANTS_MUST_BE_INITIALIZED);
         } else if (isImplicitlyInitialized && (variable.getValue() != null)) {
           resolutionError(variable.getName(), DartCompilerErrorCode.CANNOT_BE_INITIALIZED);
-        } else {
-          checkConstantExpression(variable.getValue());
+        } else if (modifiers.isStatic() && modifiers.isFinal() && variable.getValue() != null) {
+          resolveConstantExpression(variable.getValue());
+          node.setType(variable.getValue().getType());
         }
       }
     }

@@ -12,10 +12,11 @@ namespace dart {
 
 class Class;
 class Function;
+class RawString;
 class RawType;
+class Script;
 class Type;
 class TypeArguments;
-class RawString;
 
 // Traverses all pending, unfinalized classes, validates and marks them as
 // finalized.
@@ -54,7 +55,6 @@ class ClassFinalizer : public AllStatic {
  private:
   static void FinalizeClass(const Class& cls);
   static bool IsSuperCycleFree(const Class& cls);
-  static void CheckForLegalOverrides(const Class& cls);
   static void CheckForLegalConstClass(const Class& cls);
   static void ResolveSuperClass(const Class& cls);
   static void ResolveDefaultClass(const Class& cls);
@@ -70,6 +70,9 @@ class ClassFinalizer : public AllStatic {
   static void VerifyClassImplements(const Class& cls);
   static void CollectInterfaces(const Class& cls,
                                 GrowableArray<const Class*>* interfaces);
+  static void ReportError(const Script& script,
+                          intptr_t token_index,
+                          const char* format, ...);
   static void ReportError(const char* format, ...);
 };
 

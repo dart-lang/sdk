@@ -127,7 +127,7 @@ public class DartUnit extends DartNode {
   public final String toDietSource() {
     if (dietParse == null) {
       DefaultTextOutput out = new DefaultTextOutput(false);
-      new DartToSourceVisitor(out, true).accept(this);
+      new DartToSourceVisitor(out, true, true).accept(this);
       dietParse = out.toString();
     }
     return dietParse;
@@ -147,6 +147,9 @@ public class DartUnit extends DartNode {
    * Answer the receiver's directives or <code>null</code> if none
    */
   public List<DartDirective> getDirectives() {
+    if (directives == null) {
+      return Collections.<DartDirective> emptyList();
+    }
     return directives;
   }
 }

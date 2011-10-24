@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
@@ -182,5 +183,10 @@ final class DartCompilerMainContext extends DartCompilerListener implements
   @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     return compilerConfiguration.getSystemLibraryFor(importSpec);
+  }
+
+  @Override
+  public void unitCompiled(DartUnit unit) {
+    listener.unitCompiled(unit);
   }
 }

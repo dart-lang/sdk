@@ -7,20 +7,21 @@ prefix corelib
 [ $arch == ia32 || $arch == dartium ]
 UnicodeTest: Fail        # Bug 5163868
 DoubleCompareTest: Fail  # Bug 5427703
-
+*DartcTest: Skip
 
 [ $arch == ia32 ]
 
 
 [ $arch == dartc || $arch == chromium ]
-ConstListLiteralTest: Fail # Bug 3341367
-CoreRuntimeTypesTest: Fail # Bug 5196164
-StringTest: Fail           # Bug 5196164
-DoubleCompareTest: Fail    # Bug 5427706
-
+ConstListLiteralTest: Fail      # Bug 5202940
+ConstListSetRangeTest: Fail     # Bug 5202940
+ConstListRemoveRangeTest: Fail  # Bug 5202940
+CoreRuntimeTypesTest: Fail      # Bug 5196164
+StringTest: Fail                # Bug 5196164
+*VMTest: Skip
 
 [ $arch == dartium ]
-# print is not available
+# Bug 5476054: print is only available if DOM is imported.
 SortTest: Fail
 ListSortTest: Fail
 

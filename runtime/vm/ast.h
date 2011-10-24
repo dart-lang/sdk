@@ -38,8 +38,6 @@ namespace dart {
   V(ArgumentListNode, "args")                                                  \
   V(ArrayNode, "array")                                                        \
   V(ClosureNode, "closure")                                                    \
-  V(ImplicitClosureNode, "implicit closure")                                   \
-  V(StaticImplicitClosureNode, "static implicit closure")                      \
   V(InstanceCallNode, "instance call")                                         \
   V(StaticCallNode, "static call")                                             \
   V(ClosureCallNode, "closure call")                                           \
@@ -363,58 +361,26 @@ class TypeNode : public AstNode {
 
 class ClosureNode : public AstNode {
  public:
-  ClosureNode(intptr_t token_index, const Function& function, LocalScope* scope)
-      : AstNode(token_index), function_(function), scope_(scope) {
+  ClosureNode(intptr_t token_index,
+              const Function& function,
+              AstNode* receiver,  // Non-null for implicit instance closures.
+              LocalScope* scope)  // Null for implicit closures.
+      : AstNode(token_index),
+        function_(function),
+        receiver_(receiver),
+        scope_(scope) {
     ASSERT(function.IsZoneHandle());
-    ASSERT(scope_ != NULL);
-  }
-
-  const Function& function() const { return function_; }
-  LocalScope* scope() const { return scope_; }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
-
-  DECLARE_COMMON_NODE_FUNCTIONS(ClosureNode);
-
- private:
-  const Function& function_;
-  LocalScope* scope_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ClosureNode);
-};
-
-
-class StaticImplicitClosureNode : public AstNode {
- public:
-  StaticImplicitClosureNode(intptr_t token_index, const Function& function)
-      : AstNode(token_index), function_(function) {
-    ASSERT(function.IsZoneHandle());
-  }
-
-  const Function& function() const { return function_; }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
-
-  DECLARE_COMMON_NODE_FUNCTIONS(StaticImplicitClosureNode);
-
- private:
-  const Function& function_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticImplicitClosureNode);
-};
-
-
-class ImplicitClosureNode : public AstNode {
- public:
-  ImplicitClosureNode(intptr_t token_index,
-                      const Function& function,
-                      AstNode* receiver)
-      : AstNode(token_index), function_(function), receiver_(receiver) {
-    ASSERT(function.IsZoneHandle());
+    ASSERT((function.IsNonImplicitClosureFunction() &&
+            (receiver_ == NULL) && (scope_ != NULL)) ||
+           (function.IsImplicitInstanceClosureFunction() &&
+            (receiver_ != NULL) && (scope_ == NULL)) ||
+           (function.IsImplicitStaticClosureFunction() &&
+            (receiver_ == NULL) && (scope_ == NULL)));
   }
 
   const Function& function() const { return function_; }
   AstNode* receiver() const { return receiver_; }
+  LocalScope* scope() const { return scope_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     if (receiver() != NULL) {
@@ -422,13 +388,14 @@ class ImplicitClosureNode : public AstNode {
     }
   }
 
-  DECLARE_COMMON_NODE_FUNCTIONS(ImplicitClosureNode);
+  DECLARE_COMMON_NODE_FUNCTIONS(ClosureNode);
 
  private:
   const Function& function_;
   AstNode* receiver_;
+  LocalScope* scope_;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ImplicitClosureNode);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ClosureNode);
 };
 
 
@@ -1700,8 +1667,7 @@ class ConstructorCallNode : public AstNode {
     ASSERT(type_arguments_.IsZoneHandle());
     ASSERT(constructor_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
-    ASSERT(!Class::Handle(constructor_.owner()).IsParameterized() ||
-           type_arguments_.IsNull() ||
+    ASSERT(type_arguments_.IsNull() ||
            (type_arguments_.Length() ==
             Class::Handle(constructor_.owner()).NumTypeArguments()));
   }

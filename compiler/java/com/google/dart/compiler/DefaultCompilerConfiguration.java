@@ -51,7 +51,9 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
       return new DartIsolateStubGenerator(compilerOptions.getIsolateStubClasses(),
                                           compilerOptions.getIsolateStubOutputFile());
     } else if (compilerOptions.shouldOptimize()) {
-      return new ClosureJsBackend(compilerOptions.generateHumanReadableOutput());
+      return new ClosureJsBackend(
+          compilerOptions.developerModeChecks(),
+          compilerOptions.generateHumanReadableOutput());
     } else {
       return new JavascriptBackend();
     }
