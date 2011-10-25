@@ -60,7 +60,7 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 void EventHandlerImplementation::SetPort(intptr_t fd,
                                          Dart_Port dart_port,
                                          intptr_t mask) {
-  assert(fd >= 0);
+  ASSERT(fd >= 0);
   if (fd >= port_map_size_) {
     intptr_t new_port_map_size = port_map_size_;
     do {
@@ -256,7 +256,7 @@ void EventHandlerImplementation::HandleEvents(struct pollfd* pollfds,
       if (event_mask != 0) {
         intptr_t fd = pollfds[i].fd;
         Dart_Port port = PortFor(fd);
-        assert(port != 0);
+        ASSERT(port != 0);
         UnregisterFd(fd);
         Dart_PostIntArray(port, 1, &event_mask);
       }

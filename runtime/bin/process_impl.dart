@@ -11,14 +11,24 @@ class _ProcessStartStatus {
 class _Process implements Process {
 
   _Process(String path, List<String> arguments) {
-    _path = path;
-    {
-      int len = arguments.length;
-      _arguments = new ObjectArray<String>(len);
-      for (int i = 0; i < len; i++) {
-        _arguments[i] = arguments[i];
-      }
+    if (path is !String) {
+      throw new ProcessException("Path is not a String: $path");
     }
+    _path = path;
+
+    if (arguments is !List) {
+      throw new ProcessException("Arguments is not a List: $arguments");
+    }
+    int len = arguments.length;
+    _arguments = new ObjectArray<String>(len);
+    for (int i = 0; i < len; i++) {
+      var arg = arguments[i];
+      if (arg is !String) {
+        throw new ProcessException("Non-string argument: $arg");
+      }
+      _arguments[i] = arguments[i];
+    }
+
     _in = new _Socket._internal();
     _out = new _Socket._internal();
     _err = new _Socket._internal();

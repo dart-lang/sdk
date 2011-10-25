@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -229,11 +228,11 @@ int main(int argc, char** argv) {
       // Print the exception object.
       fprintf(stderr, "An unhandled exception has been thrown\n");
       Dart_Result exception_result = Dart_GetException(result_obj);
-      assert(Dart_IsValidResult(exception_result));
+      ASSERT(Dart_IsValidResult(exception_result));
       PrintObject(stderr, Dart_GetResult(exception_result));
       // Print the stack trace.
       Dart_Result stacktrace = Dart_GetStacktrace(result_obj);
-      assert(Dart_IsValidResult(stacktrace));
+      ASSERT(Dart_IsValidResult(stacktrace));
       PrintObject(stderr, Dart_GetResult(stacktrace));
       fprintf(stderr, "\n");
       Dart_ExitScope();

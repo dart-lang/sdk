@@ -5,7 +5,6 @@
 #ifndef BIN_PROCESS_SCRIPT_H_
 #define BIN_PROCESS_SCRIPT_H_
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

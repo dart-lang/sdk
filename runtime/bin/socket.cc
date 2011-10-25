@@ -26,7 +26,7 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
       DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                      DartUtils::kIdFieldName);
+                                         DartUtils::kIdFieldName);
   intptr_t available = Socket::Available(socket);
   Dart_SetReturnValue(args, Dart_NewInteger(available));
   Dart_ExitScope();
@@ -37,16 +37,16 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
       DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                      DartUtils::kIdFieldName);
+                                         DartUtils::kIdFieldName);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  assert(Dart_IsArray(buffer_obj));
+  ASSERT(Dart_IsArray(buffer_obj));
   intptr_t offset =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   intptr_t length =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   Dart_Result result = Dart_GetLength(buffer_obj);
-  assert(Dart_IsValidResult(result));
-  assert((offset + length) <= Dart_GetResultAsCIntptr(result));
+  ASSERT(Dart_IsValidResult(result));
+  ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
 
   if (Dart_IsVMFlagSet("short_socket_read")) {
     length = (length + 1) / 2;
@@ -72,14 +72,14 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
                                       DartUtils::kIdFieldName);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  assert(Dart_IsArray(buffer_obj));
+  ASSERT(Dart_IsArray(buffer_obj));
   intptr_t offset =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   intptr_t length =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   Dart_Result result = Dart_GetLength(buffer_obj);
-  assert(Dart_IsValidResult(result));
-  assert((offset + length) <= Dart_GetResultAsCIntptr(result));
+  ASSERT(Dart_IsValidResult(result));
+  ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
 
   if (Dart_IsVMFlagSet("short_socket_write")) {
     length = (length + 1) / 2;

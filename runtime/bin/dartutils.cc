@@ -10,7 +10,7 @@ const char* DartUtils::kIdFieldName = "_id";
 
 
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
-  assert(Dart_IsInteger(value_obj));
+  ASSERT(Dart_IsInteger(value_obj));
   Dart_Result result = Dart_IntegerValue(value_obj);
   ASSERT(Dart_IsValidResult(result));
   return Dart_GetResultAsCInt64(result);
@@ -42,7 +42,7 @@ intptr_t DartUtils::GetIntegerInstanceField(Dart_Handle handle,
                                             const char* name) {
   Dart_Result result =
       Dart_GetInstanceField(handle, Dart_NewString(name));
-  assert(Dart_IsValidResult(result));
+  ASSERT(Dart_IsValidResult(result));
   intptr_t value = DartUtils::GetIntegerValue(Dart_GetResult(result));
   return value;
 }

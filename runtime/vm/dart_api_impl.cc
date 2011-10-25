@@ -875,7 +875,7 @@ DART_EXPORT Dart_Result Dart_ArrayGet(Dart_Handle array,
         ASSERT(integer.AsInt64Value() <= 0xff);
         // TODO(hpayer): value should always be smaller then 0xff. Add error
         // handling.
-       }
+      }
       RETURN_CINT(0);
     }
     RETURN_FAILURE("Invalid length passed in to access array elements");

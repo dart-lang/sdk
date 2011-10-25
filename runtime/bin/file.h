@@ -12,7 +12,6 @@ typedef unsigned __int8 uint8_t;
 #include <stdint.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

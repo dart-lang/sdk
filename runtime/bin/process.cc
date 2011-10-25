@@ -14,9 +14,23 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   intptr_t out;
   intptr_t err;
   intptr_t exit_event;
-  const char* path =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+  Dart_Handle status_handle = Dart_GetNativeArgument(args, 7);
+  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
+  // The Dart code verifies that the path implements the String
+  // interface. However, only builtin Strings are handled by
+  // GetStringValue.
+  if (!Dart_IsString(path_handle)) {
+    DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
+    DartUtils::SetStringInstanceField(
+        status_handle, "_errorMessage", "Path must be a builtin string");
+    Dart_SetReturnValue(args, Dart_NewBoolean(false));
+    Dart_ExitScope();
+    return;
+  }
+  const char* path = DartUtils::GetStringValue(path_handle);
   Dart_Handle arguments = Dart_GetNativeArgument(args, 2);
+  // The arguments are copied into a non-extensible array in the
+  // dart code so this should not fail.
   ASSERT(Dart_IsArray(arguments));
   Dart_Result result = Dart_GetLength(arguments);
   ASSERT(Dart_IsValidResult(result));
@@ -26,13 +40,24 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     result = Dart_ArrayGetAt(arguments, i);
     ASSERT(Dart_IsValidResult(result));
     Dart_Handle arg = Dart_GetResult(result);
+    // The Dart code verifies that the arguments implement the String
+    // interface. However, only builtin Strings are handled by
+    // GetStringValue.
+    if (!Dart_IsString(arg)) {
+      DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
+      DartUtils::SetStringInstanceField(
+          status_handle, "_errorMessage", "Arguments must be builtin strings");
+      delete[] string_args;
+      Dart_SetReturnValue(args, Dart_NewBoolean(false));
+      Dart_ExitScope();
+      return;
+    }
     string_args[i] = const_cast<char *>(DartUtils::GetStringValue(arg));
   }
   Dart_Handle in_handle = Dart_GetNativeArgument(args, 3);
   Dart_Handle out_handle = Dart_GetNativeArgument(args, 4);
   Dart_Handle err_handle = Dart_GetNativeArgument(args, 5);
   Dart_Handle exit_handle = Dart_GetNativeArgument(args, 6);
-  Dart_Handle status_handle = Dart_GetNativeArgument(args, 7);
   intptr_t pid = -1;
   static const int kMaxChildOsErrorMessageLength = 256;
   char os_error_message[kMaxChildOsErrorMessageLength];

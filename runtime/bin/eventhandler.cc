@@ -17,10 +17,10 @@ static const intptr_t kNativeEventHandlerFieldIndex = 0;
 static EventHandler* GetEventHandler(Dart_Handle handle) {
   Dart_Result result = Dart_GetNativeInstanceField(
       handle, kNativeEventHandlerFieldIndex);
-  assert(Dart_IsValidResult(result));
+  ASSERT(Dart_IsValidResult(result));
   EventHandler* event_handler =
       reinterpret_cast<EventHandler*>(Dart_GetResultAsCIntptr(result));
-  assert(event_handler != NULL);
+  ASSERT(event_handler != NULL);
   return event_handler;
 }
 

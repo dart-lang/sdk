@@ -5,7 +5,6 @@
 // Generate a snapshot file after loading all the scripts specified on the
 // command line.
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

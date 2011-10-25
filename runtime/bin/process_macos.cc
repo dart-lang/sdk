@@ -85,7 +85,7 @@ static void SetChildOsErrorMessage(char* os_error_message,
 
 
 void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
-  assert(process_signal == SIGCHLD);
+  ASSERT(process_signal == SIGCHLD);
   struct sigaction act;
   bzero(&act, sizeof(act));
   act.sa_handler = SIG_IGN;

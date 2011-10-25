@@ -45,7 +45,7 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 
 static File* GetFileHandle(Dart_Handle fileobj) {
   Dart_Result result = Dart_GetNativeInstanceField(fileobj, kFileFieldIndex);
-  assert(Dart_IsValidResult(result));
+  ASSERT(Dart_IsValidResult(result));
   File* file = reinterpret_cast<File*>(Dart_GetResultAsCIntptr(result));
   return file;
 }
@@ -150,14 +150,14 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-    assert(Dart_IsArray(buffer_obj));
+    ASSERT(Dart_IsArray(buffer_obj));
     int64_t offset =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     Dart_Result result = Dart_GetLength(buffer_obj);
-    assert(Dart_IsValidResult(result));
-    assert((offset + length) <= Dart_GetResultAsCIntptr(result));
+    ASSERT(Dart_IsValidResult(result));
+    ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
     uint8_t* buffer = new uint8_t[length];
     int total_bytes_read =
         file->Read(reinterpret_cast<void*>(buffer), length);
@@ -183,14 +183,14 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-    assert(Dart_IsArray(buffer_obj));
+    ASSERT(Dart_IsArray(buffer_obj));
     int64_t offset =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     Dart_Result result = Dart_GetLength(buffer_obj);
-    assert(Dart_IsValidResult(result));
-    assert((offset + length) <= Dart_GetResultAsCIntptr(result));
+    ASSERT(Dart_IsValidResult(result));
+    ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
     uint8_t* buffer = new uint8_t[length];
     result = Dart_ArrayGet(buffer_obj, offset, buffer, length);
     ASSERT(Dart_IsValidResult(result));
