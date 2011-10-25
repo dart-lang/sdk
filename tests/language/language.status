@@ -55,6 +55,13 @@ ManyEchoServerTest: Skip        # Bug 5103754
 CanonicalConstTest: Fail        # Bug 5270133
 GenericParameterizedExtendsTest: Skip  # Bug 5391643
 
+
+ConstructorReturnNegativeTest: Fail                   # Issue 224
+ConstructorReturnWithInitNegativeTest: Fail           # Issue 224
+ConstructorReturnWithArrowNegativeTest: Fail          # Issue 224
+ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 224
+
+
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
 
@@ -163,6 +170,11 @@ BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
 
 FactoryArrowTest: Fail # Issue 223
+
+ConstructorReturnNegativeTest: Fail                   # Issue 225
+ConstructorReturnWithInitNegativeTest: Fail           # Issue 225
+ConstructorReturnWithArrowNegativeTest: Fail          # Issue 225
+ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 225
 
 # VM specific tests that should not be run by DartC.
 *VMTest: Skip
