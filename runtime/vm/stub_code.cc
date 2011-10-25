@@ -101,15 +101,6 @@ bool StubCode::InInvocationStub(uword pc) {
 }
 
 
-bool StubCode::InCallInstanceFunctionStubCode(uword pc) {
-  if ((pc >= CallInstanceFunctionEntryPoint()) &&
-      (pc < (CallInstanceFunctionEntryPoint() + CallInstanceFunctionSize()))) {
-    return true;
-  }
-  return false;
-}
-
-
 bool StubCode::InStubCallToRuntimeStubCode(uword pc) {
   if ((pc >= StubCallToRuntimeEntryPoint()) &&
       (pc < (StubCallToRuntimeEntryPoint() + StubCallToRuntimeSize()))) {

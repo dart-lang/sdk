@@ -479,7 +479,10 @@ void CodeGenerator::GenerateInstanceCall(
   __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
-  __ call(&StubCode::CallInstanceFunctionLabel());
+  ExternalLabel target_label(
+      "InlineCache", StubCode::InlineCacheEntryPoint());
+
+  __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,
                        node_id,
                        token_index);

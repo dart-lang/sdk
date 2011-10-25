@@ -489,9 +489,8 @@ class RawCode : public RawObject {
   RawPcDescriptors* pc_descriptors_;
   // Ongoing redesign of inline caches may soon remove the need for 'ic_data_'.
   RawArray* ic_data_;  // Used to store IC stub data (see class ICData).
-  RawArray* class_ic_stubs_;  // Array of pairs (RawArray<RawClass>, RawCode)
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->class_ic_stubs_);
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
 
   intptr_t pointer_offsets_length_;

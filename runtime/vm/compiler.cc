@@ -12,7 +12,6 @@
 #include "vm/dart_entry.h"
 #include "vm/disassembler.h"
 #include "vm/flags.h"
-#include "vm/ic_stubs.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/opt_code_generator.h"

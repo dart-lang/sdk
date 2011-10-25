@@ -18,7 +18,7 @@
 #include "vm/debuginfo.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
-#include "vm/ic_stubs.h"
+#include "vm/ic_data.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -4289,7 +4289,6 @@ RawCode* Code::New(int pointer_offsets_length) {
     result.set_is_optimized(false);
   }
   result.raw_ptr()->ic_data_ = Array::Empty();
-  result.raw_ptr()->class_ic_stubs_ = Array::Empty();
   return result.raw();
 }
 
@@ -4371,18 +4370,6 @@ void Code::set_ic_data(const Array& ic_data) const {
   StorePointer(&raw_ptr()->ic_data_, ic_data.raw());
 }
 
-
-RawArray* Code::class_ic_stubs() const {
-  return raw_ptr()->class_ic_stubs_;
-}
-
-
-void Code::set_class_ic_stubs(const Array& class_ic_stubs) const {
-  ASSERT(!class_ic_stubs.IsNull());
-  StorePointer(&raw_ptr()->class_ic_stubs_, class_ic_stubs.raw());
-}
-
-
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   intptr_t token_index = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
@@ -4409,15 +4396,11 @@ uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
 
 
 const char* Code::ToCString() const {
-  const char* kFormat = "Code entry:0x%d icstubs: %d";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-      EntryPoint(),
-      (Array::Handle(class_ic_stubs()).Length() / 2)) + 1;
+  const char* kFormat = "Code entry:0x%d";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat,
-      EntryPoint(),
-      (Array::Handle(class_ic_stubs()).Length() / 2));
+  OS::SNPrint(chars, len, kFormat, EntryPoint());
   return chars;
 }
 
@@ -4451,25 +4434,20 @@ void Code::ExtractTypesAtIcCalls(
   ASSERT(type_arrays != NULL);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
-  String& function_name = String::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
-      int num_arguments = -1;
-      int num_named_arguments = -1;
-      uword caller_target = 0;
-      CodePatcher::GetInstanceCallAt(descriptors.PC(i),
-                                     &function_name,
-                                     &num_arguments,
-                                     &num_named_arguments,
-                                     &caller_target);
-      GrowableArray<const Class*> classes;
-      GrowableArray<const Function*> targets;
-      bool is_ic = ICStubs::RecognizeICStub(caller_target, &classes, &targets);
-      ASSERT(is_ic);
+      ICData ic_data(Array::Handle(
+          CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
+      ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+      int len = ic_data.NumberOfChecks();
       ZoneGrowableArray<const Class*>* types =
           new ZoneGrowableArray<const Class*>();
-      for (intptr_t k = 0; k < classes.length(); k++) {
-        types->Add(classes[k]);
+      Function& target = Function::Handle();
+      for (intptr_t k = 0; k < len; k++) {
+        GrowableArray<const Class*> classes;
+        ic_data.GetCheckAt(k, &classes, &target);
+        ASSERT(classes.length() == 1);
+        types->Add(classes[0]);
       }
       node_ids->Add(descriptors.NodeId(i));
       type_arrays->Add(types);

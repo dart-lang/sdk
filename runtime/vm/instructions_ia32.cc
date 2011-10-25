@@ -23,66 +23,6 @@ bool Instruction::TestBytesWith(const int* data, int num_bytes) const {
 }
 
 
-const int* ICLoadReceiver::pattern() const {
-  static const int kLoadReceiverPattern[kLengthInBytes] =
-      {0x8b, 0x42, 0x0b, 0x8b, 0x04, 0x44};
-  return kLoadReceiverPattern;
-}
-
-
-uword JumpIfZero::TargetAddress() const {
-  ASSERT(IsValid());
-  return start() + kLengthInBytes + *reinterpret_cast<uword*>(start() + 2);
-}
-
-
-void JumpIfZero::SetTargetAddress(uword pc) {
-  ASSERT(IsValid());
-  *reinterpret_cast<uword*>(start() + 2) = pc - start() - kLengthInBytes;
-}
-
-
-const int* JumpIfZero::pattern() const {
-  static const int kJzPattern[kLengthInBytes] = {0x0f, 0x84, -1, -1, -1, -1};
-  return kJzPattern;
-}
-
-
-const int* CmpEaxWithImmediate::pattern() const {
-  static const int kCmpWithImmediate[kLengthInBytes] = {0x3d, -1, -1, -1, -1};
-  return kCmpWithImmediate;
-}
-
-
-const int* TestEaxIsSmi::pattern() const {
-  static const int
-      kTestSmiTag[kTestLengthInBytes + JumpIfZero::kLengthInBytes] =
-          { 0xa8, 0x01, -1, -1, -1, -1, -1, -1};
-  return kTestSmiTag;
-}
-
-
-const int* ICCheckReceiverClass::pattern() const {
-  static const int kTestClass[kTestLengthInBytes + JumpIfZero::kLengthInBytes] =
-      {0x81, 0xfb, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-  return kTestClass;
-}
-
-
-RawClass* ICCheckReceiverClass::TestClass() const {
-  ASSERT(IsValid());
-  Class& cls = Class::Handle();
-  cls ^= *reinterpret_cast<RawObject**>(start() + 2);
-  return cls.raw();
-}
-
-
-const int* LoadObjectClass::pattern() const {
-  static const int kTestClass[kLoadObjectClassLengthInBytes] =
-      {0x8b, 0x58, 0xff};
-  return kTestClass;
-}
-
 uword CallOrJump::TargetAddress() const {
   ASSERT(IsValid());
   return start() + kLengthInBytes + *reinterpret_cast<uword*>(start() + 1);

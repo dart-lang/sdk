@@ -46,11 +46,6 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateCallInstanceFunctionStub(Assembler* assembler) {
-  __ Unimplemented("CallInstanceFunction stub");
-}
-
-
 void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ Unimplemented("CallClosureFunction stub");
 }

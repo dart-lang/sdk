@@ -7,10 +7,10 @@
 #include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
+#include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/ic_data.h"
-#include "vm/ic_stubs.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
@@ -421,6 +421,7 @@ static void CheckResultException(const Instance& result) {
 //   Returns: RawCode object or NULL (method not found or not compileable).
 // This is called by the megamorphic stub when instance call does not need to be
 // patched.
+// Used by megamorphic lookup/no-such-method-handling.
 DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
   ASSERT(arguments.Count() ==
          kResolveCompileInstanceFunctionRuntimeEntry.argument_count());
@@ -430,99 +431,55 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
 }
 
 
-// Resolve instance call and patch it to jump to IC stub or megamorphic stub.
-// After patching the caller's instance call instruction, that call will
-// be reexecuted and ran through the created IC stub. The null receivers
-// have special handling, i.e., they lead to megamorphic lookup that implements
-// the appropriate null behavior.
-//   Arg0: receiver object.
-DEFINE_RUNTIME_ENTRY(ResolvePatchInstanceCall, 1) {
+// Handles inline cache misses by updating the IC data array of the call
+// site.
+//   Arg0: Receiver object.
+//   Returns: target function with compiled code or 0.
+// Modifies the instance call to hold the updated IC data array.
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandler, 1) {
   ASSERT(arguments.Count() ==
-         kResolvePatchInstanceCallRuntimeEntry.argument_count());
+      kInlineCacheMissHandlerRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Code& code = Code::Handle(ResolveCompileInstanceCallTarget(receiver));
+  const Code& target_code =
+      Code::Handle(ResolveCompileInstanceCallTarget(receiver));
+  if (target_code.IsNull()) {
+    // Let the megamorphic stub handle special cases: NoSuchMethod,
+    // closure calls.
+    if (FLAG_trace_ic) {
+      OS::Print("InlineCacheMissHandler NULL code for receiver: %s\n",
+          receiver.ToCString());
+    }
+    arguments.SetReturn(target_code);
+    return;
+  }
+  const Function& target_function =
+      Function::Handle(target_code.function());
+  ASSERT(!target_function.IsNull());
+  if (receiver.IsNull()) {
+    // Null dispatch is slow (e.g., (null).toCString()). The only
+    // fast execution with null receiver is the "==" operator.
+    // Special handling so that we do not pollute the inline cache with null
+    // classes.
+    arguments.SetReturn(target_function);
+    if (FLAG_trace_ic) {
+      OS::Print("InlineCacheMissHandler Null receiver target %s\n",
+          target_function.ToCString());
+    }
+    return;
+  }
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
-  String& function_name = String::Handle();
-  if ((!receiver.IsNull() && code.IsNull()) || !FLAG_inline_cache) {
-    // We did not find a method; it means either that we need to invoke
-    // noSuchMethod or that we have encountered a situation with implicit
-    // closures. All these cases are handled by the megamorphic lookup stub.
-    CodePatcher::PatchInstanceCallAt(
-        caller_frame->pc(), StubCode::MegamorphicLookupEntryPoint());
-    if (FLAG_trace_ic) {
-      OS::Print("IC: cannot find function at 0x%x -> megamorphic lookup.\n",
-          caller_frame->pc());
-    }
-    if (FLAG_trace_patching) {
-      OS::Print("ResolvePatchInstanceCall: patching 0x%x to megamorphic\n",
-          caller_frame->pc());
-    }
-  } else {
-    int num_arguments = -1;
-    int num_named_arguments = -1;
-    uword caller_target = 0;
-    CodePatcher::GetInstanceCallAt(caller_frame->pc(),
-                                   &function_name,
-                                   &num_arguments,
-                                   &num_named_arguments,
-                                   &caller_target);
-    // If caller_target is not in CallInstanceFunction stub (resolve call)
-    // then it must be pointing to an IC stub.
-    const Class& receiver_class = Class::ZoneHandle(receiver.clazz());
-    const bool ic_miss =
-        !StubCode::InCallInstanceFunctionStubCode(caller_target);
-    GrowableArray<const Class*> classes;
-    GrowableArray<const Function*> targets;
-    if (ic_miss) {
-      bool is_ic =
-          ICStubs::RecognizeICStub(caller_target, &classes, &targets);
-      ASSERT(is_ic);
-      ASSERT(classes.length() == targets.length());
-      // The returned classes array can be empty if the first patch occured
-      // with a null class. 'receiver_class' should not exists.
-      ASSERT(ICStubs::IndexOfClass(classes, receiver_class) < 0);
-      ASSERT(!code.IsNull());
-      ASSERT(!receiver_class.IsNullClass());
-      const Function& function = Function::ZoneHandle(code.function());
-      targets.Add(&function);
-      classes.Add(&receiver_class);
-    } else {
-      // First patch of instance call.
-      // Do not add classes for null receiver. For first IC patch it means that
-      // the IC will always miss and jump to megamorphic lookup (null handling).
-      if (!receiver_class.IsNullClass()) {
-        ASSERT(!code.IsNull());
-        const Function& function = Function::ZoneHandle(code.function());
-        targets.Add(&function);
-        classes.Add(&receiver_class);
-      }
-    }
-    const Code& ic_code = Code::Handle(ICStubs::GetICStub(classes, targets));
-    if (FLAG_trace_ic) {
-      CodeIndexTable* ci_table = Isolate::Current()->code_index_table();
-      ASSERT(ci_table != NULL);
-      const Function& caller =
-          Function::Handle(ci_table->LookupFunction(caller_frame->pc()));
-      const char* patch_kind = ic_miss ? "miss" : "patch";
-      OS::Print("IC %s at 0x%x '%s' (receiver:'%s' function:'%s')",
-          patch_kind,
-          caller_frame->pc(),
-          String::Handle(caller.name()).ToCString(),
-          receiver.ToCString(),
-          function_name.ToCString());
-      OS::Print(" patched to 0x%x\n", ic_code.EntryPoint());
-      if (ic_miss) {
-        for (int i = 0; i < classes.length(); i++) {
-          OS::Print("  IC Miss on %s\n", classes[i]->ToCString());
-        }
-      }
-    }
-    CodePatcher::PatchInstanceCallAt(caller_frame->pc(), ic_code.EntryPoint());
-    if (FLAG_trace_patching) {
-      OS::Print("ResolvePatchInstanceCall: patching 0x%x to ic 0x%x\n",
-          caller_frame->pc(), ic_code.EntryPoint());
-    }
+  ICData ic_data(Array::Handle(
+      CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc())));
+  GrowableArray<const Class*> classes;
+  classes.Add(&Class::ZoneHandle(receiver.clazz()));
+  ic_data.AddCheck(classes, target_function);
+  CodePatcher::SetInstanceCallIcDataAt(caller_frame->pc(),
+                                       Array::ZoneHandle(ic_data.data()));
+  arguments.SetReturn(target_function);
+  if (FLAG_trace_ic) {
+    OS::Print("InlineCacheMissHandler 0x%x adding receiver '%s' -> '%s'\n",
+        caller_frame->pc(), receiver.ToCString(), target_function.ToCString());
   }
 }
 
@@ -797,32 +754,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 }
 
 
-static void DisableOldCode(const Function& function,
-                           const Code& old_code,
-                           const Code& new_code) {
-  const Array& class_ic_stubs = Array::Handle(old_code.class_ic_stubs());
-  if (function.IsClosureFunction()) {
-    // Nothing to do, code may not have inline caches.
-    ASSERT(class_ic_stubs.Length() == 0);
-    return;
-  }
-  if (function.is_static() || function.IsConstructor()) {
-    ASSERT(class_ic_stubs.Length() == 0);
-    return;
-  }
-  Code& ic_stub = Code::Handle();
-  for (int i = 0; i < class_ic_stubs.Length(); i += 2) {
-    // i: array of classes, i + 1: ic stub code.
-    ic_stub ^= class_ic_stubs.At(i + 1);
-    ICStubs::PatchTargets(ic_stub.EntryPoint(),
-                          old_code.EntryPoint(),
-                          new_code.EntryPoint());
-  }
-  new_code.set_class_ic_stubs(class_ic_stubs);
-  old_code.set_class_ic_stubs(Array::Handle(Array::Empty()));
-}
-
-
 // Only unoptimized code has invocation counter threshold checking.
 // Once the invocation counter threshold is reached any entry into the
 // unoptimized code is redirected to this function.
@@ -838,7 +769,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     const Code& optimized_code = Code::Handle(function.code());
     ASSERT(!optimized_code.IsNull());
     ASSERT(!unoptimized_code.IsNull());
-    DisableOldCode(function, unoptimized_code, optimized_code);
   } else {
     // TODO(5442338): Abort as this should not happen.
     function.set_invocation_counter(0);
@@ -930,8 +860,6 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
     // Get unoptimized code. Compilation restores (reenables) the entry of
     // unoptimized code.
     Compiler::CompileFunction(function);
-
-    DisableOldCode(function, optimized_code, unoptimized_code);
   }
   // TODO(srdjan): Handle better complex cases, e.g. when an older optimized
   // code is alive on frame and gets deoptimized after the function was

@@ -49,7 +49,7 @@ class DartCallPattern : public ValueObject {
   void set_immediate_one(uint32_t value) {
     uint32_t* target_addr = reinterpret_cast<uint32_t*>(start_ + 1);
     *target_addr = value;
-    CPU::FlushICache(call_address(), kInstructionSize);
+    CPU::FlushICache(start_, kInstructionSize);
   }
 
   uint32_t immediate_two() const {
@@ -154,30 +154,6 @@ void CodePatcher::PatchStaticCallAt(uword return_address, uword new_target) {
 }
 
 
-static void InsertCallOrJump(uword at_addr,
-                             const ExternalLabel* label,
-                             uint8_t op) {
-  const int kInstructionSize = 5;
-  *reinterpret_cast<uint8_t*>(at_addr) = op;  // Call.
-  uword* target_addr = reinterpret_cast<uword*>(at_addr + 1);
-  uword offset = label->address() - (at_addr + kInstructionSize);
-  *target_addr = offset;
-  CPU::FlushICache(at_addr, kInstructionSize);
-}
-
-
-void CodePatcher::InsertCall(uword at_addr, const ExternalLabel* label) {
-  const uint8_t kCallOp = 0xE8;
-  InsertCallOrJump(at_addr, label, kCallOp);
-}
-
-
-void CodePatcher::InsertJump(uword at_addr, const ExternalLabel* label) {
-  const uint8_t kJumpOp = 0xE9;
-  InsertCallOrJump(at_addr, label, kJumpOp);
-}
-
-
 static void SwapCode(intptr_t num_bytes, char* a, char* b) {
   for (intptr_t i = 0; i < num_bytes; i++) {
     char tmp = *a;
@@ -256,12 +232,6 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
   *target = call.target();
   ICData ic_data(Array::ZoneHandle(call.ic_data()));
   *function_name = ic_data.FunctionName();
-}
-
-
-void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
-  InstanceCall call(return_address);
-  call.set_target(new_target);
 }
 
 

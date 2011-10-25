@@ -1795,10 +1795,6 @@ class Code : public Object {
   RawArray* ic_data() const;
   void set_ic_data(const Array& ic_data) const;
 
-  // Array of pairs (Array<Class>, IC Stub Code).
-  RawArray* class_ic_stubs() const;
-  void set_class_ic_stubs(const Array& class_ic_stubs) const;
-
   RawExceptionHandlers* exception_handlers() const {
     return raw_ptr()->exception_handlers_;
   }

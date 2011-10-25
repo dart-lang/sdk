@@ -26,7 +26,6 @@ class RawCode;
   V(AllocateArray)                                                             \
   V(CallNoSuchMethodFunction)                                                  \
   V(MegamorphicLookup)                                                         \
-  V(CallInstanceFunction)                                                      \
   V(CallStaticFunction)                                                        \
   V(CallClosureFunction)                                                       \
   V(StackOverflow)                                                             \
@@ -41,6 +40,7 @@ class RawCode;
 #define STUB_CODE_LIST(V)                                                      \
   V(InvokeDartCode)                                                            \
   V(AllocateContext)                                                           \
+  V(InlineCache)                                                               \
 
 
 // class StubEntry is used to describe stub methods generated in dart to
@@ -72,8 +72,8 @@ class StubCode {
  public:
   StubCode()
     :
-#define STUB_CODE_INITIALIZER(name) \
-        name##_entry_(NULL),
+#define STUB_CODE_INITIALIZER(name)                                            \
+        name##_entry_(NULL),                                                   \
   STUB_CODE_LIST(STUB_CODE_INITIALIZER)
         dummy_(NULL) {}
   ~StubCode();
@@ -93,8 +93,6 @@ class StubCode {
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
-  // Check if specified pc is in CallInstanceFunction stub.
-  static bool InCallInstanceFunctionStubCode(uword pc);
   // Check if specified pc is in StubCallToRuntime stub.
   static bool InStubCallToRuntimeStubCode(uword pc);
 

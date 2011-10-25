@@ -61,14 +61,14 @@ class ICData : public ValueObject {
                   Function* target) const;
 
   static const int kNameIndex = 0;
+  static const int kNumArgsCheckedIndex = 1;
+  static const int kChecksStartIndex = 2;
 
  private:
   intptr_t ArrayElementsPerCheck() const;
 
   const Array* data_;
 
-  static const int kNumArgsCheckedIndex = 1;
-  static const int kChecksStartIndex = 2;
 
   DISALLOW_COPY_AND_ASSIGN(ICData);
 };

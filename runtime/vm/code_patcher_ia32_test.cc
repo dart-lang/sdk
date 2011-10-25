@@ -47,47 +47,15 @@ CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());
 
 #define __ assembler->
 
-ASSEMBLER_TEST_GENERATE(InsertCall, assembler) {
-  __ nop();
-  __ nop();
-  __ nop();
-  __ nop();
-  __ nop();
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(InsertCall, entry) {
-  CodePatcher::InsertCall(entry, &StubCode::MegamorphicLookupLabel());
-  Call call(entry);
-  EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(), call.TargetAddress());
-}
-
-
-ASSEMBLER_TEST_GENERATE(InsertJump, assembler) {
-  __ nop();
-  __ nop();
-  __ nop();
-  __ nop();
-  __ nop();
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(InsertJump, entry) {
-  CodePatcher::InsertJump(entry, &StubCode::MegamorphicLookupLabel());
-  Jump jump(entry);
-  EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(), jump.TargetAddress());
-}
-
-
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& function_name = String::Handle(String::New("Vermicelles"));
   ICData ic_data(function_name, 1);
   EXPECT(!Array::Handle(ic_data.data()).IsNull());
   __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, CodeGenerator::ArgumentsDescriptor(1, Array::Handle()));
-  __ call(&StubCode::CallInstanceFunctionLabel());
+  ExternalLabel target_label(
+      "InlineCache", StubCode::InlineCacheEntryPoint());
+  __ call(&target_label);
   __ ret();
 }
 

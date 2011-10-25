@@ -25,12 +25,6 @@ class CodePatcher : public AllStatic {
   // Patch static call to the new target.
   static void PatchStaticCallAt(uword addr, uword new_target_address);
 
-  // Overwrites code at 'at_addr' with a call to 'label'.
-  static void InsertCall(uword at_addr, const ExternalLabel* label);
-
-  // Overwrites code at 'at_addr' with a jump to 'label'.
-  static void InsertJump(uword at_addr, const ExternalLabel* label);
-
   // Patch entry point with a jump as specified in the code's patch region.
   static void PatchEntry(const Code& code);
 
@@ -45,9 +39,6 @@ class CodePatcher : public AllStatic {
   static void GetStaticCallAt(uword return_address,
                               Function* function,
                               uword* target);
-
-  // Patch instance call to the new target.
-  static void PatchInstanceCallAt(uword addr, uword new_target_address);
 
   // Get instance call information.
   static void GetInstanceCallAt(uword return_address,

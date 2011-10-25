@@ -599,32 +599,6 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateCallInstanceFunctionStub(Assembler* assembler) {
-  __ EnterFrame(0);
-  // Stack at this point:
-  // TOS + 0: Saved EBP of previous frame. <== EBP
-  // TOS + 1: Dart code return address
-  // TOS + 2: Last argument of caller.
-  // ....
-  // Total number of args is the first Smi in args descriptor array (EDX).
-  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));  // EAX is a Smi.
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, kWordSize));  // Load receiver.
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve ic-data array.
-  __ pushl(EAX);  // Push receiver.
-  __ CallRuntimeFromStub(kResolvePatchInstanceCallRuntimeEntry);
-  __ popl(EAX);  // Remove receiver pushed earlier.
-  // Pop preserved values
-  __ popl(ECX);  // Restore ic-data array.
-  __ popl(EDX);  // Restore arguments descriptor array.
-  __ LeaveFrame();
-  __ popl(EAX);
-  // Reexecute call.
-  __ subl(EAX, Immediate(Assembler::kCallExternalLabelSize));
-  __ jmp(EAX);
-}
-
-
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ EnterFrame(0);
   // Stack at this point:
@@ -1450,6 +1424,94 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // Remove the stub frame as we are about to return.
   __ LeaveFrame();
   __ ret();
+}
+
+
+// Use inline cache data array to invoke the target or continue in inline
+// cache miss handler. Stub for 1-argument check (receiver class).
+//  ECX: Inline cache data array
+//  EDX: Arguments array
+//  TOS(0): return address
+void StubCode::GenerateInlineCacheStub(Assembler* assembler) {
+  Label ic_miss, is_smi, test_class;
+  // Get receiver.
+  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
+
+  __ CompareObject(EAX, Instance::ZoneHandle(Instance::null()));
+  __ j(EQUAL, &ic_miss, Assembler::kNearJump);  // Null receiver -> IC miss.
+
+  // Test if Smi -> load Smi class for comparison.
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &is_smi, Assembler::kNearJump);
+  __ movl(EAX, FieldAddress(EAX, Object::class_offset()));
+  __ jmp(&test_class);
+  __ Bind(&is_smi);
+  const Class& smi_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->smi_class());
+  __ LoadObject(EAX, smi_class);
+
+  __ Bind(&test_class);
+  // EAX: receiver's class
+  // ECX: IC data array.
+
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == 1.
+    __ movl(EBX, FieldAddress(ECX,
+        Array::data_offset() + ICData::kNumArgsCheckedIndex * kWordSize));
+    const Immediate value = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
+    __ cmpl(EBX, value);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect stub for IC data");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ leal(EBX, FieldAddress(ECX,
+      Array::data_offset() + ICData::kChecksStartIndex * kWordSize));
+  Label loop, found, call_target_function;
+  __ Bind(&loop);
+  __ movl(EDI, Address(EBX, 0));  // Get class to check.
+  __ cmpl(EAX, EDI);  // Match?
+  __ j(EQUAL, &found, Assembler::kNearJump);
+  __ addl(EBX, Immediate(kWordSize * 2));  // next element (class + target).
+  __ cmpl(EDI, raw_null);   // Done?
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+
+  __ Bind(&ic_miss);
+
+    // Get receiver.
+  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
+  __ EnterFrame(0);
+  // Setup space for return value on stack by pushing smi 0.
+  __ pushl(EDX);  // Preserve arguments array.
+  __ pushl(ECX);  // Preserve IC data array
+  __ pushl(Immediate(0));
+  __ pushl(EAX);  // Push receiver.
+  __ CallRuntimeFromStub(kInlineCacheMissHandlerRuntimeEntry);
+  __ popl(EAX);  // Remove receiver pushed earlier.
+  __ popl(EAX);  // Pop returned code object into EAX.
+  __ popl(ECX);  // Restore IC data array.
+  __ popl(EDX);  // Restore arguments array.
+  __ LeaveFrame();
+  __ cmpl(EAX, raw_null);
+  __ j(NOT_EQUAL, &call_target_function, Assembler::kNearJump);
+  // NoSuchMethod or closure.
+  __ jmp(&StubCode::MegamorphicLookupLabel());
+
+  __ Bind(&found);
+  __ movl(EAX, Address(EBX, kWordSize));  // Target function.
+
+  __ Bind(&call_target_function);
+  // EAX: Target function.
+  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EAX);
 }
 
 }  // namespace dart
