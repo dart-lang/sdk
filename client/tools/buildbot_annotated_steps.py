@@ -155,7 +155,7 @@ def ProcessTools(srcpath, mode, name, version):
   build and test the tools
 
   args:
-  srcpath - the locatio of the source code to build
+  srcpath - the location of the source code to build
   mode - the mode release or debug
   version - the svn version of the currently checked out code
   '''
@@ -177,6 +177,19 @@ def ProcessTools(srcpath, mode, name, version):
           '--name=' + name, '--out=' + outdir]
   return subprocess.call(cmds)
 
+def ProcessFrog(srcpath):
+  '''
+  build and test experimental frog build
+
+  args:
+  srcpath - the location of the source code to build
+  '''
+  print 'ProcessFrog'
+
+  return subprocess.call([sys.executable,
+      os.path.join(srcpath, '..', 'frog',
+        'scripts', 'buildbot_annotated_steps.py')])
+
 def main():
   print 'main'
   if len(sys.argv) == 0:
@@ -189,6 +202,9 @@ def main():
   (name, version, arch, mode, platform) = GetBuildInfo(srcpath)
   if name == 'dart-editor':
     status = ProcessTools(srcpath, mode, name, version)
+  #TODO(sigmund): remove this indirection once we update out bots
+  elif name.startswith('frog'):
+    status = ProcessFrog(srcpath)
   else:
     status = ProcessDartClientTests(srcpath, arch, mode, platform, name)
 
