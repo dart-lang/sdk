@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <libgen.h>
 
+#include "bin/builtin.h"
 #include "bin/file.h"
 
 class FileHandle {
