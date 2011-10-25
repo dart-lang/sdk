@@ -54,7 +54,7 @@ class Generator:
   def _print_gypi_files(self, out, name, files):
     out.write("    '%s': [\n" % name)
     for filename in files:
-      out.write("      '%s/%s',\n" % (self.path, filename))
+      out.write('''      r'%s',%s''' % (os.path.join(self.path, filename),'\n'))
     out.write("    ],\n")
 
   def _print_ant_files(self, out, name, files):
