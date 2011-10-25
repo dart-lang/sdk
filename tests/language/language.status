@@ -137,10 +137,10 @@ OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
-FieldOverrideTest/01: Fail	       # Bug 5215249
-FieldOverrideTest/02: Fail	       # Bug 5215249
+FieldOverrideTest/01: Fail       # Bug 5215249
+FieldOverrideTest/02: Fail       # Bug 5215249
 OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
-OverrideFieldTest/04: Fail	       # Bug 5215249
+OverrideFieldTest/04: Fail       # Bug 5215249
 CharEscapeTest: Fail
 GetterClosureExecutionOrderTest: Fail # Bug 5481595
 
@@ -161,6 +161,8 @@ BlackListedTest/09: Fail # Bug 5469684
 BlackListedTest/10: Fail # Bug 5469684
 BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
+
+FactoryArrowTest: Fail # Issue 223
 
 # VM specific tests that should not be run by DartC.
 *VMTest: Skip
