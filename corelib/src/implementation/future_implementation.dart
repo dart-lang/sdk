@@ -50,6 +50,7 @@ class FutureImpl<T> implements Future<T> {
 
   FutureImpl() : _listeners = new List(), _exceptionHandlers = new List() {
     _isComplete = false;
+    _exceptionHandled = false;
   }
 
   T get value() {
