@@ -1193,14 +1193,24 @@ class Function : public Object {
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
-  bool IsSubtypeOf(const Function& other) const {
-    return TestType(kIsSubtypeOf, other);
+  bool IsSubtypeOf(const TypeArguments& type_arguments,
+                   const Function& other,
+                   const TypeArguments& other_type_arguments) const {
+    return TestType(kIsSubtypeOf,
+                    type_arguments,
+                    other,
+                    other_type_arguments);
   }
 
   // Returns true if the type of this function can be assigned to the type of
   // the destination function.
-  bool IsAssignableTo(const Function& dst) const {
-    return TestType(kIsAssignableTo, dst);
+  bool IsAssignableTo(const TypeArguments& type_arguments,
+                      const Function& dst,
+                      const TypeArguments& dst_type_arguments) const {
+    return TestType(kIsAssignableTo,
+                    type_arguments,
+                    dst,
+                    dst_type_arguments);
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -1274,7 +1284,10 @@ class Function : public Object {
 
   // Checks the subtype or assignability relationship between the type of this
   // function and the type of the other function.
-  bool TestType(TypeTestKind test, const Function& other) const;
+  bool TestType(TypeTestKind test,
+                const TypeArguments& type_arguments,
+                const Function& other,
+                const TypeArguments& other_type_arguments) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;

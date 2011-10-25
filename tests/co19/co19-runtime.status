@@ -109,6 +109,7 @@ LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Argument
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Skip
 LangGuideTest/08_Expressions/A01/t02: Skip
 LangGuideTest/08_Expressions/A02/t02: Skip
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t03: Skip  # Bug 5512850
 LibTest/core/List/every/List/every/A01/t02: Skip
 LibTest/core/List/every/List/every/A01/t04: Skip
 LibTest/core/List/every/List/every/A01/t05: Skip

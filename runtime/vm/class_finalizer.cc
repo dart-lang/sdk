@@ -164,7 +164,9 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
             class_name.ToCString(),
             interface_name.ToCString(),
             function_name.ToCString());
-      } else if (class_function.IsSubtypeOf(interface_function)) {
+      } else if (class_function.IsSubtypeOf(TypeArguments::Handle(),
+                                            interface_function,
+                                            TypeArguments::Handle())) {
         OS::Print("The type of instance method '%s' in class '%s' is not a "
                   "subtype of the type of '%s' in interface '%s'\n",
                   function_name.ToCString(),

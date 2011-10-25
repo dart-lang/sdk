@@ -1285,9 +1285,11 @@ bool Class::IsMoreSpecificThan(
   if (IsSignatureClass() && other.IsSignatureClass()) {
     const Function& fun = Function::Handle(signature_function());
     const Function& other_fun = Function::Handle(other.signature_function());
-    // TODO(regis): We need to consider the type arguments.
-    return fun.IsSubtypeOf(other_fun);
+    return fun.IsSubtypeOf(type_arguments,
+                           other_fun,
+                           other_type_arguments);
   }
+
   if (is_interface()) {
     // We already checked the case where 'other' is an interface. Now, 'this',
     // an interface, cannot be more specific than a class, except class Object,
@@ -1319,16 +1321,19 @@ bool Class::TestType(TypeTestKind test,
                      const Class& other,
                      const TypeArguments& other_type_arguments) const {
   if (test == kIsAssignableTo) {
-    // TODO(regis): We do not follow the guide that says that "a type T is
-    // assignable to a type S if T is a subtype of S or S is a subtype of T",
-    // since this would lead to heap pollution. We only apply that rule to
-    // parameter types when checking assignability of function types.
-    // Revisit if necessary.
+    // The spec states that "a type T is assignable to a type S if T is a
+    // subtype of S or S is a subtype of T". This is from the perspective of a
+    // static checker, which does not know the actual type of the assigned
+    // value. However, this type information is available at run time in checked
+    // mode. We therefore apply a more restrictive subtype check, which prevents
+    // heap pollution. We only keep the assignability check when assigning
+    // values of a function type.
     if (IsSignatureClass() && other.IsSignatureClass()) {
       const Function& src_fun = Function::Handle(signature_function());
       const Function& dst_fun = Function::Handle(other.signature_function());
-      // TODO(regis): We need to consider the type arguments.
-      return src_fun.IsAssignableTo(dst_fun);
+      return src_fun.IsAssignableTo(type_arguments,
+                                    dst_fun,
+                                    other_type_arguments);
     }
     // Continue with a subtype test.
     test = kIsSubtypeOf;
@@ -1780,11 +1785,8 @@ bool Type::IsMoreSpecificThan(const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::IsMoreSpecificThan().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
-    return
-        (!IsTypeParameter() && other.IsTypeParameter()) ||
-        (IsTypeParameter() && other.IsTypeParameter() &&
-         (Index() == other.Index()));
+    return IsTypeParameter() && other.IsTypeParameter() &&
+        (Index() == other.Index());
   }
   const Class& cls = Class::Handle(type_class());
   return cls.IsMoreSpecificThan(TypeArguments::Handle(arguments()),
@@ -1798,11 +1800,8 @@ bool Type::Test(TypeTestKind test, const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::TestType().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
-    return
-        (!IsTypeParameter() && other.IsTypeParameter()) ||
-        (IsTypeParameter() && other.IsTypeParameter() &&
-         (Index() == other.Index()));
+    return IsTypeParameter() && other.IsTypeParameter() &&
+        (Index() == other.Index());
   }
   const Class& cls = Class::Handle(type_class());
   if (test == kIsSubtypeOf) {
@@ -2719,7 +2718,10 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
 }
 
 
-bool Function::TestType(TypeTestKind test, const Function& other) const {
+bool Function::TestType(TypeTestKind test,
+                        const TypeArguments& type_arguments,
+                        const Function& other,
+                        const TypeArguments& other_type_arguments) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
@@ -2729,23 +2731,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
        (num_opt_params < other_num_opt_params))) {
     return false;
   }
-  // TODO(regis): We currently ignore type parameters. We need to consider the
-  // parameter type upper bound, if any.
-  // Note that unless we use this code to check function overrides at compile
-  // time, all parameter types should be instantiated and we can remove code
-  // checking for type parameters.
-
   // Check the result type.
-  const Type& other_res_type = Type::Handle(other.result_type());
-  if (!other_res_type.IsTypeParameter() &&
-      !other_res_type.IsVarType() &&
-      !other_res_type.IsVoidType()) {
-    const Type& res_type = Type::Handle(result_type());
-    if (!res_type.IsTypeParameter() &&
-        !res_type.IsVarType() &&
-        (res_type.IsVoidType() || !res_type.IsSubtypeOf(other_res_type)) &&
-        ((test == Type::kIsSubtypeOf) ||
-         (!other_res_type.IsSubtypeOf(res_type)))) {
+  Type& other_res_type = Type::Handle(other.result_type());
+  if (!other_res_type.IsInstantiated()) {
+    other_res_type = other_res_type.InstantiateFrom(other_type_arguments, 0);
+  }
+  if (!other_res_type.IsVarType() && !other_res_type.IsVoidType()) {
+    Type& res_type = Type::Handle(result_type());
+    if (!res_type.IsInstantiated()) {
+      res_type = res_type.InstantiateFrom(type_arguments, 0);
+    }
+    if (!res_type.IsVarType() &&
+        (res_type.IsVoidType() || !res_type.IsAssignableTo(other_res_type))) {
       return false;
     }
   }
@@ -2754,11 +2751,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
   Type& other_param_type = Type::Handle();
   for (intptr_t i = 0; i < num_fixed_params; i++) {
     param_type = ParameterTypeAt(i);
-    if (param_type.IsTypeParameter() || param_type.IsVarType()) {
+    if (!param_type.IsInstantiated()) {
+      param_type = param_type.InstantiateFrom(type_arguments, 0);
+    }
+    if (param_type.IsVarType()) {
       continue;
     }
     other_param_type = other.ParameterTypeAt(i);
-    if (other_param_type.IsTypeParameter() || other_param_type.IsVarType()) {
+    if (!other_param_type.IsInstantiated()) {
+      other_param_type =
+          other_param_type.InstantiateFrom(other_type_arguments, 0);
+    }
+    if (other_param_type.IsVarType()) {
       continue;
     }
     // Subtyping and assignability rules are identical when applied to parameter
@@ -2788,12 +2792,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
         param_type = ParameterTypeAt(j);
-        if (param_type.IsTypeParameter() || param_type.IsVarType()) {
+        if (!param_type.IsInstantiated()) {
+          param_type = param_type.InstantiateFrom(type_arguments, 0);
+        }
+        if (param_type.IsVarType()) {
           break;
         }
         other_param_type = other.ParameterTypeAt(i);
-        if (other_param_type.IsTypeParameter() ||
-            other_param_type.IsVarType()) {
+        if (!other_param_type.IsInstantiated()) {
+          other_param_type =
+              other_param_type.InstantiateFrom(other_type_arguments, 0);
+        }
+        if (other_param_type.IsVarType()) {
           break;
         }
         if (!param_type.IsSubtypeOf(other_param_type) &&
@@ -2830,12 +2840,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
       if (other.ParameterNameAt(j) == param_name.raw()) {
         found_param_name = true;
         other_param_type = other.ParameterTypeAt(j);
-        if (other_param_type.IsTypeParameter() ||
-            other_param_type.IsVarType()) {
+        if (!other_param_type.IsInstantiated()) {
+          other_param_type =
+              other_param_type.InstantiateFrom(other_type_arguments, 0);
+        }
+        if (other_param_type.IsVarType()) {
           break;
         }
         param_type = ParameterTypeAt(i);
-        if (param_type.IsTypeParameter() || param_type.IsVarType()) {
+        if (!param_type.IsInstantiated()) {
+          param_type = param_type.InstantiateFrom(type_arguments, 0);
+        }
+        if (param_type.IsVarType()) {
           break;
         }
         if (!other_param_type.IsSubtypeOf(param_type) &&
