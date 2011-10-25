@@ -1210,9 +1210,6 @@ bool Class::IsCanonicalSignatureClass() const {
 }
 
 
-// TODO(regis): We can probably merge this function with IsSubtypeOf, but since
-// the spec is not definitive, we still follow it somewhat closely, to make it
-// easier to implement spec changes.
 bool Class::IsMoreSpecificThan(
     const TypeArguments& type_arguments,
     const Class& other,
@@ -1341,20 +1338,7 @@ bool Class::TestType(TypeTestKind test,
   ASSERT(test == kIsSubtypeOf);
 
   // Check for "more specific" relation.
-  if (IsMoreSpecificThan(type_arguments, other, other_type_arguments)) {
-    return true;
-  }
-  // TODO(regis): Merge IsMoreSpecificThan here after type checks for
-  // function types are finalized and implemented.
-  // For now, keep the assert below.
-
-  // The optionality and dubious bliss rules described in the guide have
-  // already been checked in IsMoreSpecificThan call above.
-  if (raw() != other.raw()) {
-    return false;
-  }
-  ASSERT(HasTypeArguments());  // Otherwise, IsMoreSpecificThan would be true.
-  return false;
+  return IsMoreSpecificThan(type_arguments, other, other_type_arguments);
 }
 
 
@@ -4837,14 +4821,21 @@ const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
   } else {
-    // TODO(regis): Print type arguments if any.
     const char* kFormat = "Instance of '%s'";
     Class& cls = Class::Handle(clazz());
+    TypeArguments& type_arguments = TypeArguments::Handle();
+    const intptr_t num_type_arguments = cls.NumTypeArguments();
+    if (num_type_arguments > 0) {
+      type_arguments = GetTypeArguments();
+    }
+    const Type& type = Type::Handle(
+        Type::NewParameterizedType(cls, type_arguments));
+    const String& type_name = String::Handle(type.Name());
     // Calculate the size of the string.
-    intptr_t len = OS::SNPrint(NULL, 0, kFormat, cls.ToCString()) + 1;
+    intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
     char* chars = reinterpret_cast<char*>(
         Isolate::Current()->current_zone()->Allocate(len));
-    OS::SNPrint(chars, len, kFormat, cls.ToCString());
+    OS::SNPrint(chars, len, kFormat, type_name.ToCString());
     return chars;
   }
 }

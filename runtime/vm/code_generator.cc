@@ -916,7 +916,7 @@ void FunctionsCache::AddCompiledFunction(const Function& function,
 }
 
 
-// TODO(regis): The actual names of named arguments must match as well.
+// Only the number of named arguments is checked, but not the actual names.
 RawCode* FunctionsCache::LookupCode(const String& function_name,
                                     int num_arguments,
                                     int num_named_arguments) {

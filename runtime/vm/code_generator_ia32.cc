@@ -2139,8 +2139,7 @@ void CodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
 
 
 void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
-  // TODO(regis): Does the spec mention if the closure is evaluated before or
-  // after the arguments? We evaluate it first, i.e. left to right.
+  // The spec states that the closure is evaluated before the arguments.
   // Preserve the current context, since it will be overridden by the closure
   // context during the call.
   __ pushl(CTX);

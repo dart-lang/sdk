@@ -896,11 +896,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       params->num_optional_parameters++;
       parameter.default_value = &Object::ZoneHandle();
     } else {
-      // TODO(regis): Remove support of legacy syntax.
       params->num_fixed_parameters++;
-      if (params->num_optional_parameters > 0) {
-        ErrorMsg("optional parameters must be last");
-      }
+      ASSERT(params->num_optional_parameters == 0);
     }
   }
   if (parameter.type->IsVoidType()) {
@@ -2157,10 +2154,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
     // The grammar allows a return type, so member.type is not always NULL here.
-    // However, the return type of a setter is ignored.
-    // TODO(regis): Revisit depending on the outcome of issue 4745047.
+    // If no return type is specified, the return type of the setter is Dynamic.
     if (member.type == NULL) {
-      member.type = &Type::ZoneHandle(Type::VoidType());
+      member.type = &Type::ZoneHandle(Type::VarType());
     }
   } else if (CurrentToken() == Token::kOPERATOR) {
     ConsumeToken();
@@ -2643,11 +2639,6 @@ RawArray* Parser::ParseInterfaceList() {
   GrowableArray<Type*> interfaces;
   do {
     ConsumeToken();
-    // TODO(regis): The way we handle unresolved classes is not going to fly.
-    // We are currently not able to provide a token position for errors occuring
-    // after parsing, as in the class finalizer. We need to introduce an
-    // 'unresolved class' class consisting of a string, a token position, and a
-    // script, maybe a library too.
     Type& interface = Type::ZoneHandle(ParseType(kCanResolve));
     interfaces.Add(&interface);
   } while (CurrentToken() == Token::kCOMMA);
@@ -2788,7 +2779,6 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   if (CurrentToken() == Token::kGET ||
       CurrentToken() == Token::kSET) {
     ConsumeToken();
-    // TODO(regis): Revisit, see issue 4745047.
     result_type = Type::VarType();
   } else {
     if (CurrentToken() == Token::kVOID) {

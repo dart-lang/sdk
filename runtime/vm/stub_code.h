@@ -33,7 +33,11 @@ class RawCode;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
 
-// TODO(regis): Is it OK for the stubs above to refer to Object::null()?
+// Is it permitted for the stubs above to refer to Object::null(), which is
+// allocated in the VM isolate and shared across all isolates.
+// However, in cases where a simple GC-safe placeholder is needed on the stack,
+// using Smi 0 instead of Object::null() is slightly more efficient, since a Smi
+// does not require relocation.
 
 // List of stubs created per isolate, these stubs could potentially contain
 // embedded objects and hence cannot be shared across isolates.

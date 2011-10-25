@@ -52,8 +52,6 @@ ExampleConstructorTest: Fail    # Bug 4995181
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
 CanonicalConstTest: Fail        # Bug 5270133
-GenericParameterizedExtendsTest: Skip  # Bug 5391643
-
 
 ConstructorReturnNegativeTest: Fail                   # Issue 224
 ConstructorReturnWithInitNegativeTest: Fail           # Issue 224
