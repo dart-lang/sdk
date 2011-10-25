@@ -16,7 +16,7 @@ interface Purse$Proxy {
   Promise<int> deposit(int amount, Purse$Proxy source);
 }
 
-class Purse$ProxyImpl extends Proxy implements Purse$Proxy {
+class Purse$ProxyImpl extends ProxyImpl implements Purse$Proxy {
   Purse$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   Purse$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory Purse$ProxyImpl.createIsolate() {
@@ -93,7 +93,7 @@ interface PowerfulPurse$Proxy {
   Purse$Proxy weak();
 }
 
-class PowerfulPurse$ProxyImpl extends Proxy implements PowerfulPurse$Proxy {
+class PowerfulPurse$ProxyImpl extends ProxyImpl implements PowerfulPurse$Proxy {
   PowerfulPurse$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   PowerfulPurse$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory PowerfulPurse$ProxyImpl.createIsolate() {
@@ -169,7 +169,7 @@ interface Mint$Proxy {
   PowerfulPurse$Proxy promote(Purse$Proxy purse);
 }
 
-class Mint$ProxyImpl extends Proxy implements Mint$Proxy {
+class Mint$ProxyImpl extends ProxyImpl implements Mint$Proxy {
   Mint$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   Mint$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory Mint$ProxyImpl.createIsolate() {

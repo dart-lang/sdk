@@ -262,23 +262,23 @@ class PromiseImpl<T> implements Promise<T> {
   }
 }
 
-class ProxyImpl {
+class ProxyBase {
 
-  ProxyImpl.forPort(SendPort port) {
+  ProxyBase.forPort(SendPort port) {
     _promise = new Promise<SendPort>();
     _promise.complete(port);
   }
 
   // Construct a proxy for a message reply; see the [Proxy.forReply]
   // documentation for more details.
-  ProxyImpl.forReply(Promise<SendPort> port) {
+  ProxyBase.forReply(Promise<SendPort> port) {
     _promise = port;
   }
 
   // Note that comparing proxies or using them in maps is illegal
   // until they complete.
   bool operator ==(var other) {
-    return (other is ProxyImpl) && _promise.value == other._promise.value;
+    return (other is ProxyBase) && _promise.value == other._promise.value;
   }
 
   int hashCode() => _promise.value.hashCode();

@@ -67,7 +67,8 @@ class DartStubTestCase(test_case.StandardTestCase):
     t = open(tmp, 'r')
     while True:
       line = s.readline()
-      if not (re.match('^\s+$', line) or line.startswith('//') or line.startswith('#')):
+      if not (re.match('^\s+$', line) or line.startswith('//')
+              or line.startswith('#')):
         break
       d.write(line)
     d.write(t.read())

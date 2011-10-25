@@ -90,15 +90,29 @@ interface Promise<T> factory PromiseImpl<T> {
 }
 
 
-class Proxy extends ProxyImpl {
+interface Proxy factory ProxyImpl {
 
-  Proxy.forPort(SendPort port)
+  Proxy.forPort(SendPort port);
+  Proxy.forIsolate(Isolate isolate);
+  Proxy._forIsolateWithPromise(Isolate isolate, Promise<SendPort> promise);
+  /*
+   * The [Proxy.forReply] constructor is used to create a proxy for
+   * the object that will be the reply to a message send.
+   */
+  Proxy.forReply(Promise<SendPort> port);
+
+}
+
+
+class ProxyImpl extends ProxyBase implements Proxy {
+
+  ProxyImpl.forPort(SendPort port)
       : super.forPort(port) { }
 
-  Proxy.forIsolate(Isolate isolate)
+  ProxyImpl.forIsolate(Isolate isolate)
       : this._forIsolateWithPromise(isolate, new Promise<SendPort>());
 
-  Proxy._forIsolateWithPromise(Isolate isolate, Promise<SendPort> promise)
+  ProxyImpl._forIsolateWithPromise(Isolate isolate, Promise<SendPort> promise)
       // TODO(floitsch): it seems wrong to call super.forReply here.
       : super.forReply(promise) {
     isolate.spawn().then((SendPort port) {
@@ -110,7 +124,7 @@ class Proxy extends ProxyImpl {
    * The [Proxy.forReply] constructor is used to create a proxy for
    * the object that will be the reply to a message send.
    */
-  Proxy.forReply(Promise<SendPort> port)
+  ProxyImpl.forReply(Promise<SendPort> port)
       : super.forReply(port) { }
 
 }
@@ -130,7 +144,7 @@ class Dispatcher<T> {
   }
 
   static SendPort serve(Dispatcher dispatcher) {
-    ReceivePort port = ProxyImpl.register(dispatcher);
+    ReceivePort port = ProxyBase.register(dispatcher);
     dispatcher._serve(port);
     return port.toSendPort();
   }

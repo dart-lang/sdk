@@ -277,7 +277,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     nl();
     nl();
 
-    p("class " + name + "$ProxyImpl extends Proxy implements " + name + "$Proxy {");
+    p("class " + name + "$ProxyImpl extends ProxyImpl implements " + name + "$Proxy {");
     nl();
     p("  " + name + "$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }");
     nl();
