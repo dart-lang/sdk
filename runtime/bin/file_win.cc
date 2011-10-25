@@ -121,7 +121,7 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 
 char* File::GetCanonicalPath(const char* pathname) {
-  UNIMPLEMENTED();
+  // TODO(176): Need to implement this.
   return strdup(pathname);
 }
 
