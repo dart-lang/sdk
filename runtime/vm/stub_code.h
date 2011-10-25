@@ -73,7 +73,7 @@ class StubCode {
   StubCode()
     :
 #define STUB_CODE_INITIALIZER(name)                                            \
-        name##_entry_(NULL),                                                   \
+        name##_entry_(NULL),
   STUB_CODE_LIST(STUB_CODE_INITIALIZER)
         dummy_(NULL) {}
   ~StubCode();
