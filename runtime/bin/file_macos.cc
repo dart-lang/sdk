@@ -119,6 +119,16 @@ bool File::IsAbsolutePath(const char* pathname) {
 }
 
 
+char* File::GetCanonicalPath(const char* pathname) {
+  char* abs_path = NULL;
+  if (pathname != NULL) {
+    abs_path = realpath(pathname, NULL);
+    assert(abs_path == NULL || IsAbsolutePath(abs_path));
+  }
+  return abs_path;
+}
+
+
 const char* File::PathSeparator() {
   return "/";
 }

@@ -188,8 +188,15 @@ int main(int argc, char** argv) {
 
   // Create an isolate. As a side effect, MainIsolateInitCallback
   // gets called, which loads the scripts and libraries.
-  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer, script_name);
+  char* canonical_script_name = File::GetCanonicalPath(script_name);
+  if (canonical_script_name == NULL) {
+    fprintf(stderr, "Unable to find '%s'\n", script_name);
+    return 255;  // Indicates we encountered an error.
+  }
+  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer,
+                                            canonical_script_name);
   if (isolate == NULL) {
+    free(canonical_script_name);
     return 255;
   }
 
@@ -202,17 +209,19 @@ int main(int argc, char** argv) {
       fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
       Dart_ExitScope();
       Dart_ShutdownIsolate();
+      free(canonical_script_name);
       return 255;  // Indicates we encountered an error.
     }
   }
 
   // Lookup and invoke the top level main function.
-  Dart_Handle script_url = Dart_NewString(script_name);
+  Dart_Handle script_url = Dart_NewString(canonical_script_name);
   Dart_Result result = Dart_LookupLibrary(script_url);
   if (!Dart_IsValidResult(result)) {
     fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
+    free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
   Dart_Handle library = Dart_GetResult(result);
@@ -237,12 +246,14 @@ int main(int argc, char** argv) {
       fprintf(stderr, "\n");
       Dart_ExitScope();
       Dart_ShutdownIsolate();
+      free(canonical_script_name);
       return 255;  // We had an unhandled exception, hence indicate an error.
     }
   } else {
     fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
+    free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
   // Keep handling messages until the last active receive port is closed.
@@ -251,8 +262,10 @@ int main(int argc, char** argv) {
     fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
+    free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
+  free(canonical_script_name);
   Dart_ExitScope();
   // Dump symbol information for the profiler.
   DumpPprofSymbolInfo();

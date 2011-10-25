@@ -120,6 +120,12 @@ bool File::IsAbsolutePath(const char* pathname) {
 }
 
 
+char* File::GetCanonicalPath(const char* pathname) {
+  UNIMPLEMENTED();
+  return strdup(pathname);
+}
+
+
 const char* File::PathSeparator() {
   return "\\";
 }

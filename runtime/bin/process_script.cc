@@ -48,7 +48,12 @@ static const char* CanonicalizeUrl(const char* reference_dir,
            path, File::PathSeparator(), filename);
 
   free(path);
-  return absolute_filename;
+  char* canonical_filename = File::GetCanonicalPath(absolute_filename);
+  if (canonical_filename == NULL) {
+    return absolute_filename;
+  }
+  free(absolute_filename);
+  return canonical_filename;
 }
 
 
