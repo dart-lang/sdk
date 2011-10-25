@@ -180,10 +180,10 @@ class StringBase {
   }
 
   bool contains(Pattern other, int startIndex) {
-    if (other is RegExp) {
-      throw "Unimplemented String.contains with RegExp";
+    if (other is String) {
+      return indexOf(other, startIndex) >= 0;
     }
-    return indexOf(other, startIndex) >= 0;
+    return other.allMatches(this.substring(startIndex)).iterator().hasNext();
   }
 
   String replaceFirst(Pattern from, String to) {

@@ -37,7 +37,6 @@ LibTest/core/Set/filter/Set/filter/A01/t03: Fail
 LibTest/core/Set/forEach/Set/forEach/A01/t03: Fail
 LibTest/core/String/charCodeAt/String/charCodeAt/A02/t01: Crash
 LibTest/core/String/charCodeAt/String/charCodeAt/A03/t01: Crash
-LibTest/core/String/contains/String/contains/A01/t01: Fail
 LibTest/core/String/contains/String/contains/A02/t01: Fail
 LibTest/core/String/operator\[]/String/operator\[]/A02/t01: Crash
 LibTest/core/String/replaceAll/String/replaceAll/A01/t01: Fail
