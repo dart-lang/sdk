@@ -66,8 +66,11 @@ NonParameterizedFactory2Test: Fail # Bug 5257789
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
 
-[ ($arch == ia32 || $arch == dartium) && $mode == debug ]
+[ $arch == ia32 && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
+
+[ $arch == dartium && $mode == debug ]
+NonParameterizedFactoryTest: Fail  # Issue 226
 
 
 [ $arch == ia32 && $system == win32]
