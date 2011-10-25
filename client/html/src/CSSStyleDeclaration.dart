@@ -10,7 +10,11 @@
 
 // TODO(jacobr): add versions that take numeric values in px, miliseconds, etc.
 
-interface CSSStyleDeclaration {
+interface CSSStyleDeclaration factory CSSStyleDeclarationWrappingImplementation {
+
+  CSSStyleDeclaration();
+
+  CSSStyleDeclaration.css(String css);
 
   String get cssText();
 

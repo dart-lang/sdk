@@ -15,6 +15,16 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
 
   CSSStyleDeclarationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
+  factory CSSStyleDeclarationWrappingImplementation.css(String css) {
+    var style = new Element.tag('div').style;
+    style.cssText = css;
+    return style;
+  }
+
+  factory CSSStyleDeclarationWrappingImplementation() {
+    return new CSSStyleDeclarationWrappingImplementation.css("");
+  }
+
   static String get _browserPrefix() {
     if (_cachedBrowserPrefix === null) {
       if (_Device.isFirefox) {

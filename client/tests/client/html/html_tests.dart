@@ -17,6 +17,6 @@
 #source('DocumentFragmentTests.dart');
 
 main() {
-  CSSStyleDeclarationTests.main();
-  DocumentFragmentTests.main();
+  group('CSSStyleDeclaration', testCSSStyleDeclaration);
+  group('DocumentFragment', testDocumentFragment);
 }

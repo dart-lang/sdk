@@ -2,63 +2,62 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class CSSStyleDeclarationTests extends UnitTestSuite {
-  CSSStyleDeclarationTests(): super();
+testCSSStyleDeclaration() {
+  getStyle() {
+    return new CSSStyleDeclaration.css("""
+      color: blue;
+      width: 2px !important;
+      -webkit-transform: rotate(90deg);
+    """);
+  };
 
-  static void main() {
-    new CSSStyleDeclarationTests().run();
-  }
+  test('default constructor is empty', () {
+    var style = new CSSStyleDeclaration();
+    Expect.equals("", style.cssText);
+    Expect.equals("", style.getPropertyPriority('color'));
+    Expect.equals("", style.item(0));
+    Expect.equals(0, style.length);
+    // Expect.isNull(style.parentRule);
+    // Expect.isNull(style.getPropertyCSSValue('color'));
+    // Expect.isNull(style.getPropertyShorthand('color'));
+  });
 
-  void setUpTestSuite() {
-    addTest(testCssText);
-    addTest(testLength);
-    addTest(testGetPropertyCSSValue);
-    addTest(testGetPropertyPriority);
-    addTest(testItem);
-    addTest(testRemoveProperty);
-    addTest(testGettersAndSetters);
-  }
-
-  void testCssText() {
-    var style = _style;
+  test('cssText is wrapped', () {
+    var style = getStyle();
     Expect.equals(
       "color: blue; width: 2px !important; -webkit-transform: rotate(90deg); ",
       style.cssText);
     style.cssText = "color: red";
     Expect.equals("color: red; ", style.cssText);
-  }
+  });
 
-  void testLength() {
-    Expect.equals(3, _style.length);
-  }
+  test('length is wrapped', () {
+    Expect.equals(3, getStyle().length);
+  });
 
-  void testGetPropertyCSSValue() {
-    Expect.equals("blue", _style.getPropertyCSSValue("color").cssText);
-  }
-
-  void testGetPropertyPriority() {
-    var style = _style;
+  test('getPropertyPriority is wrapped', () {
+    var style = getStyle();
     Expect.equals("", style.getPropertyPriority("color"));
     Expect.equals("important", style.getPropertyPriority("width"));
-  }
+  });
 
-  void testItem() {
-    var style = _style;
+  test('item is wrapped', () {
+    var style = getStyle();
     Expect.equals("color", style.item(0));
     Expect.equals("width", style.item(1));
     Expect.equals("-webkit-transform", style.item(2));
-  }
+  });
 
-  void testRemoveProperty() {
-    var style = _style;
+  test('removeProperty is wrapped', () {
+    var style = getStyle();
     style.removeProperty("width");
     Expect.equals(
       "color: blue; -webkit-transform: rotate(90deg); ",
       style.cssText);
-  }
+  });
 
-  void testGettersAndSetters() {
-    var style = _style;
+  test('getters and setters are generated', () {
+    var style = getStyle();
     Expect.equals("blue", style.color);
     Expect.equals("2px", style.width);
     Expect.equals("rotate(90deg)", style.transform);
@@ -68,13 +67,5 @@ class CSSStyleDeclarationTests extends UnitTestSuite {
     Expect.equals(
       "width: 2px !important; color: red; -webkit-transform: translate(10px, 20px); ",
       style.cssText);
-  }
-
-  CSSStyleDeclaration get _style() {
-    return new Element.html("""<div style='
-      color: blue;
-      width: 2px !important;
-      -webkit-transform: rotate(90deg);
-    '></div>""").style;
-  }
+  });
 }

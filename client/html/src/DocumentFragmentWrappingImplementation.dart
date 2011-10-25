@@ -107,15 +107,9 @@ class FilteredElementList implements ElementList {
 }
 
 class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
-  String get cssText() => "";
-  int get length() => 0;
-  CSSRule get parentRule() => null;
-  CSSValue getPropertyCSSValue(String propertyName) => null;
-  String getPropertyPriority(String propertyName) => "";
-  String getPropertyShorthand(String propertyName) => null;
-  String getPropertyValue(String propertyName) => null;
-  bool isPropertyImplicit(String propertyName) => false;
-  String item(int index) => "";
+  // This can't call super(), since that's a factory constructor
+  EmptyStyleDeclaration()
+    : super._wrap(dom.document.createElement('div').style) {}
 
   void set cssText(String value) {
     throw new UnsupportedOperationException(

@@ -12,7 +12,6 @@ html/html_tests: Fail # Due to unit test framework update.
 [ $arch == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
-html/html_tests: Skip  # Issue 176.
 
 
 # 'client' tests import the DOM library, so they only make sense in
