@@ -25,7 +25,7 @@ syn keyword dartOperator       new is in factory
 syn match   dartOperator       "+\|-\|*\|[~]\=/\|%\|||\|&&\|!\|==[=]\="
 syn keyword dartType           void var const bool int double num
 syn keyword dartStatement      return
-syn keyword dartStorageClass   static final
+syn keyword dartStorageClass   static final abstract
 syn keyword dartExceptions     throw try catch finally
 syn keyword dartAssert         assert
 syn keyword dartClassDecl      extends implements interface
