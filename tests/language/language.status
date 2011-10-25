@@ -61,9 +61,14 @@ ConstructorReturnWithInitNegativeTest: Fail           # Issue 224
 ConstructorReturnWithArrowNegativeTest: Fail          # Issue 224
 ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 224
 
+NonParameterizedFactory2Test: Fail # Bug 5257789
 
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
+
+[ ($arch == ia32 || $arch == dartium) && $mode == debug ]
+NonParameterizedFactoryTest: Crash  # Issue 226
+
 
 [ $arch == ia32 && $system == win32]
 CyclicImportTest: Skip # Codesite issue 172
