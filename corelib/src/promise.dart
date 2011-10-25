@@ -101,6 +101,8 @@ interface Proxy factory ProxyImpl {
    */
   Proxy.forReply(Promise<SendPort> port);
 
+  void send(List message);
+
 }
 
 
