@@ -38,6 +38,7 @@ void MessageQueue::Enqueue(PortMessage* msg) {
 
 
 PortMessage* MessageQueue::Dequeue(int64_t millis) {
+  ASSERT(millis >= 0);
   MonitorLocker ml(&monitor_);
   PortMessage* result = head_;
   if (result == NULL) {
