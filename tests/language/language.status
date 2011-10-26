@@ -66,9 +66,6 @@ NonParameterizedFactory2Test: Fail # Bug 5257789
 [ $arch == ia32 && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
 
-[ $arch == dartium && $mode == debug ]
-NonParameterizedFactoryTest: Fail  # Issue 226
-
 
 [ $arch == ia32 && $system == win32]
 CyclicImportTest: Skip # Codesite issue 172
