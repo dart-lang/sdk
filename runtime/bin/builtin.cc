@@ -12,9 +12,11 @@
 // test/debug functionality in standalone dart mode.
 
 void PrintString(FILE* out, Dart_Handle str) {
-  Dart_Result result = Dart_StringToCString(str);
-  const char* cstring = Dart_IsValidResult(result) ?
-      Dart_GetResultAsCString(result) : Dart_GetErrorCString(result);
+  const char* cstring = NULL;
+  Dart_Handle result = Dart_StringToCString(str, &cstring);
+  if (!Dart_IsValid(result)) {
+      cstring = Dart_GetError(result);
+  }
   fprintf(out, "%s\n", cstring);
   fflush(out);
 }

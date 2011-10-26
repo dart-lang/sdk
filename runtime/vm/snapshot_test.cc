@@ -325,7 +325,7 @@ UNIT_TEST_CASE(FullSnapshot) {
       "    return obj;\n"
       "  }\n"
       "}\n";
-  Dart_Result result;
+  Dart_Handle result;
 
   uint8_t* buffer;
 
@@ -367,9 +367,8 @@ UNIT_TEST_CASE(FullSnapshot) {
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValidResult(result));
-    Dart_Handle retobj = Dart_GetResult(result);
-    EXPECT(!Dart_ExceptionOccurred(retobj));
+    EXPECT(Dart_IsValid(result));
+    EXPECT(!Dart_ExceptionOccurred(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.
   }
@@ -410,14 +409,13 @@ UNIT_TEST_CASE(FullSnapshot1) {
     writer.WriteFullSnapshot();
 
     // Invoke a function which returns an object.
-    Dart_Result result = Dart_InvokeStatic(lib,
+    Dart_Handle result = Dart_InvokeStatic(lib,
                                Dart_NewString("FieldsTest"),
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValidResult(result));
-    Dart_Handle retobj = Dart_GetResult(result);
-    EXPECT(!Dart_ExceptionOccurred(retobj));
+    EXPECT(Dart_IsValid(result));
+    EXPECT(!Dart_ExceptionOccurred(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.
   }
@@ -434,25 +432,25 @@ UNIT_TEST_CASE(FullSnapshot1) {
     OS::PrintErr("From Snapshot: %dus\n", timer2.TotalElapsedTime());
 
     // Invoke a function which returns an object.
-    Dart_Result result = Dart_InvokeStatic(TestCase::lib(),
+    Dart_Handle result = Dart_InvokeStatic(TestCase::lib(),
                                Dart_NewString("FieldsTest"),
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValidResult(result));
-    Dart_Handle retobj = Dart_GetResult(result);
-    if (Dart_ExceptionOccurred(retobj)) {
+    EXPECT(Dart_IsValid(result));
+    if (Dart_ExceptionOccurred(result)) {
       // Print the exception object.
       fprintf(stderr, "An unhandled exception has been thrown\n");
-      Dart_Result exception_result = Dart_GetException(retobj);
-      assert(Dart_IsValidResult(exception_result));
-      Dart_Handle retval_string = Dart_GetResult(exception_result);
-      Dart_Result retstr = Dart_StringToCString(retval_string);
-      const char* obj_cstring = Dart_IsValidResult(retstr) ?
-          Dart_GetResultAsCString(retstr) : Dart_GetErrorCString(retstr);
+      Dart_Handle exception_result = Dart_GetException(result);
+      assert(Dart_IsValid(exception_result));
+      const char* obj_cstring = NULL;
+      Dart_Handle retstr = Dart_StringToCString(exception_result, &obj_cstring);
+      if (!Dart_IsValid(retstr)) {
+        obj_cstring = Dart_GetError(retstr);
+      }
       fprintf(stderr, "%s", obj_cstring);
     }
-    EXPECT(!Dart_ExceptionOccurred(retobj));
+    EXPECT(!Dart_ExceptionOccurred(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.
   }

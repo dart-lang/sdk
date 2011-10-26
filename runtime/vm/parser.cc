@@ -2863,19 +2863,18 @@ void Parser::ParseLibraryName() {
 }
 
 
-Dart_Result Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
+Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                    intptr_t token_pos,
                                    const String& url) {
   Dart_LibraryTagHandler handler = Isolate::Current()->library_tag_handler();
   if (handler == NULL) {
     ErrorMsg(token_pos, "no library handler registered");
   }
-  Dart_Result result = handler(tag,
+  Dart_Handle result = handler(tag,
                                Api::NewLocalHandle(library_),
                                Api::NewLocalHandle(url));
-  if (!Dart_IsValidResult(result)) {
-    ErrorMsg(token_pos, "library handler failed: %s",
-             Dart_GetErrorCString(result));
+  if (!Dart_IsValid(result)) {
+    ErrorMsg(token_pos, "library handler failed: %s", Dart_GetError(result));
   }
   return result;
 }
@@ -2909,10 +2908,9 @@ void Parser::ParseLibraryImport() {
     }
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Result result = CallLibraryTagHandler(kCanonicalizeUrl,
+    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                import_pos,
                                                url);
-    Dart_Handle handle = Dart_GetResult(result);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
@@ -2951,10 +2949,9 @@ void Parser::ParseLibraryInclude() {
     ConsumeToken();
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Result result = CallLibraryTagHandler(kCanonicalizeUrl,
+    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                source_pos,
                                                url);
-    Dart_Handle handle = Dart_GetResult(result);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
     CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
   }

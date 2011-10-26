@@ -44,9 +44,11 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 
 
 static File* GetFileHandle(Dart_Handle fileobj) {
-  Dart_Result result = Dart_GetNativeInstanceField(fileobj, kFileFieldIndex);
-  ASSERT(Dart_IsValidResult(result));
-  File* file = reinterpret_cast<File*>(Dart_GetResultAsCIntptr(result));
+  intptr_t value = 0;
+  Dart_Handle result = Dart_GetNativeInstanceField(fileobj, kFileFieldIndex,
+                                                   &value);
+  ASSERT(Dart_IsValid(result));
+  File* file = reinterpret_cast<File*>(value);
   return file;
 }
 
@@ -155,9 +157,10 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-    Dart_Result result = Dart_GetLength(buffer_obj);
-    ASSERT(Dart_IsValidResult(result));
-    ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
+    intptr_t array_len = 0;
+    Dart_Handle result = Dart_GetLength(buffer_obj, &array_len);
+    ASSERT(Dart_IsValid(result));
+    ASSERT((offset + length) <= array_len);
     uint8_t* buffer = new uint8_t[length];
     int total_bytes_read =
         file->Read(reinterpret_cast<void*>(buffer), length);
@@ -167,7 +170,7 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
     if (total_bytes_read >= 0) {
       result =
           Dart_ArraySet(buffer_obj, offset, buffer, total_bytes_read);
-      ASSERT(Dart_IsValidResult(result));
+      ASSERT(Dart_IsValid(result));
       return_value = total_bytes_read;
     }
     delete[] buffer;
@@ -188,12 +191,13 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-    Dart_Result result = Dart_GetLength(buffer_obj);
-    ASSERT(Dart_IsValidResult(result));
-    ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
+    intptr_t buffer_len = 0;
+    Dart_Handle result = Dart_GetLength(buffer_obj, &buffer_len);
+    ASSERT(Dart_IsValid(result));
+    ASSERT((offset + length) <= buffer_len);
     uint8_t* buffer = new uint8_t[length];
     result = Dart_ArrayGet(buffer_obj, offset, buffer, length);
-    ASSERT(Dart_IsValidResult(result));
+    ASSERT(Dart_IsValid(result));
     int total_bytes_written =
         file->Write(reinterpret_cast<void*>(buffer), length);
     if (total_bytes_written >= 0) {

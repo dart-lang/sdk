@@ -15,11 +15,11 @@ static const intptr_t kNativeEventHandlerFieldIndex = 0;
  * Returns the reference of the EventHandler stored in the native field.
  */
 static EventHandler* GetEventHandler(Dart_Handle handle) {
-  Dart_Result result = Dart_GetNativeInstanceField(
-      handle, kNativeEventHandlerFieldIndex);
-  ASSERT(Dart_IsValidResult(result));
-  EventHandler* event_handler =
-      reinterpret_cast<EventHandler*>(Dart_GetResultAsCIntptr(result));
+  intptr_t value = 0;
+  Dart_Handle result = Dart_GetNativeInstanceField(
+      handle, kNativeEventHandlerFieldIndex, &value);
+  ASSERT(Dart_IsValid(result));
+  EventHandler* event_handler = reinterpret_cast<EventHandler*>(value);
   ASSERT(event_handler != NULL);
   return event_handler;
 }

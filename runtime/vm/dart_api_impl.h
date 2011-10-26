@@ -7,22 +7,13 @@
 
 #include "vm/allocation.h"
 
-#define RETURN_FAILURE(msg) return Dart_ErrorResult(msg)
-#define RETURN_CINT(retval) return Dart_ResultAsCIntptr(retval)
-#define RETURN_CBOOLEAN(retval) return Dart_ResultAsCBoolean(retval)
-#define RETURN_CSTRING(retval) return Dart_ResultAsCString(retval)
-#define RETURN_OBJECT(obj) return Dart_ResultAsObject(Api::NewLocalHandle(obj))
-#define RETURN_CINT64(retval) return Dart_ResultAsCInt64(retval)
-#define RETURN_CDOUBLE(retval) return Dart_ResultAsCDouble(retval)
-
 namespace dart {
 
-// Forward declarations.
-class Object;
-class RawObject;
-class LocalHandle;
-class PersistentHandle;
 class ApiState;
+class LocalHandle;
+class Object;
+class PersistentHandle;
+class RawObject;
 
 class Api : AllStatic {
  public:
@@ -39,6 +30,12 @@ class Api : AllStatic {
   // Validate and convert the passed in handle as a persistent handle.
   static PersistentHandle* UnwrapAsPersistentHandle(const ApiState& state,
                                                     Dart_Handle object);
+
+  // Get the handle used to designate successful return.
+  static Dart_Handle Success();
+
+  // Generate a handle used to designate an error return.
+  static Dart_Handle Error(const char* msg);
 
   // Allocate space in the local zone.
   static uword Allocate(intptr_t size);

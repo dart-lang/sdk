@@ -84,11 +84,18 @@ class PersistentHandle {
   // Accessors.
   RawObject* raw() const { return raw_; }
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
+  void set_raw(const Object& object) { raw_ = object.raw(); }
   static intptr_t raw_offset() { return OFFSET_OF(PersistentHandle, raw_); }
   void* callback() const { return callback_; }
   void set_callback(void* value) { callback_ = value; }
   intptr_t type() const { return type_; }
   void set_type(intptr_t value) { type_ = value; }
+
+ private:
+  friend class PersistentHandles;
+
+  PersistentHandle() { }
+  ~PersistentHandle() { }
 
   // Overload the callback_ field as a next pointer when adding freed
   // handles to the free list.
@@ -102,10 +109,6 @@ class PersistentHandle {
     raw_ = NULL;
     SetNext(free_list);
   }
-
- private:
-  PersistentHandle() { }
-  ~PersistentHandle() { }
 
   RawObject* raw_;
   void* callback_;
@@ -201,6 +204,11 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     return handle;
   }
 
+  void FreeHandle(PersistentHandle* handle) {
+    handle->FreeHandle(free_list());
+    set_free_list(handle);
+  }
+
   // Validate if passed in handle is a Persistent Handle.
   bool IsValidHandle(Dart_Handle object) const {
     return IsValidScopedHandle(reinterpret_cast<uword>(object));
@@ -249,12 +257,16 @@ class ApiLocalScope {
 // basis and destroyed when the isolate is shutdown.
 class ApiState {
  public:
-  ApiState() : top_scope_(NULL) { }
+  ApiState() : top_scope_(NULL), true_(NULL) { }
   ~ApiState() {
     while (top_scope_ != NULL) {
       ApiLocalScope* scope = top_scope_;
       top_scope_ = top_scope_->previous();
       delete scope;
+    }
+    if (true_ != NULL) {
+      persistent_handles().FreeHandle(true_);
+      true_ = NULL;
     }
   }
 
@@ -315,10 +327,24 @@ class ApiState {
     }
     return total;
   }
+  PersistentHandle* True() {
+    if (true_ == NULL) {
+      Zone zone;  // Setup a VM zone as we are creating some handles.
+      HandleScope scope;  // Setup a VM handle scope.
+
+      const Object& true_object = Object::Handle(Bool::True());
+      true_ = persistent_handles().AllocateHandle();
+      true_->set_raw(true_object);
+    }
+    return true_;
+  }
 
  private:
   PersistentHandles persistent_handles_;
   ApiLocalScope* top_scope_;
+
+  // A persistent handle to the "True" object.
+  PersistentHandle* true_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiState);
 };

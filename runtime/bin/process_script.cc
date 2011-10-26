@@ -57,7 +57,7 @@ static const char* CanonicalizeUrl(const char* reference_dir,
 }
 
 
-static Dart_Result ReadStringFromFile(const char* filename) {
+static Dart_Handle ReadStringFromFile(const char* filename) {
   File* file = File::OpenFile(filename, false);
   if (file == NULL) {
     const char* format = "Unable to open file: %s";
@@ -66,96 +66,92 @@ static Dart_Result ReadStringFromFile(const char* filename) {
     // here. On the other hand the binary is about the exit anyway.
     char* error_msg = reinterpret_cast<char*>(malloc(len + 1));
     snprintf(error_msg, len + 1, format, filename);
-    return Dart_ErrorResult(error_msg);
+    return Dart_Error(error_msg);
   }
   intptr_t len = file->Length();
   char* text_buffer = reinterpret_cast<char*>(malloc(len + 1));
   if (text_buffer == NULL) {
     delete file;
-    return Dart_ErrorResult("Unable to allocate buffer");
+    return Dart_Error("Unable to allocate buffer");
   }
   if (!file->ReadFully(text_buffer, len)) {
     delete file;
-    return Dart_ErrorResult("Unable to fully read contents");
+    return Dart_Error("Unable to fully read contents");
   }
   text_buffer[len] = '\0';
   delete file;
   Dart_Handle str = Dart_NewString(text_buffer);
   free(text_buffer);
-  return Dart_ResultAsObject(str);
+  return str;
 }
 
 
-static Dart_Result LibraryTagHandler(Dart_LibraryTag tag,
+static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
-    return Dart_ErrorResult("not a library");
+    return Dart_Error("not a library");
   }
   if (!Dart_IsString8(url)) {
-    return Dart_ErrorResult("url is not a string");
+    return Dart_Error("url is not a string");
   }
-  Dart_Result result = Dart_StringToCString(url);
-  if (!Dart_IsValidResult(result)) {
-    return Dart_ErrorResult("accessing url characters failed");
+  const char* url_chars = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_chars);
+  if (!Dart_IsValid(result)) {
+    return Dart_Error("accessing url characters failed");
   }
-  const char* url_chars = Dart_GetResultAsCString(result);
 
   if (tag == kCanonicalizeUrl) {
     // Create the full path based on the including library and the current url.
 
     // Get the url of the calling library.
-    result = Dart_LibraryUrl(library);
-    if (!Dart_IsValidResult(result)) {
-      return Dart_ErrorResult("accessing library url failed");
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (!Dart_IsValid(library_url)) {
+      return Dart_Error("accessing library url failed");
     }
-    Dart_Handle library_url = Dart_GetResult(result);
     if (!Dart_IsString8(library_url)) {
-      return Dart_ErrorResult("library url is not a string");
+      return Dart_Error("library url is not a string");
     }
-    result = Dart_StringToCString(library_url);
-    if (!Dart_IsValidResult(result)) {
-      return Dart_ErrorResult("accessing library url characters failed");
+    const char* library_url_chars = NULL;
+    result = Dart_StringToCString(library_url, &library_url_chars);
+    if (!Dart_IsValid(result)) {
+      return Dart_Error("accessing library url characters failed");
     }
-    const char* library_url_chars = Dart_GetResultAsCString(result);
 
     // Calculate the path.
     const char* canon_url_chars = CanonicalizeUrl(library_url_chars, url_chars);
     Dart_Handle canon_url = Dart_NewString(canon_url_chars);
     free(const_cast<char*>(canon_url_chars));
 
-    return Dart_ResultAsObject(canon_url);
+    return canon_url;
   }
 
   // The tag is either an import or a source tag. Read the file based on the
   // url chars.
-  result = ReadStringFromFile(url_chars);
-  if (!Dart_IsValidResult(result)) {
+  Dart_Handle source = ReadStringFromFile(url_chars);
+  if (!Dart_IsValid(source)) {
     return result;
   }
-  Dart_Handle source = Dart_GetResult(result);
 
   if (tag == kImportTag) {
-    result = Dart_LoadLibrary(url, source);
-    if (Dart_IsValidResult(result)) {
+    Dart_Handle new_lib = Dart_LoadLibrary(url, source);
+    if (Dart_IsValid(new_lib)) {
       // TODO(iposva): Should the builtin library be added to all libraries?
-      Dart_Handle new_lib = Dart_GetResult(result);
       Builtin_ImportLibrary(new_lib);
     }
     return result;
   } else if (tag == kSourceTag) {
     return Dart_LoadSource(library, url, source);
   }
-  return Dart_ErrorResult("wrong tag");
+  return Dart_Error("wrong tag");
 }
 
 
-Dart_Result LoadScript(const char* script_name) {
-  Dart_Result result = ReadStringFromFile(script_name);
-  if (!Dart_IsValidResult(result)) {
-    return result;
+Dart_Handle LoadScript(const char* script_name) {
+  Dart_Handle source = ReadStringFromFile(script_name);
+  if (!Dart_IsValid(source)) {
+    return source;
   }
-  Dart_Handle source = Dart_GetResult(result);
   Dart_Handle url = Dart_NewString(script_name);
 
   return Dart_LoadScript(url, source, LibraryTagHandler);

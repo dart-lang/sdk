@@ -52,21 +52,19 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver) {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
-  Dart_Result result = Dart_LoadScript(url, source, NULL);
-  assert(Dart_IsValidResult(result));
-  Dart_Handle lib = Dart_GetResult(result);
-  result = Dart_SetNativeResolver(lib, resolver);
-  assert(Dart_IsValidResult(result));
+  Dart_Handle lib = Dart_LoadScript(url, source, NULL);
+  ASSERT(Dart_IsValid(lib));
+  Dart_Handle result = Dart_SetNativeResolver(lib, resolver);
+  ASSERT(Dart_IsValid(result));
   return lib;
 }
 
 
 Dart_Handle TestCase::lib() {
   Dart_Handle url = Dart_NewString(TestCase::url());
-  Dart_Result result = Dart_LookupLibrary(url);
-  assert(Dart_IsValidResult(result));
-  Dart_Handle lib = Dart_GetResult(result);
-  assert(Dart_IsLibrary(lib));
+  Dart_Handle lib = Dart_LookupLibrary(url);
+  ASSERT(Dart_IsValid(lib));
+  ASSERT(Dart_IsLibrary(lib));
   return lib;
 }
 

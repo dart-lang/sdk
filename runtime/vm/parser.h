@@ -188,7 +188,7 @@ class Parser : ValueObject {
   void ParseTopLevelAccessor(TopLevel* top_level);
 
   // Support for parsing libraries.
-  Dart_Result CallLibraryTagHandler(Dart_LibraryTag tag,
+  Dart_Handle CallLibraryTagHandler(Dart_LibraryTag tag,
                                     intptr_t token_pos,
                                     const String& url);
   void ParseLibraryDefinition();

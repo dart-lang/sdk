@@ -44,9 +44,10 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   intptr_t length =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  Dart_Result result = Dart_GetLength(buffer_obj);
-  ASSERT(Dart_IsValidResult(result));
-  ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
+  intptr_t buffer_len = 0;
+  Dart_Handle result = Dart_GetLength(buffer_obj, &buffer_len);
+  ASSERT(Dart_IsValid(result));
+  ASSERT((offset + length) <= buffer_len);
 
   if (Dart_IsVMFlagSet("short_socket_read")) {
     length = (length + 1) / 2;
@@ -55,8 +56,8 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
   uint8_t* buffer = new uint8_t[length];
   intptr_t bytes_read = Socket::Read(socket, buffer, length);
   if (bytes_read > 0) {
-    Dart_Result result = Dart_ArraySet(buffer_obj, offset, buffer, bytes_read);
-    ASSERT(Dart_IsValidResult(result));
+    Dart_Handle result = Dart_ArraySet(buffer_obj, offset, buffer, bytes_read);
+    ASSERT(Dart_IsValid(result));
   } else if (bytes_read < 0) {
     bytes_read = 0;
   }
@@ -77,9 +78,10 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   intptr_t length =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  Dart_Result result = Dart_GetLength(buffer_obj);
-  ASSERT(Dart_IsValidResult(result));
-  ASSERT((offset + length) <= Dart_GetResultAsCIntptr(result));
+  intptr_t buffer_len = 0;
+  Dart_Handle result = Dart_GetLength(buffer_obj, &buffer_len);
+  ASSERT(Dart_IsValid(result));
+  ASSERT((offset + length) <= buffer_len);
 
   if (Dart_IsVMFlagSet("short_socket_write")) {
     length = (length + 1) / 2;
@@ -87,7 +89,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
 
   uint8_t* buffer = new uint8_t[length];
   result = Dart_ArrayGet(buffer_obj, offset, buffer, length);
-  ASSERT(Dart_IsValidResult(result));
+  ASSERT(Dart_IsValid(result));
   intptr_t total_bytes_written =
       Socket::Write(socket, reinterpret_cast<void*>(buffer), length);
   delete[] buffer;

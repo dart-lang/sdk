@@ -27,27 +27,21 @@
 
 namespace dart {
 
-DART_EXPORT bool Dart_IsValidResult(const Dart_Result& result) {
+DART_EXPORT bool Dart_IsValid(const Dart_Handle& handle) {
   ASSERT(Isolate::Current() != NULL);
-  if (result.type_ == kRetObject) {
-    Zone zone;  // Setup a VM zone as we are creating some handles.
-    HandleScope scope;  // Setup a VM handle scope.
-
-    // Make sure that the object isn't an ApiFailure.
-    const Object& obj =
-        Object::Handle(Api::UnwrapHandle(result.retval_.obj_value));
-    return !obj.IsApiFailure();
-  }
-  return true;
-}
-
-DART_EXPORT const char* Dart_GetErrorCString(const Dart_Result& result) {
-  ASSERT(Isolate::Current() != NULL);
-  ASSERT(result.type_ == kRetObject);
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(
-      Api::UnwrapHandle(result.retval_.obj_value));
+
+  // Make sure that the object isn't an ApiFailure.
+  const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+  return !obj.IsApiFailure();
+}
+
+DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
+  ASSERT(Isolate::Current() != NULL);
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   if (!obj.IsApiFailure()) {
     return "";
   }
@@ -62,18 +56,8 @@ DART_EXPORT const char* Dart_GetErrorCString(const Dart_Result& result) {
 }
 
 
-DART_EXPORT Dart_Result Dart_ErrorResult(const char* value) {
-  ASSERT(Isolate::Current() != NULL);
-
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
-  const String& message = String::Handle(String::New(value));
-  const Object& obj = Object::Handle(ApiFailure::New(message));
-
-  Dart_Result result;
-  result.type_ = kRetObject;
-  result.retval_.obj_value = Api::NewLocalHandle(obj);
-  return result;
+DART_EXPORT Dart_Handle Dart_Error(const char* value) {
+  return Api::Error(value);
 }
 
 
@@ -119,14 +103,13 @@ DART_EXPORT void Dart_ExitIsolate() {
 }
 
 
-static void SetupErrorResult(Dart_Result* result) {
+static void SetupErrorResult(Dart_Handle* handle) {
   // Make a copy of the error message as the original message string
   // may get deallocated when we return back from the Dart API call.
   const String& error = String::Handle(
       Isolate::Current()->object_store()->sticky_error());
   const Object& obj = Object::Handle(ApiFailure::New(error));
-  result->type_ = kRetObject;
-  result->retval_.obj_value = Api::NewLocalHandle(obj);
+  *handle = Api::NewLocalHandle(obj);
 }
 
 
@@ -206,19 +189,19 @@ DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
 }
 
 
-DART_EXPORT Dart_Result Dart_RunLoop() {
+DART_EXPORT Dart_Handle Dart_RunLoop() {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+
   Isolate* isolate = Isolate::Current();
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
-  Dart_Result result;
+  Dart_Handle result;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     isolate->StandardRunLoop();
-    result.type_ = kRetCBool;
-    result.retval_.bool_value = true;
+    result = Api::Success();
   } else {
-    Zone zone;
-    HandleScope handle_scope;
     SetupErrorResult(&result);
   }
   isolate->set_long_jump_base(base);
@@ -233,7 +216,7 @@ static void CompileSource(const Library& lib,
                           const String& url,
                           const String& source,
                           RawScript::Kind kind,
-                          Dart_Result* result) {
+                          Dart_Handle* result) {
   const Script& script = Script::Handle(Script::New(url, source, kind));
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -242,8 +225,7 @@ static void CompileSource(const Library& lib,
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     Compiler::Compile(lib, script);
-    result->type_ = kRetObject;
-    result->retval_.obj_value = Api::NewLocalHandle(lib);
+    *result = Api::NewLocalHandle(lib);
   } else {
     SetupErrorResult(result);
   }
@@ -251,7 +233,7 @@ static void CompileSource(const Library& lib,
 }
 
 
-DART_EXPORT Dart_Result Dart_LoadScript(Dart_Handle url,
+DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         Dart_LibraryTagHandler handler) {
   Isolate* isolate = Isolate::Current();
@@ -263,13 +245,13 @@ DART_EXPORT Dart_Result Dart_LoadScript(Dart_Handle url,
   const String& source_str = String::CheckedHandle(Api::UnwrapHandle(source));
   Library& library = Library::Handle(isolate->object_store()->root_library());
   if (!library.IsNull()) {
-    RETURN_FAILURE("Script already loaded");
+    return Api::Error("Script already loaded");
   }
   isolate->set_library_tag_handler(handler);
   library = Library::New(url_str);
   library.Register();
   isolate->object_store()->set_root_library(library);
-  Dart_Result result;
+  Dart_Handle result;
   CompileSource(library, url_str, source_str, RawScript::kScript, &result);
   return result;
 }
@@ -277,9 +259,8 @@ DART_EXPORT Dart_Result Dart_LoadScript(Dart_Handle url,
 
 DEFINE_FLAG(bool, compile_all, false, "Eagerly compile all code.");
 
-static void CompileAll(Dart_Result* result) {
-  result->type_ = kRetCBool;
-  result->retval_.bool_value = true;
+static void CompileAll(Dart_Handle* result) {
+  *result = Api::Success();
   if (FLAG_compile_all) {
     Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
@@ -314,13 +295,13 @@ static const char* CheckIsolateState() {
 }
 
 
-DART_EXPORT Dart_Result Dart_CompileAll() {
+DART_EXPORT Dart_Handle Dart_CompileAll() {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  Dart_Result result;
+  Dart_Handle result;
   const char* msg = CheckIsolateState();
   if (msg != NULL) {
-    RETURN_FAILURE(msg);
+    return Api::Error(msg);
   }
   CompileAll(&result);
   return result;
@@ -335,49 +316,49 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Result Dart_LibraryUrl(Dart_Handle library) {
+DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Library& lib = Library::CheckedHandle(Api::UnwrapHandle(library));
   if (lib.IsNull()) {
-    RETURN_FAILURE("Null library");
+    return Api::Error("Null library");
   }
   const String& url = String::Handle(lib.url());
   ASSERT(!url.IsNull());
-  RETURN_OBJECT(url);
+  return Api::NewLocalHandle(url);
 }
 
 
-DART_EXPORT Dart_Result Dart_LibraryImportLibrary(Dart_Handle library_in,
+DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library_in,
                                                   Dart_Handle import_in) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Library& library =
       Library::CheckedHandle(Api::UnwrapHandle(library_in));
   if (library.IsNull()) {
-    RETURN_FAILURE("Null library");
+    return Api::Error("Null library");
   }
   const Library& import =
       Library::CheckedHandle(Api::UnwrapHandle(import_in));
   library.AddImport(import);
-  RETURN_CBOOLEAN(true);
+  return Api::Success();
 }
 
 
-DART_EXPORT Dart_Result Dart_LookupLibrary(Dart_Handle url) {
+DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const String& url_str = String::CheckedHandle(Api::UnwrapHandle(url));
   const Library& library = Library::Handle(Library::LookupLibrary(url_str));
   if (library.IsNull()) {
-    RETURN_FAILURE("Unknown library");
+    return Api::Error("Unknown library");
   } else {
-    RETURN_OBJECT(library);
+    return Api::NewLocalHandle(library);
   }
 }
 
 
-DART_EXPORT Dart_Result Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
+DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const String& url_str = String::CheckedHandle(Api::UnwrapHandle(url));
@@ -387,13 +368,13 @@ DART_EXPORT Dart_Result Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
     library = Library::New(url_str);
     library.Register();
   }
-  Dart_Result result;
+  Dart_Handle result;
   CompileSource(library, url_str, source_str, RawScript::kLibrary, &result);
   return result;
 }
 
 
-DART_EXPORT Dart_Result Dart_LoadSource(Dart_Handle library_in,
+DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library_in,
                                         Dart_Handle url_in,
                                         Dart_Handle source_in) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -402,27 +383,27 @@ DART_EXPORT Dart_Result Dart_LoadSource(Dart_Handle library_in,
   const String& source = String::CheckedHandle(Api::UnwrapHandle(source_in));
   const Library& library =
       Library::CheckedHandle(Api::UnwrapHandle(library_in));
-  Dart_Result result;
+  Dart_Handle result;
   CompileSource(library, url, source, RawScript::kSource, &result);
   return result;
 }
 
 
-DART_EXPORT Dart_Result Dart_SetNativeResolver(
+DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Library& lib = Library::CheckedHandle(Api::UnwrapHandle(library));
   if (lib.IsNull()) {
-    RETURN_FAILURE("Invalid parameter, Unknown library specified");
+    return Api::Error("Invalid parameter, Unknown library specified");
   }
   lib.set_native_entry_resolver(resolver);
-  RETURN_CBOOLEAN(true);
+  return Api::Success();
 }
 
 
-DART_EXPORT Dart_Result Dart_ObjectToString(Dart_Handle object) {
+DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
@@ -434,13 +415,13 @@ DART_EXPORT Dart_Result Dart_ObjectToString(Dart_Handle object) {
     receiver ^= obj.raw();
     result = DartLibraryCalls::ToString(receiver);
     if (result.IsUnhandledException()) {
-      RETURN_FAILURE("An exception occurred when converting to string");
+      return Api::Error("An exception occurred when converting to string");
     }
   } else {
     // This is a VM internal object. Call the C++ method of printing.
     result = String::New(obj.ToCString());
   }
-  RETURN_OBJECT(result);
+  return Api::NewLocalHandle(result);
 }
 
 
@@ -460,12 +441,12 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Result Dart_ClosureSmrck(Dart_Handle object) {
+DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object) {
   Zone zone;
   HandleScope scope;
   const Closure& obj = Closure::CheckedHandle(Api::UnwrapHandle(object));
   const Integer& smrck = Integer::Handle(obj.smrck());
-  RETURN_CINT64(smrck.IsNull() ? 0 : smrck.AsInt64Value());
+  return smrck.IsNull() ? 0 : smrck.AsInt64Value();
 }
 
 
@@ -478,7 +459,8 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 }
 
 
-DART_EXPORT Dart_Result Dart_Objects_Equal(Dart_Handle obj1, Dart_Handle obj2) {
+DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1, Dart_Handle obj2,
+                                           bool* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Instance& expected = Instance::CheckedHandle(Api::UnwrapHandle(obj1));
@@ -488,44 +470,46 @@ DART_EXPORT Dart_Result Dart_Objects_Equal(Dart_Handle obj1, Dart_Handle obj2) {
   if (result.IsBool()) {
     Bool& b = Bool::Handle();
     b ^= result.raw();
-    RETURN_CBOOLEAN(b.value());
+    *value = b.value();
+    return Api::Success();
   } else {
-    RETURN_FAILURE("An exception occured when calling '=='");
+    return Api::Error("An exception occured when calling '=='");
   }
 }
 
 
-DART_EXPORT Dart_Result Dart_GetClass(Dart_Handle library, Dart_Handle name) {
+DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& param = Object::Handle(Api::UnwrapHandle(name));
   if (param.IsNull() || !param.IsString()) {
-    RETURN_FAILURE("Invalid class name specified");
+    return Api::Error("Invalid class name specified");
   }
   const Library& lib = Library::CheckedHandle(Api::UnwrapHandle(library));
   if (lib.IsNull()) {
-    RETURN_FAILURE("Invalid parameter, Unknown library specified");
+    return Api::Error("Invalid parameter, Unknown library specified");
   }
   String& cls_name = String::Handle();
   cls_name ^= param.raw();
   const Class& cls = Class::Handle(lib.LookupClass(cls_name));
   if (cls.IsNull()) {
-    RETURN_FAILURE("Specified class does not exist");
+    return Api::Error("Specified class does not exist");
   }
-  RETURN_OBJECT(cls);
+  return Api::NewLocalHandle(cls);
 }
 
 
 // TODO(iposva): This call actually implements IsInstanceOfClass.
 // Do we also need a real Dart_IsInstanceOf, which should take an instance
 // rather than an object and a type rather than a class?
-DART_EXPORT Dart_Result Dart_IsInstanceOf(Dart_Handle object,
-                                          Dart_Handle clazz) {
+DART_EXPORT Dart_Handle Dart_IsInstanceOf(Dart_Handle object,
+                                          Dart_Handle clazz,
+                                          bool* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Class& cls = Class::CheckedHandle(Api::UnwrapHandle(clazz));
   if (cls.IsNull()) {
-    RETURN_FAILURE("instanceof check against null class");
+    return Api::Error("instanceof check against null class");
   }
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   Instance& instance = Instance::Handle();
@@ -533,10 +517,11 @@ DART_EXPORT Dart_Result Dart_IsInstanceOf(Dart_Handle object,
   // Finalize all classes.
   const char* msg = CheckIsolateState();
   if (msg != NULL) {
-    RETURN_FAILURE(msg);
+    return Api::Error(msg);
   }
   const Type& type = Type::Handle(Type::NewNonParameterizedType(cls));
-  RETURN_CBOOLEAN(instance.Is(type));
+  *value = instance.Is(type);
+  return Api::Success();
 }
 
 
@@ -574,43 +559,70 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
 }
 
 
-DART_EXPORT Dart_Result Dart_IntegerValue(Dart_Handle integer) {
+DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
   if (obj.IsSmi() || obj.IsMint()) {
     Integer& integer = Integer::Handle();
     integer ^= obj.raw();
-    RETURN_CINT64(integer.AsInt64Value());
+    *value = integer.AsInt64Value();
+    return Api::Success();
   }
   if (obj.IsBigint()) {
     Bigint& bigint = Bigint::Handle();
     bigint ^= obj.raw();
     if (BigintOperations::FitsIntoInt64(bigint)) {
-      RETURN_CINT64(BigintOperations::ToInt64(bigint));
+      *value = BigintOperations::ToInt64(bigint);
+      return Api::Success();
     } else {
-      RETURN_CSTRING(BigintOperations::ToHexCString(bigint, &Api::Allocate));
+      return Api::Error("Integer too big to fit in int64_t");
     }
   }
-  RETURN_FAILURE("Object is not a Integer");
+  return Api::Error("Object is not a Integer");
 }
 
 
-DART_EXPORT Dart_Result Dart_IntegerFitsIntoInt64(Dart_Handle integer) {
+DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
+                                                    const char** value) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
+  Bigint& bigint = Bigint::Handle();
+  if (obj.IsSmi() || obj.IsMint()) {
+    Integer& integer = Integer::Handle();
+    integer ^= obj.raw();
+    bigint ^= BigintOperations::NewFromInt64(integer.AsInt64Value());
+    *value = BigintOperations::ToHexCString(bigint, &Api::Allocate);
+    return Api::Success();
+  }
+  if (obj.IsBigint()) {
+    bigint ^= obj.raw();
+    *value = BigintOperations::ToHexCString(bigint, &Api::Allocate);
+    return Api::Success();
+  }
+  return Api::Error("Object is not a Integer");
+}
+
+
+DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
+                                                  bool* fits) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
   if (obj.IsSmi() || obj.IsMint()) {
-    RETURN_CBOOLEAN(true);
+    *fits = true;
+    return Api::Success();
   } else if (obj.IsBigint()) {
 #if defined(DEBUG)
     Bigint& bigint = Bigint::Handle();
     bigint ^= obj.raw();
     ASSERT(!BigintOperations::FitsIntoInt64(bigint));
 #endif
-    RETURN_CBOOLEAN(false);
+    *fits = false;
+    return Api::Success();
   }
-  RETURN_FAILURE("Object is not a Integer");
+  return Api::Error("Object is not a Integer");
 }
 
 
@@ -630,16 +642,18 @@ DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
 }
 
 
-DART_EXPORT Dart_Result Dart_BooleanValue(Dart_Handle bool_object) {
+DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle bool_object,
+                                          bool* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(bool_object));
   if (obj.IsBool()) {
     Bool& bool_obj = Bool::Handle();
     bool_obj ^= obj.raw();
-    RETURN_CBOOLEAN(bool_obj.value());
+    *value = bool_obj.value();
+    return Api::Success();
   }
-  RETURN_FAILURE("Object is not a Boolean");
+  return Api::Error("Object is not a Boolean");
 }
 
 
@@ -659,16 +673,17 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
 }
 
 
-DART_EXPORT Dart_Result Dart_DoubleValue(Dart_Handle integer) {
+DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle integer, double* result) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
   if (obj.IsDouble()) {
     Double& double_obj = Double::Handle();
     double_obj ^= obj.raw();
-    RETURN_CDOUBLE(double_obj.value());
+    *result = double_obj.value();
+    return Api::Success();
   }
-  RETURN_FAILURE("Object is not a Double");
+  return Api::Error("Object is not a Double");
 }
 
 
@@ -680,16 +695,17 @@ DART_EXPORT bool Dart_IsString(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Result Dart_StringLength(Dart_Handle str) {
+DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
   if (obj.IsString()) {
     String& string_obj = String::Handle();
     string_obj ^= obj.raw();
-    RETURN_CINT(string_obj.Length());
+    *len = string_obj.Length();
+    return Api::Success();
   }
-  RETURN_FAILURE("Object is not a String");
+  return Api::Error("Object is not a String");
 }
 
 
@@ -745,9 +761,9 @@ DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Result Dart_StringGet8(Dart_Handle str,
+DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
                                         uint8_t* codepoints,
-                                        intptr_t length) {
+                                        intptr_t* length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
@@ -755,20 +771,22 @@ DART_EXPORT Dart_Result Dart_StringGet8(Dart_Handle str,
     OneByteString& string_obj = OneByteString::Handle();
     string_obj ^= obj.raw();
     intptr_t str_len = string_obj.Length();
-    intptr_t copy_len = (str_len > length) ? length : str_len;
+    intptr_t copy_len = (str_len > *length) ? *length : str_len;
     for (intptr_t i = 0; i < copy_len; i++) {
       codepoints[i] = static_cast<uint8_t>(string_obj.CharAt(i));
     }
-    RETURN_CINT(copy_len);
+    *length= copy_len;
+    return Api::Success();
   }
-  RETURN_FAILURE(obj.IsString() ? "Object is not a String8" :
-                                  "Object is not a String");
+  return Api::Error(obj.IsString()
+                    ? "Object is not a String8"
+                    : "Object is not a String");
 }
 
 
-DART_EXPORT Dart_Result Dart_StringGet16(Dart_Handle str,
+DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
                                          uint16_t* codepoints,
-                                         intptr_t length) {
+                                         intptr_t* length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
@@ -776,20 +794,22 @@ DART_EXPORT Dart_Result Dart_StringGet16(Dart_Handle str,
     String& string_obj = String::Handle();
     string_obj ^= obj.raw();
     intptr_t str_len = string_obj.Length();
-    intptr_t copy_len = (str_len > length) ? length : str_len;
+    intptr_t copy_len = (str_len > *length) ? *length : str_len;
     for (intptr_t i = 0; i < copy_len; i++) {
       codepoints[i] = static_cast<uint16_t>(string_obj.CharAt(i));
     }
-    RETURN_CINT(copy_len);
+    *length = copy_len;
+    return Api::Success();
   }
-  RETURN_FAILURE(obj.IsString() ? "Object is not a String16" :
-                                  "Object is not a String");
+  return Api::Error(obj.IsString()
+                    ? "Object is not a String16"
+                    : "Object is not a String");
 }
 
 
-DART_EXPORT Dart_Result Dart_StringGet32(Dart_Handle str,
+DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
                                          uint32_t* codepoints,
-                                         intptr_t length) {
+                                         intptr_t* length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
@@ -797,32 +817,35 @@ DART_EXPORT Dart_Result Dart_StringGet32(Dart_Handle str,
     String& string_obj = String::Handle();
     string_obj ^= obj.raw();
     intptr_t str_len = string_obj.Length();
-    intptr_t copy_len = (str_len > length) ? length : str_len;
+    intptr_t copy_len = (str_len > *length) ? *length : str_len;
     for (intptr_t i = 0; i < copy_len; i++) {
       codepoints[i] = static_cast<uint32_t>(string_obj.CharAt(i));
     }
-    RETURN_CINT(copy_len);
+    *length = copy_len;
+    return Api::Success();
   }
-  RETURN_FAILURE("Object is not a String");
+  return Api::Error("Object is not a String");
 }
 
 
-DART_EXPORT Dart_Result Dart_StringToCString(Dart_Handle object) {
+DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
+                                             const char** result) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   if (obj.IsString()) {
     const char* string_value = obj.ToCString();
     intptr_t string_length = strlen(string_value);
-    char* result = reinterpret_cast<char*>(Api::Allocate(string_length + 1));
-    if (result == NULL) {
-      RETURN_FAILURE("Unable to allocate memory");
+    char* res = reinterpret_cast<char*>(Api::Allocate(string_length + 1));
+    if (res == NULL) {
+      return Api::Error("Unable to allocate memory");
     }
-    strncpy(result, string_value, string_length + 1);
-    ASSERT(result[string_length] == '\0');
-    RETURN_CSTRING(result);
+    strncpy(res, string_value, string_length + 1);
+    ASSERT(res[string_length] == '\0');
+    *result = res;
+    return Api::Success();
   }
-  RETURN_FAILURE("Object is not a String");
+  return Api::Error("Object is not a String");
 }
 
 
@@ -842,20 +865,21 @@ DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length) {
 }
 
 
-DART_EXPORT Dart_Result Dart_GetLength(Dart_Handle array) {
+DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* len) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(array));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
-    RETURN_CINT(array_obj.Length());
+    *len = array_obj.Length();
+    return Api::Success();
   }
-  RETURN_FAILURE("Object is not an Array");
+  return Api::Error("Object is not an Array");
 }
 
 
-DART_EXPORT Dart_Result Dart_ArrayGet(Dart_Handle array,
+DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
                                       intptr_t offset,
                                       uint8_t* native_array,
                                       intptr_t length) {
@@ -876,15 +900,15 @@ DART_EXPORT Dart_Result Dart_ArrayGet(Dart_Handle array,
         // TODO(hpayer): value should always be smaller then 0xff. Add error
         // handling.
       }
-      RETURN_CINT(0);
+      return Api::Success();
     }
-    RETURN_FAILURE("Invalid length passed in to access array elements");
+    return Api::Error("Invalid length passed in to access array elements");
   }
-  RETURN_FAILURE("Object is not an Array");
+  return Api::Error("Object is not an Array");
 }
 
 
-DART_EXPORT Dart_Result Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
+DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(array));
@@ -893,15 +917,15 @@ DART_EXPORT Dart_Result Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
     array_obj ^= obj.raw();
     if ((index >= 0) && (index < array_obj.Length())) {
       const Object& element = Object::Handle(array_obj.At(index));
-      RETURN_OBJECT(element);
+      return Api::NewLocalHandle(element);
     }
-    RETURN_FAILURE("Invalid index passed in to access array element");
+    return Api::Error("Invalid index passed in to access array element");
   }
-  RETURN_FAILURE("Object is not an Array");
+  return Api::Error("Object is not an Array");
 }
 
 
-DART_EXPORT Dart_Result Dart_ArraySet(Dart_Handle array,
+DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
                                       intptr_t offset,
                                       uint8_t* native_array,
                                       intptr_t length) {
@@ -917,14 +941,14 @@ DART_EXPORT Dart_Result Dart_ArraySet(Dart_Handle array,
         integer ^= Integer::New(native_array[i]);
         array_obj.SetAt(offset + i, integer);
       }
-      RETURN_CINT(0);
+      return Api::Success();
     }
-    RETURN_FAILURE("Invalid length passed in to set array elements");
+    return Api::Error("Invalid length passed in to set array elements");
   }
-  RETURN_FAILURE("Object is not an Array");
+  return Api::Error("Object is not an Array");
 }
 
-DART_EXPORT Dart_Result Dart_ArraySetAt(Dart_Handle array,
+DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
                                         intptr_t index,
                                         Dart_Handle value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -936,11 +960,11 @@ DART_EXPORT Dart_Result Dart_ArraySetAt(Dart_Handle array,
     const Object& value_obj = Object::Handle(Api::UnwrapHandle(value));
     if ((index >= 0) && (index < array_obj.Length())) {
       array_obj.SetAt(index, value_obj);
-      RETURN_CINT(0);
+      return Api::Success();
     }
-    RETURN_FAILURE("Invalid index passed in to set array element");
+    return Api::Error("Invalid index passed in to set array element");
   }
-  RETURN_FAILURE("Object is not an Array");
+  return Api::Error("Object is not an Array");
 }
 
 
@@ -949,7 +973,7 @@ DART_EXPORT Dart_Result Dart_ArraySetAt(Dart_Handle array,
 // which shows up because of the use of setjmp.
 static void InvokeStatic(const Function& function,
                          GrowableArray<const Object*>& args,
-                         Dart_Result* result) {
+                         Dart_Handle* result) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -959,8 +983,7 @@ static void InvokeStatic(const Function& function,
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeStatic(function, args, kNoArgumentNames));
-    result->type_ = kRetObject;
-    result->retval_.obj_value = Api::NewLocalHandle(retval);
+    *result = Api::NewLocalHandle(retval);
   } else {
     SetupErrorResult(result);
   }
@@ -974,7 +997,7 @@ static void InvokeStatic(const Function& function,
 static void InvokeDynamic(const Instance& receiver,
                           const Function& function,
                           GrowableArray<const Object*>& args,
-                          Dart_Result* result) {
+                          Dart_Handle* result) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -984,8 +1007,7 @@ static void InvokeDynamic(const Instance& receiver,
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeDynamic(receiver, function, args, kNoArgumentNames));
-    result->type_ = kRetObject;
-    result->retval_.obj_value = Api::NewLocalHandle(retval);
+    *result = Api::NewLocalHandle(retval);
   } else {
     SetupErrorResult(result);
   }
@@ -998,7 +1020,7 @@ static void InvokeDynamic(const Instance& receiver,
 // which shows up because of the use of setjmp.
 static void InvokeClosure(const Closure& closure,
                           GrowableArray<const Object*>& args,
-                          Dart_Result* result) {
+                          Dart_Handle* result) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -1008,8 +1030,7 @@ static void InvokeClosure(const Closure& closure,
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeClosure(closure, args, kNoArgumentNames));
-    result->type_ = kRetObject;
-    result->retval_.obj_value = Api::NewLocalHandle(retval);
+    *result = Api::NewLocalHandle(retval);
   } else {
     SetupErrorResult(result);
   }
@@ -1017,7 +1038,7 @@ static void InvokeClosure(const Closure& closure,
 }
 
 
-DART_EXPORT Dart_Result Dart_InvokeStatic(Dart_Handle library_in,
+DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
                                           Dart_Handle class_name_in,
                                           Dart_Handle function_name_in,
                                           int number_of_arguments,
@@ -1027,14 +1048,14 @@ DART_EXPORT Dart_Result Dart_InvokeStatic(Dart_Handle library_in,
   // Finalize all classes.
   const char* msg = CheckIsolateState();
   if (msg != NULL) {
-    RETURN_FAILURE(msg);
+    return Api::Error(msg);
   }
 
   // Now try to resolve and invoke the static function.
   const Library& library =
       Library::CheckedHandle(Api::UnwrapHandle(library_in));
   if (library.IsNull()) {
-    RETURN_FAILURE("No library specified");
+    return Api::Error("No library specified");
   }
   const String& class_name =
       String::CheckedHandle(Api::UnwrapHandle(class_name_in));
@@ -1064,9 +1085,9 @@ DART_EXPORT Dart_Result Dart_InvokeStatic(Dart_Handle library_in,
       OS::SNPrint(msg, (length + 1), format,
                   class_name.ToCString(), function_name.ToCString());
     }
-    RETURN_FAILURE(msg);
+    return Api::Error(msg);
   }
-  Dart_Result retval;
+  Dart_Handle retval;
   GrowableArray<const Object*> dart_arguments(number_of_arguments);
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
@@ -1077,7 +1098,7 @@ DART_EXPORT Dart_Result Dart_InvokeStatic(Dart_Handle library_in,
 }
 
 
-DART_EXPORT Dart_Result Dart_InvokeDynamic(Dart_Handle object,
+DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle object,
                                            Dart_Handle function_name,
                                            int number_of_arguments,
                                            Dart_Handle* arguments) {
@@ -1087,10 +1108,11 @@ DART_EXPORT Dart_Result Dart_InvokeDynamic(Dart_Handle object,
   // Let the resolver figure out the correct target for null receiver.
   // E.g., (null).toString() should execute correctly.
   if (!obj.IsNull() && !obj.IsInstance()) {
-    RETURN_FAILURE("Invalid receiver (not instance) passed to invoke dynamic");
+    return Api::Error(
+        "Invalid receiver (not instance) passed to invoke dynamic");
   }
   if (function_name == NULL) {
-    RETURN_FAILURE("Invalid function name specified");
+    return Api::Error("Invalid function name specified");
   }
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
@@ -1106,9 +1128,9 @@ DART_EXPORT Dart_Result Dart_InvokeDynamic(Dart_Handle object,
   if (function.IsNull()) {
     // TODO(5415268): Invoke noSuchMethod instead of failing.
     OS::PrintErr("Unable to find instance function: %s\n", name.ToCString());
-    RETURN_FAILURE("Unable to find instance function");
+    return Api::Error("Unable to find instance function");
   }
-  Dart_Result retval;
+  Dart_Handle retval;
   GrowableArray<const Object*> dart_arguments(number_of_arguments);
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
@@ -1119,24 +1141,24 @@ DART_EXPORT Dart_Result Dart_InvokeDynamic(Dart_Handle object,
 }
 
 
-DART_EXPORT Dart_Result Dart_InvokeClosure(Dart_Handle closure,
+DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            int number_of_arguments,
                                            Dart_Handle* arguments) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(closure));
   if (obj.IsNull()) {
-    RETURN_FAILURE("Null object passed in to invoke closure");
+    return Api::Error("Null object passed in to invoke closure");
   }
   if (!obj.IsClosure()) {
-    RETURN_FAILURE("Invalid closure passed to invoke closure");
+    return Api::Error("Invalid closure passed to invoke closure");
   }
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Now try to invoke the closure.
   Closure& closure_obj = Closure::Handle();
   closure_obj ^= obj.raw();
-  Dart_Result retval;
+  Dart_Handle retval;
   GrowableArray<const Object*> dart_arguments(number_of_arguments);
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
@@ -1180,7 +1202,7 @@ DART_EXPORT bool Dart_ExceptionOccurred(Dart_Handle result) {
 }
 
 
-DART_EXPORT Dart_Result Dart_GetException(Dart_Handle result) {
+DART_EXPORT Dart_Handle Dart_GetException(Dart_Handle result) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& retval = Object::Handle(Api::UnwrapHandle(result));
@@ -1188,13 +1210,13 @@ DART_EXPORT Dart_Result Dart_GetException(Dart_Handle result) {
     const UnhandledException& unhandled = UnhandledException::Handle(
         reinterpret_cast<RawUnhandledException*>(retval.raw()));
     const Object& exception = Object::Handle(unhandled.exception());
-    RETURN_OBJECT(exception);
+    return Api::NewLocalHandle(exception);
   }
-  RETURN_FAILURE("Object is not an unhandled exception object");
+  return Api::Error("Object is not an unhandled exception object");
 }
 
 
-DART_EXPORT Dart_Result Dart_GetStacktrace(Dart_Handle unhandled_excp) {
+DART_EXPORT Dart_Handle Dart_GetStacktrace(Dart_Handle unhandled_excp) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& retval = Object::Handle(Api::UnwrapHandle(unhandled_excp));
@@ -1202,13 +1224,13 @@ DART_EXPORT Dart_Result Dart_GetStacktrace(Dart_Handle unhandled_excp) {
     const UnhandledException& unhandled = UnhandledException::Handle(
         reinterpret_cast<RawUnhandledException*>(retval.raw()));
     const Object& stacktrace = Object::Handle(unhandled.stacktrace());
-    RETURN_OBJECT(stacktrace);
+    return Api::NewLocalHandle(stacktrace);
   }
-  RETURN_FAILURE("Object is not an unhandled exception object");
+  return Api::Error("Object is not an unhandled exception object");
 }
 
 
-DART_EXPORT Dart_Result Dart_ThrowException(Dart_Handle exception) {
+DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -1216,7 +1238,7 @@ DART_EXPORT Dart_Result Dart_ThrowException(Dart_Handle exception) {
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
-    RETURN_FAILURE("No Dart frames on stack, cannot throw exception");
+    return Api::Error("No Dart frames on stack, cannot throw exception");
   }
   const Instance& excp = Instance::CheckedHandle(Api::UnwrapHandle(exception));
   // Unwind all the API scopes till the exit frame before throwing an
@@ -1225,18 +1247,18 @@ DART_EXPORT Dart_Result Dart_ThrowException(Dart_Handle exception) {
   ASSERT(state != NULL);
   state->UnwindScopes(isolate->top_exit_frame_info());
   Exceptions::Throw(excp);
-  RETURN_FAILURE("Exception was not thrown, internal error");
+  return Api::Error("Exception was not thrown, internal error");
 }
 
 
-DART_EXPORT Dart_Result Dart_ReThrowException(Dart_Handle exception,
+DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
-    RETURN_FAILURE("No Dart frames on stack, cannot throw exception");
+    return Api::Error("No Dart frames on stack, cannot throw exception");
   }
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
@@ -1248,7 +1270,7 @@ DART_EXPORT Dart_Result Dart_ReThrowException(Dart_Handle exception,
   ASSERT(state != NULL);
   state->UnwindScopes(isolate->top_exit_frame_info());
   Exceptions::ReThrow(excp, stk);
-  RETURN_FAILURE("Exception was not re thrown, internal error");
+  return Api::Error("Exception was not re thrown, internal error");
 }
 
 
@@ -1306,8 +1328,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
-  ref->FreeHandle(state->persistent_handles().free_list());
-  state->persistent_handles().set_free_list(ref);
+  state->persistent_handles().FreeHandle(ref);
 }
 
 
@@ -1329,16 +1350,16 @@ static bool UseGetterForStaticField(const Field& fld) {
 }
 
 
-static Dart_Result LookupStaticField(Dart_Handle clazz,
+static Dart_Handle LookupStaticField(Dart_Handle clazz,
                                      Dart_Handle field_name,
                                      bool is_getter) {
   const Object& param1 = Object::Handle(Api::UnwrapHandle(clazz));
   const Object& param2 = Object::Handle(Api::UnwrapHandle(field_name));
   if (param1.IsNull() || !param1.IsClass()) {
-    RETURN_FAILURE("Invalid class specified");
+    return Api::Error("Invalid class specified");
   }
   if (param2.IsNull() || !param2.IsString()) {
-    RETURN_FAILURE("Invalid field name specified");
+    return Api::Error("Invalid field name specified");
   }
   Class& cls = Class::Handle();
   cls ^= param1.raw();
@@ -1350,23 +1371,23 @@ static Dart_Result LookupStaticField(Dart_Handle clazz,
     const Function& function =
         Function::Handle(cls.LookupStaticFunction(func_name));
     if (!function.IsNull()) {
-      RETURN_OBJECT(function);
+      return Api::NewLocalHandle(function);
     }
-    RETURN_FAILURE("Specified field is not found in the class");
+    return Api::Error("Specified field is not found in the class");
   }
   if (fld.IsNull()) {
-    RETURN_FAILURE("Specified field is not found in the class");
+    return Api::Error("Specified field is not found in the class");
   }
-  RETURN_OBJECT(fld);
+  return Api::NewLocalHandle(fld);
 }
 
 
-static Dart_Result LookupInstanceField(const Object& object,
+static Dart_Handle LookupInstanceField(const Object& object,
                                        Dart_Handle name,
                                        bool is_getter) {
   const Object& param = Object::Handle(Api::UnwrapHandle(name));
   if (param.IsNull() || !param.IsString()) {
-    RETURN_FAILURE("Invalid field name specified");
+    return Api::Error("Invalid field name specified");
   }
   String& field_name = String::Handle();
   field_name ^= param.raw();
@@ -1377,47 +1398,48 @@ static Dart_Result LookupInstanceField(const Object& object,
     fld = cls.LookupInstanceField(field_name);
     if (!fld.IsNull()) {
       if (!is_getter && fld.is_final()) {
-        RETURN_FAILURE("Cannot set value of final fields");
+        return Api::Error("Cannot set value of final fields");
       }
-      func_name = is_getter ? Field::GetterName(field_name) :
-                              Field::SetterName(field_name);
+      func_name = (is_getter
+                   ? Field::GetterName(field_name)
+                   : Field::SetterName(field_name));
       const Function& function = Function::Handle(
           cls.LookupDynamicFunction(func_name));
       if (function.IsNull()) {
-        RETURN_FAILURE("Unable to find accessor function in the class");
+        return Api::Error("Unable to find accessor function in the class");
       }
-      RETURN_OBJECT(function);
+      return Api::NewLocalHandle(function);
     }
     cls = cls.SuperClass();
   }
-  RETURN_FAILURE("Unable to find field in the class");
+  return Api::Error("Unable to find field in the class");
 }
 
 
-DART_EXPORT Dart_Result Dart_GetStaticField(Dart_Handle cls,
+DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
                                             Dart_Handle name) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  Dart_Result result = LookupStaticField(cls, name, kGetter);
-  if (!::Dart_IsValidResult(result)) {
+  Dart_Handle result = LookupStaticField(cls, name, kGetter);
+  if (!::Dart_IsValid(result)) {
     return result;
   }
   Object& retval = Object::Handle();
-  const Object& obj = Object::Handle(Api::UnwrapHandle(Dart_GetResult(result)));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(result));
   if (obj.IsField()) {
     Field& fld = Field::Handle();
     fld ^= obj.raw();
     retval = fld.value();
-    RETURN_OBJECT(retval);
+    return Api::NewLocalHandle(retval);
   } else {
     Function& func = Function::Handle();
     func ^= obj.raw();
     GrowableArray<const Object*> args;
     InvokeStatic(func, args, &result);
-    if (::Dart_IsValidResult(result)) {
-      Dart_Handle result_obj = Dart_GetResult(result);
-      if (Dart_ExceptionOccurred(result_obj)) {
-        RETURN_FAILURE("An exception occurred when getting the static field");
+    if (::Dart_IsValid(result)) {
+      if (Dart_ExceptionOccurred(result)) {
+        return Api::Error(
+            "An exception occurred when getting the static field");
       }
     }
     return result;
@@ -1426,95 +1448,96 @@ DART_EXPORT Dart_Result Dart_GetStaticField(Dart_Handle cls,
 
 
 // TODO(iposva): The value parameter should be documented as being an instance.
-DART_EXPORT Dart_Result Dart_SetStaticField(Dart_Handle cls,
+DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
                                             Dart_Handle name,
                                             Dart_Handle value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  Dart_Result result = LookupStaticField(cls, name, kSetter);
-  if (!::Dart_IsValidResult(result)) {
+  Dart_Handle result = LookupStaticField(cls, name, kSetter);
+  if (!::Dart_IsValid(result)) {
     return result;
   }
   Field& fld = Field::Handle();
-  fld ^= Api::UnwrapHandle(Dart_GetResult(result));
+  fld ^= Api::UnwrapHandle(result);
   if (fld.is_final()) {
-    RETURN_FAILURE("Specified field is a static final field in the class");
+    return Api::Error("Specified field is a static final field in the class");
   }
   const Object& val = Object::Handle(Api::UnwrapHandle(value));
   Instance& instance = Instance::Handle();
   instance ^= val.raw();
   fld.set_value(instance);
-  RETURN_OBJECT(val);
+  return Api::NewLocalHandle(val);
 }
 
 
-DART_EXPORT Dart_Result Dart_GetInstanceField(Dart_Handle obj,
+DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
                                               Dart_Handle name) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
-    RETURN_FAILURE("Invalid object passed in to access instance field");
+    return Api::Error("Invalid object passed in to access instance field");
   }
   Instance& object = Instance::Handle();
   object ^= param.raw();
-  Dart_Result result = LookupInstanceField(object, name, kGetter);
-  if (!::Dart_IsValidResult(result)) {
+  Dart_Handle result = LookupInstanceField(object, name, kGetter);
+  if (!::Dart_IsValid(result)) {
     return result;
   }
   Function& func = Function::Handle();
-  func ^= Api::UnwrapHandle(Dart_GetResult(result));
+  func ^= Api::UnwrapHandle(result);
   GrowableArray<const Object*> arguments;
   InvokeDynamic(object, func, arguments, &result);
-  if (::Dart_IsValidResult(result)) {
-    Dart_Handle result_obj = Dart_GetResult(result);
-    if (Dart_ExceptionOccurred(result_obj)) {
-      RETURN_FAILURE("An exception occurred when accessing the instance field");
+  if (::Dart_IsValid(result)) {
+    if (Dart_ExceptionOccurred(result)) {
+      return Api::Error(
+          "An exception occurred when accessing the instance field");
     }
   }
   return result;
 }
 
 
-DART_EXPORT Dart_Result Dart_SetInstanceField(Dart_Handle obj,
+DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
                                               Dart_Handle name,
                                               Dart_Handle value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
-    RETURN_FAILURE("Invalid object passed in to access instance field");
+    return Api::Error("Invalid object passed in to access instance field");
   }
   Instance& object = Instance::Handle();
   object ^= param.raw();
-  Dart_Result result = LookupInstanceField(object, name, kSetter);
-  if (!::Dart_IsValidResult(result)) {
+  Dart_Handle result = LookupInstanceField(object, name, kSetter);
+  if (!::Dart_IsValid(result)) {
     return result;
   }
   Function& func = Function::Handle();
-  func ^= Api::UnwrapHandle(Dart_GetResult(result));
+  func ^= Api::UnwrapHandle(result);
   GrowableArray<const Object*> arguments(1);
   const Object& arg = Object::Handle(Api::UnwrapHandle(value));
   arguments.Add(&arg);
   InvokeDynamic(object, func, arguments, &result);
-  if (::Dart_IsValidResult(result)) {
-    Dart_Handle result_obj = Dart_GetResult(result);
-    if (Dart_ExceptionOccurred(result_obj)) {
-      RETURN_FAILURE("An exception occurred when setting the instance field");
+  if (::Dart_IsValid(result)) {
+    if (Dart_ExceptionOccurred(result)) {
+      return Api::Error(
+          "An exception occurred when setting the instance field");
     }
   }
   return result;
 }
 
 
-DART_EXPORT Dart_Result Dart_CreateNativeWrapperClass(Dart_Handle library,
+DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
                                                       Dart_Handle name,
                                                       int field_count) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& param = Object::Handle(Api::UnwrapHandle(name));
   if (param.IsNull() || !param.IsString() || field_count <= 0) {
-    RETURN_FAILURE("Invalid arguments passed to Dart_CreateNativeWrapperClass");
+    return Api::Error(
+        "Invalid arguments passed to Dart_CreateNativeWrapperClass");
   }
   String& cls_name = String::Handle();
   cls_name ^= param.raw();
@@ -1522,51 +1545,57 @@ DART_EXPORT Dart_Result Dart_CreateNativeWrapperClass(Dart_Handle library,
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(library);
   if (lib.IsNull()) {
-    RETURN_FAILURE("Invalid arguments passed to Dart_CreateNativeWrapperClass");
+    return Api::Error(
+        "Invalid arguments passed to Dart_CreateNativeWrapperClass");
   }
   const Class& cls = Class::Handle(Class::NewNativeWrapper(&lib,
                                                            cls_name,
                                                            field_count));
   if (cls.IsNull()) {
-    RETURN_FAILURE("Unable to create native wrapper class : already exists");
+    return Api::Error(
+        "Unable to create native wrapper class : already exists");
   }
-  RETURN_OBJECT(cls);
+  return Api::NewLocalHandle(cls);
 }
 
 
-DART_EXPORT Dart_Result Dart_GetNativeInstanceField(Dart_Handle obj,
-                                                    int index) {
+DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
+                                                    int index,
+                                                    intptr_t* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
-    RETURN_FAILURE("Invalid object passed in to access native instance field");
+    return Api::Error(
+        "Invalid object passed in to access native instance field");
   }
   Instance& object = Instance::Handle();
   object ^= param.raw();
   if (!object.IsValidNativeIndex(index)) {
-    RETURN_FAILURE("Invalid index passed in to access native instance field");
+    return Api::Error(
+        "Invalid index passed in to access native instance field");
   }
-  RETURN_CINT(object.GetNativeField(index));
+  *value = object.GetNativeField(index);
+  return Api::Success();
 }
 
 
-DART_EXPORT Dart_Result Dart_SetNativeInstanceField(Dart_Handle obj,
+DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
-    RETURN_FAILURE("Invalid object passed in to set native instance field");
+    return Api::Error("Invalid object passed in to set native instance field");
   }
   Instance& object = Instance::Handle();
   object ^= param.raw();
   if (!object.IsValidNativeIndex(index)) {
-    RETURN_FAILURE("Invalid index passed in to set native instance field");
+    return Api::Error("Invalid index passed in to set native instance field");
   }
   object.SetNativeField(index, value);
-  RETURN_CINT(value);
+  return Api::Success();
 }
 
 
@@ -1580,21 +1609,21 @@ static uint8_t* ApiAllocator(uint8_t* ptr,
 }
 
 
-DART_EXPORT Dart_Result Dart_CreateSnapshot(uint8_t** snapshot_buffer,
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
                                             intptr_t* snapshot_size) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   if (snapshot_buffer == NULL || snapshot_size == NULL) {
-    RETURN_FAILURE("Invalid input parameters to Dart_CreateSnapshot");
+    return Api::Error("Invalid input parameters to Dart_CreateSnapshot");
   }
   const char* msg = CheckIsolateState();
   if (msg != NULL) {
-    RETURN_FAILURE(msg);
+    return Api::Error(msg);
   }
   SnapshotWriter writer(true, snapshot_buffer, ApiAllocator);
   writer.WriteFullSnapshot();
   *snapshot_size = writer.Size();
-  RETURN_CBOOLEAN(true);
+  return Api::Success();
 }
 
 
@@ -1604,21 +1633,20 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-DART_EXPORT Dart_Result Dart_PostIntArray(Dart_Port port,
-                                          int field_count,
-                                          intptr_t* data) {
+DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
+                                   int field_count,
+                                   intptr_t* data) {
   uint8_t* buffer = NULL;
   MessageWriter writer(&buffer, &allocator);
 
   writer.WriteMessage(field_count, data);
 
   // Post the message at the given port.
-  bool result = PortMap::PostMessage(port, kNoReplyPort, buffer);
-  RETURN_CBOOLEAN(result);
+  return PortMap::PostMessage(port, kNoReplyPort, buffer);
 }
 
 
-DART_EXPORT Dart_Result Dart_Post(Dart_Port port, Dart_Handle handle) {
+DART_EXPORT bool Dart_Post(Dart_Port port, Dart_Handle handle) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& object = Object::Handle(Api::UnwrapHandle(handle));
@@ -1626,8 +1654,7 @@ DART_EXPORT Dart_Result Dart_Post(Dart_Port port, Dart_Handle handle) {
   SnapshotWriter writer(false, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
-  bool result = PortMap::PostMessage(port, kNoReplyPort, data);
-  RETURN_CBOOLEAN(result);
+  return PortMap::PostMessage(port, kNoReplyPort, data);
 }
 
 
@@ -1708,6 +1735,25 @@ PersistentHandle* Api::UnwrapAsPersistentHandle(const ApiState& state,
                                                 Dart_Handle object) {
   ASSERT(state.IsValidPersistentHandle(object));
   return reinterpret_cast<PersistentHandle*>(object);
+}
+
+
+Dart_Handle Api::Success() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  PersistentHandle* true_handle = state->True();
+  return reinterpret_cast<Dart_Handle>(true_handle);
+}
+
+
+Dart_Handle Api::Error(const char* text) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const String& message = String::Handle(String::New(text));
+  const Object& obj = Object::Handle(ApiFailure::New(message));
+  return Api::NewLocalHandle(obj);
 }
 
 

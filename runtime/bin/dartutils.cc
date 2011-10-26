@@ -11,47 +11,50 @@ const char* DartUtils::kIdFieldName = "_id";
 
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
   ASSERT(Dart_IsInteger(value_obj));
-  Dart_Result result = Dart_IntegerValue(value_obj);
-  ASSERT(Dart_IsValidResult(result));
-  return Dart_GetResultAsCInt64(result);
+  int64_t value = 0;
+  Dart_Handle result = Dart_IntegerValue(value_obj, &value);
+  ASSERT(Dart_IsValid(result));
+  return value;
 }
 
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
-  Dart_Result result = Dart_StringToCString(str_obj);
-  ASSERT(Dart_IsValidResult(result));
-  return Dart_GetResultAsCString(result);
+  const char* cstring = NULL;
+  Dart_Handle result = Dart_StringToCString(str_obj, &cstring);
+  ASSERT(Dart_IsValid(result));
+  return cstring;
 }
 
 
 bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
-  Dart_Result result = Dart_BooleanValue(bool_obj);
-  ASSERT(Dart_IsValidResult(result));
-  return Dart_GetResultAsCBoolean(result);
+  bool value = false;
+  Dart_Handle result = Dart_BooleanValue(bool_obj, &value);
+  ASSERT(Dart_IsValid(result));
+  return value;
 }
 
 void DartUtils::SetIntegerInstanceField(Dart_Handle handle,
                                         const char* name,
                                         intptr_t val) {
-  Dart_Result result = Dart_SetInstanceField(handle,
+  Dart_Handle result = Dart_SetInstanceField(handle,
                                              Dart_NewString(name),
                                              Dart_NewInteger(val));
-  ASSERT(Dart_IsValidResult(result));
+  ASSERT(Dart_IsValid(result));
 }
 
 intptr_t DartUtils::GetIntegerInstanceField(Dart_Handle handle,
                                             const char* name) {
-  Dart_Result result =
+  Dart_Handle result =
       Dart_GetInstanceField(handle, Dart_NewString(name));
-  ASSERT(Dart_IsValidResult(result));
-  intptr_t value = DartUtils::GetIntegerValue(Dart_GetResult(result));
+  ASSERT(Dart_IsValid(result));
+  intptr_t value = DartUtils::GetIntegerValue(result);
   return value;
 }
 
 void DartUtils::SetStringInstanceField(Dart_Handle handle,
                                        const char* name,
                                        const char* val) {
-  Dart_Result result = Dart_SetInstanceField(handle,
+  Dart_Handle result = Dart_SetInstanceField(handle,
                                              Dart_NewString(name),
                                              Dart_NewString(val));
-  ASSERT(Dart_IsValidResult(result));
+  ASSERT(Dart_IsValid(result));
 }

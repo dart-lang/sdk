@@ -30,30 +30,28 @@ void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
-  Dart_Result result = Dart_InvokeStatic(TestCase::lib(),
+  Dart_Handle result = Dart_InvokeStatic(TestCase::lib(),
                                          Dart_NewString("Second"),
                                          Dart_NewString("method2"),
                                          0,
                                          NULL);
-  ASSERT(Dart_IsValidResult(result));
-  ASSERT(Dart_ExceptionOccurred(Dart_GetResult(result)));
+  ASSERT(Dart_IsValid(result));
+  ASSERT(Dart_ExceptionOccurred(result));
   return;
 }
 
 
 void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
-  Dart_Result result = Dart_InvokeStatic(TestCase::lib(),
+  Dart_Handle result = Dart_InvokeStatic(TestCase::lib(),
                                          Dart_NewString("Second"),
                                          Dart_NewString("method2"),
                                          0,
                                          NULL);
-  ASSERT(Dart_IsValidResult(result));
-  Dart_Handle retobj = Dart_GetResult(result);
-  ASSERT(Dart_ExceptionOccurred(retobj));
-  result = Dart_GetException(retobj);
-  ASSERT(Dart_IsValidResult(result));
-  Dart_Handle exception = Dart_GetResult(result);
+  ASSERT(Dart_IsValid(result));
+  ASSERT(Dart_ExceptionOccurred(result));
+  Dart_Handle exception = Dart_GetException(result);
+  ASSERT(Dart_IsValid(exception));
   Dart_ThrowException(exception);
   UNREACHABLE();
   return;

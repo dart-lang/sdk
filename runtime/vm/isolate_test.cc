@@ -38,16 +38,15 @@ TEST_CASE(IsolateSpawn) {
       "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Result result = Dart_InvokeStatic(lib,
+  Dart_Handle result = Dart_InvokeStatic(lib,
                                          Dart_NewString("SpawnNewIsolate"),
                                          Dart_NewString("testMain"),
                                          0,
                                          NULL);
-  EXPECT(Dart_IsValidResult(result));
-  Dart_Handle result_obj = Dart_GetResult(result);
-  EXPECT(Dart_ExceptionOccurred(result_obj));
-  Dart_Result exception_result = Dart_GetException(result_obj);
-  EXPECT(Dart_IsValidResult(exception_result));
+  EXPECT(Dart_IsValid(result));
+  EXPECT(Dart_ExceptionOccurred(result));
+  Dart_Handle exception_result = Dart_GetException(result);
+  EXPECT(Dart_IsValid(exception_result));
 }
 #endif  // TARGET_ARCH_IA32.
 
