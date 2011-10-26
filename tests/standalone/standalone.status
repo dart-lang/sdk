@@ -4,6 +4,10 @@
 
 prefix standalone
 
+[ $arch == ia32 && $checked ]
+# This test has type errors on purpose.
+ProcessInvalidArgumentsTest: Fail, OK
+
 [ $arch == ia32]
 ManyEchoServerTest: Skip        # Bug 5103754
 
@@ -20,25 +24,17 @@ BlackListedTest/10: Fail, Crash # Bug 5469684
 BlackListedTest/11: Fail, Crash # Bug 5469684
 BlackListedTest/12: Fail, Crash # Bug 5469684
 
-[ $arch == ia32 ] 
-# Skip this test for now because it has type mismatches on purpose.
-# We need to disable it for checked tests only.
-ProcessInvalidArgumentsTest: Skip
-
 [ $arch == ia32 && $mode == release]
 # Currently process tests are bound to debug mode.
-Process*: Skip
+Process*: Skip # Bug 172
 
 [ $arch == ia32 && $system == macos]
-# Currently process tests are not working on Mac OS.
-Process*: Skip
+Process*: Skip # Bug 172
 # This test fails with "Too many open files" on the Mac OS buildbot.
 SocketManyConnectionsTest: Skip
 
 [ $arch == ia32 && $system == win32]
-# Windows implementation of Process is still pending.
 Process*: Skip
-
 
 [ $arch == dartium ]
 # Server specific tests OK to fail in the browser

@@ -660,6 +660,9 @@ class Variable(Expression):
       return ListSet([env[self.name]])
     else: return Nothing()
 
+  def Evaluate(self, env, defs):
+    return env[self.name]
+
 
 class Outcome(Expression):
 
@@ -979,8 +982,8 @@ class Configuration(object):
 
     Args:
       cases: list of TestCase objects to classify.
-      env:   dictionary containing values for 'mode': mode,
-             'system' and 'arch'.
+      env:   dictionary containing values for 'mode',
+             'system', 'arch' and 'checked'.
 
     Returns:
       A triplet of (result, rules, expected_outcomes).
@@ -1426,6 +1429,7 @@ def Main():
             'mode': mode,
             'system': utils.GuessOS(),
             'arch': arch,
+            'checked': options.checked
         }
         test_list = root.ListTests([], path, context, mode, arch)
         (cases, unused_rules, unused_outcomes) = config.ClassifyTests(
