@@ -39,30 +39,27 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 }
 
 
-// Extracts all encountered classes of instance calls in the unoptimized code
-// by analyzing the inline caches.
-// Each instance call contains a token index which is matched with an AST
-// node. The collected classes are assigned to the corresponding node.
+// Extracts IC data associated with a node id.
+// TODO(srdjan): Check performance impact of node id search loop.
 static void ExtractTypeFeedback(const Code& code,
                                 SequenceNode* sequence_node) {
   ASSERT(!code.IsNull() && !code.is_optimized());
-  GrowableArray<intptr_t> node_ids;
-  GrowableArray<ZoneGrowableArray<const Class*>*> type_arrays;
-  code.ExtractTypesAtIcCalls(&node_ids, &type_arrays);
   GrowableArray<AstNode*> all_nodes;
   sequence_node->CollectAllNodes(&all_nodes);
+  GrowableArray<intptr_t> node_ids;
+  GrowableArray<const Array*> arrays;
+  code.ExtractIcDataArraysAtCalls(&node_ids, &arrays);
   for (intptr_t i = 0; i < node_ids.length(); i++) {
-    ZoneGrowableArray<const Class*>* types = type_arrays[i];
+    intptr_t node_id = node_ids[i];
     bool found_node = false;
     for (intptr_t n = 0; n < all_nodes.length(); n++) {
-      if (all_nodes[n]->HasId(node_ids[i])) {
-        ASSERT(all_nodes[n]->CollectedClassesAtId(node_ids[i]) == NULL);
-        all_nodes[n]->SetCollectedClassesAtId(node_ids[i], types);
+      if (all_nodes[n]->HasId(node_id)) {
         found_node = true;
-        break;
+        // Make sure we assign ic data array only once.
+        ASSERT(all_nodes[n]->ICDataAtId(node_id).NumberOfChecks() == 0);
+        all_nodes[n]->SetIcDataArrayAtId(node_id, *arrays[i]);
       }
     }
-    // There must be a node with the given token index.
     ASSERT(found_node);
   }
 }

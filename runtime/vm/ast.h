@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/assert.h"
 #include "vm/growable_array.h"
+#include "vm/ic_data.h"
 #include "vm/scopes.h"
 #include "vm/object.h"
 #include "vm/native_entry.h"
@@ -100,24 +101,21 @@ class AstNode : public ZoneAllocated {
   explicit AstNode(intptr_t token_index)
       : token_index_(token_index),
         id_(GetNextId()),
-        collected_classes_(NULL),
+        ic_data_(Array::ZoneHandle()),
         info_(NULL) {
     ASSERT(token_index >= 0);
   }
 
   intptr_t token_index() const { return token_index_; }
 
-  virtual const ZoneGrowableArray<const Class*>* CollectedClassesAtId(
-      intptr_t node_id) const {
+  virtual void SetIcDataArrayAtId(intptr_t node_id, const Array& value) {
     ASSERT(id() == node_id);
-    return collected_classes_;
+    set_ic_data_array(value);
   }
 
-  virtual void SetCollectedClassesAtId(
-      intptr_t node_id,
-      const ZoneGrowableArray<const Class*>* value) {
+  virtual const ICData& ICDataAtId(intptr_t node_id) const {
     ASSERT(id() == node_id);
-    collected_classes_ = value;
+    return ic_data();
   }
 
   virtual bool HasId(intptr_t value) const { return id_ == value; }
@@ -175,13 +173,11 @@ NODE_LIST(AST_TYPE_CHECK)
   virtual const Instance* EvalConstExpr() const { return NULL; }
 
  protected:
-  void set_collected_classes(const ZoneGrowableArray<const Class*>* value) {
-    collected_classes_ = value;
+  void set_ic_data_array(const Array& value) {
+    ic_data_.set_data(value);
   }
 
-  const ZoneGrowableArray<const Class*>* collected_classes() const {
-    return collected_classes_;
-  }
+  const ICData& ic_data() const { return ic_data_; }
 
   static intptr_t GetNextId() {
     Isolate* isolate = Isolate::Current();
@@ -194,9 +190,8 @@ NODE_LIST(AST_TYPE_CHECK)
   const intptr_t token_index_;
   // Unique id per function compiled, used to match AST node to a PC.
   const intptr_t id_;
-  // Possible classes of the node, collected using inline caches.
-  // Inline caches contain all encountered receiver classes for that node.
-  const ZoneGrowableArray<const Class*>* collected_classes_;
+  // IC data collected for this node.
+  ICData ic_data_;
   // Used by optimizing compiler.
   CodeGenInfo* info_;
   DISALLOW_COPY_AND_ASSIGN(AstNode);
@@ -645,8 +640,8 @@ class IncrOpInstanceFieldNode : public AstNode {
         field_name_(field_name),
         operator_id_(AstNode::GetNextId()),
         setter_id_(AstNode::GetNextId()),
-        operator_collected_classes_(NULL),
-        setter_collected_classes_(NULL) {
+        operator_ic_data_(Array::ZoneHandle()),
+        setter_ic_data_(Array::ZoneHandle()) {
     ASSERT(receiver_ != NULL);
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
@@ -667,30 +662,27 @@ class IncrOpInstanceFieldNode : public AstNode {
            (setter_id() == value);
   }
 
-  virtual const ZoneGrowableArray<const Class*>* CollectedClassesAtId(
-      intptr_t node_id) const {
+  virtual void SetIcDataArrayAtId(intptr_t node_id, const Array& value) {
     ASSERT(HasId(node_id));
     if (node_id == getter_id()) {
-      return collected_classes();
+      set_ic_data_array(value);
     } else if (node_id == operator_id()) {
-      return operator_collected_classes_;
+      operator_ic_data_.set_data(value);
     } else {
       ASSERT(node_id == setter_id());
-      return setter_collected_classes_;
+      setter_ic_data_.set_data(value);
     }
   }
 
-  virtual void SetCollectedClassesAtId(
-      intptr_t node_id,
-      const ZoneGrowableArray<const Class*>* value) {
+  virtual const ICData& ICDataAtId(intptr_t node_id) const {
     ASSERT(HasId(node_id));
     if (node_id == getter_id()) {
-      set_collected_classes(value);
+      return ic_data();
     } else if (node_id == operator_id()) {
-      operator_collected_classes_ = value;
+      return operator_ic_data_;
     } else {
       ASSERT(node_id == setter_id());
-      setter_collected_classes_ = value;
+      return setter_ic_data_;
     }
   }
 
@@ -709,8 +701,8 @@ class IncrOpInstanceFieldNode : public AstNode {
   const String& field_name_;
   const intptr_t operator_id_;
   const intptr_t setter_id_;
-  const ZoneGrowableArray<const Class*>* operator_collected_classes_;
-  const ZoneGrowableArray<const Class*>* setter_collected_classes_;
+  ICData operator_ic_data_;
+  ICData setter_ic_data_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(IncrOpInstanceFieldNode);
 };
@@ -787,8 +779,8 @@ class IncrOpIndexedNode : public AstNode {
         index_(index),
         operator_id_(AstNode::GetNextId()),
         store_id_(AstNode::GetNextId()),
-        operator_collected_classes_(NULL),
-        store_collected_classes_(NULL) {
+        operator_ic_data_(Array::ZoneHandle()),
+        store_ic_data_(Array::ZoneHandle()) {
     ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
     ASSERT(array_ != NULL);
     ASSERT(index_ != NULL);
@@ -809,30 +801,27 @@ class IncrOpIndexedNode : public AstNode {
            (store_id() == value);
   }
 
-  virtual const ZoneGrowableArray<const Class*>* CollectedClassesAtId(
-      intptr_t node_id) const {
+  virtual const ICData& ICDataAtId(intptr_t node_id) const {
     ASSERT(HasId(node_id));
     if (node_id == load_id()) {
-      return collected_classes();
+      return ic_data();
     } else if (node_id == operator_id()) {
-      return operator_collected_classes_;
+      return operator_ic_data_;
     } else {
       ASSERT(node_id == store_id());
-      return store_collected_classes_;
+      return store_ic_data_;
     }
   }
 
-  virtual void SetCollectedClassesAtId(
-      intptr_t node_id,
-      const ZoneGrowableArray<const Class*>* value) {
+  virtual void SetIcDataArrayAtId(intptr_t node_id, const Array& value) {
     ASSERT(HasId(node_id));
     if (node_id == load_id()) {
-      set_collected_classes(value);
+      set_ic_data_array(value);
     } else if (node_id == operator_id()) {
-      operator_collected_classes_ = value;
+      operator_ic_data_.set_data(value);
     } else {
       ASSERT(node_id == store_id());
-      store_collected_classes_ = value;
+      store_ic_data_.set_data(value);
     }
   }
 
@@ -852,8 +841,8 @@ class IncrOpIndexedNode : public AstNode {
   AstNode* index_;
   const intptr_t operator_id_;
   const intptr_t store_id_;
-  const ZoneGrowableArray<const Class*>* operator_collected_classes_;
-  const ZoneGrowableArray<const Class*>* store_collected_classes_;
+  ICData operator_ic_data_;
+  ICData store_ic_data_;
 };
 
 

@@ -1849,10 +1849,9 @@ class Code : public Object {
   // (inclusive) and 'end_offset' (exclusive).
   bool ObjectExistInArea(intptr_t start_offest, intptr_t end_offset) const;
 
-  // For each (*token_indices)[i] an array of types (*types)[i] is defined.
-  void ExtractTypesAtIcCalls(
-      GrowableArray<intptr_t>* token_indices,
-      GrowableArray<ZoneGrowableArray<const Class*>*>* types) const;
+  // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
+  void ExtractIcDataArraysAtCalls(GrowableArray<intptr_t>* node_ids,
+                                  GrowableArray<const Array*>* arrays) const;
 
  private:
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT

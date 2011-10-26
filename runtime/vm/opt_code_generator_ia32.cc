@@ -268,10 +268,29 @@ bool OptimizingCodeGenerator::IsResultInEaxRequested(AstNode* node) const {
 }
 
 
+static const ZoneGrowableArray<const Class*>*
+    CollectedClassesAtNode(AstNode* node) {
+  ZoneGrowableArray<const Class*>* result =
+      new ZoneGrowableArray<const Class*>();
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  if (ic_data.NumberOfChecks() == 0) {
+    return result;
+  }
+  ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+  Function& target = Function::Handle();
+  GrowableArray<const Class*> classes;
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetCheckAt(i, &classes, &target);
+    ASSERT(classes.length() == 1);
+    result->Add(classes[0]);
+  }
+  return result;
+}
+
+
 // Debugging helper function.
 void OptimizingCodeGenerator::PrintCollectedClasses(AstNode* node) {
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   for (intptr_t i = 0; i < classes->length(); i++) {
     OS::Print("- %s\n", (*classes)[i]->ToCString());
   }
@@ -514,13 +533,14 @@ void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
   }
 }
 
+
 static bool NodeHasBothClasses(AstNode* node,
                                const Class& cls1,
                                const Class& cls2) {
   ASSERT(node != NULL);
   ASSERT(!cls1.IsNull() && !cls2.IsNull());
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   if ((classes == NULL) || (classes->length() != 2)) {
     return false;
   }
@@ -539,8 +559,7 @@ static bool NodeHasBothClasses(AstNode* node,
 static bool NodeHasOnlyClass(AstNode* node, const Class& cls) {
   ASSERT(node != NULL);
   ASSERT(!cls.IsNull());
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   return (classes != NULL) &&
          (classes->length() == 1) &&
          ((*classes)[0]->raw() == cls.raw());
@@ -1126,8 +1145,7 @@ bool OptimizingCodeGenerator::NodeMayBeSmi(AstNode* node) const {
 // all with the same target.
 void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     InstanceGetterNode* node, const Function& target) {
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   ASSERT(classes->length() > 0);
   Label load_field;
   VisitLoadOne(node->receiver(), EBX);
@@ -1199,8 +1217,7 @@ bool OptimizingCodeGenerator::IsInlineableInstanceGetter(
 void OptimizingCodeGenerator::VisitInstanceGetterNode(
     InstanceGetterNode* node) {
   const char* kMessage = "Inline instance getter";
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   const String& getter_name =
       String::Handle(Field::GetterName(node->field_name()));
   if (FLAG_trace_optimization) {
@@ -1260,8 +1277,7 @@ void OptimizingCodeGenerator::VisitInstanceSetterNode(
     return;
   }
   const char* kMessage = "Inline instance setter";
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   if ((classes == NULL) || classes->is_empty()) {
     // Type feedback not yet collected.
     TraceNotOpt(node, kMessage);
@@ -1481,8 +1497,7 @@ bool OptimizingCodeGenerator::GenerateEqualityComparison(ComparisonNode* node) {
   ASSERT((node->kind() == Token::kEQ) || (node->kind() == Token::kNE));
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   if (classes == NULL) {
     return false;
   }
@@ -1964,8 +1979,7 @@ void OptimizingCodeGenerator::GenerateDirectInstanceCall(
 // Return false if no code was generated (because no type feedback was found).
 bool OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     InstanceCallNode* node) {
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   if ((classes == NULL) || classes->is_empty()) {
     return false;
   }
@@ -2056,8 +2070,7 @@ void OptimizingCodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
 // Returns true if an instance call was replaced with its intrinsic.
 // Returns result in EAX.
 bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
-  const ZoneGrowableArray<const Class*>* classes =
-      node->CollectedClassesAtId(node->id());
+  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
   if ((classes != NULL) && (classes->length() == 1)) {
     const int num_arguments = node->arguments()->length() + 1;
     const int num_named_arguments = node->arguments()->names().IsNull() ?

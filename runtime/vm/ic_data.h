@@ -41,6 +41,7 @@ class ICData : public ValueObject {
   // Create a new array with zero checks.
   ICData(const String& function_name, intptr_t num_args_checked);
 
+  void set_data(const Array& data);
   RawArray* data() const;
 
   RawString* FunctionName() const;

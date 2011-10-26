@@ -4434,30 +4434,18 @@ bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
 }
 
 
-void Code::ExtractTypesAtIcCalls(
+void Code::ExtractIcDataArraysAtCalls(
     GrowableArray<intptr_t>* node_ids,
-    GrowableArray<ZoneGrowableArray<const Class*>*>* type_arrays) const {
+    GrowableArray<const Array*>* arrays) const {
   ASSERT(node_ids != NULL);
-  ASSERT(type_arrays != NULL);
+  ASSERT(arrays != NULL);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
-      ICData ic_data(Array::Handle(
-          CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
-      ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
-      int len = ic_data.NumberOfChecks();
-      ZoneGrowableArray<const Class*>* types =
-          new ZoneGrowableArray<const Class*>();
-      Function& target = Function::Handle();
-      for (intptr_t k = 0; k < len; k++) {
-        GrowableArray<const Class*> classes;
-        ic_data.GetCheckAt(k, &classes, &target);
-        ASSERT(classes.length() == 1);
-        types->Add(classes[0]);
-      }
       node_ids->Add(descriptors.NodeId(i));
-      type_arrays->Add(types);
+      arrays->Add(&Array::ZoneHandle(
+          CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
     }
   }
 }

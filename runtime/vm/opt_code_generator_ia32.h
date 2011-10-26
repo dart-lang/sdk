@@ -101,7 +101,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
   bool GenerateCheckedInstanceCalls(InstanceCallNode* node);
   void GenerateDirectInstanceCall(InstanceCallNode* node, const Class& cls);
 
-
   bool IsResultInEaxRequested(AstNode* node) const;
   bool NodeMayBeSmi(AstNode* node) const;
 

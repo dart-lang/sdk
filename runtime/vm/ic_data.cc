@@ -10,8 +10,8 @@ namespace dart {
 // ICData is a ValueObject, therefore 'data' need not be a ZoneObject.
 ICData::ICData(const Array& data) : data_(&data) {
   // Check consistency.
-  ASSERT(!String::Handle(FunctionName()).IsNull());
-  ASSERT(NumberOfArgumentsChecked() > 0);
+  ASSERT(data_->IsNull() || !String::Handle(FunctionName()).IsNull());
+  ASSERT(data_->IsNull() || (NumberOfArgumentsChecked() > 0));
 }
 
 
@@ -31,6 +31,14 @@ RawArray* ICData::data() const {
 }
 
 
+void ICData::set_data(const Array& value) {
+  data_ = &value;
+  // Check consistency.
+  ASSERT(data_->IsNull() || !String::Handle(FunctionName()).IsNull());
+  ASSERT(data_->IsNull() || (NumberOfArgumentsChecked() > 0));
+}
+
+
 intptr_t ICData::ArrayElementsPerCheck() const {
   // Number of checked classes + target.
   return NumberOfArgumentsChecked() + 1;
@@ -38,6 +46,7 @@ intptr_t ICData::ArrayElementsPerCheck() const {
 
 
 intptr_t ICData::NumberOfArgumentsChecked() const {
+  if (data_->IsNull()) return 0;
   Smi& result = Smi::Handle();
   result ^= data_->At(kNumArgsCheckedIndex);
   return result.Value();
@@ -45,6 +54,7 @@ intptr_t ICData::NumberOfArgumentsChecked() const {
 
 
 intptr_t ICData::NumberOfChecks() const {
+  if (data_->IsNull()) return 0;
   const intptr_t per_check = ArrayElementsPerCheck();
   // Subtract function-name, num-checked and sentinel
   intptr_t len = data_->Length() - kChecksStartIndex - per_check;
@@ -54,6 +64,7 @@ intptr_t ICData::NumberOfChecks() const {
 
 
 RawString* ICData::FunctionName() const {
+  if (data_->IsNull()) return String::null();
   String& result = String::Handle();
   result ^= data_->At(kNameIndex);
   return result.raw();
@@ -62,6 +73,7 @@ RawString* ICData::FunctionName() const {
 
 void ICData::AddCheck(const GrowableArray<const Class*>& classes,
                       const Function& target) {
+  ASSERT(!data_->IsNull());
   intptr_t old_number_of_checks = NumberOfChecks();
   intptr_t new_len = data_->Length() + ArrayElementsPerCheck();
   data_ = &Array::ZoneHandle(Array::Grow(*data_, new_len, Heap::kOld));
@@ -72,6 +84,7 @@ void ICData::AddCheck(const GrowableArray<const Class*>& classes,
 void ICData::SetCheckAt(intptr_t index,
                         const GrowableArray<const Class*>& classes,
                         const Function& target) {
+  ASSERT(!data_->IsNull());
   ASSERT((0 <= index) && (index < NumberOfChecks()));
   intptr_t pos = kChecksStartIndex + ArrayElementsPerCheck() * index;
   ASSERT(classes.length() == NumberOfArgumentsChecked());
