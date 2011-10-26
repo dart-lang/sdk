@@ -1645,6 +1645,8 @@ RawType* Type::InstantiateFrom(
 
 
 RawString* Type::Name() const {
+  // If the type is still being finalized, we may be reporting an error about
+  // an illformed type, so proceed with caution.
   const TypeArguments& args = TypeArguments::Handle(arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
   String& class_name = String::Handle();
@@ -1655,26 +1657,31 @@ RawString* Type::Name() const {
     class_name = cls.Name();
     num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
     if (num_type_params > num_args) {
-      ASSERT(num_args == 0);  // Type is raw.
-      // We fill up with "var".
       first_type_param_index = 0;
+      if (IsBeingFinalized()) {
+        // Most probably an illformed type. Do not fill up with "var".
+        num_type_params = num_args;
+      } else {
+        ASSERT(num_args == 0);  // Type is raw.
+        // We fill up with "var".
+      }
     } else {
       first_type_param_index = num_args - num_type_params;
     }
     if (cls.IsSignatureClass()) {
-      const Function& signature_function = Function::Handle(
-          cls.signature_function());
       // We may be reporting an error about an illformed function type. In that
       // case, avoid instantiating the signature, since it may lead to cycles.
       if (IsBeingFinalized()) {
         return class_name.raw();
       }
+      const Function& signature_function = Function::Handle(
+          cls.signature_function());
       return signature_function.InstantiatedSignatureFrom(
           args, first_type_param_index);
     }
   } else {
-    const UnresolvedClass& type = UnresolvedClass::Handle(unresolved_class());
-    class_name = type.Name();
+    const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
+    class_name = cls.Name();
     num_type_params = num_args;
     first_type_param_index = 0;
   }
