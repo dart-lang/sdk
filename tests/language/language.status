@@ -180,37 +180,13 @@ ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 225
 
 
 [ $arch == dartium ]
-# Bug 5476054: print is only available if DOM is imported.
-Throw5Test: Fail
-ExceptionTest: Fail
+# TODO: These need to be retriaged.
 ExpectTest: Fail
-StringInterpolateTest: Fail
-ExecuteFinally7Test: Fail
-SavannahTest: Fail
-Throw2Test: Fail
-Throw3Test: Fail
-HelloDartTest: Fail
-ThrowTest: Fail
-TryCatch3Test: Fail
 StackTraceTest: Fail
-Throw1Test: Fail
-RegExp2Test: Fail
-FannkuchTest: Fail
 RichardsTest: Fail
-Throw6Test: Fail
-RegEx2Test: Fail
-DivByZeroTest: Fail
 UnboundGetterTest: Fail
-NativeTest: Fail
-Throw4Test: Fail
-ImplicitClosure1Test: Fail
 Private2Test: Fail
-ImportCoreImplNoPrefixTest: Fail
-HelloScriptTest: Fail
-ImportCoreImplNoPrefixTest: Fail
-ImportCoreNoPrefixTest: Fail
 Private3Test: Fail
-GetterClosureExecutionOrderTest: Fail # Bug 5481595
 
 TypedMessageTest: Fail # Bug 5246195
 
