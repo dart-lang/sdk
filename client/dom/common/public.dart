@@ -560,8 +560,3 @@ Window get dom_window() {
 Document get document() {
   return window.document;
 }
-
-// FIXME(antonm): should be implemented in core lib.
-void print(arg) {
-  window.console.log(arg.toString());
-}
