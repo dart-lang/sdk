@@ -91,7 +91,6 @@ Prefix15Test: Skip                       # Bug 5406175
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
-ConstructorSetterNegativeTest: FAIL      # Bug 92
 
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.

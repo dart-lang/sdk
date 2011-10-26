@@ -1056,6 +1056,13 @@ public class Resolver {
           FieldElement field = (FieldElement) element;
           if (field.isStatic()) {
             resolutionError(x, DartCompilerErrorCode.CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER);
+          } else if (field.getModifiers().isAbstractField()) {
+            /* 
+             * If we get here then we know that this is a property accessor and not a true field.
+             * If there was a field and property accessor with the same name a name collision error
+             * would keep us from reaching this point.
+             */
+            resolutionError(x, DartCompilerErrorCode.CANNOT_RESOLVE_FIELD, name);
           } else {
             resolutionError(x, DartCompilerErrorCode.CANNOT_INIT_FIELD_FROM_SUPERCLASS);
           }
@@ -1090,7 +1097,7 @@ public class Resolver {
         // Make sure the identifier is a local instance field.
         FieldElement element = Elements.lookupLocalField(
             (ClassElement) currentHolder, x.getName().getTargetName());
-        if (element == null || element.isStatic()) {
+        if (element == null || element.isStatic() || element.getModifiers().isAbstractField()) {
           diagnoseErrorInInitializer(x.getName());
         }
         recordElement(x.getName(), element);
