@@ -29,7 +29,7 @@ static const intptr_t kPos = 1;  // Dummy token index in non-existing source.
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
   const String& variable_name = String::ZoneHandle(String::New(name));
-  const Type& variable_type = Type::ZoneHandle(Type::VarType());
+  const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
   return new LocalVariable(kPos, variable_name, variable_type);
 }
 
@@ -382,7 +382,7 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   function.set_num_optional_parameters(num_opt_params);
   function.set_parameter_types(Array::Handle(Array::New(num_params)));
   function.set_parameter_names(Array::Handle(Array::New(num_params)));
-  const Type& param_type = Type::Handle(Type::VarType());
+  const Type& param_type = Type::Handle(Type::DynamicType());
   for (int i = 0; i < num_params - 1; i++) {
     function.SetParameterTypeAt(i, param_type);
   }

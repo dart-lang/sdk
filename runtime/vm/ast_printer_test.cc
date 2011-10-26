@@ -17,7 +17,7 @@ TEST_CASE(AstPrinter) {
   LocalVariable* v =
       new LocalVariable(kPos,
                         String::ZoneHandle(String::New("wurscht")),
-                        Type::ZoneHandle(Type::VarType()));
+                        Type::ZoneHandle(Type::DynamicType()));
   v->set_index(5);
   LoadLocalNode* ll = new LoadLocalNode(kPos, *v);
   ReturnNode* r = new ReturnNode(kPos, ll);

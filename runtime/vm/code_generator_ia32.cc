@@ -1480,8 +1480,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
 
-  // Any expression is assignable to the VarType. Skip the test.
-  if (dst_type.IsVarType()) {
+  // Any expression is assignable to the DynamicType. Skip the test.
+  if (dst_type.IsDynamicType()) {
     return;
   }
 

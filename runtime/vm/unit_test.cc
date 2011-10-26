@@ -92,7 +92,7 @@ CodeGenTest::CodeGenTest(const char* name)
   const String& function_name = String::ZoneHandle(String::NewSymbol(name));
   function_ = Function::New(
       function_name, RawFunction::kFunction, true, false, 0);
-  function_.set_result_type(Type::Handle(Type::VarType()));
+  function_.set_result_type(Type::Handle(Type::DynamicType()));
   // Add function to a class and that class to the class dictionary so that
   // frame walking can be used.
   Class& cls = Class::ZoneHandle();

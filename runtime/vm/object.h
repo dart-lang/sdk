@@ -118,7 +118,7 @@ class Object {
     kSentinelObject,
     kClassClass,
     kNullClass,
-    kVarClass,
+    kDynamicClass,
     kVoidClass,
     kUnresolvedClassClass,
     kParameterizedTypeClass,
@@ -210,7 +210,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
-  static RawClass* var_class() { return var_class_; }
+  static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* parameterized_type_class() {
@@ -311,7 +311,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* null_class_;  // Class of the null object.
-  static RawClass* var_class_;  // Class of the 'var' type.
+  static RawClass* dynamic_class_;  // Class of the 'Dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* parameterized_type_class_;  // Class of ParameterizedType.
@@ -409,7 +409,7 @@ class Class : public Object {
   void set_type_parameters(const Array& value) const;
   intptr_t NumTypeParameters() const;
 
-  // Type parameters may optionally extend a Type (VarType if no extends).
+  // Type parameters may optionally extend a Type (DynamicType if no extends).
   RawTypeArray* type_parameter_extends() const {
     return raw_ptr()->type_parameter_extends_;
   }
@@ -467,8 +467,8 @@ class Class : public Object {
   // Check if this class represents the class of null.
   bool IsNullClass() const { return raw() == Object::null_class(); }
 
-  // Check if this class represents the 'var' class.
-  bool IsVarClass() const { return raw() == Object::var_class(); }
+  // Check if this class represents the 'Dynamic' class.
+  bool IsDynamicClass() const { return raw() == Object::dynamic_class(); }
 
   // Check if this class represents the 'void' class.
   bool IsVoidClass() const { return raw() == Object::void_class(); }
@@ -699,9 +699,9 @@ class Type : public Object {
     return HasResolvedTypeClass() && (type_class() == Object::null_class());
   }
 
-  // Check if this type represents the 'var' type.
-  bool IsVarType() const {
-    return HasResolvedTypeClass() && (type_class() == Object::var_class());
+  // Check if this type represents the 'Dynamic' type.
+  bool IsDynamicType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
   }
 
   // Check if this type represents the 'void' type.
@@ -752,8 +752,8 @@ class Type : public Object {
   // The type of the literal 'null'.
   static RawType* NullType();
 
-  // The 'var' type.
-  static RawType* VarType();
+  // The 'Dynamic' type.
+  static RawType* DynamicType();
 
   // The 'void' type.
   static RawType* VoidType();
@@ -780,8 +780,8 @@ class Type : public Object {
   static RawType* FunctionInterface();
 
   // The least specific valid raw type of the given class.
-  // For example, type A<VarType> would be returned for class A<T>, and type
-  // B<VarType, A<VarType>> would be returned for B<U, V extends A>.
+  // For example, type A<DynamicType> would be returned for class A<T>, and type
+  // B<DynamicType, A<DynamicType>> would be returned for B<U, V extends A>.
   static RawType* NewRawType(const Class& type_class);
 
   // The finalized type of the given non-parameterized class.
@@ -944,9 +944,9 @@ class TypeArguments : public Object {
       const TypeArguments& instantiator_type_arguments,
       intptr_t offset) const;
 
-  // Check if this type argument vector consists solely of VarType, considering
-  // only a prefix of length 'len'.
-  bool IsVarTypes(intptr_t len) const;
+  // Check if this type argument vector consists solely of DynamicType,
+  // considering only a prefix of length 'len'.
+  bool IsDynamicTypes(intptr_t len) const;
 
   // Check the "more specific than" relationship, considering only a prefix of
   // length 'len'.

@@ -125,7 +125,7 @@ RawType* ObjectStore::GetType(int index) {
   switch (index) {
     case kObjectType: return object_type();
     case kNullType: return null_type();
-    case kVarType: return var_type();
+    case kDynamicType: return dynamic_type();
     case kVoidType: return void_type();
     case kFunctionInterface: return function_interface();
     case kNumberInterface: return number_interface();
@@ -146,8 +146,8 @@ int ObjectStore::GetTypeIndex(const RawType* raw_type) {
     return kObjectType;
   } else if (raw_type == null_type()) {
     return kNullType;
-  } else if (raw_type == var_type()) {
-    return kVarType;
+  } else if (raw_type == dynamic_type()) {
+    return kDynamicType;
   } else if (raw_type == void_type()) {
     return kVoidType;
   } else if (raw_type == function_interface()) {

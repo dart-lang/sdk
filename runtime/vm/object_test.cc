@@ -1652,17 +1652,17 @@ TEST_CASE(ContextScope) {
   LocalScope* local_scope =
       new LocalScope(parent_scope, local_scope_function_level, 0);
 
-  const Type& var_type = Type::ZoneHandle(Type::VarType());
+  const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(String::New("a"));
-  LocalVariable* var_a = new LocalVariable(kPos, a, var_type);
+  LocalVariable* var_a = new LocalVariable(kPos, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(String::New("b"));
-  LocalVariable* var_b = new LocalVariable(kPos, b, var_type);
+  LocalVariable* var_b = new LocalVariable(kPos, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(String::New("c"));
-  LocalVariable* var_c = new LocalVariable(kPos, c, var_type);
+  LocalVariable* var_c = new LocalVariable(kPos, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.

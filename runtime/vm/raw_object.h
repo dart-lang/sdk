@@ -197,7 +197,7 @@ class RawClass : public RawObject {
   RawScript* script_;
   RawLibrary* library_;
   RawArray* type_parameters_;  // Array of String.
-  RawTypeArray* type_parameter_extends_;  // VarType if no extends clause.
+  RawTypeArray* type_parameter_extends_;  // DynamicType if no extends clause.
   RawType* super_type_;
   RawType* factory_type_;
   RawFunction* signature_function_;  // Associated function for signature class.

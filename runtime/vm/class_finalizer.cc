@@ -396,7 +396,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
            (extends_array.Length() == num_type_params));
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_extends = extends_array.TypeAt(i);
-      if (!type_extends.IsVarType()) {
+      if (!type_extends.IsDynamicType()) {
         type = arguments.TypeAt(offset + i);
         if (type.IsInstantiated()) {
           if (!type_extends.IsInstantiated()) {
@@ -496,10 +496,10 @@ void ClassFinalizer::FinalizeType(const Type& type) {
     // Copy the parsed type arguments at the correct offset in the full type
     // argument vector.
     const intptr_t offset = num_type_arguments - num_type_parameters;
-    Type& type = Type::Handle(Type::VarType());
+    Type& type = Type::Handle(Type::DynamicType());
     for (intptr_t i = 0; i < num_type_parameters; i++) {
       // If no type parameters were provided, a raw type is desired, so we
-      // create a vector of VarType.
+      // create a vector of DynamicType.
       if (!arguments.IsNull()) {
         type = arguments.TypeAt(i);
       }

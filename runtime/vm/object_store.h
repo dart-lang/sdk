@@ -26,7 +26,7 @@ class ObjectStore {
     kFalseValue,
     kObjectType,
     kNullType,
-    kVarType,
+    kDynamicType,
     kVoidType,
     kFunctionInterface,
     kNumberInterface,
@@ -66,8 +66,8 @@ class ObjectStore {
   RawType* null_type() const { return null_type_; }
   void set_null_type(const Type& value) { null_type_ = value.raw(); }
 
-  RawType* var_type() const { return var_type_; }
-  void set_var_type(const Type& value) { var_type_ = value.raw(); }
+  RawType* dynamic_type() const { return dynamic_type_; }
+  void set_dynamic_type(const Type& value) { dynamic_type_ = value.raw(); }
 
   RawType* void_type() const { return void_type_; }
   void set_void_type(const Type& value) { void_type_ = value.raw(); }
@@ -239,7 +239,7 @@ class ObjectStore {
   RawClass* object_class_;
   RawType* object_type_;
   RawType* null_type_;
-  RawType* var_type_;
+  RawType* dynamic_type_;
   RawType* void_type_;
   RawType* function_interface_;
   RawType* number_interface_;

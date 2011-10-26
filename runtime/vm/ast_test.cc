@@ -19,7 +19,7 @@ TEST_CASE(Ast) {
   const intptr_t kPos = 1;  // Dummy token index in non-existing source.
   LocalVariable* v = new LocalVariable(kPos,
                                        String::ZoneHandle(String::New("v")),
-                                       Type::ZoneHandle(Type::VarType()));
+                                       Type::ZoneHandle(Type::DynamicType()));
   AstNode* ll = new LoadLocalNode(kPos, *v);
   EXPECT(ll->IsLoadLocalNode());
   EXPECT(!ll->IsLiteralNode());
@@ -30,7 +30,7 @@ TEST_CASE(Ast) {
 
   LocalVariable* p = new LocalVariable(kPos,
                                        String::ZoneHandle(String::New("p")),
-                                       Type::ZoneHandle(Type::VarType()));
+                                       Type::ZoneHandle(Type::DynamicType()));
   EXPECT(!p->HasIndex());
   p->set_index(-1);
   EXPECT(p->HasIndex());

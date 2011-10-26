@@ -225,7 +225,7 @@ RawInstance* Compiler::ExecuteOnce(SequenceNode* fragment) {
       false,  // not const function.
       fragment->token_index()));
 
-  func.set_result_type(Type::Handle(Type::VarType()));
+  func.set_result_type(Type::Handle(Type::DynamicType()));
   func.set_num_fixed_parameters(0);
   func.set_num_optional_parameters(0);
 

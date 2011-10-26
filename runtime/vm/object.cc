@@ -48,7 +48,7 @@ RawInstance* Object::transition_sentinel_ =
     reinterpret_cast<RawInstance*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::var_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -83,8 +83,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kClassClass;
   } else if (raw_class == null_class()) {
     return kNullClass;
-  } else if (raw_class == var_class()) {
-    return kVarClass;
+  } else if (raw_class == dynamic_class()) {
+    return kDynamicClass;
   } else if (raw_class == void_class()) {
     return kVoidClass;
   } else if (raw_class == unresolved_class_class()) {
@@ -136,7 +136,7 @@ RawClass* Object::GetSingletonClass(int index) {
   switch (index) {
     case kClassClass: return class_class();
     case kNullClass: return null_class();
-    case kVarClass: return var_class();
+    case kDynamicClass: return dynamic_class();
     case kVoidClass: return void_class();
     case kUnresolvedClassClass: return unresolved_class_class();
     case kParameterizedTypeClass: return parameterized_type_class();
@@ -170,7 +170,7 @@ const char* Object::GetSingletonClassName(int index) {
   switch (index) {
     case kClassClass: return "Class";
     case kNullClass: return "Null";
-    case kVarClass: return "var";
+    case kDynamicClass: return "Dynamic";
     case kVoidClass: return "void";
     case kUnresolvedClassClass: return "UnresolvedClass";
     case kParameterizedTypeClass: return "ParameterizedType";
@@ -263,7 +263,7 @@ void Object::InitOnce() {
   unresolved_class_class_ = cls.raw();
 
   cls = Class::New<Instance>();
-  var_class_ = cls.raw();
+  dynamic_class_ = cls.raw();
 
   cls = Class::New<Instance>();
   void_class_ = cls.raw();
@@ -557,16 +557,16 @@ void Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
-  // The classes 'null', 'var', and 'void' are not registered in the class
+  // The classes 'Null', 'Dynamic', and 'void' are not registered in the class
   // dictionary and are not named, but corresponding types are stored in the
   // object store.
   cls = null_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_null_type(type);
 
-  cls = var_class_;
+  cls = dynamic_class_;
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_var_type(type);
+  object_store->set_dynamic_type(type);
 
   cls = void_class_;
   type = Type::NewNonParameterizedType(cls);
@@ -1214,11 +1214,11 @@ bool Class::IsMoreSpecificThan(
     const TypeArguments& type_arguments,
     const Class& other,
     const TypeArguments& other_type_arguments) const {
-  // Check for VarType.
-  // The VarType on the lefthand side is replaced by the bottom type, which is
-  // more specific than any type.
-  // Any type is more specific than the VarType on the righthand side.
-  if (IsVarClass() || other.IsVarClass()) {
+  // Check for DynamicType.
+  // The DynamicType on the lefthand side is replaced by the bottom type, which
+  // is more specific than any type.
+  // Any type is more specific than the DynamicType on the righthand side.
+  if (IsDynamicClass() || other.IsDynamicClass()) {
     return true;
   }
   // Check for reflexivity.
@@ -1232,8 +1232,8 @@ bool Class::IsMoreSpecificThan(
     // Check for covariance.
     if (type_arguments.IsNull() ||
         other_type_arguments.IsNull() ||
-        type_arguments.IsVarTypes(len) ||
-        other_type_arguments.IsVarTypes(len)) {
+        type_arguments.IsDynamicTypes(len) ||
+        other_type_arguments.IsDynamicTypes(len)) {
       return true;
     }
     return type_arguments.IsMoreSpecificThan(other_type_arguments, len);
@@ -1275,7 +1275,7 @@ bool Class::IsMoreSpecificThan(
           interface_args = interface_args.InstantiateFrom(type_arguments,
                                                           offset);
           // TODO(regis): Check the subtyping constraints if any, i.e. if
-          // interface.type_parameter_extends() is not an array of VarType.
+          // interface.type_parameter_extends() is not an array of DynamicType.
           // Should we pass the constraints to InstantiateFrom and it would
           // return null on failure?
         }
@@ -1293,8 +1293,8 @@ bool Class::IsMoreSpecificThan(
     // an interface, cannot be more specific than a class, except class Object,
     // because although Object is not considered an interface by the vm, it is
     // one. In other words, all classes implementing this interface also extend
-    // class Object. An interface is also more specific than the VarType.
-    return (other.IsVarClass() || other.IsObjectClass());
+    // class Object. An interface is also more specific than the DynamicType.
+    return (other.IsDynamicClass() || other.IsObjectClass());
   }
   const Class& super_class = Class::Handle(SuperClass());
   if (super_class.IsNull()) {
@@ -1660,11 +1660,11 @@ RawString* Type::Name() const {
     if (num_type_params > num_args) {
       first_type_param_index = 0;
       if (IsBeingFinalized()) {
-        // Most probably an illformed type. Do not fill up with "var".
+        // Most probably an illformed type. Do not fill up with "Dynamic".
         num_type_params = num_args;
       } else {
         ASSERT(num_args == 0);  // Type is raw.
-        // We fill up with "var".
+        // We fill up with "Dynamic".
       }
     } else {
       first_type_param_index = num_args - num_type_params;
@@ -1699,7 +1699,7 @@ RawString* Type::Name() const {
     Type& type = Type::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       if (first_type_param_index + i >= num_args) {
-        type = VarType();
+        type = DynamicType();
       } else {
         type = args.TypeAt(first_type_param_index + i);
       }
@@ -1814,8 +1814,8 @@ RawType* Type::NullType() {
 }
 
 
-RawType* Type::VarType() {
-  return Isolate::Current()->object_store()->var_type();
+RawType* Type::DynamicType() {
+  return Isolate::Current()->object_store()->dynamic_type();
 }
 
 
@@ -2040,7 +2040,7 @@ RawType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
   if (instantiator_type_arguments.IsNull()) {
-    return VarType();
+    return DynamicType();
   }
   return instantiator_type_arguments.TypeAt(Index() + offset);
 }
@@ -2168,7 +2168,7 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
 }
 
 
-bool TypeArguments::IsVarTypes(intptr_t len) const {
+bool TypeArguments::IsDynamicTypes(intptr_t len) const {
   ASSERT(Length() >= len);
   Type& type = Type::Handle();
   Class& type_class = Class::Handle();
@@ -2180,7 +2180,7 @@ bool TypeArguments::IsVarTypes(intptr_t len) const {
       return false;
     }
     type_class = type.type_class();
-    if (!type_class.IsVarClass()) {
+    if (!type_class.IsDynamicClass()) {
       return false;
     }
   }
@@ -2728,12 +2728,12 @@ bool Function::TestType(TypeTestKind test,
   if (!other_res_type.IsInstantiated()) {
     other_res_type = other_res_type.InstantiateFrom(other_type_arguments, 0);
   }
-  if (!other_res_type.IsVarType() && !other_res_type.IsVoidType()) {
+  if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     Type& res_type = Type::Handle(result_type());
     if (!res_type.IsInstantiated()) {
       res_type = res_type.InstantiateFrom(type_arguments, 0);
     }
-    if (!res_type.IsVarType() &&
+    if (!res_type.IsDynamicType() &&
         (res_type.IsVoidType() || !res_type.IsAssignableTo(other_res_type))) {
       return false;
     }
@@ -2746,7 +2746,7 @@ bool Function::TestType(TypeTestKind test,
     if (!param_type.IsInstantiated()) {
       param_type = param_type.InstantiateFrom(type_arguments, 0);
     }
-    if (param_type.IsVarType()) {
+    if (param_type.IsDynamicType()) {
       continue;
     }
     other_param_type = other.ParameterTypeAt(i);
@@ -2754,7 +2754,7 @@ bool Function::TestType(TypeTestKind test,
       other_param_type =
           other_param_type.InstantiateFrom(other_type_arguments, 0);
     }
-    if (other_param_type.IsVarType()) {
+    if (other_param_type.IsDynamicType()) {
       continue;
     }
     // Subtyping and assignability rules are identical when applied to parameter
@@ -2787,7 +2787,7 @@ bool Function::TestType(TypeTestKind test,
         if (!param_type.IsInstantiated()) {
           param_type = param_type.InstantiateFrom(type_arguments, 0);
         }
-        if (param_type.IsVarType()) {
+        if (param_type.IsDynamicType()) {
           break;
         }
         other_param_type = other.ParameterTypeAt(i);
@@ -2795,7 +2795,7 @@ bool Function::TestType(TypeTestKind test,
           other_param_type =
               other_param_type.InstantiateFrom(other_type_arguments, 0);
         }
-        if (other_param_type.IsVarType()) {
+        if (other_param_type.IsDynamicType()) {
           break;
         }
         if (!param_type.IsSubtypeOf(other_param_type) &&
@@ -2836,14 +2836,14 @@ bool Function::TestType(TypeTestKind test,
           other_param_type =
               other_param_type.InstantiateFrom(other_type_arguments, 0);
         }
-        if (other_param_type.IsVarType()) {
+        if (other_param_type.IsDynamicType()) {
           break;
         }
         param_type = ParameterTypeAt(i);
         if (!param_type.IsInstantiated()) {
           param_type = param_type.InstantiateFrom(type_arguments, 0);
         }
-        if (param_type.IsVarType()) {
+        if (param_type.IsDynamicType()) {
           break;
         }
         if (!other_param_type.IsSubtypeOf(param_type) &&
@@ -3028,7 +3028,7 @@ RawString* Function::BuildSignature(bool instantiate,
         type_parameter ^= type_parameters.At(i);
         pieces.Add(&type_parameter);
         parameter_extends = type_parameter_extends.TypeAt(i);
-        if (!parameter_extends.IsNull() && !parameter_extends.IsVarType()) {
+        if (!parameter_extends.IsNull() && !parameter_extends.IsDynamicType()) {
           pieces.Add(&kSpaceExtendsSpace);
           pieces.Add(&String::ZoneHandle(parameter_extends.Name()));
         }
@@ -4714,7 +4714,7 @@ bool Instance::TestType(TypeTestKind test,
                         const Type& other,
                         const TypeArguments& other_instantiator) const {
   ASSERT(other.IsFinalized());
-  ASSERT(!other.IsVarType());
+  ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
   if (IsNull()) {
     if (test == Type::kIsSubtypeOf) {
@@ -4758,7 +4758,7 @@ bool Instance::TestType(TypeTestKind test,
       instantiated_other = other_instantiator.TypeAt(other.Index());
       ASSERT(instantiated_other.IsInstantiated());
     } else {
-      instantiated_other = Type::VarType();
+      instantiated_other = Type::DynamicType();
     }
     other_class = instantiated_other.type_class();
     other_type_arguments = instantiated_other.arguments();

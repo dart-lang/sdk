@@ -323,7 +323,9 @@ struct ParamList {
   void AddReceiver(intptr_t name_pos) {
     ASSERT(this->parameters->length() == 0);
     // The receiver does not need to be type checked.
-    AddFinalParameter(name_pos, kThisName, &Type::ZoneHandle(Type::VarType()));
+    AddFinalParameter(name_pos,
+                      kThisName,
+                      &Type::ZoneHandle(Type::DynamicType()));
   }
 
   void SetImplicitlyFinal() {
@@ -768,8 +770,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   } else if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
     var_seen = true;
-    // The parameter type is the 'var' type.
-    parameter.type = &Type::ZoneHandle(Type::VarType());
+    // The parameter type is the 'Dynamic' type.
+    parameter.type = &Type::ZoneHandle(Type::DynamicType());
   }
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
@@ -805,7 +807,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       parameter.type = &Type::ZoneHandle(
           ParseType(is_top_level_ ? kCanResolve : kMustResolve));
     } else {
-      parameter.type = &Type::ZoneHandle(Type::VarType());
+      parameter.type = &Type::ZoneHandle(Type::DynamicType());
     }
   }
   if (!this_seen && (CurrentToken() == Token::kTHIS)) {
@@ -1459,7 +1461,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   LocalVariable* receiver = new LocalVariable(
       ctor_pos,
       String::ZoneHandle(String::NewSymbol(kThisName)),
-      Type::ZoneHandle(Type::VarType()));
+      Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(receiver);
 
   // Now that the "this" parameter is in scope, we can generate the code
@@ -2061,8 +2063,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     ConsumeToken();
     member.has_var = true;
-    // The member type is the 'var' type.
-    member.type = &Type::ZoneHandle(Type::VarType());
+    // The member type is the 'Dynamic' type.
+    member.type = &Type::ZoneHandle(Type::DynamicType());
   } else if (CurrentToken() == Token::kFACTORY) {
     ConsumeToken();
     member.has_factory = true;
@@ -2147,7 +2149,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
-    // If the result type was not specified, it will be set to VarType below.
+    // If the result type was not specified, it will be set to DynamicType.
   } else if (CurrentToken() == Token::kSET) {
     ConsumeToken();
     member.kind = RawFunction::kSetterFunction;
@@ -2156,7 +2158,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     // The grammar allows a return type, so member.type is not always NULL here.
     // If no return type is specified, the return type of the setter is Dynamic.
     if (member.type == NULL) {
-      member.type = &Type::ZoneHandle(Type::VarType());
+      member.type = &Type::ZoneHandle(Type::DynamicType());
     }
   } else if (CurrentToken() == Token::kOPERATOR) {
     ConsumeToken();
@@ -2190,7 +2192,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     // Constructor or method.
     if (member.type == NULL) {
-      member.type = &Type::ZoneHandle(Type::VarType());
+      member.type = &Type::ZoneHandle(Type::DynamicType());
     }
     ParseMethodOrConstructor(members, &member);
   } else if (CurrentToken() ==  Token::kSEMICOLON ||
@@ -2199,7 +2201,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     // Field definition.
     if (member.type == NULL) {
       if (member.has_final) {
-        member.type = &Type::ZoneHandle(Type::VarType());
+        member.type = &Type::ZoneHandle(Type::DynamicType());
       } else {
         ErrorMsg("missing 'var', 'final' or type in field declaration");
       }
@@ -2366,7 +2368,7 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
-  Type& result_type = Type::Handle(Type::VarType());
+  Type& result_type = Type::Handle(Type::DynamicType());
   intptr_t result_type_pos = token_index_;
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
@@ -2587,7 +2589,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
       }
       String& type_parameter_name = *CurrentLiteral();
       ConsumeToken();
-      Type& type_extends = Type::ZoneHandle(Type::VarType());
+      Type& type_extends = Type::ZoneHandle(Type::DynamicType());
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         type_extends = ParseType(kCanResolve);
@@ -2724,7 +2726,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
 
 
 void Parser::ParseTopLevelFunction(TopLevel* top_level) {
-  Type& result_type = Type::Handle(Type::VarType());
+  Type& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
@@ -2779,7 +2781,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   if (CurrentToken() == Token::kGET ||
       CurrentToken() == Token::kSET) {
     ConsumeToken();
-    result_type = Type::VarType();
+    result_type = Type::DynamicType();
   } else {
     if (CurrentToken() == Token::kVOID) {
       ConsumeToken();
@@ -3255,13 +3257,13 @@ AstNode* Parser::ParseVariableDeclaration(const Type& type, bool is_final) {
 // Parses ('var' | 'final' [type] | type).
 // The presence of 'final' must be detected and remembered before the call.
 // If type_specification is kIsOptional, and no type can be parsed, then return
-// the VarType.
+// the DynamicType.
 // If a type is parsed, it is resolved (or not) according to type_resolution.
 RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
                                      TypeResolution type_resolution) {
   if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
-    return Type::VarType();
+    return Type::DynamicType();
   }
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
@@ -3269,7 +3271,7 @@ RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
   }
   if (CurrentToken() != Token::kIDENT) {
     if (type_specification == kIsOptional) {
-      return Type::VarType();
+      return Type::DynamicType();
     } else {
       ErrorMsg("identifier expected");
     }
@@ -3282,7 +3284,7 @@ RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
         (follower != Token::kPERIOD) &&  // Qualified class name of type.
         (follower != Token::kIDENT) &&  // Variable name following a type.
         (follower != Token::kTHIS)) {  // Field parameter following a type.
-      return Type::VarType();
+      return Type::DynamicType();
     }
   }
   return ParseType(type_resolution);
@@ -3331,7 +3333,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   const String* variable_name = NULL;
   const String* function_name = NULL;
 
-  result_type = Type::VarType();
+  result_type = Type::DynamicType();
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
     result_type = Type::VoidType();
@@ -3881,7 +3883,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   LocalVariable* temp_variable =
       new LocalVariable(expr_pos,
                         String::ZoneHandle(String::NewSymbol(":switch_expr")),
-                        Type::ZoneHandle(Type::VarType()));
+                        Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(temp_variable);
   AstNode* save_switch_expr =
       new StoreLocalNode(expr_pos, *temp_variable, switch_expr);
@@ -4013,7 +4015,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // would refer to the compiler generated iterator and could confuse the user.
   // It is better to leave the iterator untyped and postpone the type error
   // until the loop variable is assigned to.
-  const Type& iterator_type = Type::ZoneHandle(Type::VarType());
+  const Type& iterator_type = Type::ZoneHandle(Type::DynamicType());
   LocalVariable* iterator_var =
       new LocalVariable(collection_pos, iterator_name, iterator_type);
   current_block_->scope->AddVariable(iterator_var);
@@ -4351,7 +4353,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   if (context_var == NULL) {
     context_var = new LocalVariable(token_index_,
                                     context_var_name,
-                                    Type::ZoneHandle(Type::VarType()));
+                                    Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(context_var);
   }
   const String& catch_excp_var_name =
@@ -4361,7 +4363,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   if (catch_excp_var == NULL) {
     catch_excp_var = new LocalVariable(token_index_,
                                        catch_excp_var_name,
-                                       Type::ZoneHandle(Type::VarType()));
+                                       Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(catch_excp_var);
   }
   const String& catch_trace_var_name =
@@ -4371,7 +4373,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   if (catch_trace_var == NULL) {
     catch_trace_var = new LocalVariable(token_index_,
                                         catch_trace_var_name,
-                                        Type::ZoneHandle(Type::VarType()));
+                                        Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(catch_trace_var);
   }
 
@@ -4469,7 +4471,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     SequenceNode* catch_handler = CloseBlock();
     ExpectToken(Token::kRBRACE);
 
-    if (!exception_param.type->IsVarType()) {  // Has a type specification.
+    if (!exception_param.type->IsDynamicType()) {  // Has a type specification.
       // Now form an 'if type check' as an exception type exists in
       // the catch specifier.
       if (!exception_param.type->IsInstantiated() &&
@@ -4961,7 +4963,7 @@ LocalVariable* Parser::CreateTempConstVariable(intptr_t token_index,
   LocalVariable* temp =
       new LocalVariable(token_index,
                         String::ZoneHandle(String::NewSymbol(name)),
-                        Type::ZoneHandle(Type::VarType()));
+                        Type::ZoneHandle(Type::DynamicType()));
   temp->set_is_final();
   current_block_->scope->AddVariable(temp);
   return temp;
@@ -6139,7 +6141,7 @@ AstNode* Parser::ParseArrayLiteral(intptr_t type_pos,
   ConsumeToken();
 
   // If no type arguments are provided, leave them as null, which is equivalent
-  // to using Array<var>. See issue 4966724.
+  // to using Array<Dynamic>. See issue 4966724.
   if (!type_arguments.IsNull()) {
     // For now, only check the number of type arguments. See issue 4975876.
     if (type_arguments.Length() != 1) {
@@ -6253,7 +6255,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   TypeArguments& map_type_arguments =
       TypeArguments::ZoneHandle(type_arguments.raw());
   // If no type arguments are provided, leave them as null, which is equivalent
-  // to using Map<var, var>. See issue 4966724.
+  // to using Map<Dynamic, Dynamic>. See issue 4966724.
   if (!map_type_arguments.IsNull()) {
     // For now, only check the number of type arguments. See issue 4975876.
     if (map_type_arguments.Length() != 2) {
