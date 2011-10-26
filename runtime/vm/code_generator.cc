@@ -549,6 +549,11 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   const Context& context = Context::Handle(Context::New(1));
   context.SetAt(0, receiver);
   closure = Closure::New(implicit_closure_function, context);
+  if (receiver_class.HasTypeArguments()) {
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(receiver.GetTypeArguments());
+    closure.SetTypeArguments(type_arguments);
+  }
   arguments.SetReturn(closure);
 }
 

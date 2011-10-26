@@ -120,7 +120,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateArgumentTypeChecks();
   void GenerateConditionTypeCheck(intptr_t token_index);
 
-  void GenerateInstantiatorTypeArguments();
+  void GenerateInstantiatorTypeArguments(intptr_t token_index);
   void GenerateTypeArguments(ConstructorCallNode* node,
                              bool is_cls_parameterized);
 

@@ -1238,6 +1238,14 @@ bool Class::IsMoreSpecificThan(
     }
     return type_arguments.IsMoreSpecificThan(other_type_arguments, len);
   }
+  // Check for two function types.
+  if (IsSignatureClass() && other.IsSignatureClass()) {
+    const Function& fun = Function::Handle(signature_function());
+    const Function& other_fun = Function::Handle(other.signature_function());
+    return fun.IsSubtypeOf(type_arguments,
+                           other_fun,
+                           other_type_arguments);
+  }
   // Check for 'direct super type' in the case of an interface and check for
   // transitivity at the same time.
   if (other.is_interface()) {
@@ -1279,14 +1287,7 @@ bool Class::IsMoreSpecificThan(
       }
     }
   }
-  if (IsSignatureClass() && other.IsSignatureClass()) {
-    const Function& fun = Function::Handle(signature_function());
-    const Function& other_fun = Function::Handle(other.signature_function());
-    return fun.IsSubtypeOf(type_arguments,
-                           other_fun,
-                           other_type_arguments);
-  }
-
+  // Check the interface case.
   if (is_interface()) {
     // We already checked the case where 'other' is an interface. Now, 'this',
     // an interface, cannot be more specific than a class, except class Object,
