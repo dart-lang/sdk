@@ -277,14 +277,14 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   InputStream get inputStream() {
-    if (_inputStream === null) {
+    if (_inputStream == null) {
       _inputStream = new SocketInputStream(this);
     }
     return _inputStream;
   }
 
   OutputStream get outputStream() {
-    if (_outputStream === null) {
+    if (_outputStream == null) {
       _outputStream = new SocketOutputStream(this);
     }
     return _outputStream;

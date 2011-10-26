@@ -52,8 +52,10 @@ class _Process implements Process {
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
     _exitHandler.setDataHandler(() {
-        List<int> buffer = new List<int>(8);
-        SocketInputStream input = _exitHandler.inputStream;
+        final int EXIT_DATA_SIZE = 8;
+        List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
+        InputStream input = _exitHandler.inputStream;
+        int exitDataRead = 0;
 
         int exitCode(List<int> ints) {
           return ints[4] + (ints[5] << 8) + (ints[6] << 16) + (ints[7] << 24);
@@ -64,20 +66,19 @@ class _Process implements Process {
         }
 
         void handleExit() {
-          _processExit(exitPid(buffer));
+          _processExit(exitPid(exitDataBuffer));
           if (_exitHandlerCallback != null) {
-            _exitHandlerCallback(exitCode(buffer));
+            _exitHandlerCallback(exitCode(exitDataBuffer));
           }
         }
 
-        void readData() {
-          handleExit();
+        void exitData() {
+          exitDataRead += input.readInto(
+              exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
+          if (exitDataRead == EXIT_DATA_SIZE) handleExit();
         }
 
-        bool result = input.read(buffer, 0, 8, readData);
-        if (result) {
-          handleExit();
-        }
+        input.dataHandler = exitData;
       });
   }
 

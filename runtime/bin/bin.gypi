@@ -28,6 +28,7 @@
         'file_impl.dart',
         'input_stream.dart',
         'output_stream.dart',
+        'string_stream.dart',
         'process.dart',
         'process_impl.dart',
         'socket.dart',

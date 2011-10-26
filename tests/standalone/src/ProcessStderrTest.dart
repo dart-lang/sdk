@@ -16,33 +16,35 @@ class ProcessStderrTest {
                                   const ["1", "1", "99", "0"]);
     final int BUFFERSIZE = 10;
     final int STARTCHAR = 65;
-    List<int> buffer = new List<int>(BUFFERSIZE);
+    List<int> data = new List<int>(BUFFERSIZE);
     for (int i = 0; (i < BUFFERSIZE - 1); i++) {
-      buffer[i] = STARTCHAR + i;
+      data[i] = STARTCHAR + i;
     }
-    buffer[BUFFERSIZE - 1] = 10;
+    data[BUFFERSIZE - 1] = 10;
 
     InputStream input = process.stderr;
     OutputStream output = process.stdin;
 
     process.start();
 
-    List<int> readBuffer = new List<int>(BUFFERSIZE);
+    int received = 0;
 
     void dataWritten() {
       void readData() {
-        for (int i = 0; i < BUFFERSIZE; i++) {
-          Expect.equals(buffer[i], readBuffer[i]);
+        List<int> buffer = input.read();
+        for (int i = 0; i < buffer.length; i++) {
+          Expect.equals(data[received + i], buffer[i]);
         }
-        process.close();
+        received += buffer.length;
+        if (received == BUFFERSIZE) {
+          process.close();
+        }
       }
 
-      bool read = input.read(readBuffer, 0, BUFFERSIZE, readData); 
-      if (read) {
-        readData();
-      }
+      input.dataHandler = readData;
     }
-    bool written = output.write(buffer, 0, BUFFERSIZE, dataWritten);
+
+    bool written = output.write(data, 0, BUFFERSIZE, dataWritten);
     if (written) {
       dataWritten();
     }

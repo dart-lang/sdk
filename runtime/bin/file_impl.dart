@@ -2,65 +2,67 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FileInputStream implements FileInputStream {
+class _FileInputStream implements InputStream {
   _FileInputStream(File file) {
     _file = file;
   }
 
-  bool read(List<int> buffer, int offset, int len, void callback()) {
-    int bytesRead = _file.readList(buffer, offset, len);
-
-    if (bytesRead == len) {
-      if (callback != null) {
-        callback();
+  List<int> read([int len]) {
+    int bytesToRead = available();
+    if (bytesToRead == 0) {
+      return null;
+    }
+    if (len != null) {
+      if (len <= 0) {
+        throw new StreamException("Illegal length $len");
+      } else if (bytesToRead > len) {
+        bytesToRead = len;
       }
-      return true;
+    }
+    List<int> buffer = new List<int>(bytesToRead);
+    int bytesRead = _file.readList(buffer, 0, bytesToRead);
+    if (bytesRead < bytesToRead) {
+      List<int> newBuffer = new List<int>(bytesRead);
+      newBuffer.copyFrom(buffer, 0, 0, bytesRead);
+      return newBuffer;
     } else {
-      throw "FileInputStream: read error";
+      return buffer;
     }
   }
 
-  // TODO(srdjan): Reading whole file at once does not scale. Implement partial
-  // file reading and pattern checks.
-  void readUntil(List<int> pattern, void callback(List<int> buffer)) {
-    List<int> buffer = new List<int>(_file.length);
-    int result = _file.readList(buffer, 0, _file.length);
-    if (result > 0) {
-      int index = indexOf(buffer, pattern);
-      if (index != -1) {
-        int resultBufferSize = index + pattern.length;
-        List<int> resultBuffer = new List<int>(resultBufferSize);
-        resultBuffer.copyFrom(buffer, 0, 0, resultBufferSize);
-        callback(resultBuffer);
-      }
-    }
+  int readInto(List<int> buffer, int offset, int len) {
+    if (offset == null) offset = 0;
+    if (len == null) len = buffer.length;
+    if (offset < 0) throw new StreamException("Illegal offset $offset");
+    if (len < 0) throw new StreamException("Illegal length $len");
+    return _file.readList(buffer, offset, len);
   }
 
-  // TODO(srdjan: move this method to Lists.dart (helper method).
-  static int indexOf(List<int> buffer, List<int> pattern) {
-    if (pattern.length == 0) {
-      return buffer.length;
-    }
-    int len = buffer.length - pattern.length + 1;
-    for (int index = 0; index < len; index++) {
-      bool match = true;
-      for (int k = 0; k < pattern.length; k++) {
-        if (buffer[index + k] != pattern[k]) {
-          match = false;
-          break;
-        }
-      }
-      if (match) {
-        return index;
-      }
-    }
-    return -1;
+  int available() {
+    return _file.length - _file.position;
+  }
+
+  bool closed() {
+    _file.position == _file.length;
+  }
+
+  void set dataHandler(void callback()) {
+    // TODO(sgjesse): How to handle this?
+  }
+
+  void set closeHandler(void callback()) {
+    // TODO(sgjesse): How to handle this?
+  }
+
+  void set errorHandler(void callback()) {
+    // TODO(sgjesse): How to handle this?
   }
 
   File _file;
 }
 
-class _FileOutputStream implements FileOutputStream {
+
+class _FileOutputStream implements OutputStream {
   _FileOutputStream(File file) {
     _file = file;
   }
@@ -77,6 +79,7 @@ class _FileOutputStream implements FileOutputStream {
 
   File _file;
 }
+
 
 // Class for encapsulating the native implementation of files.
 class _File extends FileNativeWrapper implements File {
@@ -197,8 +200,8 @@ class _File extends FileNativeWrapper implements File {
 
   // Each file has an unique InputStream.
   InputStream get inputStream() {
-    if (_inputStream === null) {
-      _inputStream = new FileInputStream(this);
+    if (_inputStream == null) {
+      _inputStream = new _FileInputStream(this);
     }
     return _inputStream;
   }
@@ -208,8 +211,8 @@ class _File extends FileNativeWrapper implements File {
     if (!_writeable) {
       throw "File is not writable";
     }
-    if (_outputStream === null) {
-      _outputStream = new FileOutputStream(this);
+    if (_outputStream == null) {
+      _outputStream = new _FileOutputStream(this);
     }
     return _outputStream;
   }

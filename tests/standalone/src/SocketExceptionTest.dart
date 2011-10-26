@@ -93,7 +93,7 @@ class SocketExceptionTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(42);
-      bool readDone = input.read(buffer, 0, 12, null);
+      bool readDone = input.readInto(buffer, 0, 12);
     } catch (SocketIOException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {

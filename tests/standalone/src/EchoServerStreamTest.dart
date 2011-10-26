@@ -54,29 +54,40 @@ class EchoServerGame {
       SocketOutputStream stream = _socket.outputStream;
 
       void dataSent() {
-        // Reset buffer
-        for (int i = 0; i < MSGSIZE; i++) {
-          _buffer[i] = 1;
-        }
-        SocketInputStream stream = _socket.inputStream;
+        InputStream inputStream = _socket.inputStream;
+        int offset = 0;
+        List<int> data;
 
         void dataReceived() {
-          for (int i = 0; i < MSGSIZE; i++) {
-            Expect.equals(FIRSTCHAR + i, _buffer[i]);
-          }
-          _messages++;
-          _socket.close();
-          if (_messages < MESSAGES) {
-            sendData();
+          // Test both read and readInto.
+          int bytesRead = 0;
+          if (_messages % 2 == 0) {
+            bytesRead = inputStream.readInto(data, offset, MSGSIZE - offset);
+            for (int i = 0; i < offset + bytesRead; i++) {
+              Expect.equals(FIRSTCHAR + i, data[i]);
+            }
           } else {
-            shutdown();
+            data = inputStream.read();
+            bytesRead = data.length;
+            for (int i = 0; i < data.length; i++) {
+              Expect.equals(FIRSTCHAR + i + offset, data[i]);
+            }
+          }
+
+          offset += bytesRead;
+          if (offset == MSGSIZE) {
+            _messages++;
+            _socket.close();
+            if (_messages < MESSAGES) {
+              sendData();
+            } else {
+              shutdown();
+            }
           }
         }
 
-        bool read = stream.read(_buffer, 0, MSGSIZE, dataReceived);
-        if (read) {
-          dataReceived();
-        }
+        if (_messages % 2 == 0) data = new List<int>(MSGSIZE);
+        inputStream.dataHandler = dataReceived;
       }
 
       _socket.setCloseHandler(closeHandler);
@@ -125,25 +136,21 @@ class EchoServer extends Isolate {
 
     void connectionHandler() {
       Socket _client;
+      InputStream inputStream;
+      List<int> buffer = new List<int>(MSGSIZE);
+      int offset = 0;
 
-      void messageHandler() {
-
-        List<int> buffer = new List<int>(MSGSIZE);
-
-        void dataReceived() {
-
-          SocketOutputStream outputStream = _client.outputStream;
-
-          for (int i = 0; i < MSGSIZE; i++) {
+      void dataReceived() {
+        SocketOutputStream outputStream = _client.outputStream;
+        int bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
+        if (bytesRead > 0) {
+          offset += bytesRead;
+          for (int i = 0; i < offset; i++) {
             Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
           }
-          outputStream.write(buffer, 0, MSGSIZE, null);
-        }
-
-        SocketInputStream inputStream = _client.inputStream;
-        bool read = inputStream.read(buffer, 0, MSGSIZE, dataReceived);
-        if (read) {
-          dataReceived();
+          if (offset == MSGSIZE) {
+            outputStream.write(buffer, 0, buffer.length, null);
+          }
         }
       }
 
@@ -157,7 +164,8 @@ class EchoServer extends Isolate {
       }
 
       _client = _server.accept();
-      _client.setDataHandler(messageHandler);
+      inputStream = _client.inputStream;
+      inputStream.dataHandler = dataReceived;
       _client.setCloseHandler(closeHandler);
       _client.setErrorHandler(errorHandler);
     }

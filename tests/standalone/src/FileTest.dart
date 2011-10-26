@@ -13,10 +13,10 @@ class FileTest {
     File file = new File(filename, false);
     InputStream input = file.inputStream;
     List<int> buffer = new List<int>(42);
-    bool readDone = input.read(buffer, 0, 12, null);
-    Expect.equals(true, readDone);
-    readDone = input.read(buffer, 12, 30, null);
-    Expect.equals(true, readDone);
+    int bytesRead = input.readInto(buffer, 0, 12);
+    Expect.equals(12, bytesRead);
+    bytesRead = input.readInto(buffer, 12, 30);
+    Expect.equals(30, bytesRead);
     Expect.equals(47, buffer[0]);  // represents '/' in the file.
     Expect.equals(47, buffer[1]);  // represents '/' in the file.
     Expect.equals(32, buffer[2]);  // represents ' ' in the file.
@@ -38,8 +38,8 @@ class FileTest {
     File file = new File(inFilename, false);
     InputStream input = file.inputStream;
     List<int> buffer1 = new List<int>(42);
-    bool readDone = input.read(buffer1, 0, 42, null);
-    Expect.equals(true, readDone);
+    int bytesRead = input.readInto(buffer1, 0, 42);
+    Expect.equals(42, bytesRead);
     file.close();
     // Write the contents of the file just read into another file.
     String outFilename = getFilename("tests/vm/data/fixed_length_file_out");
@@ -52,8 +52,8 @@ class FileTest {
     List<int> buffer2 = new List<int>(42);
     file = new File(outFilename, false);
     input = file.inputStream;
-    readDone = input.read(buffer2, 0, 42, null);
-    Expect.equals(true, readDone);
+    bytesRead = input.readInto(buffer2, 0, 42);
+    Expect.equals(42, bytesRead);
     file.close();
     // Now compare the two buffers to check if they are identical.
     for (int i = 0; i < buffer1.length; i++) {
@@ -242,7 +242,7 @@ class FileTest {
     InputStream input = file.inputStream;
     try {
       List<int> buffer = new List<int>(42);
-      bool readDone = input.read(buffer, 0, 12, null);
+      input.readInto(buffer, 0, 12);
     } catch (FileIOException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {

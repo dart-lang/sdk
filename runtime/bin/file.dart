@@ -2,14 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface FileInputStream extends InputStream factory _FileInputStream {
-  FileInputStream(File file);
-}
-
-interface FileOutputStream extends OutputStream factory _FileOutputStream {
-  FileOutputStream(File file);
-}
-
 interface File factory _File {
   // Open a file.
   File(String name, bool writable);

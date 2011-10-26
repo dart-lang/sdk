@@ -5,158 +5,59 @@
 class SocketInputStream implements InputStream {
   SocketInputStream(Socket socket) {
     _socket = socket;
-    _buffer = null;
   }
 
-  bool read(List<int> buffer, int offset, int len, void callback()) {
-    // Read data just out of the buffer.
-    if (_buffer !== null && len <= _buffer.length) {
-      buffer.copyFrom(_buffer, 0, offset, len);
-      int remainder = _buffer.length - len;
-      if (remainder > 0) {
-        List<int> newBuffer = new List<int>(remainder);
-        newBuffer.copyFrom(_buffer, 0, len, remainder);
-        _buffer = newBuffer;
-      } else {
-        _buffer = null;
-      }
-      return true;
-    }
-    // Read data out of the buffer if available and from the socket.
-    else {
-      int bytesRead = 0;
-      if (_buffer !== null) {
-        buffer.copyFrom(_buffer, offset, 0, _buffer.length);
-        bytesRead = _buffer.length;
-        _buffer = null;
-      }
-
-      bytesRead +=
-          _socket.readList(buffer, offset + bytesRead, len - bytesRead);
-
-      if (bytesRead == len) {
-        return true;
-      }
-
-      void doRead() {
-        bytesRead +=
-            _socket.readList(buffer, offset + bytesRead, len - bytesRead);
-        if (bytesRead < len) {
-          _socket.setDataHandler(doRead);
-        } else {
-          assert(bytesRead == len);
-          _socket.setDataHandler(null);
-          if (callback !== null) {
-            callback();
-          }
-        }
-      }
-
-      _socket.setDataHandler(doRead);
-      return false;
-    }
-  }
-
-  int _matchPattern(List<int> buffer, List<int> pattern, int start) {
-    int j;
-    if (pattern.length > buffer.length) {
-      return -1;
-    }
-    for (int i = start; i < (buffer.length - pattern.length + 1); i++) {
-      for (j = 0; j < pattern.length; j++) {
-        if (buffer[i + j] != pattern[j]) {
-          break;
-        }
-      }
-      if (j == pattern.length) {
-        return i;
+  List<int> read([int len]) {
+    int bytesToRead = available();
+    if (bytesToRead == 0) return null;
+    if (len != null) {
+      if (len <= 0) {
+        throw new StreamException("Illegal length $len");
+      } else if (bytesToRead > len) {
+        bytesToRead = len;
       }
     }
-    return -1;
-  }
-
-  /*
-   * Appends the newBuffer to the buffer (if available), sets the buffer to
-   * null, and returns the merged buffer.
-   */
-  List<int> _getBufferedData(List<int> newBuffer, int appendingBufferSpace) {
-    List<int> buffer;
-    int newDataStart = 0;
-    if (_buffer !== null) {
-      buffer = new List<int>(_buffer.length + appendingBufferSpace);
-      buffer.copyFrom(_buffer, 0, 0, _buffer.length);
-      newDataStart = _buffer.length;
-      _buffer = null;
+    List<int> buffer = new List<int>(bytesToRead);
+    int bytesRead = _socket.readList(buffer, 0, bytesToRead);
+    if (bytesRead < bytesToRead) {
+      List<int> newBuffer = new List<int>(bytesRead);
+      newBuffer.copyFrom(buffer, 0, 0, bytesRead);
+      return newBuffer;
     } else {
-      buffer = new List<int>(appendingBufferSpace);
+      return buffer;
     }
-    buffer.copyFrom(newBuffer, 0, newDataStart, appendingBufferSpace);
-    return buffer;
   }
 
-  void readUntil(List<int> pattern, void callback(List<int> resultBuffer)) {
-    void doRead() {
-      List<int> newBuffer;
-      int available = _socket.available();
-      if (available > 0) {
-        List<int> buffer = new List<int>(available);
-        int result = _socket.readList(buffer, 0, buffer.length);
-        if (result > 0) {
-          // TODO(hpayer): Avoid copying of data before pattern matching.
-          newBuffer = _getBufferedData(buffer, result);
-        }
-      } else if (_buffer != null) {
-        newBuffer = _buffer;
-      } else {
-        _socket.setDataHandler(doRead);
-        return;
-      }
+  int readInto(List<int> buffer, int offset, int len) {
+    if (offset == null) offset = 0;
+    if (len == null) len = buffer.length;
+    if (offset < 0) throw new StreamException("Illegal offset $offset");
+    if (len < 0) throw new StreamException("Illegal length $len");
+    return _socket.readList(buffer, offset, len);
+  }
 
-      int index = _matchPattern(newBuffer, pattern, 0);
-      // If pattern was found return the data including pattern and store the
-      // remainder in the buffer.
-      if (index != -1) {
-        int finalBufferSize = index + pattern.length;
-        List<int> finalBuffer = new List<int>(finalBufferSize);
-        finalBuffer.copyFrom(newBuffer, 0, 0, finalBufferSize);
-        if (finalBufferSize < newBuffer.length) {
-          List<int> remainder =
-              new List<int>(newBuffer.length - finalBufferSize);
-          remainder.copyFrom(newBuffer, finalBufferSize, 0, remainder.length);
-          _buffer = remainder;
-        } else {
-          _buffer = null;
-        }
-        _socket.setDataHandler(null);
-        callback(finalBuffer);
-      } else {
-        _buffer = newBuffer;
-        _socket.setDataHandler(doRead);
-      }
-    }
+  int available() {
+    return _socket.available();
+  }
 
-    // Register callback for data available.
-    _socket.setDataHandler(doRead);
+  void set dataHandler(void callback()) {
+    _socket.setDataHandler(callback);
+  }
 
-    // If data is already buffered schedule a data available callback.
-    if (_buffer != null) {
-      _socket._scheduleEvent(_SocketBase._IN_EVENT);
-    }
+  void set closeHandler(void callback()) {
+    _socket.setCloseHandler(callback);
+  }
+
+  void set errorHandler(void callback()) {
+    _socket.setErrorHandler(callback);
   }
 
   Socket _socket;
-
-  /*
-   * Read and readUntil read data out of that buffer first before reading new
-   * data out of the socket.
-   */
-  List<int> _buffer;
 }
 
+
 class SocketOutputStream implements OutputStream {
-  SocketOutputStream(Socket socket) {
-    _socket = socket;
-  }
+  SocketOutputStream(Socket socket) : _socket = socket;
 
   bool write(List<int> buffer, int offset, int len, void callback()) {
     int bytesWritten = _socket.writeList(buffer, offset, len);
