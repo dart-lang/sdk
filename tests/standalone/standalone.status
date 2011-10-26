@@ -60,6 +60,7 @@ TimerCancel2Test: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory
+StringStreamTest: Skip # Uses InputStream
 
 
 [ $arch == dartc || $arch == chromium ]
