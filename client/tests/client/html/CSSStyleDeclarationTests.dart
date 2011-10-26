@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 testCSSStyleDeclaration() {
-  getStyle() {
+  createTestStyle() {
     return new CSSStyleDeclaration.css("""
       color: blue;
       width: 2px !important;
@@ -17,13 +17,14 @@ testCSSStyleDeclaration() {
     Expect.equals("", style.getPropertyPriority('color'));
     Expect.equals("", style.item(0));
     Expect.equals(0, style.length);
+    // These assertions throw a NotImplementedException in dartium:
     // Expect.isNull(style.parentRule);
     // Expect.isNull(style.getPropertyCSSValue('color'));
     // Expect.isNull(style.getPropertyShorthand('color'));
   });
 
   test('cssText is wrapped', () {
-    var style = getStyle();
+    var style = createTestStyle();
     Expect.equals(
       "color: blue; width: 2px !important; -webkit-transform: rotate(90deg); ",
       style.cssText);
@@ -32,32 +33,32 @@ testCSSStyleDeclaration() {
   });
 
   test('length is wrapped', () {
-    Expect.equals(3, getStyle().length);
+    Expect.equals(3, createTestStyle().length);
   });
 
   test('getPropertyPriority is wrapped', () {
-    var style = getStyle();
+    var style = createTestStyle();
     Expect.equals("", style.getPropertyPriority("color"));
     Expect.equals("important", style.getPropertyPriority("width"));
   });
 
   test('item is wrapped', () {
-    var style = getStyle();
+    var style = createTestStyle();
     Expect.equals("color", style.item(0));
     Expect.equals("width", style.item(1));
     Expect.equals("-webkit-transform", style.item(2));
   });
 
   test('removeProperty is wrapped', () {
-    var style = getStyle();
+    var style = createTestStyle();
     style.removeProperty("width");
     Expect.equals(
       "color: blue; -webkit-transform: rotate(90deg); ",
       style.cssText);
   });
 
-  test('getters and setters are generated', () {
-    var style = getStyle();
+  test('CSS property getters and setters', () {
+    var style = createTestStyle();
     Expect.equals("blue", style.color);
     Expect.equals("2px", style.width);
     Expect.equals("rotate(90deg)", style.transform);

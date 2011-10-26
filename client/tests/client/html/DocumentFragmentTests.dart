@@ -313,6 +313,7 @@ testDocumentFragment() {
     Expect.equals(0, rect.width);
   });
 
+  // TODO(nweiz): re-enable when const is better supported in dartc and/or frog
   // test('const fields are immutable', () {
   //   var fragment = new DocumentFragment();
   //   assertConstError(() => fragment.attributes['title'] = 'foo');

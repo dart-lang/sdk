@@ -22,7 +22,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
   }
 
   factory CSSStyleDeclarationWrappingImplementation() {
-    return new CSSStyleDeclarationWrappingImplementation.css("");
+    return new CSSStyleDeclarationWrappingImplementation.css('');
   }
 
   static String get _browserPrefix() {

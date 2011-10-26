@@ -109,7 +109,7 @@ class FilteredElementList implements ElementList {
 class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
   // This can't call super(), since that's a factory constructor
   EmptyStyleDeclaration()
-    : super._wrap(dom.document.createElement('div').style) {}
+    : super._wrap(dom.document.createElement('div').style);
 
   void set cssText(String value) {
     throw new UnsupportedOperationException(
