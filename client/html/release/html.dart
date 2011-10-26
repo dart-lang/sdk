@@ -23904,7 +23904,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   String get tagName() => "";
   String get webkitdropzone() => "";
   Element get firstElementChild() => elements.first();
-  Element get lastElementChild() => elements.last;
+  Element get lastElementChild() => elements.last();
   Element get nextElementSibling() => null;
   Element get previousElementSibling() => null;
   Element get offsetParent() => null;
