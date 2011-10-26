@@ -106,7 +106,7 @@ main() {
 
 
 # Patterns for matching test options in .dart files.
-DART_OPTIONS_PATTERN = re.compile(r"// DartOptions=(.*)")
+DART_OPTIONS_PATTERN = re.compile(r'// DartOptions=(.*)')
 
 # Pattern for checking if the test is a web test.
 DOM_IMPORT_PATTERN = re.compile(r'#import.*(dart:(dom|html)|html\.dart).*\);',
@@ -271,8 +271,6 @@ class BrowserArchitecture(Architecture):
     dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
     dart_flags += ' '.join(self.vm_options)
 
-    if self.arch == 'chromium' and self.mode == 'release':
-      dart_flags += ' --optimize '
     drt_flags.append(dart_flags)
 
     html_output_file = os.path.join(self.GetHtmlPath(), self.GetHtmlName())
@@ -353,6 +351,8 @@ class ChromiumArchitecture(BrowserArchitecture):
                                          'dartc'))
     if utils.IsWindows(): dartc += '.exe'
     cmd = [dartc, '--work', self.temp_dir]
+    if self.mode == 'release':
+      cmd += ['--optimize']
     cmd += self.vm_options
     cmd += ['--out', self.GetScriptPath()]
     if fatal_static_type_errors:
@@ -405,6 +405,8 @@ class StandaloneArchitecture(Architecture):
     test_name = os.path.basename(self.test)
     test_path = os.path.abspath(self.test)
     command = [dart] + self.vm_options
+    if self.mode == 'release':
+      command += ['--optimize']
     (classname, extension) = os.path.splitext(test_name)
     if self.dart_options:
       command += self.dart_options

@@ -50,6 +50,7 @@ class Co19TestCase(test.TestCase):
     # Combine everything into a command array and return it.
     command = self.context.GetDart(self.mode, self.arch)
     command += self.context.flags
+    if self.mode == 'release': command += ['--optimize']
     if vm_options: command += vm_options
     if dart_options: command += dart_options
     else:

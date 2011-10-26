@@ -1228,8 +1228,6 @@ def ProcessOptions(options):
       print 'Unknown arch %s' % arch
       return False
   options.flags = []
-  if (arch == 'dartc' or arch == 'chromium') and mode == 'release':
-    options.flags.append('--optimize')
   options.flags.append('--ignore-unrecognized-flags')
   if options.checked:
     options.flags.append('--enable_asserts')
