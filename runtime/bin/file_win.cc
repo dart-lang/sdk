@@ -121,8 +121,11 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 
 char* File::GetCanonicalPath(const char* pathname) {
-  // TODO(176): Need to implement this.
-  return strdup(pathname);
+  int required_size = GetFullPathName(pathname, 0, NULL, NULL);
+  char* path = static_cast<char*>(malloc(required_size));
+  int written = GetFullPathName(pathname, required_size, path, NULL);
+  ASSERT(written == (required_size - 1));
+  return path;
 }
 
 
