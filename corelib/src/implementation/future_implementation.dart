@@ -75,7 +75,7 @@ class FutureImpl<T> implements Future<T> {
   }
 
   bool get hasValue() {
-    return isComplete && exception == null;
+    return isComplete && _exception === null;
   }
 
   void then(void onComplete(T value)) {
@@ -119,7 +119,7 @@ class FutureImpl<T> implements Future<T> {
   }
 
   void _setException(var exception) {
-    if (exception == null) {
+    if (exception === null) {
       // null is not a legal value for the exception of a Future
       throw new IllegalArgumentException(null);
     }

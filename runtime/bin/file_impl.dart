@@ -32,8 +32,8 @@ class _FileInputStream implements FileInputStream {
   }
 
   int readInto(List<int> buffer, int offset, int len) {
-    if (offset == null) offset = 0;
-    if (len == null) len = buffer.length;
+    if (offset === null) offset = 0;
+    if (len === null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
     return _file.readListSync(buffer, offset, len);

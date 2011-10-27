@@ -114,7 +114,7 @@ class _Process implements Process {
   }
 
   bool kill() {
-    if (_closed && _pid == null) {
+    if (_closed && _pid === null) {
       throw new ProcessException("Process closed");
     }
     if (_killed) {

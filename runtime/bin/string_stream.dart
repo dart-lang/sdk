@@ -171,7 +171,7 @@ class _UTF8Decoder extends _StringDecoderBase {
 
 class _StringInputStream implements StringInputStream {
   _StringInputStream(InputStream this._input, [String this._encoding]) {
-    if (_encoding == null) {
+    if (_encoding === null) {
       _encoding = "UTF-8";
     }
     if (_encoding == "UTF-8") {
@@ -213,7 +213,7 @@ class _StringInputStream implements StringInputStream {
     }
     // Try to fill more data into the buffer and read a line.
     if (_fillBuffer()) {
-      if (_eof && _buffer == null) return null;
+      if (_eof && _buffer === null) return null;
       return _readLineFromBuffer();
     }
     return null;
@@ -299,11 +299,11 @@ class _StringInputStream implements StringInputStream {
     }
     _readData();
     var decodedString = _decoder.decoded;
-    if (decodedString == null && _closed) {
+    if (decodedString === null && _closed) {
       _eof = true;
       return true;
     }
-    if (_buffer == null) {
+    if (_buffer === null) {
       _buffer = decodedString;
       if (_buffer != null) {
         _bufferLineStart = 0;

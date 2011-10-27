@@ -161,7 +161,7 @@ class PromiseImpl<T> implements Promise<T> {
     if (_state == COMPLETE_NORMAL) {
       completeHandler(_value);
     } else if (!isDone()) {
-      if (_normalListeners == null) {
+      if (_normalListeners === null) {
         _normalListeners = new Queue<Function>();
       }
       _normalListeners.addLast(completeHandler);
@@ -172,7 +172,7 @@ class PromiseImpl<T> implements Promise<T> {
     if (_state == COMPLETE_ERROR) {
       errorHandler(_error);
     } else if (!isDone()) {
-      if (_errorListeners == null) {
+      if (_errorListeners === null) {
         _errorListeners = new Queue<Function>();
       }
       _errorListeners.addLast(errorHandler);
@@ -183,7 +183,7 @@ class PromiseImpl<T> implements Promise<T> {
     if (isCancelled()) {
       cancelHandler();
     } else if (!isDone()) {
-      if (_cancelListeners == null) {
+      if (_cancelListeners === null) {
         _cancelListeners = new Queue<Function>();
       }
       _cancelListeners.addLast(cancelHandler);

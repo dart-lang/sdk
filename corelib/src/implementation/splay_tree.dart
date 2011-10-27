@@ -181,13 +181,13 @@ class SplayTree<K extends Comparable, V> implements Map<K, V> {
   void forEach(void f(K key, V value)) {
     List<SplayTreeNode<K, V>> list = new List<SplayTreeNode<K, V>>();
     SplayTreeNode<K, V> current = _root;
-    while (current != null) {
-      if (current.left != null) {
+    while (current !== null) {
+      if (current.left !== null) {
         list.add(current);
         current = current.left;
       } else {
         f(current.key, current.value);
-        while (current.right == null) {
+        while (current.right === null) {
           if (list.isEmpty()) return;
           current = list.removeLast();
           f(current.key, current.value);

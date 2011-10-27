@@ -81,7 +81,7 @@ class _SocketBase {
   }
 
   int get port() {
-    if (_port == null) {
+    if (_port === null) {
       _port = _getPort();
     }
     return _port;
@@ -96,7 +96,7 @@ class _SocketBase {
     } else {
       // This is to support closing sockets created but never assigned
       // any actual socket.
-      if (_handler == null) {
+      if (_handler === null) {
         throw new
             SocketIOException("Error: close failed - invalid socket handle");
       } else {
@@ -276,14 +276,14 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   InputStream get inputStream() {
-    if (_inputStream == null) {
+    if (_inputStream === null) {
       _inputStream = new SocketInputStream(this);
     }
     return _inputStream;
   }
 
   OutputStream get outputStream() {
-    if (_outputStream == null) {
+    if (_outputStream === null) {
       _outputStream = new SocketOutputStream(this);
     }
     return _outputStream;

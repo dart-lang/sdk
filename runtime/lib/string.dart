@@ -135,7 +135,7 @@ class StringBase {
   }
 
   String substring(int startIndex, [int endIndex]) {
-    if (endIndex == null) endIndex = this.length;
+    if (endIndex === null) endIndex = this.length;
 
     if ((startIndex < 0) || (startIndex > this.length)) {
       throw new IndexOutOfRangeException(startIndex);

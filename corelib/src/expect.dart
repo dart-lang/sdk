@@ -74,7 +74,7 @@ class Expect {
                            num actual,
                            [num tolerance = null,
                             String reason = null]) {
-    if (tolerance == null) {
+    if (tolerance === null) {
       tolerance = (expected / Math.pow(10.0, 4.0)).abs();
     }
     // Note: use !( <= ) rather than > so we fail on NaNs
@@ -242,7 +242,7 @@ class Expect {
   }
 
   static String _getMessage(String reason)
-      => (reason == null) ? "" : ", '$reason'";
+      => (reason === null) ? "" : ", '$reason'";
 
   static void _fail(String message) {
     throw new ExpectException(message);

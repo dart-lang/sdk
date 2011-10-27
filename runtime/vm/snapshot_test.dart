@@ -121,7 +121,7 @@ class Towers {
 
   TowersDisk pop(int pile) {
     var top = piles[pile];
-    if (top == null)
+    if (top === null)
       Error.error("Attempting to remove a disk from an empty pile.");
     piles[pile] = top.next;
     top.next = null;
@@ -524,10 +524,10 @@ class TreeNodePress {
 
   void insert(int n) {
     if (n < value) {
-      if (left == null) left = new TreeNodePress(n);
+      if (left === null) left = new TreeNodePress(n);
       else left.insert(n);
     } else {
-      if (right == null) right = new TreeNodePress(n);
+      if (right === null) right = new TreeNodePress(n);
       else right.insert(n);
     }
   }
@@ -537,8 +537,8 @@ class TreeNodePress {
     TreeNodePress right = this.right;
     int value = this.value;
 
-    return ((left == null) || ((left.value < value) && left.check())) &&
-           ((right == null) || ((right.value >= value) && right.check()));
+    return ((left === null) || ((left.value < value) && left.check())) &&
+           ((right === null) || ((right.value >= value) && right.check()));
   }
 }
 
@@ -609,7 +609,7 @@ class ListElement {
     ListElement xTail = x;
     ListElement yTail = y;
     while (yTail != null) {
-      if (xTail == null) return true;
+      if (xTail === null) return true;
       xTail = xTail.next;
       yTail = yTail.next;
     }
@@ -2137,7 +2137,7 @@ class LineProcessor extends Isolate {
   void main() {
     this.port.receive((message, SendPort replyTo) {
       if (message == MandelIsolateTest.TERMINATION_MESSAGE) {
-        assert(replyTo == null);
+        assert(replyTo === null);
         this.port.close();
       } else {
         replyTo.send(_processLine(message), null);

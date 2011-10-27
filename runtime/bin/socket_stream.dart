@@ -29,8 +29,8 @@ class SocketInputStream implements InputStream {
   }
 
   int readInto(List<int> buffer, int offset, int len) {
-    if (offset == null) offset = 0;
-    if (len == null) len = buffer.length;
+    if (offset === null) offset = 0;
+    if (len === null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
     return _socket.readList(buffer, offset, len);
