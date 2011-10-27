@@ -163,7 +163,7 @@ void testReadLine2() {
       stage++;
       s.close();
     } else if (stage == 3) {
-      // The final \r can not be interpreted as a end of line.
+      // The final \r can now be interpreted as an end of line.
       line = stream.readLine();
       Expect.equals("", line);
       line = stream.readLine();
