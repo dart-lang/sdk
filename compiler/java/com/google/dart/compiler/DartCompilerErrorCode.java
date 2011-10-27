@@ -123,6 +123,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   INTERNAL_ERROR("internal error: %s"),
   INVALID_FIELD_DECLARATION("SyntaxError: wrong syntax for field declaration"),
   INVALID_OPERATOR_CHAINING("SyntaxError: cannot chain '%s'"),
+  INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),
   IS_A_CLASS("%s is a class and cannot be used as an expression"),
   IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),

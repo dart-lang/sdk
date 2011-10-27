@@ -170,11 +170,6 @@ BlackListedTest/12: Fail # Bug 5469684
 
 FactoryArrowTest: Fail # Issue 223
 
-ConstructorReturnNegativeTest: Fail                   # Issue 225
-ConstructorReturnWithInitNegativeTest: Fail           # Issue 225
-ConstructorReturnWithArrowNegativeTest: Fail          # Issue 225
-ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 225
-
 # VM specific tests that should not be run by DartC.
 *VMTest: Skip
 

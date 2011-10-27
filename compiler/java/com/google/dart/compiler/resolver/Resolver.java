@@ -44,6 +44,7 @@ import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
+import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -1119,6 +1120,21 @@ public class Resolver {
         resolutionError(x, DartCompilerErrorCode.CANNOT_RESOLVE_CONSTRUCTOR, name);
       }
       return recordElement(x, element);
+    }
+
+    @Override
+    public Element visitReturnStatement(DartReturnStatement x) {
+      if (x.getValue() != null) {
+        // Dart Spec v0.03, section 11.10.
+        // Generative constructors cannot return arbitrary expressions in the form: 'return e;'
+        // they can though have return statement in the form: 'return;'
+        if ((currentMethod == innermostFunction)
+            && Elements.isNonFactoryConstructor(currentMethod)) {
+          resolutionError(x, DartCompilerErrorCode.INVALID_RETURN_IN_CONSTRUCTOR);
+        }
+        return x.getValue().accept(this);
+      }
+      return null;
     }
 
     @Override
