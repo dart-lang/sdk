@@ -96,19 +96,6 @@ class UnitTestSuite {
     test(null, body);
   }
 
-  /** Adds the tests defined by the given TestSet to this suite. */
-  void addTestSet(TestSet test) {
-    test._bindToSuite(this);
-    test.setup();
-  }
-
-  /** Adds the tests defined by the given TestSets to this suite. */
-  void addTestSets(Iterable<TestSet> tests) {
-    for (TestSet test in tests) {
-      addTestSet(test);
-    }
-  }
-
   /** Enqueues an asynchronous test that waits for [callbacks] callbacks. */
   void addAsyncTest(TestFunction body, int callbacks) {
     asyncTest(null, callbacks, body);
@@ -366,85 +353,52 @@ class Expectation {
 
   Expectation(this._value);
 
-  /** Asserts that the value is equivalent to the given expected value. */
+  /** Asserts that the value is equivalent to [expected]. */
   void equals(expected) {
     Expect.equals(expected, _value);
   }
 
   /**
-   * Failure if the difference between expected and actual is greater than the
-   * given tolerance. If no tolerance is given, tolerance is assumed to be the
-   * value 4 significant digits smaller than the value given for expected.
+   * Asserts that the difference between [expected] and the value is within
+   * [tolerance]. If no tolerance is given, it is assumed to be the value 4
+   * significant digits smaller than the expected value.
    */
   void approxEquals(num expected,
       [num tolerance = null, String reason = null]) {
     Expect.approxEquals(expected, _value, tolerance: tolerance, reason: reason);
   }
 
-  /** Asserts that the value is null. */
+  /** Asserts that the value is [null]. */
   void isNull() {
     Expect.equals(null, _value);
   }
 
-  /** Asserts that the value is not null. */
+  /** Asserts that the value is not [null]. */
   void isNotNull() {
     Expect.notEquals(null, _value);
   }
 
-  /** Asserts that the value is true. */
+  /** Asserts that the value is [true]. */
   void isTrue() {
     Expect.equals(true, _value);
   }
 
-  /** Asserts that the value is null. */
+  /** Asserts that the value is [false]. */
   void isFalse() {
     Expect.equals(false, _value);
   }
 
-  /** Asserts that the value has the same elements as the given collection. */
+  /** Asserts that the value has the same elements as [expected]. */
   void equalsCollection(Collection expected) {
     Expect.listEquals(expected, _value);
   }
-}
 
-/**
- * A TestSet lets you break a test suite down into a collection of classes to
- * keep things manageable. It exposes the same interface as UnitTestSuite
- * (test(), group(), expect(), etc.) but defers to a parent suite that owns it.
- */
-class TestSet {
-  UnitTestSuite _currentSuite = null;
-
-  // TODO(rnystrom): Remove this when default constructors are supported.
-  TestSet();
-
-  void _bindToSuite(UnitTestSuite suite) {
-    _currentSuite = suite;
-  }
-
-  /** Override this to define the specifications for this test set. */
-  void setup() {
-    // Do nothing.
-  }
-
-  /** Enqueues a synchronous test. */
-  void addTest(TestFunction test) {
-    _currentSuite.addTest(test);
-  }
-
-  /** Adds the tests defined by the given TestSet to this suite. */
-  void addTestSet(TestSet test) {
-    _currentSuite.addTestSet(test);
-  }
-
-  /** Adds the tests defined by the given TestSets to this suite. */
-  void addTestSets(Iterable<TestSet> tests) {
-    _currentSuite.addTestSets(tests);
-  }
-
-  /** Enqueues an asynchronous test that waits for [callbacks] callbacks. */
-  void addAsyncTest(TestFunction test, int callbacks) {
-    _currentSuite.addAsyncTest(test, callbacks);
+  /**
+   * Checks that every element of [expected] is also in [actual], and that
+   * every element of [actual] is also in [expected].
+   */
+  void equalsSet(Iterable expected) {
+    Expect.setEquals(expected, _value);
   }
 }
 

@@ -9,34 +9,22 @@
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../samples/dartcombat/dartcombatlib.dart');
 
-void main() {
-  new DartCombatTests().run();
-}
+ReceivePort testPort;
 
-/** Tests for the dart combat app. */
-class DartCombatTests extends UnitTestSuite {
-  ReceivePort testPort;
+main() {
+  testPort = new ReceivePort();
 
-  DartCombatTests() : super() {
-    testPort = new ReceivePort();
-    setupUI();
-    // add relative URL to stylesheet to the correct location. Note: The CSS is
-    // needed because the app uses a flexbox layout, which is then used to
-    // interpret UI events (mousedown/up/click).
-    var link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.type = "text/css";
-    link.href = "../../samples/dartcombat/dartcombat.css";
-    document.head.nodes.add(link);
-  }
+  setupUI();
+  // add relative URL to stylesheet to the correct location. Note: The CSS is
+  // needed because the app uses a flexbox layout, which is then used to
+  // interpret UI events (mousedown/up/click).
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = '../../samples/dartcombat/dartcombat.css';
+  document.head.nodes.add(link);
 
-  void setUpTestSuite() {
-    addAsyncTest(waitUntilSetup, 1);
-    addAsyncTest(testParallelShoot, 1);
-    addAsyncTest(testSerialShoot, 1);
-  }
-
-  void waitUntilSetup() {
+  asyncTest('wait until setup', 1, () {
     int playersReady = 0;
     testPort.receive((message, SendPort reply) {
       if (message[0] == '_TEST:handleSetup') {
@@ -47,22 +35,23 @@ class DartCombatTests extends UnitTestSuite {
       }
     });
     createPlayersForTest(testPort.toSendPort());
-  }
+  });
 
-  void testParallelShoot() {
+
+  asyncTest('parallel shoot', 1, () {
     // player 2 is configured to make parallel super shots towards player 1
-    var p1OwnBoard = document.query("#p1own");
+    var p1OwnBoard = document.query('#p1own');
 
     // add a boat of length 4 using mousedown/mousemove/mouseup
     var startCell = p1OwnBoard.nodes[0].nodes[4].nodes[2];
     var endCell = p1OwnBoard.nodes[0].nodes[4].nodes[5];
-    doMouseEvent("mousedown", startCell);
-    doMouseEvent("mousemove", endCell);
-    doMouseEvent("mouseup", endCell);
+    doMouseEvent('mousedown', startCell);
+    doMouseEvent('mousemove', endCell);
+    doMouseEvent('mouseup', endCell);
 
     // check that the boat was added:
     var boat = p1OwnBoard.nodes[1];
-    Expect.setEquals(["icons", "boat4", "boatdir-left"], boat.classes);
+    expect(boat.classes).equalsSet(['icons', 'boat4', 'boatdir-left']);
 
     // check that the boat shows as sunk in player 1's board:
     // Note that the shoot order is respected: center, left, right, up, down,
@@ -78,25 +67,25 @@ class DartCombatTests extends UnitTestSuite {
     _expectShotSequence(expectedShots, p1OwnBoard, 1);
 
     // hit the boat from the enemy side.
-    var p2EnemyBoard = document.query("#p2enemy");
+    var p2EnemyBoard = document.query('#p2enemy');
     var hitCell = p2EnemyBoard.nodes[0].nodes[4].nodes[3];
-    doMouseEvent("click", hitCell);
-  }
+    doMouseEvent('click', hitCell);
+  });
 
-  void testSerialShoot() {
+  asyncTest('serial shoot', 1, () {
     // player 1 is configured to make serial super shots towards player 2
-    var p2OwnBoard = document.query("#p2own");
+    var p2OwnBoard = document.query('#p2own');
 
     // add a boat of length 4 using mousedown/mousemove/mouseup
     var startCell = p2OwnBoard.nodes[0].nodes[3].nodes[8];
     var endCell = p2OwnBoard.nodes[0].nodes[7].nodes[8];
-    doMouseEvent("mousedown", startCell);
-    doMouseEvent("mousemove", endCell);
-    doMouseEvent("mouseup", endCell);
+    doMouseEvent('mousedown', startCell);
+    doMouseEvent('mousemove', endCell);
+    doMouseEvent('mouseup', endCell);
 
     // check that the boat was added:
     var boat = p2OwnBoard.nodes[1];
-    Expect.setEquals(["icons", "boat5", "boatdir-down"], boat.classes);
+    expect(boat.classes).equalsSet(['icons', 'boat5', 'boatdir-down']);
 
     // check that the boat shows as sunk in player 2's board:
     // Note that the shoot order is respected: center, left, right, up, down
@@ -113,47 +102,45 @@ class DartCombatTests extends UnitTestSuite {
     _expectShotSequence(expectedShots, p2OwnBoard, 2);
 
     // hit the boat from the enemy side.
-    var p1EnemyBoard = document.query("#p1enemy");
+    var p1EnemyBoard = document.query('#p1enemy');
     var hitCell = p1EnemyBoard.nodes[0].nodes[4].nodes[8];
-    doMouseEvent("click", hitCell);
-  }
+    doMouseEvent('click', hitCell);
+  });
+}
 
-  void _expectShotSequence(
-      List<int> expectedShots, Element playerBoard, int id) {
-    int shots = 0;
-    testPort.receive((message, SendPort reply) {
-      if (message[0] == '_TEST:handleShot') {
-        Expect.equals(id, message[1]);
-        Expect.equals(expectedShots[(shots * 3)], message[2]);
-        Expect.equals(expectedShots[(shots * 3) + 1], message[3]);
-        Expect.equals(expectedShots[(shots * 3) + 2], message[4]);
-        _checkNodeInfo(playerBoard.nodes[shots + 2],
-            "icons " + (expectedShots[shots * 3] == Constants.MISS
-              ? "miss" : "hit-onboat"),
-            expectedShots[(shots * 3) + 1] * 50,
-            expectedShots[(shots * 3) + 2] * 50);
-        shots++;
-        if (shots * 3 == expectedShots.length) {
-          callbackDone();
-        }
+_expectShotSequence(List<int> expectedShots, Element playerBoard, int id) {
+  int shots = 0;
+  testPort.receive((message, SendPort reply) {
+    if (message[0] == '_TEST:handleShot') {
+      expect(message[1]).equals(id);
+      expect(message[2]).equals(expectedShots[(shots * 3)]);
+      expect(message[3]).equals(expectedShots[(shots * 3) + 1]);
+      expect(message[4]).equals(expectedShots[(shots * 3) + 2]);
+      _checkNodeInfo(playerBoard.nodes[shots + 2],
+          'icons ' + (expectedShots[shots * 3] == Constants.MISS
+            ? 'miss' : 'hit-onboat'),
+          expectedShots[(shots * 3) + 1] * 50,
+          expectedShots[(shots * 3) + 2] * 50);
+      shots++;
+      if (shots * 3 == expectedShots.length) {
+        callbackDone();
       }
-    });
+    }
+  });
+}
 
-  }
+_checkNodeInfo(node, className, x, y) {
+  expect(node.classes).equalsSet(className.split(' '));
+  expect(node.style.getPropertyValue('left')).equals('${x}px');
+  expect(node.style.getPropertyValue('top')).equals('${y}px');
+}
 
-  void _checkNodeInfo(node, className, x, y) {
-    Expect.setEquals(className.split(" "), node.classes);
-    Expect.equals("${x}px", node.style.getPropertyValue("left"));
-    Expect.equals("${y}px", node.style.getPropertyValue("top"));
-  }
+doMouseEvent(String type, var targetCell) {
+  final point = window.webkitConvertPointFromNodeToPage(targetCell,
+      new Point(5, 5));
 
-  void doMouseEvent(String type, var targetCell) {
-    final point = window.webkitConvertPointFromNodeToPage(targetCell,
-        new Point(5, 5));
-
-    MouseEvent e = document.createEvent('MouseEvents');
-    e.initMouseEvent(type, true, true, window, 0, 0, 0, point.x, point.y,
-      false, false, false, false, 0, targetCell);
-    targetCell.on[type].dispatch(e);
-  }
+  MouseEvent e = document.createEvent('MouseEvents');
+  e.initMouseEvent(type, true, true, window, 0, 0, 0, point.x, point.y,
+    false, false, false, false, 0, targetCell);
+  targetCell.on[type].dispatch(e);
 }
