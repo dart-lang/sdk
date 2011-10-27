@@ -106,7 +106,6 @@ ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 SuperNegativeTest: Fail # Now that super calls are automatically injected this test doesn't make sense
 NullToStringTest: Fail       # Bug 5421978
 FunctionTypeAliasTest: Crash # Bug 4519208.
-WrongNumberTypeArgumentsNegativeTest: Fail # Bug 235.
 
 # Other bugs (or unimplemented features) in dartc.
 SuperOperatorTest: Fail      # Bug 4995463.

@@ -177,14 +177,6 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("{ var s = new Sub<String>(); }");
     analyze("{ Sub s = new Sub<String>(); }");
     analyze("{ Sub<String> s = new Sub<String>(); }");
-
-    // FYI, this is detected in the resolver, not TypeAnalyzer
-    analyzeFail("{ Sub<String, String> s = new Sub(); }",
-        DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    analyzeFail("{ Sub<String, String> s = new Sub<String>(); }",
-        DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    analyzeFail("{ Sub<String, String> s; }", DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    analyzeFail("{ String<String> s; }", DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
   }
 
   public void testMethodInvocations() {
@@ -850,8 +842,6 @@ public class TypeAnalyzerTest extends TypeTestCase {
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i; var x = const {'key': i = 0.42}; }",
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Map<String, int, int> map = {'foo':1};",
-      DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     analyzeFail("{var x = const <num, num>{}; }",
       DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
@@ -1234,8 +1224,6 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("List<int> ints = ['x'];");
     analyzeFail("List<int> ints = <String>['x'];",
                 DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("List<int, int> ints = [1];",
-      DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
   }
 
   public void testInitializedLocals() {

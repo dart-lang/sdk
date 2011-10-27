@@ -200,7 +200,7 @@ public class ResolutionContext implements ResolutionErrorListener {
         typeArguments[i] = typeProvider.getDynamicType();
       }
       if (typeArgumentNodes != null && typeArgumentNodes.size() > 0) {
-        typeError(node, DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, element.getType());
+        resolutionError(node, DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, element.getType());
       }
       int index = 0;
       if (typeArgumentNodes != null) {

@@ -53,6 +53,14 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkNumErrors("Initializer6NegativeTest.dart", 1);
   }
 
+  public void testArrayLiteralNegativeTest() {
+    checkNumErrors("ArrayLiteralNegativeTest.dart", 1);
+  }
+  
+  public void testMapLiteralNegativeTest() {
+    checkNumErrors("MapLiteralNegativeTest.dart", 1);
+  }
+  
   public void testCall1() {
     checkNumErrors("StaticInstanceCallNegativeTest.dart", 1);
   }
@@ -169,6 +177,10 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkNumErrors("ConstRedirectedConstructorNegativeTest.dart", 1);
   }
 
+  public void testRawTypesNegativeTest() {
+    checkNumErrors("RawTypesNegativeTest.dart", 4);
+  }
+  
   private TestCompilerContext getContext() {
     return new TestCompilerContext() {
       @Override
