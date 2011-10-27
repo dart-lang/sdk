@@ -6,16 +6,17 @@
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getFilename(String path) =>
-    FileUtil.fileExists(path) ? path : '../' + path;
+    new File(path).existsSync() ? path : '../' + path;
 
 main() {
   String fName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!"
-  File file = new File(fName, false);
-  StringInputStream x = new StringInputStream(file.inputStream);
+  File file = new File(fName);
+  file.openSync();
+  StringInputStream x = new StringInputStream(file.openInputStream());
   String line = x.readLine();
   Expect.equals("Hello Dart", line);
-  file.close();
+  file.closeSync();
   line = x.readLine();
   Expect.equals("wassup!", line);
 }

@@ -10,9 +10,6 @@
 #include "include/dart_api.h"
 
 
-static const int kFileFieldIndex = 0;
-
-
 bool File::ReadFully(void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   char* current_buffer = reinterpret_cast<char*>(buffer);
@@ -44,10 +41,8 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 
 
 static File* GetFileHandle(Dart_Handle fileobj) {
-  intptr_t value = 0;
-  Dart_Handle result = Dart_GetNativeInstanceField(fileobj, kFileFieldIndex,
-                                                   &value);
-  ASSERT(Dart_IsValid(result));
+  intptr_t value =
+      DartUtils::GetIntegerInstanceField(fileobj, DartUtils::kIdFieldName);
   File* file = reinterpret_cast<File*>(value);
   return file;
 }
@@ -60,9 +55,9 @@ void FUNCTION_NAME(File_OpenFile)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool writable = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
   File* file = File::OpenFile(filename, writable);
-  Dart_SetNativeInstanceField(fileobj,
-                              kFileFieldIndex,
-                              reinterpret_cast<intptr_t>(file));
+  DartUtils::SetIntegerInstanceField(fileobj,
+                                     DartUtils::kIdFieldName,
+                                     reinterpret_cast<intptr_t>(file));
   Dart_SetReturnValue(args, Dart_NewBoolean(file != NULL));
   Dart_ExitScope();
 }
@@ -71,7 +66,7 @@ void FUNCTION_NAME(File_OpenFile)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* filename =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool exists = File::FileExists(filename);
   Dart_SetReturnValue(args, Dart_NewBoolean(exists));
   Dart_ExitScope();
@@ -84,9 +79,7 @@ void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
   Dart_Handle fileobj = Dart_GetNativeArgument(args, 0);
   File* file = GetFileHandle(fileobj);
   if (file != NULL) {
-    Dart_SetNativeInstanceField(fileobj,
-                                kFileFieldIndex,
-                                NULL);
+    DartUtils::SetIntegerInstanceField(fileobj, DartUtils::kIdFieldName, 0);
     delete file;
     return_value = 0;
   }
@@ -136,7 +129,7 @@ void FUNCTION_NAME(File_WriteString)(Dart_NativeArguments args) {
     const char* str =
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
     int bytes_written = file->Write(reinterpret_cast<const void*>(str),
-                                  strlen(str));
+                                    strlen(str));
     if (bytes_written >= 0) {
       return_value = bytes_written;
     }

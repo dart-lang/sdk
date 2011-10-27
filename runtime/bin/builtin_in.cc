@@ -28,7 +28,7 @@ static const char Builtin_source_[] = {
   V(Directory_Create, 2)                                                       \
   V(Directory_Delete, 2)                                                       \
   V(File_OpenFile, 3)                                                          \
-  V(File_Exists, 1)                                                            \
+  V(File_Exists, 2)                                                            \
   V(File_Close, 1)                                                             \
   V(File_ReadByte, 1)                                                          \
   V(File_WriteByte, 2)                                                         \
@@ -113,18 +113,10 @@ void Builtin_LoadLibrary() {
   result = Dart_LibraryImportLibrary(builtin_lib, coreimpl_lib);
   ASSERT(Dart_IsValid(result));
 
-  // Create a native wrapper "FileNativeWrapper" so that we can add a
-  // native field to store the OS file handle for implementing all the
-  // file operations. The class "File" extends "FileNativeWrapper".
-  Dart_Handle name = Dart_NewString("FileNativeWrapper");
-  const int kNumFileFields = 1;
-  result = Dart_CreateNativeWrapperClass(builtin_lib, name, kNumFileFields);
-  ASSERT(Dart_IsValid(result));
-
   // Create a native wrapper "EventHandlerNativeWrapper" so that we can add a
   // native field to store the event handle for implementing all
   // event operations.
-  name = Dart_NewString("EventHandlerNativeWrapper");
+  Dart_Handle name = Dart_NewString("EventHandlerNativeWrapper");
   const int kNumEventHandlerFields = 1;
   result = Dart_CreateNativeWrapperClass(builtin_lib,
                                          name,

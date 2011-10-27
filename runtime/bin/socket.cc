@@ -71,7 +71,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
       DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                      DartUtils::kIdFieldName);
+                                         DartUtils::kIdFieldName);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsArray(buffer_obj));
   intptr_t offset =
@@ -105,7 +105,7 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
       DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                      DartUtils::kIdFieldName);
+                                         DartUtils::kIdFieldName);
   intptr_t port = Socket::GetPort(socket);
   Dart_SetReturnValue(args, Dart_NewInteger(port));
   Dart_ExitScope();
@@ -133,7 +133,7 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
       DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                      DartUtils::kIdFieldName);
+                                         DartUtils::kIdFieldName);
   Dart_Handle socketobj = Dart_GetNativeArgument(args, 1);
   intptr_t newSocket = ServerSocket::Accept(socket);
   if (newSocket >= 0) {
