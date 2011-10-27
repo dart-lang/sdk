@@ -148,8 +148,4 @@ class IsolateNatives {
   // This method is being dispatched to from the public core library code.
   static SendPort _start(Isolate isolate, bool light)
       native "IsolateNatives_start";
-
-  // The VM knows in which isolate the function must be run, therefore
-  // there is no need for wrapping it.
-  static Function bind(Function f) { return f; }
 }
