@@ -14,7 +14,7 @@ import java.io.Reader;
  * An error formatter that scans the source file and prints the error line and
  * some context around it. This formatter has two modes: with or without color.
  * When using colors, it prints the error message in red, and it highlights the
- * portion of the line containing the error in red. Wihout colors, it prints an
+ * portion of the line containing the error in red. Without colors, it prints an
  * extra line underlying the portion of the line containing the error.
  */
 public class PrettyErrorFormatter extends DefaultErrorFormatter {

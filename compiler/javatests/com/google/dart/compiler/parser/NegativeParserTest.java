@@ -5,9 +5,7 @@
 package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.CompilerTestCase;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.DartVisitor;
 
 /**
  * Negative Parser/Syntax tests.
@@ -56,7 +54,7 @@ public class NegativeParserTest extends CompilerTestCase {
     DartUnit unit =
         parseSourceUnitErrors(
             sourceCode,
-            DartCompilerErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE.getMessage(), 3, 1);
+            ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE.getMessage(), 3, 1);
     // check structure of AST, top level Baz and Foo expected
     assertEquals(2, unit.getTopLevelNodes().size());
     assertEquals(

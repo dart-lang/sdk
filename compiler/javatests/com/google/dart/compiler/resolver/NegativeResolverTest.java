@@ -6,6 +6,8 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ErrorSeverity;
+import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
@@ -184,13 +186,13 @@ public class NegativeResolverTest extends CompilerTestCase {
   private TestCompilerContext getContext() {
     return new TestCompilerContext() {
       @Override
-      public void compilationError(DartCompilationError event) {
-        errors.add(event);
-      }
-
-      @Override
-      public void typeError(DartCompilationError event) {
-        typeErrors.add(event);
+      public void onError(DartCompilationError event) {
+        if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+          typeErrors.add(event);
+        }
+        if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+          errors.add(event);
+        }
       }
     };
   }

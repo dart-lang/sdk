@@ -13,12 +13,10 @@ import com.google.dart.compiler.CommandLineOptions;
 import com.google.dart.compiler.CommandLineOptions.DartRunnerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.DefaultDartCompilerListener;
-import com.google.dart.compiler.DefaultErrorFormatter;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UnitTestBatchRunner;
@@ -75,7 +73,6 @@ public class DartRunner {
   public static void main(String[] args) {
     try {
       boolean runBatch = false;
-      final List<LibrarySource> imports = Collections.emptyList();
       DartRunnerOptions options = processCommandLineOptions(args);
       if (options.shouldBatch()) {
         runBatch = true;
@@ -111,7 +108,7 @@ public class DartRunner {
 
   public static void throwingMain(String[] args,
                                   PrintStream stdout,
-                                  final PrintStream stderr)
+                                  PrintStream stderr)
       throws RunnerError {
     DartRunnerOptions options = processCommandLineOptions(args);
     List<LibrarySource> imports = Lists.newArrayList();
@@ -126,20 +123,12 @@ public class DartRunner {
 
     File outFile =  options.getOutputFilename();
 
-    DefaultDartCompilerListener listener = new DefaultDartCompilerListener() {
-        {
-          ((DefaultErrorFormatter) formatter).setOutputStream(stderr);
-        }
-        @Override
-        public void compilationWarning(DartCompilationError event) {
-          compilationError(event);
-        }
-      };
+    DefaultDartCompilerListener listener = new DefaultDartCompilerListener(stderr);
 
     CompilationResult compiled;
     compiled = compileApp(app, imports, options, listener);
 
-    if (listener.getProblemCount() != 0) {
+    if (listener.getErrorCount() != 0) {
       throw new RunnerError("Compilation failed.");
     }
 

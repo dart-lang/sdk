@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -65,7 +64,7 @@ public class CompileTimeConstVisitor extends DartNodeTraverser<Void> {
 
   private boolean checkBoolean(DartNode x, Type type) {
     if (!type.equals(boolType)) {
-      context.resolutionError(x, DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+      context.onError(x, ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
                               type.toString());
       return false;
     }
@@ -74,7 +73,7 @@ public class CompileTimeConstVisitor extends DartNodeTraverser<Void> {
 
   private boolean checkInt(DartNode x, Type type) {
     if (!type.equals(intType)) {
-      context.resolutionError(x, DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT,
+      context.onError(x,         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT,
                               type.toString());
       return false;
     }
@@ -83,7 +82,7 @@ public class CompileTimeConstVisitor extends DartNodeTraverser<Void> {
 
   private boolean checkNumber(DartNode x, Type type) {
     if (!(type.equals(numType) || type.equals(intType) || type.equals(doubleType))) {
-      context.resolutionError(x, DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+      context.onError(x, ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
                               type.toString());
       return false;
     }
@@ -93,8 +92,8 @@ public class CompileTimeConstVisitor extends DartNodeTraverser<Void> {
   private boolean checkNumberBooleanOrStringType(DartNode x, Type type) {
     if (!type.equals(intType) && !type.equals(boolType)
         && !type.equals(numType) && !type.equals(doubleType) && !type.equals(stringType)) {
-      context.resolutionError(x,
-          DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
+      context.onError(x,
+          ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
           type.toString());
       return false;
     }
@@ -304,7 +303,7 @@ public class CompileTimeConstVisitor extends DartNodeTraverser<Void> {
       default:
         throw new InternalCompilerException("Unexpected element " + x.toString()
             + " kind: " + ElementKind.of(element)
-            + "evaluating type for compile-time constant expression.");
+            + " evaluating type for compile-time constant expression.");
     }
     return null;
   }
@@ -364,7 +363,7 @@ public class CompileTimeConstVisitor extends DartNodeTraverser<Void> {
    * specific error message when possible.
    */
   private void expectedConstant(DartNode x) {
-    context.resolutionError(x, DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+    context.onError(x, ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 
   /**

@@ -10,8 +10,10 @@ import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -65,28 +67,23 @@ public class TestCompilerContext extends DartCompilerListener implements DartCom
   }
 
   @Override
-  public void compilationError(DartCompilationError event) {
-    errorCount++;
-    handleEvent(event, EventKind.ERROR);
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError event) {
-    warningCount++;
-    handleEvent(event, EventKind.WARNING);
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    typeErrorCount++;
-    handleEvent(event, EventKind.TYPE_ERROR);
+  public void onError(DartCompilationError event) {
+    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+      typeErrorCount++;
+      handleEvent(event, EventKind.TYPE_ERROR);
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+      errorCount++;
+      handleEvent(event, EventKind.ERROR);
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+      warningCount++;
+      handleEvent(event, EventKind.WARNING);
+    }
   }
 
   protected void handleEvent(DartCompilationError event, EventKind kind) {
     errors.add(event.getErrorCode());
     if (!ignoredEvents.contains(kind)) {
-      System.err.println("Unexpected Event: " + event + " of kind "
-                         + kind);
+      System.err.println("Unexpected Event: " + event + " of kind " + kind);
       throw new AssertionError(event);
     }
   }

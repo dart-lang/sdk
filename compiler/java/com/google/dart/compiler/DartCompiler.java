@@ -36,6 +36,7 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MemberBuilder;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.Resolver;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.SupertypeResolver;
 import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.type.TypeAnalyzer;
@@ -173,7 +174,7 @@ public class DartCompiler {
         compileLibraries();
         packageApp();
       } catch (IOException e) {
-        context.compilationError(new DartCompilationError(app, e));
+        context.onError(new DartCompilationError(app, DartCompilerErrorCode.IO, e.getMessage()));
       } finally {
         Tracer.end(logEvent);
       }
@@ -546,7 +547,6 @@ public class DartCompiler {
     }
 
     private void validateLibraryDirectives() {
-      LibraryUnit appLibUnit = context.getAppLibraryUnit();
       for (LibraryUnit lib : libraries.values()) {
         // don't need to validate system libraries
         if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
@@ -586,7 +586,7 @@ public class DartCompiler {
               }
             }
             if (info != null) {
-              context.compilationError(new DartCompilationError(info,
+              context.onError(new DartCompilationError(info,
                   DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE, unit.getSource()
                       .getRelativePath()));
             }
@@ -607,7 +607,7 @@ public class DartCompiler {
                 continue;
               }
               if (unit.getSource().getRelativePath().equals(sourceNode.getText())) {
-                context.compilationError(new DartCompilationError(unit.getDirectives().get(0),
+                context.onError(new DartCompilationError(unit.getDirectives().get(0),
                     DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, unit.getSource()
                         .getRelativePath()));
               }
@@ -631,13 +631,13 @@ public class DartCompiler {
           MethodElement methodElement = (MethodElement) element;
           Modifiers modifiers = methodElement.getModifiers();
           if (modifiers.isGetter()) {
-            context.compilationError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER, MAIN_ENTRY_POINT_NAME));
           } else if (modifiers.isSetter()) {
-            context.compilationError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER, MAIN_ENTRY_POINT_NAME));
           } else if (methodElement.getParameters().size() > 0) {
-            context.compilationError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element.getNode(),
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS,
                 MAIN_ENTRY_POINT_NAME));
           } else {
@@ -646,8 +646,8 @@ public class DartCompiler {
           break;
 
         default:
-          context.compilationError(new DartCompilationError(element.getNode(),
-              DartCompilerErrorCode.NOT_A_STATIC_METHOD, MAIN_ENTRY_POINT_NAME));
+          context.onError(new DartCompilationError(element.getNode(),
+              ResolverErrorCode.NOT_A_STATIC_METHOD, MAIN_ENTRY_POINT_NAME));
           break;
       }
     }
@@ -755,7 +755,7 @@ public class DartCompiler {
           // when generating documentation.
           if (context.getApplicationUnit().getEntryNode() == null && !collectComments) {
             if (config.expectEntryPoint()) {
-              context.compilationError(new DartCompilationError(
+              context.onError(new DartCompilationError(
                   context.getApplicationUnit().getSource(), Location.NONE,
                   DartCompilerErrorCode.NO_ENTRY_POINT));
             }
@@ -829,7 +829,7 @@ public class DartCompiler {
                                                             DartCompilerErrorCode.MISSING_SOURCE,
                                                             libNode.getText());
       event.setSource(libSrc);
-      context.compilationError(event);
+      context.onError(event);
     }
 
     CoreTypeProvider getTypeProvider() {

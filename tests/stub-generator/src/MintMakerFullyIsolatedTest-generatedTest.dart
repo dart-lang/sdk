@@ -6,7 +6,7 @@
 
 #import("../../isolate/src/TestFramework.dart");
 
-/* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 9) */
+/* class = Purse (file:/usr/local/google/users/scheglov/Clients/Dart/dart/tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 9) */
 
 interface Purse$Proxy {
   Promise<int> queryBalance();
@@ -83,7 +83,7 @@ class Purse$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = PowerfulPurse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 18) */
+/* class = PowerfulPurse (file:/usr/local/google/users/scheglov/Clients/Dart/dart/tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 18) */
 
 interface PowerfulPurse$Proxy {
   void init(Mint$Proxy mint, int balance);
@@ -161,7 +161,7 @@ class PowerfulPurse$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = Mint (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 28) */
+/* class = Mint (file:/usr/local/google/users/scheglov/Clients/Dart/dart/tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 28) */
 
 interface Mint$Proxy {
   Purse$Proxy createPurse(int balance);

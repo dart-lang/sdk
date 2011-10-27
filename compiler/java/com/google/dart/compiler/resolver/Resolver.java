@@ -8,7 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.DartCompilerErrorCode;
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
@@ -218,9 +218,9 @@ public class Resolver {
         if (node == null) {
           node = cls;
         }
-        resolutionError(node, DartCompilerErrorCode.CYCLIC_CLASS, e.getElement().getName());
+        onError(node, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
       } catch (DuplicatedInterfaceException e) {
-        resolutionError(cls, DartCompilerErrorCode.DUPLICATED_INTERFACE,
+        onError(cls, ResolverErrorCode.DUPLICATED_INTERFACE,
                         e.getFirst(), e.getSecond());
       }
       ResolutionContext previousContext = context;
@@ -274,8 +274,8 @@ public class Resolver {
         if (!superElement.isDynamic()) {
           ConstructorElement superCtor = Elements.lookupConstructor(superElement, "");
           if (superCtor != null && !superCtor.getParameters().isEmpty()) {
-            resolutionError(cls.getName(),
-                DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
+            onError(cls.getName(),
+                ResolverErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
                 cls.getSuperclass());
           }
         }
@@ -325,7 +325,7 @@ public class Resolver {
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
           && !member.getEnclosingElement().isInterface()) {
-        resolutionError(functionNode, DartCompilerErrorCode.METHOD_MUST_HAVE_BODY);
+        onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }
       resolve(functionNode.getBody());
 
@@ -371,7 +371,7 @@ public class Resolver {
           Elements.setType(element, expression.getType());
         }
       } else if (isStatic && isFinal) {
-        resolutionError(node, DartCompilerErrorCode.STATIC_FINAL_REQUIRES_VALUE);
+        onError(node, ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
       }
 
       // If field is an accessor, both getter and setter need to be visited (if present).
@@ -592,9 +592,9 @@ public class Resolver {
     @Override
     public Element visitThisExpression(DartThisExpression x) {
       if (currentMethod.getModifiers().isStatic()) {
-        resolutionError(x, DartCompilerErrorCode.STATIC_METHOD_ACCESS_THIS);
+        onError(x, ResolverErrorCode.STATIC_METHOD_ACCESS_THIS);
       } else if (ElementKind.of(currentHolder).equals(ElementKind.LIBRARY)) {
-        resolutionError(x, DartCompilerErrorCode.TOP_LEVEL_METHOD_ACCESS_THIS);
+        onError(x, ResolverErrorCode.TOP_LEVEL_METHOD_ACCESS_THIS);
       }
       return null;
     }
@@ -602,13 +602,13 @@ public class Resolver {
     @Override
     public Element visitSuperExpression(DartSuperExpression x) {
       if (ElementKind.of(currentHolder).equals(ElementKind.LIBRARY)) {
-        resolutionError(x, DartCompilerErrorCode.TOP_LEVEL_METHOD_ACCESS_SUPER);
+        onError(x, ResolverErrorCode.TOP_LEVEL_METHOD_ACCESS_SUPER);
       } else if (currentMethod == null) {
-        resolutionError(x, DartCompilerErrorCode.SUPER_OUTSIDE_OF_METHOD);
+        onError(x, ResolverErrorCode.SUPER_OUTSIDE_OF_METHOD);
       } else if (currentMethod.getModifiers().isStatic()) {
-        resolutionError(x, DartCompilerErrorCode.STATIC_METHOD_ACCESS_SUPER);
+        onError(x, ResolverErrorCode.STATIC_METHOD_ACCESS_SUPER);
       } else if  (currentMethod.getModifiers().isFactory()) {
-        resolutionError(x, DartCompilerErrorCode.FACTORY_ACCESS_SUPER);
+        onError(x, ResolverErrorCode.FACTORY_ACCESS_SUPER);
       } else {
         return recordElement(x, Elements.superElement(
             x, ((ClassElement) currentHolder).getSupertype().getElement()));
@@ -624,7 +624,7 @@ public class Resolver {
       ConstructorElement element = (supertype == null) ?
           null : Elements.lookupConstructor(supertype.getElement(), name);
       if (element == null) {
-        resolutionError(x, DartCompilerErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR, name);
+        onError(x, ResolverErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR, name);
       }
       return recordElement(x, element);
     }
@@ -654,32 +654,32 @@ public class Resolver {
             Element enclosingElement = found.getEnclosingElement();
             String referencedElementName = enclosingElement == null
                 ? name : String.format("%s.%s", enclosingElement.getName(), name);
-            resolutionError(x, DartCompilerErrorCode.ILLEGAL_ACCESS_TO_PRIVATE_MEMBER,
+            onError(x, ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE_MEMBER,
                             name, referencedElementName);
           }
         }
         if (isStaticContextOrInitializer()) {
           if (!context.shouldWarnOnNoSuchType()) {
-            resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
+            onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
           }
         }
       } else {
         switch (element.getKind()) {
           case FIELD:
             if (inStaticContext(currentMethod) && !inStaticContext(element)) {
-              resolutionError(x, DartCompilerErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
+              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
                   name);
             }
             break;
           case METHOD:
             if (inStaticContext(currentMethod) && !inStaticContext(element)) {
-              resolutionError(x, DartCompilerErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC,
+              onError(x, ResolverErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC,
                   name);
             }
             break;
           case CLASS:
             if (!isQualifier) {
-              resolutionError(x, DartCompilerErrorCode.IS_A_CLASS, name);
+              onError(x, ResolverErrorCode.IS_A_CLASS, name);
             }
             break;
 
@@ -690,7 +690,7 @@ public class Resolver {
 
       if (inInitializer && (element != null && element.getKind().equals(ElementKind.FIELD))) {
         if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
-          resolutionError(x, DartCompilerErrorCode.CANNOT_ACCESS_FIELD_IN_INIT);
+          onError(x, ResolverErrorCode.CANNOT_ACCESS_FIELD_IN_INIT);
         }
       }
 
@@ -717,26 +717,26 @@ public class Resolver {
             case FIELD:
               FieldElement field = (FieldElement) element;
               if (!field.getModifiers().isStatic()) {
-                resolutionError(x.getName(), DartCompilerErrorCode.NOT_A_STATIC_FIELD,
+                onError(x.getName(), ResolverErrorCode.NOT_A_STATIC_FIELD,
                     x.getPropertyName());
               }
               break;
 
             case NONE:
-              resolutionError(x.getName(), DartCompilerErrorCode.CANNOT_BE_RESOLVED,
+              onError(x.getName(), ResolverErrorCode.CANNOT_BE_RESOLVED,
                   x.getPropertyName());
               break;
 
             case METHOD:
               MethodElement method = (MethodElement) element;
               if (!method.getModifiers().isStatic()) {
-                resolutionError(x.getName(), DartCompilerErrorCode.NOT_A_STATIC_METHOD,
+                onError(x.getName(), ResolverErrorCode.NOT_A_STATIC_METHOD,
                     x.getPropertyName());
               }
               break;
 
             default:
-              resolutionError(x.getName(), DartCompilerErrorCode.EXPECTED_STATIC_FIELD,
+              onError(x.getName(), ResolverErrorCode.EXPECTED_STATIC_FIELD,
                   element.getKind());
               break;
           }
@@ -752,26 +752,26 @@ public class Resolver {
             case FIELD:
               FieldElement field = (FieldElement) element;
               if (field.getModifiers().isStatic()) {
-                resolutionError(x.getName(), DartCompilerErrorCode.NOT_AN_INSTANCE_FIELD,
+                onError(x.getName(), ResolverErrorCode.NOT_AN_INSTANCE_FIELD,
                   x.getPropertyName());
               }
               break;
             case METHOD:
               MethodElement method = (MethodElement) element;
               if (method.isStatic()) {
-                resolutionError(x.getName(), DartCompilerErrorCode.NOT_AN_INSTANCE_FIELD,
+                onError(x.getName(), ResolverErrorCode.NOT_AN_INSTANCE_FIELD,
                   x.getPropertyName());
               }
               break;
 
             case NONE:
-              resolutionError(x.getName(), DartCompilerErrorCode.CANNOT_BE_RESOLVED,
+              onError(x.getName(), ResolverErrorCode.CANNOT_BE_RESOLVED,
                   x.getPropertyName());
               break;
 
             default:
-              resolutionError(x.getName(),
-                DartCompilerErrorCode.EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS,
+              onError(x.getName(),
+                ResolverErrorCode.EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS,
                 element.getKind());
               break;
           }
@@ -782,7 +782,7 @@ public class Resolver {
           Scope scope = ((LibraryElement) qualifier).getScope();
           element = scope.findElement(scope.getLibrary(), x.getPropertyName());
           if (element == null) {
-            resolutionError(x, DartCompilerErrorCode.CANNOT_BE_RESOLVED_LIBRARY,
+            onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED_LIBRARY,
                 x.getPropertyName(), qualifier.getName());
           }
           break;
@@ -918,7 +918,7 @@ public class Resolver {
         }
         break;
         case TYPE_VARIABLE:
-          resolutionError(x.getConstructor(), DartCompilerErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+          onError(x.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
           return null;
         default:
           break;
@@ -973,13 +973,13 @@ public class Resolver {
 
     public void diagnoseErrorInGotoStatement(DartGotoStatement x, Element element) {
       if (element == null) {
-        resolutionError(x.getLabel(), DartCompilerErrorCode.CANNOT_RESOLVE_LABEL,
+        onError(x.getLabel(), ResolverErrorCode.CANNOT_RESOLVE_LABEL,
             x.getTargetName());
       } else if (ElementKind.of(element).equals(ElementKind.LABEL)) {
-        resolutionError(x.getLabel(), DartCompilerErrorCode.CANNOT_ACCESS_OUTER_LABEL,
+        onError(x.getLabel(), ResolverErrorCode.CANNOT_ACCESS_OUTER_LABEL,
             x.getTargetName());
       } else {
-        resolutionError(x.getLabel(), DartCompilerErrorCode.NOT_A_LABEL, x.getTargetName());
+        onError(x.getLabel(), ResolverErrorCode.NOT_A_LABEL, x.getTargetName());
       }
     }
 
@@ -990,17 +990,17 @@ public class Resolver {
       DartNode errorNode = node.getFunctionName();
       switch (kind) {
         case NONE:
-          resolutionError(errorNode, DartCompilerErrorCode.CANNOT_RESOLVE_METHOD, name);
+          onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
           break;
 
         case CONSTRUCTOR:
-          resolutionError(errorNode, DartCompilerErrorCode.IS_A_CONSTRUCTOR, klass.getName(),
+          onError(errorNode, ResolverErrorCode.IS_A_CONSTRUCTOR, klass.getName(),
                           name);
           break;
 
         case METHOD: {
           assert !((MethodElement) element).getModifiers().isStatic();
-          resolutionError(errorNode, DartCompilerErrorCode.IS_AN_INSTANCE_METHOD,
+          onError(errorNode, ResolverErrorCode.IS_AN_INSTANCE_METHOD,
               klass.getName(), name);
           break;
         }
@@ -1018,24 +1018,24 @@ public class Resolver {
       switch (kind) {
         case NONE:
           if (isStaticContextOrInitializer()) {
-            resolutionError(node, DartCompilerErrorCode.CANNOT_RESOLVE_METHOD, name);
+            onError(node, ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
           }
           break;
 
         case CONSTRUCTOR:
-          resolutionError(node, DartCompilerErrorCode.DID_YOU_MEAN_NEW, name, "constructor");
+          onError(node, ResolverErrorCode.DID_YOU_MEAN_NEW, name, "constructor");
           break;
 
         case CLASS:
-          resolutionError(node, DartCompilerErrorCode.DID_YOU_MEAN_NEW, name, "class");
+          onError(node, ResolverErrorCode.DID_YOU_MEAN_NEW, name, "class");
           break;
 
         case TYPE_VARIABLE:
-          resolutionError(node, DartCompilerErrorCode.DID_YOU_MEAN_NEW, name, "type variable");
+          onError(node, ResolverErrorCode.DID_YOU_MEAN_NEW, name, "type variable");
           break;
 
         case LABEL:
-          resolutionError(node, DartCompilerErrorCode.CANNOT_CALL_LABEL);
+          onError(node, ResolverErrorCode.CANNOT_CALL_LABEL);
           break;
 
         default:
@@ -1050,39 +1050,39 @@ public class Resolver {
       ElementKind kind = ElementKind.of(element);
       switch (kind) {
         case NONE:
-          resolutionError(x, DartCompilerErrorCode.CANNOT_RESOLVE_FIELD, name);
+          onError(x, ResolverErrorCode.CANNOT_RESOLVE_FIELD, name);
           break;
 
         case FIELD:
           FieldElement field = (FieldElement) element;
           if (field.isStatic()) {
-            resolutionError(x, DartCompilerErrorCode.CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER);
+            onError(x, ResolverErrorCode.CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER);
           } else if (field.getModifiers().isAbstractField()) {
             /* 
              * If we get here then we know that this is a property accessor and not a true field.
              * If there was a field and property accessor with the same name a name collision error
              * would keep us from reaching this point.
              */
-            resolutionError(x, DartCompilerErrorCode.CANNOT_RESOLVE_FIELD, name);
+            onError(x, ResolverErrorCode.CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER);
           } else {
-            resolutionError(x, DartCompilerErrorCode.CANNOT_INIT_FIELD_FROM_SUPERCLASS);
+            onError(x, ResolverErrorCode.CANNOT_INIT_FIELD_FROM_SUPERCLASS);
           }
           break;
 
         case METHOD:
-          resolutionError(x, DartCompilerErrorCode.EXPECTED_FIELD_NOT_METHOD, name);
+          onError(x, ResolverErrorCode.EXPECTED_FIELD_NOT_METHOD, name);
           break;
 
         case CLASS:
-          resolutionError(x, DartCompilerErrorCode.EXPECTED_FIELD_NOT_CLASS, name);
+          onError(x, ResolverErrorCode.EXPECTED_FIELD_NOT_CLASS, name);
           break;
 
         case PARAMETER:
-          resolutionError(x, DartCompilerErrorCode.EXPECTED_FIELD_NOT_PARAMETER, name);
+          onError(x, ResolverErrorCode.EXPECTED_FIELD_NOT_PARAMETER, name);
           break;
 
         case TYPE_VARIABLE:
-          resolutionError(x, DartCompilerErrorCode.EXPECTED_FIELD_NOT_TYPE_VAR, name);
+          onError(x, ResolverErrorCode.EXPECTED_FIELD_NOT_TYPE_VAR, name);
           break;
 
         case VARIABLE:
@@ -1117,7 +1117,7 @@ public class Resolver {
       String name = x.getName() != null ? x.getName().getTargetName() : "";
       ConstructorElement element = Elements.lookupConstructor((ClassElement) currentHolder, name);
       if (element == null) {
-        resolutionError(x, DartCompilerErrorCode.CANNOT_RESOLVE_CONSTRUCTOR, name);
+        onError(x, ResolverErrorCode.CANNOT_RESOLVE_CONSTRUCTOR, name);
       }
       return recordElement(x, element);
     }
@@ -1130,7 +1130,7 @@ public class Resolver {
         // they can though have return statement in the form: 'return;'
         if ((currentMethod == innermostFunction)
             && Elements.isNonFactoryConstructor(currentMethod)) {
-          resolutionError(x, DartCompilerErrorCode.INVALID_RETURN_IN_CONSTRUCTOR);
+          onError(x, ResolverErrorCode.INVALID_RETURN_IN_CONSTRUCTOR);
         }
         return x.getValue().accept(this);
       }
@@ -1183,7 +1183,7 @@ public class Resolver {
          case PARAMETER:
          case VARIABLE:
            if (lhs.getModifiers().isFinal()) {
-             topLevelContext.resolutionError(node, DartCompilerErrorCode.CANNOT_ASSIGN_TO_FINAL, lhs.getName());
+             topLevelContext.onError(node, ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, lhs.getName());
            }
            break;
         }
@@ -1216,8 +1216,7 @@ public class Resolver {
     private ConstructorElement checkIsConstructor(DartNewExpression source, Element element) {
       if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
         if (!context.shouldWarnOnNoSuchType()) {
-          resolutionError(source.getConstructor(),
-              DartCompilerErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+          onError(source.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
         }
         return null;
       }
@@ -1243,8 +1242,8 @@ public class Resolver {
           ClassElement superElement = supertype.getElement();
           if (superElement != null) {
             if (!hasDefaultConstructor(superElement)) {
-              resolutionError(node,
-                  DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
+              onError(node,
+                  ResolverErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
                   superElement.getName());
             }
           }
@@ -1252,8 +1251,8 @@ public class Resolver {
       } else if ((superCall != null)
           && node.getModifiers().isConstant()
           && !superCall.getModifiers().isConstant()) {
-        resolutionError(node,
-            DartCompilerErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER);
+        onError(node,
+            ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER);
       }
     }
 
@@ -1264,7 +1263,7 @@ public class Resolver {
           && callSite.isStatic()
           && ElementKind.of(target).equals(ElementKind.METHOD)) {
         if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
-          resolutionError(node, DartCompilerErrorCode.INSTANCE_METHOD_FROM_STATIC);
+          onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_STATIC);
         }
       }
     }
@@ -1275,9 +1274,9 @@ public class Resolver {
       Modifiers modifiers = node.getModifiers();
       if (modifiers.isFinal()) {
         if (!isImplicitlyInitialized && (variable.getValue() == null)) {
-          resolutionError(variable.getName(), DartCompilerErrorCode.CONSTANTS_MUST_BE_INITIALIZED);
+          onError(variable.getName(), ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED);
         } else if (isImplicitlyInitialized && (variable.getValue() != null)) {
-          resolutionError(variable.getName(), DartCompilerErrorCode.CANNOT_BE_INITIALIZED);
+          onError(variable.getName(), ResolverErrorCode.CANNOT_BE_INITIALIZED);
         } else if (modifiers.isStatic() && modifiers.isFinal() && variable.getValue() != null) {
           resolveConstantExpression(variable.getValue());
           node.setType(variable.getValue().getType());
@@ -1288,18 +1287,18 @@ public class Resolver {
     private void checkParameterInitializer(DartMethodDefinition method, DartParameter parameter) {
       if (Elements.isNonFactoryConstructor(method.getSymbol())) {
         if (method.getModifiers().isRedirectedConstructor()) {
-          resolutionError(parameter.getName(),
-              DartCompilerErrorCode.PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR);
+          onError(parameter.getName(),
+              ResolverErrorCode.PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR);
         }
 
         FieldElement element =
           Elements.lookupLocalField((ClassElement) currentHolder, parameter.getParameterName());
         if (element == null) {
-          resolutionError(parameter, DartCompilerErrorCode.PARAMETER_NOT_MATCH_FIELD,
+          onError(parameter, ResolverErrorCode.PARAMETER_NOT_MATCH_FIELD,
                           parameter.getName());
         } else if (element.isStatic()) {
-          resolutionError(parameter,
-                          DartCompilerErrorCode.PARAMETER_INIT_STATIC_FIELD,
+          onError(parameter,
+                          ResolverErrorCode.PARAMETER_INIT_STATIC_FIELD,
                           parameter.getName());
         }
 
@@ -1307,8 +1306,8 @@ public class Resolver {
         // in the context. Instead we record the resolved field element.
         Elements.setParameterInitializerElement(parameter.getSymbol(), element);
       } else {
-        resolutionError(parameter.getName(),
-            DartCompilerErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
+        onError(parameter.getName(),
+            ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
       }
     }
 
@@ -1327,9 +1326,8 @@ public class Resolver {
       checkConstructor(node, constructorElement);
     }
 
-    private void resolutionError(DartNode node, DartCompilerErrorCode errorCode,
-        Object... arguments) {
-      context.resolutionError(node, errorCode, arguments);
+    private void onError(DartNode node, ErrorCode errorCode, Object... arguments) {
+      context.onError(node, errorCode, arguments);
     }
 
     private boolean inStaticContext(Element element) {
@@ -1366,8 +1364,8 @@ public class Resolver {
                                              ResolutionContext context) {
     for (ConstructorElement element : constructors) {
       if (hasRedirectedConstructorCycle(element)) {
-        context.resolutionError(element.getNode(),
-            DartCompilerErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE);
+        context.onError(element.getNode(),
+            ResolverErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE);
       }
     }
   }

@@ -7,7 +7,6 @@ package com.google.dart.compiler.parser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ErrorCode;
@@ -372,7 +371,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartStringLiteral prefix = null;
     if (optional(Token.COMMA)) {
       if (!optionalPseudoKeyword(PREFIX_KEYWORD)) {
-        reportError(position(), DartCompilerErrorCode.EXPECTED_PREFIX_KEYWORD);
+        reportError(position(), ParserErrorCode.EXPECTED_PREFIX_KEYWORD);
       }
       expect(Token.COLON);
       beginLiteral();
@@ -514,7 +513,7 @@ public class DartParser extends CompletionHooksParserBase {
       expect(Token.STRING);
       nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
       if (superType != null) {
-        reportError(position(), DartCompilerErrorCode.EXTENDED_NATIVE_CLASS);
+        reportError(position(), ParserErrorCode.EXTENDED_NATIVE_CLASS);
       }
     }
 
@@ -529,7 +528,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
       expectCloseBrace();
     } else {
-      reportErrorWithoutAdvancing(DartCompilerErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
+      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
     }
 
     if (isParsingInterface) {
@@ -742,31 +741,31 @@ public class DartParser extends CompletionHooksParserBase {
     Modifiers modifiers = Modifiers.NONE;
     if (optionalPseudoKeyword(STATIC_KEYWORD)) {
       if (!allowStatic) {
-        reportError(position(), DartCompilerErrorCode.TOP_LEVEL_IS_STATIC);
+        reportError(position(), ParserErrorCode.TOP_LEVEL_IS_STATIC);
       } else {
         if (isParsingInterface
             && (peek(0) != Token.FINAL)) {
-          reportError(position(), DartCompilerErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE);
+          reportError(position(), ParserErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE);
         }
         modifiers = modifiers.makeStatic();
       }
     } else if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
       if (isParsingInterface) {
-        reportError(position(), DartCompilerErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
+        reportError(position(), ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
       }
       modifiers = modifiers.makeAbstract();
     } else if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
       if (isParsingInterface) {
-        reportError(position(), DartCompilerErrorCode.FACTORY_MEMBER_IN_INTERFACE);
+        reportError(position(), ParserErrorCode.FACTORY_MEMBER_IN_INTERFACE);
       }
       modifiers = modifiers.makeFactory();
     }
 
     if (match(Token.VAR) || match(Token.FINAL)) {
       if (modifiers.isAbstract()) {
-        reportError(position(), DartCompilerErrorCode.DISALLOWED_ABSTRACT_KEYWORD);
+        reportError(position(), ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD);
       } else if (modifiers.isFactory()) {
-        reportError(position(), DartCompilerErrorCode.DISALLOWED_FACTORY_KEYWORD);
+        reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
       }
     }
 
@@ -824,11 +823,11 @@ public class DartParser extends CompletionHooksParserBase {
             || peek(1) == Token.COMMA
             || peek(1) == Token.ASSIGN) {
           if (modifiers.isAbstract()) {
-            reportError(position(), DartCompilerErrorCode.INVALID_FIELD_DECLARATION);
+            reportError(position(), ParserErrorCode.INVALID_FIELD_DECLARATION);
           }
           member = parseFieldDeclaration(modifiers, type);
           if (isVoidType) {
-            reportError(type, DartCompilerErrorCode.VOID_FIELD);
+            reportError(type, ParserErrorCode.VOID_FIELD);
           }
           expectStatmentTerminator();
         } else {
@@ -893,10 +892,10 @@ public class DartParser extends CompletionHooksParserBase {
 
     if (modifiers.isFactory()) {
       if (modifiers.isAbstract()) {
-        reportError(position(), DartCompilerErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
       }
       if (modifiers.isStatic()) {
-        reportError(position(), DartCompilerErrorCode.FACTORY_CANNOT_BE_STATIC);
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_STATIC);
       }
     }
 
@@ -904,7 +903,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (optionalPseudoKeyword(OPERATOR_KEYWORD)) {
       // Overloaded operator.
       if (modifiers.isStatic()) {
-        reportError(position(), DartCompilerErrorCode.OPERATOR_CANNOT_BE_STATIC);
+        reportError(position(), ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
       }
       modifiers = modifiers.makeOperator();
 
@@ -961,7 +960,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartParameter> arguments = parseFormalParameterList();
 
     if (arity != -1 && arguments.size() != arity) {
-      reportError(position(), DartCompilerErrorCode.ILLEGAL_NUMBER_OF_ARGUMENTS);
+      reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_ARGUMENTS);
     }
 
     // Parse initializer expressions for constructors.
@@ -997,7 +996,7 @@ public class DartParser extends CompletionHooksParserBase {
       return done(new DartNativeBlock());
     } else {
       if (!modifiers.isStatic()) {
-        reportError(position(), DartCompilerErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
+        reportError(position(), ParserErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
       }
       return done(parseFunctionStatementBody(true));
     }
@@ -1246,16 +1245,16 @@ public class DartParser extends CompletionHooksParserBase {
     if (peek(0) == Token.LPAREN) {
       // Function parameter.
       if (modifiers.isFinal()) {
-        reportError(position(), DartCompilerErrorCode.FUNCTION_TYPED_PARAMETER_IS_FINAL);
+        reportError(position(), ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_FINAL);
       }
       if (hasVar) {
-        reportError(position(), DartCompilerErrorCode.FUNCTION_TYPED_PARAMETER_IS_VAR);
+        reportError(position(), ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_VAR);
       }
       functionParams = parseFormalParameterList();
     } else {
       // Not a function parameter.
       if (isVoidType) {
-        reportError(type, DartCompilerErrorCode.VOID_PARAMETER);
+        reportError(type, ParserErrorCode.VOID_PARAMETER);
       }
     }
 
@@ -1273,7 +1272,7 @@ public class DartParser extends CompletionHooksParserBase {
           consume(Token.ASSIGN);
           initExpr = parseExpression();
         } else {
-          reportError(position(), DartCompilerErrorCode.DEFAULT_POSITIONAL_PARAMETER);
+          reportError(position(), ParserErrorCode.DEFAULT_POSITIONAL_PARAMETER);
         }
         break;
 
@@ -1431,7 +1430,7 @@ public class DartParser extends CompletionHooksParserBase {
             || token.isEqualityOperator()) {
           // The operations cannot be chained.
           if (match(token)) {
-            reportError(position(), DartCompilerErrorCode.INVALID_OPERATOR_CHAINING,
+            reportError(position(), ParserErrorCode.INVALID_OPERATOR_CHAINING,
               token.toString().toLowerCase());
           }
           break;
@@ -1488,7 +1487,7 @@ public class DartParser extends CompletionHooksParserBase {
           Token actual = peek(0);
           ctx.advance();
           reportError(ctx.getTokenLocation().getEnd(),
-              DartCompilerErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, actual);
+              ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, actual);
           break;
       }
     }
@@ -1529,7 +1528,7 @@ public class DartParser extends CompletionHooksParserBase {
         return parseStringInterpolation();
       default:
         DartExpression expression = parseExpression();
-        reportError(position(), DartCompilerErrorCode.EXPECTED_STRING_LITERAL);
+        reportError(position(), ParserErrorCode.EXPECTED_STRING_LITERAL);
         return expression;
     }
   }
@@ -1676,7 +1675,7 @@ public class DartParser extends CompletionHooksParserBase {
             // Ensure the parser makes progress.
             ctx.advance();
           }
-          reportError(position(), DartCompilerErrorCode.EXPECTED_COMMA_OR_RIGHT_BRACE);
+          reportError(position(), ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_BRACE);
           break;
       }
     }
@@ -1847,7 +1846,7 @@ public class DartParser extends CompletionHooksParserBase {
            * token.
            */
           if (peek(0) == Token.ILLEGAL) {
-            reportError(position(), DartCompilerErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
+            reportError(position(), ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
                 next());
             expressions.add(new DartSyntheticErrorExpression(ctx.getTokenString()));
             break;
@@ -1861,11 +1860,11 @@ public class DartParser extends CompletionHooksParserBase {
           break;
         }
         case EOS: {
-          reportError(position(), DartCompilerErrorCode.INCOMPLETE_STRING_LITERAL);
+          reportError(position(), ParserErrorCode.INCOMPLETE_STRING_LITERAL);
           return done(null);
         }
         default: {
-          reportError(position(), DartCompilerErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
+          reportError(position(), ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
               next());
           break;
         }
@@ -2061,7 +2060,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartFunction function = new DartFunction(params, body, returnType);
     doneWithoutConsuming(function);
     if (isDeclaration && namePtr[0] == null) {
-      reportError(function, DartCompilerErrorCode.MISSING_FUNCTION_NAME);
+      reportError(function, ParserErrorCode.MISSING_FUNCTION_NAME);
     }
     return function;
   }
@@ -2138,7 +2137,7 @@ public class DartParser extends CompletionHooksParserBase {
         beginLiteral();
         DartExpression literal = tryParseTypedCompoundLiteral(false);
         if (literal == null) {
-          reportError(position(), DartCompilerErrorCode.EXPECTED_ARRAY_OR_MAP_LITERAL);
+          reportError(position(), ParserErrorCode.EXPECTED_ARRAY_OR_MAP_LITERAL);
         }
         return done(literal);
       }
@@ -2197,7 +2196,7 @@ public class DartParser extends CompletionHooksParserBase {
       default: {
         // This case is unambiguous. It must be prefix.Type.namedConstructor.
         if (parts.size() > 3) {
-          reportError(parts.get(3), DartCompilerErrorCode.EXPECTED_LEFT_PAREN);
+          reportError(parts.get(3), ParserErrorCode.EXPECTED_LEFT_PAREN);
         }
         DartTypeNode typeNode = doneWithoutConsuming(toPrefixedType(parts));
         DartIdentifier identifier = ensureIdentifier(parts.get(2));
@@ -2212,7 +2211,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartIdentifier ensureIdentifier(DartTypeNode node) {
     List<DartTypeNode> typeArguments = node.getTypeArguments();
     if (!typeArguments.isEmpty()) {
-      reportError(typeArguments.get(0), DartCompilerErrorCode.UNEXPECTED_TYPE_ARGUMENT);
+      reportError(typeArguments.get(0), ParserErrorCode.UNEXPECTED_TYPE_ARGUMENT);
     }
     return (DartIdentifier) node.getIdentifier();
   }
@@ -2273,7 +2272,7 @@ public class DartParser extends CompletionHooksParserBase {
         switch (peek(0)) {
           case SEMICOLON:
           case RBRACE:
-            reportError(position(), DartCompilerErrorCode.EXPECTED_IDENTIFIER);
+            reportError(position(), ParserErrorCode.EXPECTED_IDENTIFIER);
             DartIdentifier error = doneWithoutConsuming(new DartIdentifier(""));
             return doneWithoutConsuming(new DartPropertyAccess(receiver, error));
         }
@@ -2302,7 +2301,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartExpression parseAssignableSelector(DartExpression receiver) {
     DartExpression expression = tryParseAssignableSelector(receiver);
     if (expression == null) {
-      reportError(position(), DartCompilerErrorCode.EXPECTED_PERIOD_OR_LEFT_BRACKET);
+      reportError(position(), ParserErrorCode.EXPECTED_PERIOD_OR_LEFT_BRACKET);
       expression = receiver;
     }
     return expression;
@@ -2742,14 +2741,14 @@ public class DartParser extends CompletionHooksParserBase {
       case EOS:
       case LBRACE:
       case SEMICOLON:
-        reportErrorWithoutAdvancing(DartCompilerErrorCode.UNEXPECTED_TOKEN);
+        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
         return;
 
       case LPAREN:
         ++parenCount;
         //$FALL-THROUGH$
       default:
-        reportErrorWithoutAdvancing(DartCompilerErrorCode.UNEXPECTED_TOKEN);
+        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
         break;
     }
 
@@ -2768,7 +2767,7 @@ public class DartParser extends CompletionHooksParserBase {
           break;
 
         case EOS:
-          reportErrorWithoutAdvancing(DartCompilerErrorCode.UNEXPECTED_TOKEN);
+          reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
           return;
 
         case LBRACE:
@@ -2795,14 +2794,14 @@ public class DartParser extends CompletionHooksParserBase {
 
       case EOS:
       case SEMICOLON:
-        reportErrorWithoutAdvancing(DartCompilerErrorCode.UNEXPECTED_TOKEN);
+        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
         return;
 
       case LBRACE:
         ++braceCount;
         //$FALL-THROUGH$
       default:
-        reportErrorWithoutAdvancing(DartCompilerErrorCode.UNEXPECTED_TOKEN);
+        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
         break;
     }
 
@@ -2872,7 +2871,7 @@ public class DartParser extends CompletionHooksParserBase {
 
       case EOS:
       case RBRACE:
-        reportErrorWithoutAdvancing(DartCompilerErrorCode.EXPECTED_SEMICOLON);
+        reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_SEMICOLON);
         return;
 
       case LBRACE:
@@ -2919,7 +2918,7 @@ public class DartParser extends CompletionHooksParserBase {
    * @param errCode the error code to report, which may take a string parameter
    *     containing the actual token found
    */
-  private void reportErrorWithoutAdvancing(DartCompilerErrorCode errCode) {
+  private void reportErrorWithoutAdvancing(ErrorCode errCode) {
     startLookahead();
     Token actual = peek(0);
     next();
@@ -3018,16 +3017,16 @@ public class DartParser extends CompletionHooksParserBase {
         DartVariableStatement variableStatement = (DartVariableStatement) setup;
         List<DartVariable> variables = variableStatement.getVariables();
         if (variables.size() != 1) {
-          reportError(variables.get(1), DartCompilerErrorCode.FOR_IN_WITH_MULTIPLE_VARIABLES);
+          reportError(variables.get(1), ParserErrorCode.FOR_IN_WITH_MULTIPLE_VARIABLES);
         }
         DartExpression initializer = variables.get(0).getValue();
         if (initializer != null) {
-          reportError(initializer, DartCompilerErrorCode.FOR_IN_WITH_VARIABLE_INITIALIZER);
+          reportError(initializer, ParserErrorCode.FOR_IN_WITH_VARIABLE_INITIALIZER);
         }
       } else {
         DartExpression expression = ((DartExprStmt) setup).getExpression();
         if (!(expression instanceof DartIdentifier)) {
-          reportError(setup, DartCompilerErrorCode.FOR_IN_WITH_COMPLEX_VARIABLE);
+          reportError(setup, ParserErrorCode.FOR_IN_WITH_COMPLEX_VARIABLE);
         }
       }
 
@@ -3183,7 +3182,7 @@ public class DartParser extends CompletionHooksParserBase {
         members.add(parseCaseMember(label));
       } else if (optional(Token.RBRACE)) {
         if (label != null) {
-          reportError(position(), DartCompilerErrorCode.EXPECTED_CASE_OR_DEFAULT);
+          reportError(position(), ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
         }
         done = true;
         done(null);
@@ -3226,7 +3225,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
     DartIdentifier name = parseIdentifier();
     if (!isDeclared) {
-      reportError(name, DartCompilerErrorCode.EXPECTED_VAR_FINAL_OR_TYPE);
+      reportError(name, ParserErrorCode.EXPECTED_VAR_FINAL_OR_TYPE);
     }
     return done(new DartParameter(name, type, null, null, modifiers));
   }
@@ -3274,7 +3273,7 @@ public class DartParser extends CompletionHooksParserBase {
 
     if ( catches.size() == 0 && finallyBlock == null) {
       reportError(new DartCompilationError(tryBlock.getSource(), new Location(position()),
-        DartCompilerErrorCode.CATCH_OR_FINALLY_EXPECTED));
+        ParserErrorCode.CATCH_OR_FINALLY_EXPECTED));
     }
 
     return done(new DartTryStatement(tryBlock, catches, finallyBlock));
@@ -3457,7 +3456,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   private void ensureAssignable(DartExpression expression) {
     if (expression != null && !expression.isAssignable()) {
-      reportError(position(), DartCompilerErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+      reportError(position(), ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
     }
   }
 

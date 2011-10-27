@@ -9,7 +9,5 @@ import com.google.dart.compiler.ast.DartNode;
 
 public interface ResolutionErrorListener {
 
-  void resolutionError(DartNode node, ErrorCode errorCode, Object... arguments);
-
-  void typeError(DartNode node, ErrorCode errorCode, Object... arguments);
+  void onError(DartNode node, ErrorCode errorCode, Object... arguments);
 }

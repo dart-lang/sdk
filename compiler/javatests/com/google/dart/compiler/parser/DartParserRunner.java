@@ -7,6 +7,7 @@ package com.google.dart.compiler.parser;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.ast.DartUnit;
 
 import junit.framework.TestCase;
@@ -138,15 +139,11 @@ public class DartParserRunner extends DartCompilerListener implements Runnable {
   }
 
   @Override
-  public void compilationError(DartCompilationError event) {
-    errors.add(event);
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError event) {
-    if (wantWarnings) {
-      errors.add(event);
+  public void onError(DartCompilationError event) {
+    if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING && !wantWarnings) {
+      return;
     }
+    errors.add(event);
   }
 
   public int getErrorCount() {
@@ -180,11 +177,6 @@ public class DartParserRunner extends DartCompilerListener implements Runnable {
   public DartParserRunner setWantWarnings(boolean wantWarnings) {
     this.wantWarnings = wantWarnings;
     return this;
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    errors.add(event);
   }
 
   private void doWork() throws InterruptedException {

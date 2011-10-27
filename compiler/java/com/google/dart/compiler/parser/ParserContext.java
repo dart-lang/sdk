@@ -75,12 +75,6 @@ public interface ParserContext {
   void error(DartCompilationError dartError);
 
   /**
-   * Log a parse warning for the current lexical range.
-   * @param dartError helpful error messaging describing what the expected tokens were
-   */
-  void warning(DartCompilationError dartError);
-
-  /**
    * Return the current token.
    */
   Token getCurrentToken();

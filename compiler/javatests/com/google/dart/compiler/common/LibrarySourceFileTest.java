@@ -7,6 +7,7 @@ package com.google.dart.compiler.common;
 import com.google.dart.compiler.AbstractSourceFileTest;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
@@ -96,20 +97,14 @@ public class LibrarySourceFileTest extends AbstractSourceFileTest {
 
       DartCompilerListener listener = new DartCompilerListener() {
         @Override
-        public void compilationError(DartCompilationError event) {
-          throw new RuntimeException(event.getMessage());
-        }
-
-        @Override
-        public void compilationWarning(DartCompilationError event) {
+        public void onError(DartCompilationError event) {
           // Ignore warnings when testing.
-        }
-
-        @Override
-        public void typeError(DartCompilationError event) {
+          if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+            return;
+          }
+          // Rethrow error.
           throw new RuntimeException(event.getMessage());
         }
-
         @Override
         public void unitCompiled(DartUnit unit) {
         }

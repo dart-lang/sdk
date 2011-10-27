@@ -30,7 +30,7 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
       }
 
       @Override
-      public void compilationError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
       }
     };
 

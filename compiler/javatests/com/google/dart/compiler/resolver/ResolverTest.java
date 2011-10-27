@@ -6,8 +6,8 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.testing.TestCompilerContext;
 import com.google.dart.compiler.testing.TestCompilerContext.EventKind;
@@ -131,11 +131,11 @@ public class ResolverTest extends ResolverTestCase {
 
     Scope libScope = resolve(makeUnit(object, ia, ib, ic, id, a, b), getContext());
     ErrorCode[] expected = {
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
     };
     checkExpectedErrors(expected);
 
@@ -165,8 +165,8 @@ public class ResolverTest extends ResolverTestCase {
 
     Scope libScope = resolve(makeUnit(object, ia, ib), getContext());
     ErrorCode[] expected = {
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
     };
     checkExpectedErrors(expected);
 
@@ -206,7 +206,7 @@ public class ResolverTest extends ResolverTestCase {
         "class A extends C implements I<int> {}",
         "class B extends C implements I<bool> {}",
         "class C implements I<int> {}"),
-        DartCompilerErrorCode.DUPLICATED_INTERFACE);
+        ResolverErrorCode.DUPLICATED_INTERFACE);
   }
 
   public void testImplicitDefaultConstructor() {
@@ -237,7 +237,7 @@ public class ResolverTest extends ResolverTestCase {
         "class B { const B() {} }",
         "class C extends B {}",
         "class D { main() { new C(); } }"),
-          DartCompilerErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
+          ResolverErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
   }
 
   public void testImplicitSuperCall_ImplicitCtor() {
@@ -265,7 +265,7 @@ public class ResolverTest extends ResolverTestCase {
         "class B { B(Object o) {} }",
         "class C extends B {}",
         "class D { main() { new C(); } }"),
-        DartCompilerErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR);
+        ResolverErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR);
   }
 
   public void testCyclicSupertype() {
@@ -292,14 +292,14 @@ public class ResolverTest extends ResolverTestCase {
         "}",
         "interface I3 extends I2 {",
         "}"),
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS,
-        DartCompilerErrorCode.CYCLIC_CLASS
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS,
+        ResolverErrorCode.CYCLIC_CLASS
     );
 
 
@@ -309,7 +309,7 @@ public class ResolverTest extends ResolverTestCase {
 
     TestCompilerContext context1 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
       @Override
-      public void compilationError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
         recordError(event);
       }
       @Override
@@ -323,7 +323,7 @@ public class ResolverTest extends ResolverTestCase {
                       "}"), context1);
     {
       ErrorCode[] expected = {
-          DartCompilerErrorCode.NO_SUCH_TYPE
+          ResolverErrorCode.NO_SUCH_TYPE
       };
       checkExpectedErrors(expected);
     }
@@ -331,8 +331,10 @@ public class ResolverTest extends ResolverTestCase {
     resetExpectedErrors();
     TestCompilerContext context2 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
       @Override
-      public void compilationError(DartCompilationError event) {
-        recordError(event);
+      public void onError(DartCompilationError event) {
+        if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+          recordError(event);
+        }
       }
       @Override
       public boolean shouldWarnOnNoSuchType() {
@@ -391,7 +393,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var foo;",
         "  var foo;",
         "}"),
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+        ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -399,7 +401,7 @@ public class ResolverTest extends ResolverTestCase {
         "  foo() {}",
         "  set foo(x) {}",
         "}"),
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+        ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
     // Same test, but reverse the order of setter and method
     resolveAndTest(Joiner.on("\n").join(
@@ -408,7 +410,7 @@ public class ResolverTest extends ResolverTestCase {
         "  set foo(x) {}",
         "  foo() {}",
         "}"),
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+        ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -416,7 +418,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var foo;",
         "  set foo(x) {}",
         "}"),
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+        ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -424,7 +426,7 @@ public class ResolverTest extends ResolverTestCase {
         "  get foo() {}",
         "  var foo;",
         "}"),
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+        ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
 
     resolveAndTest(Joiner.on("\n").join(
@@ -433,7 +435,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var foo;",
         "  get foo() {}",
         "}"),
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+        ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -441,7 +443,7 @@ public class ResolverTest extends ResolverTestCase {
         "  set foo(x) {}",
         "  var foo;",
         "}"),
-        DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER);
+        ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -449,10 +451,10 @@ public class ResolverTest extends ResolverTestCase {
         "class foo {}",
         "set bar(x) {}",
         "class bar {}"),
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION);
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION);
 
     // Same test but in different order
     resolveAndTest(Joiner.on("\n").join(
@@ -461,27 +463,27 @@ public class ResolverTest extends ResolverTestCase {
         "get foo() {}",
         "class bar {}",
         "set bar(x) {}"),
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION);
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION);
 
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "set bar(x) {}",
         "set bar(x) {}"),
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.FIELD_CONFLICTS);
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.FIELD_CONFLICTS);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "get bar() {}",
         "get bar() {}"),
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.DUPLICATE_DEFINITION,
-        DartCompilerErrorCode.FIELD_CONFLICTS);
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.DUPLICATE_DEFINITION,
+        ResolverErrorCode.FIELD_CONFLICTS);
   }
 
   /**
@@ -513,8 +515,8 @@ public class ResolverTest extends ResolverTestCase {
         "  var Bar;",
         "  create() { return new Bar();}",
         "}"),
-        DartCompilerErrorCode.NO_SUCH_TYPE,
-        DartCompilerErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode.NO_SUCH_TYPE,
+        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
 
     // New expression tied to an unbound type variable is not allowed.
     resolveAndTest(Joiner.on("\n").join(
@@ -524,7 +526,7 @@ public class ResolverTest extends ResolverTestCase {
         "    return new T();",
         "  }",
         "}"),
-        DartCompilerErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+        ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
 
 
     // More cowbell. (Foo<T> isn't a type yet)
@@ -534,7 +536,7 @@ public class ResolverTest extends ResolverTestCase {
         "class B {",
         "  foo() { return new Foo<T>(); }",
         "}"),
-        DartCompilerErrorCode.NO_SUCH_TYPE);
+        ResolverErrorCode.NO_SUCH_TYPE);
   }
 
   /**
@@ -549,8 +551,8 @@ public class ResolverTest extends ResolverTestCase {
         "class MyClass implements UnknownA {",
         "  UnknownB field;",
         "}"),
-        DartCompilerErrorCode.NO_SUCH_TYPE,
-        DartCompilerErrorCode.NOT_A_CLASS_OR_INTERFACE,
-        DartCompilerErrorCode.NO_SUCH_TYPE);
+        ResolverErrorCode.NO_SUCH_TYPE,
+        ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE,
+        ResolverErrorCode.NO_SUCH_TYPE);
   }
 }

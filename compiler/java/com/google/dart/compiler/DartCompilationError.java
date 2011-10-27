@@ -8,8 +8,6 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
 
-import java.io.IOException;
-
 /**
  * Information about a compilation error.
  *
@@ -57,92 +55,16 @@ public class DartCompilationError {
   private Source source;
 
   /**
-   * The exception associated with this compilation error or <code>null</code>
-   * if none.
-   */
-  private Exception exception;
-
-  /**
-   * Instantiate a new instance representing an {@link IOException} that
-   * occurred when reading a source file.
+   * Instantiate a new instance representing an error for the specified {@link Source}.
    *
-   * @param source the source file in which the exception occurred
-   * @param exception the exception that occurred
+   * @param source the {@link Source} for which the exception occurred
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
    */
-  public DartCompilationError(Source source, Exception exception) {
-    setSource(source);
-    setException(exception);
-    message = exception.getMessage();
-
-    // TODO (danrubel) Remove once JSON parsing is removed
-    parseJSONException();
-  }
-
-  /**
-   * This function is only necessary for processing a JSONException and can be
-   * removed once ApplicationSourceFile and LibrarySourceFile no longer throw
-   * JSONException
-   */
-  protected void parseJSONException() {
-    if (message == null) {
-      return;
-    }
-
-    // Strip filename off beginning of message
-    if (message.startsWith("Error reading ")) {
-      for (int i = 14; i < message.length(); i++) {
-        if (!Character.isWhitespace(message.charAt(i)))
-          continue;
-        i++;
-        if (i >= message.length() || Character.isWhitespace(message.charAt(i)))
-          break;
-        message = message.substring(i);
-        break;
-      }
-    }
-
-    // Strip " at character ###" off the end of the message
-    for (int i = message.length() - 2; i > 0; i--) {
-      if (Character.isDigit(message.charAt(i)))
-        continue;
-      i++;
-      if (!message.substring(0, i).endsWith(" at character "))
-        break;
-      try {
-        startPosition = Integer.valueOf(message.substring(i));
-        message = message.substring(0, i - 14);
-      } catch (NumberFormatException ignored) {
-        // Fall through without modifying the error message
-      }
-      break;
-    }
-
-    // Strip JSON reference off beginning of error message
-    if (message.startsWith("JSONObject[\"")) {
-      int i = message.indexOf('"', 12);
-      if (i > 12 && i + 2 < message.length())
-        message = message.substring(11, i + 1) + message.substring(i + 2);
-    }
-  }
-
-  /**
-   * Instantiate a new instanced representing a compilation error at the
-   * specified location.
-   *
-   * @param location The source location reference..
-   * @param message The compilation error message.
-   * @deprecated use {@link #DartCompilationError(SourceInfo, ErrorCode, Object...)}
-   */
-  @Deprecated
-  public DartCompilationError(SourceInfo location, String message) {
-    if (location != null) {
-      this.lineNumber = location.getSourceLine();
-      this.columnNumber = location.getSourceColumn();
-      this.startPosition = location.getSourceStart();
-      this.length = location.getSourceLength();
-    }
-    this.message = message;
-    this.source = location.getSource();
+  public DartCompilationError(Source source, ErrorCode errorCode, Object... arguments) {
+    this.source = source;
+    this.errorCode = DartCompilerErrorCode.IO;
+    this.message = String.format(errorCode.getMessage(), arguments);
   }
 
   /**
@@ -153,13 +75,13 @@ public class DartCompilationError {
    * @param arguments the arguments used to build the error message
    */
   public DartCompilationError(SourceInfo location, ErrorCode errorCode, Object... arguments) {
+    this.source = location.getSource();
     this.lineNumber = location.getSourceLine();
     this.columnNumber = location.getSourceColumn();
     this.startPosition = location.getSourceStart();
     this.length = location.getSourceLength();
     this.errorCode = errorCode;
     this.message = String.format(errorCode.getMessage(), arguments);
-    this.source = location.getSource();
   }
 
   /**
@@ -206,14 +128,6 @@ public class DartCompilationError {
   }
 
   /**
-   * The exception associated with this compilation error or <code>null</code>
-   * if none.
-   */
-  public Exception getException() {
-    return exception;
-  }
-
-  /**
    * The line number in the source (one based) where the error occurred.
    */
   public int getLineNumber() {
@@ -256,14 +170,6 @@ public class DartCompilationError {
     hashCode ^= (message != null) ? message.hashCode() : 0;
     hashCode ^= (source != null) ? source.getName().hashCode() : 0;
     return hashCode;
-  }
-
-  /**
-   * Set the exception associated with this compilation error or
-   * <code>null</code> if none.
-   */
-  public void setException(Exception exception) {
-    this.exception = exception;
   }
 
   /**

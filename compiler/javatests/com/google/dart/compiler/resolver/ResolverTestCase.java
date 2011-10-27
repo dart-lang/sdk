@@ -8,7 +8,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
@@ -283,18 +282,8 @@ abstract class ResolverTestCase extends TestCase {
   private DartCompilerListener getListener() {
     return new DartCompilerListener() {
       @Override
-      public void compilationError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
         encounteredErrors.add(event);
-      }
-
-      @Override
-      public void compilationWarning(DartCompilationError event) {
-        compilationError(event);
-      }
-
-      @Override
-      public void typeError(DartCompilationError event) {
-        compilationError(event);
       }
 
       @Override
@@ -342,7 +331,7 @@ abstract class ResolverTestCase extends TestCase {
   protected TestCompilerContext getContext() {
     return new TestCompilerContext() {
       @Override
-      public void compilationError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
         recordError(event);
       }
     };
@@ -376,10 +365,14 @@ abstract class ResolverTestCase extends TestCase {
    */
   protected void printEncountered(List<DartCompilationError> encountered) {
     for (DartCompilationError error : encountered) {
-      DartCompilerErrorCode errorCode = (DartCompilerErrorCode) error
-          .getErrorCode();
-      String msg = String.format("%s > %s (%d:%d)", errorCode.name(), error
-          .getMessage(), error.getLineNumber(), error.getColumnNumber());
+      ErrorCode errorCode = (ErrorCode) error.getErrorCode();
+      String msg =
+          String.format(
+              "%s > %s (%d:%d)",
+              errorCode.toString(),
+              error.getMessage(),
+              error.getLineNumber(),
+              error.getColumnNumber());
       System.out.println(msg);
     }
   }
@@ -392,7 +385,7 @@ abstract class ResolverTestCase extends TestCase {
     final List<DartCompilationError> encountered = Lists.newArrayList();
     TestCompilerContext ctx =  new TestCompilerContext() {
       @Override
-      public void compilationError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
         encountered.add(event);
       }
     };

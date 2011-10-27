@@ -6,7 +6,6 @@ package com.google.dart.compiler.type;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -33,6 +32,7 @@ import com.google.dart.compiler.resolver.Resolver.ResolveElementsVisitor;
 import com.google.dart.compiler.resolver.Scope;
 import com.google.dart.compiler.resolver.SupertypeResolver;
 import com.google.dart.compiler.resolver.TopLevelElementBuilder;
+import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.util.DartSourceString;
 
 import java.io.IOError;
@@ -138,8 +138,8 @@ public class TypeAnalyzerTest extends TypeTestCase {
   }
 
   public void testBadInitializers() {
-    analyzeFail("int i = .0;", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("int j = 1.0;", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("int i = .0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("int j = 1.0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testFunctionTypes() {
@@ -159,11 +159,11 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testIdentifiers() {
     analyze("{ int i; i = 2; }");
     analyze("{ int j, k; j = 1; k = 3; }");
-    analyzeFail("{ int i; i = 'string'; }", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("{ int i; i = 'string'; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int j, k; k = 'string'; }",
-        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int j, k; j = 'string'; }",
-        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testRawTypes() {
@@ -197,21 +197,21 @@ public class TypeAnalyzerTest extends TypeTestCase {
 
     analyze(header + "int k = c.intNoArgumentMethod(); }");
     analyzeFail(header + "ClassWithMethods x = c.intNoArgumentMethod(); }",
-        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
 
     analyzeFail(header + "int k = c.intOneArgumentMethod(c); }",
-        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail(header + "ClassWithMethods x = c.intOneArgumentMethod(1); }",
-        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail(header + "int k = c.intOneArgumentMethod('string'); }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze(header + "int k = c.intOneArgumentMethod(i); }");
 
     analyzeFail(header + "int k = c.intTwoArgumentMethod(1, 'string'); }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze(header + "int k = c.intTwoArgumentMethod(i, j); }");
     analyzeFail(header + "ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
-        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testMethodInvocationArgumentCount() {
@@ -219,25 +219,25 @@ public class TypeAnalyzerTest extends TypeTestCase {
     final String header = "{ ClassWithMethods c; ";
 
     analyzeFail(header + "c.untypedNoArgumentMethod(1); }",
-      DartCompilerErrorCode.EXTRA_ARGUMENT);
+      TypeErrorCode.EXTRA_ARGUMENT);
     analyzeFail(header + "c.untypedOneArgumentMethod(); }",
-      DartCompilerErrorCode.MISSING_ARGUMENT);
+      TypeErrorCode.MISSING_ARGUMENT);
     analyzeFail(header + "c.untypedOneArgumentMethod(1, 1); }",
-      DartCompilerErrorCode.EXTRA_ARGUMENT);
+      TypeErrorCode.EXTRA_ARGUMENT);
     analyzeFail(header + "c.untypedTwoArgumentMethod(); }",
-      DartCompilerErrorCode.MISSING_ARGUMENT);
+        TypeErrorCode.MISSING_ARGUMENT);
     analyzeFail(header + "c.untypedTwoArgumentMethod(1, 2, 3); }",
-      DartCompilerErrorCode.EXTRA_ARGUMENT);
+      TypeErrorCode.EXTRA_ARGUMENT);
     analyzeFail(header + "c.intNoArgumentMethod(1); }",
-      DartCompilerErrorCode.EXTRA_ARGUMENT);
+      TypeErrorCode.EXTRA_ARGUMENT);
     analyzeFail(header + "c.intOneArgumentMethod(); }",
-      DartCompilerErrorCode.MISSING_ARGUMENT);
+        TypeErrorCode.MISSING_ARGUMENT);
     analyzeFail(header + "c.intOneArgumentMethod(1, 1); }",
-      DartCompilerErrorCode.EXTRA_ARGUMENT);
+      TypeErrorCode.EXTRA_ARGUMENT);
     analyzeFail(header + "c.intTwoArgumentMethod(); }",
-      DartCompilerErrorCode.MISSING_ARGUMENT);
+        TypeErrorCode.MISSING_ARGUMENT);
     analyzeFail(header + "c.intTwoArgumentMethod(1, 2, 3); }",
-      DartCompilerErrorCode.EXTRA_ARGUMENT);
+      TypeErrorCode.EXTRA_ARGUMENT);
     analyze(header + "c.untypedField(); }");
   }
 
@@ -266,9 +266,9 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("Super<String> s = new Sub<String>();");
     analyze("Super<Object> o = new Sub<String>();");
     analyzeFail("Super<String> f1 = new Sub<int>();",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("Sub<String> f2 = new Sub<int>();",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testUnaryOperators() {
@@ -466,7 +466,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyzeIn(cls, "b = s is !String", 0);
     analyzeIn(cls, "s = s is !String", 1);
 
-    analyzeFail("1 == !'s';", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("1 == !'s';", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testBitOperators() {
@@ -528,10 +528,10 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("{ bool b = bool foo() { return null; }(); }");
     analyze("{ int i = int foo() { return null; }(); }");
     analyzeFail("{ int i = bool foo() { return null; }(); }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("{ int i = Object _(Object x) { return x; }('fisk'); }");
     analyzeFail("{ int i = String _(Object x) { return x; }(1); }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("Function f = foo() {};");
   }
 
@@ -539,29 +539,29 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("assert(true);");
     analyze("assert(false);");
     analyzeFail("assert('message');",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("assert(null);");
     analyzeFail("assert(1);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("assert(foo() {});");
     analyze("assert(bool foo() {});");
     analyze("assert(Object foo() {});");
     analyzeFail("assert(String foo() {});",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testReturn() {
     analyzeFail(returnWithType("int", "'string'"),
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze(returnWithType("", "'string'"));
     analyze(returnWithType("Object", "'string'"));
     analyze(returnWithType("String", "'string'"));
     analyze(returnWithType("String", null));
     analyze(returnWithType("int", null));
     analyze(returnWithType("void", ""));
-    analyzeFail(returnWithType("void", 1), DartCompilerErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail(returnWithType("void", null), DartCompilerErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail(returnWithType("String", ""), DartCompilerErrorCode.MISSING_RETURN_VALUE);
+    analyzeFail(returnWithType("void", 1), TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail(returnWithType("void", null), TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail(returnWithType("String", ""), TypeErrorCode.MISSING_RETURN_VALUE);
     analyze("String foo() {};"); // Should probably fail, http://b/4484060.
   }
 
@@ -699,27 +699,27 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testParameterAccess() {
     analyze("{ f(int x) { x = 1; } }");
     analyzeFail("{ f(String x) { x = 1; } }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("{ f(int x, int y) { x = y; } }");
     analyzeFail("{ f(String x, int y) { x = y; } }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("{ f(x, int y) { x = y; } }");
     analyze("{ f(x, int y) { x = y; } }");
     analyzeFail("{ f(String x) { x = 1;} }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testConditionalExpression() {
     analyze("true ? 1 : 2;");
     analyze("null ? 1 : 2;");
     analyzeFail("0 ? 1 : 2;",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("'' ? 1 : 2;",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i; true ? i = 2.7 : 2; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i; true ? 2 : i = 2.7; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("{ int i; i = true ? 2.7 : 2; }");
   }
 
@@ -727,28 +727,28 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("do {} while (true);");
     analyze("do {} while (null);");
     analyzeFail("do {} while (0);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("do {} while ('');",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("do { int i = 0.5; } while (true);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("do { int i = 0.5; } while (null);",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testForStatement() {
     analyze("for (;true;) {}");
     analyze("for (;null;) {}");
     analyzeFail("for (;0;) {}",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("for (;'';) {}",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
 
     // Foreach tests
     analyze("{ List<String> strings = ['1','2','3']; for (String s in strings) {} }");
     analyzeFail("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
-        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("for (String s in true) {}", DartCompilerErrorCode.INTERFACE_HAS_NO_METHOD_NAMED);
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("for (String s in true) {}", TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED);
   }
 
   public void testForEachStatement() {
@@ -770,7 +770,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "class B {",
         "  main() { for (int i in new A()) {}}",
         "}");
-    analyzeClasses(fieldNotMethod, DartCompilerErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
+    analyzeClasses(fieldNotMethod, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
   }
 
   public void testForEachStatement_Negative2() {
@@ -781,7 +781,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "class B {",
         "  main() { for (int i in new A()) {}}",
         "}");
-    analyzeClasses(invalidReturnType, DartCompilerErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE);
+    analyzeClasses(invalidReturnType, TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE);
   }
 
 
@@ -789,22 +789,22 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("if (true) {}");
     analyze("if (null) {}");
     analyzeFail("if (0) {}",
-    DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("if ('') {}",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i = 27; if (true) { i = 2.7; } else {} }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i = 27; if (true) {} else { i = 2.7; } }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testWhileStatement() {
     analyze("while (true) {}");
     analyze("while (null) {}");
     analyzeFail("while (0) {}",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("while ('') {}",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testThis() {
@@ -829,9 +829,9 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("{ var x = <String, num>{'key': 0.42}; }");
     analyze("{ var x = <Object, num>{'key': 42}; }");
     analyzeFail("{ var x = <String, int>{'key': 0.42}; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i; var x = {'key': i = 0.42}; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("{ var x = const {\"key\": 42}; }");
     analyze("{ var x = const {'key': 42}; }");
     analyze("{ var x = const <String, num>{'key': 42}; }");
@@ -839,21 +839,21 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("{ var x = const <String, num>{'key': 0.42}; }");
     analyze("{ var x = const <Object, num>{'key': 42}; }");
     analyzeFail("{ var x = const <String, int>{'key': 0.42}; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i; var x = const {'key': i = 0.42}; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{var x = const <num, num>{}; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testTryCatchFinally() {
     analyze("try { } catch (var _) { } finally { }");
     analyzeFail("try { int i = 4.2; } catch (var _) { } finally { }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("try { } catch (var _) { int i = 4.2; } finally { }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("try { } catch (var _) { } finally { int i = 4.2; }",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testUnqualified() {
@@ -985,7 +985,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze("{ num i = 27; switch(i) { case i: break; } }");
     analyze("{ switch(true) { case 1: break; case 'foo': break; }}");
     analyzeFail("{ int i = 27; switch(true) { case false: i = 2.7; }}",
-      DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testConstructorForwarding() {
@@ -1078,17 +1078,17 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "}"));
 
     analyze("Foo x = new Foo(0);");
-    analyzeFail("Foo x = new Foo();", DartCompilerErrorCode.MISSING_ARGUMENT);
-    analyzeFail("Foo x = new Foo('');", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Foo x = new Foo(0, null);", DartCompilerErrorCode.EXTRA_ARGUMENT);
+    analyzeFail("Foo x = new Foo();", TypeErrorCode.MISSING_ARGUMENT);
+    analyzeFail("Foo x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("Foo x = new Foo(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
 
     analyze("Foo x = new Foo.foo();");
-    analyzeFail("Foo x = new Foo.foo(null);", DartCompilerErrorCode.EXTRA_ARGUMENT);
+    analyzeFail("Foo x = new Foo.foo(null);", TypeErrorCode.EXTRA_ARGUMENT);
 
     analyze("Foo x = new Foo.bar();");
     analyze("Foo x = new Foo.bar(0);");
-    analyzeFail("Foo x = new Foo.bar('');", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Foo x = new Foo.bar(0, null);", DartCompilerErrorCode.EXTRA_ARGUMENT);
+    analyzeFail("Foo x = new Foo.bar('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("Foo x = new Foo.bar(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
 
     analyze("Bar<String> x = new Bar<String>.make('');");
   }
@@ -1103,7 +1103,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "  Bar(String argument) {}",
         "}"));
 
-    analyzeFail("Baz x = new Foo('');", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("Baz x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testFunctionTypeAlias() {
@@ -1156,40 +1156,40 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testVoid() {
     // Return a value from a void function.
     analyze("void f() { return; }");
-    analyzeFail("void f() { return null; }", DartCompilerErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { return f(); }", DartCompilerErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { return 1; }", DartCompilerErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { var x; return x; }", DartCompilerErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail("void f() { return null; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail("void f() { return f(); }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail("void f() { return 1; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail("void f() { var x; return x; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
 
     // No-arg return from non-void function.
-    analyzeFail("int f() { return; }", DartCompilerErrorCode.MISSING_RETURN_VALUE);
+    analyzeFail("int f() { return; }", TypeErrorCode.MISSING_RETURN_VALUE);
     analyze("f() { return; }");
 
     // Calling a method on a void expression, property access.
-    analyzeFail("void f() { f().m(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("void f() { f().x; }", DartCompilerErrorCode.VOID);
+    analyzeFail("void f() { f().m(); }", TypeErrorCode.VOID);
+    analyzeFail("void f() { f().x; }", TypeErrorCode.VOID);
 
     // Passing a void argument to a method.
-    analyzeFail("{ void f() {} m(x) {} m(f()); }", DartCompilerErrorCode.VOID);
+    analyzeFail("{ void f() {} m(x) {} m(f()); }", TypeErrorCode.VOID);
 
     // Assigning a void expression to a variable.
-    analyzeFail("{ void f() {} String x = f(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} String x; x = f(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} String x; x += f(); }", DartCompilerErrorCode.VOID);
+    analyzeFail("{ void f() {} String x = f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} String x; x = f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} String x; x += f(); }", TypeErrorCode.VOID);
 
     // Misc.
-    analyzeFail("{ void f() {} 1 + f(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} f() + 1; }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} var x; x && f(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} !f(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} -f(); }", DartCompilerErrorCode.VOID);
+    analyzeFail("{ void f() {} 1 + f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} f() + 1; }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} var x; x && f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} !f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} -f(); }", TypeErrorCode.VOID);
     // We seem to throw away prefix-plus in the parser:
-    // analyzeFail("{ void f() {} +f(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} var x; x == f(); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} assert(f()); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} assert(f); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} while (f()); }", DartCompilerErrorCode.VOID);
-    analyzeFail("{ void f() {} ({ 'x': f() }); }", DartCompilerErrorCode.VOID);
+    // analyzeFail("{ void f() {} +f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} var x; x == f(); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} assert(f()); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} assert(f); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} while (f()); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {} ({ 'x': f() }); }", TypeErrorCode.VOID);
   }
 
   public void testFieldInitializers() {
@@ -1215,23 +1215,23 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testArrayLiteral() {
     analyze("['x'];");
     analyze("<String>['x'];");
-    analyzeFail("<int>['x'];", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("<String>['x', 1];", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("<int>['x'];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("<String>['x', 1];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("List<String> strings = ['x'];");
     analyze("List<String> strings = <String>['x'];");
     analyze("List array = ['x'];");
     analyze("List array = <String>['x'];");
     analyze("List<int> ints = ['x'];");
     analyzeFail("List<int> ints = <String>['x'];",
-                DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+                TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testInitializedLocals() {
     analyze("void f([int x = 1]) {}");
-    analyzeFail("void f([int x = '']) {}", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("void f([int x = '']) {}", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
 
     analyze("{ int x = 1; }");
-    analyzeFail("{ int x = ''; }", DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("{ int x = ''; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testInitializedFields() {
@@ -1323,13 +1323,13 @@ public class TypeAnalyzerTest extends TypeTestCase {
                                //ABSTRACT_CLASS.
         "  }",
         "}"),
-        DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
-        DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
-        DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        DartCompilerErrorCode.ABSTRACT_CLASS,
-        DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        DartCompilerErrorCode.ABSTRACT_CLASS);
+        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
+        TypeErrorCode.ABSTRACT_CLASS,
+        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
+        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
+        TypeErrorCode.ABSTRACT_CLASS);
   }
 
   public void testImplementsAndOverrides2() {
@@ -1342,7 +1342,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
         "  Class() {}",
         "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
         "}"),
-        DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
+        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
   }
 
   public void testOddStuff() {
@@ -1370,9 +1370,9 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyzeIn(cls, "field = (Class.g)('x')", 1);
     analyzeIn(cls, "field = Class.g(0)", 0);
     analyzeIn(cls, "field = (Class.g)(0)", 0);
-    analyzeFail("fisk: while (true) fisk++;", DartCompilerErrorCode.CANNOT_BE_RESOLVED);
-    analyzeFail("new Class().m().x;", DartCompilerErrorCode.VOID);
-    analyzeFail("(new Class().m)().x;", DartCompilerErrorCode.VOID);
+    analyzeFail("fisk: while (true) fisk++;", TypeErrorCode.CANNOT_BE_RESOLVED);
+    analyzeFail("new Class().m().x;", TypeErrorCode.VOID);
+    analyzeFail("(new Class().m)().x;", TypeErrorCode.VOID);
   }
 
   private Map<String, ClassElement> analyzeClasses(Map<String, ClassElement> classes,
@@ -1458,10 +1458,10 @@ public class TypeAnalyzerTest extends TypeTestCase {
     }
   }
 
-  private void analyzeFail(String statement, DartCompilerErrorCode errorCode) {
+  private void analyzeFail(String statement, ErrorCode errorCode) {
     try {
       analyze(statement);
-      fail("Test unexpectedly passed.  Expected ErrorCode: " + errorCode.name());
+      fail("Test unexpectedly passed.  Expected ErrorCode: " + errorCode);
     } catch (TestTypeError error) {
       assertEquals(errorCode, error.getErrorCode());
     }

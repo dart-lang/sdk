@@ -6,6 +6,8 @@ package com.google.dart.compiler;
 
 import com.google.dart.compiler.ast.DartUnit;
 
+import java.io.PrintStream;
+
 /**
  * A default implementation of {@link DartCompilerListener} which counts
  * compilation errors.
@@ -15,7 +17,7 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
   /**
    * The number of (fatal) problems that occurred during compilation.
    */
-  private int problemCount = 0;
+  private int errorCount = 0;
 
   /**
    * The number of (non-fatal) problems that occurred during compilation.
@@ -33,22 +35,26 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
    */
   protected ErrorFormatter formatter = new PrettyErrorFormatter(useColor());
 
-  @Override
-  public void compilationError(DartCompilationError event) {
-    formatter.format(event);
-    incrementProblemCount();
+  public DefaultDartCompilerListener() {
+  }
+
+  /**
+   * @param outputStream the {@link PrintStream} to use for {@link ErrorFormatter}.
+   */
+  public DefaultDartCompilerListener(PrintStream outputStream) {
+    ((PrettyErrorFormatter) formatter).setOutputStream(outputStream);
   }
 
   @Override
-  public void compilationWarning(DartCompilationError event) {
+  public void onError(DartCompilationError event) {
     formatter.format(event);
-    incrementWarningCount();
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    formatter.format(event);
-    incrementTypeErrorCount();
+    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+      incrementTypeErrorCount();
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+      incrementErrorCount();
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+      incrementWarningCount();
+    }
   }
 
   private boolean useColor() {
@@ -56,16 +62,16 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
   }
 
   /**
-   * Answer the number of (fatal) problems that occurred during compilation.
+   * Answer the number of fatal errors that occurred during compilation.
    *
    * @return the number of problems
    */
-  public int getProblemCount() {
-    return problemCount;
+  public int getErrorCount() {
+    return errorCount;
   }
 
   /**
-   * Answer the number of (non-fatal) problems that occurred during compilation.
+   * Answer the number of non-fatal warnings that occurred during compilation.
    *
    * @return the number of problems
    */
@@ -74,7 +80,7 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
   }
 
   /**
-   * Answer the number of (non-fatal) problems that occurred during compilation.
+   * Answer the number of non-fatal type problems that occurred during compilation.
    *
    * @return the number of problems
    */
@@ -83,10 +89,10 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
   }
 
   /**
-   * Increment the {@link #problemCount} by 1
+   * Increment the {@link #errorCount} by 1
    */
-  protected void incrementProblemCount() {
-    problemCount++;
+  protected void incrementErrorCount() {
+    errorCount++;
   }
 
   /**

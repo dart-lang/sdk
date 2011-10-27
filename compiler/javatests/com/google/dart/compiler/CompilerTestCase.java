@@ -88,18 +88,14 @@ public abstract class CompilerTestCase extends TestCase {
     }
 
     @Override
-    public void compilationError(DartCompilationError event) {
-      compilationErrors.add(event);
-    }
-
-    @Override
-    public void compilationWarning(DartCompilationError event) {
-      compilationWarnings.add(event);
-    }
-
-    @Override
-    public void typeError(DartCompilationError event) {
-      typeErrors.add(event);
+    public void onError(DartCompilationError event) {
+      if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+        typeErrors.add(event);
+      } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+        compilationErrors.add(event);
+      }   else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+        compilationWarnings.add(event);
+      }
     }
 
     /**

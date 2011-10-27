@@ -5,7 +5,6 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
@@ -205,7 +204,7 @@ public class MemberBuilder {
       switch (ElementKind.of(e)) {
         default:
           // Report an error and create a fake constructor element below.
-          resolutionError(method.getName(), DartCompilerErrorCode.INVALID_TYPE_NAME_IN_CONSTRUCTOR);
+          resolutionError(method.getName(), ResolverErrorCode.INVALID_TYPE_NAME_IN_CONSTRUCTOR);
           break;
 
         case DYNAMIC:
@@ -319,7 +318,7 @@ public class MemberBuilder {
         if (fieldElement.getGetter() != null) {
           int conflictLine = fieldElement.getNode().getSourceLine();
           int conflictColumn = fieldElement.getNode().getSourceColumn();
-          resolutionError(fieldNode,  DartCompilerErrorCode.FIELD_CONFLICTS, name, "getter",
+          resolutionError(fieldNode,  ResolverErrorCode.FIELD_CONFLICTS, name, "getter",
                           conflictLine, conflictColumn);
         } else {
           fieldElement.setGetter(accessorElement);
@@ -329,14 +328,14 @@ public class MemberBuilder {
         if (fieldElement.getSetter() != null) {
           int conflictLine = fieldElement.getNode().getSourceLine();
           int conflictColumn = fieldElement.getNode().getSourceColumn();
-          resolutionError(fieldNode, DartCompilerErrorCode.FIELD_CONFLICTS, name, "setter",
+          resolutionError(fieldNode, ResolverErrorCode.FIELD_CONFLICTS, name, "setter",
                           conflictLine, conflictColumn);
         } else {
           fieldElement.setSetter(accessorElement);
           List<VariableElement> parameters = accessorElement.getParameters();
           Type type;
           if (parameters.size() != 1) {
-            resolutionError(fieldNode, DartCompilerErrorCode.EXPECTED_ONE_ARGUMENT);
+            resolutionError(fieldNode, ResolverErrorCode.EXPECTED_ONE_ARGUMENT);
             type = getTypeProvider().getDynamicType();
           } else {
             type = parameters.get(0).getType();
@@ -387,7 +386,7 @@ public class MemberBuilder {
           return ElementKind.CONSTRUCTOR;
         } else {
           resolutionError(method.getName(),
-                          DartCompilerErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
+                          ResolverErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
         }
       }
 
@@ -400,30 +399,30 @@ public class MemberBuilder {
       // TODO(ngeoffray): The errors should report the position of the modifier.
       if (isNonFactoryConstructor) {
         if (modifiers.isStatic()) {
-          resolutionError(method.getName(), DartCompilerErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC);
+          resolutionError(method.getName(), ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC);
         }
         if (modifiers.isAbstract()) {
-          resolutionError(method.getName(), DartCompilerErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT);
+          resolutionError(method.getName(), ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT);
         }
         // TODO(ngeoffray): This is already checked in the parser.
         // Like operators/getters/setters. Should we all check them here?
         if (modifiers.isConstant() && method.getFunction().getBody() != null) {
           resolutionError(method.getName(),
-              DartCompilerErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
+              ResolverErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
         }
       }
 
       if (modifiers.isFactory()) {
         if (modifiers.isStatic()) {
-          resolutionError(method.getName(), DartCompilerErrorCode.FACTORY_CANNOT_BE_STATIC);
+          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_STATIC);
         }
         if (modifiers.isAbstract()) {
-          resolutionError(method.getName(), DartCompilerErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
+          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
         }
         // TODO(ngeoffray): This is already checked in the parser.
         // Like operators/getters/setters. Should we all check them here?
         if (modifiers.isConstant()) {
-          resolutionError(method.getName(), DartCompilerErrorCode.FACTORY_CANNOT_BE_CONST);
+          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
         }
       }
       // TODO(ngeoffray): Add more checks on the modifiers. For
@@ -475,7 +474,7 @@ public class MemberBuilder {
           source = otherNode.getSource().getUri().toString() + " ";
         }
 
-        resolutionError(e.getNode(), DartCompilerErrorCode.NAME_CLASHES_EXISTING_MEMBER,
+        resolutionError(e.getNode(), ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER,
             source, other.getNode().getSourceLine(), other.getNode().getSourceColumn());
       }
     }
@@ -495,7 +494,7 @@ public class MemberBuilder {
     }
 
     void resolutionError(DartNode node, ErrorCode errorCode, Object... arguments) {
-      topLevelContext.resolutionError(node, errorCode, arguments);
+      topLevelContext.onError(node, errorCode, arguments);
     }
   }
 }

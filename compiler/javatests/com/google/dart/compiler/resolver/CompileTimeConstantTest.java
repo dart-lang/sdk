@@ -5,7 +5,6 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.base.Joiner;
-import com.google.dart.compiler.DartCompilerErrorCode;
 
 /**
  * Tests the code in {@link CompileTimeConstantVisitor}
@@ -93,10 +92,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP1 = A.foo() * 1;",
         " static final BOP2 = 1 * A.foo();",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -112,14 +111,14 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP3 = 2 < A.bar();",
         " static final BOP4 = A.bar() < 2;",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -130,8 +129,8 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP1 = 0x80 & 2.0;",
         " static final BOP2 = 2.0 & 0x80;",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -148,12 +147,12 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP5 = true && A.foo();",
         " static final BOP6 = A.foo() && false;",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -176,12 +175,12 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP5 = INT_LIT === OBJECT_LIT;",
         " static final BOP6 = OBJECT_LIT !== true;",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -211,11 +210,11 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final BOP1_1 = 0 + OBJECT_LIT + 1;",
         "  static final BOP1_2 = OBJECT_LIT + 3 + 9;",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -232,18 +231,18 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final PP4 = (OBJECT_LIT + 3 + 9);",
         "  static final PP5 = OBJECT_LIT + (3 + 9);",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
   }
 
   public void testConstantUnaryExpression() {
@@ -284,12 +283,12 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final UOP3 = !(5);",
         "  static final UOP4 = !(foo());",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
   }
 
   public void testConstantConstructorAssign() {
@@ -310,7 +309,7 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  const A();",
         " static final a = new A();", // Error: not a constant constructor
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 
   public void testConstantLiteralAssign() {
@@ -334,7 +333,7 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final person = \"earthling\";",
         "  static final s = \"Hello ${foo()}!\";",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 
   public void testConstantTypedLiteralAssign() {
@@ -356,7 +355,7 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  // array literal not const",
         "  static final aList= [1, 2, 3];",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -366,7 +365,7 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  // const array literal contains non-const member",
         "  static final aList = const [foo(), 2, 3];",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -375,7 +374,7 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  // map literal is not const",
         "  static final aMap = { \"1\": \"one\", \"2\": \"banana\" };",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -388,8 +387,8 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final map = const { \"1\":foo(), \"2\": \"banana\" };",
         "  static final stringInterp = \"It was that woman who gave me the ${s}\";",
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 
   public void testConstantVariableAssign() {
@@ -411,13 +410,13 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static foo() {return 1;}",
         " static final i = foo();",  // Error: not a constant integer
         "}"),
-        DartCompilerErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         "  static final foo;",
         "}"),
-        DartCompilerErrorCode.STATIC_FINAL_REQUIRES_VALUE);
+        ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
   }
 }

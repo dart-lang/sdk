@@ -7,7 +7,6 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -69,7 +68,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   void declare(Element element) {
     Element existingElement = scope.declareElement(element.getName(), element);
     if (existingElement != null) {
-      resolutionError(element.getNode(), DartCompilerErrorCode.DUPLICATE_DEFINITION,
+      onError(element.getNode(), ResolverErrorCode.DUPLICATE_DEFINITION,
           element.getName());
     }
   }
@@ -126,7 +125,7 @@ public class ResolutionContext implements ResolutionErrorListener {
 
     Type type = resolveType(node, isStatic);
     if (!isClassType(type)) {
-      resolutionError(node.getIdentifier(), DartCompilerErrorCode.NOT_A_CLASS, type);
+      onError(node.getIdentifier(), ResolverErrorCode.NOT_A_CLASS, type);
       type = typeProvider.getDynamicType();
     }
 
@@ -141,7 +140,7 @@ public class ResolutionContext implements ResolutionErrorListener {
 
     Type type = resolveType(node, isStatic);
     if (!isClassOrInterfaceType(type)) {
-      resolutionError(node.getIdentifier(), DartCompilerErrorCode.NOT_A_CLASS_OR_INTERFACE, type);
+      onError(node.getIdentifier(), ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE, type);
       type = typeProvider.getDynamicType();
     }
 
@@ -165,7 +164,7 @@ public class ResolutionContext implements ResolutionErrorListener {
         TypeVariableElement typeVariableElement = (TypeVariableElement) element;
         if (isStatic &&
             typeVariableElement.getDeclaringElement().getKind().equals(ElementKind.CLASS)) {
-          resolutionError(identifier, DartCompilerErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
+          onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
                           identifier);
           return typeProvider.getDynamicType();
         }
@@ -182,9 +181,9 @@ public class ResolutionContext implements ResolutionErrorListener {
         break;
     }
     if (shouldWarnOnNoSuchType()) {
-      typeError(identifier, DartCompilerErrorCode.NO_SUCH_TYPE, identifier);
+      onError(identifier, TypeErrorCode.NO_SUCH_TYPE, identifier);
     } else {
-      resolutionError(identifier, DartCompilerErrorCode.NO_SUCH_TYPE, identifier);
+      onError(identifier, ResolverErrorCode.NO_SUCH_TYPE, identifier);
     }
     return typeProvider.getDynamicType();
   }
@@ -200,7 +199,7 @@ public class ResolutionContext implements ResolutionErrorListener {
         typeArguments[i] = typeProvider.getDynamicType();
       }
       if (typeArgumentNodes != null && typeArgumentNodes.size() > 0) {
-        resolutionError(node, DartCompilerErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, element.getType());
+        onError(node, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, element.getType());
       }
       int index = 0;
       if (typeArgumentNodes != null) {
@@ -226,7 +225,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   private TypeVariable makeTypeVariable(TypeVariableElement element,
                                         List<DartTypeNode> typeArguments) {
     for (DartTypeNode typeArgument : typeArguments) {
-      resolutionError(typeArgument, DartCompilerErrorCode.EXTRA_TYPE_ARGUMENT);
+      onError(typeArgument, ResolverErrorCode.EXTRA_TYPE_ARGUMENT);
     }
     return element.getTypeVariable();
   }
@@ -249,19 +248,14 @@ public class ResolutionContext implements ResolutionErrorListener {
 
   AssertionError internalError(DartNode node, String message, Object... arguments) {
     message = String.format(message, arguments);
-    context.compilationError(new DartCompilationError(node, DartCompilerErrorCode.INTERNAL_ERROR,
+    context.onError(new DartCompilationError(node, ResolverErrorCode.INTERNAL_ERROR,
                                                       message));
     return new AssertionError("Internal error: " + message);
   }
 
   @Override
-  public void resolutionError(DartNode node, ErrorCode errorCode, Object... arguments) {
-    context.compilationError(new DartCompilationError(node, errorCode, arguments));
-  }
-
-  @Override
-  public void typeError(DartNode node, ErrorCode errorCode, Object... arguments) {
-    context.typeError(new DartCompilationError(node, errorCode, arguments));
+  public void onError(DartNode node, ErrorCode errorCode, Object... arguments) {
+    context.onError(new DartCompilationError(node, errorCode, arguments));
   }
 
   public boolean shouldWarnOnNoSuchType() {

@@ -7,7 +7,6 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
@@ -92,7 +91,7 @@ public class TopLevelElementBuilder {
   void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
                         Object... args) {
     DartCompilationError error = new DartCompilationError(node, errorCode, args);
-    listener.compilationError(error);
+    listener.onError(error);
   }
 
   private void declare(Element element, DartCompilerListener listener, Scope scope) {
@@ -100,10 +99,10 @@ public class TopLevelElementBuilder {
     if (originalElement != null) {
       DartNode originalNode = originalElement.getNode();
       if (originalNode != null) {
-        compilationError(listener, originalNode, DartCompilerErrorCode.DUPLICATE_DEFINITION,
+        compilationError(listener, originalNode, ResolverErrorCode.DUPLICATE_DEFINITION,
                          originalElement.getName());
       }
-      compilationError(listener, element.getNode(), DartCompilerErrorCode.DUPLICATE_DEFINITION,
+      compilationError(listener, element.getNode(), ResolverErrorCode.DUPLICATE_DEFINITION,
                        originalElement.getName());
     }
   }

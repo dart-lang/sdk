@@ -7,7 +7,6 @@ package com.google.dart.compiler.backend.js;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -3407,7 +3406,7 @@ public class GenerateJavascriptAST {
     }
 
     private void reportError(DartNode node, Throwable exception) {
-      context.compilationError(new DartCompilationError(node, DartCompilerErrorCode.INTERNAL_ERROR,
+      context.onError(new DartCompilationError(node, JsErrorCode.INTERNAL_ERROR,
                                                         exception.getLocalizedMessage()));
     }
 

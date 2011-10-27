@@ -14,16 +14,11 @@ import com.google.dart.compiler.ast.DartUnit;
 public abstract class DartCompilerListener {
 
   /**
-   * Called by the compiler when a compilation error has occurred in a Dart
-   * file.
+   * Called by the compiler when a compilation error has occurred in a Dart file.
    *
    * @param event the event information (not <code>null</code>)
    */
-  public abstract void compilationError(DartCompilationError event);
-
-  public abstract void compilationWarning(DartCompilationError event);
-
-  public abstract void typeError(DartCompilationError event);
+  public abstract void onError(DartCompilationError event);
 
   /**
    * Called by the compiler after the resolution and type analyzer phase for each unit.

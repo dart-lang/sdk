@@ -50,7 +50,7 @@ public class DartCompilerListenerTest extends DartCompilerListener {
   }
 
   @Override
-  public void compilationError(DartCompilationError event) {
+  public void onError(DartCompilationError event) {
     String reportedSrcName = (event.getSource() != null)
         ? event.getSource().getName()
         : null;
@@ -75,16 +75,6 @@ public class DartCompilerListenerTest extends DartCompilerListener {
     CompilerTestCase.assertEquals(
         "Wrong column number", column[current], event.getColumnNumber());
     current++;
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError event) {
-    compilationError(event);
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    compilationError(event);
   }
 
   /** Checks that all expected errors were reported. */

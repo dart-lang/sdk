@@ -10,7 +10,6 @@ import com.google.common.collect.Multimap;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -101,6 +100,8 @@ import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
+import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType.Member;
 
@@ -207,17 +208,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private DynamicType typeError(DartNode node, ErrorCode code, Object... arguments) {
-      context.typeError(new DartCompilationError(node, code, arguments));
+      onError(node, code, arguments);
       return dynamicType;
     }
 
-    private void resolutionError(DartNode node, ErrorCode code, Object... arguments) {
-      context.compilationError(new DartCompilationError(node, code, arguments));
+    private void onError(DartNode node, ErrorCode code, Object... arguments) {
+      context.onError(new DartCompilationError(node, code, arguments));
     }
 
     AssertionError internalError(DartNode node, String message, Object... arguments) {
       message = String.format(message, arguments);
-      context.compilationError(new DartCompilationError(node, DartCompilerErrorCode.INTERNAL_ERROR,
+      context.onError(new DartCompilationError(node, TypeErrorCode.INTERNAL_ERROR,
                                                         message));
       return new AssertionError("Internal error: " + message);
     }
@@ -427,7 +428,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       Member member = itype.lookupMember(methodName);
       if (member == null) {
-        typeError(diagnosticNode, DartCompilerErrorCode.INTERFACE_HAS_NO_METHOD_NAMED,
+        typeError(diagnosticNode, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED,
                   receiver, methodName);
         return null;
       }
@@ -438,7 +439,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       if (!types.isAssignable(t, s)) {
-        typeError(node, DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+        typeError(node, TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
       }
     }
 
@@ -459,7 +460,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case METHOD: {
           MethodElement method = (MethodElement) element;
           if (method.getModifiers().isStatic()) {
-            return typeError(diagnosticNode, DartCompilerErrorCode.IS_STATIC_METHOD_IN,
+            return typeError(diagnosticNode, TypeErrorCode.IS_STATIC_METHOD_IN,
                              name, receiver);
           }
           ftype = (FunctionType) member.getType();
@@ -468,7 +469,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case FIELD: {
           FieldElement field = (FieldElement) element;
           if (field.getModifiers().isStatic()) {
-            return typeError(diagnosticNode, DartCompilerErrorCode.IS_STATIC_FIELD_IN,
+            return typeError(diagnosticNode, TypeErrorCode.IS_STATIC_FIELD_IN,
                              name, receiver);
           }
           switch (TypeKind.of(member.getType())) {
@@ -481,13 +482,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
             case DYNAMIC:
               return member.getType();
             default:
-              return typeError(diagnosticNode, DartCompilerErrorCode.NOT_A_METHOD_IN,
+              return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN,
                                name, receiver);
           }
           break;
         }
         default:
-          return typeError(diagnosticNode, DartCompilerErrorCode.NOT_A_METHOD_IN, name, receiver);
+          return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
       }
       return checkArguments(diagnosticNode, argumentNodes, argumentTypes.iterator(), ftype);
     }
@@ -508,7 +509,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           throw internalError(node, "type is null");
 
         case VOID:
-          return typeError(node, DartCompilerErrorCode.VOID);
+          return typeError(node, TypeErrorCode.VOID);
 
         default:
           throw internalError(node, type.getKind().name());
@@ -525,7 +526,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           checkAssignable(argumentNodes.get(argumentCount), parameterType, argumentTypes.next());
           argumentCount++;
         } else {
-          typeError(diagnosticNode, DartCompilerErrorCode.MISSING_ARGUMENT, parameterType);
+          typeError(diagnosticNode, TypeErrorCode.MISSING_ARGUMENT, parameterType);
         }
       }
       Map<String, Type> namedParameterTypes = ftype.getNamedParameterTypes();
@@ -540,7 +541,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       while (argumentTypes.hasNext()) {
         argumentTypes.next();
-        typeError(argumentNodes.get(argumentCount), DartCompilerErrorCode.EXTRA_ARGUMENT);
+        typeError(argumentNodes.get(argumentCount), TypeErrorCode.EXTRA_ARGUMENT);
         argumentCount++;
       }
       return ftype.getReturnType();
@@ -555,7 +556,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type type = node.getType(); // Already calculated by resolver.
       switch (TypeKind.of(type)) {
         case NONE:
-          return typeError(node, DartCompilerErrorCode.INTERNAL_ERROR,
+          return typeError(node, TypeErrorCode.INTERNAL_ERROR,
                            String.format("type \"%s\" is null", node));
 
         case INTERFACE: {
@@ -591,11 +592,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type s = arguments.get(i);
           if (!types.isAssignable(t, s)) {
             if (badBoundIsError) {
-              resolutionError(diagnosticNodes.get(i),
-                              DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+              onError(diagnosticNodes.get(i),
+                        ResolverErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
             } else {
-              typeError(diagnosticNodes.get(i),
-                        DartCompilerErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+              onError(diagnosticNodes.get(i),
+                        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
             }
           }
         }
@@ -612,7 +613,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private Type nonVoidTypeOf(DartNode node) {
       Type type = typeOf(node);
       if (type.getKind().equals(TypeKind.VOID)) {
-        return typeError(node, DartCompilerErrorCode.VOID);
+        return typeError(node, TypeErrorCode.VOID);
       }
       return type;
     }
@@ -632,7 +633,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           FunctionType ftype = (FunctionType) condition;
           Type returnType = ftype.getReturnType();
           if (returnType.getKind().equals(TypeKind.VOID)) {
-            typeError(conditionNode, DartCompilerErrorCode.VOID);
+            typeError(conditionNode, TypeErrorCode.VOID);
           }
           checkAssignable(conditionNode, boolType, returnType);
           break;
@@ -822,12 +823,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
             InterfaceType expectedIteratorType = dynamicIteratorType.subst(
                 Arrays.asList(variableType), dynamicIteratorType.getElement().getTypeParameters());
             typeError(iterableExpression,
-                DartCompilerErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE,
+                TypeErrorCode.FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE,
                 expectedIteratorType);
           }
         } else {
           // Not a function
-          typeError(iterableExpression, DartCompilerErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
+          typeError(iterableExpression, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
         }
       }
 
@@ -881,7 +882,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
 
         case NONE:
-          return typeError(node, DartCompilerErrorCode.CANNOT_BE_RESOLVED, node.getTargetName());
+          return typeError(node, TypeErrorCode.CANNOT_BE_RESOLVED, node.getTargetName());
 
         case DYNAMIC:
           return element.getType();
@@ -1023,15 +1024,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
             }
             DartNode clsNode = cls.getNode();
             if (clsNode != null) {
-              typeError(typeName, DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-                        cls.getName());
-              typeError(clsNode, DartCompilerErrorCode.ABSTRACT_CLASS, cls.getName(), sb);
+              typeError(typeName, TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS, cls.getName());
+              typeError(clsNode, TypeErrorCode.ABSTRACT_CLASS, cls.getName(), sb);
             } else {
-              typeError(typeName, DartCompilerErrorCode.ABSTRACT_CLASS, cls.getName(), sb);
+              typeError(typeName, TypeErrorCode.ABSTRACT_CLASS, cls.getName(), sb);
             }
           } else {
-            typeError(typeName, DartCompilerErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-                      cls.getName());
+            typeError(typeName, TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS, cls.getName());
           }
         }
         FunctionType ftype = (FunctionType) element.getType();
@@ -1088,19 +1087,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        return typeError(node.getName(), DartCompilerErrorCode.NOT_A_MEMBER_OF, name, cls);
+        return typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
       }
       element = member.getElement();
       node.setReferencedElement(element);
       Modifiers modifiers = element.getModifiers();
       if (modifiers.isStatic()) {
         return typeError(node.getName(),
-                         DartCompilerErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE,
+                         TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE,
                          name, element.getName());
       }
       switch (element.getKind()) {
         case CONSTRUCTOR:
-          return typeError(node.getName(), DartCompilerErrorCode.MEMBER_IS_A_CONSTRUCTOR,
+          return typeError(node.getName(), TypeErrorCode.MEMBER_IS_A_CONSTRUCTOR,
                            name, element.getName());
 
         case METHOD:
@@ -1118,13 +1117,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type type;
       if (value == null) {
         if (!types.isSubtype(voidType, expected)) {
-          typeError(node, DartCompilerErrorCode.MISSING_RETURN_VALUE, expected);
+          typeError(node, TypeErrorCode.MISSING_RETURN_VALUE, expected);
         }
       } else {
         type = typeOf(value);
         if (expected.equals(voidType)) {
           if (value != null) {
-            typeError(value, DartCompilerErrorCode.VOID_CANNOT_RETURN_VALUE);
+            typeError(value, TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
             return voidType;
           }
         }
@@ -1165,8 +1164,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitThrowStatement(DartThrowStatement node) {
       if (catchDepth == 0 && node.getException() == null) {
-        context.compilationError(new DartCompilationError(node,
-            DartCompilerErrorCode.RETHROW_NOT_IN_CATCH));
+        context.onError(new DartCompilationError(node,
+            ResolverErrorCode.RETHROW_NOT_IN_CATCH));
       }
       return typeAsVoid(node);
     }
@@ -1226,7 +1225,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           String operatorMethodName = methodNameForUnaryOperator(node, operator);
           Member member = itype.lookupMember(operatorMethodName);
           if (member == null) {
-            return typeError(expression, DartCompilerErrorCode.CANNOT_BE_RESOLVED,
+            return typeError(expression, TypeErrorCode.CANNOT_BE_RESOLVED,
                              operatorMethodName);
           }
           MethodElement element = ((MethodElement) member.getElement());
@@ -1237,7 +1236,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             // respectively. Check that the resolved operator has a compatible parameter type.
             Iterator<VariableElement> it = element.getParameters().iterator();
             if  (!types.isAssignable(numType, it.next().getType())) {
-              typeError(node, DartCompilerErrorCode.OPERATOR_WRONG_OPERAND_TYPE,
+              typeError(node, TypeErrorCode.OPERATOR_WRONG_OPERAND_TYPE,
                   operatorMethodName, numType.toString());
             }
             // Check that the return type of the operator is compatible with the receiver.
@@ -1268,7 +1267,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           type = typeAsMemberOf(element, currentClass);
           break;
         case NONE:
-          return typeError(target, DartCompilerErrorCode.NOT_A_METHOD_IN, name, currentClass);
+          return typeError(target, TypeErrorCode.NOT_A_METHOD_IN, name, currentClass);
         default:
           type = element.getType();
           break;
@@ -1296,9 +1295,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
             // A subtype of interface Function.
             return dynamicType;
           } else if (name == null) {
-            return typeError(diagnosticNode, DartCompilerErrorCode.NOT_A_FUNCTION, type);
+            return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION, type);
           } else {
-            return typeError(diagnosticNode, DartCompilerErrorCode.NOT_A_METHOD_IN, name,
+            return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name,
                              currentClass);
           }
       }
@@ -1460,7 +1459,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return typeAsVoid(node);
     }
 
-    @SuppressWarnings("hiding")
     private class AbstractMethodFinder extends DartNodeTraverser<Void> {
       private final InterfaceType currentClass;
       private final Multimap<String, Element> superMembers;
@@ -1543,12 +1541,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   checkOverride(node.getName(), field, element);
                   break;
                 case METHOD:
-                  typeError(node, DartCompilerErrorCode.SUPERTYPE_HAS_METHOD, name,
+                  typeError(node, TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
                             element.getEnclosingElement().getName());
                   break;
 
                 default:
-                  typeError(node, DartCompilerErrorCode.INTERNAL_ERROR, element);
+                  typeError(node, TypeErrorCode.INTERNAL_ERROR, element);
                   break;
               }
             }
@@ -1571,12 +1569,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
                   break;
 
                 case FIELD:
-                  typeError(node, DartCompilerErrorCode.SUPERTYPE_HAS_FIELD, element.getName(),
+                  typeError(node, TypeErrorCode.SUPERTYPE_HAS_FIELD, element.getName(),
                             element.getEnclosingElement().getName());
                   break;
 
                 default:
-                  typeError(node, DartCompilerErrorCode.INTERNAL_ERROR, element);
+                  typeError(node, TypeErrorCode.INTERNAL_ERROR, element);
                   break;
               }
             }
@@ -1591,11 +1589,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
        */
       private boolean canOverride(DartExpression node, Modifiers modifiers, Element element) {
         if (element.getModifiers().isStatic()) {
-          resolutionError(node, DartCompilerErrorCode.CANNOT_OVERRIDE_STATIC_MEMBER,
+          onError(node, ResolverErrorCode.CANNOT_OVERRIDE_STATIC_MEMBER,
                           element.getName(), element.getEnclosingElement().getName());
           return false;
         } else if (modifiers.isStatic()) {
-          resolutionError(node, DartCompilerErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER,
+          onError(node, ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER,
                           element.getName(), element.getEnclosingElement().getName());
           return false;
         }
@@ -1612,12 +1610,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (member.getKind() == ElementKind.METHOD
             && superElement.getKind() == ElementKind.METHOD) {
           if (!types.isSubtype(member.getType(), superMember)) {
-            typeError(node, DartCompilerErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+            typeError(node, TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
                       name, superElement.getEnclosingElement().getName(),
                       member.getType(), superMember);
           }
         } else if (!types.isAssignable(superMember, member.getType())) {
-          typeError(node, DartCompilerErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
+          typeError(node, TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
                     name, superElement.getEnclosingElement().getName(),
                     member.getType(), superMember);
         }
