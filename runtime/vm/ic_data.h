@@ -57,6 +57,8 @@ class ICData : public ValueObject {
                   const GrowableArray<const Class*>& classes,
                   const Function& target);
 
+  void GetOneClassCheckAt(intptr_t index, Class* cls, Function* target) const;
+
   void GetCheckAt(intptr_t index,
                   GrowableArray<const Class*>* classes,
                   Function* target) const;

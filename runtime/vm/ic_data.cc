@@ -100,6 +100,19 @@ void ICData::SetCheckAt(intptr_t index,
 }
 
 
+void ICData::GetOneClassCheckAt(intptr_t index,
+                                Class* cls,
+                                Function* target) const {
+  ASSERT(cls != NULL);
+  ASSERT(target != NULL);
+  ASSERT((0 <= index) && (index < NumberOfChecks()));
+  ASSERT(NumberOfArgumentsChecked() == 1);
+  intptr_t pos = 1 + 1 + ArrayElementsPerCheck() * index;
+  *cls ^= data_->At(pos);
+  (*target) ^= data_->At(pos + 1);
+}
+
+
 void ICData::GetCheckAt(intptr_t index,
                         GrowableArray<const Class*>* classes,
                         Function* target) const {

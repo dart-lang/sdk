@@ -278,11 +278,10 @@ static const ZoneGrowableArray<const Class*>*
   }
   ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
   Function& target = Function::Handle();
-  GrowableArray<const Class*> classes;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetCheckAt(i, &classes, &target);
-    ASSERT(classes.length() == 1);
-    result->Add(classes[0]);
+    Class& cls = Class::ZoneHandle();
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    result->Add(&cls);
   }
   return result;
 }
@@ -686,7 +685,9 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
       // receiver only, deoptimize if the type changes.
       __ pushl(ECX);
       __ pushl(EDX);
-      GenerateBinaryOperatorCall(node->id(), node->token_index(), node->Name());
+      GenerateBinaryOperatorCall(node->id(),
+                                 node->token_index(),
+                                 node->Name());
       __ jmp(&done);
       __ Bind(&two_smis);
       // Restore left operand. EAX will be 'destroyed', ECX holds the left
@@ -1256,11 +1257,17 @@ void OptimizingCodeGenerator::VisitInstanceGetterNode(
   if (all_inlineable && all_same_target) {
     InlineInstanceGettersWithSameTarget(node, *targets[0]);
   } else {
+    // TODO(srdjan): Inline access.
     TraceNotOpt(node, kMessage);
     node->receiver()->Visit(this);
-    GenerateInstanceGetterCall(node->id(),
-                               node->token_index(),
-                               node->field_name());
+    const int kNumberOfArguments = 1;
+    const Array& kNoArgumentNames = Array::Handle();
+    GenerateCheckedInstanceCalls(node,
+                                 node->receiver(),
+                                 node->id(),
+                                 node->token_index(),
+                                 kNumberOfArguments,
+                                 kNoArgumentNames);
   }
   if (CodeGenerator::IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -1934,111 +1941,123 @@ void OptimizingCodeGenerator::VisitIfNode(IfNode* node) {
 }
 
 
-// Return index where 'cls' is contained within 'classes' or -1 if not found.
-static intptr_t IndexOfClassInArray(
-    const ZoneGrowableArray<const Class*>& classes,
-    const Class& cls) {
-  for (int i = 0; i < classes.length(); i++) {
-    if (classes[i]->raw() == cls.raw()) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
-// Use static call pattern to call an instance method directly.
-void OptimizingCodeGenerator::GenerateDirectInstanceCall(
-    InstanceCallNode* node, const Class& cls) {
-  ASSERT(node != NULL);
-  ASSERT(!cls.IsNull());
-  intptr_t arg_count = node->arguments()->length() + 1;
-  const int num_named_arguments = node->arguments()->names().IsNull() ?
-      0 : node->arguments()->names().Length();
-  const Function& target = Function::ZoneHandle(
-      Resolver::ResolveDynamicForReceiverClass(
-          cls, node->function_name(), arg_count, num_named_arguments));
+void OptimizingCodeGenerator::GenerateDirectCall(
+    intptr_t node_id,
+    intptr_t token_index,
+    Function& target,
+    intptr_t arg_count,
+    const Array& optional_argument_names) {
   ASSERT(!target.IsNull());
   const Code& code = Code::Handle(target.code());
   ASSERT(!code.IsNull());
   ExternalLabel target_label("DirectInstanceCall", code.EntryPoint());
 
   __ LoadObject(ECX, target);
-  __ LoadObject(EDX, ArgumentsDescriptor(arg_count,
-                                         node->arguments()->names()));
-
+  __ LoadObject(EDX, ArgumentsDescriptor(arg_count, optional_argument_names));
   __ call(&target_label);
-  AddCurrentDescriptor(PcDescriptors::kOther, node->id(), node->token_index());
+  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index);
   __ addl(ESP, Immediate(arg_count * kWordSize));
 }
 
 
-// Using collected type feedback, inline class checks and call the targets
-// directly instead of via inline cache stub. TODO(srdjan): Use type propagation
-// and CHA to eliminate checks.
-// Return false if no code was generated (because no type feedback was found).
-bool OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
-    InstanceCallNode* node) {
-  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
-  if ((classes == NULL) || classes->is_empty()) {
-    return false;
+// Use ICData in 'node' to issues checks and calls.
+void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
+    AstNode* node,
+    AstNode* receiver,
+    intptr_t node_id,
+    intptr_t token_index,
+    intptr_t num_args,
+    const Array& optional_argument_names) {
+  ASSERT(node != NULL);
+  ASSERT(receiver != NULL);
+  ASSERT(num_args > 0);
+  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node);
+  const ICData& ic_data = node->ICDataAtId(node_id);
+  if (ic_data.NumberOfChecks() == 0) {
+    // No type feedback means node was never executed.
+    __ jmp(deopt_blob->label());
+    return;
+  }
+  ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+
+  // First test for Smi. Null object will cause deoptimization.
+  intptr_t smi_class_index = -1;
+  Class& smi_test_class = Class::Handle();
+  Function& smi_target = Function::ZoneHandle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetOneClassCheckAt(i, &smi_test_class, &smi_target);
+    if (smi_test_class.raw() == smi_class_.raw()) {
+      smi_class_index = i;
+      break;
+    }
   }
 
-  const int arg_count = node->arguments()->length() + 1;  // With receiver.
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node);
-  ASSERT(arg_count > 0);
-  __ movl(EAX, Address(ESP, (arg_count - 1) * kWordSize));  // Load receiver.
-
   Label done;
-  // If needed, Smi test must come first.
-  const intptr_t smi_class_index = IndexOfClassInArray(*classes, smi_class_);
+  __ movl(EAX, Address(ESP, (num_args - 1) * kWordSize));  // Load receiver.
   if (smi_class_index >= 0) {
     // Smi test is needed.
     __ testl(EAX, Immediate(kSmiTagMask));
-    if (classes->length() == 1) {
+    if (ic_data.NumberOfChecks() == 1) {
       // Only the Smi test.
       __ j(NOT_ZERO, deopt_blob->label());
-      GenerateDirectInstanceCall(node, smi_class_);
-      return true;
+      GenerateDirectCall(node_id,
+                         token_index,
+                         smi_target,
+                         num_args,
+                         optional_argument_names);
+      return;
     }
     Label not_smi;
     __ j(NOT_ZERO, &not_smi);
-    GenerateDirectInstanceCall(node, smi_class_);
+    GenerateDirectCall(node_id,
+                       token_index,
+                       smi_target,
+                       num_args,
+                       optional_argument_names);
     __ jmp(&done);
     __ Bind(&not_smi);  // Continue with other test below.
-  } else if (NodeMayBeSmi(node->receiver())) {
+  } else if (NodeMayBeSmi(receiver)) {
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
+  } else {
+    // Receiver cannot be Smi, no need to test it.
   }
 
-  // We need to generate special test for last class exclusive Smi class.
-  intptr_t last_check_at = (smi_class_index == classes->length() - 1) ?
-      classes->length() - 2 : classes->length() - 1;
+  intptr_t last_check_at = (smi_class_index == ic_data.NumberOfChecks() - 1) ?
+      ic_data.NumberOfChecks() - 2 : ic_data.NumberOfChecks() - 1;
   // Every class may appear only once in the 'classes' array. Therefore, if
   // Smi class is last, it cannot be the second to last.
-  ASSERT(!(*classes)[last_check_at]->IsSmi());
   __ movl(EAX, FieldAddress(EAX, Object::class_offset()));  // Receiver's class.
   for (intptr_t i = 0; i <= last_check_at; i++) {
-    const Class& test_class = *((*classes)[i]);
-    ASSERT(!test_class.IsNullClass());
-    if (test_class.raw() == smi_class_.raw()) {
+    Function& target = Function::ZoneHandle();
+    Class& cls = Class::ZoneHandle();
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    ASSERT(!cls.IsNullClass());
+    if (cls.raw() == smi_class_.raw()) {
+      ASSERT(i < last_check_at);  // Smi class may not be last.
       continue;  // Skip Smi test.
     }
-    __ CompareObject(EAX, test_class);
+    __ CompareObject(EAX, cls);
     if (i == last_check_at) {
       __ j(NOT_EQUAL, deopt_blob->label());
-      GenerateDirectInstanceCall(node, test_class);
+      GenerateDirectCall(node_id,
+                         token_index,
+                         target,
+                         num_args,
+                         optional_argument_names);
     } else {
       Label next;
       __ j(NOT_EQUAL, &next);
-      GenerateDirectInstanceCall(node, test_class);
+      GenerateDirectCall(node_id,
+                         token_index,
+                         target,
+                         num_args,
+                         optional_argument_names);
       __ jmp(&done);
       __ Bind(&next);
     }
   }
   __ Bind(&done);
-
-  return true;
 }
 
 
@@ -2051,14 +2070,12 @@ void OptimizingCodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
   if (TryInlineInstanceCall(node)) {
     // Instance call is inlined.
   } else {
-    // Inline checks if possible and call function directly.
-    if (!GenerateCheckedInstanceCalls(node)) {
-      GenerateInstanceCall(node->id(),
-                           node->token_index(),
-                           node->function_name(),
-                           number_of_arguments,
-                           node->arguments()->names());
-    }
+    GenerateCheckedInstanceCalls(node,
+                                 node->receiver(),
+                                 node->id(),
+                                 node->token_index(),
+                                 number_of_arguments,
+                                 node->arguments()->names());
   }
   // Result is in EAX.
   if (IsResultNeeded(node)) {

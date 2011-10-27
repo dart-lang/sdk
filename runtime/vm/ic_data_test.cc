@@ -54,9 +54,14 @@ TEST_CASE(ICDataTest) {
   GrowableArray<const Class*> test_classes;
   Function& test_target = Function::Handle();
   ic_data.GetCheckAt(0, &test_classes, &test_target);
+  Class& test_class_1 = Class::Handle();
+  Function& test_target_1 = Function::Handle();
+  ic_data.GetOneClassCheckAt(0, &test_class_1, &test_target_1);
 
   EXPECT(SameClassArrays(classes, test_classes));
+  EXPECT_EQ(test_classes[0]->raw(), test_class_1.raw());
   EXPECT_EQ(target.raw(), test_target.raw());
+  EXPECT_EQ(test_target.raw(), test_target_1.raw());
 
   const Function& new_target =
        Function::Handle(GetDummyTarget(name.ToCString()));
