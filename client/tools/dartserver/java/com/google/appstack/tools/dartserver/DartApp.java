@@ -18,21 +18,17 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
-import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
-import com.google.dart.compiler.metrics.CompilerMetrics;
 
 public class DartApp {
   public static class Result {
@@ -79,17 +75,7 @@ public class DartApp {
 
     private class Listener extends DartCompilerListener {
       @Override
-      public void compilationError(DartCompilationError error) {
-        errors.add(error);
-      }
-
-      @Override
-      public void compilationWarning(DartCompilationError error) {
-        errors.add(error);
-      }
-
-      @Override
-      public void typeError(DartCompilationError error) {
+      public void onError(DartCompilationError error) {
         errors.add(error);
       }
 
