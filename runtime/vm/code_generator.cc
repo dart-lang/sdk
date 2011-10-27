@@ -24,7 +24,7 @@ DEFINE_FLAG(bool, trace_deopt, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_ic, false, "trace IC handling");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls.");
-DECLARE_FLAG(bool, deoptimization_counter_threshold);
+DECLARE_FLAG(int, deoptimization_counter_threshold);
 
 
 const Array& CodeGenerator::ArgumentsDescriptor(
