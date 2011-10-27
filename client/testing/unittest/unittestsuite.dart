@@ -116,10 +116,8 @@ class UnitTestSuite {
 
   /** Runs all queued tests, one at a time. */
   void runTests() {
-    window.dynamic/*TODO(5389254)*/.postMessage('unittest-suite-start', '*');
-    // Isolate.bind makes sure the closure runs in the same isolate (i.e. this
-    // one) where it has been created.
-    window.setTimeout(Isolate.bind(() {
+    window.postMessage('unittest-suite-start', '*');
+    window.setTimeout(() {
       assert (_currentTest == 0);
       // Listen for uncaught errors (see [_uncaughtError]).
       // TODO(jacobr): remove this horrible hack when dartc bugs are fixed.
@@ -129,7 +127,7 @@ class UnitTestSuite {
         window.dynamic.onerror = _onErrorClosure;
       }
       _nextBatch();
-    }), 0);
+      }, 0);
   }
 
   void _onError(e) {

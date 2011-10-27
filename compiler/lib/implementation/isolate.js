@@ -301,18 +301,6 @@ function native_IsolateNatives__spawn(runnable, light, replyPort) {
   }
 }
 
-function native_IsolateNatives_bind(fn) {
-  var isolate = isolate$current;
-  return function() {
-    var self = this;
-    var args = arguments;
-    isolate.run(function() {
-      fn.apply(self, args);
-    });
-    isolate$runEventLoop();
-  };
-}
-
 function isolate$startNonWorker(runnable, replyTo) {
   // Spawn a new isolate and create the receive port in it.
   var spawned = new isolate$Isolate();

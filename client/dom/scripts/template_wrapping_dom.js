@@ -251,16 +251,8 @@ function __dom_wrap_primitive(ptr) {
   return (ptr === null) ? (void 0) : ptr;
 }
 
-
-function __dom_finish_unwrap_function(fn, unwrapped) {
-  fn.$dom = unwrapped;
-  var isolatetoken = __dom_isolate_token();
-  __dom_set_cached('dart_wrapper', unwrapped, isolatetoken, fn);
-  return unwrapped;
-}
-
 /** @suppress {duplicate} */
-function __dom_unwrap(obj) {
+function __dom_unwrap(obj, dropargs) {
   if (obj == null) {
     return (void 0);
   }
@@ -268,12 +260,31 @@ function __dom_unwrap(obj) {
     return obj.$dom;
   }
   if (obj instanceof Function) {  // BUGBUG: function from other IFrame
-    var unwrapped = function () {
-      var args = Array.prototype.slice.call(arguments);
-      return $dartcall(obj, args.map(__dom_wrap));
+    var isolatetoken = __dom_isolate_token();
+    var unwrapped = __dom_get_cached('dart_unwrapped', obj, isolatetoken);
+    if (unwrapped) {
+      return unwrapped;
+    }
+    var isolate = isolate$current;
+    unwrapped = function () {
+      var old = isolate$current;
+      isolate$current = isolate;
+      try {
+        if (dropargs) {
+          return $dartcall(obj, []);
+        } else {
+          var args = Array.prototype.slice.call(arguments);
+          return $dartcall(obj, args.map(__dom_wrap));
+        }
+      } finally {
+        isolate$current = old;
+        // TODO(vsm): This really needs to go elsewhere.
+        isolate$runEventLoop();
+      }
       // BUGBUG? Should the result be unwrapped? Or is it always void/bool ?
     };
-    return __dom_finish_unwrap_function(obj, unwrapped);
+    __dom_set_cached('dart_unwrapped', obj, isolatetoken, unwrapped);
+    return unwrapped;
   }
   return obj;
 }
@@ -282,9 +293,7 @@ function __dom_unwrap_TimeoutHandler_function(fn) {
   // Some browsers (e.g. FF) pass data to the timeout function, others do not.
   // Dart's TimeoutHandler takes no arguments, so drop any arguments passed to
   // the unwrapped callback.
-  return __dom_finish_unwrap_function(
-      fn,
-      function() { return $dartcall(fn, []); });
+  return __dom_unwrap(fn, true);
 }
 
 // Declared in src/GlobalProperties.dart
