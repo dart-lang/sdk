@@ -24,6 +24,7 @@ DEFINE_FLAG(bool, trace_deopt, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_ic, false, "trace IC handling");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls.");
+DECLARE_FLAG(bool, deoptimization_counter_threshold);
 
 
 const Array& CodeGenerator::ArgumentsDescriptor(
@@ -766,6 +767,12 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.Count() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
+  if (function.deoptimization_counter() >=
+      FLAG_deoptimization_counter_threshold) {
+    // TODO(srdjan): Investigate excessive deoptimization.
+    function.set_invocation_counter(0);
+    return;
+  }
   if (function.is_optimizable()) {
     ASSERT(!Code::Handle(function.code()).is_optimized());
     const Code& unoptimized_code = Code::Handle(function.code());
