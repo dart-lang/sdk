@@ -9,6 +9,7 @@
 #import('../../../../samples/total/src/TotalLib.dart');
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../view/view.dart');
+#source('../../../../../samples/total/src/SYLKProducer.dart');
 
 main() {
   test('DateUtils', () {
@@ -367,10 +368,11 @@ main() {
   });
 
   test('Mortgage', () {
-    Reader reader = new SYLKReader();
-    List<String> data = reader.makeExample("mortgage");
+    SYLKProducer producer = new SYLKProducer();
+    String data = producer.makeExample("mortgage");
     Spreadsheet spreadsheet = new Spreadsheet();
-    reader.loadSpreadsheet(spreadsheet, data);
+    Reader reader = new SYLKReader();
+    reader.loadFromString(spreadsheet, data);
     Expect.approxEquals(383.05, spreadsheet.getDoubleValue(new RowCol(99, 2)), 0.05);
     Expect.approxEquals(36977.28, spreadsheet.getDoubleValue(new RowCol(100, 2)), 0.05);
     Expect.approxEquals(6976.86, spreadsheet.getDoubleValue(new RowCol(100, 3)), 0.05);
