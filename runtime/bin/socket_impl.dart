@@ -42,12 +42,14 @@ class _SocketBase {
       for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
         if (((event_mask & (1 << i)) != 0) && _handlerMap[i] !== null) {
           var handleEvent = _handlerMap[i];
-          /*
-           * Unregister the out handler before executing it.
-           */
-          if (i == _OUT_EVENT) {
-            _setHandler(i, null);
-          }
+
+          // Unregister the out handler before executing it.
+          if (i == _OUT_EVENT) _setHandler(i, null);
+
+          // Don't call the in handler if there is no data available
+          // after all.
+          if (i == _IN_EVENT && this is _Socket && available() == 0) continue;
+
           handleEvent();
         }
       }
