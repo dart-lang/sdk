@@ -44,9 +44,9 @@ test3() {
   var f2 = (Pair<int, Pair<int, int> > pr) => pr.snd.fst + 2;
 
   // Closures with function type with nested parameterized types.
-  var ap1 = (f(Pair<int, Pair<int, int>> pr), Pair<int, Pair<int, int>> pr)
+  var ap1 = (f(Pair<int, Pair<int, int>> pr1), Pair<int, Pair<int, int>> pr)
                  => f(pr) * 10;
-  var ap2 = (f(Pair<int, Pair<int, int> > pr), Pair<int, Pair<int, int> > pr)
+  var ap2 = (f(Pair<int, Pair<int, int> > pr1), Pair<int, Pair<int, int> > pr)
                  => f(pr) * 100;
 
   var e = new Pair<int, Pair<int, int>>(100, new Pair<int, int>(200, 300));
