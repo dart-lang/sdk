@@ -94,7 +94,6 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegE
 LibTest/core/StringBuffer/isEmpty/StringBuffer/isEmpty/A01/t01: Fail
 
 # New crashes
-LibTest/core/RegExp/RegExp/RegExp/A01/t04: Skip
 LibTest/core/List/copyFrom/List/copyFrom/A01/t03: Skip
 LibTest/core/List/copyFrom/List/copyFrom/A01/t04: Skip
 
@@ -137,6 +136,15 @@ LibTest/core/Queue/add/Queue/add/A01/t01: Skip
 LibTest/core/Queue/addLast/Queue/addLast/A01/t01: Skip
 LibTest/core/Queue/iterator_hasNext/Queue/iterator/hasNext/A01/t01: Skip
 LibTest/core/Set/add/Set/add/A01/t03: Skip
+
+# Invalid tests (ObjectNotClosureException instead of NullPointerException)
+LibTest/core/Queue/filter/Queue/filter/A01/t03 : Skip
+LibTest/core/Queue/some/Queue/some/A01/t03 : Skip
+LibTest/core/Queue/forEach/Queue/forEach/A01/t03 : Skip
+LibTest/core/Queue/every/Queue/every/A01/t03 : Skip
+LibTest/core/Map/forEach/Map/forEach/A01/t02 : Skip
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t06 : Skip
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t08 : Skip
 
 [ $arch == x64 ]
 *: Skip
