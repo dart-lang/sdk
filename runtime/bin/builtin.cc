@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
+#include "bin/dartutils.h"
 
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
@@ -26,4 +27,11 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
   Dart_EnterScope();
   PrintString(stdout, Dart_GetNativeArgument(args, 0));
   Dart_ExitScope();
+}
+
+void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int64_t status = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  Dart_ExitScope();
+  exit(status);
 }

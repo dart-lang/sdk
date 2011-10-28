@@ -23,6 +23,7 @@ static const char Builtin_source_[] = {
 // to inject additional functionality e.g: Logger, file I/O, socket I/O etc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
   V(Logger_PrintString, 1)                                                     \
+  V(Exit, 1)                                                                   \
   V(Directory_List, 7)                                                         \
   V(Directory_Exists, 2)                                                       \
   V(Directory_Create, 2)                                                       \

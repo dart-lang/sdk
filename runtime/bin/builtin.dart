@@ -8,6 +8,15 @@ void print(arg) {
   _Logger._printString(arg.toString());
 }
 
+void exit(int status) {
+  if (status is !int) {
+    throw new IllegalArgumentException("int status expected");
+  }
+  _exit(status);
+}
+
+_exit(int status) native "Exit";
+
 class _Logger {
   static void _printString(String s) native "Logger_PrintString";
 }
