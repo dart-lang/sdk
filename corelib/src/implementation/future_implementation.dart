@@ -57,7 +57,7 @@ class FutureImpl<T> implements Future<T> {
     if (!isComplete) {
       throw new FutureNotCompleteException();
     }
-    if (_exception != null) {
+    if (_exception !== null) {
       throw _exception;
     }
     return _value;
@@ -92,7 +92,7 @@ class FutureImpl<T> implements Future<T> {
 
   void _complete() {
     _isComplete = true;
-    if (_exception != null) {
+    if (_exception !== null) {
       for (Function handler in _exceptionHandlers) {
         if (handler(_exception)) {
           _exceptionHandled = true;

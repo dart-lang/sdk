@@ -67,7 +67,7 @@ class _Process implements Process {
 
         void handleExit() {
           _processExit(exitPid(exitDataBuffer));
-          if (_exitHandlerCallback != null) {
+          if (_exitHandlerCallback !== null) {
             _exitHandlerCallback(exitCode(exitDataBuffer));
           }
         }

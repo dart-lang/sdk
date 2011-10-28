@@ -44,7 +44,7 @@ class ReceivePortImpl implements ReceivePort {
 
   // Called from the VM to dispatch to the handler.
   static void handleMessage_(int id, int replyId, var message) {
-    assert(_portMap != null);
+    assert(_portMap !== null);
     ReceivePort port = _portMap[id];
     SendPort replyTo = (replyId == 0) ? null : new SendPortImpl(replyId);
     (port._onMessage)(message, replyTo);

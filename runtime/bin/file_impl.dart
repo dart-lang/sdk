@@ -13,7 +13,7 @@ class _FileInputStream implements FileInputStream {
     if (bytesToRead == 0) {
       return null;
     }
-    if (len != null) {
+    if (len !== null) {
       if (len <= 0) {
         throw new StreamException("Illegal length $len");
       } else if (bytesToRead > len) {

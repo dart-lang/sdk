@@ -93,7 +93,7 @@ class _Timer implements Timer {
 
   void _notifyEventHandler() {
     if (_timers.firstEntry() === null) {
-      if (_receivePort != null) {
+      if (_receivePort !== null) {
         EventHandler._sendData(-1, _receivePort, _NO_TIMER);
         _shutdownTimerHandler();
       }

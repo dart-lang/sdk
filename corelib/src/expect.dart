@@ -232,7 +232,7 @@ class Expect {
     try {
       f();
     } catch (var e) {
-      if (check != null) {
+      if (check !== null) {
         Expect.isTrue(check(e));
       }
       return;

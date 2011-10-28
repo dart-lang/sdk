@@ -190,13 +190,13 @@ class _StringInputStream implements StringInputStream {
   String read() {
     // If there is buffered data return that first.
     var decodedString = _decoder.decoded;
-    if (_buffer != null) {
+    if (_buffer !== null) {
       var result = _buffer;
       _resetBuffer();
-      if (decodedString != null) result += decodedString;
+      if (decodedString !== null) result += decodedString;
       return result;
     } else {
-      if (decodedString != null) {
+      if (decodedString !== null) {
         return decodedString;
       } else {
         _readData();
@@ -207,9 +207,9 @@ class _StringInputStream implements StringInputStream {
 
   String readLine() {
     // Get line from the buffer if possible.
-    if (_buffer != null) {
+    if (_buffer !== null) {
       var result = _readLineFromBuffer();
-      if (result != null) return result;
+      if (result !== null) return result;
     }
     // Try to fill more data into the buffer and read a line.
     if (_fillBuffer()) {
@@ -233,20 +233,20 @@ class _StringInputStream implements StringInputStream {
 
   void _dataHandler() {
     _readData();
-    if (!_decoder.isEmpty() && _clientDataHandler != null) {
+    if (!_decoder.isEmpty() && _clientDataHandler !== null) {
       _clientDataHandler();
     }
   }
 
   void _closeHandler() {
     _closed = true;
-    if (_clientDataHandler != null) _clientDataHandler();
-    if (_clientCloseHandler != null) _clientCloseHandler();
+    if (_clientDataHandler !== null) _clientDataHandler();
+    if (_clientCloseHandler !== null) _clientCloseHandler();
   }
 
   void _readData() {
     List<int> data = _input.read();
-    if (data != null) {
+    if (data !== null) {
       _decoder.write(data);
     }
   }
@@ -293,7 +293,7 @@ class _StringInputStream implements StringInputStream {
   // added or end of file was reached.
   bool _fillBuffer() {
     if (_eof) return false;
-    if (_buffer != null && _bufferLineStart == _buffer.length) {
+    if (_buffer !== null && _bufferLineStart == _buffer.length) {
       _buffer = null;
       _bufferLineStart = null;
     }
@@ -305,11 +305,11 @@ class _StringInputStream implements StringInputStream {
     }
     if (_buffer === null) {
       _buffer = decodedString;
-      if (_buffer != null) {
+      if (_buffer !== null) {
         _bufferLineStart = 0;
         return true;
       }
-    } else if (decodedString != null) {
+    } else if (decodedString !== null) {
       _buffer = _buffer.substring(_bufferLineStart) + decodedString;
       _bufferLineStart = 0;
       return true;

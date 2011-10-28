@@ -10,7 +10,7 @@ class SocketInputStream implements InputStream {
   List<int> read([int len]) {
     int bytesToRead = available();
     if (bytesToRead == 0) return null;
-    if (len != null) {
+    if (len !== null) {
       if (len <= 0) {
         throw new StreamException("Illegal length $len");
       } else if (bytesToRead > len) {

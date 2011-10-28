@@ -113,7 +113,7 @@ class Towers {
 
   void push(int pile, TowersDisk disk) {
     TowersDisk top = piles[pile];
-    if ((top != null) && (disk.size >= top.size))
+    if ((top !== null) && (disk.size >= top.size))
       Error.error("Cannot put a big disk on a smaller disk.");
     disk.next = top;
     piles[pile] = disk;
@@ -608,7 +608,7 @@ class ListElement {
   static bool isShorter(ListElement x, ListElement y) {
     ListElement xTail = x;
     ListElement yTail = y;
-    while (yTail != null) {
+    while (yTail !== null) {
       if (xTail === null) return true;
       xTail = xTail.next;
       yTail = yTail.next;
