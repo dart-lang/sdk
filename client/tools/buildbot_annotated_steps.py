@@ -79,7 +79,7 @@ def RunDartcCompiler(client_path, mode, outdir):
   # Move to the client directory and call the build script
   os.chdir(client_path)
   return subprocess.call(
-      [sys.executable, '../tools/build.py', '--arch=dartc', '--mode=' + mode])
+      [sys.executable, '../tools/build.py', '--mode=' + mode])
 
 def RunBrowserTests(client_path, arch, mode, platform):
   """Runs the Dart client tests."""

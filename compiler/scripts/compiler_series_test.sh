@@ -173,7 +173,7 @@ function compileRevision() {
     echo "Compiling clean version of dartc; may take some time"
     date
     cd compiler
-    ../tools/build.py --mode release --arch dartc >> $LOG_FILE 2>&1
+    ../tools/build.py --mode release >> $LOG_FILE 2>&1
     if [ ! $? -eq 0 ]; then
       echo "error compiling"
       failStats $REVISION

@@ -153,7 +153,7 @@ echo "" > $STAT2
 echo "Compiling dartc with your changes (mode=release)"
 cd $ROOT_OF_REPO/compiler
 gclient runhooks >> $LOG_FILE 2>&1
-../tools/build.py --mode release --arch dartc >> $LOG_FILE 2>&1
+../tools/build.py --mode release >> $LOG_FILE 2>&1
 failTest $? "Error compiling your location changes, check $LOG_FILE"
 
 echo "Running first test against current working copy"
@@ -179,7 +179,7 @@ failTest $? "Error calling gclient sync"
 echo "Compiler clean version; may take some time"
 cd compiler
 gclient runhooks >> $LOG_FILE 2>&1
-../tools/build.py --mode release --arch dartc >> $LOG_FILE 2>&1
+../tools/build.py --mode release >> $LOG_FILE 2>&1
 failTest $? "Error compiling comparison revision"
 
 # Do the second test

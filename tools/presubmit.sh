@@ -92,12 +92,12 @@ doBuild runtime ia32 release
 
 echo
 echo "--- Building compiler ---"
-doBuild compiler dartc debug
+doBuild compiler ia32 debug
 
 if [ ${DO_OPTIMIZE} == 1 ] ; then
   # echo "Syncing compiler debug build to release"
-  # rsync -a out/Debug_dartc out/Release_dartc
-  doBuild compiler dartc release
+  # rsync -a out/Debug_ia32 out/Release_ia32
+  doBuild compiler ia32 release
 fi
 
 # TODO(zundel): Potential shortcut: don't rebuild all of dartc again.
@@ -106,12 +106,12 @@ fi
 # Build in client dir
 echo
 echo "--- Building client ---"
-doBuild client dartc debug
+doBuild client ia32 debug
 
 if [ ${DO_OPTIMIZE} == 1 ] ; then
   # echo "Syncing client debug build to release"
-  # rsync -a out/Debug_dartc out/Release_dartc
-  doBuild client dartc release
+  # rsync -a out/Debug_ia32 out/Release_ia32
+  doBuild client ia32 release
 fi
 
 

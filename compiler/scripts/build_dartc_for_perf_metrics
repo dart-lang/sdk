@@ -25,7 +25,7 @@ $GCLIENT_CMD sync -r $DARTC_REVISION -t > gclient.sync.txt
 
 # Build dartc
 cd compiler
-../tools/build.py --mode release --arch dartc
+../tools/build.py --mode release
 rc=$?
 if [ $rc -ne 0 ]; then
   exit $rc
