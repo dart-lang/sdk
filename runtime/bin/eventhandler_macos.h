@@ -42,6 +42,7 @@ class EventHandlerImplementation {
   void HandleInterruptFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
   Dart_Port PortFor(intptr_t fd);
+  bool IsListeningSocket(intptr_t fd);
   intptr_t GetPollEvents(struct pollfd* pollfd);
   void SetPollEvents(struct pollfd* pollfds, intptr_t mask);
 

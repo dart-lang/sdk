@@ -58,8 +58,8 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 
 // TODO(hpayer): Use hash table instead of array.
 void EventHandlerImplementation::SetPort(intptr_t fd,
-                                 Dart_Port dart_port,
-                                 intptr_t mask) {
+                                         Dart_Port dart_port,
+                                         intptr_t mask) {
   ASSERT(fd >= 0);
   if (fd >= port_map_size_) {
     intptr_t new_port_map_size = port_map_size_;
@@ -93,6 +93,11 @@ void EventHandlerImplementation::SetPort(intptr_t fd,
 
 Dart_Port EventHandlerImplementation::PortFor(intptr_t fd) {
   return port_map_[fd].dart_port;
+}
+
+
+bool EventHandlerImplementation::IsListeningSocket(intptr_t fd) {
+  return (port_map_[fd].mask & (1 << kListeningSocket)) != 0;
 }
 
 
@@ -136,10 +141,8 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 
 void EventHandlerImplementation::SetPollEvents(struct pollfd* pollfds,
                                                intptr_t mask) {
-  /*
-   * We do not set POLLERR and POLLHUP explicitly since they are triggered
-   * anyway.
-   */
+  // Do not ask for POLLERR and POLLHUP explicitly as they are
+  // triggered anyway.
   if ((mask & (1 << kInEvent)) != 0) {
     pollfds->events |= POLLIN;
   }
@@ -212,26 +215,28 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
   intptr_t event_mask = 0;
-  /*
-   * We prioritize the events in the following order.
-   */
-  if ((pollfd->revents & POLLIN) != 0) {
-    if (FDUtils::AvailableBytes(pollfd->fd) != 0) {
-      event_mask = (1 << kInEvent);
-    } else if ((pollfd->revents & POLLHUP) != 0) {
-      event_mask = (1 << kCloseEvent);
-    } else if ((pollfd->revents & POLLERR) != 0) {
-      event_mask = (1 << kErrorEvent);
-    } else {
-      /*
-       * Accept event.
-       */
-      event_mask = (1 << kInEvent);
+  if (IsListeningSocket(pollfd->fd)) {
+    // For listening sockets the POLLIN event indicate that there are
+    // connections ready for accept unless accompanied with one of the
+    // other flags.
+    if ((pollfd->revents & POLLIN) != 0) {
+      if ((pollfd->revents & POLLHUP) != 0) event_mask |= (1 << kCloseEvent);
+      if ((pollfd->revents & POLLERR) != 0) event_mask |= (1 << kErrorEvent);
+      if (event_mask == 0) event_mask |= (1 << kInEvent);
     }
-  }
+  } else {
+    // Prioritize data events over close and error events.
+    if ((pollfd->revents & POLLIN) != 0) {
+      if (FDUtils::AvailableBytes(pollfd->fd) != 0) {
+        event_mask = (1 << kInEvent);
+      } else if ((pollfd->revents & POLLHUP) != 0) {
+        event_mask = (1 << kCloseEvent);
+      } else if ((pollfd->revents & POLLERR) != 0) {
+        event_mask = (1 << kErrorEvent);
+      }
+    }
 
-  if ((pollfd->revents & POLLOUT) != 0) {
-    event_mask |= (1 << kOutEvent);
+    if ((pollfd->revents & POLLOUT) != 0) event_mask |= (1 << kOutEvent);
   }
 
   return event_mask;

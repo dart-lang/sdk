@@ -4,18 +4,28 @@
 
 
 class _SocketBase {
-
-  /*
-   * Keep these constants in sync with the native poll event identifiers.
-   */
+  // Bit flags used when communicating between the eventhandler and
+  // dart code. The EVENT flags are used to indicate events of
+  // interest when sending a message from dart code to the
+  // eventhandler. When receiving a message from the eventhandler the
+  // EVENT flags indicate the events that actually happened. The
+  // COMMAND flags are used to send commands from dart to the
+  // eventhandler. COMMAND flags are never received from the
+  // eventhandler. Additional flags are used to communicate other
+  // information.
   static final int _IN_EVENT = 0;
   static final int _OUT_EVENT = 1;
   static final int _ERROR_EVENT = 2;
   static final int _CLOSE_EVENT = 3;
+
+  static final int _CLOSE_COMMAND = 8;
+
+  // Flag send to the eventhandler saying that the file descriptor in
+  // question represents a listening socket.
+  static final int _LISTENING_SOCKET = 16;
+
   static final int _FIRST_EVENT = _IN_EVENT;
   static final int _LAST_EVENT = _CLOSE_EVENT;
-
-  static final int _CLOSE_COMMAND = 4;
 
   _SocketBase () {
     _handler = new ReceivePort();
@@ -72,7 +82,9 @@ class _SocketBase {
 
   void _doActivateHandlers() {
     if (_canActivateHandlers && (_id >= 0)) {
-      EventHandler._sendData(_id, _handler, _handlerMask);
+      int data = _handlerMask;
+      if (_isListenSocket()) data |= (1 << _LISTENING_SOCKET);
+      EventHandler._sendData(_id, _handler, data);
     }
   }
 
@@ -106,6 +118,7 @@ class _SocketBase {
     }
   }
 
+  abstract bool _isListenSocket();
 
   /*
    * Socket id is set from native. -1 indicates that the socket was closed.
@@ -180,6 +193,8 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   void setConnectionHandler(void callback()) {
     _setHandler(_IN_EVENT, callback);
   }
+
+  bool _isListenSocket() => true;
 }
 
 
@@ -274,6 +289,8 @@ class _Socket extends _SocketBase implements Socket {
   void setCloseHandler(void callback()) {
     _setHandler(_CLOSE_EVENT, callback);
   }
+
+  bool _isListenSocket() => false;
 
   InputStream get inputStream() {
     if (_inputStream === null) {
