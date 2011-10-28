@@ -48,7 +48,7 @@ class GenericTest {
       D d = new D();
       Expect.equals(true, d.caa_.b_ is B<AA>);
       Expect.equals(true, d.caa_.b_.isT(const AA()));
-      C c = new C(const AA());  // c is of raw type C, T in C<T> is VarType.
+      C c = new C(const AA());  // c is of raw type C, T in C<T> is Dynamic.
       Expect.equals(true, c.b_ is B);
       Expect.equals(true, c.b_ is B<AA>);
       Expect.equals(true, c.b_.isT(const AA()));

@@ -123,6 +123,7 @@ NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 LocalFunction3Test: Fail     # Bug 4202974.
 MethodOverrideTest: Crash    # Bug 5516001.
+DynamicTest: Fail            # Bug 5527899.
 
 FieldNegativeTest: Fail      # Bug 4207626.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.

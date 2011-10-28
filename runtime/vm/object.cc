@@ -258,12 +258,18 @@ void Object::InitOnce() {
     transition_sentinel_ = transition_sentinel.raw();
   }
 
+  // The interface "Dynamic" is not a VM internal class. It is the type class of
+  // the "unknown type". For efficiency, we allocate it in the VM isolate.
+  // Therefore, it cannot have a heap allocated name (the name is hard coded,
+  // see GetSingletonClassIndex) and its array fields cannot be set to the empty
+  // array, but remain null.
+  cls = Class::New<Instance>();
+  cls.set_is_interface();
+  dynamic_class_ = cls.raw();
+
   // Allocate the remaining VM internal classes.
   cls = Class::New<UnresolvedClass>();
   unresolved_class_class_ = cls.raw();
-
-  cls = Class::New<Instance>();
-  dynamic_class_ = cls.raw();
 
   cls = Class::New<Instance>();
   void_class_ = cls.raw();
@@ -557,20 +563,26 @@ void Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
-  // The classes 'Null', 'Dynamic', and 'void' are not registered in the class
-  // dictionary and are not named, but corresponding types are stored in the
-  // object store.
+  // The classes 'Null' and 'void' are not registered in the class dictionary,
+  // because their names are reserved keywords. Their names are not heap
+  // allocated, because the classes reside in the VM isolate.
+  // The corresponding types are stored in the object store.
   cls = null_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_null_type(type);
 
-  cls = dynamic_class_;
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_dynamic_type(type);
-
   cls = void_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_void_type(type);
+
+  // The class 'Dynamic' is registered in the class dictionary because its name
+  // is a built-in identifier, rather than a reserved keyword. Its name is not
+  // heap allocated, because the class resides in the VM isolate.
+  // The corresponding type, the "unknown type", is stored in the object store.
+  cls = dynamic_class_;
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_dynamic_type(type);
+  core_lib.AddClass(cls);
 
   // Finish the initialization by compiling the bootstrap script containing the
   // implementation of the internal classes.
