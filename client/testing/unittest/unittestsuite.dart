@@ -260,6 +260,17 @@ class UnitTestSuite {
 /** Creates an expectation for the given value. */
 Expectation expect(value) => new Expectation(value);
 
+/** Evaluates the given function and validates that it throws an exception. */
+void expectThrow(function) {
+  bool threw = false;
+  try {
+    function();
+  } catch (var e) {
+    threw = true;
+  }
+  Expect.equals(true, threw, 'Expected exception but none was thrown.');
+}
+
 /**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
