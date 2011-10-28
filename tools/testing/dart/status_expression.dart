@@ -267,7 +267,7 @@ class ExpressionParser {
   BooleanExpression parseBooleanAtomic() {
     if (scanner.current == Token.LEFT_PAREN) {
       scanner.advance();
-      SetExpression value = parseBooleanExpression();
+      BooleanExpression value = parseBooleanExpression();
       Expect.equals(scanner.current, Token.RIGHT_PAREN,
                     "Missing right parenthesis in expression");
       scanner.advance();
