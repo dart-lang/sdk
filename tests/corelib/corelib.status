@@ -17,6 +17,7 @@ ConstListLiteralTest: Fail      # Bug 5202940
 ConstListSetRangeTest: Fail     # Bug 5202940
 ConstListRemoveRangeTest: Fail  # Bug 5202940
 CoreRuntimeTypesTest: Fail      # Bug 5196164
+RegExp4Test: Fail               # Issue 256
 StringTest: Fail                # Bug 5196164
 *VMTest: Skip
 
