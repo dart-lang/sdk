@@ -1,0 +1,298 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#library("status_expression");
+
+/**
+ * Parse and evaluate expressions in a .status file for Dart and V8.
+ * There are set expressions and Boolean expressions in a .status file.
+ * The grammar is:
+ *   BooleanExpression := $variableName == value | $variableName |
+ *                        (BooleanExpression) | 
+ *                        BooleanExpression && BooleanExpression | 
+ *                        BooleanExpression || BooleanExpression
+ *
+ *   SetExpression := value | (SetExpression) |
+ *                    SetExpression || SetExpression |
+ *                    SetExpression if BooleanExpression |
+ *                    SetExpression , SetExpression
+ *
+ *  Productions are listed in order of precedence, and the || and , operators
+ *  both evaluate to set union, but with different precedence.
+ *
+ *  Values and variableNames are non-empty strings of word characters, matching
+ *  the RegExp \w+.
+ *
+ *  Expressions evaluate as expected, with values of variables found in
+ *  an environment passed to the evaluator.  The SetExpression "value"
+ *  evaluates to a singleton set containing that value. "A if B" evaluates
+ *  to A if B is true, and to the empty set if B is false.
+ */
+
+
+class Token 
+{
+  static final String LEFT_PAREN = "(";
+  static final String RIGHT_PAREN = ")";
+  static final String DOLLAR_SYMBOL = @"$";
+  static final String UNION = ",";
+  static final String EQUALS = "==";
+  static final String AND = "&&";
+  static final String OR = "||";
+}
+
+
+class Tokenizer {
+  String expression;
+  List<String> tokens;
+
+  Tokenizer(String this.expression)
+    : tokens = new List<String>();
+
+  //  Tokens are : "(", ")", "$", ",", "&&", "||", "==", and (maximal) \w+.
+  static final testRegexp =
+      const RegExp(@"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=))+$");
+  static final regexp = const RegExp(@"[()$,]|(\&\&)|(\|\|)|(\=\=)|\w+");
+
+  List<String> tokenize() {
+    if (!testRegexp.hasMatch(expression)) {
+      throw new ExpectException("Syntax error in '$expression'");
+    }
+    for (Match match in regexp.allMatches(expression)) tokens.add(match[0]);
+    return tokens;
+  }
+}
+
+
+interface BooleanExpression {
+  bool evaluate(Map<String, String> environment);
+}
+
+
+interface SetExpression {
+  Set<String> evaluate(Map<String, String> environment);
+}
+
+
+class Comparison implements BooleanExpression {
+  TermVariable left;
+  TermConstant right;
+
+  Comparison(this.left, this.right);
+
+  bool evaluate(environment) =>
+      left.termValue(environment) == right.termValue(environment);
+  String toString() => "(\$${left.name} == ${right.value})";
+}
+
+
+class TermVariable {
+  String name;
+
+  TermVariable(this.name);
+
+  String termValue(environment) => environment[name];
+}
+
+
+class TermConstant {
+  String value;
+
+  TermConstant(String this.value);
+
+  String termValue(environment) => value;
+}
+     
+
+class BooleanVariable implements BooleanExpression {
+  TermVariable variable;
+
+  BooleanVariable(this.variable);
+
+  bool evaluate(environment) => variable.termValue(environment) == "true";
+  String toString() => "(bool \$${variable.name})";
+}
+
+
+class BooleanOperation implements BooleanExpression {
+  String op;
+  BooleanExpression left;
+  BooleanExpression right;
+
+  BooleanOperation(this.op, this.left, this.right);
+
+  bool evaluate(environment) => (op == Token.AND) ?
+      left.evaluate(environment) && right.evaluate(environment) :
+      left.evaluate(environment) || right.evaluate(environment);
+  String toString() => "($left $op $right)";
+}
+
+
+class SetUnion implements SetExpression {
+  SetExpression left;
+  SetExpression right;
+
+  SetUnion(this.left, this.right);
+
+  // Overwrites left.evaluate(env).
+  // Set.addAll does not return this.
+  Set<String> evaluate(environment) {
+    Set<String> result = left.evaluate(environment);
+    result.addAll(right.evaluate(environment));
+    return result;
+  }
+
+  String toString() => "($left || $right)";
+}
+
+
+class SetIf implements SetExpression {
+  SetExpression left;
+  BooleanExpression right;
+
+  SetIf(this.left, this.right);
+
+  Set<String> evaluate(environment) => right.evaluate(environment) ?
+    left.evaluate(environment) : new Set<String>();
+  String toString() => "($left if $right)";
+}
+    
+
+class SetConstant implements SetExpression {
+  String value;
+
+  SetConstant(this.value);
+
+  Set<String> evaluate(environment) => new Set<String>.from([value]);
+  String toString() => value;
+}
+
+
+// An iterator that allows peeking at the current token.
+class Scanner {
+  List<String> tokens;
+  Iterator tokenIterator;
+  String current;
+
+  Scanner(this.tokens) {
+    tokenIterator = tokens.iterator();
+    advance();
+  }
+
+  bool hasMore() => current != null;
+
+  void advance() {
+    current = tokenIterator.hasNext() ? tokenIterator.next() : null;
+  }
+}
+
+
+class ExpressionParser {
+  Scanner scanner;
+
+  ExpressionParser(this.scanner);
+
+  SetExpression parseSetExpression() => parseSetUnion();
+
+  SetExpression parseSetUnion() {
+    SetExpression left = parseSetIf();
+    while (scanner.hasMore() && scanner.current == Token.UNION){
+      scanner.advance();
+      SetExpression right = parseSetIf();
+      left = new SetUnion(left, right);
+    }
+    return left;
+  }
+
+  SetExpression parseSetIf() {
+    SetExpression left = parseSetOr();
+    while (scanner.hasMore() && scanner.current == "if") {
+      scanner.advance();
+      BooleanExpression right = parseBooleanExpression();
+      left = new SetIf(left, right);
+    }
+    return left;
+  }
+
+  SetExpression parseSetOr() {
+    SetExpression left = parseSetAtomic();
+    while (scanner.hasMore() && scanner.current == Token.OR){
+      scanner.advance();
+      SetExpression right = parseSetAtomic();
+      left = new SetUnion(left, right);
+    }
+    return left;
+  }
+
+
+  SetExpression parseSetAtomic() {
+    if (scanner.current == Token.LEFT_PAREN) {
+      scanner.advance();
+      SetExpression value = parseSetExpression();
+      Expect.equals(scanner.current, Token.RIGHT_PAREN,
+                    "Missing right parenthesis in expression");
+      scanner.advance();
+      return value;
+    }
+    Expect.isTrue(const RegExp(@"^\w+$").hasMatch(scanner.current),
+                  "Expected identifier in expression, got ${scanner.current}");
+    SetExpression value = new SetConstant(scanner.current);
+    scanner.advance();
+    return value;
+  }
+
+  BooleanExpression parseBooleanExpression() => parseBooleanOr();
+
+  BooleanExpression parseBooleanOr() {
+    BooleanExpression left = parseBooleanAnd();
+    while (scanner.hasMore() && scanner.current == Token.OR) {
+      scanner.advance();
+      BooleanExpression right = parseBooleanAnd();
+      left = new BooleanOperation(Token.OR, left, right);
+    }
+    return left;
+  }
+
+  BooleanExpression parseBooleanAnd() {
+    BooleanExpression left = parseBooleanAtomic();
+    while (scanner.hasMore() && scanner.current == Token.AND) {
+      scanner.advance();
+      BooleanExpression right = parseBooleanAtomic();
+      left = new BooleanOperation(Token.AND, left, right);
+    }
+    return left;
+  }
+
+  BooleanExpression parseBooleanAtomic() {
+    if (scanner.current == Token.LEFT_PAREN) {
+      scanner.advance();
+      SetExpression value = parseBooleanExpression();
+      Expect.equals(scanner.current, Token.RIGHT_PAREN,
+                    "Missing right parenthesis in expression");
+      scanner.advance();
+      return value;
+    }
+
+    // The only atomic booleans are of the form $variable == value or the
+    // form $variable.
+    Expect.equals(scanner.current, Token.DOLLAR_SYMBOL,
+        "Expected \$ in expression, got ${scanner.current}");
+    scanner.advance();
+    Expect.isTrue(const RegExp(@"^\w+$").hasMatch(scanner.current),
+        "Expected identifier in expression, got ${scanner.current}");
+    TermVariable left = new TermVariable(scanner.current);
+    scanner.advance();
+    if (scanner.current == Token.EQUALS) {
+      scanner.advance();
+      Expect.isTrue(const RegExp(@"^\w+$").hasMatch(scanner.current),
+          "Expected identifier in expression, got ${scanner.current}");
+      TermConstant right = new TermConstant(scanner.current);
+      scanner.advance();
+      return new Comparison(left, right);
+    } else {
+      return new BooleanVariable(left);
+    } 
+  }
+}
+
