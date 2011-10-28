@@ -276,17 +276,12 @@ _ensureInitialized() {
 
   // Immediately queue the suite up. It will run after a timeout (i.e. after
   // main() has returned).
-  listener(e) {
+  listener() {
     _currentGroup = '';
     _runTests();
   };
 
-  try {
-    window.dynamic.on.contentLoaded.add(listener);
-  } catch(var e) {
-  // TODO(jacobr): remove this horrible hack to work around dartc bugs.
-    window.dynamic.addEventListener("DOMContentLoaded", listener, false);
-  }
+  window.setTimeout(listener, 0);
 
   _state = _READY;
 }
