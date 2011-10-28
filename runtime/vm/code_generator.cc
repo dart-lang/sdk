@@ -479,8 +479,10 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandler, 1) {
                                        Array::ZoneHandle(ic_data.data()));
   arguments.SetReturn(target_function);
   if (FLAG_trace_ic) {
-    OS::Print("InlineCacheMissHandler 0x%x adding receiver '%s' -> '%s'\n",
-        caller_frame->pc(), receiver.ToCString(), target_function.ToCString());
+    OS::Print("InlineCacheMissHandler call at 0x%x' adding <%s> -> <%s>\n",
+        caller_frame->pc(),
+        Class::Handle(receiver.clazz()).ToCString(),
+        target_function.ToCString());
   }
 }
 

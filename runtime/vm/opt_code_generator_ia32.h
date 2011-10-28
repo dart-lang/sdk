@@ -103,6 +103,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
                                     intptr_t num_args,
                                     const Array& optional_argument_names);
   bool GenerateSmiComparison(ComparisonNode* node);
+  void GenerateSmiEquality(ComparisonNode* node);
   bool GenerateDoubleComparison(ComparisonNode* node);
   bool GenerateEqualityComparison(ComparisonNode* node);
   void GenerateLogicalBinaryOp(BinaryOpNode* node);
