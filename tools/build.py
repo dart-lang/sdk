@@ -27,7 +27,7 @@ def BuildOptions():
       default=False, action="store_true")
   result.add_option("--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64,simarm,arm,dartc]',
+      metavar='[all,ia32,x64,simarm,arm]',
       default=utils.GuessArchitecture())
   result.add_option("-j",
       help='The number of parallel jobs to run.',
@@ -51,7 +51,7 @@ def ProcessOptions(options):
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:
-    if not arch in ['ia32', 'x64', 'simarm', 'arm', 'dartc']:
+    if not arch in ['ia32', 'x64', 'simarm', 'arm']:
       print "Unknown arch %s" % arch
       return False
   return True
