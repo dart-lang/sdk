@@ -11,6 +11,6 @@
 
 #library("unittest");
 
-#import("dart:html");
+#import("../../html/html.dart");
 
 #source("unittestsuite.dart");

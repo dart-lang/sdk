@@ -158,20 +158,6 @@ interface Animation {
 
 // WARNING: Do not edit - generated code.
 
-interface AnimationEvent extends Event {
-
-  String get animationName();
-
-  num get elapsedTime();
-
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface AnimationList {
 
   int get length();
@@ -301,18 +287,6 @@ interface BaseElement extends Element {
   String get target();
 
   void set target(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface BeforeLoadEvent extends Event {
-
-  String get url();
-
-  void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1174,35 +1148,7 @@ interface Clipboard {
 
 // WARNING: Do not edit - generated code.
 
-interface CloseEvent extends Event {
-
-  int get code();
-
-  String get reason();
-
-  bool get wasClean();
-
-  void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface Comment extends CharacterData {
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface CompositionEvent extends UIEvent {
-
-  String get data();
-
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1289,18 +1235,6 @@ interface Counter {
 interface Crypto {
 
   void getRandomValues(ArrayBufferView array);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface CustomEvent extends Event {
-
-  String get detail();
-
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1690,32 +1624,6 @@ interface DetailsElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface DeviceMotionEvent extends Event {
-
-  num get interval();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface DeviceOrientationEvent extends Event {
-
-  num get alpha();
-
-  num get beta();
-
-  num get gamma();
-
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface DirectoryEntry extends Entry {
 
   DirectoryReader createReader();
@@ -1941,102 +1849,6 @@ interface EntrySync {
 interface ErrorCallback {
 
   bool handleEvent(FileError error);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface ErrorEvent extends Event {
-
-  String get filename();
-
-  int get lineno();
-
-  String get message();
-
-  void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Event {
-
-  static final int AT_TARGET = 2;
-
-  static final int BLUR = 8192;
-
-  static final int BUBBLING_PHASE = 3;
-
-  static final int CAPTURING_PHASE = 1;
-
-  static final int CHANGE = 32768;
-
-  static final int CLICK = 64;
-
-  static final int DBLCLICK = 128;
-
-  static final int DRAGDROP = 2048;
-
-  static final int FOCUS = 4096;
-
-  static final int KEYDOWN = 256;
-
-  static final int KEYPRESS = 1024;
-
-  static final int KEYUP = 512;
-
-  static final int MOUSEDOWN = 1;
-
-  static final int MOUSEDRAG = 32;
-
-  static final int MOUSEMOVE = 16;
-
-  static final int MOUSEOUT = 8;
-
-  static final int MOUSEOVER = 4;
-
-  static final int MOUSEUP = 2;
-
-  static final int SELECT = 16384;
-
-  bool get bubbles();
-
-  bool get cancelBubble();
-
-  void set cancelBubble(bool value);
-
-  bool get cancelable();
-
-  EventTarget get currentTarget();
-
-  bool get defaultPrevented();
-
-  int get eventPhase();
-
-  bool get returnValue();
-
-  void set returnValue(bool value);
-
-  EventTarget get srcElement();
-
-  EventTarget get target();
-
-  int get timeStamp();
-
-  String get type();
-
-  void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
-
-  void preventDefault();
-
-  void stopImmediatePropagation();
-
-  void stopPropagation();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2555,20 +2367,6 @@ interface HTMLAllCollection {
   Node namedItem(String name);
 
   ElementList tags(String name);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface HashChangeEvent extends Event {
-
-  String get newURL();
-
-  String get oldURL();
-
-  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3368,576 +3166,6 @@ interface Int8Array extends ArrayBufferView {
 
 // WARNING: Do not edit - generated code.
 
-interface KeyboardEvent extends UIEvent {
-
-  static final int KEY_LOCATION_LEFT = 0x01;
-
-  static final int KEY_LOCATION_NUMPAD = 0x03;
-
-  static final int KEY_LOCATION_RIGHT = 0x02;
-
-  static final int KEY_LOCATION_STANDARD = 0x00;
-
-  bool get altGraphKey();
-
-  bool get altKey();
-
-  bool get ctrlKey();
-
-  String get keyIdentifier();
-
-  int get keyLocation();
-
-  bool get metaKey();
-
-  bool get shiftKey();
-
-  bool getModifierState(String keyIdentifierArg);
-
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
-}
-
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-/**
- * Defines the standard key locations returned by
- * KeyboardEvent.getKeyLocation.
- */
-interface KeyLocation {
-
-  /**
-   * The event key is not distinguished as the left or right version
-   * of the key, and did not originate from the numeric keypad (or did not
-   * originate with a virtual key corresponding to the numeric keypad).
-   */
-  static final int STANDARD = 0;
-
-  /**
-   * The event key is in the left key location.
-   */
-  static final int LEFT = 1;
-
-  /**
-   * The event key is in the right key location.
-   */
-  static final int RIGHT = 2;
-
-  /**
-   * The event key originated on the numeric keypad or with a virtual key
-   * corresponding to the numeric keypad.
-   */
-  static final int NUMPAD = 3;
-
-  /**
-   * The event key originated on a mobile device, either on a physical
-   * keypad or a virtual keyboard.
-   */
-  static final int MOBILE = 4;
-
-  /**
-   * The event key originated on a game controller or a joystick on a mobile
-   * device.
-   */
-  static final int JOYSTICK = 5;
-}
-
-/**
- * Defines the standard keyboard identifier names for keys that are returned
- * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
- * unicode mapping.
- */
-interface KeyName {
-
-  /** The Accept (Commit, OK) key */
-  static final String ACCEPT = "Accept";
-
-  /** The Add key */
-  static final String ADD = "Add";
-
-  /** The Again key */
-  static final String AGAIN = "Again";
-
-  /** The All Candidates key */
-  static final String ALL_CANDIDATES = "AllCandidates";
-
-  /** The Alphanumeric key */
-  static final String ALPHANUMERIC = "Alphanumeric";
-
-  /** The Alt (Menu) key */
-  static final String ALT = "Alt";
-
-  /** The Alt-Graph key */
-  static final String ALT_GRAPH = "AltGraph";
-
-  /** The Application key */
-  static final String APPS = "Apps";
-
-  /** The ATTN key */
-  static final String ATTN = "Attn";
-
-  /** The Browser Back key */
-  static final String BROWSER_BACK = "BrowserBack";
-
-  /** The Browser Favorites key */
-  static final String BROWSER_FAVORTIES = "BrowserFavorites";
-
-  /** The Browser Forward key */
-  static final String BROWSER_FORWARD = "BrowserForward";
-
-  /** The Browser Home key */
-  static final String BROWSER_NAME = "BrowserHome";
-
-  /** The Browser Refresh key */
-  static final String BROWSER_REFRESH = "BrowserRefresh";
-
-  /** The Browser Search key */
-  static final String BROWSER_SEARCH = "BrowserSearch";
-
-  /** The Browser Stop key */
-  static final String BROWSER_STOP = "BrowserStop";
-
-  /** The Camera key */
-  static final String CAMERA = "Camera";
-
-  /** The Caps Lock (Capital) key */
-  static final String CAPS_LOCK = "CapsLock";
-
-  /** The Clear key */
-  static final String CLEAR = "Clear";
-
-  /** The Code Input key */
-  static final String CODE_INPUT = "CodeInput";
-
-  /** The Compose key */
-  static final String COMPOSE = "Compose";
-
-  /** The Control (Ctrl) key */
-  static final String CONTROL = "Control";
-
-  /** The Crsel key */
-  static final String CRSEL = "Crsel";
-
-  /** The Convert key */
-  static final String CONVERT = "Convert";
-
-  /** The Copy key */
-  static final String COPY = "Copy";
-
-  /** The Cut key */
-  static final String CUT = "Cut";
-
-  /** The Decimal key */
-  static final String DECIMAL = "Decimal";
-
-  /** The Divide key */
-  static final String DIVIDE = "Divide";
-
-  /** The Down Arrow key */
-  static final String DOWN = "Down";
-
-  /** The diagonal Down-Left Arrow key */
-  static final String DOWN_LEFT = "DownLeft";
-
-  /** The diagonal Down-Right Arrow key */
-  static final String DOWN_RIGHT = "DownRight";
-
-  /** The Eject key */
-  static final String EJECT = "Eject";
-
-  /** The End key */
-  static final String END = "End";
-
-  /**
-   * The Enter key. Note: This key value must also be used for the Return
-   *  (Macintosh numpad) key
-   */
-  static final String ENTER = "Enter";
-
-  /** The Erase EOF key */
-  static final String ERASE_EOF= "EraseEof";
-
-  /** The Execute key */
-  static final String EXECUTE = "Execute";
-
-  /** The Exsel key */
-  static final String EXSEL = "Exsel";
-
-  /** The Function switch key */
-  static final String FN = "Fn";
-
-  /** The F1 key */
-  static final String F1 = "F1";
-
-  /** The F2 key */
-  static final String F2 = "F2";
-
-  /** The F3 key */
-  static final String F3 = "F3";
-
-  /** The F4 key */
-  static final String F4 = "F4";
-
-  /** The F5 key */
-  static final String F5 = "F5";
-
-  /** The F6 key */
-  static final String F6 = "F6";
-
-  /** The F7 key */
-  static final String F7 = "F7";
-
-  /** The F8 key */
-  static final String F8 = "F8";
-
-  /** The F9 key */
-  static final String F9 = "F9";
-
-  /** The F10 key */
-  static final String F10 = "F10";
-
-  /** The F11 key */
-  static final String F11 = "F11";
-
-  /** The F12 key */
-  static final String F12 = "F12";
-
-  /** The F13 key */
-  static final String F13 = "F13";
-
-  /** The F14 key */
-  static final String F14 = "F14";
-
-  /** The F15 key */
-  static final String F15 = "F15";
-
-  /** The F16 key */
-  static final String F16 = "F16";
-
-  /** The F17 key */
-  static final String F17 = "F17";
-
-  /** The F18 key */
-  static final String F18 = "F18";
-
-  /** The F19 key */
-  static final String F19 = "F19";
-
-  /** The F20 key */
-  static final String F20 = "F20";
-
-  /** The F21 key */
-  static final String F21 = "F21";
-
-  /** The F22 key */
-  static final String F22 = "F22";
-
-  /** The F23 key */
-  static final String F23 = "F23";
-
-  /** The F24 key */
-  static final String F24 = "F24";
-
-  /** The Final Mode (Final) key used on some asian keyboards */
-  static final String FINAL_MODE = "FinalMode";
-
-  /** The Find key */
-  static final String FIND = "Find";
-
-  /** The Full-Width Characters key */
-  static final String FULL_WIDTH = "FullWidth";
-
-  /** The Half-Width Characters key */
-  static final String HALF_WIDTH = "HalfWidth";
-
-  /** The Hangul (Korean characters) Mode key */
-  static final String HANGUL_MODE = "HangulMode";
-
-  /** The Hanja (Korean characters) Mode key */
-  static final String HANJA_MODE = "HanjaMode";
-
-  /** The Help key */
-  static final String HELP = "Help";
-
-  /** The Hiragana (Japanese Kana characters) key */
-  static final String HIRAGANA = "Hiragana";
-
-  /** The Home key */
-  static final String HOME = "Home";
-
-  /** The Insert (Ins) key */
-  static final String INSERT = "Insert";
-
-  /** The Japanese-Hiragana key */
-  static final String JAPANESE_HIRAGANA = "JapaneseHiragana";
-
-  /** The Japanese-Katakana key */
-  static final String JAPANESE_KATAKANA = "JapaneseKatakana";
-
-  /** The Japanese-Romaji key */
-  static final String JAPANESE_ROMAJI = "JapaneseRomaji";
-
-  /** The Junja Mode key */
-  static final String JUNJA_MODE = "JunjaMode";
-
-  /** The Kana Mode (Kana Lock) key */
-  static final String KANA_MODE = "KanaMode";
-
-  /**
-   * The Kanji (Japanese name for ideographic characters of Chinese origin)
-   * Mode key
-   */
-  static final String KANJI_MODE = "KanjiMode";
-
-  /** The Katakana (Japanese Kana characters) key */
-  static final String KATAKANA = "Katakana";
-
-  /** The Start Application One key */
-  static final String LAUNCH_APPLICATION_1 = "LaunchApplication1";
-
-  /** The Start Application Two key */
-  static final String LAUNCH_APPLICATION_2 = "LaunchApplication2";
-
-  /** The Start Mail key */
-  static final String LAUNCH_MAIL = "LaunchMail";
-
-  /** The Left Arrow key */
-  static final String LEFT = "Left";
-
-  /** The Menu key */
-  static final String MENU = "Menu";
-
-  /**
-   * The Meta key. Note: This key value shall be also used for the Apple
-   * Command key
-   */
-  static final String META = "Meta";
-
-  /** The Media Next Track key */
-  static final String MEDIA_NEXT_TRACK = "MediaNextTrack";
-
-  /** The Media Play Pause key */
-  static final String MEDIA_PAUSE_PLAY = "MediaPlayPause";
-
-  /** The Media Previous Track key */
-  static final String MEDIA_PREVIOUS_TRACK = "MediaPreviousTrack";
-
-  /** The Media Stop key */
-  static final String MEDIA_STOP = "MediaStop";
-
-  /** The Mode Change key */
-  static final String MODE_CHANGE = "ModeChange";
-
-  /** The Next Candidate function key */
-  static final String NEXT_CANDIDATE = "NextCandidate";
-
-  /** The Nonconvert (Don't Convert) key */
-  static final String NON_CONVERT = "Nonconvert";
-
-  /** The Number Lock key */
-  static final String NUM_LOCK = "NumLock";
-
-  /** The Page Down (Next) key */
-  static final String PAGE_DOWN = "PageDown";
-
-  /** The Page Up key */
-  static final String PAGE_UP = "PageUp";
-
-  /** The Paste key */
-  static final String PASTE = "Paste";
-
-  /** The Pause key */
-  static final String PAUSE = "Pause";
-
-  /** The Play key */
-  static final String PLAY = "Play";
-
-  /**
-   * The Power key. Note: Some devices may not expose this key to the
-   * operating environment
-   */
-  static final String POWER = "Power";
-
-  /** The Previous Candidate function key */
-  static final String PREVIOUS_CANDIDATE = "PreviousCandidate";
-
-  /** The Print Screen (PrintScrn, SnapShot) key */
-  static final String PRINT_SCREEN = "PrintScreen";
-
-  /** The Process key */
-  static final String PROCESS = "Process";
-
-  /** The Props key */
-  static final String PROPS = "Props";
-
-  /** The Right Arrow key */
-  static final String RIGHT = "Right";
-
-  /** The Roman Characters function key */
-  static final String ROMAN_CHARACTERS = "RomanCharacters";
-
-  /** The Scroll Lock key */
-  static final String SCROLL = "Scroll";
-
-  /** The Select key */
-  static final String SELECT = "Select";
-
-  /** The Select Media key */
-  static final String SELECT_MEDIA = "SelectMedia";
-
-  /** The Separator key */
-  static final String SEPARATOR = "Separator";
-
-  /** The Shift key */
-  static final String SHIFT = "Shift";
-
-  /** The Soft1 key */
-  static final String SOFT_1 = "Soft1";
-
-  /** The Soft2 key */
-  static final String SOFT_2 = "Soft2";
-
-  /** The Soft3 key */
-  static final String SOFT_3 = "Soft3";
-
-  /** The Soft4 key */
-  static final String SOFT_4 = "Soft4";
-
-  /** The Stop key */
-  static final String STOP = "Stop";
-
-  /** The Subtract key */
-  static final String SUBTRACT = "Subtract";
-
-  /** The Symbol Lock key */
-  static final String SYMBOL_LOCK = "SymbolLock";
-
-  /** The Up Arrow key */
-  static final String UP = "Up";
-
-  /** The diagonal Up-Left Arrow key */
-  static final String UP_LEFT = "UpLeft";
-
-  /** The diagonal Up-Right Arrow key */
-  static final String UP_RIGHT = "UpRight";
-
-  /** The Undo key */
-  static final String UNDO = "Undo";
-
-  /** The Volume Down key */
-  static final String VOLUME_DOWN = "VolumeDown";
-
-  /** The Volume Mute key */
-  static final String VOLUMN_MUTE = "VolumeMute";
-
-  /** The Volume Up key */
-  static final String VOLUMN_UP = "VolumeUp";
-
-  /** The Windows Logo key */
-  static final String WIN = "Win";
-
-  /** The Zoom key */
-  static final String ZOOM = "Zoom";
-
-  /**
-   * The Backspace (Back) key. Note: This key value shall be also used for the
-   * key labeled 'delete' MacOS keyboards when not modified by the 'Fn' key
-   */
-  static final String BACKSPACE = "Backspace";
-
-  /** The Horizontal Tabulation (Tab) key */
-  static final String TAB = "Tab";
-
-  /** The Cancel key */
-  static final String CANCEL = "Cancel";
-
-  /** The Escape (Esc) key */
-  static final String ESC = "Esc";
-
-  /** The Space (Spacebar) key:   */
-  static final String SPACEBAR = "Spacebar";
-
-  /**
-   * The Delete (Del) Key. Note: This key value shall be also used for the key
-   * labeled 'delete' MacOS keyboards when modified by the 'Fn' key
-   */
-  static final String DEL = "Del";
-
-  /** The Combining Grave Accent (Greek Varia, Dead Grave) key */
-  static final String DEAD_GRAVE = "DeadGrave";
-
-  /**
-   * The Combining Acute Accent (Stress Mark, Greek Oxia, Tonos, Dead Eacute)
-   * key
-   */
-  static final String DEAD_EACUTE = "DeadEacute";
-
-  /** The Combining Circumflex Accent (Hat, Dead Circumflex) key */
-  static final String DEAD_CIRCUMFLEX = "DeadCircumflex";
-
-  /** The Combining Tilde (Dead Tilde) key */
-  static final String DEAD_TILDE = "DeadTilde";
-
-  /** The Combining Macron (Long, Dead Macron) key */
-  static final String DEAD_MACRON = "DeadMacron";
-
-  /** The Combining Breve (Short, Dead Breve) key */
-  static final String DEAD_BREVE = "DeadBreve";
-
-  /** The Combining Dot Above (Derivative, Dead Above Dot) key */
-  static final String DEAD_ABOVE_DOT = "DeadAboveDot";
-
-  /**
-   * The Combining Diaeresis (Double Dot Abode, Umlaut, Greek Dialytika,
-   * Double Derivative, Dead Diaeresis) key
-   */
-  static final String DEAD_UMLAUT = "DeadUmlaut";
-
-  /** The Combining Ring Above (Dead Above Ring) key */
-  static final String DEAD_ABOVE_RING = "DeadAboveRing";
-
-  /** The Combining Double Acute Accent (Dead Doubleacute) key */
-  static final String DEAD_DOUBLEACUTE = "DeadDoubleacute";
-
-  /** The Combining Caron (Hacek, V Above, Dead Caron) key */
-  static final String DEAD_CARON = "DeadCaron";
-
-  /** The Combining Cedilla (Dead Cedilla) key */
-  static final String DEAD_CEDILLA = "DeadCedilla";
-
-  /** The Combining Ogonek (Nasal Hook, Dead Ogonek) key */
-  static final String DEAD_OGONEK = "DeadOgonek";
-
-  /**
-   * The Combining Greek Ypogegrammeni (Greek Non-Spacing Iota Below, Iota
-   * Subscript, Dead Iota) key
-   */
-  static final String DEAD_IOTA = "DeadIota";
-
-  /**
-   * The Combining Katakana-Hiragana Voiced Sound Mark (Dead Voiced Sound) key
-   */
-  static final String DEAD_VOICED_SOUND = "DeadVoicedSound";
-
-  /**
-   * The Combining Katakana-Hiragana Semi-Voiced Sound Mark (Dead Semivoiced
-   * Sound) key
-   */
-  static final String DEC_SEMIVOICED_SOUND= "DeadSemivoicedSound";
-
-  /**
-   * Key value used when an implementation is unable to identify another key
-   * value, due to either hardware, platform, or software constraints
-   */
-  static final String UNIDENTIFIED = "Unidentified";
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface KeygenElement extends Element {
 
   bool get autofocus();
@@ -4498,26 +3726,6 @@ interface MessageChannel {
 
 // WARNING: Do not edit - generated code.
 
-interface MessageEvent extends Event {
-
-  String get data();
-
-  String get lastEventId();
-
-  MessagePort get messagePort();
-
-  String get origin();
-
-  Window get source();
-
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface MetaElement extends Element {
 
   String get content();
@@ -4607,74 +3815,6 @@ interface ModElement extends Element {
   String get dateTime();
 
   void set dateTime(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MouseEvent extends UIEvent {
-
-  bool get altKey();
-
-  int get button();
-
-  int get clientX();
-
-  int get clientY();
-
-  bool get ctrlKey();
-
-  Node get fromElement();
-
-  bool get metaKey();
-
-  int get offsetX();
-
-  int get offsetY();
-
-  EventTarget get relatedTarget();
-
-  int get screenX();
-
-  int get screenY();
-
-  bool get shiftKey();
-
-  Node get toElement();
-
-  int get x();
-
-  int get y();
-
-  void initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MutationEvent extends Event {
-
-  static final int ADDITION = 2;
-
-  static final int MODIFICATION = 1;
-
-  static final int REMOVAL = 3;
-
-  int get attrChange();
-
-  String get attrName();
-
-  String get newValue();
-
-  String get prevValue();
-
-  Node get relatedNode();
-
-  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5056,40 +4196,6 @@ interface OutputElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface OverflowEvent extends Event {
-
-  static final int BOTH = 2;
-
-  static final int HORIZONTAL = 0;
-
-  static final int VERTICAL = 1;
-
-  bool get horizontalOverflow();
-
-  int get orient();
-
-  bool get verticalOverflow();
-
-  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PageTransitionEvent extends Event {
-
-  bool get persisted();
-
-  void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface ParagraphElement extends Element {
 
   String get align();
@@ -5137,18 +4243,6 @@ interface Point factory _PointFactoryProvider {
   num get y();
 
   void set y(num value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PopStateEvent extends Event {
-
-  String get state();
-
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5241,22 +4335,6 @@ interface ProgressElement extends Element {
   num get value();
 
   void set value(num value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface ProgressEvent extends Event {
-
-  bool get lengthComputable();
-
-  int get loaded();
-
-  int get total();
-
-  void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5617,26 +4695,6 @@ interface Storage {
   void removeItem(String key);
 
   void setItem(String key, String data);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface StorageEvent extends Event {
-
-  String get key();
-
-  String get newValue();
-
-  String get oldValue();
-
-  Storage get storageArea();
-
-  String get url();
-
-  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6118,18 +5176,6 @@ interface TextAreaElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface TextEvent extends UIEvent {
-
-  String get data();
-
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface TextMetrics {
 
   num get width();
@@ -6198,30 +5244,6 @@ interface Touch {
 
 // WARNING: Do not edit - generated code.
 
-interface TouchEvent extends UIEvent {
-
-  bool get altKey();
-
-  TouchList get changedTouches();
-
-  bool get ctrlKey();
-
-  bool get metaKey();
-
-  bool get shiftKey();
-
-  TouchList get targetTouches();
-
-  TouchList get touches();
-
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface TouchList extends List<Touch> {
 
   int get length();
@@ -6255,48 +5277,6 @@ interface TrackElement extends Element {
   String get srclang();
 
   void set srclang(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface TransitionEvent extends Event {
-
-  num get elapsedTime();
-
-  String get propertyName();
-
-  void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface UIEvent extends Event {
-
-  int get charCode();
-
-  int get detail();
-
-  int get keyCode();
-
-  int get layerX();
-
-  int get layerY();
-
-  int get pageX();
-
-  int get pageY();
-
-  Window get view();
-
-  int get which();
-
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7440,46 +6420,6 @@ interface WebGLVertexArrayObjectOES {
 
 // WARNING: Do not edit - generated code.
 
-interface WheelEvent extends UIEvent {
-
-  bool get altKey();
-
-  int get clientX();
-
-  int get clientY();
-
-  bool get ctrlKey();
-
-  bool get metaKey();
-
-  int get offsetX();
-
-  int get offsetY();
-
-  int get screenX();
-
-  int get screenY();
-
-  bool get shiftKey();
-
-  int get wheelDelta();
-
-  int get wheelDeltaX();
-
-  int get wheelDeltaY();
-
-  int get x();
-
-  int get y();
-
-  void initWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface XMLHttpRequestException {
 
   static final int ABORT_ERR = 102;
@@ -7491,18 +6431,6 @@ interface XMLHttpRequestException {
   String get message();
 
   String get name();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface XMLHttpRequestProgressEvent extends ProgressEvent {
-
-  int get position();
-
-  int get totalSize();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7599,24 +6527,6 @@ class AnchorElementWrappingImplementation extends ElementWrappingImplementation 
 
   String getParameter(String name) {
     return _ptr.getParameter(name);
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class AnimationEventWrappingImplementation extends EventWrappingImplementation implements AnimationEvent {
-  AnimationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get animationName() { return _ptr.animationName; }
-
-  num get elapsedTime() { return _ptr.elapsedTime; }
-
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg) {
-    _ptr.initWebKitAnimationEvent(typeArg, canBubbleArg, cancelableArg, animationNameArg, elapsedTimeArg);
-    return;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -7803,22 +6713,6 @@ class BaseElementWrappingImplementation extends ElementWrappingImplementation im
   String get target() { return _ptr.target; }
 
   void set target(String value) { _ptr.target = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation implements BeforeLoadEvent {
-  BeforeLoadEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get url() { return _ptr.url; }
-
-  void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url) {
-    _ptr.initBeforeLoadEvent(type, canBubble, cancelable, url);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9360,44 +8254,8 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
 
 // WARNING: Do not edit - generated code.
 
-class CloseEventWrappingImplementation extends EventWrappingImplementation implements CloseEvent {
-  CloseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get code() { return _ptr.code; }
-
-  String get reason() { return _ptr.reason; }
-
-  bool get wasClean() { return _ptr.wasClean; }
-
-  void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg) {
-    _ptr.initCloseEvent(typeArg, canBubbleArg, cancelableArg, wasCleanArg, codeArg, reasonArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class CommentWrappingImplementation extends CharacterDataWrappingImplementation implements Comment {
   CommentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class CompositionEventWrappingImplementation extends UIEventWrappingImplementation implements CompositionEvent {
-  CompositionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get data() { return _ptr.data; }
-
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
-    _ptr.initCompositionEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9537,22 +8395,6 @@ class CryptoWrappingImplementation extends DOMWrapperBase implements Crypto {
 
   void getRandomValues(ArrayBufferView array) {
     _ptr.getRandomValues(LevelDom.unwrap(array));
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class CustomEventWrappingImplementation extends EventWrappingImplementation implements CustomEvent {
-  CustomEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get detail() { return _ptr.detail; }
-
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) {
-    _ptr.initCustomEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(detailArg));
     return;
   }
 }
@@ -10097,37 +8939,6 @@ class DetailsElementWrappingImplementation extends ElementWrappingImplementation
 
 // WARNING: Do not edit - generated code.
 
-class DeviceMotionEventWrappingImplementation extends EventWrappingImplementation implements DeviceMotionEvent {
-  DeviceMotionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  num get interval() { return _ptr.interval; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class DeviceOrientationEventWrappingImplementation extends EventWrappingImplementation implements DeviceOrientationEvent {
-  DeviceOrientationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  num get alpha() { return _ptr.alpha; }
-
-  num get beta() { return _ptr.beta; }
-
-  num get gamma() { return _ptr.gamma; }
-
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) {
-    _ptr.initDeviceOrientationEvent(type, bubbles, cancelable, alpha, beta, gamma);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class DirectoryEntrySyncWrappingImplementation extends EntrySyncWrappingImplementation implements DirectoryEntrySync {
   DirectoryEntrySyncWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -10585,26 +9396,6 @@ class ErrorCallbackWrappingImplementation extends DOMWrapperBase implements Erro
 
 // WARNING: Do not edit - generated code.
 
-class ErrorEventWrappingImplementation extends EventWrappingImplementation implements ErrorEvent {
-  ErrorEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get filename() { return _ptr.filename; }
-
-  int get lineno() { return _ptr.lineno; }
-
-  String get message() { return _ptr.message; }
-
-  void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg) {
-    _ptr.initErrorEvent(typeArg, canBubbleArg, cancelableArg, messageArg, filenameArg, linenoArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class EventExceptionWrappingImplementation extends DOMWrapperBase implements EventException {
   EventExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -10613,61 +9404,6 @@ class EventExceptionWrappingImplementation extends DOMWrapperBase implements Eve
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class EventWrappingImplementation extends DOMWrapperBase implements Event {
-  EventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get bubbles() { return _ptr.bubbles; }
-
-  bool get cancelBubble() { return _ptr.cancelBubble; }
-
-  void set cancelBubble(bool value) { _ptr.cancelBubble = value; }
-
-  bool get cancelable() { return _ptr.cancelable; }
-
-  EventTarget get currentTarget() { return LevelDom.wrapEventTarget(_ptr.currentTarget); }
-
-  bool get defaultPrevented() { return _ptr.defaultPrevented; }
-
-  int get eventPhase() { return _ptr.eventPhase; }
-
-  bool get returnValue() { return _ptr.returnValue; }
-
-  void set returnValue(bool value) { _ptr.returnValue = value; }
-
-  EventTarget get srcElement() { return LevelDom.wrapEventTarget(_ptr.srcElement); }
-
-  EventTarget get target() { return LevelDom.wrapEventTarget(_ptr.target); }
-
-  int get timeStamp() { return _ptr.timeStamp; }
-
-  String get type() { return _ptr.type; }
-
-  void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
-    _ptr.initEvent(eventTypeArg, canBubbleArg, cancelableArg);
-    return;
-  }
-
-  void preventDefault() {
-    _ptr.preventDefault();
-    return;
-  }
-
-  void stopImmediatePropagation() {
-    _ptr.stopImmediatePropagation();
-    return;
-  }
-
-  void stopPropagation() {
-    _ptr.stopPropagation();
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11253,24 +9989,6 @@ class HTMLAllCollectionWrappingImplementation extends DOMWrapperBase implements 
 
   ElementList tags(String name) {
     return LevelDom.wrapElementList(_ptr.tags(name));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class HashChangeEventWrappingImplementation extends EventWrappingImplementation implements HashChangeEvent {
-  HashChangeEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get newURL() { return _ptr.newURL; }
-
-  String get oldURL() { return _ptr.oldURL; }
-
-  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) {
-    _ptr.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
-    return;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -12306,38 +11024,6 @@ class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementat
 
 // WARNING: Do not edit - generated code.
 
-class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation implements KeyboardEvent {
-  KeyboardEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altGraphKey() { return _ptr.altGraphKey; }
-
-  bool get altKey() { return _ptr.altKey; }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  String get keyIdentifier() { return _ptr.keyIdentifier; }
-
-  int get keyLocation() { return _ptr.keyLocation; }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  bool getModifierState(String keyIdentifierArg) {
-    return _ptr.getModifierState(keyIdentifierArg);
-  }
-
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
-    _ptr.initKeyboardEvent(type, canBubble, cancelable, LevelDom.unwrap(view), keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class KeygenElementWrappingImplementation extends ElementWrappingImplementation implements KeygenElement {
   KeygenElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -13058,30 +11744,6 @@ class MessageChannelWrappingImplementation extends DOMWrapperBase implements Mes
 
 // WARNING: Do not edit - generated code.
 
-class MessageEventWrappingImplementation extends EventWrappingImplementation implements MessageEvent {
-  MessageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get data() { return _ptr.data; }
-
-  String get lastEventId() { return _ptr.lastEventId; }
-
-  MessagePort get messagePort() { return LevelDom.wrapMessagePort(_ptr.messagePort); }
-
-  String get origin() { return _ptr.origin; }
-
-  Window get source() { return LevelDom.wrapWindow(_ptr.source); }
-
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort) {
-    _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class MetaElementWrappingImplementation extends ElementWrappingImplementation implements MetaElement {
   MetaElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -13178,76 +11840,6 @@ class ModElementWrappingImplementation extends ElementWrappingImplementation imp
   String get dateTime() { return _ptr.dateTime; }
 
   void set dateTime(String value) { _ptr.dateTime = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MouseEventWrappingImplementation extends UIEventWrappingImplementation implements MouseEvent {
-  MouseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altKey() { return _ptr.altKey; }
-
-  int get button() { return _ptr.button; }
-
-  int get clientX() { return _ptr.clientX; }
-
-  int get clientY() { return _ptr.clientY; }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  Node get fromElement() { return LevelDom.wrapNode(_ptr.fromElement); }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  int get offsetX() { return _ptr.offsetX; }
-
-  int get offsetY() { return _ptr.offsetY; }
-
-  EventTarget get relatedTarget() { return LevelDom.wrapEventTarget(_ptr.relatedTarget); }
-
-  int get screenX() { return _ptr.screenX; }
-
-  int get screenY() { return _ptr.screenY; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  Node get toElement() { return LevelDom.wrapNode(_ptr.toElement); }
-
-  int get x() { return _ptr.x; }
-
-  int get y() { return _ptr.y; }
-
-  void initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
-    _ptr.initMouseEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, LevelDom.unwrap(relatedTarget));
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MutationEventWrappingImplementation extends EventWrappingImplementation implements MutationEvent {
-  MutationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get attrChange() { return _ptr.attrChange; }
-
-  String get attrName() { return _ptr.attrName; }
-
-  String get newValue() { return _ptr.newValue; }
-
-  String get prevValue() { return _ptr.prevValue; }
-
-  Node get relatedNode() { return LevelDom.wrapNode(_ptr.relatedNode); }
-
-  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) {
-    _ptr.initMutationEvent(type, canBubble, cancelable, LevelDom.unwrap(relatedNode), prevValue, newValue, attrName, attrChange);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13675,42 +12267,6 @@ class OutputElementWrappingImplementation extends ElementWrappingImplementation 
 
 // WARNING: Do not edit - generated code.
 
-class OverflowEventWrappingImplementation extends EventWrappingImplementation implements OverflowEvent {
-  OverflowEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get horizontalOverflow() { return _ptr.horizontalOverflow; }
-
-  int get orient() { return _ptr.orient; }
-
-  bool get verticalOverflow() { return _ptr.verticalOverflow; }
-
-  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) {
-    _ptr.initOverflowEvent(orient, horizontalOverflow, verticalOverflow);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class PageTransitionEventWrappingImplementation extends EventWrappingImplementation implements PageTransitionEvent {
-  PageTransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get persisted() { return _ptr.persisted; }
-
-  void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted) {
-    _ptr.initPageTransitionEvent(typeArg, canBubbleArg, cancelableArg, persisted);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class ParagraphElementWrappingImplementation extends ElementWrappingImplementation implements ParagraphElement {
   ParagraphElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -13759,22 +12315,6 @@ class PointWrappingImplementation extends DOMWrapperBase implements Point {
   num get y() { return _ptr.y; }
 
   void set y(num value) { _ptr.y = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class PopStateEventWrappingImplementation extends EventWrappingImplementation implements PopStateEvent {
-  PopStateEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get state() { return _ptr.state; }
-
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) {
-    _ptr.initPopStateEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(stateArg));
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13871,26 +12411,6 @@ class ProgressElementWrappingImplementation extends ElementWrappingImplementatio
   num get value() { return _ptr.value; }
 
   void set value(num value) { _ptr.value = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class ProgressEventWrappingImplementation extends EventWrappingImplementation implements ProgressEvent {
-  ProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get lengthComputable() { return _ptr.lengthComputable; }
-
-  int get loaded() { return _ptr.loaded; }
-
-  int get total() { return _ptr.total; }
-
-  void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg) {
-    _ptr.initProgressEvent(typeArg, canBubbleArg, cancelableArg, lengthComputableArg, loadedArg, totalArg);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14298,30 +12818,6 @@ class SpeechInputResultWrappingImplementation extends DOMWrapperBase implements 
   num get confidence() { return _ptr.confidence; }
 
   String get utterance() { return _ptr.utterance; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class StorageEventWrappingImplementation extends EventWrappingImplementation implements StorageEvent {
-  StorageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get key() { return _ptr.key; }
-
-  String get newValue() { return _ptr.newValue; }
-
-  String get oldValue() { return _ptr.oldValue; }
-
-  Storage get storageArea() { return LevelDom.wrapStorage(_ptr.storageArea); }
-
-  String get url() { return _ptr.url; }
-
-  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) {
-    _ptr.initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, LevelDom.unwrap(storageAreaArg));
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15027,22 +13523,6 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
 
 // WARNING: Do not edit - generated code.
 
-class TextEventWrappingImplementation extends UIEventWrappingImplementation implements TextEvent {
-  TextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get data() { return _ptr.data; }
-
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
-    _ptr.initTextEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class TextMetricsWrappingImplementation extends DOMWrapperBase implements TextMetrics {
   TextMetricsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -15079,34 +13559,6 @@ class TitleElementWrappingImplementation extends ElementWrappingImplementation i
   String get text() { return _ptr.text; }
 
   void set text(String value) { _ptr.text = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class TouchEventWrappingImplementation extends UIEventWrappingImplementation implements TouchEvent {
-  TouchEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altKey() { return _ptr.altKey; }
-
-  TouchList get changedTouches() { return LevelDom.wrapTouchList(_ptr.changedTouches); }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  TouchList get targetTouches() { return LevelDom.wrapTouchList(_ptr.targetTouches); }
-
-  TouchList get touches() { return LevelDom.wrapTouchList(_ptr.touches); }
-
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
-    _ptr.initTouchEvent(LevelDom.unwrap(touches), LevelDom.unwrap(targetTouches), LevelDom.unwrap(changedTouches), type, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15272,56 +13724,6 @@ class TrackElementWrappingImplementation extends ElementWrappingImplementation i
   String get srclang() { return _ptr.srclang; }
 
   void set srclang(String value) { _ptr.srclang = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class TransitionEventWrappingImplementation extends EventWrappingImplementation implements TransitionEvent {
-  TransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  num get elapsedTime() { return _ptr.elapsedTime; }
-
-  String get propertyName() { return _ptr.propertyName; }
-
-  void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg) {
-    _ptr.initWebKitTransitionEvent(typeArg, canBubbleArg, cancelableArg, propertyNameArg, elapsedTimeArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class UIEventWrappingImplementation extends EventWrappingImplementation implements UIEvent {
-  UIEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get charCode() { return _ptr.charCode; }
-
-  int get detail() { return _ptr.detail; }
-
-  int get keyCode() { return _ptr.keyCode; }
-
-  int get layerX() { return _ptr.layerX; }
-
-  int get layerY() { return _ptr.layerY; }
-
-  int get pageX() { return _ptr.pageX; }
-
-  int get pageY() { return _ptr.pageY; }
-
-  Window get view() { return LevelDom.wrapWindow(_ptr.view); }
-
-  int get which() { return _ptr.which; }
-
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) {
-    _ptr.initUIEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16382,50 +14784,6 @@ class WebGLVertexArrayObjectOESWrappingImplementation extends DOMWrapperBase imp
 
 // WARNING: Do not edit - generated code.
 
-class WheelEventWrappingImplementation extends UIEventWrappingImplementation implements WheelEvent {
-  WheelEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altKey() { return _ptr.altKey; }
-
-  int get clientX() { return _ptr.clientX; }
-
-  int get clientY() { return _ptr.clientY; }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  int get offsetX() { return _ptr.offsetX; }
-
-  int get offsetY() { return _ptr.offsetY; }
-
-  int get screenX() { return _ptr.screenX; }
-
-  int get screenY() { return _ptr.screenY; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  int get wheelDelta() { return _ptr.wheelDelta; }
-
-  int get wheelDeltaX() { return _ptr.wheelDeltaX; }
-
-  int get wheelDeltaY() { return _ptr.wheelDeltaY; }
-
-  int get x() { return _ptr.x; }
-
-  int get y() { return _ptr.y; }
-
-  void initWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
-    _ptr.initWheelEvent(wheelDeltaX, wheelDeltaY, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase implements XMLHttpRequestException {
   XMLHttpRequestExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -16434,19 +14792,6 @@ class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase imple
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class XMLHttpRequestProgressEventWrappingImplementation extends ProgressEventWrappingImplementation implements XMLHttpRequestProgressEvent {
-  XMLHttpRequestProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get position() { return _ptr.position; }
-
-  int get totalSize() { return _ptr.totalSize; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18446,38 +16791,136 @@ class AbstractWorkerWrappingImplementation extends EventTargetWrappingImplementa
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DOMApplicationCacheEvents extends Events {
-  EventListenerList get cached();
-  EventListenerList get checking();
-  EventListenerList get downloading();
-  EventListenerList get error();
-  EventListenerList get noUpdate();
-  EventListenerList get obsolete();
-  EventListenerList get progress();
-  EventListenerList get updateReady();  
+interface AnimationEvent extends Event factory AnimationEventWrappingImplementation {
+
+  AnimationEvent(String type, String propertyName, double elapsedTime,
+      [bool canBubble, bool cancelable]);
+
+  String get animationName();
+
+  num get elapsedTime();
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-interface DOMApplicationCache extends EventTarget {
+class AnimationEventWrappingImplementation extends EventWrappingImplementation implements AnimationEvent {
+  static String _name;
 
-  static final int CHECKING = 2;
+  AnimationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
-  static final int DOWNLOADING = 3;
+  static String get _eventName() {
+    if (_name != null) return _name;
 
-  static final int IDLE = 1;
+    try {
+      dom.document.createEvent("WebKitAnimationEvent");
+      _name = "WebKitAnimationEvent";
+    } catch (var e) {
+      _name = "AnimationEvent";
+    }
+    return _name;
+  }
 
-  static final int OBSOLETE = 5;
+  factory AnimationEventWrappingImplementation(String type, String propertyName,
+      double elapsedTime, [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent(_eventName);
+    e.initWebKitAnimationEvent(
+        type, canBubble, cancelable, propertyName, elapsedTime);
+    return LevelDom.wrapAnimationEvent(e);
+  }
 
-  static final int UNCACHED = 0;
+  String get animationName() => _ptr.animationName;
 
-  static final int UPDATEREADY = 4;
+  num get elapsedTime() => _ptr.elapsedTime;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  int get status();
+interface BeforeLoadEvent extends Event factory BeforeLoadEventWrappingImplementation {
 
-  void swapCache();
+  BeforeLoadEvent(String type, String url, [bool canBubble, bool cancelable]);
 
-  void update();
+  String get url();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  DOMApplicationCacheEvents get on();
+class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation implements BeforeLoadEvent {
+  BeforeLoadEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory BeforeLoadEventWrappingImplementation(String type, String url,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("BeforeLoadEvent");
+    e.initBeforeLoadEvent(type, canBubble, cancelable, url);
+    return LevelDom.wrapBeforeLoadEvent(e);
+  }
+
+  String get url() => _ptr.url;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface CloseEvent extends Event factory CloseEventWrappingImplementation {
+
+  CloseEvent(String type, int code, String reason,
+      [bool canBubble, bool cancelable, bool wasClean]);
+
+  int get code();
+
+  String get reason();
+
+  bool get wasClean();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class CloseEventWrappingImplementation extends EventWrappingImplementation implements CloseEvent {
+  CloseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory CloseEventWrappingImplementation(String type, int code, String reason,
+      [bool canBubble = true, bool cancelable = true, bool wasClean = true]) {
+    final e = dom.document.createEvent("CloseEvent");
+    e.initCloseEvent(type, canBubble, cancelable, wasClean, code, reason);
+    return LevelDom.wrapCloseEvent(e);
+  }
+
+  int get code() => _ptr.code;
+
+  String get reason() => _ptr.reason;
+
+  bool get wasClean() => _ptr.wasClean;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface CompositionEvent extends UIEvent factory CompositionEventWrappingImplementation {
+
+  CompositionEvent(String type, Window view, String data, [bool canBubble,
+      bool cancelable]);
+
+  String get data();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class CompositionEventWrappingImplementation extends UIEventWrappingImplementation implements CompositionEvent {
+  CompositionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory CompositionEventWrappingImplementation(String type, Window view,
+      String data, [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("CompositionEvent");
+    e.initCompositionEvent(type, canBubble, cancelable, LevelDom.unwrap(view),
+        data);
+    return LevelDom.wrapCompositionEvent(e);
+  }
+
+  String get data() => _ptr.data;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18491,7 +16934,11 @@ interface DOMApplicationCache extends EventTarget {
 
 // TODO(jacobr): add versions that take numeric values in px, miliseconds, etc.
 
-interface CSSStyleDeclaration {
+interface CSSStyleDeclaration factory CSSStyleDeclarationWrappingImplementation {
+
+  CSSStyleDeclaration();
+
+  CSSStyleDeclaration.css(String css);
 
   String get cssText();
 
@@ -20376,6 +18823,16 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
   static String _cachedBrowserPrefix;
 
   CSSStyleDeclarationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory CSSStyleDeclarationWrappingImplementation.css(String css) {
+    var style = new Element.tag('div').style;
+    style.cssText = css;
+    return style;
+  }
+
+  factory CSSStyleDeclarationWrappingImplementation() {
+    return new CSSStyleDeclarationWrappingImplementation.css('');
+  }
 
   static String get _browserPrefix() {
     if (_cachedBrowserPrefix === null) {
@@ -23199,6 +21656,69 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface CustomEvent extends Event factory CustomEventWrappingImplementation {
+
+  CustomEvent(String type, [bool canBubble, bool cancelable, Object detail]);
+
+  String get detail();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class CustomEventWrappingImplementation extends EventWrappingImplementation implements CustomEvent {
+  CustomEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory CustomEventWrappingImplementation(String type,
+      [bool canBubble = true, bool cancelable = true, Object detail = null]) {
+    final e = dom.document.createEvent("CustomEvent");
+    e.initCustomEvent(type, canBubble, cancelable, detail);
+    return LevelDom.wrapCustomEvent(e);
+  }
+
+  String get detail() => _ptr.detail;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface DOMApplicationCacheEvents extends Events {
+  EventListenerList get cached();
+  EventListenerList get checking();
+  EventListenerList get downloading();
+  EventListenerList get error();
+  EventListenerList get noUpdate();
+  EventListenerList get obsolete();
+  EventListenerList get progress();
+  EventListenerList get updateReady();  
+}
+
+interface DOMApplicationCache extends EventTarget {
+
+  static final int CHECKING = 2;
+
+  static final int DOWNLOADING = 3;
+
+  static final int IDLE = 1;
+
+  static final int OBSOLETE = 5;
+
+  static final int UNCACHED = 0;
+
+  static final int UPDATEREADY = 4;
+
+  int get status();
+
+  void swapCache();
+
+  void update();
+
+  DOMApplicationCacheEvents get on();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class DOMApplicationCacheEventsImplementation extends EventsImplementation
     implements DOMApplicationCacheEvents {
   DOMApplicationCacheEventsImplementation._wrap(ptr) : super._wrap(ptr);
@@ -23432,12 +21952,77 @@ class _Device {
    * the user agent.
    * Returns the user agent.
    */
-  static String get userAgent() => window.navigator.userAgent;
+  static String get userAgent() => dom.window.navigator.userAgent;
 
   /**
    * Determines if the current device is running Firefox.
    */
   static bool get isFirefox() => userAgent.contains("Firefox", 0);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface DeviceMotionEvent extends Event factory DeviceMotionEventWrappingImplementation {
+
+  // TODO(nweiz): Add more arguments to the constructor when we support
+  // DeviceMotionEvent more thoroughly.
+  DeviceMotionEvent(String type, [bool canBubble, bool cancelable]);
+
+  num get interval();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class DeviceMotionEventWrappingImplementation extends EventWrappingImplementation implements DeviceMotionEvent {
+  DeviceMotionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory DeviceMotionEventWrappingImplementation(String type,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("DeviceMotionEvent");
+    e.initEvent(type, canBubble, cancelable);
+    return LevelDom.wrapDeviceMotionEvent(e);
+  }
+
+  num get interval() => _ptr.interval;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface DeviceOrientationEvent extends Event factory DeviceOrientationEventWrappingImplementation {
+
+  DeviceOrientationEvent(String type, double alpha, double beta, double gamma,
+      [bool canBubble, bool cancelable]);
+
+  num get alpha();
+
+  num get beta();
+
+  num get gamma();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class DeviceOrientationEventWrappingImplementation extends EventWrappingImplementation implements DeviceOrientationEvent {
+  DeviceOrientationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory DeviceOrientationEventWrappingImplementation(String type,
+      double alpha, double beta, double gamma, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent("DeviceOrientationEvent");
+    e.initDeviceOrientationEvent(
+        type, canBubble, cancelable, alpha, beta, gamma);
+    return LevelDom.wrapDeviceOrientationEvent(e);
+  }
+
+  num get alpha() => _ptr.alpha;
+
+  num get beta() => _ptr.beta;
+
+  num get gamma() => _ptr.gamma;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23751,15 +22336,9 @@ class FilteredElementList implements ElementList {
 }
 
 class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
-  String get cssText() => "";
-  int get length() => 0;
-  CSSRule get parentRule() => null;
-  CSSValue getPropertyCSSValue(String propertyName) => null;
-  String getPropertyPriority(String propertyName) => "";
-  String getPropertyShorthand(String propertyName) => null;
-  String getPropertyValue(String propertyName) => null;
-  bool isPropertyImplicit(String propertyName) => false;
-  String item(int index) => "";
+  // This can't call super(), since that's a factory constructor
+  EmptyStyleDeclaration()
+    : super._wrap(dom.document.createElement('div').style);
 
   void set cssText(String value) {
     throw new UnsupportedOperationException(
@@ -25011,6 +23590,181 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface ErrorEvent extends Event factory ErrorEventWrappingImplementation {
+
+  ErrorEvent(String type, String message, String filename, int lineNo,
+      [bool canBubble, bool cancelable]);
+
+  String get filename();
+
+  int get lineno();
+
+  String get message();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class ErrorEventWrappingImplementation extends EventWrappingImplementation implements ErrorEvent {
+  ErrorEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory ErrorEventWrappingImplementation(String type, String message,
+      String filename, int lineNo, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent("ErrorEvent");
+    e.initErrorEvent(type, canBubble, cancelable, message, filename, lineNo);
+    return LevelDom.wrapErrorEvent(e);
+  }
+
+  String get filename() => _ptr.filename;
+
+  int get lineno() => _ptr.lineno;
+
+  String get message() => _ptr.message;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Event factory EventWrappingImplementation {
+
+  static final int AT_TARGET = 2;
+
+  static final int BLUR = 8192;
+
+  static final int BUBBLING_PHASE = 3;
+
+  static final int CAPTURING_PHASE = 1;
+
+  static final int CHANGE = 32768;
+
+  static final int CLICK = 64;
+
+  static final int DBLCLICK = 128;
+
+  static final int DRAGDROP = 2048;
+
+  static final int FOCUS = 4096;
+
+  static final int KEYDOWN = 256;
+
+  static final int KEYPRESS = 1024;
+
+  static final int KEYUP = 512;
+
+  static final int MOUSEDOWN = 1;
+
+  static final int MOUSEDRAG = 32;
+
+  static final int MOUSEMOVE = 16;
+
+  static final int MOUSEOUT = 8;
+
+  static final int MOUSEOVER = 4;
+
+  static final int MOUSEUP = 2;
+
+  static final int SELECT = 16384;
+
+  // In JS, canBubble and cancelable are technically required parameters to
+  // init*Event. In practice, though, if they aren't provided they simply
+  // default to false (since that's Boolean(undefined)).
+  //
+  // Contrary to JS, we default canBubble and cancelable to true, since that's
+  // what people want most of the time anyway.
+  Event(String type, [bool canBubble, bool cancelable]);
+
+  bool get bubbles();
+
+  bool get cancelBubble();
+
+  void set cancelBubble(bool value);
+
+  bool get cancelable();
+
+  EventTarget get currentTarget();
+
+  bool get defaultPrevented();
+
+  int get eventPhase();
+
+  bool get returnValue();
+
+  void set returnValue(bool value);
+
+  EventTarget get srcElement();
+
+  EventTarget get target();
+
+  int get timeStamp();
+
+  String get type();
+
+  void preventDefault();
+
+  void stopImmediatePropagation();
+
+  void stopPropagation();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class EventWrappingImplementation extends DOMWrapperBase implements Event {
+  EventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory EventWrappingImplementation(String type, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent("Event");
+    e.initEvent(type, canBubble, cancelable);
+    return LevelDom.wrapEvent(e);
+  }
+
+  bool get bubbles() => _ptr.bubbles;
+
+  bool get cancelBubble() => _ptr.cancelBubble;
+
+  void set cancelBubble(bool value) { _ptr.cancelBubble = value; }
+
+  bool get cancelable() => _ptr.cancelable;
+
+  EventTarget get currentTarget() => LevelDom.wrapEventTarget(_ptr.currentTarget);
+
+  bool get defaultPrevented() => _ptr.defaultPrevented;
+
+  int get eventPhase() => _ptr.eventPhase;
+
+  bool get returnValue() => _ptr.returnValue;
+
+  void set returnValue(bool value) { _ptr.returnValue = value; }
+
+  EventTarget get srcElement() => LevelDom.wrapEventTarget(_ptr.srcElement);
+
+  EventTarget get target() => LevelDom.wrapEventTarget(_ptr.target);
+
+  int get timeStamp() => _ptr.timeStamp;
+
+  String get type() => _ptr.type;
+
+  void preventDefault() {
+    _ptr.preventDefault();
+    return;
+  }
+
+  void stopImmediatePropagation() {
+    _ptr.stopImmediatePropagation();
+    return;
+  }
+
+  void stopPropagation() {
+    _ptr.stopPropagation();
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef void EventListener(Event event);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25239,6 +23993,693 @@ Document get document() {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface HashChangeEvent extends Event factory HashChangeEventWrappingImplementation {
+
+  HashChangeEvent(String type, String oldURL, String newURL, [bool canBubble,
+      bool cancelable]);
+
+  String get newURL();
+
+  String get oldURL();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class HashChangeEventWrappingImplementation extends EventWrappingImplementation implements HashChangeEvent {
+  HashChangeEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory HashChangeEventWrappingImplementation(String type, String oldURL,
+      String newURL, [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("HashChangeEvent");
+    e.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
+    return LevelDom.wrapHashChangeEvent(e);
+  }
+
+  String get newURL() => _ptr.newURL;
+
+  String get oldURL() => _ptr.oldURL;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface KeyboardEvent extends UIEvent factory KeyboardEventWrappingImplementation {
+
+  static final int KEY_LOCATION_LEFT = 0x01;
+
+  static final int KEY_LOCATION_NUMPAD = 0x03;
+
+  static final int KEY_LOCATION_RIGHT = 0x02;
+
+  static final int KEY_LOCATION_STANDARD = 0x00;
+
+  KeyboardEvent(String type, Window view, String keyIdentifier, int keyLocation,
+      [bool canBubble, bool cancelable, bool ctrlKey, bool altKey,
+      bool shiftKey, bool metaKey, bool altGraphKey]);
+
+  bool get altGraphKey();
+
+  bool get altKey();
+
+  bool get ctrlKey();
+
+  String get keyIdentifier();
+
+  int get keyLocation();
+
+  bool get metaKey();
+
+  bool get shiftKey();
+
+  bool getModifierState(String keyIdentifierArg);
+}
+
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Defines the standard key locations returned by
+ * KeyboardEvent.getKeyLocation.
+ */
+interface KeyLocation {
+
+  /**
+   * The event key is not distinguished as the left or right version
+   * of the key, and did not originate from the numeric keypad (or did not
+   * originate with a virtual key corresponding to the numeric keypad).
+   */
+  static final int STANDARD = 0;
+
+  /**
+   * The event key is in the left key location.
+   */
+  static final int LEFT = 1;
+
+  /**
+   * The event key is in the right key location.
+   */
+  static final int RIGHT = 2;
+
+  /**
+   * The event key originated on the numeric keypad or with a virtual key
+   * corresponding to the numeric keypad.
+   */
+  static final int NUMPAD = 3;
+
+  /**
+   * The event key originated on a mobile device, either on a physical
+   * keypad or a virtual keyboard.
+   */
+  static final int MOBILE = 4;
+
+  /**
+   * The event key originated on a game controller or a joystick on a mobile
+   * device.
+   */
+  static final int JOYSTICK = 5;
+}
+
+/**
+ * Defines the standard keyboard identifier names for keys that are returned
+ * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
+ * unicode mapping.
+ */
+interface KeyName {
+
+  /** The Accept (Commit, OK) key */
+  static final String ACCEPT = "Accept";
+
+  /** The Add key */
+  static final String ADD = "Add";
+
+  /** The Again key */
+  static final String AGAIN = "Again";
+
+  /** The All Candidates key */
+  static final String ALL_CANDIDATES = "AllCandidates";
+
+  /** The Alphanumeric key */
+  static final String ALPHANUMERIC = "Alphanumeric";
+
+  /** The Alt (Menu) key */
+  static final String ALT = "Alt";
+
+  /** The Alt-Graph key */
+  static final String ALT_GRAPH = "AltGraph";
+
+  /** The Application key */
+  static final String APPS = "Apps";
+
+  /** The ATTN key */
+  static final String ATTN = "Attn";
+
+  /** The Browser Back key */
+  static final String BROWSER_BACK = "BrowserBack";
+
+  /** The Browser Favorites key */
+  static final String BROWSER_FAVORTIES = "BrowserFavorites";
+
+  /** The Browser Forward key */
+  static final String BROWSER_FORWARD = "BrowserForward";
+
+  /** The Browser Home key */
+  static final String BROWSER_NAME = "BrowserHome";
+
+  /** The Browser Refresh key */
+  static final String BROWSER_REFRESH = "BrowserRefresh";
+
+  /** The Browser Search key */
+  static final String BROWSER_SEARCH = "BrowserSearch";
+
+  /** The Browser Stop key */
+  static final String BROWSER_STOP = "BrowserStop";
+
+  /** The Camera key */
+  static final String CAMERA = "Camera";
+
+  /** The Caps Lock (Capital) key */
+  static final String CAPS_LOCK = "CapsLock";
+
+  /** The Clear key */
+  static final String CLEAR = "Clear";
+
+  /** The Code Input key */
+  static final String CODE_INPUT = "CodeInput";
+
+  /** The Compose key */
+  static final String COMPOSE = "Compose";
+
+  /** The Control (Ctrl) key */
+  static final String CONTROL = "Control";
+
+  /** The Crsel key */
+  static final String CRSEL = "Crsel";
+
+  /** The Convert key */
+  static final String CONVERT = "Convert";
+
+  /** The Copy key */
+  static final String COPY = "Copy";
+
+  /** The Cut key */
+  static final String CUT = "Cut";
+
+  /** The Decimal key */
+  static final String DECIMAL = "Decimal";
+
+  /** The Divide key */
+  static final String DIVIDE = "Divide";
+
+  /** The Down Arrow key */
+  static final String DOWN = "Down";
+
+  /** The diagonal Down-Left Arrow key */
+  static final String DOWN_LEFT = "DownLeft";
+
+  /** The diagonal Down-Right Arrow key */
+  static final String DOWN_RIGHT = "DownRight";
+
+  /** The Eject key */
+  static final String EJECT = "Eject";
+
+  /** The End key */
+  static final String END = "End";
+
+  /**
+   * The Enter key. Note: This key value must also be used for the Return
+   *  (Macintosh numpad) key
+   */
+  static final String ENTER = "Enter";
+
+  /** The Erase EOF key */
+  static final String ERASE_EOF= "EraseEof";
+
+  /** The Execute key */
+  static final String EXECUTE = "Execute";
+
+  /** The Exsel key */
+  static final String EXSEL = "Exsel";
+
+  /** The Function switch key */
+  static final String FN = "Fn";
+
+  /** The F1 key */
+  static final String F1 = "F1";
+
+  /** The F2 key */
+  static final String F2 = "F2";
+
+  /** The F3 key */
+  static final String F3 = "F3";
+
+  /** The F4 key */
+  static final String F4 = "F4";
+
+  /** The F5 key */
+  static final String F5 = "F5";
+
+  /** The F6 key */
+  static final String F6 = "F6";
+
+  /** The F7 key */
+  static final String F7 = "F7";
+
+  /** The F8 key */
+  static final String F8 = "F8";
+
+  /** The F9 key */
+  static final String F9 = "F9";
+
+  /** The F10 key */
+  static final String F10 = "F10";
+
+  /** The F11 key */
+  static final String F11 = "F11";
+
+  /** The F12 key */
+  static final String F12 = "F12";
+
+  /** The F13 key */
+  static final String F13 = "F13";
+
+  /** The F14 key */
+  static final String F14 = "F14";
+
+  /** The F15 key */
+  static final String F15 = "F15";
+
+  /** The F16 key */
+  static final String F16 = "F16";
+
+  /** The F17 key */
+  static final String F17 = "F17";
+
+  /** The F18 key */
+  static final String F18 = "F18";
+
+  /** The F19 key */
+  static final String F19 = "F19";
+
+  /** The F20 key */
+  static final String F20 = "F20";
+
+  /** The F21 key */
+  static final String F21 = "F21";
+
+  /** The F22 key */
+  static final String F22 = "F22";
+
+  /** The F23 key */
+  static final String F23 = "F23";
+
+  /** The F24 key */
+  static final String F24 = "F24";
+
+  /** The Final Mode (Final) key used on some asian keyboards */
+  static final String FINAL_MODE = "FinalMode";
+
+  /** The Find key */
+  static final String FIND = "Find";
+
+  /** The Full-Width Characters key */
+  static final String FULL_WIDTH = "FullWidth";
+
+  /** The Half-Width Characters key */
+  static final String HALF_WIDTH = "HalfWidth";
+
+  /** The Hangul (Korean characters) Mode key */
+  static final String HANGUL_MODE = "HangulMode";
+
+  /** The Hanja (Korean characters) Mode key */
+  static final String HANJA_MODE = "HanjaMode";
+
+  /** The Help key */
+  static final String HELP = "Help";
+
+  /** The Hiragana (Japanese Kana characters) key */
+  static final String HIRAGANA = "Hiragana";
+
+  /** The Home key */
+  static final String HOME = "Home";
+
+  /** The Insert (Ins) key */
+  static final String INSERT = "Insert";
+
+  /** The Japanese-Hiragana key */
+  static final String JAPANESE_HIRAGANA = "JapaneseHiragana";
+
+  /** The Japanese-Katakana key */
+  static final String JAPANESE_KATAKANA = "JapaneseKatakana";
+
+  /** The Japanese-Romaji key */
+  static final String JAPANESE_ROMAJI = "JapaneseRomaji";
+
+  /** The Junja Mode key */
+  static final String JUNJA_MODE = "JunjaMode";
+
+  /** The Kana Mode (Kana Lock) key */
+  static final String KANA_MODE = "KanaMode";
+
+  /**
+   * The Kanji (Japanese name for ideographic characters of Chinese origin)
+   * Mode key
+   */
+  static final String KANJI_MODE = "KanjiMode";
+
+  /** The Katakana (Japanese Kana characters) key */
+  static final String KATAKANA = "Katakana";
+
+  /** The Start Application One key */
+  static final String LAUNCH_APPLICATION_1 = "LaunchApplication1";
+
+  /** The Start Application Two key */
+  static final String LAUNCH_APPLICATION_2 = "LaunchApplication2";
+
+  /** The Start Mail key */
+  static final String LAUNCH_MAIL = "LaunchMail";
+
+  /** The Left Arrow key */
+  static final String LEFT = "Left";
+
+  /** The Menu key */
+  static final String MENU = "Menu";
+
+  /**
+   * The Meta key. Note: This key value shall be also used for the Apple
+   * Command key
+   */
+  static final String META = "Meta";
+
+  /** The Media Next Track key */
+  static final String MEDIA_NEXT_TRACK = "MediaNextTrack";
+
+  /** The Media Play Pause key */
+  static final String MEDIA_PAUSE_PLAY = "MediaPlayPause";
+
+  /** The Media Previous Track key */
+  static final String MEDIA_PREVIOUS_TRACK = "MediaPreviousTrack";
+
+  /** The Media Stop key */
+  static final String MEDIA_STOP = "MediaStop";
+
+  /** The Mode Change key */
+  static final String MODE_CHANGE = "ModeChange";
+
+  /** The Next Candidate function key */
+  static final String NEXT_CANDIDATE = "NextCandidate";
+
+  /** The Nonconvert (Don't Convert) key */
+  static final String NON_CONVERT = "Nonconvert";
+
+  /** The Number Lock key */
+  static final String NUM_LOCK = "NumLock";
+
+  /** The Page Down (Next) key */
+  static final String PAGE_DOWN = "PageDown";
+
+  /** The Page Up key */
+  static final String PAGE_UP = "PageUp";
+
+  /** The Paste key */
+  static final String PASTE = "Paste";
+
+  /** The Pause key */
+  static final String PAUSE = "Pause";
+
+  /** The Play key */
+  static final String PLAY = "Play";
+
+  /**
+   * The Power key. Note: Some devices may not expose this key to the
+   * operating environment
+   */
+  static final String POWER = "Power";
+
+  /** The Previous Candidate function key */
+  static final String PREVIOUS_CANDIDATE = "PreviousCandidate";
+
+  /** The Print Screen (PrintScrn, SnapShot) key */
+  static final String PRINT_SCREEN = "PrintScreen";
+
+  /** The Process key */
+  static final String PROCESS = "Process";
+
+  /** The Props key */
+  static final String PROPS = "Props";
+
+  /** The Right Arrow key */
+  static final String RIGHT = "Right";
+
+  /** The Roman Characters function key */
+  static final String ROMAN_CHARACTERS = "RomanCharacters";
+
+  /** The Scroll Lock key */
+  static final String SCROLL = "Scroll";
+
+  /** The Select key */
+  static final String SELECT = "Select";
+
+  /** The Select Media key */
+  static final String SELECT_MEDIA = "SelectMedia";
+
+  /** The Separator key */
+  static final String SEPARATOR = "Separator";
+
+  /** The Shift key */
+  static final String SHIFT = "Shift";
+
+  /** The Soft1 key */
+  static final String SOFT_1 = "Soft1";
+
+  /** The Soft2 key */
+  static final String SOFT_2 = "Soft2";
+
+  /** The Soft3 key */
+  static final String SOFT_3 = "Soft3";
+
+  /** The Soft4 key */
+  static final String SOFT_4 = "Soft4";
+
+  /** The Stop key */
+  static final String STOP = "Stop";
+
+  /** The Subtract key */
+  static final String SUBTRACT = "Subtract";
+
+  /** The Symbol Lock key */
+  static final String SYMBOL_LOCK = "SymbolLock";
+
+  /** The Up Arrow key */
+  static final String UP = "Up";
+
+  /** The diagonal Up-Left Arrow key */
+  static final String UP_LEFT = "UpLeft";
+
+  /** The diagonal Up-Right Arrow key */
+  static final String UP_RIGHT = "UpRight";
+
+  /** The Undo key */
+  static final String UNDO = "Undo";
+
+  /** The Volume Down key */
+  static final String VOLUME_DOWN = "VolumeDown";
+
+  /** The Volume Mute key */
+  static final String VOLUMN_MUTE = "VolumeMute";
+
+  /** The Volume Up key */
+  static final String VOLUMN_UP = "VolumeUp";
+
+  /** The Windows Logo key */
+  static final String WIN = "Win";
+
+  /** The Zoom key */
+  static final String ZOOM = "Zoom";
+
+  /**
+   * The Backspace (Back) key. Note: This key value shall be also used for the
+   * key labeled 'delete' MacOS keyboards when not modified by the 'Fn' key
+   */
+  static final String BACKSPACE = "Backspace";
+
+  /** The Horizontal Tabulation (Tab) key */
+  static final String TAB = "Tab";
+
+  /** The Cancel key */
+  static final String CANCEL = "Cancel";
+
+  /** The Escape (Esc) key */
+  static final String ESC = "Esc";
+
+  /** The Space (Spacebar) key:   */
+  static final String SPACEBAR = "Spacebar";
+
+  /**
+   * The Delete (Del) Key. Note: This key value shall be also used for the key
+   * labeled 'delete' MacOS keyboards when modified by the 'Fn' key
+   */
+  static final String DEL = "Del";
+
+  /** The Combining Grave Accent (Greek Varia, Dead Grave) key */
+  static final String DEAD_GRAVE = "DeadGrave";
+
+  /**
+   * The Combining Acute Accent (Stress Mark, Greek Oxia, Tonos, Dead Eacute)
+   * key
+   */
+  static final String DEAD_EACUTE = "DeadEacute";
+
+  /** The Combining Circumflex Accent (Hat, Dead Circumflex) key */
+  static final String DEAD_CIRCUMFLEX = "DeadCircumflex";
+
+  /** The Combining Tilde (Dead Tilde) key */
+  static final String DEAD_TILDE = "DeadTilde";
+
+  /** The Combining Macron (Long, Dead Macron) key */
+  static final String DEAD_MACRON = "DeadMacron";
+
+  /** The Combining Breve (Short, Dead Breve) key */
+  static final String DEAD_BREVE = "DeadBreve";
+
+  /** The Combining Dot Above (Derivative, Dead Above Dot) key */
+  static final String DEAD_ABOVE_DOT = "DeadAboveDot";
+
+  /**
+   * The Combining Diaeresis (Double Dot Abode, Umlaut, Greek Dialytika,
+   * Double Derivative, Dead Diaeresis) key
+   */
+  static final String DEAD_UMLAUT = "DeadUmlaut";
+
+  /** The Combining Ring Above (Dead Above Ring) key */
+  static final String DEAD_ABOVE_RING = "DeadAboveRing";
+
+  /** The Combining Double Acute Accent (Dead Doubleacute) key */
+  static final String DEAD_DOUBLEACUTE = "DeadDoubleacute";
+
+  /** The Combining Caron (Hacek, V Above, Dead Caron) key */
+  static final String DEAD_CARON = "DeadCaron";
+
+  /** The Combining Cedilla (Dead Cedilla) key */
+  static final String DEAD_CEDILLA = "DeadCedilla";
+
+  /** The Combining Ogonek (Nasal Hook, Dead Ogonek) key */
+  static final String DEAD_OGONEK = "DeadOgonek";
+
+  /**
+   * The Combining Greek Ypogegrammeni (Greek Non-Spacing Iota Below, Iota
+   * Subscript, Dead Iota) key
+   */
+  static final String DEAD_IOTA = "DeadIota";
+
+  /**
+   * The Combining Katakana-Hiragana Voiced Sound Mark (Dead Voiced Sound) key
+   */
+  static final String DEAD_VOICED_SOUND = "DeadVoicedSound";
+
+  /**
+   * The Combining Katakana-Hiragana Semi-Voiced Sound Mark (Dead Semivoiced
+   * Sound) key
+   */
+  static final String DEC_SEMIVOICED_SOUND= "DeadSemivoicedSound";
+
+  /**
+   * Key value used when an implementation is unable to identify another key
+   * value, due to either hardware, platform, or software constraints
+   */
+  static final String UNIDENTIFIED = "Unidentified";
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation implements KeyboardEvent {
+  KeyboardEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory KeyboardEventWrappingImplementation(String type, Window view,
+      String keyIdentifier, int keyLocation, [bool canBubble = true,
+      bool cancelable = true, bool ctrlKey = false, bool altKey = false,
+      bool shiftKey = false, bool metaKey = false, bool altGraphKey = false]) {
+    final e = dom.document.createEvent("KeyboardEvent");
+    e.initKeyboardEvent(type, canBubble, cancelable, LevelDom.unwrap(view),
+        keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey,
+        altGraphKey);
+    return LevelDom.wrapKeyboardEvent(e);
+  }
+
+  bool get altGraphKey() => _ptr.altGraphKey;
+
+  bool get altKey() => _ptr.altKey;
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  String get keyIdentifier() => _ptr.keyIdentifier;
+
+  int get keyLocation() => _ptr.keyLocation;
+
+  bool get metaKey() => _ptr.metaKey;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  bool getModifierState(String keyIdentifierArg) {
+    return _ptr.getModifierState(keyIdentifierArg);
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface MessageEvent extends Event factory MessageEventWrappingImplementation {
+
+  MessageEvent(String type, String data, String origin, String lastEventId,
+      Window source, [bool canBubble, bool cancelable, MessagePort port]);
+
+  String get data();
+
+  String get lastEventId();
+
+  MessagePort get messagePort();
+
+  String get origin();
+
+  Window get source();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class MessageEventWrappingImplementation extends EventWrappingImplementation implements MessageEvent {
+  MessageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory MessageEventWrappingImplementation(String type, String data,
+      String origin, String lastEventId, Window source, MessagePort port,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("MessageEvent");
+    e.initMessageEvent(type, canBubble, cancelable, data, origin, lastEventId,
+        LevelDom.unwrap(source), LevelDom.unwrap(port));
+    return LevelDom.wrapMessageEvent(e);
+  }
+
+  String get data() => _ptr.data;
+
+  String get lastEventId() => _ptr.lastEventId;
+
+  MessagePort get messagePort() => LevelDom.wrapMessagePort(_ptr.messagePort);
+
+  String get origin() => _ptr.origin;
+
+  Window get source() => LevelDom.wrapWindow(_ptr.source);
+
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort) {
+    _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 interface MessagePort extends EventTarget {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -25247,6 +24688,153 @@ interface MessagePort extends EventTarget {
 
 class MessagePortWrappingImplementation extends EventTargetWrappingImplementation implements MessagePort {
   MessagePortWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface MouseEvent extends UIEvent factory MouseEventWrappingImplementation {
+
+  MouseEvent(String type, Window view, int detail, int screenX, int screenY,
+      int clientX, int clientY, int button, [bool canBubble, bool cancelable,
+      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
+      EventTarget relatedTarget]);
+
+  bool get altKey();
+
+  int get button();
+
+  int get clientX();
+
+  int get clientY();
+
+  bool get ctrlKey();
+
+  Node get fromElement();
+
+  bool get metaKey();
+
+  int get offsetX();
+
+  int get offsetY();
+
+  EventTarget get relatedTarget();
+
+  int get screenX();
+
+  int get screenY();
+
+  bool get shiftKey();
+
+  Node get toElement();
+
+  int get x();
+
+  int get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class MouseEventWrappingImplementation extends UIEventWrappingImplementation implements MouseEvent {
+  MouseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory MouseEventWrappingImplementation(String type, Window view, int detail,
+      int screenX, int screenY, int clientX, int clientY, int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+    final e = dom.document.createEvent("MouseEvent");
+    e.initMouseEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail,
+        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
+        button, LevelDom.unwrap(relatedTarget));
+    return LevelDom.wrapMouseEvent(e);
+  }
+
+  bool get altKey() => _ptr.altKey;
+
+  int get button() => _ptr.button;
+
+  int get clientX() => _ptr.clientX;
+
+  int get clientY() => _ptr.clientY;
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  Node get fromElement() => LevelDom.wrapNode(_ptr.fromElement);
+
+  bool get metaKey() => _ptr.metaKey;
+
+  int get offsetX() => _ptr.offsetX;
+
+  int get offsetY() => _ptr.offsetY;
+
+  EventTarget get relatedTarget() => LevelDom.wrapEventTarget(_ptr.relatedTarget);
+
+  int get screenX() => _ptr.screenX;
+
+  int get screenY() => _ptr.screenY;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  Node get toElement() => LevelDom.wrapNode(_ptr.toElement);
+
+  int get x() => _ptr.x;
+
+  int get y() => _ptr.y;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface MutationEvent extends Event factory MutationEventWrappingImplementation {
+
+  MutationEvent(String type, Node relatedNode, String prevValue,
+      String newValue, String attrName, int attrChange, [bool canBubble,
+      bool cancelable]);
+
+  static final int ADDITION = 2;
+
+  static final int MODIFICATION = 1;
+
+  static final int REMOVAL = 3;
+
+  int get attrChange();
+
+  String get attrName();
+
+  String get newValue();
+
+  String get prevValue();
+
+  Node get relatedNode();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class MutationEventWrappingImplementation extends EventWrappingImplementation implements MutationEvent {
+  MutationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory MutationEventWrappingImplementation(String type, Node relatedNode,
+      String prevValue, String newValue, String attrName, int attrChange,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("MutationEvent");
+    e.initMutationEvent(type, canBubble, cancelable,
+        LevelDom.unwrap(relatedNode), prevValue, newValue, attrName,
+        attrChange);
+    return LevelDom.wrapMutationEvent(e);
+  }
+
+  int get attrChange() => _ptr.attrChange;
+
+  String get attrName() => _ptr.attrName;
+
+  String get newValue() => _ptr.newValue;
+
+  String get prevValue() => _ptr.prevValue;
+
+  Node get relatedNode() => LevelDom.wrapNode(_ptr.relatedNode);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25591,6 +25179,137 @@ class NotificationWrappingImplementation extends EventTargetWrappingImplementati
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface OverflowEvent extends Event factory OverflowEventWrappingImplementation {
+
+  OverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow);
+
+  static final int BOTH = 2;
+
+  static final int HORIZONTAL = 0;
+
+  static final int VERTICAL = 1;
+
+  bool get horizontalOverflow();
+
+  int get orient();
+
+  bool get verticalOverflow();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class OverflowEventWrappingImplementation extends EventWrappingImplementation implements OverflowEvent {
+  OverflowEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory OverflowEventWrappingImplementation(int orient,
+      bool horizontalOverflow, bool verticalOverflow) {
+    final e = dom.document.createEvent("OverflowEvent");
+    e.initOverflowEvent(orient, horizontalOverflow, verticalOverflow);
+    return LevelDom.wrapOverflowEvent(e);
+  }
+
+  bool get horizontalOverflow() => _ptr.horizontalOverflow;
+
+  int get orient() => _ptr.orient;
+
+  bool get verticalOverflow() => _ptr.verticalOverflow;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface PageTransitionEvent extends Event factory PageTransitionEventWrappingImplementation {
+
+  PageTransitionEvent(String type, [bool canBubble, bool cancelable,
+      bool persisted]);
+
+  bool get persisted();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class PageTransitionEventWrappingImplementation extends EventWrappingImplementation implements PageTransitionEvent {
+  PageTransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory PageTransitionEventWrappingImplementation(String type,
+      [bool canBubble = true, bool cancelable = true,
+      bool persisted = false]) {
+    final e = dom.document.createEvent("PageTransitionEvent");
+    e.initPageTransitionEvent(type, canBubble, cancelable, persisted);
+    return LevelDom.wrapPageTransitionEvent(e);
+  }
+
+  bool get persisted() => _ptr.persisted;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface PopStateEvent extends Event factory PopStateEventWrappingImplementation {
+
+  PopStateEvent(String type, Object state, [bool canBubble, bool cancelable]);
+
+  String get state();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class PopStateEventWrappingImplementation extends EventWrappingImplementation implements PopStateEvent {
+  PopStateEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory PopStateEventWrappingImplementation(String type, Object state,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("PopStateEvent");
+    e.initPopStateEvent(type, canBubble, cancelable, state);
+    return LevelDom.wrapPopStateEvent(e);
+  }
+
+  String get state() => _ptr.state;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface ProgressEvent extends Event factory ProgressEventWrappingImplementation {
+
+  ProgressEvent(String type, int loaded, [bool canBubble, bool cancelable,
+      bool lengthComputable, int total]);
+
+  bool get lengthComputable();
+
+  int get loaded();
+
+  int get total();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class ProgressEventWrappingImplementation extends EventWrappingImplementation implements ProgressEvent {
+  ProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory ProgressEventWrappingImplementation(String type, int loaded,
+      [bool canBubble = true, bool cancelable = true,
+      bool lengthComputable = false, int total = 0]) {
+    final e = dom.document.createEvent("ProgressEvent");
+    e.initProgressEvent(type, canBubble, cancelable, lengthComputable, loaded,
+        total);
+    return LevelDom.wrapProgressEvent(e);
+  }
+
+  bool get lengthComputable() => _ptr.lengthComputable;
+
+  int get loaded() => _ptr.loaded;
+
+  int get total() => _ptr.total;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef bool RequestAnimationFrameCallback(int time);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25608,6 +25327,52 @@ class SharedWorkerWrappingImplementation extends AbstractWorkerWrappingImplement
   SharedWorkerWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   MessagePort get port() { return LevelDom.wrapMessagePort(_ptr.port); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface StorageEvent extends Event factory StorageEventWrappingImplementation {
+
+  StorageEvent(String type, String key, String url, Storage storageArea,
+      [bool canBubble, bool cancelable, String oldValue, String newValue]);
+
+  String get key();
+
+  String get newValue();
+
+  String get oldValue();
+
+  Storage get storageArea();
+
+  String get url();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class StorageEventWrappingImplementation extends EventWrappingImplementation implements StorageEvent {
+  StorageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory StorageEventWrappingImplementation(String type, String key,
+      String url, Storage storageArea, [bool canBubble = true,
+      bool cancelable = true, String oldValue = null,
+      String newValue = null]) {
+    final e = dom.document.createEvent("StorageEvent");
+    e.initStorageEvent(type, canBubble, cancelable, key, oldValue, newValue,
+        url, LevelDom.unwrap(storageArea));
+    return LevelDom.wrapStorageEvent(e);
+  }
+
+  String get key() => _ptr.key;
+
+  String get newValue() => _ptr.newValue;
+
+  String get oldValue() => _ptr.oldValue;
+
+  Storage get storageArea() => LevelDom.wrapStorage(_ptr.storageArea);
+
+  String get url() => _ptr.url;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25657,7 +25422,197 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface TextEvent extends UIEvent factory TextEventWrappingImplementation {
+
+  TextEvent(String type, Window view, String data, [bool canBubble,
+      bool cancelable]);
+
+  String get data();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class TextEventWrappingImplementation extends UIEventWrappingImplementation implements TextEvent {
+  TextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory TextEventWrappingImplementation(String type, Window view, String data,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("TextEvent");
+    e.initTextEvent(type, canBubble, cancelable, LevelDom.unwrap(view), data);
+    return LevelDom.wrapTextEvent(e);
+  }
+
+  String get data() => _ptr.data;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef void TimeoutHandler();
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface TouchEvent extends UIEvent factory TouchEventWrappingImplementation {
+
+  TouchEvent(TouchList touches, TouchList targetTouches,
+      TouchList changedTouches, String type, Window view, int screenX,
+      int screenY, int clientX, int clientY, [bool ctrlKey, bool altKey,
+      bool shiftKey, bool metaKey]);
+
+  bool get altKey();
+
+  TouchList get changedTouches();
+
+  bool get ctrlKey();
+
+  bool get metaKey();
+
+  bool get shiftKey();
+
+  TouchList get targetTouches();
+
+  TouchList get touches();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class TouchEventWrappingImplementation extends UIEventWrappingImplementation implements TouchEvent {
+  TouchEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  TouchEvent(TouchList touches, TouchList targetTouches,
+      TouchList changedTouches, String type, Window view, int screenX,
+      int screenY, int clientX, int clientY, [bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false]) {
+    final e = dom.document.createEvent("TouchEvent");
+    e.initTouchEvent(LevelDom.unwrap(touches), LevelDom.unwrap(targetTouches),
+        LevelDom.unwrap(changedTouches), type, LevelDom.unwrap(view), screenX,
+        screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+    return LevelDom.wrapTouchEvent(e);
+  }
+
+  bool get altKey() => _ptr.altKey;
+
+  TouchList get changedTouches() => LevelDom.wrapTouchList(_ptr.changedTouches);
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  bool get metaKey() => _ptr.metaKey;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  TouchList get targetTouches() => LevelDom.wrapTouchList(_ptr.targetTouches);
+
+  TouchList get touches() => LevelDom.wrapTouchList(_ptr.touches);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface TransitionEvent extends Event factory TransitionEventWrappingImplementation {
+
+  TransitionEvent(String type, String propertyName, double elapsedTime,
+      [bool canBubble, bool cancelable]);
+
+  num get elapsedTime();
+
+  String get propertyName();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class TransitionEventWrappingImplementation extends EventWrappingImplementation implements TransitionEvent {
+  static String _name;
+
+  TransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  static String get _eventName() {
+    if (_name != null) return _name;
+
+    try {
+      dom.document.createEvent("WebKitTransitionEvent");
+      _name = "WebKitTransitionEvent";
+    } catch (var e) {
+      _name = "TransitionEvent";
+    }
+    return _name;
+  }
+
+  factory TransitionEventWrappingImplementation(String type,
+      String propertyName, double elapsedTime, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent(_eventName);
+    e.initWebKitTransitionEvent(type, canBubble, cancelable, propertyName,
+        elapsedTime);
+    return LevelDom.wrapTransitionEvent(e);
+  }
+
+  num get elapsedTime() => _ptr.elapsedTime;
+
+  String get propertyName() => _ptr.propertyName;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface UIEvent extends Event factory UIEventWrappingImplementation {
+
+  UIEvent(String type, Window view, int detail, [bool canBubble,
+      bool cancelable]);
+
+  int get charCode();
+
+  int get detail();
+
+  int get keyCode();
+
+  int get layerX();
+
+  int get layerY();
+
+  int get pageX();
+
+  int get pageY();
+
+  Window get view();
+
+  int get which();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class UIEventWrappingImplementation extends EventWrappingImplementation implements UIEvent {
+  UIEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory UIEventWrappingImplementation(String type, Window view, int detail,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("UIEvent");
+    e.initUIEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail);
+    return LevelDom.wrapUIEvent(e);
+  }
+
+  int get charCode() => _ptr.charCode;
+
+  int get detail() => _ptr.detail;
+
+  int get keyCode() => _ptr.keyCode;
+
+  int get layerX() => _ptr.layerX;
+
+  int get layerY() => _ptr.layerY;
+
+  int get pageX() => _ptr.pageX;
+
+  int get pageY() => _ptr.pageY;
+
+  Window get view() => LevelDom.wrapWindow(_ptr.view);
+
+  int get which() => _ptr.which;
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25750,6 +25705,92 @@ class WebSocketWrappingImplementation extends EventTargetWrappingImplementation 
   }
 
   String get typeName() { return "WebSocket"; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface WheelEvent extends UIEvent factory WheelEventWrappingImplementation {
+
+  WheelEvent(int deltaX, int deltaY, Window view, int screenX, int screenY,
+      int clientX, int clientY, [bool ctrlKey, bool altKey, bool shiftKey,
+      bool metaKey]);
+
+  bool get altKey();
+
+  int get clientX();
+
+  int get clientY();
+
+  bool get ctrlKey();
+
+  bool get metaKey();
+
+  int get offsetX();
+
+  int get offsetY();
+
+  int get screenX();
+
+  int get screenY();
+
+  bool get shiftKey();
+
+  int get wheelDelta();
+
+  int get wheelDeltaX();
+
+  int get wheelDeltaY();
+
+  int get x();
+
+  int get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class WheelEventWrappingImplementation extends UIEventWrappingImplementation implements WheelEvent {
+  WheelEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory WheelEventWrappingImplementation(int deltaX, int deltaY, Window view,
+      int screenX, int screenY, int clientX, int clientY, [bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false]) {
+    final e = dom.document.createEvent("WheelEvent");
+    e.initWheelEvent(deltaX, deltaY, LevelDom.unwrap(view), screenX, screenY,
+        clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+    return LevelDom.wrapWheelEvent(e);
+  }
+
+  bool get altKey() => _ptr.altKey;
+
+  int get clientX() => _ptr.clientX;
+
+  int get clientY() => _ptr.clientY;
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  bool get metaKey() => _ptr.metaKey;
+
+  int get offsetX() => _ptr.offsetX;
+
+  int get offsetY() => _ptr.offsetY;
+
+  int get screenX() => _ptr.screenX;
+
+  int get screenY() => _ptr.screenY;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  int get wheelDelta() => _ptr.wheelDelta;
+
+  int get wheelDeltaX() => _ptr.wheelDeltaX;
+
+  int get wheelDeltaY() => _ptr.wheelDeltaY;
+
+  int get x() => _ptr.x;
+
+  int get y() => _ptr.y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27061,6 +27102,39 @@ interface XMLHttpRequest extends EventTarget factory XMLHttpRequestWrappingImple
   void setRequestHeader(String header, String value);
 
   XMLHttpRequestEvents get on();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface XMLHttpRequestProgressEvent extends ProgressEvent factory XMLHttpRequestProgressEventWrappingImplementation {
+
+  XMLHttpRequestProgressEvent(String type, int loaded, [bool canBubble,
+      bool cancelable, bool lengthComputable, int total]);
+
+  int get position();
+
+  int get totalSize();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class XMLHttpRequestProgressEventWrappingImplementation extends ProgressEventWrappingImplementation implements XMLHttpRequestProgressEvent {
+  XMLHttpRequestProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory XMLHttpRequestProgressEventWrappingImplementation(String type,
+      int loaded, [bool canBubble = true, bool cancelable = true,
+      bool lengthComputable = false, int total = 0]) {
+    final e = dom.document.createEvent("XMLHttpRequestProgressEvent");
+    e.initProgressEvent(type, canBubble, cancelable, lengthComputable, loaded,
+        total);
+    return LevelDom.wrapProgressEvent(e);
+  }
+
+  int get position() => _ptr.position;
+
+  int get totalSize() => _ptr.totalSize;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

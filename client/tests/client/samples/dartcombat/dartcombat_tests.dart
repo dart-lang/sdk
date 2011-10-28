@@ -5,7 +5,7 @@
 
 #library('dartcombat_tests');
 
-#import('dart:html');
+#import('../../../../html/html.dart');
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../samples/dartcombat/dartcombatlib.dart');
 
@@ -139,8 +139,7 @@ doMouseEvent(String type, var targetCell) {
   final point = window.webkitConvertPointFromNodeToPage(targetCell,
       new Point(5, 5));
 
-  MouseEvent e = document.createEvent('MouseEvents');
-  e.initMouseEvent(type, true, true, window, 0, 0, 0, point.x, point.y,
-    false, false, false, false, 0, targetCell);
+  MouseEvent e = new MouseEvent(type, window, 0, 0, 0, point.x, point.y, 0,
+      relatedTarget: targetCell);
   targetCell.on[type].dispatch(e);
 }

@@ -15,8 +15,10 @@
 
 #source('CSSStyleDeclarationTests.dart');
 #source('DocumentFragmentTests.dart');
+#source('EventTests.dart');
 
 main() {
   group('CSSStyleDeclaration', testCSSStyleDeclaration);
   group('DocumentFragment', testDocumentFragment);
+  group('Event', testEvents);
 }

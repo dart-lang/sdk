@@ -5,7 +5,7 @@
 #library('total_tests');
 
 #import('../../../../base/base.dart');
-#import('dart:html');
+#import('../../../../html/html.dart');
 #import('../../../../samples/total/src/TotalLib.dart');
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../view/view.dart');

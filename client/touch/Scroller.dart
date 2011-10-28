@@ -320,8 +320,7 @@ class Scroller implements Draggable, MomentumDelegate {
               snappedTarget,
               decelerationFactor),
           decelerationFactor);
-      onDecelStart.dispatch(
-          EventUtil.createEvent(ScrollerEventType.DECEL_START));
+      onDecelStart.dispatch(new Event(ScrollerEventType.DECEL_START));
       return true;
     } else {
       return false;
@@ -430,8 +429,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
   void onDecelerationEnd() {
     _setWebkitTransition(_element, 0);
-    onScrollerEnd.dispatch(
-        EventUtil.createEvent(ScrollerEventType.SCROLLER_END));
+    onScrollerEnd.dispatch(new Event(ScrollerEventType.SCROLLER_END));
     _started = false;
   }
 
@@ -445,17 +443,14 @@ class Scroller implements Draggable, MomentumDelegate {
       }
     }
 
-    onScrollerDragEnd.dispatch(
-        EventUtil.createEvent(ScrollerEventType.DRAG_END));
+    onScrollerDragEnd.dispatch(new Event(ScrollerEventType.DRAG_END));
 
     if (!decelerating) {
       _snapContentOffsetToBounds();
-      onScrollerEnd.dispatch(
-          EventUtil.createEvent(ScrollerEventType.SCROLLER_END));
+      onScrollerEnd.dispatch(new Event(ScrollerEventType.SCROLLER_END));
       _started = false;
     } else {
-      onDecelStart.dispatch(
-          EventUtil.createEvent(ScrollerEventType.DECEL_START));
+      onDecelStart.dispatch(new Event(ScrollerEventType.DECEL_START));
     }
     _activeGesture = false;
   }
@@ -479,8 +474,7 @@ class Scroller implements Draggable, MomentumDelegate {
     }
     if (!_started) {
       _started = true;
-      onScrollerStart.dispatch(
-          EventUtil.createEvent(ScrollerEventType.SCROLLER_START));
+      onScrollerStart.dispatch(new Event(ScrollerEventType.SCROLLER_START));
     }
     _setContentOffset(newX, newY);
   }
@@ -579,8 +573,7 @@ class Scroller implements Draggable, MomentumDelegate {
     _contentOffset.x = x;
     _contentOffset.y = y;
     _setOffsetFunction(_element, x, y);
-    onContentMoved.dispatch(
-        EventUtil.createEvent(ScrollerEventType.CONTENT_MOVED));
+    onContentMoved.dispatch(new Event(ScrollerEventType.CONTENT_MOVED));
   }
 
   /**

@@ -208,11 +208,6 @@ class MockTouchEvent implements TouchEvent {
 
   String get type() => wrapped.type;
 
-  void initEvent(String eventTypeArg, bool canBubbleArg,
-                 bool cancelableArg) {
-    wrapped.initEvent(eventTypeArg, canBubbleArg, cancelableArg);
-  }
-
   void preventDefault() { wrapped.preventDefault(); }
 
   void stopImmediatePropagation() { wrapped.stopImmediatePropagation(); }
@@ -237,12 +232,6 @@ class MockTouchEvent implements TouchEvent {
 
   int get which() => wrapped.which;
 
-  void initUIEvent(String type, bool canBubble,
-                   bool cancelable, Window view,
-                   int detail) {
-    wrapped.initUIEvent(type, canBubble, cancelable, view, detail);
-  }
-
   bool get altKey() => wrapped.altKey;
 
   bool get ctrlKey() => wrapped.ctrlKey;
@@ -250,14 +239,4 @@ class MockTouchEvent implements TouchEvent {
   bool get metaKey() => wrapped.metaKey;
 
   bool get shiftKey() => wrapped.shiftKey;
-
-  void initTouchEvent(TouchList touches, TouchList targetTouches,
-                      TouchList changedTouches, String type,
-                      Window view, int screenX,
-                      int screenY, int clientX,
-                      int clientY, bool ctrlKey,
-                      bool altKey, bool shiftKey,
-                      bool metaKey) {
-    throw "unimplemented";
-  }
 }

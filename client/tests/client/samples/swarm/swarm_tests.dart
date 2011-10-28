@@ -5,7 +5,7 @@
 #library('swarm_tests');
 
 #import('../../../../base/base.dart');
-#import('dart:html');
+#import('../../../../html/html.dart');
 #import('../../../../samples/swarm/swarmlib.dart');
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../view/view.dart');
@@ -102,9 +102,7 @@ void main() {
 /** Triggers the click event, like [http://api.jquery.com/click/] */
 click(Element element) {
   // TODO(rnystrom): This should be on the DOM API somewhere.
-  MouseEvent event = document.createEvent('MouseEvents');
-  event.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0,
-      false, false, false, false, 0, null);
+  MouseEvent event = new MouseEvent('click', window, 1, 0, 0, 0, 0, 0);
   element.on.click.dispatch(event);
 }
 

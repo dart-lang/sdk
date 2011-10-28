@@ -4,8 +4,7 @@
 
 #library('observable_tests');
 
-#import('dart:html'); // TODO(rnystrom): Only needed to tell architecture.py
-                      // that this is a web test. Come up with cleaner solution.
+#import('../../../html/html.dart');
 #import('../../../observable/observable.dart');
 #import('../../../testing/unittest/unittest.dart');
 

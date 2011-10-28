@@ -25,13 +25,6 @@ class EventUtil {
     }
   }
 
-  // TODO(jacobr): add a comment or remove this method.
-  static Event createEvent(String eventType) {
-    Event event = document.createEvent("HTMLEvents");
-    event.initEvent(eventType, true, true);
-    return event;
-  }
-
   /**
    * Clear the keyboard focus of the currently focused element (if there is
    * one). If there is no currently focused element then this function will do

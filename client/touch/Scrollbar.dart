@@ -220,7 +220,7 @@ class Scrollbar implements ScrollListener {
     _scrollBarDragInProgress = false;
     // TODO(jacobr): make scrollbar less tightly coupled to the scroller.
     _scroller.onScrollerDragEnd.dispatch(
-        EventUtil.createEvent(ScrollerEventType.DRAG_END));
+        new Event(ScrollerEventType.DRAG_END));
   }
 
 
