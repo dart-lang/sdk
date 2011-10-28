@@ -93,7 +93,7 @@ def Main():
     command = [ options.executable, snapshot_argument ]
   else:
     scripts = string.split(options.scripts)
-    command = [ options.executable, snapshot_argument, "--" ] + scripts + [ "--" ]
+    command = [ options.executable, snapshot_argument ] + scripts
   if options.verbose:
     print ' '.join(command)
   subprocess.call(command)
