@@ -608,7 +608,10 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
       return;  // Return closure object.
     }
   }
-  Exceptions::ThrowByType(Exceptions::kObjectNotClosure, invoke_arguments);
+  Exceptions::ThrowByType(
+      result.IsNull() ? Exceptions::kNullPointer :
+                        Exceptions::kObjectNotClosure,
+      invoke_arguments);
 }
 
 
@@ -732,6 +735,10 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
   ASSERT(arguments.Count() ==
          kReportObjectNotClosureRuntimeEntry.argument_count());
   const Instance& bad_closure = Instance::CheckedHandle(arguments.At(0));
+  if (bad_closure.IsNull()) {
+    GrowableArray<const Object*> args;
+    Exceptions::ThrowByType(Exceptions::kNullPointer, args);
+  }
   // const Array& arguments = Array::CheckedHandle(arguments.At(1));
   OS::PrintErr("object '%s' is not a closure\n", bad_closure.ToCString());
   GrowableArray<const Object*> args;

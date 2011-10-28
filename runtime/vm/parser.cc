@@ -102,6 +102,18 @@ static RawTypeArray* NewTypeArray(const GrowableArray<Type*>& objs) {
 }
 
 
+static ThrowNode* CreateEvalConstConstructorThrow(intptr_t token_pos,
+                                                  const Instance& instance) {
+  UnhandledException& excp = UnhandledException::Handle();
+  excp ^= instance.raw();
+  const Instance& exception = Instance::ZoneHandle(excp.exception());
+  const Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
+  return new ThrowNode(token_pos,
+                       new LiteralNode(token_pos, exception),
+                       new LiteralNode(token_pos, stack_trace));
+}
+
+
 struct Parser::Block : public ZoneAllocated {
   Block(Block* outer_block, LocalScope* local_scope, SequenceNode* seq)
     : parent(outer_block), scope(local_scope), statements(seq) {
@@ -5819,14 +5831,15 @@ RawInstance* Parser::EvaluateConstConstructorCall(
   const Instance& result = Instance::Handle(
       DartEntry::InvokeStatic(constructor, arg_values, opt_arg_names));
   if (result.IsUnhandledException()) {
-    ErrorMsg("Exception thrown in EvaluateConstConstructorCall");
-  }
-  if (constructor.IsFactory()) {
-    // The factory method returns the allocated object.
     instance = result.raw();
-  }
-  if (!instance.IsNull()) {
-    instance ^= instance.Canonicalize();
+  } else {
+    if (constructor.IsFactory()) {
+      // The factory method returns the allocated object.
+      instance = result.raw();
+    }
+    if (!instance.IsNull()) {
+      instance ^= instance.Canonicalize();
+    }
   }
   return instance.raw();
 }
@@ -6319,9 +6332,16 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const Function& map_constr = Function::ZoneHandle(
         map_class.LookupConstructor(constr_name));
     ASSERT(!map_constr.IsNull());
-    return new LiteralNode(literal_pos, Instance::ZoneHandle(
-        EvaluateConstConstructorCall(
-            map_class, map_type_arguments, map_constr, constr_args)));
+    const Instance& const_instance = Instance::ZoneHandle(
+        EvaluateConstConstructorCall(map_class,
+                                     map_type_arguments,
+                                     map_constr,
+                                     constr_args));
+    if (const_instance.IsUnhandledException()) {
+      return CreateEvalConstConstructorThrow(literal_pos, const_instance);
+    } else {
+      return new LiteralNode(literal_pos, const_instance);
+    }
   } else {
     // Static call at runtime.
     const String& static_factory_name =
@@ -6545,9 +6565,15 @@ AstNode* Parser::ParseNewOperator() {
           String::Handle(constructor.name()).ToCString());
     }
     const Instance& const_instance = Instance::ZoneHandle(
-        EvaluateConstConstructorCall(
-            type_class, type_arguments, constructor, arguments));
-    new_object = new LiteralNode(new_pos, const_instance);
+        EvaluateConstConstructorCall(type_class,
+                                     type_arguments,
+                                     constructor,
+                                     arguments));
+    if (const_instance.IsUnhandledException()) {
+      new_object = CreateEvalConstConstructorThrow(new_pos, const_instance);
+    } else {
+      new_object = new LiteralNode(new_pos, const_instance);
+    }
   } else {
     CheckFunctionIsCallable(new_pos, constructor);
     if (!type_arguments.IsNull() &&

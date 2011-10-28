@@ -13,9 +13,18 @@
 
 namespace dart {
 
+static void CheckAndThrowExceptionIfNull(const Instance& obj) {
+  if (obj.IsNull()) {
+    GrowableArray<const Object*> args;
+    Exceptions::ThrowByType(Exceptions::kNullPointer, args);
+  }
+}
+
+
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   ASSERT(TypeArguments::CheckedHandle(arguments->At(0)).IsNull());
   const String& pattern = String::CheckedHandle(arguments->At(1));
+  CheckAndThrowExceptionIfNull(pattern);
   const Instance& handle_multi_line = Instance::CheckedHandle(arguments->At(2));
   const Instance& handle_ignore_case =
       Instance::CheckedHandle(arguments->At(3));
@@ -29,6 +38,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getPattern, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
+  ASSERT(!regexp.IsNull());
   const String& result = String::Handle(regexp.pattern());
   arguments->SetReturn(result);
 }
@@ -36,6 +46,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getPattern, 1) {
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_multiLine, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
+  ASSERT(!regexp.IsNull());
   const Bool& result = Bool::Handle(Bool::Get(regexp.is_multi_line()));
   arguments->SetReturn(result);
 }
@@ -43,6 +54,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_multiLine, 1) {
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ignoreCase, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
+  ASSERT(!regexp.IsNull());
   const Bool& result = Bool::Handle(Bool::Get(regexp.is_ignore_case()));
   arguments->SetReturn(result);
 }
@@ -50,6 +62,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ignoreCase, 1) {
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
+  ASSERT(!regexp.IsNull());
   if (regexp.is_initialized()) {
     const Smi& result = Smi::Handle(regexp.num_bracket_expressions());
     arguments->SetReturn(result);
@@ -67,7 +80,9 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
+  ASSERT(!regexp.IsNull());
   const String& str = String::CheckedHandle(arguments->At(1));
+  CheckAndThrowExceptionIfNull(str);
   const Smi& start_index = Smi::CheckedHandle(arguments->At(2));
   const Array& result =
       Array::Handle(Jscre::Execute(regexp, str, start_index.Value()));

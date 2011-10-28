@@ -310,7 +310,9 @@ class LiteralNode : public AstNode {
       ASSERT(str.IsSymbol());
     }
 #endif  // defined(DEBUG)
-    ASSERT(literal.IsNull() || Class::Handle(literal.clazz()).is_finalized());
+    ASSERT(literal.IsNull() ||
+           Class::Handle(literal.clazz()).is_finalized() ||
+           Class::Handle(literal.clazz()).is_prefinalized());
   }
 
   const Instance& literal() const { return literal_; }
