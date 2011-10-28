@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <limits.h>
 
 #include "bin/builtin.h"
 #include "bin/file.h"
@@ -122,7 +123,13 @@ bool File::IsAbsolutePath(const char* pathname) {
 char* File::GetCanonicalPath(const char* pathname) {
   char* abs_path = NULL;
   if (pathname != NULL) {
-    abs_path = realpath(pathname, NULL);
+    // On some older MacOs versions the default behaviour of realpath allocating
+    // space for the resolved_path when a NULL is passed in does not seem to
+    // work, so we explicitly allocate space. The caller is responsible for
+    // freeing this space as in a regular realpath call.
+    char* resolved_path = reinterpret_cast<char*>(malloc(PATH_MAX+1));
+    ASSERT(resolved_path != NULL);
+    abs_path = realpath(pathname, resolved_path);
     assert(abs_path == NULL || IsAbsolutePath(abs_path));
   }
   return abs_path;
