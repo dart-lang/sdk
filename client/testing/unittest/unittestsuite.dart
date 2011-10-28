@@ -2,260 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(rnystrom): This code is gradually moving from a Java/JUnit style to
-// something closer to JS/Jasmine. Eventually, the UnitTestSuite class can go
-// away completely (or become private to this library) and the only exposed API
-// will be group()/test()/expect(). Until then, both ways are supported, which
-// is why things look a bit weird in here.
-
-UnitTestSuite _currentSuite;
-
 /**
  * Description text of the current test group. If multiple groups are nested,
  * this will contain all of their text concatenated.
  */
 String _currentGroup = '';
 
-/** Base class for unit test suites run in a browser. */
-class UnitTestSuite {
+/** Tests executed in this suite. */
+List<TestCase> _tests;
 
-  /** Tests executed in this suite. */
-  List<TestCase> _tests;
+/** Whether this is run within dartium layout tests. */
+bool _isLayoutTest = false;
 
-  /** Whether this suite is run within dartium layout tests. */
-  bool _isLayoutTest;
+/** Current test being executed. */
+int _currentTest = 0;
 
-  /** Current test being executed. */
-  int _currentTest;
+/** Total number of callbacks that have been executed in the current test. */
+int _callbacksCalled = 0;
 
-  /** Total number of callbacks that have been executed in the current test. */
-  int _callbacksCalled;
+// TODO(rnystrom): Get rid of this if we get canonical closures for methods.
+EventListener _onErrorClosure;
 
-  /**
-   * Whether an undetected error occurred while running the last test.  This
-   * errors are commonly caused by DOM callbacks that were not guarded in a
-   * try-catch block.
-   */
-  bool _uncaughtError;
-  EventListener _onErrorClosure;
+final _UNINITIALIZED = 0;
+final _READY         = 1;
+final _RUNNING_TEST  = 2;
 
-  bool _queuedToRun = false;
+/**
+ * Whether an undetected error occurred while running the last test. These
+ * errors are commonly caused by DOM callbacks that were not guarded in a
+ * try-catch block.
+ */
+final _UNCAUGHT_ERROR = 3;
 
-  /** Whether a test is currently being executed by [runTest]. */
-  bool _testIsRunning = false;
-
-  // TODO(sigmund): remove isLayoutTest argument after converting all DOM tests
-  // to use the named constructor below.
-  // TODO(vsm): remove the ignoredWindow parameter once all tests are fixed.
-  UnitTestSuite([var ignoredWindow = null, bool isLayoutTest = false])
-    : _isLayoutTest = isLayoutTest,
-      _tests = new List<TestCase>(),
-      _currentTest = 0,
-      _callbacksCalled = 0 {
-    _onErrorClosure = (e) { _onError(e); };
-    if (_currentSuite != null) {
-      throw 'Cannot have two UnitTestSuites in flight at the same time.';
-    }
-    _currentSuite = this;
-
-    // Immediately queue the suite up. It will run after a timeout (i.e. after
-    // main() has returned).
-    run();
-  }
-
-  // TODO(jacobr): remove the ignoredWindow parameter once all tests are fixed.
-  UnitTestSuite.forLayoutTests([var ignoredWindow = null]) : this(null, true);
-
-  /** Starts running the testsuite. */
-  void run() {
-    if (_queuedToRun) {
-      return;
-    }
-
-    _queuedToRun = true;
-
-    listener(e) {
-      _currentGroup = '';
-      setUpTestSuite();
-      runTests();
-    };
-
-    try {
-      window.dynamic.on.contentLoaded.add(listener);
-    } catch(var e) {
-    // TODO(jacobr): remove this horrible hack to work around dartc bugs.
-      window.dynamic.addEventListener("DOMContentLoaded", listener, false);
-    }
-  }
-
-  /** Subclasses should override this method to register tests. */
-  void setUpTestSuite() {}
-
-  /** Enqueues a synchronous test. */
-  void addTest(TestFunction body) {
-    test(null, body);
-  }
-
-  /** Enqueues an asynchronous test that waits for [callbacks] callbacks. */
-  void addAsyncTest(TestFunction body, int callbacks) {
-    asyncTest(null, callbacks, body);
-  }
-
-  /** Runs all queued tests, one at a time. */
-  void runTests() {
-    window.postMessage('unittest-suite-start', '*');
-    window.setTimeout(() {
-      assert (_currentTest == 0);
-      // Listen for uncaught errors (see [_uncaughtError]).
-      // TODO(jacobr): remove this horrible hack when dartc bugs are fixed.
-      try {
-        window.dynamic.on.error.add(_onErrorClosure);
-      } catch(var e) {
-        window.dynamic.onerror = _onErrorClosure;
-      }
-      _nextBatch();
-      }, 0);
-  }
-
-  void _onError(e) {
-   if (_currentTest < _tests.length) {
-      final testCase = _tests[_currentTest];
-      // TODO(vsm): figure out how to expose the stack trace here
-      // Currently e.message works in dartium, but not in dartc.
-      testCase.recordError('(DOM callback has errors) Caught ${e}', '');
-      _uncaughtError = true;
-      if (testCase.callbacks > 0) {
-        _currentTest++;
-        _nextBatch();
-      }
-    }
-  }
-
-  /** Called by subclasses to indicate that an asynchronous test completed. */
-  void callbackDone() {
-    _callbacksCalled++;
-    final testCase = _tests[_currentTest];
-    if (testCase.callbacks == 0) {
-      testCase.recordError(
-          "Can't call callbackDone() on a synchronous test", '');
-      _uncaughtError = true;
-    } else if (_callbacksCalled > testCase.callbacks) {
-      final expected = testCase.callbacks;
-      testCase.recordError(
-          'More calls to callbackDone() than expected. '
-          + 'Actual: ${_callbacksCalled}, expected: ${expected}', '');
-      _uncaughtError = true;
-    } else if (_callbacksCalled == testCase.callbacks && !_testIsRunning) {
-      testCase.recordSuccess();
-      _currentTest++;
-      _nextBatch();
-    }
-  }
-
-  /**
-   * Runs a batch of tests, yielding whenever an asynchronous test starts
-   * running. Tests will resume executing when such asynchronous test calls
-   * [done] or if it fails with an exception.
-   */
-  void _nextBatch() {
-    while (_currentTest < _tests.length) {
-      final testCase = _tests[_currentTest];
-      runTest(testCase);
-      if (!testCase.isComplete() && testCase.callbacks > 0) {
-        return;
-      }
-      _currentTest++;
-    }
-    _completeTests();
-  }
-
-  /** Runs a single test. */
-  void runTest(TestCase testCase) {
-    // TODO(sigmund): remove this declaration once dartc supports trapping error
-    // traces.
-    var trace = '';
-    _uncaughtError = false;
-    _callbacksCalled = 0;
-    try {
-      _testIsRunning = true;
-      (testCase.test)();
-      if (!_uncaughtError) {
-        if (testCase.callbacks == _callbacksCalled) {
-          testCase.recordSuccess();
-        }
-      }
-    } catch (ExpectException e, var trace) {
-      if (!_uncaughtError) {
-        testCase.recordFail(e.message, trace.toString());
-      }
-    } catch (var e, var trace) {
-      if (!_uncaughtError) {
-        testCase.recordError('Caught ${e}', trace.toString());
-      }
-    } finally {
-      _testIsRunning = false;
-    }
-  }
-
-  /** Publish results on the page and notify controller. */
-  void _completeTests() {
-    try {
-      window.dynamic.on.error.remove(_onErrorClosure);
-    } catch (var e) {
-      // TODO(jacobr): remove this horrible hack to work around dartc bugs.
-      window.dynamic.onerror = null;
-    }
-
-    // This suite is done now, so discard it.
-    _currentSuite = null;
-
-    int testsFailed = 0;
-    int testsErrors = 0;
-    int testsPassed = 0;
-
-    for (TestCase t in _tests) {
-      if (t.success) {
-        testsPassed++;
-      }
-      if (t.fail) {
-        testsFailed++;
-      }
-      if (t.error) {
-        testsErrors++;
-      }
-    }
-
-    if (_isLayoutTest && testsPassed == _tests.length) {
-      document.body.innerHTML = "PASS";
-    } else {
-      StringBuffer newBody = new StringBuffer();
-      newBody.add("<table class='unittest-table'><tbody>");
-      newBody.add(testsPassed == _tests.length
-          ? "<tr><td colspan='3' class='unittest-pass'>PASS</td></tr>"
-          : "<tr><td colspan='3' class='unittest-fail'>FAIL</td></tr>");
-
-      for (TestCase t in _tests) {
-        newBody.add(t.message);
-      }
-
-      if (testsPassed == _tests.length) {
-        newBody.add("<tr><td colspan='3' class='unittest-pass'>All "
-            + testsPassed + " tests passed</td></tr>");
-      } else {
-        newBody.add("""
-            <tr><td colspan='3'>Total
-              <span class='unittest-pass'>${testsPassed} passed</span>,
-              <span class='unittest-fail'>${testsFailed} failed</span>
-              <span class='unittest-error'>${testsErrors} errors</span>
-            </td></tr>""");
-      }
-      newBody.add("</tbody></table>");
-      document.body.innerHTML = newBody.toString();
-    }
-
-    window.dynamic/*TODO(5389254)*/.postMessage('unittest-suite-done', '*');
-  }
-}
+int _state = _UNINITIALIZED;
 
 /** Creates an expectation for the given value. */
 Expectation expect(value) => new Expectation(value);
@@ -277,10 +56,9 @@ void expectThrow(function) {
  * calls.
  */
 void test(String spec, TestFunction body) {
-  _ensureActiveSuite();
+  _ensureInitialized();
 
-  _currentSuite._tests.add(new TestCase(
-      _currentSuite._tests.length + 1, _fullSpec(spec), body, 0));
+  _tests.add(new TestCase(_tests.length + 1, _fullSpec(spec), body, 0));
 }
 
 /**
@@ -289,11 +67,11 @@ void test(String spec, TestFunction body) {
  * calls.
  */
 void asyncTest(String spec, int callbacks, TestFunction body) {
-  _ensureActiveSuite();
+  _ensureInitialized();
 
   final testCase = new TestCase(
-      _currentSuite._tests.length + 1, _fullSpec(spec), body, callbacks);
-  _currentSuite._tests.add(testCase);
+      _tests.length + 1, _fullSpec(spec), body, callbacks);
+  _tests.add(testCase);
 
   if (callbacks < 1) {
     testCase.recordError(
@@ -306,7 +84,7 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
  * body of the function passed to this will inherit this group's description.
  */
 void group(String description, void body()) {
-  _ensureActiveSuite();
+  _ensureInitialized();
 
   // Concatenate the new group.
   final oldGroup = _currentGroup;
@@ -326,16 +104,160 @@ void group(String description, void body()) {
   }
 }
 
+/** Called by subclasses to indicate that an asynchronous test completed. */
 void callbackDone() {
-  if (_currentSuite == null) {
-    throw 'There is no currently-running test suite.';
+  _callbacksCalled++;
+  final testCase = _tests[_currentTest];
+  if (testCase.callbacks == 0) {
+    testCase.recordError(
+        "Can't call callbackDone() on a synchronous test", '');
+    _state = _UNCAUGHT_ERROR;
+  } else if (_callbacksCalled > testCase.callbacks) {
+    final expected = testCase.callbacks;
+    testCase.recordError(
+        'More calls to callbackDone() than expected. '
+        + 'Actual: ${_callbacksCalled}, expected: ${expected}', '');
+    _state = _UNCAUGHT_ERROR;
+  } else if ((_callbacksCalled == testCase.callbacks) &&
+      (_state != _RUNNING_TEST)) {
+    testCase.recordSuccess();
+    _currentTest++;
+    _nextBatch();
   }
-  _currentSuite.callbackDone();
 }
 
 void forLayoutTests() {
-  _ensureActiveSuite();
-  _currentSuite._isLayoutTest = true;
+  _isLayoutTest = true;
+}
+
+/** Runs all queued tests, one at a time. */
+_runTests() {
+  window.postMessage('unittest-suite-start', '*');
+  window.setTimeout(() {
+    assert (_currentTest == 0);
+    // Listen for uncaught errors.
+    try {
+      window.on.error.add(_onErrorClosure);
+    } catch(var e) {
+      // TODO(jacobr): remove this horrible hack when dartc bugs are fixed.
+      window.dynamic.onerror = _onErrorClosure;
+    }
+    _nextBatch();
+  }, 0);
+}
+
+/** Runs a single test. */
+_runTest(TestCase testCase) {
+  try {
+    // TODO(sigmund): remove this declaration once dartc supports trapping error
+    // traces.
+    var trace = '';
+    _callbacksCalled = 0;
+    _state = _RUNNING_TEST;
+
+    testCase.test();
+
+    if (_state != _UNCAUGHT_ERROR) {
+      if (testCase.callbacks == _callbacksCalled) {
+        testCase.recordSuccess();
+      }
+    }
+  } catch (ExpectException e, var trace) {
+    if (_state != _UNCAUGHT_ERROR) {
+      testCase.recordFail(e.message, trace.toString());
+    }
+  } catch (var e, var trace) {
+    if (_state != _UNCAUGHT_ERROR) {
+      testCase.recordError('Caught ${e}', trace.toString());
+    }
+  } finally {
+    _state = _READY;
+  }
+}
+
+/**
+ * Runs a batch of tests, yielding whenever an asynchronous test starts
+ * running. Tests will resume executing when such asynchronous test calls
+ * [done] or if it fails with an exception.
+ */
+_nextBatch() {
+  while (_currentTest < _tests.length) {
+    final testCase = _tests[_currentTest];
+
+    _runTest(testCase);
+
+    if (!testCase.isComplete && testCase.callbacks > 0) return;
+
+    _currentTest++;
+  }
+
+  _completeTests();
+}
+
+/** Publish results on the page and notify controller. */
+_completeTests() {
+  try {
+    window.on.error.remove(_onErrorClosure);
+  } catch (var e) {
+    // TODO(jacobr): remove this horrible hack to work around dartc bugs.
+    window.dynamic.onerror = null;
+  }
+
+  _state = _UNINITIALIZED;
+
+  int testsFailed = 0;
+  int testsErrors = 0;
+  int testsPassed = 0;
+
+  for (TestCase t in _tests) {
+    if (t.success) testsPassed++;
+    if (t.fail) testsFailed++;
+    if (t.error) testsErrors++;
+  }
+
+  if (_isLayoutTest && testsPassed == _tests.length) {
+    document.body.innerHTML = "PASS";
+  } else {
+    var newBody = new StringBuffer();
+    newBody.add("<table class='unittest-table'><tbody>");
+    newBody.add(testsPassed == _tests.length
+        ? "<tr><td colspan='3' class='unittest-pass'>PASS</td></tr>"
+        : "<tr><td colspan='3' class='unittest-fail'>FAIL</td></tr>");
+
+    for (final test in _tests) {
+      newBody.add(test.message);
+    }
+
+    if (testsPassed == _tests.length) {
+      newBody.add("<tr><td colspan='3' class='unittest-pass'>All "
+          + testsPassed + " tests passed</td></tr>");
+    } else {
+      newBody.add("""
+          <tr><td colspan='3'>Total
+            <span class='unittest-pass'>${testsPassed} passed</span>,
+            <span class='unittest-fail'>${testsFailed} failed</span>
+            <span class='unittest-error'>${testsErrors} errors</span>
+          </td></tr>""");
+    }
+    newBody.add("</tbody></table>");
+    document.body.innerHTML = newBody.toString();
+  }
+
+  window.dynamic/*TODO(5389254)*/.postMessage('unittest-suite-done', '*');
+}
+
+void _onError(e) {
+ if (_currentTest < _tests.length) {
+    final testCase = _tests[_currentTest];
+    // TODO(vsm): figure out how to expose the stack trace here
+    // Currently e.message works in dartium, but not in dartc.
+    testCase.recordError('(DOM callback has errors) Caught ${e}', '');
+    _state = _UNCAUGHT_ERROR;
+    if (testCase.callbacks > 0) {
+      _currentTest++;
+      _nextBatch();
+    }
+  }
 }
 
 String _fullSpec(String spec) {
@@ -344,15 +266,29 @@ String _fullSpec(String spec) {
 }
 
 /**
- * Lazily creates a UnitTestSuite if there isn't already an active one. Returns
- * whether or not one was created.
+ * Lazily initializes the test library if not already initialized.
  */
-_ensureActiveSuite() {
-  if (_currentSuite != null) {
-    return;
+_ensureInitialized() {
+  if (_state != _UNINITIALIZED) return;
+
+  _tests = <TestCase>[];
+  _onErrorClosure = (e) { _onError(e); };
+
+  // Immediately queue the suite up. It will run after a timeout (i.e. after
+  // main() has returned).
+  listener(e) {
+    _currentGroup = '';
+    _runTests();
+  };
+
+  try {
+    window.dynamic.on.contentLoaded.add(listener);
+  } catch(var e) {
+  // TODO(jacobr): remove this horrible hack to work around dartc bugs.
+    window.dynamic.addEventListener("DOMContentLoaded", listener, false);
   }
 
-  _currentSuite = new UnitTestSuite();
+  _state = _READY;
 }
 
 /**
@@ -443,53 +379,44 @@ class TestCase {
     : success = false,
       fail = false,
       error = false {
-    message = """<tr>
+    message = '''<tr>
           <td>${id}</td>
-          <td class='unittest-error'>NO STATUS</td>
+          <td class="unittest-error">NO STATUS</td>
           <td>Test did not complete</td>
-        </tr>""";
+        </tr>''';
   }
 
-  bool isComplete() => success || fail || error;
+  bool get isComplete() => success || fail || error;
 
   void recordSuccess() {
-    message = "<tr><td>${id}</td><td class='unittest-pass'>PASS</td></tr>";
+    _setMessage('pass', '', null);
     success = true;
   }
 
   void recordError(String msg, String stackTrace) {
-    message = """
-        <tr>
-          <td>${id}</td>
-          <td class='unittest-error'>ERROR</td>
-          <td>${msg}</td>
-        </tr>""";
-    if (stackTrace != null) {
-      message +=
-          "<tr><td></td><td colspan='2'><pre>${stackTrace}</pre></td></tr>";
-    }
+    _setMessage('error', msg, stackTrace);
     error = true;
   }
 
   void recordFail(String msg, String stackTrace) {
-    // Include the spec description if we have one.
-    // TODO(rnystrom): When all of our tests are using group() and test(), we
-    // can assume description will be non-null and eliminate this check.
-    if (description != null) {
-      msg = 'Expectation: $description. $msg';
-    }
+    _setMessage('fail', msg, stackTrace);
+    fail = true;
+  }
 
-    message = """
+  void _setMessage(String type, String msg, String stackTrace) {
+    message =
+        '''
         <tr>
           <td>${id}</td>
-          <td class='unittest-fail'>FAIL</td>
-          <td>${msg}</td>
-        </tr>""";
+          <td class="unittest-$type">${type.toUpperCase()}</td>
+          <td>Expectation: $description. $msg</td>
+        </tr>
+        ''';
+
     if (stackTrace != null) {
       message +=
-          "<tr><td></td><td colspan='2'><pre>${stackTrace}</pre></td></tr>";
+          '<tr><td></td><td colspan="2"><pre>${stackTrace}</pre></td></tr>';
     }
-    fail = true;
   }
 }
 
