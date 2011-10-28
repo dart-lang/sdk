@@ -45,7 +45,8 @@ BlackListedTest/12: Fail # Bug 5469684
 
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
-
+Constructor2Test: Fail          # Bug 4995181 (evaluation order)
+Constructor3Test: Fail          # Bug 4995181 (evaluation order)
 
 # Regular bugs which should be fixed.
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
@@ -129,6 +130,8 @@ FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 ExampleConstructorTest: Fail # Bug 4205742.
 CTConstTest: Fail            # Bug 4510015.
 Constructor2NegativeTest: Fail  # Bug 4208594.
+Constructor2Test: Fail       # Issue 255
+Constructor3Test: Fail       # Issue 257
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
 BitOperationsTest: Fail      # Uses bignums.
 ListLiteral3Test: Fail      # Bug 4510015.
