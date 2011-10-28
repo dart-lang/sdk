@@ -32,13 +32,11 @@ function usage {
 # $2 arch 
 # $3 mode
 function doBuild {
-  cd $1
-  ../tools/build.py --arch $2 --mode $3
+  ./tools/build.py --arch $1 --mode $2
   if [ $? != 0 ] ; then
-    echo "Build of $1 failed"
+    echo "Build of $1 - $2 failed"
     exit 1
   fi
-  cd ..
 }
 
 # Execute a set of tests
@@ -47,10 +45,8 @@ function doBuild {
 # $3 mode
 # Returns the output from the subcommand
 function doTest {
-  cd $1
-  ../tools/test.py --arch $2 --mode $3
+  ./tools/test.py --arch $2 --mode $3
   RESULT=$?
-  cd ..
   if [ ${RESULT} != 0 ] ; then
     TESTS_FAILED=1
   fi
@@ -87,38 +83,25 @@ if [ ! -d compiler -o ! -d runtime -o ! -d tests ] ; then
 fi
 
 echo
-echo "--- Building runtime ---"
-doBuild runtime ia32 release
+echo "--- Building release ---"
+doBuild ia32 release
 
 echo
-echo "--- Building compiler ---"
-doBuild compiler ia32 debug
+echo "--- Building debug ---"
+doBuild ia32 debug
 
-if [ ${DO_OPTIMIZE} == 1 ] ; then
-  # echo "Syncing compiler debug build to release"
-  # rsync -a out/Debug_ia32 out/Release_ia32
-  doBuild compiler ia32 release
-fi
-
-# TODO(zundel): Potential shortcut: don't rebuild all of dartc again.
-# Tried using rsync, but it doesn't work - client rebuilds anyway
-
-# Build in client dir
-echo
-echo "--- Building client ---"
-doBuild client ia32 debug
-
-if [ ${DO_OPTIMIZE} == 1 ] ; then
-  # echo "Syncing client debug build to release"
-  # rsync -a out/Debug_ia32 out/Release_ia32
-  doBuild client ia32 release
-fi
 
 
 echo
 echo "=== Runtime tests === "
-doTest runtime ia32 release 
+echo " Debug (Ctrl-C to skip this set of tests)"
+doTest runtime ia32 debug
 RUNTIME_RESULT=$?
+if [ ${RUNTIME_RESULT} == 0 ] ; then
+  echo " Release (Ctrl-C to skip this set of tests)"
+  doTest runtime ia32 release 
+  RUNTIME_RESULT=$?
+fi
 
 
 echo
@@ -128,7 +111,7 @@ doTest compiler dartc debug
 COMPILER_RESULT=$?
 
 if [ ${DO_OPTIMIZE} == 1 ] ; then
-  echo " Release mode (--optimize) (Ctrl-C to skip this set of tests)"
+  echo " Release mode (--optimize)"
   doTest compiler dartc release
   RESULT=$?
   if [ ${RESULT} != 0 ] ; then
@@ -143,7 +126,7 @@ doTest client chromium debug
 CLIENT_RESULT=$?
 
 if [ ${DO_OPTIMIZE} == 1 ] ; then
-  echo " Chromium Release mode (--optimize) (Ctrl-C to skip this set of tests)"
+  echo " Chromium Release mode (--optimize)"
   doTest compiler chromium release
   RESULT=$?
   if [ ${RESULT} != 0 ] ; then
