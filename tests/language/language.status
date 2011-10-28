@@ -30,19 +30,6 @@ TypeVariableScopeTest/03: Fail # Bug 5349550, was 5316513
 TypeVariableScopeTest/04: Fail # Bug 5349550, was 5316513
 ImpliedInterfaceTest: Fail # Bug 5349944
 
-BlackListedTest/01: Fail # Bug 5469684
-BlackListedTest/02: Fail # Bug 5469684
-BlackListedTest/03: Fail # Bug 5469684
-BlackListedTest/04: Fail # Bug 5469684
-BlackListedTest/05: Fail # Bug 5469684
-BlackListedTest/06: Fail # Bug 5469684
-BlackListedTest/07: Fail # Bug 5469684
-BlackListedTest/08: Fail # Bug 5469684
-BlackListedTest/09: Fail # Bug 5469684
-BlackListedTest/10: Fail # Bug 5469684
-BlackListedTest/11: Fail # Bug 5469684
-BlackListedTest/12: Fail # Bug 5469684
-
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
 Constructor2Test: Fail          # Bug 4995181 (evaluation order)

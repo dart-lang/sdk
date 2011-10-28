@@ -30,5 +30,9 @@ interface MyStringInterface extends String {}  /// 10: compile-time error
 class MyFunction implements Function {}        /// 11: compile-time error
 interface MyFunctionInterface extends Function {}  /// 12: compile-time error
 
+// Dynamic.
+class MyDynamic implements Dynamic {}            /// 13: compile-time error
+interface MyDynamicInterface extends Dynamic {}  /// 14: compile-time error
+
 main() {
 }

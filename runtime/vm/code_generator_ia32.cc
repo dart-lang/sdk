@@ -1647,10 +1647,7 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t token_index) {
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
   __ pushl(location);  // Push the source location.
   __ pushl(EAX);  // Push the source object.
-  // TODO(regis): Once we enforce the rule prohibiting subtyping of bool, we
-  // should rename the runtime call 'ConditionTypeCheck' to
-  // 'ConditionTypeError'.
-  GenerateCallRuntime(token_index, kConditionTypeCheckRuntimeEntry);
+  GenerateCallRuntime(token_index, kConditionTypeErrorRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ addl(ESP, Immediate(3 * kWordSize));

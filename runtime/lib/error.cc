@@ -216,28 +216,24 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
 }
 
 
-// Check that the type of the given object is allowed in conditional context.
+// Report that the type of the given object is not bool in conditional context.
 // Arg0: index of the token of the assignment (source location).
-// Arg1: object being checked.
-// Return value: checked value, otherwise allocate and throw a TypeError.
-DEFINE_RUNTIME_ENTRY(ConditionTypeCheck, 2) {
+// Arg1: bad object.
+// Return value: none, throws a TypeError.
+DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
   ASSERT(arguments.Count() ==
-      kConditionTypeCheckRuntimeEntry.argument_count());
+      kConditionTypeErrorRuntimeEntry.argument_count());
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
-
+  ASSERT(src_instance.IsNull() || !src_instance.IsBool());
   const char* msg = "boolean expression";
-  if (src_instance.IsNull() || !src_instance.IsBool()) {
-    const Type& bool_interface = Type::Handle(Type::BoolInterface());
-    const Type& src_type = Type::Handle(src_instance.GetType());
-    const String& src_type_name = String::Handle(src_type.Name());
-    const String& bool_type_name = String::Handle(bool_interface.Name());
-    ThrowTypeError(location, src_type_name, bool_type_name,
-                   String::Handle(String::NewSymbol(msg)));
-    UNREACHABLE();
-  }
-
-  arguments.SetReturn(src_instance);
+  const Type& bool_interface = Type::Handle(Type::BoolInterface());
+  const Type& src_type = Type::Handle(src_instance.GetType());
+  const String& src_type_name = String::Handle(src_type.Name());
+  const String& bool_type_name = String::Handle(bool_interface.Name());
+  ThrowTypeError(location, src_type_name, bool_type_name,
+                 String::Handle(String::NewSymbol(msg)));
+  UNREACHABLE();
 }
 
 

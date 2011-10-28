@@ -877,6 +877,13 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     return;
   }
 
+  // If cls belongs to core lib or to core lib's implementation, restrictions
+  // about allowed interfaces are lifted.
+  const bool cls_belongs_to_core_lib =
+      (cls.library() == Library::CoreLibrary()) ||
+      (cls.library() == Library::CoreImplLibrary());
+
+  // Resolve and check the interfaces of cls.
   visited->Add(&cls);
   Type& interface = Type::Handle();
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
@@ -889,12 +896,28 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     }
     const Class& interface_class = Class::Handle(interface.type_class());
     if (!interface_class.is_interface()) {
-      ReportError("Class name '%s' used where interface expected\n",
+      ReportError("Class '%s' is used where an interface is expected\n",
                   String::Handle(interface_class.Name()).ToCString());
     }
-    // TODO(regis): Verify that unless cls is in core lib, it cannot implement
-    // an instance of Number or String. Any other? bool?
-
+    // Verify that unless cls belongs to core lib, it cannot extend or implement
+    // any of bool, num, int, double, String, Function, Dynamic.
+    // The exception is signature classes, which are compiler generated and
+    // represent a function type, therefore implementing the Function interface.
+    if (!cls_belongs_to_core_lib) {
+      if (interface.IsBoolInterface() ||
+          interface.IsNumberInterface() ||
+          interface.IsIntInterface() ||
+          interface.IsDoubleInterface() ||
+          interface.IsStringInterface() ||
+          (interface.IsFunctionInterface() && !cls.IsSignatureClass()) ||
+          interface.IsDynamicType()) {
+        ReportError("'%s' is not allowed to extend or implement '%s'\n",
+                    String::Handle(cls.Name()).ToCString(),
+                    String::Handle(interface_class.Name()).ToCString());
+      }
+      // TODO(regis): We also need to prevent extending classes Smi, Mint,
+      // BigInt, Double, OneByteString, TwoByteString, FourByteString.
+    }
     // Now resolve the super interfaces.
     ResolveInterfaces(interface_class, visited);
   }

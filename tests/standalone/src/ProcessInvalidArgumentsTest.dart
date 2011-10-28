@@ -31,34 +31,8 @@ void testNonStringArgument() {
   }
 }
 
-class MyString implements String {
-  MyString();
-}
-
-void testMyStringArgument() {
-  Process p = new Process("true", [new MyString()]);
-  try {
-    p.start();
-    Expect.fail("Did not throw exception");
-  } catch(var e) {
-    Expect.isTrue(e is ProcessException, "Wrong exception type: $e");
-  }
-}
-
-void testMyStringPath() {
-  Process p = new Process(new MyString(), ['asdf']);
-  try {
-    p.start();
-    Expect.fail("Did not throw exception");
-  } catch(var e) {
-    Expect.isTrue(e is ProcessException, "Wrong exception type: $e");
-  }
-}
-
 void main() {
   testNonStringPath();
   testNonListArguments();
   testNonStringArgument();
-  testMyStringArgument();
-  testMyStringPath();
 }
