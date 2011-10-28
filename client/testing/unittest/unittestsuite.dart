@@ -135,13 +135,9 @@ _runTests() {
   window.postMessage('unittest-suite-start', '*');
   window.setTimeout(() {
     assert (_currentTest == 0);
+
     // Listen for uncaught errors.
-    try {
-      window.on.error.add(_onErrorClosure);
-    } catch(var e) {
-      // TODO(jacobr): remove this horrible hack when dartc bugs are fixed.
-      window.dynamic.onerror = _onErrorClosure;
-    }
+    window.onerror = _onErrorClosure;
     _nextBatch();
   }, 0);
 }
@@ -196,12 +192,7 @@ _nextBatch() {
 
 /** Publish results on the page and notify controller. */
 _completeTests() {
-  try {
-    window.on.error.remove(_onErrorClosure);
-  } catch (var e) {
-    // TODO(jacobr): remove this horrible hack to work around dartc bugs.
-    window.dynamic.onerror = null;
-  }
+  window.onerror = null;
 
   _state = _UNINITIALIZED;
 
@@ -243,7 +234,7 @@ _completeTests() {
     document.body.innerHTML = newBody.toString();
   }
 
-  window.dynamic/*TODO(5389254)*/.postMessage('unittest-suite-done', '*');
+  window.postMessage('unittest-suite-done', '*');
 }
 
 void _onError(e) {
