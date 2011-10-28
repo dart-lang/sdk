@@ -57,7 +57,7 @@ FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory
 StringStreamTest: Skip # Uses InputStream
-StatusExpressionTest: Skip # Uses tools/testing library.
+
 
 [ $arch == dartc || $arch == chromium ]
 *: Skip
