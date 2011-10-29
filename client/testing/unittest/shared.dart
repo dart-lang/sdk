@@ -20,9 +20,6 @@ int _currentTest = 0;
 /** Total number of callbacks that have been executed in the current test. */
 int _callbacksCalled = 0;
 
-// TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-EventListener _onErrorClosure;
-
 final _UNINITIALIZED = 0;
 final _READY         = 1;
 final _RUNNING_TEST  = 2;
@@ -35,6 +32,10 @@ final _RUNNING_TEST  = 2;
 final _UNCAUGHT_ERROR = 3;
 
 int _state = _UNINITIALIZED;
+
+final _PASS  = 'pass';
+final _FAIL  = 'fail';
+final _ERROR = 'error';
 
 /** Creates an expectation for the given value. */
 Expectation expect(value) => new Expectation(value);
@@ -74,7 +75,7 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
   _tests.add(testCase);
 
   if (callbacks < 1) {
-    testCase.recordError(
+    testCase.error(
         'Async tests must wait for at least one callback ', '');
   }
 }
@@ -109,18 +110,18 @@ void callbackDone() {
   _callbacksCalled++;
   final testCase = _tests[_currentTest];
   if (testCase.callbacks == 0) {
-    testCase.recordError(
+    testCase.error(
         "Can't call callbackDone() on a synchronous test", '');
     _state = _UNCAUGHT_ERROR;
   } else if (_callbacksCalled > testCase.callbacks) {
     final expected = testCase.callbacks;
-    testCase.recordError(
+    testCase.error(
         'More calls to callbackDone() than expected. '
         + 'Actual: ${_callbacksCalled}, expected: ${expected}', '');
     _state = _UNCAUGHT_ERROR;
   } else if ((_callbacksCalled == testCase.callbacks) &&
       (_state != _RUNNING_TEST)) {
-    testCase.recordSuccess();
+    testCase.pass();
     _currentTest++;
     _nextBatch();
   }
@@ -132,14 +133,12 @@ void forLayoutTests() {
 
 /** Runs all queued tests, one at a time. */
 _runTests() {
-  window.postMessage('unittest-suite-start', '*');
-  window.setTimeout(() {
-    assert (_currentTest == 0);
+  _platformStartTests();
 
-    // Listen for uncaught errors.
-    window.onerror = _onErrorClosure;
+  _platformDefer(() {
+    assert (_currentTest == 0);
     _nextBatch();
-  }, 0);
+  });
 }
 
 /** Runs a single test. */
@@ -155,16 +154,17 @@ _runTest(TestCase testCase) {
 
     if (_state != _UNCAUGHT_ERROR) {
       if (testCase.callbacks == _callbacksCalled) {
-        testCase.recordSuccess();
+        testCase.pass();
       }
     }
+
   } catch (ExpectException e, var trace) {
     if (_state != _UNCAUGHT_ERROR) {
-      testCase.recordFail(e.message, trace.toString());
+      testCase.fail(e.message, trace.toString());
     }
   } catch (var e, var trace) {
     if (_state != _UNCAUGHT_ERROR) {
-      testCase.recordError('Caught ${e}', trace.toString());
+      testCase.error('Caught ${e}', trace.toString());
     }
   } finally {
     _state = _READY;
@@ -192,63 +192,21 @@ _nextBatch() {
 
 /** Publish results on the page and notify controller. */
 _completeTests() {
-  window.onerror = null;
-
   _state = _UNINITIALIZED;
 
+  int testsPassed = 0;
   int testsFailed = 0;
   int testsErrors = 0;
-  int testsPassed = 0;
 
   for (TestCase t in _tests) {
-    if (t.success) testsPassed++;
-    if (t.fail) testsFailed++;
-    if (t.error) testsErrors++;
-  }
-
-  if (_isLayoutTest && testsPassed == _tests.length) {
-    document.body.innerHTML = "PASS";
-  } else {
-    var newBody = new StringBuffer();
-    newBody.add("<table class='unittest-table'><tbody>");
-    newBody.add(testsPassed == _tests.length
-        ? "<tr><td colspan='3' class='unittest-pass'>PASS</td></tr>"
-        : "<tr><td colspan='3' class='unittest-fail'>FAIL</td></tr>");
-
-    for (final test in _tests) {
-      newBody.add(test.message);
-    }
-
-    if (testsPassed == _tests.length) {
-      newBody.add("<tr><td colspan='3' class='unittest-pass'>All "
-          + testsPassed + " tests passed</td></tr>");
-    } else {
-      newBody.add("""
-          <tr><td colspan='3'>Total
-            <span class='unittest-pass'>${testsPassed} passed</span>,
-            <span class='unittest-fail'>${testsFailed} failed</span>
-            <span class='unittest-error'>${testsErrors} errors</span>
-          </td></tr>""");
-    }
-    newBody.add("</tbody></table>");
-    document.body.innerHTML = newBody.toString();
-  }
-
-  window.postMessage('unittest-suite-done', '*');
-}
-
-void _onError(e) {
- if (_currentTest < _tests.length) {
-    final testCase = _tests[_currentTest];
-    // TODO(vsm): figure out how to expose the stack trace here
-    // Currently e.message works in dartium, but not in dartc.
-    testCase.recordError('(DOM callback has errors) Caught ${e}', '');
-    _state = _UNCAUGHT_ERROR;
-    if (testCase.callbacks > 0) {
-      _currentTest++;
-      _nextBatch();
+    switch (t.result) {
+      case _PASS:  testsPassed++; break;
+      case _FAIL:  testsFailed++; break;
+      case _ERROR: testsErrors++; break;
     }
   }
+
+  _platformCompleteTests(testsPassed, testsFailed, testsErrors);
 }
 
 String _fullSpec(String spec) {
@@ -263,18 +221,14 @@ _ensureInitialized() {
   if (_state != _UNINITIALIZED) return;
 
   _tests = <TestCase>[];
-  _onErrorClosure = (e) { _onError(e); };
+  _currentGroup = '';
+  _state = _READY;
+
+  _platformInitialize();
 
   // Immediately queue the suite up. It will run after a timeout (i.e. after
   // main() has returned).
-  listener() {
-    _currentGroup = '';
-    _runTests();
-  };
-
-  window.setTimeout(listener, 0);
-
-  _state = _READY;
+  _platformDefer(_runTests);
 }
 
 /**
@@ -349,60 +303,35 @@ class TestCase {
   /** Total number of callbacks to wait for before the test completes. */
   int callbacks;
 
-  /** Whether this test case was succesful. */
-  bool success;
+  /** Error or failure message. */
+  String message  = '';
 
-  /** Whether an Expect call failed in this test. */
-  bool fail;
+  /**
+   * One of [_PASS], [_FAIL], or [_ERROR] or [null] if the test hasn't run yet.
+   */
+  String result;
 
-  /** Whether this test case had a runtime error. */
-  bool error;
+  /** Stack trace associated with this test, or null if it succeeded. */
+  String stackTrace;
 
-  /** Messages to display at the end of the test run. */
-  String message;
+  TestCase(this.id, this.description, this.test, this.callbacks);
 
-  TestCase(this.id, this.description, this.test, this.callbacks)
-    : success = false,
-      fail = false,
-      error = false {
-    message = '''<tr>
-          <td>${id}</td>
-          <td class="unittest-error">NO STATUS</td>
-          <td>Test did not complete</td>
-        </tr>''';
+  bool get isComplete() => result != null;
+
+  void pass() {
+    result = _PASS;
   }
 
-  bool get isComplete() => success || fail || error;
-
-  void recordSuccess() {
-    _setMessage('pass', '', null);
-    success = true;
+  void fail(String message, String stackTrace) {
+    result = _FAIL;
+    this.message = message;
+    this.stackTrace = stackTrace;
   }
 
-  void recordError(String msg, String stackTrace) {
-    _setMessage('error', msg, stackTrace);
-    error = true;
-  }
-
-  void recordFail(String msg, String stackTrace) {
-    _setMessage('fail', msg, stackTrace);
-    fail = true;
-  }
-
-  void _setMessage(String type, String msg, String stackTrace) {
-    message =
-        '''
-        <tr>
-          <td>${id}</td>
-          <td class="unittest-$type">${type.toUpperCase()}</td>
-          <td>Expectation: $description. $msg</td>
-        </tr>
-        ''';
-
-    if (stackTrace != null) {
-      message +=
-          '<tr><td></td><td colspan="2"><pre>${stackTrace}</pre></td></tr>';
-    }
+  void error(String message, String stackTrace) {
+    result = _ERROR;
+    this.message = message;
+    this.stackTrace = stackTrace;
   }
 }
 
