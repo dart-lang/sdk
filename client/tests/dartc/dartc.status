@@ -6,7 +6,7 @@ prefix dartc/client
 
 dom/scripts/idlparser.dart: Skip        # Bogus dartc error; references dart/utils/peg
 dom/scripts/idlparser_test.dart: Skip   # Bogus dartc error; references dart/utils/peg
-client/testing/unittest/unittest_vm.dart: Skip # Relies on VM libs
+testing/unittest/unittest_vm.dart: Skip # Relies on VM libs
 
 [ $arch == ia32 ]
 *: Skip
