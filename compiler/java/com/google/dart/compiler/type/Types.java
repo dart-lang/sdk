@@ -258,7 +258,7 @@ public class Types {
    */
   @VisibleForTesting
   public InterfaceType asInstanceOf(Type t, ClassElement element) {
-    switch (t.getKind()) {
+    switch (TypeKind.of(t)) {
       case FUNCTION_ALIAS:
       case INTERFACE: {
         if (t.getElement().equals(element)) {

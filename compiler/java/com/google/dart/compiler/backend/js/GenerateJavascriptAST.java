@@ -1668,8 +1668,9 @@ public class GenerateJavascriptAST {
       int numParams = params.size();
       for (int i = 0; i < numParams; ++i) {
         JsNameRef jsParam = jsParams.get(i).getName().makeRef();
-        JsExpression expr = rtt.addTypeCheck(getCurrentClass(), jsParam,
-            typeOf(params.get(i).getTypeNode()), null, params.get(i));
+        DartParameter param = params.get(i);
+        Type paramType = param.getSymbol().getType();
+        JsExpression expr = rtt.addTypeCheck(getCurrentClass(), jsParam, paramType, null, param);
         if (expr != jsParam) {
           // if the expression was returned unchanged, omit the check
           checks.add(new JsExprStmt(expr));
@@ -1842,6 +1843,8 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitIfStatement(DartIfStatement x) {
       JsExpression jsCondition = (JsExpression) generate(x.getCondition());
+      jsCondition = rtt.addTypeCheck(getCurrentClass(), jsCondition, typeProvider.getBoolType(),
+          x.getCondition().getType(), x);
       JsStatement jsThenStmt = (JsStatement) generate(x.getThenStatement());
       JsStatement jsElseStmt = null;
       if (x.getElseStatement() != null) {
@@ -1876,6 +1879,8 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitWhileStatement(DartWhileStatement x) {
       JsExpression condition = (JsExpression) generate(x.getCondition());
+      condition = rtt.addTypeCheck(getCurrentClass(), condition, typeProvider.getBoolType(),
+          x.getCondition().getType(), x);
       JsBlock body = (JsBlock) generate(x.getBody());
       return new JsWhile(condition, body).setSourceRef(x);
     }
@@ -1883,6 +1888,8 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitDoWhileStatement(DartDoWhileStatement x) {
       JsExpression condition = (JsExpression) generate(x.getCondition());
+      condition = rtt.addTypeCheck(getCurrentClass(), condition, typeProvider.getBoolType(),
+          x.getCondition().getType(), x);
       JsBlock body = (JsBlock) generate(x.getBody());
       return new JsDoWhile(condition, body).setSourceRef(x);
     }
@@ -1894,7 +1901,10 @@ public class GenerateJavascriptAST {
 
       JsFor jsFor = new JsFor().setSourceRef(x);
       if (x.getCondition() != null) {
-        jsFor.setCondition((JsExpression) generate(x.getCondition()));
+        JsExpression condExpr = (JsExpression) generate(x.getCondition());
+        condExpr = rtt.addTypeCheck(getCurrentClass(), condExpr, typeProvider.getBoolType(),
+            x.getCondition().getType(), x);
+        jsFor.setCondition(condExpr);
       }
       if (x.getIncrement() != null) {
         jsFor.setIncrExpr((JsExpression) generate(x.getIncrement()));
@@ -1943,13 +1953,31 @@ public class GenerateJavascriptAST {
         DartFunction function = functionStack.peek();
         if (function != null) {
           // NOTE: FunctionExpressionInliner might be leaving return statements around
-          DartTypeNode returnType = function.getReturnTypeNode();
-          expr = rtt.addTypeCheck(getCurrentClass(), expr, typeOf(returnType),
-              returnValue.getType(), x);
+          DartTypeNode returnTypeNode = function.getReturnTypeNode();
+          Type returnType = null;
+          if (returnTypeNode == null) {
+            // check for factory methods, which return the type of their name
+            returnType = getFactoryReturnType(function);
+          }
+          if (returnType == null) {
+            returnType = typeOf(returnTypeNode);
+          }
+          expr = rtt.addTypeCheck(getCurrentClass(), expr, returnType, returnValue.getType(), x);
         }
         jsRet.setExpr(expr);
       }
       return jsRet.setSourceRef(x);
+    }
+
+    /**
+     * Get the return type of a factory method.
+     * 
+     * @param function
+     * @return {@link Type} instance or null if not a factory method or otherwise unavailable
+     */
+    private Type getFactoryReturnType(DartFunction function) {
+      // TODO: implement
+      return null;
     }
 
     @Override
@@ -2176,6 +2204,8 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitConditional(DartConditional x) {
       JsExpression testExpr = (JsExpression) generate(x.getCondition());
+      testExpr = rtt.addTypeCheck(getCurrentClass(), testExpr, typeProvider.getBoolType(),
+        x.getCondition().getType(), x);
       JsExpression thenExpr = (JsExpression) generate(x.getThenExpression());
       JsExpression elseExpr = (JsExpression) generate(x.getElseExpression());
       return new JsConditional(testExpr, thenExpr, elseExpr).setSourceRef(x);
@@ -2191,10 +2221,11 @@ public class GenerateJavascriptAST {
         return generateInstanceOfComparison(x);
       }
 
+      DartExpression arg1 = x.getArg1();
       DartExpression arg2 = x.getArg2();
       JsExpression rhs = (JsExpression) generate(arg2);
       if (operator == Token.ASSIGN) {
-        return x.getArg1().accept(new Assignment(x, rhs, arg2.getType()));
+        return arg1.accept(new Assignment(x, rhs, arg2.getType()));
       }
 
       assert !operator.isUserDefinableOperator() || !operator.isAssignmentOperator() : x;
@@ -2207,8 +2238,12 @@ public class GenerateJavascriptAST {
         skipShim = optStrategy.canSkipOperatorShim(x);
       }
 
-      JsExpression lhs = (JsExpression) generate(x.getArg1());
+      JsExpression lhs = (JsExpression) generate(arg1);
       Token op = x.getOperator();
+
+      lhs = rtt.addTypeCheck(getCurrentClass(), lhs, getRequiredType(op), arg1.getType(), arg1);
+      rhs = rtt.addTypeCheck(getCurrentClass(), rhs, getRequiredType(op), arg2.getType(), arg2);
+      
       if (skipShim) {
         if (op.isEqualityOperator()) {
           op = mapToStrictEquals(op);
@@ -2219,7 +2254,7 @@ public class GenerateJavascriptAST {
             op = mapToNonStrictEquals(op);
             rhs = nulle();
           }
-          if (x.getArg1() instanceof DartNullLiteral) {
+          if (arg1 instanceof DartNullLiteral) {
             JsExpression tmp = lhs;
             lhs = rhs;
             rhs = tmp;
@@ -2233,6 +2268,24 @@ public class GenerateJavascriptAST {
       } else {
         JsNameRef ref = new JsNameRef(mangler.createOperatorSyntax(operator));
         return AstUtil.newInvocation(ref, lhs, rhs).setSourceRef(x);
+      }
+    }
+
+    /**
+     * Return a type which an operator requires for its operands.
+     * 
+     * @param op operator
+     * @return a {@link Type} instance, which will be {@code null} if there are
+     *     no restrictions
+     */
+    private Type getRequiredType(Token op) {
+      switch (op) {
+        case OR:
+        case AND:
+          return typeProvider.getBoolType();
+        // TODO: other operators?
+        default:
+          return null;
       }
     }
 
@@ -2373,6 +2426,8 @@ public class GenerateJavascriptAST {
             break;
           case NOT:
             jsUnaryOperator = JsUnaryOperator.NOT;
+            arg = rtt.addTypeCheck(getCurrentClass(), arg, typeProvider.getBoolType(),
+                x.getArg().getType(), x.getArg());
             break;
           default:
             throw new AssertionError("Unexpected unary operator " + operator.name());

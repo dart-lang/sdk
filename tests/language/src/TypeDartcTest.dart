@@ -494,7 +494,7 @@ class TypeTest {
     Expect.equals(1, testAnyFunction());
     //Expect.equals(1, testVoidFunction()); - Function type checking issue
     //Expect.equals(1, testFunctionNum());  - Function type checking issue
-    //Expect.equals(9, testBoolCheck());    - Boolean checking on conditions is not done
+    Expect.equals(9, testBoolCheck());
     //Expect.equals(1, testFactory());      - Not doing a test on factories
     Expect.equals(8, testListAssigment());
   }
