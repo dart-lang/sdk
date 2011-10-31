@@ -36,18 +36,19 @@ class Flag {
     }
     switch (type_) {
       case kBoolean: {
-        OS::Print("%s: %s\n", name_, *this->bool_ptr_ ? "true" : "false");
+        OS::Print("%s: %s (%s)\n",
+            name_, *this->bool_ptr_ ? "true" : "false", comment_);
         break;
       }
       case kInteger: {
-        OS::Print("%s: %d\n", name_, *this->int_ptr_);
+        OS::Print("%s: %d (%s)\n", name_, *this->int_ptr_, comment_);
         break;
       }
       case kString: {
         if (*this->charp_ptr_ != NULL) {
-          OS::Print("%s: '%s'\n", name_, *this->charp_ptr_);
+          OS::Print("%s: '%s' (%s)\n", name_, *this->charp_ptr_, comment_);
         } else {
-          OS::Print("%s: (null)\n", name_);
+          OS::Print("%s: (null) (%s)\n", name_, comment_);
         }
         break;
       }
