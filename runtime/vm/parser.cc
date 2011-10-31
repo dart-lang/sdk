@@ -930,9 +930,7 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
     // Parse positional parameters.
     ParseFormalParameters(allow_explicit_default_values,
                           params);
-    if (CurrentToken() == Token::kLBRACK) {
-      ASSERT(!params->has_named_optional_parameters);
-      params->has_named_optional_parameters = true;
+    if (params->has_named_optional_parameters) {
       // Parse named optional parameters.
       ParseFormalParameters(allow_explicit_default_values,
                             params);
@@ -961,6 +959,7 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
     if (!params->has_named_optional_parameters &&
         (CurrentToken() == Token::kLBRACK)) {
       // End of normal parameters, start of named parameters.
+      params->has_named_optional_parameters = true;
       return;
     }
     ParseFormalParameter(allow_explicit_default_values, params);
