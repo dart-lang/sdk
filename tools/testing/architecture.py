@@ -41,15 +41,23 @@ HTML_CONTENTS = """
   <script type="text/javascript" src="%(controller_script)s"></script>
   <script type="%(script_type)s" src="%(source_script)s"></script>
   <script type="text/javascript">
+    // If nobody intercepts the error, finish the test.
+    window.onerror = function() { window.layoutTestController.notifyDone() };
+
     // If 'startedDartTest' is not set, that means that the test did not have
     // a chance to load. This will happen when a load error occurs in the VM.
     // Give the machine time to start up.
     setTimeout(function() {
-      if (window.layoutTestController
-          && !window.layoutTestController.startedDartTest) {
-        window.layoutTestController.notifyDone();
-      }
-    }, 3000);
+      // A window.postMessage might have been enqueued after this timeout.
+      // Just sleep another time to give the browser the time to process the
+      // posted message.
+      setTimeout(function() {
+        if (window.layoutTestController
+            && !window.layoutTestController.startedDartTest) {
+          window.layoutTestController.notifyDone();
+        }
+      }, 0);
+    }, 0);
   </script>
 </body>
 </html>
@@ -68,6 +76,10 @@ DART_CONTENTS = """
 
 #import('%(library)s', prefix: "Test");
 
+waitForDone() {
+  window.postMessage('unittest-suite-wait-for-done', '*');
+}
+
 pass() {
   document.body.innerHTML = 'PASS';
   window.postMessage('unittest-suite-done', '*');
@@ -78,11 +90,6 @@ fail(e, trace) {
   window.postMessage('unittest-suite-done', '*');
 }
 
-// All tests are registered as async tests on the UnitTestSuite.
-// If the test uses the [:TestRunner:] we will a callback to wait for the
-// done callback.
-// Otherwise we will call [:testSuite.done():] immediately after the test
-// finished.
 main() {
   bool needsToWait = false;
   bool mainIsFinished = false;
@@ -96,7 +103,11 @@ main() {
   };
   try {
     Test.main();
-    if (!needsToWait) pass();
+    if (needsToWait) {
+      waitForDone();
+    } else {
+      pass();
+    }
     mainIsFinished = true;
   } catch(var e, var trace) {
     fail(e, trace);

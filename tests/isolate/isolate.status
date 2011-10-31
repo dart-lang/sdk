@@ -4,10 +4,6 @@
 
 prefix isolate
 
-[ $arch == dartium ]
-Mixed2Test: Fail
-MandelIsolateTest: Fail
-
 [ $arch == ia32 ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 

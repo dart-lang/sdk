@@ -38,7 +38,7 @@ void _onError(e) {
 
 /** Runs all queued tests, one at a time. */
 _platformStartTests() {
-  window.postMessage('unittest-suite-start', '*');
+  window.postMessage('unittest-suite-wait-for-done', '*');
 
   // Listen for uncaught errors.
   window.onerror = _onErrorClosure;

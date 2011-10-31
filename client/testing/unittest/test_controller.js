@@ -11,7 +11,7 @@ function processMessage(msg) {
   if (window.layoutTestController) {
     if (msg == 'unittest-suite-done') {
       window.layoutTestController.notifyDone();
-    } else if (msg == 'unittest-suite-start') {
+    } else if (msg == 'unittest-suite-wait-for-done') {
       window.layoutTestController.startedDartTest = true;
     }
   }
