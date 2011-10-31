@@ -44,20 +44,22 @@ HTML_CONTENTS = """
     // If nobody intercepts the error, finish the test.
     window.onerror = function() { window.layoutTestController.notifyDone() };
 
-    // If 'startedDartTest' is not set, that means that the test did not have
-    // a chance to load. This will happen when a load error occurs in the VM.
-    // Give the machine time to start up.
-    setTimeout(function() {
-      // A window.postMessage might have been enqueued after this timeout.
-      // Just sleep another time to give the browser the time to process the
-      // posted message.
+    window.addEventListener('DOMContentLoaded', function() {
+      // If 'startedDartTest' is not set, that means that the test did not have
+      // a chance to load. This will happen when a load error occurs in the VM.
+      // Give the machine time to start up.
       setTimeout(function() {
-        if (window.layoutTestController
-            && !window.layoutTestController.startedDartTest) {
-          window.layoutTestController.notifyDone();
-        }
-      }, 0);
-    }, 0);
+        // A window.postMessage might have been enqueued after this timeout.
+        // Just sleep another time to give the browser the time to process the
+        // posted message.
+        setTimeout(function() {
+          if (window.layoutTestController
+              && !window.layoutTestController.startedDartTest) {
+            window.layoutTestController.notifyDone();
+          }
+        }, 0);
+      }, 50);
+    }, false);
   </script>
 </body>
 </html>
