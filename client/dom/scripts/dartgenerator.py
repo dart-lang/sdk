@@ -344,6 +344,7 @@ class DartGenerator(object):
     self._StartGenerateInterfaceLibrary()
     self._StartGenerateJavaScriptMonkeyImpl(database, output_dir)
     self._StartGenerateWrappingImpl(output_dir)
+    self._StartGenerateFrogImpl(output_dir)
 
     # Render all interfaces into Dart and save them in files.
     dart_file_paths = []
@@ -390,6 +391,11 @@ class DartGenerator(object):
                             # library.
                             self._dart_wrapping_file_paths))
 
+      # New version: Frog
+      self.GenerateLibFile('template_frog_dom.darttemplate',
+                           os.path.join(lib_dir, 'frog_dom.dart'),
+                           self._dart_frog_file_paths)
+
 
     # JavaScript externs files
     self._GenerateJavaScriptExternsMonkey(database, output_dir)
@@ -419,9 +425,16 @@ class DartGenerator(object):
         super_interface_name,
         source_filter)
 
+    frog_interface_generator = self._MakeFrogImplInterfaceGenerator(
+        interface,
+        common_prefix,
+        super_interface_name,
+        source_filter)
+
     dart_interface_generator.StartInterface()
     monkey_interface_generator.StartInterface()
     wrapping_interface_generator.StartInterface()
+    frog_interface_generator.StartInterface()
 
     for const in sorted(interface.constants, ConstantOutputOrder):
       dart_interface_generator.AddConstant(const)
@@ -431,10 +444,12 @@ class DartGenerator(object):
         dart_interface_generator.AddGetter(attr)
         monkey_interface_generator.AddGetter(attr)
         wrapping_interface_generator.AddGetter(attr)
+        frog_interface_generator.AddGetter(attr)
       elif attr.is_fc_setter:
         dart_interface_generator.AddSetter(attr)
         monkey_interface_generator.AddSetter(attr)
         wrapping_interface_generator.AddSetter(attr)
+        frog_interface_generator.AddSetter(attr)
 
     # The implementation should define an indexer if the interface directly
     # extends List.
@@ -444,6 +459,7 @@ class DartGenerator(object):
         element_type = match.group(1)
         monkey_interface_generator.AddIndexer(element_type)
         wrapping_interface_generator.AddListImplementation(element_type)
+        frog_interface_generator.AddListImplementation(element_type)
         break
 
     # Group overloaded operations by id
@@ -460,6 +476,7 @@ class DartGenerator(object):
       dart_interface_generator.AddOperation(info)
       monkey_interface_generator.AddOperation(info)
       wrapping_interface_generator.AddOperation(info)
+      frog_interface_generator.AddOperation(info)
 
     # With multiple inheritance, attributes and operations of non-first
     # interfaces need to be added.  Sometimes the attribute or operation is
@@ -480,10 +497,14 @@ class DartGenerator(object):
                   parent_interface, attr)
               wrapping_interface_generator.AddSecondaryGetter(
                   parent_interface, attr)
+              frog_interface_generator.AddSecondaryGetter(
+                  parent_interface, attr)
             elif attr.is_fc_setter:
               monkey_interface_generator.AddSecondarySetter(
                   parent_interface, attr)
               wrapping_interface_generator.AddSecondarySetter(
+                  parent_interface, attr)
+              frog_interface_generator.AddSecondarySetter(
                   parent_interface, attr)
 
         # Group overloaded operations by id
@@ -502,10 +523,13 @@ class DartGenerator(object):
                 parent_interface, info)
             wrapping_interface_generator.AddSecondaryOperation(
                 parent_interface, info)
+            frog_interface_generator.AddSecondaryOperation(
+                parent_interface, info)
 
     dart_interface_generator.FinishInterface(self._overloaded_types)
     monkey_interface_generator.FinishInterface()
     wrapping_interface_generator.FinishInterface()
+    frog_interface_generator.FinishInterface()
     return
 
   def _DefinesSameAttribute(self, interface, attr1):
@@ -637,11 +661,17 @@ class DartGenerator(object):
     return os.path.join(self._output_dir, 'src', 'wrapping',
                         '_%sWrappingImplementation.dart' % interface_name)
 
+  def FilePathForFrogImpl(self, interface_name):
+    """Returns the file path of the Frog implementation."""
+    return os.path.join(self._output_dir, 'src', 'frog',
+                        '%s.dart' % interface_name)
+
 
   def _StartGenerateInterfaceLibrary(self):
     """."""
     self._dart_interface_file_paths = []
     self._dart_wrapping_file_paths = []
+    self._dart_frog_file_paths = []
 
 
   def _MakeDartInterfaceGenerator(self,
@@ -707,6 +737,32 @@ class DartGenerator(object):
                                       dart_code, self._wrapping_js_natives,
                                       self._wrapping_map,
                                       self._wrapping_externs)
+
+
+  def _StartGenerateFrogImpl(self, output_dir):
+    """Prepared for generating frog implementation.
+
+    - Creates emitter for Dart code.
+    """
+    pass
+
+
+  def _MakeFrogImplInterfaceGenerator(self,
+                                          interface,
+                                          common_prefix,
+                                          super_interface_name,
+                                          source_filter):
+    """."""
+    interface_name = interface.id
+    dart_frog_file_path = self.FilePathForFrogImpl(interface_name)
+
+    self._dart_frog_file_paths.append(dart_frog_file_path)
+
+    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
+    dart_code.Emit(
+        ''.join(open('template_frog_impl.darttemplate').readlines()))
+    return FrogInterfaceGenerator(interface, super_interface_name,
+                                    dart_code)
 
 
   def _StartGenerateJavaScriptMonkeyImpl(self, database, output_dir):
@@ -1746,3 +1802,155 @@ class MonkeyInterfaceGenerator(object):
 
   def AddSecondaryOperation(self, interface, info):
     self.AddOperation(info)
+
+# ------------------------------------------------------------------------------
+
+class FrogInterfaceGenerator(object):
+  """Generates a Frog class for a DOM IDL interface."""
+
+  def __init__(self, interface, super_interface, dart_code):
+    """Generates Dart code for the given interface.
+
+    Args:
+
+      interface: an IDLInterface instance. It is assumed that all types have
+          been converted to Dart types (e.g. int, String), unless they are in
+          the same package as the interface.
+      super_interface: A string or None, the name of the common interface that
+         this interface implements, if any.
+      dart_code: an Emitter for the file containing the Dart implementation
+          class.
+    """
+    self._interface = interface
+    self._super_interface = super_interface
+    self._dart_code = dart_code
+    self._current_secondary_parent = None
+
+
+  def StartInterface(self):
+    interface = self._interface
+    interface_name = interface.id
+
+    self._class_name = self._ImplClassName(interface_name)
+
+    base = None
+    if interface.parents:
+      supertype = interface.parents[0].type.id
+      # FIXME: We're currently injecting List<..> and EventTarget as
+      # supertypes in dart.idl. We should annotate/preserve as
+      # attributes instead.  For now, this hack lets the interfaces
+      # inherit, but not the classes.
+      if (not _IsDartListType(supertype) and
+          not supertype == 'EventTarget'):
+        base = self._ImplClassName(supertype)
+      if _IsDartCollectionType(supertype):
+        # List methods are injected in AddListImplementation.
+        pass
+      elif supertype == 'EventTarget':
+        # Most implementors of EventTarget specify the EventListener operations
+        # again.  If the operations are not specified, try to inherit from the
+        # EventTarget implementation.
+        #
+        # Applies to MessagePort.
+        if not [op for op in interface.operations if op.id == 'addEventListener']:
+          base = self._ImplClassName(supertype)
+      else:
+        base = self._ImplClassName(supertype)
+
+    if base:
+      extends = " extends " + base
+    else:
+      extends = ""
+
+    (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
+        '\n'
+        'class $CLASS$BASE native "$CLASS" {\n'
+        '$!MEMBERS'
+        '$!ADDITIONS'
+        '}\n',
+        CLASS=self._class_name, BASE=extends, INTERFACE=interface_name)
+
+    if not base:
+      # Emit shared base functionality here as we have no common base type.
+      self._base_emitter.Emit(
+          '\n'
+          '  var dartObjectLocalStorage;\n'
+          '\n'
+          '  String get typeName() native;\n')
+
+  def _ImplClassName(self, type_name):
+    return type_name
+
+  def FinishInterface(self):
+    """."""
+    pass
+
+  def AddConstant(self, constant):
+    pass
+
+  def AddGetter(self, attr):
+    # Declare as a field in the native class.
+    # TODO(vsm): Mark this as native somehow.
+    self._members_emitter.Emit(
+        '\n'
+        '  $TYPE $NAME;\n',
+        NAME=attr.id, TYPE=attr.type.id, INTERFACE=self._interface.id)
+
+  def AddSetter(self, attr):
+    # TODO(vsm): Suppress for now.  Should emit if there is no getter.
+    pass
+
+  def AddSecondaryGetter(self, interface, attr):
+    self._SecondaryContext(interface)
+    self.AddGetter(attr)
+
+  def AddSecondarySetter(self, interface, attr):
+    self._SecondaryContext(interface)
+    self.AddSetter(attr)
+
+  def AddSecondaryOperation(self, interface, info):
+    self._SecondaryContext(interface)
+    self.AddOperation(info)
+
+  def _SecondaryContext(self, interface):
+    if interface is not self._current_secondary_parent:
+      self._current_secondary_parent = interface
+      self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
+
+
+  def AddListImplementation(self, element_type):
+    """Adds all the methods required to complete implementation of List."""
+    # We would like to simply inherit the implementation of everything except
+    # get length(), [], and maybe []=.  It is possible to extend from a base
+    # array implementation class only when there is no other implementation
+    # inheritance.  There might be no implementation inheritance other than
+    # DOMBaseWrapper for many classes, but there might be some where the
+    # array-ness is introduced by a non-root interface:
+    #
+    #   interface Y extends X, List<T> ...
+    #
+    # In the non-root case we have to choose between:
+    #
+    #   class YImpl extends XImpl { add List<T> methods; }
+    #
+    # and
+    #
+    #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
+    #
+    self._members_emitter.Emit(
+        '\n'
+        '  $TYPE operator[](int index) native;\n',
+        TYPE=element_type)
+
+  def AddOperation(self, info):
+    """
+    Arguments:
+      info: An OperationInfo object.
+    """
+    # TODO(vsm): Handle overloads.
+    self._members_emitter.Emit(
+        '\n'
+        '  $TYPE $NAME($ARGS) native;\n',
+        TYPE=info.type_name,
+        NAME=info.name,
+        ARGS=info.arg_implementation_declaration)
