@@ -367,7 +367,7 @@ UNIT_TEST_CASE(FullSnapshot) {
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.
@@ -414,7 +414,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.
@@ -437,7 +437,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     if (Dart_ExceptionOccurred(result)) {
       // Print the exception object.
       fprintf(stderr, "An unhandled exception has been thrown\n");

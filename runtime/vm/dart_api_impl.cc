@@ -37,6 +37,17 @@ DART_EXPORT bool Dart_IsValid(const Dart_Handle& handle) {
   return !obj.IsApiFailure();
 }
 
+
+DART_EXPORT void _Dart_ReportInvalidHandle(const char* file,
+                                           int line,
+                                           const char* handle,
+                                           const char* message) {
+  fprintf(stderr, "%s:%d: invalid handle: '%s':\n    '%s'\n",
+          file, line, handle, message);
+  OS::Abort();
+}
+
+
 DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
   ASSERT(Isolate::Current() != NULL);
   Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -56,8 +67,8 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_Error(const char* value) {
-  return Api::Error(value);
+DART_EXPORT Dart_Handle Dart_Error(const char* error) {
+  return Api::Error(error);
 }
 
 

@@ -25,9 +25,11 @@ UNIT_TEST_CASE(BooleanValues) {
   EXPECT(Dart_IsBoolean(val2));
   bool value = false;
   Dart_Handle result = Dart_BooleanValue(val1, &value);
-  EXPECT(Dart_IsValid(result) && value);
+  EXPECT_VALID(result);
+  EXPECT(value);
   result = Dart_BooleanValue(val2, &value);
-  EXPECT(Dart_IsValid(result) && !value);
+  EXPECT_VALID(result);
+  EXPECT(!value);
 
   Dart_ExitScope();  // Exit the Dart API scope.
   Dart_ShutdownIsolate();
@@ -46,10 +48,10 @@ UNIT_TEST_CASE(DoubleValues) {
   EXPECT(Dart_IsDouble(val2));
   double out1, out2;
   Dart_Handle result = Dart_DoubleValue(val1, &out1);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT_EQ(kDoubleVal1, out1);
   result = Dart_DoubleValue(val2, &out2);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT_EQ(kDoubleVal2, out2);
 
   Dart_ExitScope();  // Exit the Dart API scope.
@@ -84,7 +86,7 @@ UNIT_TEST_CASE(NumberValues) {
                                Dart_NewString("getInt"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     EXPECT(Dart_IsNumber(result));
 
@@ -94,7 +96,7 @@ UNIT_TEST_CASE(NumberValues) {
                                Dart_NewString("getDouble"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     EXPECT(Dart_IsNumber(result));
 
@@ -104,7 +106,7 @@ UNIT_TEST_CASE(NumberValues) {
                                Dart_NewString("getBool"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     EXPECT(!Dart_IsNumber(result));
 
@@ -114,7 +116,7 @@ UNIT_TEST_CASE(NumberValues) {
                                Dart_NewString("getNull"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     EXPECT(!Dart_IsNumber(result));
 
@@ -138,33 +140,33 @@ UNIT_TEST_CASE(IntegerValues) {
   EXPECT(Dart_IsInteger(val1));
   bool fits = false;
   Dart_Handle result = Dart_IntegerFitsIntoInt64(val1, &fits);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT(fits);
 
   Dart_Handle val2 = Dart_NewInteger(kIntegerVal2);
   EXPECT(Dart_IsInteger(val2));
   result = Dart_IntegerFitsIntoInt64(val2, &fits);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT(fits);
 
   Dart_Handle val3 = Dart_NewIntegerFromHexCString(kIntegerVal3);
   EXPECT(Dart_IsInteger(val3));
   result = Dart_IntegerFitsIntoInt64(val3, &fits);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT(!fits);
 
   int64_t out = 0;
   result = Dart_IntegerValue(val1, &out);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT_EQ(kIntegerVal1, out);
 
   result = Dart_IntegerValue(val2, &out);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT_EQ(kIntegerVal2, out);
 
   const char* chars = NULL;
   result = Dart_IntegerValueHexCString(val3, &chars);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT(!strcmp(kIntegerVal3, chars));
 
   Dart_ExitScope();  // Exit the Dart API scope.
@@ -183,7 +185,7 @@ UNIT_TEST_CASE(ArrayValues) {
   EXPECT(Dart_IsArray(val));
   intptr_t len = 0;
   Dart_Handle result = Dart_GetLength(val, &len);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT_EQ(kArrayLength, len);
 
   // Check invalid array access.
@@ -198,14 +200,14 @@ UNIT_TEST_CASE(ArrayValues) {
 
   for (int i = 0; i < kArrayLength; i++) {
     result = Dart_ArraySetAt(val, i, Dart_NewInteger(i));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
   }
   for (int i = 0; i < kArrayLength; i++) {
     result = Dart_ArrayGetAt(val, i);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     int64_t value;
     result = Dart_IntegerValue(result, &value);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT_EQ(i, value);
   }
 
@@ -504,18 +506,18 @@ UNIT_TEST_CASE(FieldAccess) {
                                            Dart_NewString("testMain"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
     // Now access and set various static fields of Fields class.
     Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("Fields"));
-    EXPECT(Dart_IsValid(cls));
+    EXPECT_VALID(cls);
     result = Dart_GetStaticField(cls, Dart_NewString("fld1"));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld3"));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetStaticField(cls, Dart_NewString("fld4"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     int64_t value = 0;
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(10, value);
@@ -524,11 +526,11 @@ UNIT_TEST_CASE(FieldAccess) {
                                  Dart_NewInteger(20));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetStaticField(cls, Dart_NewString("fld3"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_SetStaticField(cls,
                                  Dart_NewString("fld3"),
                                  Dart_NewInteger(200));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(200, value);
 
@@ -536,11 +538,11 @@ UNIT_TEST_CASE(FieldAccess) {
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld3"));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(10, value);
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(20, value);
     result = Dart_SetInstanceField(retobj,
@@ -550,9 +552,9 @@ UNIT_TEST_CASE(FieldAccess) {
     result = Dart_SetInstanceField(retobj,
                                    Dart_NewString("fld1"),
                                    Dart_NewInteger(40));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(40, value);
 
@@ -592,18 +594,18 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
                                            Dart_NewString("testMain"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
     // Now access and set various static fields of HiddenFields class.
     Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("HiddenFields"));
-    EXPECT(Dart_IsValid(cls));
+    EXPECT_VALID(cls);
     result = Dart_GetStaticField(cls, Dart_NewString("_fld1"));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld3"));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetStaticField(cls, Dart_NewString("_fld4"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     int64_t value = 0;
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(10, value);
@@ -612,11 +614,11 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
                                  Dart_NewInteger(20));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetStaticField(cls, Dart_NewString("_fld3"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_SetStaticField(cls,
                                  Dart_NewString("_fld3"),
                                  Dart_NewInteger(200));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(200, value);
 
@@ -624,11 +626,11 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld3"));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(10, value);
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld2"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(20, value);
     result = Dart_SetInstanceField(retobj,
@@ -638,9 +640,9 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
     result = Dart_SetInstanceField(retobj,
                                    Dart_NewString("_fld1"),
                                    Dart_NewInteger(40));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(40, value);
 
@@ -691,7 +693,7 @@ UNIT_TEST_CASE(InjectNativeFields1) {
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     Instance& obj = Instance::Handle();
     obj ^= Api::UnwrapHandle(result);
@@ -792,19 +794,19 @@ UNIT_TEST_CASE(NativeFieldAccess) {
                                            Dart_NewString("testMain"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
     // Now access and set various instance fields of the returned object.
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld3"));
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     int64_t value = 0;
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(10, value);
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(20, value);
     result = Dart_SetInstanceField(retobj,
@@ -814,9 +816,9 @@ UNIT_TEST_CASE(NativeFieldAccess) {
     result = Dart_SetInstanceField(retobj,
                                    Dart_NewString("fld1"),
                                    Dart_NewInteger(40));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(40, value);
 
@@ -830,36 +832,36 @@ UNIT_TEST_CASE(NativeFieldAccess) {
     result = Dart_GetNativeInstanceField(retobj, kNativeFld4, &field_value);
     EXPECT(!Dart_IsValid(result));
     result = Dart_GetNativeInstanceField(retobj, kNativeFld0, &field_value);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT_EQ(0, field_value);
     result = Dart_GetNativeInstanceField(retobj, kNativeFld1, &field_value);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT_EQ(0, field_value);
     result = Dart_GetNativeInstanceField(retobj, kNativeFld2, &field_value);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT_EQ(0, field_value);
     result = Dart_SetNativeInstanceField(retobj, kNativeFld4, 40);
     EXPECT(!Dart_IsValid(result));
     result = Dart_SetNativeInstanceField(retobj, kNativeFld0, 4);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_SetNativeInstanceField(retobj, kNativeFld1, 40);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_SetNativeInstanceField(retobj, kNativeFld2, 400);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_SetNativeInstanceField(retobj, kNativeFld3, 4000);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_GetNativeInstanceField(retobj, kNativeFld3, &field_value);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT_EQ(4000, field_value);
 
     // Now re-access various dart instance fields of the returned object
     // to ensure that there was no corruption while setting native fields.
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(40, value);
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(20, value);
 
@@ -904,7 +906,7 @@ UNIT_TEST_CASE(NegativeNativeFieldAccess) {
                                            Dart_NewString("testMain1"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
     // Now access and set various native instance fields of the returned object.
@@ -937,7 +939,7 @@ UNIT_TEST_CASE(NegativeNativeFieldAccess) {
                                Dart_NewString("testMain2"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
     result = Dart_GetNativeInstanceField(retobj, kNativeFld4, &value);
     EXPECT(!Dart_IsValid(result));
@@ -985,17 +987,17 @@ UNIT_TEST_CASE(GetStaticField_RunsInitializer) {
                                NULL);
 
     Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("TestClass"));
-    EXPECT(Dart_IsValid(cls));
+    EXPECT_VALID(cls);
 
     // For uninitialized fields, the getter is returned
     result = Dart_GetStaticField(cls, Dart_NewString("fld1"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     int64_t value = 0;
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(7, value);
 
     result = Dart_GetStaticField(cls, Dart_NewString("fld2"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(11, value);
 
@@ -1003,11 +1005,11 @@ UNIT_TEST_CASE(GetStaticField_RunsInitializer) {
     result = Dart_SetStaticField(cls,
                                  Dart_NewString("fld2"),
                                  Dart_NewInteger(13));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
 
     // We now get the new value for fld2, not the initializer
     result = Dart_GetStaticField(cls, Dart_NewString("fld2"));
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(13, value);
 
@@ -1040,7 +1042,7 @@ UNIT_TEST_CASE(StaticFieldNotFound) {
                                NULL);
 
     Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("TestClass"));
-    EXPECT(Dart_IsValid(cls));
+    EXPECT_VALID(cls);
 
     result = Dart_GetStaticField(cls, Dart_NewString("not_found"));
     EXPECT(!Dart_IsValid(result));
@@ -1093,7 +1095,7 @@ UNIT_TEST_CASE(InvokeDynamic) {
                                            Dart_NewString("testMain"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
 
@@ -1104,7 +1106,7 @@ UNIT_TEST_CASE(InvokeDynamic) {
                                 Dart_NewString("method1"),
                                 1,
                                 dart_arguments);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     EXPECT(Dart_IsInteger(result));
     int64_t value = 0;
@@ -1165,7 +1167,7 @@ UNIT_TEST_CASE(InvokeClosure) {
                                            Dart_NewString("testMain1"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
     EXPECT(Dart_IsClosure(retobj));
@@ -1175,7 +1177,7 @@ UNIT_TEST_CASE(InvokeClosure) {
     Dart_Handle dart_arguments[1];
     dart_arguments[0] = Dart_NewInteger(1);
     result = Dart_InvokeClosure(retobj, 1, dart_arguments);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     EXPECT(Dart_IsInteger(result));
     int64_t value = 0;
@@ -1184,7 +1186,7 @@ UNIT_TEST_CASE(InvokeClosure) {
 
     // Invoke closure with wrong number of args, should result in exception.
     result = Dart_InvokeClosure(retobj, 0, NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(Dart_ExceptionOccurred(result));
 
     // Invoke a function which returns a closure.
@@ -1193,7 +1195,7 @@ UNIT_TEST_CASE(InvokeClosure) {
                                Dart_NewString("testMain2"),
                                0,
                                NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
     EXPECT(Dart_IsClosure(retobj));
@@ -1263,7 +1265,7 @@ UNIT_TEST_CASE(ThrowException) {
                                            Dart_NewString("testMain"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(retobj));
+    EXPECT_VALID(retobj);
     EXPECT(!Dart_ExceptionOccurred(retobj));
 
     // Throwing an exception here should result in an error.
@@ -1274,7 +1276,7 @@ UNIT_TEST_CASE(ThrowException) {
     // ok to throw an exception, check the result which would indicate
     // if an exception was thrown or not.
     result = Dart_InvokeDynamic(retobj, Dart_NewString("method2"), 0, NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!Dart_ExceptionOccurred(result));
     EXPECT(Dart_IsInteger(result));
     int64_t value = 0;
@@ -1325,12 +1327,12 @@ UNIT_TEST_CASE(GetNativeArgumentCount) {
                                            Dart_NewString("testMain"),
                                            0,
                                            NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(Dart_IsInteger(result));
 
     int64_t value = 0;
     result = Dart_IntegerValue(result, &value);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT_EQ(3, value);
 
     Dart_ExitScope();
@@ -1366,42 +1368,42 @@ UNIT_TEST_CASE(InstanceOf) {
                           Dart_NewString("testMain"),
                           0,
                           NULL);
-    EXPECT(Dart_IsValid(instanceOfTestObj));
+    EXPECT_VALID(instanceOfTestObj);
     EXPECT(!Dart_ExceptionOccurred(instanceOfTestObj));
 
     // Fetch InstanceOfTest class.
     Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("InstanceOfTest"));
-    EXPECT(Dart_IsValid(cls));
+    EXPECT_VALID(cls);
     EXPECT(!Dart_ExceptionOccurred(cls));
 
     // Now check instanceOfTestObj reported as an instance of
     // InstanceOfTest class.
     bool is_instance = false;
     result = Dart_IsInstanceOf(instanceOfTestObj, cls, &is_instance);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(is_instance);
 
     // Fetch OtherClass and check if instanceOfTestObj is instance of it.
     Dart_Handle otherClass = Dart_GetClass(lib, Dart_NewString("OtherClass"));
-    EXPECT(Dart_IsValid(otherClass));
+    EXPECT_VALID(otherClass);
     EXPECT(!Dart_ExceptionOccurred(otherClass));
 
     result = Dart_IsInstanceOf(instanceOfTestObj, otherClass, &is_instance);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     // Check that primitives are not instances of InstanceOfTest class.
     result = Dart_IsInstanceOf(Dart_NewString("a string"), otherClass,
                                &is_instance);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     result = Dart_IsInstanceOf(Dart_NewInteger(42), otherClass, &is_instance);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     result = Dart_IsInstanceOf(Dart_NewBoolean(true), otherClass, &is_instance);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     // Check that null is not an instance of InstanceOfTest class.
@@ -1410,11 +1412,11 @@ UNIT_TEST_CASE(InstanceOf) {
                                          Dart_NewString("returnNull"),
                                          0,
                                          NULL);
-    EXPECT(Dart_IsValid(null));
+    EXPECT_VALID(null);
     EXPECT(!Dart_ExceptionOccurred(null));
 
     result = Dart_IsInstanceOf(null, otherClass, &is_instance);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     // Check that error is returned if null is passed as a class argument.
@@ -1441,7 +1443,7 @@ UNIT_TEST_CASE(NullReceiver) {
                                             function_name,
                                             number_of_arguments,
                                             NULL);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(Dart_IsString(result));
 
     // Should throw a NullPointerException. Disabled due to bug 5415268.
@@ -1451,7 +1453,7 @@ UNIT_TEST_CASE(NullReceiver) {
                                 function_name2,
                                 number_of_arguments,
                                 dart_arguments);
-    EXPECT(Dart_IsValid(result));
+    EXPECT_VALID(result);
     EXPECT(Dart_ExceptionOccurred(result)); */
   }
   Dart_ExitScope();  // Exit the Dart API scope.
@@ -1506,7 +1508,7 @@ UNIT_TEST_CASE(ImportLibrary1) {
                                Dart_NewString("main"),
                                0,
                                NULL);
-    assert(!Dart_IsValid(result));
+    EXPECT(!Dart_IsValid(result));
     EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
                  " 'library2.dart' and 'dart:test-lib'\n",
                  Dart_GetError(result));
@@ -1554,7 +1556,7 @@ UNIT_TEST_CASE(ImportLibrary2) {
                                Dart_NewString("main"),
                                0,
                                NULL);
-    assert(Dart_IsValid(result));
+    EXPECT_VALID(result);
 
     Dart_ExitScope();  // Exit the Dart API scope.
   }
@@ -1598,7 +1600,7 @@ UNIT_TEST_CASE(ImportLibrary3) {
                                Dart_NewString("main"),
                                0,
                                NULL);
-    assert(!Dart_IsValid(result));
+    EXPECT(!Dart_IsValid(result));
     EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
                  " 'library1.dart' and 'library2.dart'\n",
                  Dart_GetError(result));
@@ -1680,7 +1682,7 @@ UNIT_TEST_CASE(ImportLibrary4) {
                                Dart_NewString("main"),
                                0,
                                NULL);
-    assert(!Dart_IsValid(result));
+    EXPECT(!Dart_IsValid(result));
     EXPECT_STREQ("Duplicate definition : 'fooC' is defined in"
                  " 'libraryF.dart' and 'libraryC.dart'\n",
                  Dart_GetError(result));
@@ -1723,7 +1725,7 @@ UNIT_TEST_CASE(ImportLibrary5) {
                                Dart_NewString("main"),
                                0,
                                NULL);
-    assert(Dart_IsValid(result));
+    EXPECT_VALID(result);
 
     Dart_ExitScope();  // Exit the Dart API scope.
   }

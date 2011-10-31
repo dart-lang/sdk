@@ -79,12 +79,27 @@ typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
 
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
 
-// Return value handling after a Dart API call.
-DART_EXPORT bool Dart_IsValid(const Dart_Handle& result);
+// Returns true if 'handle' is valid and false if invalid.
+DART_EXPORT bool Dart_IsValid(const Dart_Handle& handle);
 
-DART_EXPORT const char* Dart_GetError(const Dart_Handle& result);
-DART_EXPORT Dart_Handle Dart_Error(const char* value);
+// Internal routine used for reporting invalid handles.
+DART_EXPORT void _Dart_ReportInvalidHandle(const char* file,
+                                           int line,
+                                           const char* handle_string,
+                                           const char* error);
 
+// Aborts the process if 'handle' is invalid.
+#define DART_CHECK_VALID(handle)                                        \
+  if (!Dart_IsValid((handle))) {                                        \
+    _Dart_ReportInvalidHandle(__FILE__, __LINE__,                       \
+                              #handle, Dart_GetError(handle));          \
+  }
+
+// Gets the error message associated with an invalid handle.
+DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle);
+
+// Produces an invalid handle with an associated error message
+DART_EXPORT Dart_Handle Dart_Error(const char* error);
 
 // Initialize the VM with commmand line flags.
 DART_EXPORT bool Dart_Initialize(int argc, char** argv,

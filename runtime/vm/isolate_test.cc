@@ -43,10 +43,10 @@ TEST_CASE(IsolateSpawn) {
                                          Dart_NewString("testMain"),
                                          0,
                                          NULL);
-  EXPECT(Dart_IsValid(result));
+  EXPECT_VALID(result);
   EXPECT(Dart_ExceptionOccurred(result));
   Dart_Handle exception_result = Dart_GetException(result);
-  EXPECT(Dart_IsValid(exception_result));
+  EXPECT_VALID(exception_result);
 }
 #endif  // TARGET_ARCH_IA32.
 
