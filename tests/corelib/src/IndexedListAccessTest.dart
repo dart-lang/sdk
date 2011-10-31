@@ -34,6 +34,8 @@ checkCatch(var f, var list, var index) {
     f(list, index);
   } catch (IllegalArgumentException e) {
     return true;
+  } catch (TypeError t) {
+    return true;  // thrown in type checked mode.
   }
   return false;
 }
