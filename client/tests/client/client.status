@@ -12,6 +12,9 @@ touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 
+[ $arch == chromium && $mode == release ]
+html/html_tests: Skip # Timeout
+
 
 # 'client' tests import the DOM library, so they only make sense in
 # a browser environment.
