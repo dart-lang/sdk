@@ -563,6 +563,12 @@ void Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
+  name = String::NewSymbol("List");
+  cls = Class::NewInterface(name, script);
+  core_lib.AddClass(cls);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_list_interface(type);
+
   // The classes 'Null' and 'void' are not registered in the class dictionary,
   // because their names are reserved keywords. Their names are not heap
   // allocated, because the classes reside in the VM isolate.

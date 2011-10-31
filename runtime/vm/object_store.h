@@ -34,6 +34,7 @@ class ObjectStore {
     kIntInterface,
     kBoolInterface,
     kStringInterface,
+    kListInterface,
     kObjectClass,
     kSmiClass,
     kMintClass,
@@ -130,6 +131,11 @@ class ObjectStore {
 
   RawClass* bool_class() const { return bool_class_; }
   void set_bool_class(const Class& value) { bool_class_ = value.raw(); }
+
+  RawType* list_interface() const { return list_interface_; }
+  void set_list_interface(const Type& value) {
+    list_interface_ = value.raw();
+  }
 
   RawClass* array_class() const { return array_class_; }
   void set_array_class(const Class& value) { array_class_ = value.raw(); }
@@ -255,6 +261,7 @@ class ObjectStore {
   RawClass* four_byte_string_class_;
   RawType* bool_interface_;
   RawClass* bool_class_;
+  RawType* list_interface_;
   RawClass* array_class_;
   RawClass* immutable_array_class_;
   RawClass* unhandled_exception_class_;

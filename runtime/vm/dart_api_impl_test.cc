@@ -216,6 +216,137 @@ UNIT_TEST_CASE(ArrayValues) {
 }
 
 
+#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+
+UNIT_TEST_CASE(ListAccess) {
+  const char* kScriptChars =
+      "class ListAccessTest {"
+      "  ListAccessTest() {}"
+      "  static List testMain() {"
+      "    List a = new List();"
+      "    a.add(10);"
+      "    a.add(20);"
+      "    a.add(30);"
+      "    return a;"
+      "  }"
+      "}";
+  Dart_Handle result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+    // Invoke a function which returns an object of type InstanceOf..
+    result = Dart_InvokeStatic(lib,
+                               Dart_NewString("ListAccessTest"),
+                               Dart_NewString("testMain"),
+                               0,
+                               NULL);
+    EXPECT(Dart_IsValid(result));
+    EXPECT(!Dart_ExceptionOccurred(result));
+
+    // First ensure that the returned object is an array.
+    Dart_Handle ListAccessTestObj = result;
+
+    EXPECT(Dart_IsArray(ListAccessTestObj));
+
+    // Get length of array object.
+    intptr_t len = 0;
+    result = Dart_GetLength(ListAccessTestObj, &len);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(3, len);
+
+    // Access elements in the array.
+    int64_t value;
+
+    result = Dart_ArrayGetAt(ListAccessTestObj, 0);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_IntegerValue(result, &value);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(10, value);
+
+    result = Dart_ArrayGetAt(ListAccessTestObj, 1);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_IntegerValue(result, &value);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(20, value);
+
+    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_IntegerValue(result, &value);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(30, value);
+
+    // Set some elements in the array.
+    result = Dart_ArraySetAt(ListAccessTestObj, 0, Dart_NewInteger(0));
+    EXPECT(Dart_IsValid(result));
+    result = Dart_ArraySetAt(ListAccessTestObj, 1, Dart_NewInteger(1));
+    EXPECT(Dart_IsValid(result));
+    result = Dart_ArraySetAt(ListAccessTestObj, 2, Dart_NewInteger(2));
+    EXPECT(Dart_IsValid(result));
+
+    // Get length of array object.
+    result = Dart_GetLength(ListAccessTestObj, &len);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(3, len);
+
+    // Now try and access these elements in the array.
+    result = Dart_ArrayGetAt(ListAccessTestObj, 0);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_IntegerValue(result, &value);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(0, value);
+
+    result = Dart_ArrayGetAt(ListAccessTestObj, 1);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_IntegerValue(result, &value);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(1, value);
+
+    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_IntegerValue(result, &value);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(2, value);
+
+    uint8_t native_array[3];
+    result = Dart_ArrayGet(ListAccessTestObj, 0, native_array, 3);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(0, native_array[0]);
+    EXPECT_EQ(1, native_array[1]);
+    EXPECT_EQ(2, native_array[2]);
+
+    native_array[0] = 10;
+    native_array[1] = 20;
+    native_array[2] = 30;
+    result = Dart_ArraySet(ListAccessTestObj, 0, native_array, 3);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_ArrayGet(ListAccessTestObj, 0, native_array, 3);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(10, native_array[0]);
+    EXPECT_EQ(20, native_array[1]);
+    EXPECT_EQ(30, native_array[2]);
+    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    EXPECT(Dart_IsValid(result));
+    result = Dart_IntegerValue(result, &value);
+    EXPECT(Dart_IsValid(result));
+    EXPECT_EQ(30, value);
+
+    // Check if we get an exception when accessing beyond limit.
+    result = Dart_ArrayGetAt(ListAccessTestObj, 4);
+    EXPECT(!Dart_IsValid(result));
+
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
+
+#endif  // TARGET_ARCH_IA32.
+
+
 // Unit test for entering a scope, creating a local handle and exiting
 // the scope.
 UNIT_TEST_CASE(EnterExitScope) {

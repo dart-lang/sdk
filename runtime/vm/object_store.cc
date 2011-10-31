@@ -27,6 +27,7 @@ ObjectStore::ObjectStore()
     four_byte_string_class_(Class::null()),
     bool_interface_(Type::null()),
     bool_class_(Class::null()),
+    list_interface_(Type::null()),
     array_class_(Class::null()),
     immutable_array_class_(Class::null()),
     unhandled_exception_class_(Class::null()),
@@ -133,6 +134,7 @@ RawType* ObjectStore::GetType(int index) {
     case kIntInterface: return int_interface();
     case kBoolInterface: return bool_interface();
     case kStringInterface: return string_interface();
+    case kListInterface: return list_interface();
     default: break;
   }
   UNREACHABLE();
@@ -162,6 +164,8 @@ int ObjectStore::GetTypeIndex(const RawType* raw_type) {
     return kBoolInterface;
   } else if (raw_type == string_interface()) {
     return kStringInterface;
+  } else if (raw_type == list_interface()) {
+    return kListInterface;
   }
   return kInvalidIndex;
 }

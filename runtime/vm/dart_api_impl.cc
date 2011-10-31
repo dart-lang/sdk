@@ -860,11 +860,24 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
 }
 
 
+static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
+  if (obj.IsInstance()) {
+    Instance& instance = Instance::Handle();
+    instance ^= obj.raw();
+    const Type& type = Type::Handle(isolate->object_store()->list_interface());
+    return instance.Is(type) ? instance.raw() : Instance::null();
+  }
+  return Instance::null();
+}
+
+
 DART_EXPORT bool Dart_IsArray(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
-  return obj.IsArray();
+  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  return (obj.IsArray() || (GetListInstance(Isolate::Current(), obj) !=
+                            Instance::null()));
 }
 
 
@@ -886,7 +899,86 @@ DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* len) {
     *len = array_obj.Length();
     return Api::Success();
   }
-  return Api::Error("Object is not an Array");
+  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  // Now check and handle a dart object that implements the List interface.
+  Isolate* isolate = Isolate::Current();
+  const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    String& name = String::Handle(String::New("length"));
+    name = Field::GetterName(name);
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamic(instance, name, 1, 0));
+    if (!function.IsNull()) {
+      GrowableArray<const Object*> args(0);
+      LongJump* base = isolate->long_jump_base();
+      LongJump jump;
+      isolate->set_long_jump_base(&jump);
+      Dart_Handle result;
+      if (setjmp(*jump.Set()) == 0) {
+        const Array& kNoArgumentNames = Array::Handle();
+        const Instance& retval = Instance::Handle(
+            DartEntry::InvokeDynamic(instance,
+                                     function,
+                                     args,
+                                     kNoArgumentNames));
+        result = Api::Success();
+        if (retval.IsSmi() || retval.IsMint()) {
+          Integer& integer = Integer::Handle();
+          integer ^= retval.raw();
+          *len = integer.AsInt64Value();
+        } else if (retval.IsBigint()) {
+          Bigint& bigint = Bigint::Handle();
+          bigint ^= retval.raw();
+          if (BigintOperations::FitsIntoInt64(bigint)) {
+            *len = BigintOperations::ToInt64(bigint);
+          } else {
+            result = Api::Error("Length of List object is greater than the "
+                                "maximum value that 'len' parameter can hold");
+          }
+        } else {
+          result = Api::Error("Length of List object is not an integer");
+        }
+      } else {
+        SetupErrorResult(&result);
+      }
+      isolate->set_long_jump_base(base);
+      return result;
+    }
+  }
+  return Api::Error("Object does not implement the list inteface");
+}
+
+
+static RawObject* GetArrayAt(Isolate* isolate,
+                             const Instance& instance,
+                             const Integer& index,
+                             const Function& function,
+                             Dart_Handle* result) {
+  ASSERT(isolate != NULL);
+  ASSERT(result != NULL);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    Instance& retval = Instance::Handle();
+    GrowableArray<const Object*> args(0);
+    args.Add(&index);
+    const Array& kNoArgumentNames = Array::Handle();
+    retval = DartEntry::InvokeDynamic(instance,
+                                      function,
+                                      args,
+                                      kNoArgumentNames);
+    if (retval.IsUnhandledException()) {
+      *result = Api::Error("Unexpected exception in '[]'");
+    } else {
+      *result = Api::Success();
+    }
+    isolate->set_long_jump_base(base);
+    return retval.raw();
+  }
+  SetupErrorResult(result);
+  isolate->set_long_jump_base(base);
+  return Object::null();
 }
 
 
@@ -915,7 +1007,34 @@ DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
     }
     return Api::Error("Invalid length passed in to access array elements");
   }
-  return Api::Error("Object is not an Array");
+  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  // Now check and handle a dart object that implements the List interface.
+  Isolate* isolate = Isolate::Current();
+  const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    String& name = String::Handle(String::New("[]"));
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamic(instance, name, 2, 0));
+    if (!function.IsNull()) {
+      Object& element = Object::Handle();
+      Integer& intobj = Integer::Handle();
+      Dart_Handle result;
+      for (int i = 0; i < length; i++) {
+        intobj = Integer::New(offset + i);
+        element = GetArrayAt(isolate, instance, intobj, function, &result);
+        if (!Dart_IsValid(result)) {
+          return result;  // Error condition.
+        }
+        intobj ^= element.raw();
+        ASSERT(intobj.AsInt64Value() <= 0xff);
+        // TODO(hpayer): value should always be smaller then 0xff. Add error
+        // handling.
+        native_array[i] = static_cast<uint8_t>(intobj.AsInt64Value() & 0xff);
+      }
+      return Api::Success();
+    }
+  }
+  return Api::Error("Object does not implement the 'List' interface");
 }
 
 
@@ -932,7 +1051,60 @@ DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
     }
     return Api::Error("Invalid index passed in to access array element");
   }
-  return Api::Error("Object is not an Array");
+  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  // Now check and handle a dart object that implements the List interface.
+  Isolate* isolate = Isolate::Current();
+  const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    String& name = String::Handle(String::New("[]"));
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamic(instance, name, 2, 0));
+    if (!function.IsNull()) {
+      Object& element = Object::Handle();
+      Integer& indexobj = Integer::Handle();
+      Dart_Handle result;
+      indexobj = Integer::New(index);
+      element = GetArrayAt(isolate, instance, indexobj, function, &result);
+      if (!Dart_IsValid(result)) {
+        return result;  // Error condition.
+      }
+      return Api::NewLocalHandle(element);
+    }
+  }
+  return Api::Error("Object does not implement the 'List' interface");
+}
+
+
+static void SetArrayAt(Isolate* isolate,
+                       const Instance& instance,
+                       const Integer& index,
+                       const Object& value,
+                       const Function& function,
+                       Dart_Handle* result) {
+  ASSERT(isolate != NULL);
+  ASSERT(result != NULL);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    GrowableArray<const Object*> args(1);
+    args.Add(&index);
+    args.Add(&value);
+    Instance& retval = Instance::Handle();
+    const Array& kNoArgumentNames = Array::Handle();
+    retval = DartEntry::InvokeDynamic(instance,
+                                      function,
+                                      args,
+                                      kNoArgumentNames);
+    if (retval.IsUnhandledException()) {
+      *result = Api::Error("Unexpected exception in '[]='");
+    } else {
+      *result = Api::Success();
+    }
+  } else {
+    SetupErrorResult(result);
+  }
+  isolate->set_long_jump_base(base);
 }
 
 
@@ -956,8 +1128,32 @@ DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
     }
     return Api::Error("Invalid length passed in to set array elements");
   }
-  return Api::Error("Object is not an Array");
+  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  // Now check and handle a dart object that implements the List interface.
+  Isolate* isolate = Isolate::Current();
+  const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    String& name = String::Handle(String::New("[]="));
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamic(instance, name, 3, 0));
+    if (!function.IsNull()) {
+      Integer& indexobj = Integer::Handle();
+      Integer& valueobj = Integer::Handle();
+      Dart_Handle result;
+      for (int i = 0; i < length; i++) {
+        indexobj = Integer::New(offset + i);
+        valueobj ^= Integer::New(native_array[i]);
+        SetArrayAt(isolate, instance, indexobj, valueobj, function, &result);
+        if (!Dart_IsValid(result)) {
+          return result;  // Error condition.
+        }
+      }
+      return Api::Success();
+    }
+  }
+  return Api::Error("Object does not implement the 'List' interface");
 }
+
 
 DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
                                         intptr_t index,
@@ -975,7 +1171,23 @@ DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
     }
     return Api::Error("Invalid index passed in to set array element");
   }
-  return Api::Error("Object is not an Array");
+  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  // Now check and handle a dart object that implements the List interface.
+  Isolate* isolate = Isolate::Current();
+  const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    String& name = String::Handle(String::New("[]="));
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamic(instance, name, 3, 0));
+    if (!function.IsNull()) {
+      Dart_Handle result;
+      const Integer& index_obj = Integer::Handle(Integer::New(index));
+      const Object& value_obj = Object::Handle(Api::UnwrapHandle(value));
+      SetArrayAt(isolate, instance, index_obj, value_obj, function, &result);
+      return result;
+    }
+  }
+  return Api::Error("Object does not implement the 'List' interface");
 }
 
 
