@@ -263,6 +263,40 @@ void ClassFinalizer::ResolveSuperClass(const Class& cls) {
                 class_name.ToCString(),
                 super_class_name.ToCString());
   }
+  // If cls belongs to core lib or to core lib's implementation, restrictions
+  // about allowed interfaces are lifted.
+  if ((cls.library() != Library::CoreLibrary()) &&
+      (cls.library() != Library::CoreImplLibrary())) {
+    // Prevent extending core implementation classes Bool, Double, ObjectArray,
+    // ImmutableArray, GrowableObjectArray, IntegerImplementation, Smi, Mint,
+    // BigInt, OneByteString, TwoByteString, FourByteString.
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+    const String& integer_implementation_name =
+        String::Handle(String::NewSymbol("IntegerImplementation"));
+    const Class& integer_implementation_class =
+        Class::Handle(core_impl_lib.LookupClass(integer_implementation_name));
+    const String& growable_object_array_name =
+        String::Handle(String::NewSymbol("GrowableObjectArray"));
+    const Class& growable_object_array_class =
+        Class::Handle(core_impl_lib.LookupClass(growable_object_array_name));
+    if ((super_class.raw() == object_store->bool_class()) ||
+        (super_class.raw() == object_store->double_class()) ||
+        (super_class.raw() == object_store->array_class()) ||
+        (super_class.raw() == object_store->immutable_array_class()) ||
+        (super_class.raw() == growable_object_array_class.raw()) ||
+        (super_class.raw() == integer_implementation_class.raw()) ||
+        (super_class.raw() == object_store->smi_class()) ||
+        (super_class.raw() == object_store->mint_class()) ||
+        (super_class.raw() == object_store->bigint_class()) ||
+        (super_class.raw() == object_store->one_byte_string_class()) ||
+        (super_class.raw() == object_store->two_byte_string_class()) ||
+        (super_class.raw() == object_store->four_byte_string_class())) {
+      ReportError("'%s' is not allowed to extend '%s'\n",
+                  String::Handle(cls.Name()).ToCString(),
+                  String::Handle(super_class.Name()).ToCString());
+    }
+  }
   return;
 }
 

@@ -12,19 +12,6 @@ DirectoryInvalidArgumentsTest: Fail, OK
 [ $arch == ia32]
 ManyEchoServerTest: Skip        # Bug 5103754
 
-BlackListedTest/01: Fail # Bug 5469684
-BlackListedTest/02: Fail # Bug 5469684
-BlackListedTest/03: Fail, Crash # Bug 5469684
-BlackListedTest/04: Fail, Crash # Bug 5469684
-BlackListedTest/05: Fail # Bug 5469684
-BlackListedTest/06: Fail # Bug 5469684
-BlackListedTest/07: Fail, Crash # Bug 5469684
-BlackListedTest/08: Fail # Bug 5469684
-BlackListedTest/09: Fail, Crash # Bug 5469684
-BlackListedTest/10: Fail, Crash # Bug 5469684
-BlackListedTest/11: Fail, Crash # Bug 5469684
-BlackListedTest/12: Fail, Crash # Bug 5469684
-
 [ $arch == ia32 && $mode == release]
 # Currently process tests are bound to debug mode.
 Process*: Skip # Bug 172
