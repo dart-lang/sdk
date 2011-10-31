@@ -99,10 +99,14 @@ class FilteredElementList implements ElementList {
   Iterator<Element> iterator() => _filtered.iterator();
   List<Element> getRange(int start, int length) =>
     _filtered.getRange(start, length);
-  int indexOf(Element element, int startIndex) =>
-    _filtered.indexOf(element, startIndex);
-  int lastIndexOf(Element element, int startIndex) =>
-    _filtered.lastIndexOf(element, startIndex);
+  int indexOf(Element element, [int start = 0]) =>
+    _filtered.indexOf(element, start);
+
+  int lastIndexOf(Element element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _filtered.lastIndexOf(element, start);
+  }
+
   Element last() => _filtered.last();
 }
 

@@ -4,7 +4,7 @@
 
 class DocumentEventsImplementation extends ElementEventsImplementation
       implements DocumentEvents {
-  
+
   DocumentEventsImplementation._wrap(_ptr) : super._wrap(_ptr);
 
   EventListenerList get readyStateChange() => _get('readystatechange');

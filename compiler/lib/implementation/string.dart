@@ -47,8 +47,17 @@ class StringImplementation implements String native "String" {
     return substringMatches(0, other);
   }
 
-  int indexOf(String other, int startIndex) native;
-  int lastIndexOf(String other, int fromIndex) native;
+  int indexOf(String other, [int start = 0]) {
+    return _nativeIndexOf(other, start);
+  }
+
+  int lastIndexOf(String other, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _nativeLastIndexOf(other, start);
+  }
+
+  int _nativeIndexOf(String other, int start) native;
+  int _nativeLastIndexOf(String other, int start) native;
 
   bool isEmpty() {
     return length == 0;
@@ -77,8 +86,7 @@ class StringImplementation implements String native "String" {
 
   String trim() native;
 
-  bool contains(Pattern pattern, int startIndex) {
-    if (startIndex == null) startIndex = 0;
+  bool contains(Pattern pattern, [int startIndex = 0]) {
     if (startIndex < 0 || startIndex > length) {
       throw new IndexOutOfRangeException(startIndex);
     }

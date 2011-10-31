@@ -210,12 +210,13 @@ class ObservableList<T>
     return found;
   }
 
-  int indexOf(T element, int startIndex) {
-    return _internal.indexOf(element, startIndex);
+  int indexOf(T element, [int start = 0]) {
+    return _internal.indexOf(element, start);
   }
 
-  int lastIndexOf(T element, int startIndex) {
-    return _internal.lastIndexOf(element, startIndex);
+  int lastIndexOf(T element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _internal.lastIndexOf(element, start);
   }
 
   bool removeFirstElement(T element) {

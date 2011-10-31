@@ -118,12 +118,13 @@ class _ChildrenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  int indexOf(Element element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(Element element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(Element element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(Element element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
@@ -230,11 +231,11 @@ class FrozenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  int indexOf(Element element, int startIndex) {
+  int indexOf(Element element, [int start = 0]) {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  int lastIndexOf(Element element, int startIndex) {
+  int lastIndexOf(Element element, [int start = null]) {
     throw 'Not impl yet. todo(jacobr)';
   }
 

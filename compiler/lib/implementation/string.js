@@ -18,11 +18,11 @@ function native_StringImplementation_EQ(other) {
   return typeof other == 'string' && this == other;
 }
 
-function native_StringImplementation_indexOf(other, startIndex) {
+function native_StringImplementation__nativeIndexOf(other, startIndex) {
   return this.indexOf(other, startIndex);
 }
 
-function native_StringImplementation_lastIndexOf(other, fromIndex) {
+function native_StringImplementation__nativeLastIndexOf(other, fromIndex) {
   if (other == "") {
     return Math.min(this.length, fromIndex);
   }

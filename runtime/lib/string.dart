@@ -103,15 +103,15 @@ class StringBase {
     return this.substringMatches(0, other);
   }
 
-  int indexOf(String other, int startIndex) {
+  int indexOf(String other, [int start = 0]) {
     if (other.isEmpty()) {
-      return startIndex < this.length ? startIndex : this.length;
+      return start < this.length ? start : this.length;
     }
-    if ((startIndex < 0) || (startIndex >= this.length)) {
+    if ((start < 0) || (start >= this.length)) {
       return -1;
     }
     int len = this.length - other.length + 1;
-    for (int index = startIndex; index < len; index++) {
+    for (int index = start; index < len; index++) {
       if (this.substringMatches(index, other)) {
         return index;
       }
@@ -119,14 +119,15 @@ class StringBase {
     return -1;
   }
 
-  int lastIndexOf(String other, int fromIndex) {
+  int lastIndexOf(String other, [int start = null]) {
+    if (start == null) start = length - 1;
     if (other.isEmpty()) {
-      return Math.min(this.length, fromIndex);
+      return Math.min(this.length, start);
     }
-    if (fromIndex >= this.length) {
-      fromIndex = this.length - 1;
+    if (start >= this.length) {
+      start = this.length - 1;
     }
-    for (int index = fromIndex; index >= 0; index--) {
+    for (int index = start; index >= 0; index--) {
       if (this.substringMatches(index, other)) {
         return index;
       }

@@ -47,17 +47,17 @@ interface String extends Comparable, Hashable, Pattern factory Strings {
 
   /**
    * Returns the first location of [other] in this string starting at
-   * [startIndex] (inclusive).
+   * [start] (inclusive).
    * Returns -1 if [other] could not be found.
    */
-  int indexOf(String other, int startIndex);
+  int indexOf(String other, [int start]);
 
   /**
    * Returns the last location of [other] in this string, searching
-   * backward starting at [fromIndex] (inclusive).
+   * backward starting at [start] (inclusive).
    * Returns -1 if [other] could not be found.
    */
-  int lastIndexOf(String other, int fromIndex);
+  int lastIndexOf(String other, [int start]);
 
   /**
    * Returns whether this string is empty.
@@ -92,7 +92,7 @@ interface String extends Comparable, Hashable, Pattern factory Strings {
    * Returns whether this string contains [other] starting
    * at [startIndex] (inclusive).
    */
-  bool contains(Pattern other, int startIndex);
+  bool contains(Pattern other, [int startIndex]);
 
   /**
    * Returns a new string where the first occurence of [from] in this string

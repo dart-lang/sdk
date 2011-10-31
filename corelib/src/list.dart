@@ -76,17 +76,17 @@ interface List<E> extends Collection<E> factory ListFactory {
 
   /**
    * Returns the first index of [element] in this list. Searches this
-   * list from index [startIndex] to the length of the list. Returns
+   * list from index [start] to the length of the list. Returns
    * -1 if [element] is not found.
    */
-  int indexOf(E element, int startIndex);
+  int indexOf(E element, [int start]);
 
   /**
    * Returns the last index of [element] in this list. Searches this
-   * list from index [startIndex] to 0. Returns -1 if [element] is
-   * not found.
+   * list from index [start] (inclusive) to 0. Returns -1 if
+   * [element] is not found.
    */
-  int lastIndexOf(E element, int startIndex);
+  int lastIndexOf(E element, [int start]);
 
   /**
    * Removes all elements in the list. The length of the list
