@@ -36,7 +36,7 @@ fi
 cd ..
 mkdir -p prebuilt
 cd prebuilt
-COMPILER_OUTDIR=../compiler/out/Release_dartc
+COMPILER_OUTDIR=../compiler/out/Release_ia32
 cp -r $COMPILER_OUTDIR/compiler ./compiler
 GENERATED_SCRIPT_DIR=obj.target/geni/dartc
 PATH_TO_METRICS_SCRIPT=$COMPILER_OUTDIR/$GENERATED_SCRIPT_DIR

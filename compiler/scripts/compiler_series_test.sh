@@ -185,7 +185,7 @@ function compileRevision() {
     cd ..
     mkdir -p $ROOT_OF_REPO/compiler/revs/$REVISION/prebuilt
     cd $ROOT_OF_REPO/compiler/revs/$REVISION/prebuilt
-    COMPILER_OUTDIR=$TMP_DIR/compiler/out/Release_dartc
+    COMPILER_OUTDIR=$TMP_DIR/compiler/out/Release_ia32
     cp -r $COMPILER_OUTDIR/compiler ./compiler
   else
     echo "Cached prebuilt of $REVISION!"
