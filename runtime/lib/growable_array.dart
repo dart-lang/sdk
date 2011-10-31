@@ -117,6 +117,9 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   T operator [](int index) {
+    if (index is !int) {
+      throw new IllegalArgumentException("[] with $index");
+    }
     if (index >= _length) {
       throw new IndexOutOfRangeException(index);
     }
@@ -124,7 +127,10 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   void operator []=(int index, T value) {
-    if (index >= _length) {
+   if (index is !int) {
+     throw new IllegalArgumentException("[]= with $index");
+   }
+   if (index >= _length) {
       throw new IndexOutOfRangeException(index);
     }
     backingArray[index] = value;

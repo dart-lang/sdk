@@ -64,7 +64,14 @@ DEFINE_NATIVE_ENTRY(ObjectArray_getIndexed, 2) {
 
 DEFINE_NATIVE_ENTRY(ObjectArray_setIndexed, 3) {
   const Array& array = Array::CheckedHandle(arguments->At(0));
-  const Smi& index = Smi::CheckedHandle(arguments->At(1));
+  const Instance& index_instance = Instance::CheckedHandle(arguments->At(1));
+  if (!index_instance.IsSmi()) {
+    GrowableArray<const Object*> args;
+    args.Add(&index_instance);
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+  }
+  Smi& index = Smi::Handle();
+  index ^= index_instance.raw();
   const Instance& value = Instance::CheckedHandle(arguments->At(2));
   if (array.IsNull() || index.IsNull()) {
     // TODO(asiva): Need to handle error cases.
