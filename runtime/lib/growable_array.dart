@@ -66,7 +66,10 @@ class GrowableObjectArray<T> implements List<T> {
   List<T> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    return new List<T>.fromList(this, start, start + length);
+    List list = new List<T>();
+    list.length = length;
+    Arrays.copy(this, start, list, 0, length);
+    return list;
   }
 
   // The length of this growable array. It is always less than the

@@ -20,16 +20,6 @@ interface List<E> extends Collection<E> factory ListFactory {
   List.from(Iterable<E> other);
 
   /**
-   * Creates a list which is a subcopy of [other], starting at
-   * [startIndex] (inclusive) and ending at [endIndex] (exclusive). If
-   * [startIndex] is negative, it has the same effect as if it were
-   * zero. If [endIndex] is greather than the length, it has the same
-   * effect as if it were [:other.length:]. If [:startIndex > endIndex:],
-   * the created list is of [length] 0.
-   */
-  List.fromList(List<E> other, int startIndex, int endIndex);
-
-  /**
    * Returns the element at the given [index] in the list or throws
    * an [IndexOutOfRangeException] if [index] is out of bounds.
    */
@@ -83,16 +73,6 @@ interface List<E> extends Collection<E> factory ListFactory {
    *   an integer strictly greater than 0 if a > b.
    */
   void sort(int compare(E a, E b));
-
-  /**
-   * Copies [count] elements from the [src] list starting at index
-   * [srcStart] to this list starting at index [dstStart].
-   *
-   * The type of [src] is List<Object> because one must be able to
-   * give a List<Object> only containing eg. String objects and copy
-   * its elements into a List<String>.
-   */
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count);
 
   /**
    * Returns the first index of [element] in this list. Searches this

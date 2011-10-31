@@ -11,18 +11,6 @@ class ListFactory {
     return list;
   }
 
-  factory List<E>.fromList(List<E> other, int startIndex, int endIndex) {
-    List list = new List<E>();
-    if (endIndex > other.length) endIndex = other.length;
-    if (startIndex < 0) startIndex = 0;
-    int count = endIndex - startIndex;
-    if (count > 0) {
-      list.length = count;
-      Arrays.copy(other, startIndex, list, 0, count);
-    }
-    return list;
-  }
-
   factory List<E>([int length = null]) {
     bool isFixed = true;
     if (length === null) {
@@ -153,7 +141,10 @@ class ListImplementation<T> implements List<T> native "Array" {
   List<T> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    return new List<T>.fromList(this, start, start + length);
+    List list = new List<T>();
+    list.length = length;
+    Arrays.copy(this, start, list, 0, length);
+    return list;
   }
 
   int indexOf(T element, int startIndex) {

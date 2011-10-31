@@ -146,6 +146,9 @@ LibTest/core/Map/forEach/Map/forEach/A01/t02 : Skip
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t06 : Skip
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t08 : Skip
 
+# List.fromList has been removed.
+LibTest/core/List/List.fromList/*: Fail
+
 [ $arch == x64 ]
 *: Skip
 

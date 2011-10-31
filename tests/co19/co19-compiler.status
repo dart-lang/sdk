@@ -186,6 +186,8 @@ LibTest/core/String/String.fromCharCodes/String/String.fromCharCodes/A02/t01: Fa
 LibTest/core/StringBuffer/addAll/StringBuffer/addAll/A01/t02: Fail
 LibTest/core/Queue/iterator_hasNext/Queue/iterator/hasNext/A01/t01: Skip # Timeout
 
+# List.fromList has been removed.
+LibTest/core/List/List.fromList/*: Fail
 
 [ $arch == dartium ]
 *: Skip
