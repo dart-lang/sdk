@@ -657,7 +657,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
     Label* overflow_label = NULL;
     Label two_smis, call_operator;
     if (left_info.IsClass(smi_class_) || right_info.IsClass(smi_class_)) {
-      DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EDX);
+      DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, ECX, EDX);
       overflow_label = deopt_blob->label();
       __ movl(ECX, EAX);  // Save if overflow (needs original value).
       if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
