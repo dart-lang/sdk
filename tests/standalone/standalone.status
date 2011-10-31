@@ -5,8 +5,9 @@
 prefix standalone
 
 [ $arch == ia32 && $checked ]
-# This test has type errors on purpose.
+# These tests have type errors on purpose.
 ProcessInvalidArgumentsTest: Fail, OK
+DirectoryInvalidArgumentsTest: Fail, OK
 
 [ $arch == ia32]
 ManyEchoServerTest: Skip        # Bug 5103754

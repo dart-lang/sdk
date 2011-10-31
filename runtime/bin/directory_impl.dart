@@ -3,30 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-class DirectoryException {
-  String toString() { return "DirectoryException: $message"; }
-  const DirectoryException(String this.message);
-  final String message;
-}
-
-
 class _DirectoryListingIsolate extends Isolate {
 
   _DirectoryListingIsolate() : super.heavy();
 
   void main() {
     port.receive((message, replyTo) {
-       _list(message['dir'],
-             message['recursive'],
-             message['dirPort'],
-             message['filePort'],
-             message['donePort'],
-             message['errorPort']);
-       replyTo.send(true);
+      bool started = _list(message['dir'],
+                           message['recursive'],
+                           message['dirPort'],
+                           message['filePort'],
+                           message['donePort'],
+                           message['errorPort']);
+      replyTo.send(started);
     });
   }
 
-  void _list(String dir,
+  bool _list(String dir,
              bool recursive,
              SendPort dirPort,
              SendPort filePort,
@@ -91,14 +84,14 @@ class _Directory implements Directory {
         listingParameters['filePort'] = filePort.toSendPort();
       }
       if (_doneHandler !== null) {
-        donePort = new ReceivePort();
+        donePort = new ReceivePort.singleShot();
         donePort.receive((bool completed, ignored) {
           _doneHandler(completed);
         });
         listingParameters['donePort'] = donePort.toSendPort();
       }
       if (_errorHandler !== null) {
-        errorPort = new ReceivePort();
+        errorPort = new ReceivePort.singleShot();
         errorPort.receive((String error, ignored) {
           _errorHandler(error);
         });
@@ -108,10 +101,16 @@ class _Directory implements Directory {
       // Close ports when listing is done.
       ReceivePort closePortsPort = new ReceivePort();
       closePortsPort.receive((message, replyTo) {
+        if (!message) {
+          errorPort.toSendPort().send(
+              "Failed to list directory: $_path recursive: $recursive");
+          donePort.toSendPort().send(false);
+        } else {
+          _closePort(errorPort);
+          _closePort(donePort);
+        }
         _closePort(dirPort);
         _closePort(filePort);
-        _closePort(donePort);
-        _closePort(errorPort);
         _closePort(closePortsPort);
       });
 
