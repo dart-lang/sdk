@@ -101,7 +101,7 @@ static void* SnapshotCreateCallback(void* data) {
   // is created.
   if (script_name != NULL) {
     // Load the specified script.
-    Dart_Handle library = LoadScript(script_name);
+    Dart_Handle library = LoadSnapshotCreationScript(script_name);
     if (!Dart_IsValid(library)) {
       const char* err_msg = Dart_GetError(library);
       fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
@@ -116,12 +116,12 @@ static void* SnapshotCreateCallback(void* data) {
       Dart_ExitScope();
       exit(255);
     }
-    Builtin_ImportLibrary(library);
   } else {
+    // Implicitly load builtin library.
     Builtin_LoadLibrary();
+    // Setup the native resolver for built in library functions.
+    Builtin_SetNativeResolver();
   }
-  // Setup the native resolver for built in library functions.
-  Builtin_SetNativeResolver();
 
   uint8_t* buffer = NULL;
   intptr_t size = 0;

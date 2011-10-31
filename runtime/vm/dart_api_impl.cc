@@ -1631,6 +1631,9 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
   if (msg != NULL) {
     return Api::Error(msg);
   }
+  // Since this is only a snapshot the root library should not be set.
+  Isolate* isolate = Isolate::Current();
+  isolate->object_store()->set_root_library(Library::Handle());
   SnapshotWriter writer(true, snapshot_buffer, ApiAllocator);
   writer.WriteFullSnapshot();
   *snapshot_size = writer.Size();

@@ -86,9 +86,10 @@ static Dart_Handle ReadStringFromFile(const char* filename) {
 }
 
 
-static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
-                                     Dart_Handle library,
-                                     Dart_Handle url) {
+static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
+                                           Dart_Handle library,
+                                           Dart_Handle url,
+                                           bool import_builtin_lib) {
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
@@ -132,11 +133,9 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (!Dart_IsValid(source)) {
     return result;
   }
-
   if (tag == kImportTag) {
     Dart_Handle new_lib = Dart_LoadLibrary(url, source);
-    if (Dart_IsValid(new_lib)) {
-      // TODO(iposva): Should the builtin library be added to all libraries?
+    if (import_builtin_lib && Dart_IsValid(new_lib)) {
       Builtin_ImportLibrary(new_lib);
     }
     return result;
@@ -144,6 +143,21 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return Dart_LoadSource(library, url, source);
   }
   return Dart_Error("wrong tag");
+}
+
+static Dart_Handle MainLibraryTagHandler(Dart_LibraryTag tag,
+                                         Dart_Handle library,
+                                         Dart_Handle url) {
+  const bool kImportBuiltinLib = true;  // Import builtin library.
+  return LibraryTagHandlerHelper(tag, library, url, kImportBuiltinLib);
+}
+
+
+static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
+                                                   Dart_Handle library,
+                                                   Dart_Handle url) {
+  const bool kDontImportBuiltinLib = false;  // Do not import builtin lib.
+  return LibraryTagHandlerHelper(tag, library, url, kDontImportBuiltinLib);
 }
 
 
@@ -154,5 +168,16 @@ Dart_Handle LoadScript(const char* script_name) {
   }
   Dart_Handle url = Dart_NewString(script_name);
 
-  return Dart_LoadScript(url, source, LibraryTagHandler);
+  return Dart_LoadScript(url, source, MainLibraryTagHandler);
+}
+
+
+Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
+  Dart_Handle source = ReadStringFromFile(script_name);
+  if (!Dart_IsValid(source)) {
+    return source;
+  }
+  Dart_Handle url = Dart_NewString(script_name);
+
+  return Dart_LoadScript(url, source, CreateSnapshotLibraryTagHandler);
 }

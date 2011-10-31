@@ -55,5 +55,6 @@ class CommandLineOptions {
 
 
 extern Dart_Handle LoadScript(const char* script_name);
+extern Dart_Handle LoadSnapshotCreationScript(const char* script_name);
 
 #endif  // BIN_PROCESS_SCRIPT_H_
