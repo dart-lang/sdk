@@ -335,6 +335,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* api_failure_class_;  // Class of ApiFailure.
 
   friend class Class;
+  friend class SnapshotReader;
 
   // Disallow allocation.
   void* operator new(size_t size);
