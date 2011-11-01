@@ -113,6 +113,7 @@ public class MemberBuilder {
           case NONE:
           case CONSTRUCTOR:
             element = buildConstructor(method);
+            checkConstructor(element, method);
             addConstructor((ClassElement) currentHolder, (ConstructorElement) element);
             break;
 
@@ -427,6 +428,13 @@ public class MemberBuilder {
       }
       // TODO(ngeoffray): Add more checks on the modifiers. For
       // example const and missing body.
+    }
+
+    private void checkConstructor(MethodElement element, DartMethodDefinition method) {
+      if (Elements.isNonFactoryConstructor(element) && method.getFunction() != null
+          && method.getFunction().getReturnTypeNode() != null) {
+        resolutionError(method, ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE);
+      }
     }
 
     private void checkUniqueName(EnclosingElement holder, Element e) {

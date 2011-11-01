@@ -158,8 +158,6 @@ BlackListedTest/10: Fail # Bug 5469684
 BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
 
-FactoryArrowTest: Fail # Issue 223
-
 # VM specific tests that should not be run by DartC.
 *VMTest: Skip
 

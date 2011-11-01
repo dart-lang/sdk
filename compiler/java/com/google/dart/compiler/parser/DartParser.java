@@ -870,7 +870,7 @@ public class DartParser extends CompletionHooksParserBase {
       modifiers = modifiers.makeNative();
       function = new DartFunction(formals, parseNativeBlock(modifiers), null);
     } else {
-      function = new DartFunction(formals, parseBlock(), null);
+      function = new DartFunction(formals, parseFunctionStatementBody(true), null);
     }
     doneWithoutConsuming(function);
     return DartMethodDefinition.create(name, function, modifiers, null, typeParameters);

@@ -34,17 +34,14 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/A09/t02: Fail # Issue 219
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A02/t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A02/t02: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A02/t03: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A02/t04: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A03/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A06/t04: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A13/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_2_Interface/A02/t03: Fail # Bug 5371670.
-
 LangGuideTest/02_Language_Constructs/02_7_Abstract_Methods/A02/t01: Fail # Bug 5371670.
+
 LangGuideTest/07_Overriding/A02/t01: Fail # Bug 5371670.
 LangGuideTest/07_Overriding/A02/t02: Fail # Bug 5371670.
 LangGuideTest/07_Overriding/A05/t01: Fail # Bug 5371670.
@@ -177,7 +174,6 @@ LibTest/core/List/List.fromList/*: Fail
 
 # New problems on 2011-11-01.
 [ $component == dartc ]
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A02/t01: Fail
 LangSpecTest/13_Types/13_1_Static_Types/A04/t01: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t02: Fail
