@@ -21,8 +21,7 @@ render(idl_node, [indent_str='  ']) {
   var output = [''];
   var indent_stack = [];
 
-  //indented(action()) {
-  indented(action) {
+  indented(action) {  // TODO: revert to  indented(action()) {
     indent_stack.add(indent_str);
     action();
     indent_stack.removeLast();
@@ -32,7 +31,7 @@ render(idl_node, [indent_str='  ']) {
 
   var w; // For some reason mutually recursive local functions don't work.
 
-  wln([node=null]) {
+  wln([node]) {
     w(node);
     output.add('\n');
   }
@@ -135,10 +134,10 @@ render(idl_node, [indent_str='  ']) {
     } else if (node is IDLAttribute) {
       w(node.annotations);
       w(node.extAttrs);
-      if (node.isFcGetter)
-        w('getter ');
-      if (node.isFcSetter)
-        w('setter ');
+      //if (node.isFcGetter)
+      //  w('getter ');
+      //if (node.isFcSetter)
+      //  w('setter ');
       wln('attribute ${node.type.id} ${node.id};');
     } else if (node is IDLConstant) {
       w(node.annotations);

@@ -254,19 +254,21 @@ class IDLParser {
     axiom = _makeParser();
   }
 
+  syntax_switch([WebIDL, WebKit, FremontCut]) {
+    assert(WebIDL != null && WebKit != null);  // Not options, just want names.
+    if (syntax == WEBIDL_SYNTAX)
+      return WebIDL;
+    if (syntax == WEBKIT_SYNTAX)
+      return WebKit;
+    if (syntax == FREMONTCUT_SYNTAX)
+      return FremontCut == null ?  WebIDL : FremontCut;
+    throw new Exception('unsupported IDL syntax $syntax');
+  }
+
   _makeParser() {
     Grammar g = grammar;
 
-    syntax_switch([WebIDL, WebKit, FremontCut]) {
-      assert(WebIDL != null && WebKit != null);  // Not options, just want names.
-      if (syntax == WEBIDL_SYNTAX)
-        return WebIDL;
-      if (syntax == WEBKIT_SYNTAX)
-        return WebKit;
-      if (syntax == FREMONTCUT_SYNTAX)
-        return FremontCut == null ?  WebIDL : FremontCut;
-      throw new Exception('unsupported IDL syntax $syntax');
-    }
+    // TODO: move syntax_switch back to here.
 
     var idStartCharSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_';
     var idNextCharSet = idStartCharSet + '0123456789';
