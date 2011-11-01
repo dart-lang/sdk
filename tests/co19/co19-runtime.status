@@ -271,6 +271,11 @@ LibTest/core/int/toRadixString/int/toRadixString/A01/t01: Fail
 LibTest/core/int/toStringAsExponential/int/toStringAsExponential/A01/t01: Fail
 LibTest/core/int/toStringAsFixed/int/toStringAsFixed/A01/t01: Fail
 LibTest/core/int/toStringAsPrecision/int/toStringAsPrecision/A01/t01: Fail
+[ $component == vm && $system == macos ]
+LibTest/core/Math/acos/Math/acos/A01/t01: Fail
+LibTest/core/Math/asin/Math/asin/A01/t01: Fail
+LibTest/core/Math/atan/Math/atan/A01/t01: Fail
+LibTest/core/Math/cos/Math/cos/A01/t01: Fail
 
 
 [ $arch == x64 ]
