@@ -6421,6 +6421,11 @@ bool Array::Equals(const Instance& other) const {
     return false;
   }
 
+  // Must have the same type.
+  if (GetTypeArguments() != other.GetTypeArguments()) {
+    return false;
+  }
+
   Array& other_arr = Array::Handle();
   other_arr ^= other.raw();
 
