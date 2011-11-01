@@ -158,20 +158,6 @@ interface Animation {
 
 // WARNING: Do not edit - generated code.
 
-interface AnimationEvent extends Event {
-
-  String get animationName();
-
-  num get elapsedTime();
-
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface AnimationList {
 
   int get length();
@@ -301,18 +287,6 @@ interface BaseElement extends Element {
   String get target();
 
   void set target(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface BeforeLoadEvent extends Event {
-
-  String get url();
-
-  void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1174,35 +1148,7 @@ interface Clipboard {
 
 // WARNING: Do not edit - generated code.
 
-interface CloseEvent extends Event {
-
-  int get code();
-
-  String get reason();
-
-  bool get wasClean();
-
-  void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface Comment extends CharacterData {
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface CompositionEvent extends UIEvent {
-
-  String get data();
-
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1289,18 +1235,6 @@ interface Counter {
 interface Crypto {
 
   void getRandomValues(ArrayBufferView array);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface CustomEvent extends Event {
-
-  String get detail();
-
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1690,32 +1624,6 @@ interface DetailsElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface DeviceMotionEvent extends Event {
-
-  num get interval();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface DeviceOrientationEvent extends Event {
-
-  num get alpha();
-
-  num get beta();
-
-  num get gamma();
-
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface DirectoryEntry extends Entry {
 
   DirectoryReader createReader();
@@ -1941,102 +1849,6 @@ interface EntrySync {
 interface ErrorCallback {
 
   bool handleEvent(FileError error);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface ErrorEvent extends Event {
-
-  String get filename();
-
-  int get lineno();
-
-  String get message();
-
-  void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Event {
-
-  static final int AT_TARGET = 2;
-
-  static final int BLUR = 8192;
-
-  static final int BUBBLING_PHASE = 3;
-
-  static final int CAPTURING_PHASE = 1;
-
-  static final int CHANGE = 32768;
-
-  static final int CLICK = 64;
-
-  static final int DBLCLICK = 128;
-
-  static final int DRAGDROP = 2048;
-
-  static final int FOCUS = 4096;
-
-  static final int KEYDOWN = 256;
-
-  static final int KEYPRESS = 1024;
-
-  static final int KEYUP = 512;
-
-  static final int MOUSEDOWN = 1;
-
-  static final int MOUSEDRAG = 32;
-
-  static final int MOUSEMOVE = 16;
-
-  static final int MOUSEOUT = 8;
-
-  static final int MOUSEOVER = 4;
-
-  static final int MOUSEUP = 2;
-
-  static final int SELECT = 16384;
-
-  bool get bubbles();
-
-  bool get cancelBubble();
-
-  void set cancelBubble(bool value);
-
-  bool get cancelable();
-
-  EventTarget get currentTarget();
-
-  bool get defaultPrevented();
-
-  int get eventPhase();
-
-  bool get returnValue();
-
-  void set returnValue(bool value);
-
-  EventTarget get srcElement();
-
-  EventTarget get target();
-
-  int get timeStamp();
-
-  String get type();
-
-  void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
-
-  void preventDefault();
-
-  void stopImmediatePropagation();
-
-  void stopPropagation();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2555,20 +2367,6 @@ interface HTMLAllCollection {
   Node namedItem(String name);
 
   ElementList tags(String name);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface HashChangeEvent extends Event {
-
-  String get newURL();
-
-  String get oldURL();
-
-  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3368,576 +3166,6 @@ interface Int8Array extends ArrayBufferView {
 
 // WARNING: Do not edit - generated code.
 
-interface KeyboardEvent extends UIEvent {
-
-  static final int KEY_LOCATION_LEFT = 0x01;
-
-  static final int KEY_LOCATION_NUMPAD = 0x03;
-
-  static final int KEY_LOCATION_RIGHT = 0x02;
-
-  static final int KEY_LOCATION_STANDARD = 0x00;
-
-  bool get altGraphKey();
-
-  bool get altKey();
-
-  bool get ctrlKey();
-
-  String get keyIdentifier();
-
-  int get keyLocation();
-
-  bool get metaKey();
-
-  bool get shiftKey();
-
-  bool getModifierState(String keyIdentifierArg);
-
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
-}
-
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-/**
- * Defines the standard key locations returned by
- * KeyboardEvent.getKeyLocation.
- */
-interface KeyLocation {
-
-  /**
-   * The event key is not distinguished as the left or right version
-   * of the key, and did not originate from the numeric keypad (or did not
-   * originate with a virtual key corresponding to the numeric keypad).
-   */
-  static final int STANDARD = 0;
-
-  /**
-   * The event key is in the left key location.
-   */
-  static final int LEFT = 1;
-
-  /**
-   * The event key is in the right key location.
-   */
-  static final int RIGHT = 2;
-
-  /**
-   * The event key originated on the numeric keypad or with a virtual key
-   * corresponding to the numeric keypad.
-   */
-  static final int NUMPAD = 3;
-
-  /**
-   * The event key originated on a mobile device, either on a physical
-   * keypad or a virtual keyboard.
-   */
-  static final int MOBILE = 4;
-
-  /**
-   * The event key originated on a game controller or a joystick on a mobile
-   * device.
-   */
-  static final int JOYSTICK = 5;
-}
-
-/**
- * Defines the standard keyboard identifier names for keys that are returned
- * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
- * unicode mapping.
- */
-interface KeyName {
-
-  /** The Accept (Commit, OK) key */
-  static final String ACCEPT = "Accept";
-
-  /** The Add key */
-  static final String ADD = "Add";
-
-  /** The Again key */
-  static final String AGAIN = "Again";
-
-  /** The All Candidates key */
-  static final String ALL_CANDIDATES = "AllCandidates";
-
-  /** The Alphanumeric key */
-  static final String ALPHANUMERIC = "Alphanumeric";
-
-  /** The Alt (Menu) key */
-  static final String ALT = "Alt";
-
-  /** The Alt-Graph key */
-  static final String ALT_GRAPH = "AltGraph";
-
-  /** The Application key */
-  static final String APPS = "Apps";
-
-  /** The ATTN key */
-  static final String ATTN = "Attn";
-
-  /** The Browser Back key */
-  static final String BROWSER_BACK = "BrowserBack";
-
-  /** The Browser Favorites key */
-  static final String BROWSER_FAVORTIES = "BrowserFavorites";
-
-  /** The Browser Forward key */
-  static final String BROWSER_FORWARD = "BrowserForward";
-
-  /** The Browser Home key */
-  static final String BROWSER_NAME = "BrowserHome";
-
-  /** The Browser Refresh key */
-  static final String BROWSER_REFRESH = "BrowserRefresh";
-
-  /** The Browser Search key */
-  static final String BROWSER_SEARCH = "BrowserSearch";
-
-  /** The Browser Stop key */
-  static final String BROWSER_STOP = "BrowserStop";
-
-  /** The Camera key */
-  static final String CAMERA = "Camera";
-
-  /** The Caps Lock (Capital) key */
-  static final String CAPS_LOCK = "CapsLock";
-
-  /** The Clear key */
-  static final String CLEAR = "Clear";
-
-  /** The Code Input key */
-  static final String CODE_INPUT = "CodeInput";
-
-  /** The Compose key */
-  static final String COMPOSE = "Compose";
-
-  /** The Control (Ctrl) key */
-  static final String CONTROL = "Control";
-
-  /** The Crsel key */
-  static final String CRSEL = "Crsel";
-
-  /** The Convert key */
-  static final String CONVERT = "Convert";
-
-  /** The Copy key */
-  static final String COPY = "Copy";
-
-  /** The Cut key */
-  static final String CUT = "Cut";
-
-  /** The Decimal key */
-  static final String DECIMAL = "Decimal";
-
-  /** The Divide key */
-  static final String DIVIDE = "Divide";
-
-  /** The Down Arrow key */
-  static final String DOWN = "Down";
-
-  /** The diagonal Down-Left Arrow key */
-  static final String DOWN_LEFT = "DownLeft";
-
-  /** The diagonal Down-Right Arrow key */
-  static final String DOWN_RIGHT = "DownRight";
-
-  /** The Eject key */
-  static final String EJECT = "Eject";
-
-  /** The End key */
-  static final String END = "End";
-
-  /**
-   * The Enter key. Note: This key value must also be used for the Return
-   *  (Macintosh numpad) key
-   */
-  static final String ENTER = "Enter";
-
-  /** The Erase EOF key */
-  static final String ERASE_EOF= "EraseEof";
-
-  /** The Execute key */
-  static final String EXECUTE = "Execute";
-
-  /** The Exsel key */
-  static final String EXSEL = "Exsel";
-
-  /** The Function switch key */
-  static final String FN = "Fn";
-
-  /** The F1 key */
-  static final String F1 = "F1";
-
-  /** The F2 key */
-  static final String F2 = "F2";
-
-  /** The F3 key */
-  static final String F3 = "F3";
-
-  /** The F4 key */
-  static final String F4 = "F4";
-
-  /** The F5 key */
-  static final String F5 = "F5";
-
-  /** The F6 key */
-  static final String F6 = "F6";
-
-  /** The F7 key */
-  static final String F7 = "F7";
-
-  /** The F8 key */
-  static final String F8 = "F8";
-
-  /** The F9 key */
-  static final String F9 = "F9";
-
-  /** The F10 key */
-  static final String F10 = "F10";
-
-  /** The F11 key */
-  static final String F11 = "F11";
-
-  /** The F12 key */
-  static final String F12 = "F12";
-
-  /** The F13 key */
-  static final String F13 = "F13";
-
-  /** The F14 key */
-  static final String F14 = "F14";
-
-  /** The F15 key */
-  static final String F15 = "F15";
-
-  /** The F16 key */
-  static final String F16 = "F16";
-
-  /** The F17 key */
-  static final String F17 = "F17";
-
-  /** The F18 key */
-  static final String F18 = "F18";
-
-  /** The F19 key */
-  static final String F19 = "F19";
-
-  /** The F20 key */
-  static final String F20 = "F20";
-
-  /** The F21 key */
-  static final String F21 = "F21";
-
-  /** The F22 key */
-  static final String F22 = "F22";
-
-  /** The F23 key */
-  static final String F23 = "F23";
-
-  /** The F24 key */
-  static final String F24 = "F24";
-
-  /** The Final Mode (Final) key used on some asian keyboards */
-  static final String FINAL_MODE = "FinalMode";
-
-  /** The Find key */
-  static final String FIND = "Find";
-
-  /** The Full-Width Characters key */
-  static final String FULL_WIDTH = "FullWidth";
-
-  /** The Half-Width Characters key */
-  static final String HALF_WIDTH = "HalfWidth";
-
-  /** The Hangul (Korean characters) Mode key */
-  static final String HANGUL_MODE = "HangulMode";
-
-  /** The Hanja (Korean characters) Mode key */
-  static final String HANJA_MODE = "HanjaMode";
-
-  /** The Help key */
-  static final String HELP = "Help";
-
-  /** The Hiragana (Japanese Kana characters) key */
-  static final String HIRAGANA = "Hiragana";
-
-  /** The Home key */
-  static final String HOME = "Home";
-
-  /** The Insert (Ins) key */
-  static final String INSERT = "Insert";
-
-  /** The Japanese-Hiragana key */
-  static final String JAPANESE_HIRAGANA = "JapaneseHiragana";
-
-  /** The Japanese-Katakana key */
-  static final String JAPANESE_KATAKANA = "JapaneseKatakana";
-
-  /** The Japanese-Romaji key */
-  static final String JAPANESE_ROMAJI = "JapaneseRomaji";
-
-  /** The Junja Mode key */
-  static final String JUNJA_MODE = "JunjaMode";
-
-  /** The Kana Mode (Kana Lock) key */
-  static final String KANA_MODE = "KanaMode";
-
-  /**
-   * The Kanji (Japanese name for ideographic characters of Chinese origin)
-   * Mode key
-   */
-  static final String KANJI_MODE = "KanjiMode";
-
-  /** The Katakana (Japanese Kana characters) key */
-  static final String KATAKANA = "Katakana";
-
-  /** The Start Application One key */
-  static final String LAUNCH_APPLICATION_1 = "LaunchApplication1";
-
-  /** The Start Application Two key */
-  static final String LAUNCH_APPLICATION_2 = "LaunchApplication2";
-
-  /** The Start Mail key */
-  static final String LAUNCH_MAIL = "LaunchMail";
-
-  /** The Left Arrow key */
-  static final String LEFT = "Left";
-
-  /** The Menu key */
-  static final String MENU = "Menu";
-
-  /**
-   * The Meta key. Note: This key value shall be also used for the Apple
-   * Command key
-   */
-  static final String META = "Meta";
-
-  /** The Media Next Track key */
-  static final String MEDIA_NEXT_TRACK = "MediaNextTrack";
-
-  /** The Media Play Pause key */
-  static final String MEDIA_PAUSE_PLAY = "MediaPlayPause";
-
-  /** The Media Previous Track key */
-  static final String MEDIA_PREVIOUS_TRACK = "MediaPreviousTrack";
-
-  /** The Media Stop key */
-  static final String MEDIA_STOP = "MediaStop";
-
-  /** The Mode Change key */
-  static final String MODE_CHANGE = "ModeChange";
-
-  /** The Next Candidate function key */
-  static final String NEXT_CANDIDATE = "NextCandidate";
-
-  /** The Nonconvert (Don't Convert) key */
-  static final String NON_CONVERT = "Nonconvert";
-
-  /** The Number Lock key */
-  static final String NUM_LOCK = "NumLock";
-
-  /** The Page Down (Next) key */
-  static final String PAGE_DOWN = "PageDown";
-
-  /** The Page Up key */
-  static final String PAGE_UP = "PageUp";
-
-  /** The Paste key */
-  static final String PASTE = "Paste";
-
-  /** The Pause key */
-  static final String PAUSE = "Pause";
-
-  /** The Play key */
-  static final String PLAY = "Play";
-
-  /**
-   * The Power key. Note: Some devices may not expose this key to the
-   * operating environment
-   */
-  static final String POWER = "Power";
-
-  /** The Previous Candidate function key */
-  static final String PREVIOUS_CANDIDATE = "PreviousCandidate";
-
-  /** The Print Screen (PrintScrn, SnapShot) key */
-  static final String PRINT_SCREEN = "PrintScreen";
-
-  /** The Process key */
-  static final String PROCESS = "Process";
-
-  /** The Props key */
-  static final String PROPS = "Props";
-
-  /** The Right Arrow key */
-  static final String RIGHT = "Right";
-
-  /** The Roman Characters function key */
-  static final String ROMAN_CHARACTERS = "RomanCharacters";
-
-  /** The Scroll Lock key */
-  static final String SCROLL = "Scroll";
-
-  /** The Select key */
-  static final String SELECT = "Select";
-
-  /** The Select Media key */
-  static final String SELECT_MEDIA = "SelectMedia";
-
-  /** The Separator key */
-  static final String SEPARATOR = "Separator";
-
-  /** The Shift key */
-  static final String SHIFT = "Shift";
-
-  /** The Soft1 key */
-  static final String SOFT_1 = "Soft1";
-
-  /** The Soft2 key */
-  static final String SOFT_2 = "Soft2";
-
-  /** The Soft3 key */
-  static final String SOFT_3 = "Soft3";
-
-  /** The Soft4 key */
-  static final String SOFT_4 = "Soft4";
-
-  /** The Stop key */
-  static final String STOP = "Stop";
-
-  /** The Subtract key */
-  static final String SUBTRACT = "Subtract";
-
-  /** The Symbol Lock key */
-  static final String SYMBOL_LOCK = "SymbolLock";
-
-  /** The Up Arrow key */
-  static final String UP = "Up";
-
-  /** The diagonal Up-Left Arrow key */
-  static final String UP_LEFT = "UpLeft";
-
-  /** The diagonal Up-Right Arrow key */
-  static final String UP_RIGHT = "UpRight";
-
-  /** The Undo key */
-  static final String UNDO = "Undo";
-
-  /** The Volume Down key */
-  static final String VOLUME_DOWN = "VolumeDown";
-
-  /** The Volume Mute key */
-  static final String VOLUMN_MUTE = "VolumeMute";
-
-  /** The Volume Up key */
-  static final String VOLUMN_UP = "VolumeUp";
-
-  /** The Windows Logo key */
-  static final String WIN = "Win";
-
-  /** The Zoom key */
-  static final String ZOOM = "Zoom";
-
-  /**
-   * The Backspace (Back) key. Note: This key value shall be also used for the
-   * key labeled 'delete' MacOS keyboards when not modified by the 'Fn' key
-   */
-  static final String BACKSPACE = "Backspace";
-
-  /** The Horizontal Tabulation (Tab) key */
-  static final String TAB = "Tab";
-
-  /** The Cancel key */
-  static final String CANCEL = "Cancel";
-
-  /** The Escape (Esc) key */
-  static final String ESC = "Esc";
-
-  /** The Space (Spacebar) key:   */
-  static final String SPACEBAR = "Spacebar";
-
-  /**
-   * The Delete (Del) Key. Note: This key value shall be also used for the key
-   * labeled 'delete' MacOS keyboards when modified by the 'Fn' key
-   */
-  static final String DEL = "Del";
-
-  /** The Combining Grave Accent (Greek Varia, Dead Grave) key */
-  static final String DEAD_GRAVE = "DeadGrave";
-
-  /**
-   * The Combining Acute Accent (Stress Mark, Greek Oxia, Tonos, Dead Eacute)
-   * key
-   */
-  static final String DEAD_EACUTE = "DeadEacute";
-
-  /** The Combining Circumflex Accent (Hat, Dead Circumflex) key */
-  static final String DEAD_CIRCUMFLEX = "DeadCircumflex";
-
-  /** The Combining Tilde (Dead Tilde) key */
-  static final String DEAD_TILDE = "DeadTilde";
-
-  /** The Combining Macron (Long, Dead Macron) key */
-  static final String DEAD_MACRON = "DeadMacron";
-
-  /** The Combining Breve (Short, Dead Breve) key */
-  static final String DEAD_BREVE = "DeadBreve";
-
-  /** The Combining Dot Above (Derivative, Dead Above Dot) key */
-  static final String DEAD_ABOVE_DOT = "DeadAboveDot";
-
-  /**
-   * The Combining Diaeresis (Double Dot Abode, Umlaut, Greek Dialytika,
-   * Double Derivative, Dead Diaeresis) key
-   */
-  static final String DEAD_UMLAUT = "DeadUmlaut";
-
-  /** The Combining Ring Above (Dead Above Ring) key */
-  static final String DEAD_ABOVE_RING = "DeadAboveRing";
-
-  /** The Combining Double Acute Accent (Dead Doubleacute) key */
-  static final String DEAD_DOUBLEACUTE = "DeadDoubleacute";
-
-  /** The Combining Caron (Hacek, V Above, Dead Caron) key */
-  static final String DEAD_CARON = "DeadCaron";
-
-  /** The Combining Cedilla (Dead Cedilla) key */
-  static final String DEAD_CEDILLA = "DeadCedilla";
-
-  /** The Combining Ogonek (Nasal Hook, Dead Ogonek) key */
-  static final String DEAD_OGONEK = "DeadOgonek";
-
-  /**
-   * The Combining Greek Ypogegrammeni (Greek Non-Spacing Iota Below, Iota
-   * Subscript, Dead Iota) key
-   */
-  static final String DEAD_IOTA = "DeadIota";
-
-  /**
-   * The Combining Katakana-Hiragana Voiced Sound Mark (Dead Voiced Sound) key
-   */
-  static final String DEAD_VOICED_SOUND = "DeadVoicedSound";
-
-  /**
-   * The Combining Katakana-Hiragana Semi-Voiced Sound Mark (Dead Semivoiced
-   * Sound) key
-   */
-  static final String DEC_SEMIVOICED_SOUND= "DeadSemivoicedSound";
-
-  /**
-   * Key value used when an implementation is unable to identify another key
-   * value, due to either hardware, platform, or software constraints
-   */
-  static final String UNIDENTIFIED = "Unidentified";
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface KeygenElement extends Element {
 
   bool get autofocus();
@@ -4498,26 +3726,6 @@ interface MessageChannel {
 
 // WARNING: Do not edit - generated code.
 
-interface MessageEvent extends Event {
-
-  String get data();
-
-  String get lastEventId();
-
-  MessagePort get messagePort();
-
-  String get origin();
-
-  Window get source();
-
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface MetaElement extends Element {
 
   String get content();
@@ -4607,74 +3815,6 @@ interface ModElement extends Element {
   String get dateTime();
 
   void set dateTime(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MouseEvent extends UIEvent {
-
-  bool get altKey();
-
-  int get button();
-
-  int get clientX();
-
-  int get clientY();
-
-  bool get ctrlKey();
-
-  Node get fromElement();
-
-  bool get metaKey();
-
-  int get offsetX();
-
-  int get offsetY();
-
-  EventTarget get relatedTarget();
-
-  int get screenX();
-
-  int get screenY();
-
-  bool get shiftKey();
-
-  Node get toElement();
-
-  int get x();
-
-  int get y();
-
-  void initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MutationEvent extends Event {
-
-  static final int ADDITION = 2;
-
-  static final int MODIFICATION = 1;
-
-  static final int REMOVAL = 3;
-
-  int get attrChange();
-
-  String get attrName();
-
-  String get newValue();
-
-  String get prevValue();
-
-  Node get relatedNode();
-
-  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5056,40 +4196,6 @@ interface OutputElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface OverflowEvent extends Event {
-
-  static final int BOTH = 2;
-
-  static final int HORIZONTAL = 0;
-
-  static final int VERTICAL = 1;
-
-  bool get horizontalOverflow();
-
-  int get orient();
-
-  bool get verticalOverflow();
-
-  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PageTransitionEvent extends Event {
-
-  bool get persisted();
-
-  void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface ParagraphElement extends Element {
 
   String get align();
@@ -5137,18 +4243,6 @@ interface Point factory _PointFactoryProvider {
   num get y();
 
   void set y(num value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PopStateEvent extends Event {
-
-  String get state();
-
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5241,22 +4335,6 @@ interface ProgressElement extends Element {
   num get value();
 
   void set value(num value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface ProgressEvent extends Event {
-
-  bool get lengthComputable();
-
-  int get loaded();
-
-  int get total();
-
-  void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5617,26 +4695,6 @@ interface Storage {
   void removeItem(String key);
 
   void setItem(String key, String data);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface StorageEvent extends Event {
-
-  String get key();
-
-  String get newValue();
-
-  String get oldValue();
-
-  Storage get storageArea();
-
-  String get url();
-
-  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6118,18 +5176,6 @@ interface TextAreaElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface TextEvent extends UIEvent {
-
-  String get data();
-
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface TextMetrics {
 
   num get width();
@@ -6198,30 +5244,6 @@ interface Touch {
 
 // WARNING: Do not edit - generated code.
 
-interface TouchEvent extends UIEvent {
-
-  bool get altKey();
-
-  TouchList get changedTouches();
-
-  bool get ctrlKey();
-
-  bool get metaKey();
-
-  bool get shiftKey();
-
-  TouchList get targetTouches();
-
-  TouchList get touches();
-
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface TouchList extends List<Touch> {
 
   int get length();
@@ -6255,48 +5277,6 @@ interface TrackElement extends Element {
   String get srclang();
 
   void set srclang(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface TransitionEvent extends Event {
-
-  num get elapsedTime();
-
-  String get propertyName();
-
-  void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface UIEvent extends Event {
-
-  int get charCode();
-
-  int get detail();
-
-  int get keyCode();
-
-  int get layerX();
-
-  int get layerY();
-
-  int get pageX();
-
-  int get pageY();
-
-  Window get view();
-
-  int get which();
-
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7440,46 +6420,6 @@ interface WebGLVertexArrayObjectOES {
 
 // WARNING: Do not edit - generated code.
 
-interface WheelEvent extends UIEvent {
-
-  bool get altKey();
-
-  int get clientX();
-
-  int get clientY();
-
-  bool get ctrlKey();
-
-  bool get metaKey();
-
-  int get offsetX();
-
-  int get offsetY();
-
-  int get screenX();
-
-  int get screenY();
-
-  bool get shiftKey();
-
-  int get wheelDelta();
-
-  int get wheelDeltaX();
-
-  int get wheelDeltaY();
-
-  int get x();
-
-  int get y();
-
-  void initWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface XMLHttpRequestException {
 
   static final int ABORT_ERR = 102;
@@ -7491,18 +6431,6 @@ interface XMLHttpRequestException {
   String get message();
 
   String get name();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface XMLHttpRequestProgressEvent extends ProgressEvent {
-
-  int get position();
-
-  int get totalSize();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7599,24 +6527,6 @@ class AnchorElementWrappingImplementation extends ElementWrappingImplementation 
 
   String getParameter(String name) {
     return _ptr.getParameter(name);
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class AnimationEventWrappingImplementation extends EventWrappingImplementation implements AnimationEvent {
-  AnimationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get animationName() { return _ptr.animationName; }
-
-  num get elapsedTime() { return _ptr.elapsedTime; }
-
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg) {
-    _ptr.initWebKitAnimationEvent(typeArg, canBubbleArg, cancelableArg, animationNameArg, elapsedTimeArg);
-    return;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -7803,22 +6713,6 @@ class BaseElementWrappingImplementation extends ElementWrappingImplementation im
   String get target() { return _ptr.target; }
 
   void set target(String value) { _ptr.target = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation implements BeforeLoadEvent {
-  BeforeLoadEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get url() { return _ptr.url; }
-
-  void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url) {
-    _ptr.initBeforeLoadEvent(type, canBubble, cancelable, url);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9360,44 +8254,8 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
 
 // WARNING: Do not edit - generated code.
 
-class CloseEventWrappingImplementation extends EventWrappingImplementation implements CloseEvent {
-  CloseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get code() { return _ptr.code; }
-
-  String get reason() { return _ptr.reason; }
-
-  bool get wasClean() { return _ptr.wasClean; }
-
-  void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg) {
-    _ptr.initCloseEvent(typeArg, canBubbleArg, cancelableArg, wasCleanArg, codeArg, reasonArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class CommentWrappingImplementation extends CharacterDataWrappingImplementation implements Comment {
   CommentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class CompositionEventWrappingImplementation extends UIEventWrappingImplementation implements CompositionEvent {
-  CompositionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get data() { return _ptr.data; }
-
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
-    _ptr.initCompositionEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9537,22 +8395,6 @@ class CryptoWrappingImplementation extends DOMWrapperBase implements Crypto {
 
   void getRandomValues(ArrayBufferView array) {
     _ptr.getRandomValues(LevelDom.unwrap(array));
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class CustomEventWrappingImplementation extends EventWrappingImplementation implements CustomEvent {
-  CustomEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get detail() { return _ptr.detail; }
-
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) {
-    _ptr.initCustomEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(detailArg));
     return;
   }
 }
@@ -10097,37 +8939,6 @@ class DetailsElementWrappingImplementation extends ElementWrappingImplementation
 
 // WARNING: Do not edit - generated code.
 
-class DeviceMotionEventWrappingImplementation extends EventWrappingImplementation implements DeviceMotionEvent {
-  DeviceMotionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  num get interval() { return _ptr.interval; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class DeviceOrientationEventWrappingImplementation extends EventWrappingImplementation implements DeviceOrientationEvent {
-  DeviceOrientationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  num get alpha() { return _ptr.alpha; }
-
-  num get beta() { return _ptr.beta; }
-
-  num get gamma() { return _ptr.gamma; }
-
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) {
-    _ptr.initDeviceOrientationEvent(type, bubbles, cancelable, alpha, beta, gamma);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class DirectoryEntrySyncWrappingImplementation extends EntrySyncWrappingImplementation implements DirectoryEntrySync {
   DirectoryEntrySyncWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -10585,26 +9396,6 @@ class ErrorCallbackWrappingImplementation extends DOMWrapperBase implements Erro
 
 // WARNING: Do not edit - generated code.
 
-class ErrorEventWrappingImplementation extends EventWrappingImplementation implements ErrorEvent {
-  ErrorEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get filename() { return _ptr.filename; }
-
-  int get lineno() { return _ptr.lineno; }
-
-  String get message() { return _ptr.message; }
-
-  void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg) {
-    _ptr.initErrorEvent(typeArg, canBubbleArg, cancelableArg, messageArg, filenameArg, linenoArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class EventExceptionWrappingImplementation extends DOMWrapperBase implements EventException {
   EventExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -10613,61 +9404,6 @@ class EventExceptionWrappingImplementation extends DOMWrapperBase implements Eve
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class EventWrappingImplementation extends DOMWrapperBase implements Event {
-  EventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get bubbles() { return _ptr.bubbles; }
-
-  bool get cancelBubble() { return _ptr.cancelBubble; }
-
-  void set cancelBubble(bool value) { _ptr.cancelBubble = value; }
-
-  bool get cancelable() { return _ptr.cancelable; }
-
-  EventTarget get currentTarget() { return LevelDom.wrapEventTarget(_ptr.currentTarget); }
-
-  bool get defaultPrevented() { return _ptr.defaultPrevented; }
-
-  int get eventPhase() { return _ptr.eventPhase; }
-
-  bool get returnValue() { return _ptr.returnValue; }
-
-  void set returnValue(bool value) { _ptr.returnValue = value; }
-
-  EventTarget get srcElement() { return LevelDom.wrapEventTarget(_ptr.srcElement); }
-
-  EventTarget get target() { return LevelDom.wrapEventTarget(_ptr.target); }
-
-  int get timeStamp() { return _ptr.timeStamp; }
-
-  String get type() { return _ptr.type; }
-
-  void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
-    _ptr.initEvent(eventTypeArg, canBubbleArg, cancelableArg);
-    return;
-  }
-
-  void preventDefault() {
-    _ptr.preventDefault();
-    return;
-  }
-
-  void stopImmediatePropagation() {
-    _ptr.stopImmediatePropagation();
-    return;
-  }
-
-  void stopPropagation() {
-    _ptr.stopPropagation();
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11253,24 +9989,6 @@ class HTMLAllCollectionWrappingImplementation extends DOMWrapperBase implements 
 
   ElementList tags(String name) {
     return LevelDom.wrapElementList(_ptr.tags(name));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class HashChangeEventWrappingImplementation extends EventWrappingImplementation implements HashChangeEvent {
-  HashChangeEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get newURL() { return _ptr.newURL; }
-
-  String get oldURL() { return _ptr.oldURL; }
-
-  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) {
-    _ptr.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
-    return;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -12306,38 +11024,6 @@ class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementat
 
 // WARNING: Do not edit - generated code.
 
-class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation implements KeyboardEvent {
-  KeyboardEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altGraphKey() { return _ptr.altGraphKey; }
-
-  bool get altKey() { return _ptr.altKey; }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  String get keyIdentifier() { return _ptr.keyIdentifier; }
-
-  int get keyLocation() { return _ptr.keyLocation; }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  bool getModifierState(String keyIdentifierArg) {
-    return _ptr.getModifierState(keyIdentifierArg);
-  }
-
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
-    _ptr.initKeyboardEvent(type, canBubble, cancelable, LevelDom.unwrap(view), keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class KeygenElementWrappingImplementation extends ElementWrappingImplementation implements KeygenElement {
   KeygenElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -13058,30 +11744,6 @@ class MessageChannelWrappingImplementation extends DOMWrapperBase implements Mes
 
 // WARNING: Do not edit - generated code.
 
-class MessageEventWrappingImplementation extends EventWrappingImplementation implements MessageEvent {
-  MessageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get data() { return _ptr.data; }
-
-  String get lastEventId() { return _ptr.lastEventId; }
-
-  MessagePort get messagePort() { return LevelDom.wrapMessagePort(_ptr.messagePort); }
-
-  String get origin() { return _ptr.origin; }
-
-  Window get source() { return LevelDom.wrapWindow(_ptr.source); }
-
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort) {
-    _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class MetaElementWrappingImplementation extends ElementWrappingImplementation implements MetaElement {
   MetaElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -13178,76 +11840,6 @@ class ModElementWrappingImplementation extends ElementWrappingImplementation imp
   String get dateTime() { return _ptr.dateTime; }
 
   void set dateTime(String value) { _ptr.dateTime = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MouseEventWrappingImplementation extends UIEventWrappingImplementation implements MouseEvent {
-  MouseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altKey() { return _ptr.altKey; }
-
-  int get button() { return _ptr.button; }
-
-  int get clientX() { return _ptr.clientX; }
-
-  int get clientY() { return _ptr.clientY; }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  Node get fromElement() { return LevelDom.wrapNode(_ptr.fromElement); }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  int get offsetX() { return _ptr.offsetX; }
-
-  int get offsetY() { return _ptr.offsetY; }
-
-  EventTarget get relatedTarget() { return LevelDom.wrapEventTarget(_ptr.relatedTarget); }
-
-  int get screenX() { return _ptr.screenX; }
-
-  int get screenY() { return _ptr.screenY; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  Node get toElement() { return LevelDom.wrapNode(_ptr.toElement); }
-
-  int get x() { return _ptr.x; }
-
-  int get y() { return _ptr.y; }
-
-  void initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
-    _ptr.initMouseEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, LevelDom.unwrap(relatedTarget));
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MutationEventWrappingImplementation extends EventWrappingImplementation implements MutationEvent {
-  MutationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get attrChange() { return _ptr.attrChange; }
-
-  String get attrName() { return _ptr.attrName; }
-
-  String get newValue() { return _ptr.newValue; }
-
-  String get prevValue() { return _ptr.prevValue; }
-
-  Node get relatedNode() { return LevelDom.wrapNode(_ptr.relatedNode); }
-
-  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) {
-    _ptr.initMutationEvent(type, canBubble, cancelable, LevelDom.unwrap(relatedNode), prevValue, newValue, attrName, attrChange);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13675,42 +12267,6 @@ class OutputElementWrappingImplementation extends ElementWrappingImplementation 
 
 // WARNING: Do not edit - generated code.
 
-class OverflowEventWrappingImplementation extends EventWrappingImplementation implements OverflowEvent {
-  OverflowEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get horizontalOverflow() { return _ptr.horizontalOverflow; }
-
-  int get orient() { return _ptr.orient; }
-
-  bool get verticalOverflow() { return _ptr.verticalOverflow; }
-
-  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) {
-    _ptr.initOverflowEvent(orient, horizontalOverflow, verticalOverflow);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class PageTransitionEventWrappingImplementation extends EventWrappingImplementation implements PageTransitionEvent {
-  PageTransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get persisted() { return _ptr.persisted; }
-
-  void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted) {
-    _ptr.initPageTransitionEvent(typeArg, canBubbleArg, cancelableArg, persisted);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class ParagraphElementWrappingImplementation extends ElementWrappingImplementation implements ParagraphElement {
   ParagraphElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -13759,22 +12315,6 @@ class PointWrappingImplementation extends DOMWrapperBase implements Point {
   num get y() { return _ptr.y; }
 
   void set y(num value) { _ptr.y = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class PopStateEventWrappingImplementation extends EventWrappingImplementation implements PopStateEvent {
-  PopStateEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get state() { return _ptr.state; }
-
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) {
-    _ptr.initPopStateEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrapMaybePrimitive(stateArg));
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13871,26 +12411,6 @@ class ProgressElementWrappingImplementation extends ElementWrappingImplementatio
   num get value() { return _ptr.value; }
 
   void set value(num value) { _ptr.value = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class ProgressEventWrappingImplementation extends EventWrappingImplementation implements ProgressEvent {
-  ProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get lengthComputable() { return _ptr.lengthComputable; }
-
-  int get loaded() { return _ptr.loaded; }
-
-  int get total() { return _ptr.total; }
-
-  void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg) {
-    _ptr.initProgressEvent(typeArg, canBubbleArg, cancelableArg, lengthComputableArg, loadedArg, totalArg);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14298,30 +12818,6 @@ class SpeechInputResultWrappingImplementation extends DOMWrapperBase implements 
   num get confidence() { return _ptr.confidence; }
 
   String get utterance() { return _ptr.utterance; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class StorageEventWrappingImplementation extends EventWrappingImplementation implements StorageEvent {
-  StorageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get key() { return _ptr.key; }
-
-  String get newValue() { return _ptr.newValue; }
-
-  String get oldValue() { return _ptr.oldValue; }
-
-  Storage get storageArea() { return LevelDom.wrapStorage(_ptr.storageArea); }
-
-  String get url() { return _ptr.url; }
-
-  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) {
-    _ptr.initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, LevelDom.unwrap(storageAreaArg));
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15027,22 +13523,6 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
 
 // WARNING: Do not edit - generated code.
 
-class TextEventWrappingImplementation extends UIEventWrappingImplementation implements TextEvent {
-  TextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get data() { return _ptr.data; }
-
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) {
-    _ptr.initTextEvent(typeArg, canBubbleArg, cancelableArg, LevelDom.unwrap(viewArg), dataArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class TextMetricsWrappingImplementation extends DOMWrapperBase implements TextMetrics {
   TextMetricsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -15079,34 +13559,6 @@ class TitleElementWrappingImplementation extends ElementWrappingImplementation i
   String get text() { return _ptr.text; }
 
   void set text(String value) { _ptr.text = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class TouchEventWrappingImplementation extends UIEventWrappingImplementation implements TouchEvent {
-  TouchEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altKey() { return _ptr.altKey; }
-
-  TouchList get changedTouches() { return LevelDom.wrapTouchList(_ptr.changedTouches); }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  TouchList get targetTouches() { return LevelDom.wrapTouchList(_ptr.targetTouches); }
-
-  TouchList get touches() { return LevelDom.wrapTouchList(_ptr.touches); }
-
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
-    _ptr.initTouchEvent(LevelDom.unwrap(touches), LevelDom.unwrap(targetTouches), LevelDom.unwrap(changedTouches), type, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15272,56 +13724,6 @@ class TrackElementWrappingImplementation extends ElementWrappingImplementation i
   String get srclang() { return _ptr.srclang; }
 
   void set srclang(String value) { _ptr.srclang = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class TransitionEventWrappingImplementation extends EventWrappingImplementation implements TransitionEvent {
-  TransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  num get elapsedTime() { return _ptr.elapsedTime; }
-
-  String get propertyName() { return _ptr.propertyName; }
-
-  void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg) {
-    _ptr.initWebKitTransitionEvent(typeArg, canBubbleArg, cancelableArg, propertyNameArg, elapsedTimeArg);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class UIEventWrappingImplementation extends EventWrappingImplementation implements UIEvent {
-  UIEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get charCode() { return _ptr.charCode; }
-
-  int get detail() { return _ptr.detail; }
-
-  int get keyCode() { return _ptr.keyCode; }
-
-  int get layerX() { return _ptr.layerX; }
-
-  int get layerY() { return _ptr.layerY; }
-
-  int get pageX() { return _ptr.pageX; }
-
-  int get pageY() { return _ptr.pageY; }
-
-  Window get view() { return LevelDom.wrapWindow(_ptr.view); }
-
-  int get which() { return _ptr.which; }
-
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) {
-    _ptr.initUIEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail);
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16382,50 +14784,6 @@ class WebGLVertexArrayObjectOESWrappingImplementation extends DOMWrapperBase imp
 
 // WARNING: Do not edit - generated code.
 
-class WheelEventWrappingImplementation extends UIEventWrappingImplementation implements WheelEvent {
-  WheelEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get altKey() { return _ptr.altKey; }
-
-  int get clientX() { return _ptr.clientX; }
-
-  int get clientY() { return _ptr.clientY; }
-
-  bool get ctrlKey() { return _ptr.ctrlKey; }
-
-  bool get metaKey() { return _ptr.metaKey; }
-
-  int get offsetX() { return _ptr.offsetX; }
-
-  int get offsetY() { return _ptr.offsetY; }
-
-  int get screenX() { return _ptr.screenX; }
-
-  int get screenY() { return _ptr.screenY; }
-
-  bool get shiftKey() { return _ptr.shiftKey; }
-
-  int get wheelDelta() { return _ptr.wheelDelta; }
-
-  int get wheelDeltaX() { return _ptr.wheelDeltaX; }
-
-  int get wheelDeltaY() { return _ptr.wheelDeltaY; }
-
-  int get x() { return _ptr.x; }
-
-  int get y() { return _ptr.y; }
-
-  void initWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
-    _ptr.initWheelEvent(wheelDeltaX, wheelDeltaY, LevelDom.unwrap(view), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase implements XMLHttpRequestException {
   XMLHttpRequestExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -16434,19 +14792,6 @@ class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase imple
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class XMLHttpRequestProgressEventWrappingImplementation extends ProgressEventWrappingImplementation implements XMLHttpRequestProgressEvent {
-  XMLHttpRequestProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get position() { return _ptr.position; }
-
-  int get totalSize() { return _ptr.totalSize; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18446,44 +16791,154 @@ class AbstractWorkerWrappingImplementation extends EventTargetWrappingImplementa
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DOMApplicationCacheEvents extends Events {
-  EventListenerList get cached();
-  EventListenerList get checking();
-  EventListenerList get downloading();
-  EventListenerList get error();
-  EventListenerList get noUpdate();
-  EventListenerList get obsolete();
-  EventListenerList get progress();
-  EventListenerList get updateReady();  
-}
+interface AnimationEvent extends Event factory AnimationEventWrappingImplementation {
 
-interface DOMApplicationCache extends EventTarget {
+  AnimationEvent(String type, String propertyName, double elapsedTime,
+      [bool canBubble, bool cancelable]);
 
-  static final int CHECKING = 2;
+  String get animationName();
 
-  static final int DOWNLOADING = 3;
-
-  static final int IDLE = 1;
-
-  static final int OBSOLETE = 5;
-
-  static final int UNCACHED = 0;
-
-  static final int UPDATEREADY = 4;
-
-  int get status();
-
-  void swapCache();
-
-  void update();
-
-  DOMApplicationCacheEvents get on();
+  num get elapsedTime();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface CSSStyleDeclaration {
+class AnimationEventWrappingImplementation extends EventWrappingImplementation implements AnimationEvent {
+  static String _name;
+
+  AnimationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  static String get _eventName() {
+    if (_name != null) return _name;
+
+    try {
+      dom.document.createEvent("WebKitAnimationEvent");
+      _name = "WebKitAnimationEvent";
+    } catch (var e) {
+      _name = "AnimationEvent";
+    }
+    return _name;
+  }
+
+  factory AnimationEventWrappingImplementation(String type, String propertyName,
+      double elapsedTime, [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent(_eventName);
+    e.initWebKitAnimationEvent(
+        type, canBubble, cancelable, propertyName, elapsedTime);
+    return LevelDom.wrapAnimationEvent(e);
+  }
+
+  String get animationName() => _ptr.animationName;
+
+  num get elapsedTime() => _ptr.elapsedTime;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface BeforeLoadEvent extends Event factory BeforeLoadEventWrappingImplementation {
+
+  BeforeLoadEvent(String type, String url, [bool canBubble, bool cancelable]);
+
+  String get url();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation implements BeforeLoadEvent {
+  BeforeLoadEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory BeforeLoadEventWrappingImplementation(String type, String url,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("BeforeLoadEvent");
+    e.initBeforeLoadEvent(type, canBubble, cancelable, url);
+    return LevelDom.wrapBeforeLoadEvent(e);
+  }
+
+  String get url() => _ptr.url;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface CloseEvent extends Event factory CloseEventWrappingImplementation {
+
+  CloseEvent(String type, int code, String reason,
+      [bool canBubble, bool cancelable, bool wasClean]);
+
+  int get code();
+
+  String get reason();
+
+  bool get wasClean();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class CloseEventWrappingImplementation extends EventWrappingImplementation implements CloseEvent {
+  CloseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory CloseEventWrappingImplementation(String type, int code, String reason,
+      [bool canBubble = true, bool cancelable = true, bool wasClean = true]) {
+    final e = dom.document.createEvent("CloseEvent");
+    e.initCloseEvent(type, canBubble, cancelable, wasClean, code, reason);
+    return LevelDom.wrapCloseEvent(e);
+  }
+
+  int get code() => _ptr.code;
+
+  String get reason() => _ptr.reason;
+
+  bool get wasClean() => _ptr.wasClean;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface CompositionEvent extends UIEvent factory CompositionEventWrappingImplementation {
+
+  CompositionEvent(String type, Window view, String data, [bool canBubble,
+      bool cancelable]);
+
+  String get data();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class CompositionEventWrappingImplementation extends UIEventWrappingImplementation implements CompositionEvent {
+  CompositionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory CompositionEventWrappingImplementation(String type, Window view,
+      String data, [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("CompositionEvent");
+    e.initCompositionEvent(type, canBubble, cancelable, LevelDom.unwrap(view),
+        data);
+    return LevelDom.wrapCompositionEvent(e);
+  }
+
+  String get data() => _ptr.data;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit.
+// This file was generated by html/scripts/css_code_generator.py
+
+// Source of CSS properties:
+//   Source/WebCore/css/CSSPropertyNames.in
+
+// TODO(jacobr): add versions that take numeric values in px, miliseconds, etc.
+
+interface CSSStyleDeclaration factory CSSStyleDeclarationWrappingImplementation {
+
+  CSSStyleDeclaration();
+
+  CSSStyleDeclaration.css(String css);
 
   String get cssText();
 
@@ -18508,13 +16963,1888 @@ interface CSSStyleDeclaration {
   String removeProperty(String propertyName);
 
   void setProperty(String propertyName, String value, [String priority]);
+
+  /** Gets the value of "animation" */
+  String get animation();
+
+  /** Sets the value of "animation" */
+  void set animation(String value);
+
+  /** Gets the value of "animation-delay" */
+  String get animationDelay();
+
+  /** Sets the value of "animation-delay" */
+  void set animationDelay(String value);
+
+  /** Gets the value of "animation-direction" */
+  String get animationDirection();
+
+  /** Sets the value of "animation-direction" */
+  void set animationDirection(String value);
+
+  /** Gets the value of "animation-duration" */
+  String get animationDuration();
+
+  /** Sets the value of "animation-duration" */
+  void set animationDuration(String value);
+
+  /** Gets the value of "animation-fill-mode" */
+  String get animationFillMode();
+
+  /** Sets the value of "animation-fill-mode" */
+  void set animationFillMode(String value);
+
+  /** Gets the value of "animation-iteration-count" */
+  String get animationIterationCount();
+
+  /** Sets the value of "animation-iteration-count" */
+  void set animationIterationCount(String value);
+
+  /** Gets the value of "animation-name" */
+  String get animationName();
+
+  /** Sets the value of "animation-name" */
+  void set animationName(String value);
+
+  /** Gets the value of "animation-play-state" */
+  String get animationPlayState();
+
+  /** Sets the value of "animation-play-state" */
+  void set animationPlayState(String value);
+
+  /** Gets the value of "animation-timing-function" */
+  String get animationTimingFunction();
+
+  /** Sets the value of "animation-timing-function" */
+  void set animationTimingFunction(String value);
+
+  /** Gets the value of "appearance" */
+  String get appearance();
+
+  /** Sets the value of "appearance" */
+  void set appearance(String value);
+
+  /** Gets the value of "backface-visibility" */
+  String get backfaceVisibility();
+
+  /** Sets the value of "backface-visibility" */
+  void set backfaceVisibility(String value);
+
+  /** Gets the value of "background" */
+  String get background();
+
+  /** Sets the value of "background" */
+  void set background(String value);
+
+  /** Gets the value of "background-attachment" */
+  String get backgroundAttachment();
+
+  /** Sets the value of "background-attachment" */
+  void set backgroundAttachment(String value);
+
+  /** Gets the value of "background-clip" */
+  String get backgroundClip();
+
+  /** Sets the value of "background-clip" */
+  void set backgroundClip(String value);
+
+  /** Gets the value of "background-color" */
+  String get backgroundColor();
+
+  /** Sets the value of "background-color" */
+  void set backgroundColor(String value);
+
+  /** Gets the value of "background-composite" */
+  String get backgroundComposite();
+
+  /** Sets the value of "background-composite" */
+  void set backgroundComposite(String value);
+
+  /** Gets the value of "background-image" */
+  String get backgroundImage();
+
+  /** Sets the value of "background-image" */
+  void set backgroundImage(String value);
+
+  /** Gets the value of "background-origin" */
+  String get backgroundOrigin();
+
+  /** Sets the value of "background-origin" */
+  void set backgroundOrigin(String value);
+
+  /** Gets the value of "background-position" */
+  String get backgroundPosition();
+
+  /** Sets the value of "background-position" */
+  void set backgroundPosition(String value);
+
+  /** Gets the value of "background-position-x" */
+  String get backgroundPositionX();
+
+  /** Sets the value of "background-position-x" */
+  void set backgroundPositionX(String value);
+
+  /** Gets the value of "background-position-y" */
+  String get backgroundPositionY();
+
+  /** Sets the value of "background-position-y" */
+  void set backgroundPositionY(String value);
+
+  /** Gets the value of "background-repeat" */
+  String get backgroundRepeat();
+
+  /** Sets the value of "background-repeat" */
+  void set backgroundRepeat(String value);
+
+  /** Gets the value of "background-repeat-x" */
+  String get backgroundRepeatX();
+
+  /** Sets the value of "background-repeat-x" */
+  void set backgroundRepeatX(String value);
+
+  /** Gets the value of "background-repeat-y" */
+  String get backgroundRepeatY();
+
+  /** Sets the value of "background-repeat-y" */
+  void set backgroundRepeatY(String value);
+
+  /** Gets the value of "background-size" */
+  String get backgroundSize();
+
+  /** Sets the value of "background-size" */
+  void set backgroundSize(String value);
+
+  /** Gets the value of "border" */
+  String get border();
+
+  /** Sets the value of "border" */
+  void set border(String value);
+
+  /** Gets the value of "border-after" */
+  String get borderAfter();
+
+  /** Sets the value of "border-after" */
+  void set borderAfter(String value);
+
+  /** Gets the value of "border-after-color" */
+  String get borderAfterColor();
+
+  /** Sets the value of "border-after-color" */
+  void set borderAfterColor(String value);
+
+  /** Gets the value of "border-after-style" */
+  String get borderAfterStyle();
+
+  /** Sets the value of "border-after-style" */
+  void set borderAfterStyle(String value);
+
+  /** Gets the value of "border-after-width" */
+  String get borderAfterWidth();
+
+  /** Sets the value of "border-after-width" */
+  void set borderAfterWidth(String value);
+
+  /** Gets the value of "border-before" */
+  String get borderBefore();
+
+  /** Sets the value of "border-before" */
+  void set borderBefore(String value);
+
+  /** Gets the value of "border-before-color" */
+  String get borderBeforeColor();
+
+  /** Sets the value of "border-before-color" */
+  void set borderBeforeColor(String value);
+
+  /** Gets the value of "border-before-style" */
+  String get borderBeforeStyle();
+
+  /** Sets the value of "border-before-style" */
+  void set borderBeforeStyle(String value);
+
+  /** Gets the value of "border-before-width" */
+  String get borderBeforeWidth();
+
+  /** Sets the value of "border-before-width" */
+  void set borderBeforeWidth(String value);
+
+  /** Gets the value of "border-bottom" */
+  String get borderBottom();
+
+  /** Sets the value of "border-bottom" */
+  void set borderBottom(String value);
+
+  /** Gets the value of "border-bottom-color" */
+  String get borderBottomColor();
+
+  /** Sets the value of "border-bottom-color" */
+  void set borderBottomColor(String value);
+
+  /** Gets the value of "border-bottom-left-radius" */
+  String get borderBottomLeftRadius();
+
+  /** Sets the value of "border-bottom-left-radius" */
+  void set borderBottomLeftRadius(String value);
+
+  /** Gets the value of "border-bottom-right-radius" */
+  String get borderBottomRightRadius();
+
+  /** Sets the value of "border-bottom-right-radius" */
+  void set borderBottomRightRadius(String value);
+
+  /** Gets the value of "border-bottom-style" */
+  String get borderBottomStyle();
+
+  /** Sets the value of "border-bottom-style" */
+  void set borderBottomStyle(String value);
+
+  /** Gets the value of "border-bottom-width" */
+  String get borderBottomWidth();
+
+  /** Sets the value of "border-bottom-width" */
+  void set borderBottomWidth(String value);
+
+  /** Gets the value of "border-collapse" */
+  String get borderCollapse();
+
+  /** Sets the value of "border-collapse" */
+  void set borderCollapse(String value);
+
+  /** Gets the value of "border-color" */
+  String get borderColor();
+
+  /** Sets the value of "border-color" */
+  void set borderColor(String value);
+
+  /** Gets the value of "border-end" */
+  String get borderEnd();
+
+  /** Sets the value of "border-end" */
+  void set borderEnd(String value);
+
+  /** Gets the value of "border-end-color" */
+  String get borderEndColor();
+
+  /** Sets the value of "border-end-color" */
+  void set borderEndColor(String value);
+
+  /** Gets the value of "border-end-style" */
+  String get borderEndStyle();
+
+  /** Sets the value of "border-end-style" */
+  void set borderEndStyle(String value);
+
+  /** Gets the value of "border-end-width" */
+  String get borderEndWidth();
+
+  /** Sets the value of "border-end-width" */
+  void set borderEndWidth(String value);
+
+  /** Gets the value of "border-fit" */
+  String get borderFit();
+
+  /** Sets the value of "border-fit" */
+  void set borderFit(String value);
+
+  /** Gets the value of "border-horizontal-spacing" */
+  String get borderHorizontalSpacing();
+
+  /** Sets the value of "border-horizontal-spacing" */
+  void set borderHorizontalSpacing(String value);
+
+  /** Gets the value of "border-image" */
+  String get borderImage();
+
+  /** Sets the value of "border-image" */
+  void set borderImage(String value);
+
+  /** Gets the value of "border-image-outset" */
+  String get borderImageOutset();
+
+  /** Sets the value of "border-image-outset" */
+  void set borderImageOutset(String value);
+
+  /** Gets the value of "border-image-repeat" */
+  String get borderImageRepeat();
+
+  /** Sets the value of "border-image-repeat" */
+  void set borderImageRepeat(String value);
+
+  /** Gets the value of "border-image-slice" */
+  String get borderImageSlice();
+
+  /** Sets the value of "border-image-slice" */
+  void set borderImageSlice(String value);
+
+  /** Gets the value of "border-image-source" */
+  String get borderImageSource();
+
+  /** Sets the value of "border-image-source" */
+  void set borderImageSource(String value);
+
+  /** Gets the value of "border-image-width" */
+  String get borderImageWidth();
+
+  /** Sets the value of "border-image-width" */
+  void set borderImageWidth(String value);
+
+  /** Gets the value of "border-left" */
+  String get borderLeft();
+
+  /** Sets the value of "border-left" */
+  void set borderLeft(String value);
+
+  /** Gets the value of "border-left-color" */
+  String get borderLeftColor();
+
+  /** Sets the value of "border-left-color" */
+  void set borderLeftColor(String value);
+
+  /** Gets the value of "border-left-style" */
+  String get borderLeftStyle();
+
+  /** Sets the value of "border-left-style" */
+  void set borderLeftStyle(String value);
+
+  /** Gets the value of "border-left-width" */
+  String get borderLeftWidth();
+
+  /** Sets the value of "border-left-width" */
+  void set borderLeftWidth(String value);
+
+  /** Gets the value of "border-radius" */
+  String get borderRadius();
+
+  /** Sets the value of "border-radius" */
+  void set borderRadius(String value);
+
+  /** Gets the value of "border-right" */
+  String get borderRight();
+
+  /** Sets the value of "border-right" */
+  void set borderRight(String value);
+
+  /** Gets the value of "border-right-color" */
+  String get borderRightColor();
+
+  /** Sets the value of "border-right-color" */
+  void set borderRightColor(String value);
+
+  /** Gets the value of "border-right-style" */
+  String get borderRightStyle();
+
+  /** Sets the value of "border-right-style" */
+  void set borderRightStyle(String value);
+
+  /** Gets the value of "border-right-width" */
+  String get borderRightWidth();
+
+  /** Sets the value of "border-right-width" */
+  void set borderRightWidth(String value);
+
+  /** Gets the value of "border-spacing" */
+  String get borderSpacing();
+
+  /** Sets the value of "border-spacing" */
+  void set borderSpacing(String value);
+
+  /** Gets the value of "border-start" */
+  String get borderStart();
+
+  /** Sets the value of "border-start" */
+  void set borderStart(String value);
+
+  /** Gets the value of "border-start-color" */
+  String get borderStartColor();
+
+  /** Sets the value of "border-start-color" */
+  void set borderStartColor(String value);
+
+  /** Gets the value of "border-start-style" */
+  String get borderStartStyle();
+
+  /** Sets the value of "border-start-style" */
+  void set borderStartStyle(String value);
+
+  /** Gets the value of "border-start-width" */
+  String get borderStartWidth();
+
+  /** Sets the value of "border-start-width" */
+  void set borderStartWidth(String value);
+
+  /** Gets the value of "border-style" */
+  String get borderStyle();
+
+  /** Sets the value of "border-style" */
+  void set borderStyle(String value);
+
+  /** Gets the value of "border-top" */
+  String get borderTop();
+
+  /** Sets the value of "border-top" */
+  void set borderTop(String value);
+
+  /** Gets the value of "border-top-color" */
+  String get borderTopColor();
+
+  /** Sets the value of "border-top-color" */
+  void set borderTopColor(String value);
+
+  /** Gets the value of "border-top-left-radius" */
+  String get borderTopLeftRadius();
+
+  /** Sets the value of "border-top-left-radius" */
+  void set borderTopLeftRadius(String value);
+
+  /** Gets the value of "border-top-right-radius" */
+  String get borderTopRightRadius();
+
+  /** Sets the value of "border-top-right-radius" */
+  void set borderTopRightRadius(String value);
+
+  /** Gets the value of "border-top-style" */
+  String get borderTopStyle();
+
+  /** Sets the value of "border-top-style" */
+  void set borderTopStyle(String value);
+
+  /** Gets the value of "border-top-width" */
+  String get borderTopWidth();
+
+  /** Sets the value of "border-top-width" */
+  void set borderTopWidth(String value);
+
+  /** Gets the value of "border-vertical-spacing" */
+  String get borderVerticalSpacing();
+
+  /** Sets the value of "border-vertical-spacing" */
+  void set borderVerticalSpacing(String value);
+
+  /** Gets the value of "border-width" */
+  String get borderWidth();
+
+  /** Sets the value of "border-width" */
+  void set borderWidth(String value);
+
+  /** Gets the value of "bottom" */
+  String get bottom();
+
+  /** Sets the value of "bottom" */
+  void set bottom(String value);
+
+  /** Gets the value of "box-align" */
+  String get boxAlign();
+
+  /** Sets the value of "box-align" */
+  void set boxAlign(String value);
+
+  /** Gets the value of "box-direction" */
+  String get boxDirection();
+
+  /** Sets the value of "box-direction" */
+  void set boxDirection(String value);
+
+  /** Gets the value of "box-flex" */
+  String get boxFlex();
+
+  /** Sets the value of "box-flex" */
+  void set boxFlex(String value);
+
+  /** Gets the value of "box-flex-group" */
+  String get boxFlexGroup();
+
+  /** Sets the value of "box-flex-group" */
+  void set boxFlexGroup(String value);
+
+  /** Gets the value of "box-lines" */
+  String get boxLines();
+
+  /** Sets the value of "box-lines" */
+  void set boxLines(String value);
+
+  /** Gets the value of "box-ordinal-group" */
+  String get boxOrdinalGroup();
+
+  /** Sets the value of "box-ordinal-group" */
+  void set boxOrdinalGroup(String value);
+
+  /** Gets the value of "box-orient" */
+  String get boxOrient();
+
+  /** Sets the value of "box-orient" */
+  void set boxOrient(String value);
+
+  /** Gets the value of "box-pack" */
+  String get boxPack();
+
+  /** Sets the value of "box-pack" */
+  void set boxPack(String value);
+
+  /** Gets the value of "box-reflect" */
+  String get boxReflect();
+
+  /** Sets the value of "box-reflect" */
+  void set boxReflect(String value);
+
+  /** Gets the value of "box-shadow" */
+  String get boxShadow();
+
+  /** Sets the value of "box-shadow" */
+  void set boxShadow(String value);
+
+  /** Gets the value of "box-sizing" */
+  String get boxSizing();
+
+  /** Sets the value of "box-sizing" */
+  void set boxSizing(String value);
+
+  /** Gets the value of "caption-side" */
+  String get captionSide();
+
+  /** Sets the value of "caption-side" */
+  void set captionSide(String value);
+
+  /** Gets the value of "clear" */
+  String get clear();
+
+  /** Sets the value of "clear" */
+  void set clear(String value);
+
+  /** Gets the value of "clip" */
+  String get clip();
+
+  /** Sets the value of "clip" */
+  void set clip(String value);
+
+  /** Gets the value of "color" */
+  String get color();
+
+  /** Sets the value of "color" */
+  void set color(String value);
+
+  /** Gets the value of "color-correction" */
+  String get colorCorrection();
+
+  /** Sets the value of "color-correction" */
+  void set colorCorrection(String value);
+
+  /** Gets the value of "column-break-after" */
+  String get columnBreakAfter();
+
+  /** Sets the value of "column-break-after" */
+  void set columnBreakAfter(String value);
+
+  /** Gets the value of "column-break-before" */
+  String get columnBreakBefore();
+
+  /** Sets the value of "column-break-before" */
+  void set columnBreakBefore(String value);
+
+  /** Gets the value of "column-break-inside" */
+  String get columnBreakInside();
+
+  /** Sets the value of "column-break-inside" */
+  void set columnBreakInside(String value);
+
+  /** Gets the value of "column-count" */
+  String get columnCount();
+
+  /** Sets the value of "column-count" */
+  void set columnCount(String value);
+
+  /** Gets the value of "column-gap" */
+  String get columnGap();
+
+  /** Sets the value of "column-gap" */
+  void set columnGap(String value);
+
+  /** Gets the value of "column-rule" */
+  String get columnRule();
+
+  /** Sets the value of "column-rule" */
+  void set columnRule(String value);
+
+  /** Gets the value of "column-rule-color" */
+  String get columnRuleColor();
+
+  /** Sets the value of "column-rule-color" */
+  void set columnRuleColor(String value);
+
+  /** Gets the value of "column-rule-style" */
+  String get columnRuleStyle();
+
+  /** Sets the value of "column-rule-style" */
+  void set columnRuleStyle(String value);
+
+  /** Gets the value of "column-rule-width" */
+  String get columnRuleWidth();
+
+  /** Sets the value of "column-rule-width" */
+  void set columnRuleWidth(String value);
+
+  /** Gets the value of "column-span" */
+  String get columnSpan();
+
+  /** Sets the value of "column-span" */
+  void set columnSpan(String value);
+
+  /** Gets the value of "column-width" */
+  String get columnWidth();
+
+  /** Sets the value of "column-width" */
+  void set columnWidth(String value);
+
+  /** Gets the value of "columns" */
+  String get columns();
+
+  /** Sets the value of "columns" */
+  void set columns(String value);
+
+  /** Gets the value of "content" */
+  String get content();
+
+  /** Sets the value of "content" */
+  void set content(String value);
+
+  /** Gets the value of "counter-increment" */
+  String get counterIncrement();
+
+  /** Sets the value of "counter-increment" */
+  void set counterIncrement(String value);
+
+  /** Gets the value of "counter-reset" */
+  String get counterReset();
+
+  /** Sets the value of "counter-reset" */
+  void set counterReset(String value);
+
+  /** Gets the value of "cursor" */
+  String get cursor();
+
+  /** Sets the value of "cursor" */
+  void set cursor(String value);
+
+  /** Gets the value of "direction" */
+  String get direction();
+
+  /** Sets the value of "direction" */
+  void set direction(String value);
+
+  /** Gets the value of "display" */
+  String get display();
+
+  /** Sets the value of "display" */
+  void set display(String value);
+
+  /** Gets the value of "empty-cells" */
+  String get emptyCells();
+
+  /** Sets the value of "empty-cells" */
+  void set emptyCells(String value);
+
+  /** Gets the value of "filter" */
+  String get filter();
+
+  /** Sets the value of "filter" */
+  void set filter(String value);
+
+  /** Gets the value of "flex-align" */
+  String get flexAlign();
+
+  /** Sets the value of "flex-align" */
+  void set flexAlign(String value);
+
+  /** Gets the value of "flex-flow" */
+  String get flexFlow();
+
+  /** Sets the value of "flex-flow" */
+  void set flexFlow(String value);
+
+  /** Gets the value of "flex-order" */
+  String get flexOrder();
+
+  /** Sets the value of "flex-order" */
+  void set flexOrder(String value);
+
+  /** Gets the value of "flex-pack" */
+  String get flexPack();
+
+  /** Sets the value of "flex-pack" */
+  void set flexPack(String value);
+
+  /** Gets the value of "float" */
+  String get float();
+
+  /** Sets the value of "float" */
+  void set float(String value);
+
+  /** Gets the value of "flow-from" */
+  String get flowFrom();
+
+  /** Sets the value of "flow-from" */
+  void set flowFrom(String value);
+
+  /** Gets the value of "flow-into" */
+  String get flowInto();
+
+  /** Sets the value of "flow-into" */
+  void set flowInto(String value);
+
+  /** Gets the value of "font" */
+  String get font();
+
+  /** Sets the value of "font" */
+  void set font(String value);
+
+  /** Gets the value of "font-family" */
+  String get fontFamily();
+
+  /** Sets the value of "font-family" */
+  void set fontFamily(String value);
+
+  /** Gets the value of "font-feature-settings" */
+  String get fontFeatureSettings();
+
+  /** Sets the value of "font-feature-settings" */
+  void set fontFeatureSettings(String value);
+
+  /** Gets the value of "font-size" */
+  String get fontSize();
+
+  /** Sets the value of "font-size" */
+  void set fontSize(String value);
+
+  /** Gets the value of "font-size-delta" */
+  String get fontSizeDelta();
+
+  /** Sets the value of "font-size-delta" */
+  void set fontSizeDelta(String value);
+
+  /** Gets the value of "font-smoothing" */
+  String get fontSmoothing();
+
+  /** Sets the value of "font-smoothing" */
+  void set fontSmoothing(String value);
+
+  /** Gets the value of "font-stretch" */
+  String get fontStretch();
+
+  /** Sets the value of "font-stretch" */
+  void set fontStretch(String value);
+
+  /** Gets the value of "font-style" */
+  String get fontStyle();
+
+  /** Sets the value of "font-style" */
+  void set fontStyle(String value);
+
+  /** Gets the value of "font-variant" */
+  String get fontVariant();
+
+  /** Sets the value of "font-variant" */
+  void set fontVariant(String value);
+
+  /** Gets the value of "font-weight" */
+  String get fontWeight();
+
+  /** Sets the value of "font-weight" */
+  void set fontWeight(String value);
+
+  /** Gets the value of "height" */
+  String get height();
+
+  /** Sets the value of "height" */
+  void set height(String value);
+
+  /** Gets the value of "highlight" */
+  String get highlight();
+
+  /** Sets the value of "highlight" */
+  void set highlight(String value);
+
+  /** Gets the value of "hyphenate-character" */
+  String get hyphenateCharacter();
+
+  /** Sets the value of "hyphenate-character" */
+  void set hyphenateCharacter(String value);
+
+  /** Gets the value of "hyphenate-limit-after" */
+  String get hyphenateLimitAfter();
+
+  /** Sets the value of "hyphenate-limit-after" */
+  void set hyphenateLimitAfter(String value);
+
+  /** Gets the value of "hyphenate-limit-before" */
+  String get hyphenateLimitBefore();
+
+  /** Sets the value of "hyphenate-limit-before" */
+  void set hyphenateLimitBefore(String value);
+
+  /** Gets the value of "hyphenate-limit-lines" */
+  String get hyphenateLimitLines();
+
+  /** Sets the value of "hyphenate-limit-lines" */
+  void set hyphenateLimitLines(String value);
+
+  /** Gets the value of "hyphens" */
+  String get hyphens();
+
+  /** Sets the value of "hyphens" */
+  void set hyphens(String value);
+
+  /** Gets the value of "image-rendering" */
+  String get imageRendering();
+
+  /** Sets the value of "image-rendering" */
+  void set imageRendering(String value);
+
+  /** Gets the value of "left" */
+  String get left();
+
+  /** Sets the value of "left" */
+  void set left(String value);
+
+  /** Gets the value of "letter-spacing" */
+  String get letterSpacing();
+
+  /** Sets the value of "letter-spacing" */
+  void set letterSpacing(String value);
+
+  /** Gets the value of "line-box-contain" */
+  String get lineBoxContain();
+
+  /** Sets the value of "line-box-contain" */
+  void set lineBoxContain(String value);
+
+  /** Gets the value of "line-break" */
+  String get lineBreak();
+
+  /** Sets the value of "line-break" */
+  void set lineBreak(String value);
+
+  /** Gets the value of "line-clamp" */
+  String get lineClamp();
+
+  /** Sets the value of "line-clamp" */
+  void set lineClamp(String value);
+
+  /** Gets the value of "line-height" */
+  String get lineHeight();
+
+  /** Sets the value of "line-height" */
+  void set lineHeight(String value);
+
+  /** Gets the value of "list-style" */
+  String get listStyle();
+
+  /** Sets the value of "list-style" */
+  void set listStyle(String value);
+
+  /** Gets the value of "list-style-image" */
+  String get listStyleImage();
+
+  /** Sets the value of "list-style-image" */
+  void set listStyleImage(String value);
+
+  /** Gets the value of "list-style-position" */
+  String get listStylePosition();
+
+  /** Sets the value of "list-style-position" */
+  void set listStylePosition(String value);
+
+  /** Gets the value of "list-style-type" */
+  String get listStyleType();
+
+  /** Sets the value of "list-style-type" */
+  void set listStyleType(String value);
+
+  /** Gets the value of "locale" */
+  String get locale();
+
+  /** Sets the value of "locale" */
+  void set locale(String value);
+
+  /** Gets the value of "logical-height" */
+  String get logicalHeight();
+
+  /** Sets the value of "logical-height" */
+  void set logicalHeight(String value);
+
+  /** Gets the value of "logical-width" */
+  String get logicalWidth();
+
+  /** Sets the value of "logical-width" */
+  void set logicalWidth(String value);
+
+  /** Gets the value of "margin" */
+  String get margin();
+
+  /** Sets the value of "margin" */
+  void set margin(String value);
+
+  /** Gets the value of "margin-after" */
+  String get marginAfter();
+
+  /** Sets the value of "margin-after" */
+  void set marginAfter(String value);
+
+  /** Gets the value of "margin-after-collapse" */
+  String get marginAfterCollapse();
+
+  /** Sets the value of "margin-after-collapse" */
+  void set marginAfterCollapse(String value);
+
+  /** Gets the value of "margin-before" */
+  String get marginBefore();
+
+  /** Sets the value of "margin-before" */
+  void set marginBefore(String value);
+
+  /** Gets the value of "margin-before-collapse" */
+  String get marginBeforeCollapse();
+
+  /** Sets the value of "margin-before-collapse" */
+  void set marginBeforeCollapse(String value);
+
+  /** Gets the value of "margin-bottom" */
+  String get marginBottom();
+
+  /** Sets the value of "margin-bottom" */
+  void set marginBottom(String value);
+
+  /** Gets the value of "margin-bottom-collapse" */
+  String get marginBottomCollapse();
+
+  /** Sets the value of "margin-bottom-collapse" */
+  void set marginBottomCollapse(String value);
+
+  /** Gets the value of "margin-collapse" */
+  String get marginCollapse();
+
+  /** Sets the value of "margin-collapse" */
+  void set marginCollapse(String value);
+
+  /** Gets the value of "margin-end" */
+  String get marginEnd();
+
+  /** Sets the value of "margin-end" */
+  void set marginEnd(String value);
+
+  /** Gets the value of "margin-left" */
+  String get marginLeft();
+
+  /** Sets the value of "margin-left" */
+  void set marginLeft(String value);
+
+  /** Gets the value of "margin-right" */
+  String get marginRight();
+
+  /** Sets the value of "margin-right" */
+  void set marginRight(String value);
+
+  /** Gets the value of "margin-start" */
+  String get marginStart();
+
+  /** Sets the value of "margin-start" */
+  void set marginStart(String value);
+
+  /** Gets the value of "margin-top" */
+  String get marginTop();
+
+  /** Sets the value of "margin-top" */
+  void set marginTop(String value);
+
+  /** Gets the value of "margin-top-collapse" */
+  String get marginTopCollapse();
+
+  /** Sets the value of "margin-top-collapse" */
+  void set marginTopCollapse(String value);
+
+  /** Gets the value of "marquee" */
+  String get marquee();
+
+  /** Sets the value of "marquee" */
+  void set marquee(String value);
+
+  /** Gets the value of "marquee-direction" */
+  String get marqueeDirection();
+
+  /** Sets the value of "marquee-direction" */
+  void set marqueeDirection(String value);
+
+  /** Gets the value of "marquee-increment" */
+  String get marqueeIncrement();
+
+  /** Sets the value of "marquee-increment" */
+  void set marqueeIncrement(String value);
+
+  /** Gets the value of "marquee-repetition" */
+  String get marqueeRepetition();
+
+  /** Sets the value of "marquee-repetition" */
+  void set marqueeRepetition(String value);
+
+  /** Gets the value of "marquee-speed" */
+  String get marqueeSpeed();
+
+  /** Sets the value of "marquee-speed" */
+  void set marqueeSpeed(String value);
+
+  /** Gets the value of "marquee-style" */
+  String get marqueeStyle();
+
+  /** Sets the value of "marquee-style" */
+  void set marqueeStyle(String value);
+
+  /** Gets the value of "mask" */
+  String get mask();
+
+  /** Sets the value of "mask" */
+  void set mask(String value);
+
+  /** Gets the value of "mask-attachment" */
+  String get maskAttachment();
+
+  /** Sets the value of "mask-attachment" */
+  void set maskAttachment(String value);
+
+  /** Gets the value of "mask-box-image" */
+  String get maskBoxImage();
+
+  /** Sets the value of "mask-box-image" */
+  void set maskBoxImage(String value);
+
+  /** Gets the value of "mask-box-image-outset" */
+  String get maskBoxImageOutset();
+
+  /** Sets the value of "mask-box-image-outset" */
+  void set maskBoxImageOutset(String value);
+
+  /** Gets the value of "mask-box-image-repeat" */
+  String get maskBoxImageRepeat();
+
+  /** Sets the value of "mask-box-image-repeat" */
+  void set maskBoxImageRepeat(String value);
+
+  /** Gets the value of "mask-box-image-slice" */
+  String get maskBoxImageSlice();
+
+  /** Sets the value of "mask-box-image-slice" */
+  void set maskBoxImageSlice(String value);
+
+  /** Gets the value of "mask-box-image-source" */
+  String get maskBoxImageSource();
+
+  /** Sets the value of "mask-box-image-source" */
+  void set maskBoxImageSource(String value);
+
+  /** Gets the value of "mask-box-image-width" */
+  String get maskBoxImageWidth();
+
+  /** Sets the value of "mask-box-image-width" */
+  void set maskBoxImageWidth(String value);
+
+  /** Gets the value of "mask-clip" */
+  String get maskClip();
+
+  /** Sets the value of "mask-clip" */
+  void set maskClip(String value);
+
+  /** Gets the value of "mask-composite" */
+  String get maskComposite();
+
+  /** Sets the value of "mask-composite" */
+  void set maskComposite(String value);
+
+  /** Gets the value of "mask-image" */
+  String get maskImage();
+
+  /** Sets the value of "mask-image" */
+  void set maskImage(String value);
+
+  /** Gets the value of "mask-origin" */
+  String get maskOrigin();
+
+  /** Sets the value of "mask-origin" */
+  void set maskOrigin(String value);
+
+  /** Gets the value of "mask-position" */
+  String get maskPosition();
+
+  /** Sets the value of "mask-position" */
+  void set maskPosition(String value);
+
+  /** Gets the value of "mask-position-x" */
+  String get maskPositionX();
+
+  /** Sets the value of "mask-position-x" */
+  void set maskPositionX(String value);
+
+  /** Gets the value of "mask-position-y" */
+  String get maskPositionY();
+
+  /** Sets the value of "mask-position-y" */
+  void set maskPositionY(String value);
+
+  /** Gets the value of "mask-repeat" */
+  String get maskRepeat();
+
+  /** Sets the value of "mask-repeat" */
+  void set maskRepeat(String value);
+
+  /** Gets the value of "mask-repeat-x" */
+  String get maskRepeatX();
+
+  /** Sets the value of "mask-repeat-x" */
+  void set maskRepeatX(String value);
+
+  /** Gets the value of "mask-repeat-y" */
+  String get maskRepeatY();
+
+  /** Sets the value of "mask-repeat-y" */
+  void set maskRepeatY(String value);
+
+  /** Gets the value of "mask-size" */
+  String get maskSize();
+
+  /** Sets the value of "mask-size" */
+  void set maskSize(String value);
+
+  /** Gets the value of "match-nearest-mail-blockquote-color" */
+  String get matchNearestMailBlockquoteColor();
+
+  /** Sets the value of "match-nearest-mail-blockquote-color" */
+  void set matchNearestMailBlockquoteColor(String value);
+
+  /** Gets the value of "max-height" */
+  String get maxHeight();
+
+  /** Sets the value of "max-height" */
+  void set maxHeight(String value);
+
+  /** Gets the value of "max-logical-height" */
+  String get maxLogicalHeight();
+
+  /** Sets the value of "max-logical-height" */
+  void set maxLogicalHeight(String value);
+
+  /** Gets the value of "max-logical-width" */
+  String get maxLogicalWidth();
+
+  /** Sets the value of "max-logical-width" */
+  void set maxLogicalWidth(String value);
+
+  /** Gets the value of "max-width" */
+  String get maxWidth();
+
+  /** Sets the value of "max-width" */
+  void set maxWidth(String value);
+
+  /** Gets the value of "min-height" */
+  String get minHeight();
+
+  /** Sets the value of "min-height" */
+  void set minHeight(String value);
+
+  /** Gets the value of "min-logical-height" */
+  String get minLogicalHeight();
+
+  /** Sets the value of "min-logical-height" */
+  void set minLogicalHeight(String value);
+
+  /** Gets the value of "min-logical-width" */
+  String get minLogicalWidth();
+
+  /** Sets the value of "min-logical-width" */
+  void set minLogicalWidth(String value);
+
+  /** Gets the value of "min-width" */
+  String get minWidth();
+
+  /** Sets the value of "min-width" */
+  void set minWidth(String value);
+
+  /** Gets the value of "nbsp-mode" */
+  String get nbspMode();
+
+  /** Sets the value of "nbsp-mode" */
+  void set nbspMode(String value);
+
+  /** Gets the value of "opacity" */
+  String get opacity();
+
+  /** Sets the value of "opacity" */
+  void set opacity(String value);
+
+  /** Gets the value of "orphans" */
+  String get orphans();
+
+  /** Sets the value of "orphans" */
+  void set orphans(String value);
+
+  /** Gets the value of "outline" */
+  String get outline();
+
+  /** Sets the value of "outline" */
+  void set outline(String value);
+
+  /** Gets the value of "outline-color" */
+  String get outlineColor();
+
+  /** Sets the value of "outline-color" */
+  void set outlineColor(String value);
+
+  /** Gets the value of "outline-offset" */
+  String get outlineOffset();
+
+  /** Sets the value of "outline-offset" */
+  void set outlineOffset(String value);
+
+  /** Gets the value of "outline-style" */
+  String get outlineStyle();
+
+  /** Sets the value of "outline-style" */
+  void set outlineStyle(String value);
+
+  /** Gets the value of "outline-width" */
+  String get outlineWidth();
+
+  /** Sets the value of "outline-width" */
+  void set outlineWidth(String value);
+
+  /** Gets the value of "overflow" */
+  String get overflow();
+
+  /** Sets the value of "overflow" */
+  void set overflow(String value);
+
+  /** Gets the value of "overflow-x" */
+  String get overflowX();
+
+  /** Sets the value of "overflow-x" */
+  void set overflowX(String value);
+
+  /** Gets the value of "overflow-y" */
+  String get overflowY();
+
+  /** Sets the value of "overflow-y" */
+  void set overflowY(String value);
+
+  /** Gets the value of "padding" */
+  String get padding();
+
+  /** Sets the value of "padding" */
+  void set padding(String value);
+
+  /** Gets the value of "padding-after" */
+  String get paddingAfter();
+
+  /** Sets the value of "padding-after" */
+  void set paddingAfter(String value);
+
+  /** Gets the value of "padding-before" */
+  String get paddingBefore();
+
+  /** Sets the value of "padding-before" */
+  void set paddingBefore(String value);
+
+  /** Gets the value of "padding-bottom" */
+  String get paddingBottom();
+
+  /** Sets the value of "padding-bottom" */
+  void set paddingBottom(String value);
+
+  /** Gets the value of "padding-end" */
+  String get paddingEnd();
+
+  /** Sets the value of "padding-end" */
+  void set paddingEnd(String value);
+
+  /** Gets the value of "padding-left" */
+  String get paddingLeft();
+
+  /** Sets the value of "padding-left" */
+  void set paddingLeft(String value);
+
+  /** Gets the value of "padding-right" */
+  String get paddingRight();
+
+  /** Sets the value of "padding-right" */
+  void set paddingRight(String value);
+
+  /** Gets the value of "padding-start" */
+  String get paddingStart();
+
+  /** Sets the value of "padding-start" */
+  void set paddingStart(String value);
+
+  /** Gets the value of "padding-top" */
+  String get paddingTop();
+
+  /** Sets the value of "padding-top" */
+  void set paddingTop(String value);
+
+  /** Gets the value of "page" */
+  String get page();
+
+  /** Sets the value of "page" */
+  void set page(String value);
+
+  /** Gets the value of "page-break-after" */
+  String get pageBreakAfter();
+
+  /** Sets the value of "page-break-after" */
+  void set pageBreakAfter(String value);
+
+  /** Gets the value of "page-break-before" */
+  String get pageBreakBefore();
+
+  /** Sets the value of "page-break-before" */
+  void set pageBreakBefore(String value);
+
+  /** Gets the value of "page-break-inside" */
+  String get pageBreakInside();
+
+  /** Sets the value of "page-break-inside" */
+  void set pageBreakInside(String value);
+
+  /** Gets the value of "perspective" */
+  String get perspective();
+
+  /** Sets the value of "perspective" */
+  void set perspective(String value);
+
+  /** Gets the value of "perspective-origin" */
+  String get perspectiveOrigin();
+
+  /** Sets the value of "perspective-origin" */
+  void set perspectiveOrigin(String value);
+
+  /** Gets the value of "perspective-origin-x" */
+  String get perspectiveOriginX();
+
+  /** Sets the value of "perspective-origin-x" */
+  void set perspectiveOriginX(String value);
+
+  /** Gets the value of "perspective-origin-y" */
+  String get perspectiveOriginY();
+
+  /** Sets the value of "perspective-origin-y" */
+  void set perspectiveOriginY(String value);
+
+  /** Gets the value of "pointer-events" */
+  String get pointerEvents();
+
+  /** Sets the value of "pointer-events" */
+  void set pointerEvents(String value);
+
+  /** Gets the value of "position" */
+  String get position();
+
+  /** Sets the value of "position" */
+  void set position(String value);
+
+  /** Gets the value of "quotes" */
+  String get quotes();
+
+  /** Sets the value of "quotes" */
+  void set quotes(String value);
+
+  /** Gets the value of "region-break-after" */
+  String get regionBreakAfter();
+
+  /** Sets the value of "region-break-after" */
+  void set regionBreakAfter(String value);
+
+  /** Gets the value of "region-break-before" */
+  String get regionBreakBefore();
+
+  /** Sets the value of "region-break-before" */
+  void set regionBreakBefore(String value);
+
+  /** Gets the value of "region-break-inside" */
+  String get regionBreakInside();
+
+  /** Sets the value of "region-break-inside" */
+  void set regionBreakInside(String value);
+
+  /** Gets the value of "region-overflow" */
+  String get regionOverflow();
+
+  /** Sets the value of "region-overflow" */
+  void set regionOverflow(String value);
+
+  /** Gets the value of "resize" */
+  String get resize();
+
+  /** Sets the value of "resize" */
+  void set resize(String value);
+
+  /** Gets the value of "right" */
+  String get right();
+
+  /** Sets the value of "right" */
+  void set right(String value);
+
+  /** Gets the value of "rtl-ordering" */
+  String get rtlOrdering();
+
+  /** Sets the value of "rtl-ordering" */
+  void set rtlOrdering(String value);
+
+  /** Gets the value of "size" */
+  String get size();
+
+  /** Sets the value of "size" */
+  void set size(String value);
+
+  /** Gets the value of "speak" */
+  String get speak();
+
+  /** Sets the value of "speak" */
+  void set speak(String value);
+
+  /** Gets the value of "src" */
+  String get src();
+
+  /** Sets the value of "src" */
+  void set src(String value);
+
+  /** Gets the value of "table-layout" */
+  String get tableLayout();
+
+  /** Sets the value of "table-layout" */
+  void set tableLayout(String value);
+
+  /** Gets the value of "tap-highlight-color" */
+  String get tapHighlightColor();
+
+  /** Sets the value of "tap-highlight-color" */
+  void set tapHighlightColor(String value);
+
+  /** Gets the value of "text-align" */
+  String get textAlign();
+
+  /** Sets the value of "text-align" */
+  void set textAlign(String value);
+
+  /** Gets the value of "text-combine" */
+  String get textCombine();
+
+  /** Sets the value of "text-combine" */
+  void set textCombine(String value);
+
+  /** Gets the value of "text-decoration" */
+  String get textDecoration();
+
+  /** Sets the value of "text-decoration" */
+  void set textDecoration(String value);
+
+  /** Gets the value of "text-decorations-in-effect" */
+  String get textDecorationsInEffect();
+
+  /** Sets the value of "text-decorations-in-effect" */
+  void set textDecorationsInEffect(String value);
+
+  /** Gets the value of "text-emphasis" */
+  String get textEmphasis();
+
+  /** Sets the value of "text-emphasis" */
+  void set textEmphasis(String value);
+
+  /** Gets the value of "text-emphasis-color" */
+  String get textEmphasisColor();
+
+  /** Sets the value of "text-emphasis-color" */
+  void set textEmphasisColor(String value);
+
+  /** Gets the value of "text-emphasis-position" */
+  String get textEmphasisPosition();
+
+  /** Sets the value of "text-emphasis-position" */
+  void set textEmphasisPosition(String value);
+
+  /** Gets the value of "text-emphasis-style" */
+  String get textEmphasisStyle();
+
+  /** Sets the value of "text-emphasis-style" */
+  void set textEmphasisStyle(String value);
+
+  /** Gets the value of "text-fill-color" */
+  String get textFillColor();
+
+  /** Sets the value of "text-fill-color" */
+  void set textFillColor(String value);
+
+  /** Gets the value of "text-indent" */
+  String get textIndent();
+
+  /** Sets the value of "text-indent" */
+  void set textIndent(String value);
+
+  /** Gets the value of "text-line-through" */
+  String get textLineThrough();
+
+  /** Sets the value of "text-line-through" */
+  void set textLineThrough(String value);
+
+  /** Gets the value of "text-line-through-color" */
+  String get textLineThroughColor();
+
+  /** Sets the value of "text-line-through-color" */
+  void set textLineThroughColor(String value);
+
+  /** Gets the value of "text-line-through-mode" */
+  String get textLineThroughMode();
+
+  /** Sets the value of "text-line-through-mode" */
+  void set textLineThroughMode(String value);
+
+  /** Gets the value of "text-line-through-style" */
+  String get textLineThroughStyle();
+
+  /** Sets the value of "text-line-through-style" */
+  void set textLineThroughStyle(String value);
+
+  /** Gets the value of "text-line-through-width" */
+  String get textLineThroughWidth();
+
+  /** Sets the value of "text-line-through-width" */
+  void set textLineThroughWidth(String value);
+
+  /** Gets the value of "text-orientation" */
+  String get textOrientation();
+
+  /** Sets the value of "text-orientation" */
+  void set textOrientation(String value);
+
+  /** Gets the value of "text-overflow" */
+  String get textOverflow();
+
+  /** Sets the value of "text-overflow" */
+  void set textOverflow(String value);
+
+  /** Gets the value of "text-overline" */
+  String get textOverline();
+
+  /** Sets the value of "text-overline" */
+  void set textOverline(String value);
+
+  /** Gets the value of "text-overline-color" */
+  String get textOverlineColor();
+
+  /** Sets the value of "text-overline-color" */
+  void set textOverlineColor(String value);
+
+  /** Gets the value of "text-overline-mode" */
+  String get textOverlineMode();
+
+  /** Sets the value of "text-overline-mode" */
+  void set textOverlineMode(String value);
+
+  /** Gets the value of "text-overline-style" */
+  String get textOverlineStyle();
+
+  /** Sets the value of "text-overline-style" */
+  void set textOverlineStyle(String value);
+
+  /** Gets the value of "text-overline-width" */
+  String get textOverlineWidth();
+
+  /** Sets the value of "text-overline-width" */
+  void set textOverlineWidth(String value);
+
+  /** Gets the value of "text-rendering" */
+  String get textRendering();
+
+  /** Sets the value of "text-rendering" */
+  void set textRendering(String value);
+
+  /** Gets the value of "text-security" */
+  String get textSecurity();
+
+  /** Sets the value of "text-security" */
+  void set textSecurity(String value);
+
+  /** Gets the value of "text-shadow" */
+  String get textShadow();
+
+  /** Sets the value of "text-shadow" */
+  void set textShadow(String value);
+
+  /** Gets the value of "text-size-adjust" */
+  String get textSizeAdjust();
+
+  /** Sets the value of "text-size-adjust" */
+  void set textSizeAdjust(String value);
+
+  /** Gets the value of "text-stroke" */
+  String get textStroke();
+
+  /** Sets the value of "text-stroke" */
+  void set textStroke(String value);
+
+  /** Gets the value of "text-stroke-color" */
+  String get textStrokeColor();
+
+  /** Sets the value of "text-stroke-color" */
+  void set textStrokeColor(String value);
+
+  /** Gets the value of "text-stroke-width" */
+  String get textStrokeWidth();
+
+  /** Sets the value of "text-stroke-width" */
+  void set textStrokeWidth(String value);
+
+  /** Gets the value of "text-transform" */
+  String get textTransform();
+
+  /** Sets the value of "text-transform" */
+  void set textTransform(String value);
+
+  /** Gets the value of "text-underline" */
+  String get textUnderline();
+
+  /** Sets the value of "text-underline" */
+  void set textUnderline(String value);
+
+  /** Gets the value of "text-underline-color" */
+  String get textUnderlineColor();
+
+  /** Sets the value of "text-underline-color" */
+  void set textUnderlineColor(String value);
+
+  /** Gets the value of "text-underline-mode" */
+  String get textUnderlineMode();
+
+  /** Sets the value of "text-underline-mode" */
+  void set textUnderlineMode(String value);
+
+  /** Gets the value of "text-underline-style" */
+  String get textUnderlineStyle();
+
+  /** Sets the value of "text-underline-style" */
+  void set textUnderlineStyle(String value);
+
+  /** Gets the value of "text-underline-width" */
+  String get textUnderlineWidth();
+
+  /** Sets the value of "text-underline-width" */
+  void set textUnderlineWidth(String value);
+
+  /** Gets the value of "top" */
+  String get top();
+
+  /** Sets the value of "top" */
+  void set top(String value);
+
+  /** Gets the value of "transform" */
+  String get transform();
+
+  /** Sets the value of "transform" */
+  void set transform(String value);
+
+  /** Gets the value of "transform-origin" */
+  String get transformOrigin();
+
+  /** Sets the value of "transform-origin" */
+  void set transformOrigin(String value);
+
+  /** Gets the value of "transform-origin-x" */
+  String get transformOriginX();
+
+  /** Sets the value of "transform-origin-x" */
+  void set transformOriginX(String value);
+
+  /** Gets the value of "transform-origin-y" */
+  String get transformOriginY();
+
+  /** Sets the value of "transform-origin-y" */
+  void set transformOriginY(String value);
+
+  /** Gets the value of "transform-origin-z" */
+  String get transformOriginZ();
+
+  /** Sets the value of "transform-origin-z" */
+  void set transformOriginZ(String value);
+
+  /** Gets the value of "transform-style" */
+  String get transformStyle();
+
+  /** Sets the value of "transform-style" */
+  void set transformStyle(String value);
+
+  /** Gets the value of "transition" */
+  String get transition();
+
+  /** Sets the value of "transition" */
+  void set transition(String value);
+
+  /** Gets the value of "transition-delay" */
+  String get transitionDelay();
+
+  /** Sets the value of "transition-delay" */
+  void set transitionDelay(String value);
+
+  /** Gets the value of "transition-duration" */
+  String get transitionDuration();
+
+  /** Sets the value of "transition-duration" */
+  void set transitionDuration(String value);
+
+  /** Gets the value of "transition-property" */
+  String get transitionProperty();
+
+  /** Sets the value of "transition-property" */
+  void set transitionProperty(String value);
+
+  /** Gets the value of "transition-timing-function" */
+  String get transitionTimingFunction();
+
+  /** Sets the value of "transition-timing-function" */
+  void set transitionTimingFunction(String value);
+
+  /** Gets the value of "unicode-bidi" */
+  String get unicodeBidi();
+
+  /** Sets the value of "unicode-bidi" */
+  void set unicodeBidi(String value);
+
+  /** Gets the value of "unicode-range" */
+  String get unicodeRange();
+
+  /** Sets the value of "unicode-range" */
+  void set unicodeRange(String value);
+
+  /** Gets the value of "user-drag" */
+  String get userDrag();
+
+  /** Sets the value of "user-drag" */
+  void set userDrag(String value);
+
+  /** Gets the value of "user-modify" */
+  String get userModify();
+
+  /** Sets the value of "user-modify" */
+  void set userModify(String value);
+
+  /** Gets the value of "user-select" */
+  String get userSelect();
+
+  /** Sets the value of "user-select" */
+  void set userSelect(String value);
+
+  /** Gets the value of "vertical-align" */
+  String get verticalAlign();
+
+  /** Sets the value of "vertical-align" */
+  void set verticalAlign(String value);
+
+  /** Gets the value of "visibility" */
+  String get visibility();
+
+  /** Sets the value of "visibility" */
+  void set visibility(String value);
+
+  /** Gets the value of "white-space" */
+  String get whiteSpace();
+
+  /** Sets the value of "white-space" */
+  void set whiteSpace(String value);
+
+  /** Gets the value of "widows" */
+  String get widows();
+
+  /** Sets the value of "widows" */
+  void set widows(String value);
+
+  /** Gets the value of "width" */
+  String get width();
+
+  /** Sets the value of "width" */
+  void set width(String value);
+
+  /** Gets the value of "word-break" */
+  String get wordBreak();
+
+  /** Sets the value of "word-break" */
+  void set wordBreak(String value);
+
+  /** Gets the value of "word-spacing" */
+  String get wordSpacing();
+
+  /** Sets the value of "word-spacing" */
+  void set wordSpacing(String value);
+
+  /** Gets the value of "word-wrap" */
+  String get wordWrap();
+
+  /** Sets the value of "word-wrap" */
+  void set wordWrap(String value);
+
+  /** Gets the value of "wrap-shape" */
+  String get wrapShape();
+
+  /** Sets the value of "wrap-shape" */
+  void set wrapShape(String value);
+
+  /** Gets the value of "writing-mode" */
+  String get writingMode();
+
+  /** Sets the value of "writing-mode" */
+  void set writingMode(String value);
+
+  /** Gets the value of "z-index" */
+  String get zIndex();
+
+  /** Sets the value of "z-index" */
+  void set zIndex(String value);
+
+  /** Gets the value of "zoom" */
+  String get zoom();
+
+  /** Sets the value of "zoom" */
+  void set zoom(String value);
+
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit.
+// This file was generated by html/scripts/css_code_generator.py
+
+// Source of CSS properties:
+//   Source/WebCore/css/CSSPropertyNames.in
+
+// TODO(jacobr): add versions that take numeric values in px, miliseconds, etc.
+
 class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implements CSSStyleDeclaration {
+  static String _cachedBrowserPrefix;
+
   CSSStyleDeclarationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory CSSStyleDeclarationWrappingImplementation.css(String css) {
+    var style = new Element.tag('div').style;
+    style.cssText = css;
+    return style;
+  }
+
+  factory CSSStyleDeclarationWrappingImplementation() {
+    return new CSSStyleDeclarationWrappingImplementation.css('');
+  }
+
+  static String get _browserPrefix() {
+    if (_cachedBrowserPrefix === null) {
+      if (_Device.isFirefox) {
+        _cachedBrowserPrefix = '-moz-';
+      } else {
+        _cachedBrowserPrefix = '-webkit-';
+      }
+      // TODO(jacobr): support IE 9.0 and Opera as well.
+    }
+    return _cachedBrowserPrefix;
+  }
 
   String get cssText() { return _ptr.cssText; }
 
@@ -18557,6 +18887,2833 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
   }
 
   String get typeName() { return "CSSStyleDeclaration"; }
+
+
+  /** Gets the value of "animation" */
+  String get animation() =>
+    getPropertyValue('${_browserPrefix}animation');
+
+  /** Sets the value of "animation" */
+  void set animation(String value) {
+    setProperty('${_browserPrefix}animation', value, '');
+  }
+
+  /** Gets the value of "animation-delay" */
+  String get animationDelay() =>
+    getPropertyValue('${_browserPrefix}animation-delay');
+
+  /** Sets the value of "animation-delay" */
+  void set animationDelay(String value) {
+    setProperty('${_browserPrefix}animation-delay', value, '');
+  }
+
+  /** Gets the value of "animation-direction" */
+  String get animationDirection() =>
+    getPropertyValue('${_browserPrefix}animation-direction');
+
+  /** Sets the value of "animation-direction" */
+  void set animationDirection(String value) {
+    setProperty('${_browserPrefix}animation-direction', value, '');
+  }
+
+  /** Gets the value of "animation-duration" */
+  String get animationDuration() =>
+    getPropertyValue('${_browserPrefix}animation-duration');
+
+  /** Sets the value of "animation-duration" */
+  void set animationDuration(String value) {
+    setProperty('${_browserPrefix}animation-duration', value, '');
+  }
+
+  /** Gets the value of "animation-fill-mode" */
+  String get animationFillMode() =>
+    getPropertyValue('${_browserPrefix}animation-fill-mode');
+
+  /** Sets the value of "animation-fill-mode" */
+  void set animationFillMode(String value) {
+    setProperty('${_browserPrefix}animation-fill-mode', value, '');
+  }
+
+  /** Gets the value of "animation-iteration-count" */
+  String get animationIterationCount() =>
+    getPropertyValue('${_browserPrefix}animation-iteration-count');
+
+  /** Sets the value of "animation-iteration-count" */
+  void set animationIterationCount(String value) {
+    setProperty('${_browserPrefix}animation-iteration-count', value, '');
+  }
+
+  /** Gets the value of "animation-name" */
+  String get animationName() =>
+    getPropertyValue('${_browserPrefix}animation-name');
+
+  /** Sets the value of "animation-name" */
+  void set animationName(String value) {
+    setProperty('${_browserPrefix}animation-name', value, '');
+  }
+
+  /** Gets the value of "animation-play-state" */
+  String get animationPlayState() =>
+    getPropertyValue('${_browserPrefix}animation-play-state');
+
+  /** Sets the value of "animation-play-state" */
+  void set animationPlayState(String value) {
+    setProperty('${_browserPrefix}animation-play-state', value, '');
+  }
+
+  /** Gets the value of "animation-timing-function" */
+  String get animationTimingFunction() =>
+    getPropertyValue('${_browserPrefix}animation-timing-function');
+
+  /** Sets the value of "animation-timing-function" */
+  void set animationTimingFunction(String value) {
+    setProperty('${_browserPrefix}animation-timing-function', value, '');
+  }
+
+  /** Gets the value of "appearance" */
+  String get appearance() =>
+    getPropertyValue('${_browserPrefix}appearance');
+
+  /** Sets the value of "appearance" */
+  void set appearance(String value) {
+    setProperty('${_browserPrefix}appearance', value, '');
+  }
+
+  /** Gets the value of "backface-visibility" */
+  String get backfaceVisibility() =>
+    getPropertyValue('${_browserPrefix}backface-visibility');
+
+  /** Sets the value of "backface-visibility" */
+  void set backfaceVisibility(String value) {
+    setProperty('${_browserPrefix}backface-visibility', value, '');
+  }
+
+  /** Gets the value of "background" */
+  String get background() =>
+    getPropertyValue('background');
+
+  /** Sets the value of "background" */
+  void set background(String value) {
+    setProperty('background', value, '');
+  }
+
+  /** Gets the value of "background-attachment" */
+  String get backgroundAttachment() =>
+    getPropertyValue('background-attachment');
+
+  /** Sets the value of "background-attachment" */
+  void set backgroundAttachment(String value) {
+    setProperty('background-attachment', value, '');
+  }
+
+  /** Gets the value of "background-clip" */
+  String get backgroundClip() =>
+    getPropertyValue('background-clip');
+
+  /** Sets the value of "background-clip" */
+  void set backgroundClip(String value) {
+    setProperty('background-clip', value, '');
+  }
+
+  /** Gets the value of "background-color" */
+  String get backgroundColor() =>
+    getPropertyValue('background-color');
+
+  /** Sets the value of "background-color" */
+  void set backgroundColor(String value) {
+    setProperty('background-color', value, '');
+  }
+
+  /** Gets the value of "background-composite" */
+  String get backgroundComposite() =>
+    getPropertyValue('${_browserPrefix}background-composite');
+
+  /** Sets the value of "background-composite" */
+  void set backgroundComposite(String value) {
+    setProperty('${_browserPrefix}background-composite', value, '');
+  }
+
+  /** Gets the value of "background-image" */
+  String get backgroundImage() =>
+    getPropertyValue('background-image');
+
+  /** Sets the value of "background-image" */
+  void set backgroundImage(String value) {
+    setProperty('background-image', value, '');
+  }
+
+  /** Gets the value of "background-origin" */
+  String get backgroundOrigin() =>
+    getPropertyValue('background-origin');
+
+  /** Sets the value of "background-origin" */
+  void set backgroundOrigin(String value) {
+    setProperty('background-origin', value, '');
+  }
+
+  /** Gets the value of "background-position" */
+  String get backgroundPosition() =>
+    getPropertyValue('background-position');
+
+  /** Sets the value of "background-position" */
+  void set backgroundPosition(String value) {
+    setProperty('background-position', value, '');
+  }
+
+  /** Gets the value of "background-position-x" */
+  String get backgroundPositionX() =>
+    getPropertyValue('background-position-x');
+
+  /** Sets the value of "background-position-x" */
+  void set backgroundPositionX(String value) {
+    setProperty('background-position-x', value, '');
+  }
+
+  /** Gets the value of "background-position-y" */
+  String get backgroundPositionY() =>
+    getPropertyValue('background-position-y');
+
+  /** Sets the value of "background-position-y" */
+  void set backgroundPositionY(String value) {
+    setProperty('background-position-y', value, '');
+  }
+
+  /** Gets the value of "background-repeat" */
+  String get backgroundRepeat() =>
+    getPropertyValue('background-repeat');
+
+  /** Sets the value of "background-repeat" */
+  void set backgroundRepeat(String value) {
+    setProperty('background-repeat', value, '');
+  }
+
+  /** Gets the value of "background-repeat-x" */
+  String get backgroundRepeatX() =>
+    getPropertyValue('background-repeat-x');
+
+  /** Sets the value of "background-repeat-x" */
+  void set backgroundRepeatX(String value) {
+    setProperty('background-repeat-x', value, '');
+  }
+
+  /** Gets the value of "background-repeat-y" */
+  String get backgroundRepeatY() =>
+    getPropertyValue('background-repeat-y');
+
+  /** Sets the value of "background-repeat-y" */
+  void set backgroundRepeatY(String value) {
+    setProperty('background-repeat-y', value, '');
+  }
+
+  /** Gets the value of "background-size" */
+  String get backgroundSize() =>
+    getPropertyValue('background-size');
+
+  /** Sets the value of "background-size" */
+  void set backgroundSize(String value) {
+    setProperty('background-size', value, '');
+  }
+
+  /** Gets the value of "border" */
+  String get border() =>
+    getPropertyValue('border');
+
+  /** Sets the value of "border" */
+  void set border(String value) {
+    setProperty('border', value, '');
+  }
+
+  /** Gets the value of "border-after" */
+  String get borderAfter() =>
+    getPropertyValue('${_browserPrefix}border-after');
+
+  /** Sets the value of "border-after" */
+  void set borderAfter(String value) {
+    setProperty('${_browserPrefix}border-after', value, '');
+  }
+
+  /** Gets the value of "border-after-color" */
+  String get borderAfterColor() =>
+    getPropertyValue('${_browserPrefix}border-after-color');
+
+  /** Sets the value of "border-after-color" */
+  void set borderAfterColor(String value) {
+    setProperty('${_browserPrefix}border-after-color', value, '');
+  }
+
+  /** Gets the value of "border-after-style" */
+  String get borderAfterStyle() =>
+    getPropertyValue('${_browserPrefix}border-after-style');
+
+  /** Sets the value of "border-after-style" */
+  void set borderAfterStyle(String value) {
+    setProperty('${_browserPrefix}border-after-style', value, '');
+  }
+
+  /** Gets the value of "border-after-width" */
+  String get borderAfterWidth() =>
+    getPropertyValue('${_browserPrefix}border-after-width');
+
+  /** Sets the value of "border-after-width" */
+  void set borderAfterWidth(String value) {
+    setProperty('${_browserPrefix}border-after-width', value, '');
+  }
+
+  /** Gets the value of "border-before" */
+  String get borderBefore() =>
+    getPropertyValue('${_browserPrefix}border-before');
+
+  /** Sets the value of "border-before" */
+  void set borderBefore(String value) {
+    setProperty('${_browserPrefix}border-before', value, '');
+  }
+
+  /** Gets the value of "border-before-color" */
+  String get borderBeforeColor() =>
+    getPropertyValue('${_browserPrefix}border-before-color');
+
+  /** Sets the value of "border-before-color" */
+  void set borderBeforeColor(String value) {
+    setProperty('${_browserPrefix}border-before-color', value, '');
+  }
+
+  /** Gets the value of "border-before-style" */
+  String get borderBeforeStyle() =>
+    getPropertyValue('${_browserPrefix}border-before-style');
+
+  /** Sets the value of "border-before-style" */
+  void set borderBeforeStyle(String value) {
+    setProperty('${_browserPrefix}border-before-style', value, '');
+  }
+
+  /** Gets the value of "border-before-width" */
+  String get borderBeforeWidth() =>
+    getPropertyValue('${_browserPrefix}border-before-width');
+
+  /** Sets the value of "border-before-width" */
+  void set borderBeforeWidth(String value) {
+    setProperty('${_browserPrefix}border-before-width', value, '');
+  }
+
+  /** Gets the value of "border-bottom" */
+  String get borderBottom() =>
+    getPropertyValue('border-bottom');
+
+  /** Sets the value of "border-bottom" */
+  void set borderBottom(String value) {
+    setProperty('border-bottom', value, '');
+  }
+
+  /** Gets the value of "border-bottom-color" */
+  String get borderBottomColor() =>
+    getPropertyValue('border-bottom-color');
+
+  /** Sets the value of "border-bottom-color" */
+  void set borderBottomColor(String value) {
+    setProperty('border-bottom-color', value, '');
+  }
+
+  /** Gets the value of "border-bottom-left-radius" */
+  String get borderBottomLeftRadius() =>
+    getPropertyValue('border-bottom-left-radius');
+
+  /** Sets the value of "border-bottom-left-radius" */
+  void set borderBottomLeftRadius(String value) {
+    setProperty('border-bottom-left-radius', value, '');
+  }
+
+  /** Gets the value of "border-bottom-right-radius" */
+  String get borderBottomRightRadius() =>
+    getPropertyValue('border-bottom-right-radius');
+
+  /** Sets the value of "border-bottom-right-radius" */
+  void set borderBottomRightRadius(String value) {
+    setProperty('border-bottom-right-radius', value, '');
+  }
+
+  /** Gets the value of "border-bottom-style" */
+  String get borderBottomStyle() =>
+    getPropertyValue('border-bottom-style');
+
+  /** Sets the value of "border-bottom-style" */
+  void set borderBottomStyle(String value) {
+    setProperty('border-bottom-style', value, '');
+  }
+
+  /** Gets the value of "border-bottom-width" */
+  String get borderBottomWidth() =>
+    getPropertyValue('border-bottom-width');
+
+  /** Sets the value of "border-bottom-width" */
+  void set borderBottomWidth(String value) {
+    setProperty('border-bottom-width', value, '');
+  }
+
+  /** Gets the value of "border-collapse" */
+  String get borderCollapse() =>
+    getPropertyValue('border-collapse');
+
+  /** Sets the value of "border-collapse" */
+  void set borderCollapse(String value) {
+    setProperty('border-collapse', value, '');
+  }
+
+  /** Gets the value of "border-color" */
+  String get borderColor() =>
+    getPropertyValue('border-color');
+
+  /** Sets the value of "border-color" */
+  void set borderColor(String value) {
+    setProperty('border-color', value, '');
+  }
+
+  /** Gets the value of "border-end" */
+  String get borderEnd() =>
+    getPropertyValue('${_browserPrefix}border-end');
+
+  /** Sets the value of "border-end" */
+  void set borderEnd(String value) {
+    setProperty('${_browserPrefix}border-end', value, '');
+  }
+
+  /** Gets the value of "border-end-color" */
+  String get borderEndColor() =>
+    getPropertyValue('${_browserPrefix}border-end-color');
+
+  /** Sets the value of "border-end-color" */
+  void set borderEndColor(String value) {
+    setProperty('${_browserPrefix}border-end-color', value, '');
+  }
+
+  /** Gets the value of "border-end-style" */
+  String get borderEndStyle() =>
+    getPropertyValue('${_browserPrefix}border-end-style');
+
+  /** Sets the value of "border-end-style" */
+  void set borderEndStyle(String value) {
+    setProperty('${_browserPrefix}border-end-style', value, '');
+  }
+
+  /** Gets the value of "border-end-width" */
+  String get borderEndWidth() =>
+    getPropertyValue('${_browserPrefix}border-end-width');
+
+  /** Sets the value of "border-end-width" */
+  void set borderEndWidth(String value) {
+    setProperty('${_browserPrefix}border-end-width', value, '');
+  }
+
+  /** Gets the value of "border-fit" */
+  String get borderFit() =>
+    getPropertyValue('${_browserPrefix}border-fit');
+
+  /** Sets the value of "border-fit" */
+  void set borderFit(String value) {
+    setProperty('${_browserPrefix}border-fit', value, '');
+  }
+
+  /** Gets the value of "border-horizontal-spacing" */
+  String get borderHorizontalSpacing() =>
+    getPropertyValue('${_browserPrefix}border-horizontal-spacing');
+
+  /** Sets the value of "border-horizontal-spacing" */
+  void set borderHorizontalSpacing(String value) {
+    setProperty('${_browserPrefix}border-horizontal-spacing', value, '');
+  }
+
+  /** Gets the value of "border-image" */
+  String get borderImage() =>
+    getPropertyValue('border-image');
+
+  /** Sets the value of "border-image" */
+  void set borderImage(String value) {
+    setProperty('border-image', value, '');
+  }
+
+  /** Gets the value of "border-image-outset" */
+  String get borderImageOutset() =>
+    getPropertyValue('border-image-outset');
+
+  /** Sets the value of "border-image-outset" */
+  void set borderImageOutset(String value) {
+    setProperty('border-image-outset', value, '');
+  }
+
+  /** Gets the value of "border-image-repeat" */
+  String get borderImageRepeat() =>
+    getPropertyValue('border-image-repeat');
+
+  /** Sets the value of "border-image-repeat" */
+  void set borderImageRepeat(String value) {
+    setProperty('border-image-repeat', value, '');
+  }
+
+  /** Gets the value of "border-image-slice" */
+  String get borderImageSlice() =>
+    getPropertyValue('border-image-slice');
+
+  /** Sets the value of "border-image-slice" */
+  void set borderImageSlice(String value) {
+    setProperty('border-image-slice', value, '');
+  }
+
+  /** Gets the value of "border-image-source" */
+  String get borderImageSource() =>
+    getPropertyValue('border-image-source');
+
+  /** Sets the value of "border-image-source" */
+  void set borderImageSource(String value) {
+    setProperty('border-image-source', value, '');
+  }
+
+  /** Gets the value of "border-image-width" */
+  String get borderImageWidth() =>
+    getPropertyValue('border-image-width');
+
+  /** Sets the value of "border-image-width" */
+  void set borderImageWidth(String value) {
+    setProperty('border-image-width', value, '');
+  }
+
+  /** Gets the value of "border-left" */
+  String get borderLeft() =>
+    getPropertyValue('border-left');
+
+  /** Sets the value of "border-left" */
+  void set borderLeft(String value) {
+    setProperty('border-left', value, '');
+  }
+
+  /** Gets the value of "border-left-color" */
+  String get borderLeftColor() =>
+    getPropertyValue('border-left-color');
+
+  /** Sets the value of "border-left-color" */
+  void set borderLeftColor(String value) {
+    setProperty('border-left-color', value, '');
+  }
+
+  /** Gets the value of "border-left-style" */
+  String get borderLeftStyle() =>
+    getPropertyValue('border-left-style');
+
+  /** Sets the value of "border-left-style" */
+  void set borderLeftStyle(String value) {
+    setProperty('border-left-style', value, '');
+  }
+
+  /** Gets the value of "border-left-width" */
+  String get borderLeftWidth() =>
+    getPropertyValue('border-left-width');
+
+  /** Sets the value of "border-left-width" */
+  void set borderLeftWidth(String value) {
+    setProperty('border-left-width', value, '');
+  }
+
+  /** Gets the value of "border-radius" */
+  String get borderRadius() =>
+    getPropertyValue('border-radius');
+
+  /** Sets the value of "border-radius" */
+  void set borderRadius(String value) {
+    setProperty('border-radius', value, '');
+  }
+
+  /** Gets the value of "border-right" */
+  String get borderRight() =>
+    getPropertyValue('border-right');
+
+  /** Sets the value of "border-right" */
+  void set borderRight(String value) {
+    setProperty('border-right', value, '');
+  }
+
+  /** Gets the value of "border-right-color" */
+  String get borderRightColor() =>
+    getPropertyValue('border-right-color');
+
+  /** Sets the value of "border-right-color" */
+  void set borderRightColor(String value) {
+    setProperty('border-right-color', value, '');
+  }
+
+  /** Gets the value of "border-right-style" */
+  String get borderRightStyle() =>
+    getPropertyValue('border-right-style');
+
+  /** Sets the value of "border-right-style" */
+  void set borderRightStyle(String value) {
+    setProperty('border-right-style', value, '');
+  }
+
+  /** Gets the value of "border-right-width" */
+  String get borderRightWidth() =>
+    getPropertyValue('border-right-width');
+
+  /** Sets the value of "border-right-width" */
+  void set borderRightWidth(String value) {
+    setProperty('border-right-width', value, '');
+  }
+
+  /** Gets the value of "border-spacing" */
+  String get borderSpacing() =>
+    getPropertyValue('border-spacing');
+
+  /** Sets the value of "border-spacing" */
+  void set borderSpacing(String value) {
+    setProperty('border-spacing', value, '');
+  }
+
+  /** Gets the value of "border-start" */
+  String get borderStart() =>
+    getPropertyValue('${_browserPrefix}border-start');
+
+  /** Sets the value of "border-start" */
+  void set borderStart(String value) {
+    setProperty('${_browserPrefix}border-start', value, '');
+  }
+
+  /** Gets the value of "border-start-color" */
+  String get borderStartColor() =>
+    getPropertyValue('${_browserPrefix}border-start-color');
+
+  /** Sets the value of "border-start-color" */
+  void set borderStartColor(String value) {
+    setProperty('${_browserPrefix}border-start-color', value, '');
+  }
+
+  /** Gets the value of "border-start-style" */
+  String get borderStartStyle() =>
+    getPropertyValue('${_browserPrefix}border-start-style');
+
+  /** Sets the value of "border-start-style" */
+  void set borderStartStyle(String value) {
+    setProperty('${_browserPrefix}border-start-style', value, '');
+  }
+
+  /** Gets the value of "border-start-width" */
+  String get borderStartWidth() =>
+    getPropertyValue('${_browserPrefix}border-start-width');
+
+  /** Sets the value of "border-start-width" */
+  void set borderStartWidth(String value) {
+    setProperty('${_browserPrefix}border-start-width', value, '');
+  }
+
+  /** Gets the value of "border-style" */
+  String get borderStyle() =>
+    getPropertyValue('border-style');
+
+  /** Sets the value of "border-style" */
+  void set borderStyle(String value) {
+    setProperty('border-style', value, '');
+  }
+
+  /** Gets the value of "border-top" */
+  String get borderTop() =>
+    getPropertyValue('border-top');
+
+  /** Sets the value of "border-top" */
+  void set borderTop(String value) {
+    setProperty('border-top', value, '');
+  }
+
+  /** Gets the value of "border-top-color" */
+  String get borderTopColor() =>
+    getPropertyValue('border-top-color');
+
+  /** Sets the value of "border-top-color" */
+  void set borderTopColor(String value) {
+    setProperty('border-top-color', value, '');
+  }
+
+  /** Gets the value of "border-top-left-radius" */
+  String get borderTopLeftRadius() =>
+    getPropertyValue('border-top-left-radius');
+
+  /** Sets the value of "border-top-left-radius" */
+  void set borderTopLeftRadius(String value) {
+    setProperty('border-top-left-radius', value, '');
+  }
+
+  /** Gets the value of "border-top-right-radius" */
+  String get borderTopRightRadius() =>
+    getPropertyValue('border-top-right-radius');
+
+  /** Sets the value of "border-top-right-radius" */
+  void set borderTopRightRadius(String value) {
+    setProperty('border-top-right-radius', value, '');
+  }
+
+  /** Gets the value of "border-top-style" */
+  String get borderTopStyle() =>
+    getPropertyValue('border-top-style');
+
+  /** Sets the value of "border-top-style" */
+  void set borderTopStyle(String value) {
+    setProperty('border-top-style', value, '');
+  }
+
+  /** Gets the value of "border-top-width" */
+  String get borderTopWidth() =>
+    getPropertyValue('border-top-width');
+
+  /** Sets the value of "border-top-width" */
+  void set borderTopWidth(String value) {
+    setProperty('border-top-width', value, '');
+  }
+
+  /** Gets the value of "border-vertical-spacing" */
+  String get borderVerticalSpacing() =>
+    getPropertyValue('${_browserPrefix}border-vertical-spacing');
+
+  /** Sets the value of "border-vertical-spacing" */
+  void set borderVerticalSpacing(String value) {
+    setProperty('${_browserPrefix}border-vertical-spacing', value, '');
+  }
+
+  /** Gets the value of "border-width" */
+  String get borderWidth() =>
+    getPropertyValue('border-width');
+
+  /** Sets the value of "border-width" */
+  void set borderWidth(String value) {
+    setProperty('border-width', value, '');
+  }
+
+  /** Gets the value of "bottom" */
+  String get bottom() =>
+    getPropertyValue('bottom');
+
+  /** Sets the value of "bottom" */
+  void set bottom(String value) {
+    setProperty('bottom', value, '');
+  }
+
+  /** Gets the value of "box-align" */
+  String get boxAlign() =>
+    getPropertyValue('${_browserPrefix}box-align');
+
+  /** Sets the value of "box-align" */
+  void set boxAlign(String value) {
+    setProperty('${_browserPrefix}box-align', value, '');
+  }
+
+  /** Gets the value of "box-direction" */
+  String get boxDirection() =>
+    getPropertyValue('${_browserPrefix}box-direction');
+
+  /** Sets the value of "box-direction" */
+  void set boxDirection(String value) {
+    setProperty('${_browserPrefix}box-direction', value, '');
+  }
+
+  /** Gets the value of "box-flex" */
+  String get boxFlex() =>
+    getPropertyValue('${_browserPrefix}box-flex');
+
+  /** Sets the value of "box-flex" */
+  void set boxFlex(String value) {
+    setProperty('${_browserPrefix}box-flex', value, '');
+  }
+
+  /** Gets the value of "box-flex-group" */
+  String get boxFlexGroup() =>
+    getPropertyValue('${_browserPrefix}box-flex-group');
+
+  /** Sets the value of "box-flex-group" */
+  void set boxFlexGroup(String value) {
+    setProperty('${_browserPrefix}box-flex-group', value, '');
+  }
+
+  /** Gets the value of "box-lines" */
+  String get boxLines() =>
+    getPropertyValue('${_browserPrefix}box-lines');
+
+  /** Sets the value of "box-lines" */
+  void set boxLines(String value) {
+    setProperty('${_browserPrefix}box-lines', value, '');
+  }
+
+  /** Gets the value of "box-ordinal-group" */
+  String get boxOrdinalGroup() =>
+    getPropertyValue('${_browserPrefix}box-ordinal-group');
+
+  /** Sets the value of "box-ordinal-group" */
+  void set boxOrdinalGroup(String value) {
+    setProperty('${_browserPrefix}box-ordinal-group', value, '');
+  }
+
+  /** Gets the value of "box-orient" */
+  String get boxOrient() =>
+    getPropertyValue('${_browserPrefix}box-orient');
+
+  /** Sets the value of "box-orient" */
+  void set boxOrient(String value) {
+    setProperty('${_browserPrefix}box-orient', value, '');
+  }
+
+  /** Gets the value of "box-pack" */
+  String get boxPack() =>
+    getPropertyValue('${_browserPrefix}box-pack');
+
+  /** Sets the value of "box-pack" */
+  void set boxPack(String value) {
+    setProperty('${_browserPrefix}box-pack', value, '');
+  }
+
+  /** Gets the value of "box-reflect" */
+  String get boxReflect() =>
+    getPropertyValue('${_browserPrefix}box-reflect');
+
+  /** Sets the value of "box-reflect" */
+  void set boxReflect(String value) {
+    setProperty('${_browserPrefix}box-reflect', value, '');
+  }
+
+  /** Gets the value of "box-shadow" */
+  String get boxShadow() =>
+    getPropertyValue('box-shadow');
+
+  /** Sets the value of "box-shadow" */
+  void set boxShadow(String value) {
+    setProperty('box-shadow', value, '');
+  }
+
+  /** Gets the value of "box-sizing" */
+  String get boxSizing() =>
+    getPropertyValue('box-sizing');
+
+  /** Sets the value of "box-sizing" */
+  void set boxSizing(String value) {
+    setProperty('box-sizing', value, '');
+  }
+
+  /** Gets the value of "caption-side" */
+  String get captionSide() =>
+    getPropertyValue('caption-side');
+
+  /** Sets the value of "caption-side" */
+  void set captionSide(String value) {
+    setProperty('caption-side', value, '');
+  }
+
+  /** Gets the value of "clear" */
+  String get clear() =>
+    getPropertyValue('clear');
+
+  /** Sets the value of "clear" */
+  void set clear(String value) {
+    setProperty('clear', value, '');
+  }
+
+  /** Gets the value of "clip" */
+  String get clip() =>
+    getPropertyValue('clip');
+
+  /** Sets the value of "clip" */
+  void set clip(String value) {
+    setProperty('clip', value, '');
+  }
+
+  /** Gets the value of "color" */
+  String get color() =>
+    getPropertyValue('color');
+
+  /** Sets the value of "color" */
+  void set color(String value) {
+    setProperty('color', value, '');
+  }
+
+  /** Gets the value of "color-correction" */
+  String get colorCorrection() =>
+    getPropertyValue('${_browserPrefix}color-correction');
+
+  /** Sets the value of "color-correction" */
+  void set colorCorrection(String value) {
+    setProperty('${_browserPrefix}color-correction', value, '');
+  }
+
+  /** Gets the value of "column-break-after" */
+  String get columnBreakAfter() =>
+    getPropertyValue('${_browserPrefix}column-break-after');
+
+  /** Sets the value of "column-break-after" */
+  void set columnBreakAfter(String value) {
+    setProperty('${_browserPrefix}column-break-after', value, '');
+  }
+
+  /** Gets the value of "column-break-before" */
+  String get columnBreakBefore() =>
+    getPropertyValue('${_browserPrefix}column-break-before');
+
+  /** Sets the value of "column-break-before" */
+  void set columnBreakBefore(String value) {
+    setProperty('${_browserPrefix}column-break-before', value, '');
+  }
+
+  /** Gets the value of "column-break-inside" */
+  String get columnBreakInside() =>
+    getPropertyValue('${_browserPrefix}column-break-inside');
+
+  /** Sets the value of "column-break-inside" */
+  void set columnBreakInside(String value) {
+    setProperty('${_browserPrefix}column-break-inside', value, '');
+  }
+
+  /** Gets the value of "column-count" */
+  String get columnCount() =>
+    getPropertyValue('${_browserPrefix}column-count');
+
+  /** Sets the value of "column-count" */
+  void set columnCount(String value) {
+    setProperty('${_browserPrefix}column-count', value, '');
+  }
+
+  /** Gets the value of "column-gap" */
+  String get columnGap() =>
+    getPropertyValue('${_browserPrefix}column-gap');
+
+  /** Sets the value of "column-gap" */
+  void set columnGap(String value) {
+    setProperty('${_browserPrefix}column-gap', value, '');
+  }
+
+  /** Gets the value of "column-rule" */
+  String get columnRule() =>
+    getPropertyValue('${_browserPrefix}column-rule');
+
+  /** Sets the value of "column-rule" */
+  void set columnRule(String value) {
+    setProperty('${_browserPrefix}column-rule', value, '');
+  }
+
+  /** Gets the value of "column-rule-color" */
+  String get columnRuleColor() =>
+    getPropertyValue('${_browserPrefix}column-rule-color');
+
+  /** Sets the value of "column-rule-color" */
+  void set columnRuleColor(String value) {
+    setProperty('${_browserPrefix}column-rule-color', value, '');
+  }
+
+  /** Gets the value of "column-rule-style" */
+  String get columnRuleStyle() =>
+    getPropertyValue('${_browserPrefix}column-rule-style');
+
+  /** Sets the value of "column-rule-style" */
+  void set columnRuleStyle(String value) {
+    setProperty('${_browserPrefix}column-rule-style', value, '');
+  }
+
+  /** Gets the value of "column-rule-width" */
+  String get columnRuleWidth() =>
+    getPropertyValue('${_browserPrefix}column-rule-width');
+
+  /** Sets the value of "column-rule-width" */
+  void set columnRuleWidth(String value) {
+    setProperty('${_browserPrefix}column-rule-width', value, '');
+  }
+
+  /** Gets the value of "column-span" */
+  String get columnSpan() =>
+    getPropertyValue('${_browserPrefix}column-span');
+
+  /** Sets the value of "column-span" */
+  void set columnSpan(String value) {
+    setProperty('${_browserPrefix}column-span', value, '');
+  }
+
+  /** Gets the value of "column-width" */
+  String get columnWidth() =>
+    getPropertyValue('${_browserPrefix}column-width');
+
+  /** Sets the value of "column-width" */
+  void set columnWidth(String value) {
+    setProperty('${_browserPrefix}column-width', value, '');
+  }
+
+  /** Gets the value of "columns" */
+  String get columns() =>
+    getPropertyValue('${_browserPrefix}columns');
+
+  /** Sets the value of "columns" */
+  void set columns(String value) {
+    setProperty('${_browserPrefix}columns', value, '');
+  }
+
+  /** Gets the value of "content" */
+  String get content() =>
+    getPropertyValue('content');
+
+  /** Sets the value of "content" */
+  void set content(String value) {
+    setProperty('content', value, '');
+  }
+
+  /** Gets the value of "counter-increment" */
+  String get counterIncrement() =>
+    getPropertyValue('counter-increment');
+
+  /** Sets the value of "counter-increment" */
+  void set counterIncrement(String value) {
+    setProperty('counter-increment', value, '');
+  }
+
+  /** Gets the value of "counter-reset" */
+  String get counterReset() =>
+    getPropertyValue('counter-reset');
+
+  /** Sets the value of "counter-reset" */
+  void set counterReset(String value) {
+    setProperty('counter-reset', value, '');
+  }
+
+  /** Gets the value of "cursor" */
+  String get cursor() =>
+    getPropertyValue('cursor');
+
+  /** Sets the value of "cursor" */
+  void set cursor(String value) {
+    setProperty('cursor', value, '');
+  }
+
+  /** Gets the value of "direction" */
+  String get direction() =>
+    getPropertyValue('direction');
+
+  /** Sets the value of "direction" */
+  void set direction(String value) {
+    setProperty('direction', value, '');
+  }
+
+  /** Gets the value of "display" */
+  String get display() =>
+    getPropertyValue('display');
+
+  /** Sets the value of "display" */
+  void set display(String value) {
+    setProperty('display', value, '');
+  }
+
+  /** Gets the value of "empty-cells" */
+  String get emptyCells() =>
+    getPropertyValue('empty-cells');
+
+  /** Sets the value of "empty-cells" */
+  void set emptyCells(String value) {
+    setProperty('empty-cells', value, '');
+  }
+
+  /** Gets the value of "filter" */
+  String get filter() =>
+    getPropertyValue('${_browserPrefix}filter');
+
+  /** Sets the value of "filter" */
+  void set filter(String value) {
+    setProperty('${_browserPrefix}filter', value, '');
+  }
+
+  /** Gets the value of "flex-align" */
+  String get flexAlign() =>
+    getPropertyValue('${_browserPrefix}flex-align');
+
+  /** Sets the value of "flex-align" */
+  void set flexAlign(String value) {
+    setProperty('${_browserPrefix}flex-align', value, '');
+  }
+
+  /** Gets the value of "flex-flow" */
+  String get flexFlow() =>
+    getPropertyValue('${_browserPrefix}flex-flow');
+
+  /** Sets the value of "flex-flow" */
+  void set flexFlow(String value) {
+    setProperty('${_browserPrefix}flex-flow', value, '');
+  }
+
+  /** Gets the value of "flex-order" */
+  String get flexOrder() =>
+    getPropertyValue('${_browserPrefix}flex-order');
+
+  /** Sets the value of "flex-order" */
+  void set flexOrder(String value) {
+    setProperty('${_browserPrefix}flex-order', value, '');
+  }
+
+  /** Gets the value of "flex-pack" */
+  String get flexPack() =>
+    getPropertyValue('${_browserPrefix}flex-pack');
+
+  /** Sets the value of "flex-pack" */
+  void set flexPack(String value) {
+    setProperty('${_browserPrefix}flex-pack', value, '');
+  }
+
+  /** Gets the value of "float" */
+  String get float() =>
+    getPropertyValue('float');
+
+  /** Sets the value of "float" */
+  void set float(String value) {
+    setProperty('float', value, '');
+  }
+
+  /** Gets the value of "flow-from" */
+  String get flowFrom() =>
+    getPropertyValue('${_browserPrefix}flow-from');
+
+  /** Sets the value of "flow-from" */
+  void set flowFrom(String value) {
+    setProperty('${_browserPrefix}flow-from', value, '');
+  }
+
+  /** Gets the value of "flow-into" */
+  String get flowInto() =>
+    getPropertyValue('${_browserPrefix}flow-into');
+
+  /** Sets the value of "flow-into" */
+  void set flowInto(String value) {
+    setProperty('${_browserPrefix}flow-into', value, '');
+  }
+
+  /** Gets the value of "font" */
+  String get font() =>
+    getPropertyValue('font');
+
+  /** Sets the value of "font" */
+  void set font(String value) {
+    setProperty('font', value, '');
+  }
+
+  /** Gets the value of "font-family" */
+  String get fontFamily() =>
+    getPropertyValue('font-family');
+
+  /** Sets the value of "font-family" */
+  void set fontFamily(String value) {
+    setProperty('font-family', value, '');
+  }
+
+  /** Gets the value of "font-feature-settings" */
+  String get fontFeatureSettings() =>
+    getPropertyValue('${_browserPrefix}font-feature-settings');
+
+  /** Sets the value of "font-feature-settings" */
+  void set fontFeatureSettings(String value) {
+    setProperty('${_browserPrefix}font-feature-settings', value, '');
+  }
+
+  /** Gets the value of "font-size" */
+  String get fontSize() =>
+    getPropertyValue('font-size');
+
+  /** Sets the value of "font-size" */
+  void set fontSize(String value) {
+    setProperty('font-size', value, '');
+  }
+
+  /** Gets the value of "font-size-delta" */
+  String get fontSizeDelta() =>
+    getPropertyValue('${_browserPrefix}font-size-delta');
+
+  /** Sets the value of "font-size-delta" */
+  void set fontSizeDelta(String value) {
+    setProperty('${_browserPrefix}font-size-delta', value, '');
+  }
+
+  /** Gets the value of "font-smoothing" */
+  String get fontSmoothing() =>
+    getPropertyValue('${_browserPrefix}font-smoothing');
+
+  /** Sets the value of "font-smoothing" */
+  void set fontSmoothing(String value) {
+    setProperty('${_browserPrefix}font-smoothing', value, '');
+  }
+
+  /** Gets the value of "font-stretch" */
+  String get fontStretch() =>
+    getPropertyValue('font-stretch');
+
+  /** Sets the value of "font-stretch" */
+  void set fontStretch(String value) {
+    setProperty('font-stretch', value, '');
+  }
+
+  /** Gets the value of "font-style" */
+  String get fontStyle() =>
+    getPropertyValue('font-style');
+
+  /** Sets the value of "font-style" */
+  void set fontStyle(String value) {
+    setProperty('font-style', value, '');
+  }
+
+  /** Gets the value of "font-variant" */
+  String get fontVariant() =>
+    getPropertyValue('font-variant');
+
+  /** Sets the value of "font-variant" */
+  void set fontVariant(String value) {
+    setProperty('font-variant', value, '');
+  }
+
+  /** Gets the value of "font-weight" */
+  String get fontWeight() =>
+    getPropertyValue('font-weight');
+
+  /** Sets the value of "font-weight" */
+  void set fontWeight(String value) {
+    setProperty('font-weight', value, '');
+  }
+
+  /** Gets the value of "height" */
+  String get height() =>
+    getPropertyValue('height');
+
+  /** Sets the value of "height" */
+  void set height(String value) {
+    setProperty('height', value, '');
+  }
+
+  /** Gets the value of "highlight" */
+  String get highlight() =>
+    getPropertyValue('${_browserPrefix}highlight');
+
+  /** Sets the value of "highlight" */
+  void set highlight(String value) {
+    setProperty('${_browserPrefix}highlight', value, '');
+  }
+
+  /** Gets the value of "hyphenate-character" */
+  String get hyphenateCharacter() =>
+    getPropertyValue('${_browserPrefix}hyphenate-character');
+
+  /** Sets the value of "hyphenate-character" */
+  void set hyphenateCharacter(String value) {
+    setProperty('${_browserPrefix}hyphenate-character', value, '');
+  }
+
+  /** Gets the value of "hyphenate-limit-after" */
+  String get hyphenateLimitAfter() =>
+    getPropertyValue('${_browserPrefix}hyphenate-limit-after');
+
+  /** Sets the value of "hyphenate-limit-after" */
+  void set hyphenateLimitAfter(String value) {
+    setProperty('${_browserPrefix}hyphenate-limit-after', value, '');
+  }
+
+  /** Gets the value of "hyphenate-limit-before" */
+  String get hyphenateLimitBefore() =>
+    getPropertyValue('${_browserPrefix}hyphenate-limit-before');
+
+  /** Sets the value of "hyphenate-limit-before" */
+  void set hyphenateLimitBefore(String value) {
+    setProperty('${_browserPrefix}hyphenate-limit-before', value, '');
+  }
+
+  /** Gets the value of "hyphenate-limit-lines" */
+  String get hyphenateLimitLines() =>
+    getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
+
+  /** Sets the value of "hyphenate-limit-lines" */
+  void set hyphenateLimitLines(String value) {
+    setProperty('${_browserPrefix}hyphenate-limit-lines', value, '');
+  }
+
+  /** Gets the value of "hyphens" */
+  String get hyphens() =>
+    getPropertyValue('${_browserPrefix}hyphens');
+
+  /** Sets the value of "hyphens" */
+  void set hyphens(String value) {
+    setProperty('${_browserPrefix}hyphens', value, '');
+  }
+
+  /** Gets the value of "image-rendering" */
+  String get imageRendering() =>
+    getPropertyValue('image-rendering');
+
+  /** Sets the value of "image-rendering" */
+  void set imageRendering(String value) {
+    setProperty('image-rendering', value, '');
+  }
+
+  /** Gets the value of "left" */
+  String get left() =>
+    getPropertyValue('left');
+
+  /** Sets the value of "left" */
+  void set left(String value) {
+    setProperty('left', value, '');
+  }
+
+  /** Gets the value of "letter-spacing" */
+  String get letterSpacing() =>
+    getPropertyValue('letter-spacing');
+
+  /** Sets the value of "letter-spacing" */
+  void set letterSpacing(String value) {
+    setProperty('letter-spacing', value, '');
+  }
+
+  /** Gets the value of "line-box-contain" */
+  String get lineBoxContain() =>
+    getPropertyValue('${_browserPrefix}line-box-contain');
+
+  /** Sets the value of "line-box-contain" */
+  void set lineBoxContain(String value) {
+    setProperty('${_browserPrefix}line-box-contain', value, '');
+  }
+
+  /** Gets the value of "line-break" */
+  String get lineBreak() =>
+    getPropertyValue('${_browserPrefix}line-break');
+
+  /** Sets the value of "line-break" */
+  void set lineBreak(String value) {
+    setProperty('${_browserPrefix}line-break', value, '');
+  }
+
+  /** Gets the value of "line-clamp" */
+  String get lineClamp() =>
+    getPropertyValue('${_browserPrefix}line-clamp');
+
+  /** Sets the value of "line-clamp" */
+  void set lineClamp(String value) {
+    setProperty('${_browserPrefix}line-clamp', value, '');
+  }
+
+  /** Gets the value of "line-height" */
+  String get lineHeight() =>
+    getPropertyValue('line-height');
+
+  /** Sets the value of "line-height" */
+  void set lineHeight(String value) {
+    setProperty('line-height', value, '');
+  }
+
+  /** Gets the value of "list-style" */
+  String get listStyle() =>
+    getPropertyValue('list-style');
+
+  /** Sets the value of "list-style" */
+  void set listStyle(String value) {
+    setProperty('list-style', value, '');
+  }
+
+  /** Gets the value of "list-style-image" */
+  String get listStyleImage() =>
+    getPropertyValue('list-style-image');
+
+  /** Sets the value of "list-style-image" */
+  void set listStyleImage(String value) {
+    setProperty('list-style-image', value, '');
+  }
+
+  /** Gets the value of "list-style-position" */
+  String get listStylePosition() =>
+    getPropertyValue('list-style-position');
+
+  /** Sets the value of "list-style-position" */
+  void set listStylePosition(String value) {
+    setProperty('list-style-position', value, '');
+  }
+
+  /** Gets the value of "list-style-type" */
+  String get listStyleType() =>
+    getPropertyValue('list-style-type');
+
+  /** Sets the value of "list-style-type" */
+  void set listStyleType(String value) {
+    setProperty('list-style-type', value, '');
+  }
+
+  /** Gets the value of "locale" */
+  String get locale() =>
+    getPropertyValue('${_browserPrefix}locale');
+
+  /** Sets the value of "locale" */
+  void set locale(String value) {
+    setProperty('${_browserPrefix}locale', value, '');
+  }
+
+  /** Gets the value of "logical-height" */
+  String get logicalHeight() =>
+    getPropertyValue('${_browserPrefix}logical-height');
+
+  /** Sets the value of "logical-height" */
+  void set logicalHeight(String value) {
+    setProperty('${_browserPrefix}logical-height', value, '');
+  }
+
+  /** Gets the value of "logical-width" */
+  String get logicalWidth() =>
+    getPropertyValue('${_browserPrefix}logical-width');
+
+  /** Sets the value of "logical-width" */
+  void set logicalWidth(String value) {
+    setProperty('${_browserPrefix}logical-width', value, '');
+  }
+
+  /** Gets the value of "margin" */
+  String get margin() =>
+    getPropertyValue('margin');
+
+  /** Sets the value of "margin" */
+  void set margin(String value) {
+    setProperty('margin', value, '');
+  }
+
+  /** Gets the value of "margin-after" */
+  String get marginAfter() =>
+    getPropertyValue('${_browserPrefix}margin-after');
+
+  /** Sets the value of "margin-after" */
+  void set marginAfter(String value) {
+    setProperty('${_browserPrefix}margin-after', value, '');
+  }
+
+  /** Gets the value of "margin-after-collapse" */
+  String get marginAfterCollapse() =>
+    getPropertyValue('${_browserPrefix}margin-after-collapse');
+
+  /** Sets the value of "margin-after-collapse" */
+  void set marginAfterCollapse(String value) {
+    setProperty('${_browserPrefix}margin-after-collapse', value, '');
+  }
+
+  /** Gets the value of "margin-before" */
+  String get marginBefore() =>
+    getPropertyValue('${_browserPrefix}margin-before');
+
+  /** Sets the value of "margin-before" */
+  void set marginBefore(String value) {
+    setProperty('${_browserPrefix}margin-before', value, '');
+  }
+
+  /** Gets the value of "margin-before-collapse" */
+  String get marginBeforeCollapse() =>
+    getPropertyValue('${_browserPrefix}margin-before-collapse');
+
+  /** Sets the value of "margin-before-collapse" */
+  void set marginBeforeCollapse(String value) {
+    setProperty('${_browserPrefix}margin-before-collapse', value, '');
+  }
+
+  /** Gets the value of "margin-bottom" */
+  String get marginBottom() =>
+    getPropertyValue('margin-bottom');
+
+  /** Sets the value of "margin-bottom" */
+  void set marginBottom(String value) {
+    setProperty('margin-bottom', value, '');
+  }
+
+  /** Gets the value of "margin-bottom-collapse" */
+  String get marginBottomCollapse() =>
+    getPropertyValue('${_browserPrefix}margin-bottom-collapse');
+
+  /** Sets the value of "margin-bottom-collapse" */
+  void set marginBottomCollapse(String value) {
+    setProperty('${_browserPrefix}margin-bottom-collapse', value, '');
+  }
+
+  /** Gets the value of "margin-collapse" */
+  String get marginCollapse() =>
+    getPropertyValue('${_browserPrefix}margin-collapse');
+
+  /** Sets the value of "margin-collapse" */
+  void set marginCollapse(String value) {
+    setProperty('${_browserPrefix}margin-collapse', value, '');
+  }
+
+  /** Gets the value of "margin-end" */
+  String get marginEnd() =>
+    getPropertyValue('${_browserPrefix}margin-end');
+
+  /** Sets the value of "margin-end" */
+  void set marginEnd(String value) {
+    setProperty('${_browserPrefix}margin-end', value, '');
+  }
+
+  /** Gets the value of "margin-left" */
+  String get marginLeft() =>
+    getPropertyValue('margin-left');
+
+  /** Sets the value of "margin-left" */
+  void set marginLeft(String value) {
+    setProperty('margin-left', value, '');
+  }
+
+  /** Gets the value of "margin-right" */
+  String get marginRight() =>
+    getPropertyValue('margin-right');
+
+  /** Sets the value of "margin-right" */
+  void set marginRight(String value) {
+    setProperty('margin-right', value, '');
+  }
+
+  /** Gets the value of "margin-start" */
+  String get marginStart() =>
+    getPropertyValue('${_browserPrefix}margin-start');
+
+  /** Sets the value of "margin-start" */
+  void set marginStart(String value) {
+    setProperty('${_browserPrefix}margin-start', value, '');
+  }
+
+  /** Gets the value of "margin-top" */
+  String get marginTop() =>
+    getPropertyValue('margin-top');
+
+  /** Sets the value of "margin-top" */
+  void set marginTop(String value) {
+    setProperty('margin-top', value, '');
+  }
+
+  /** Gets the value of "margin-top-collapse" */
+  String get marginTopCollapse() =>
+    getPropertyValue('${_browserPrefix}margin-top-collapse');
+
+  /** Sets the value of "margin-top-collapse" */
+  void set marginTopCollapse(String value) {
+    setProperty('${_browserPrefix}margin-top-collapse', value, '');
+  }
+
+  /** Gets the value of "marquee" */
+  String get marquee() =>
+    getPropertyValue('${_browserPrefix}marquee');
+
+  /** Sets the value of "marquee" */
+  void set marquee(String value) {
+    setProperty('${_browserPrefix}marquee', value, '');
+  }
+
+  /** Gets the value of "marquee-direction" */
+  String get marqueeDirection() =>
+    getPropertyValue('${_browserPrefix}marquee-direction');
+
+  /** Sets the value of "marquee-direction" */
+  void set marqueeDirection(String value) {
+    setProperty('${_browserPrefix}marquee-direction', value, '');
+  }
+
+  /** Gets the value of "marquee-increment" */
+  String get marqueeIncrement() =>
+    getPropertyValue('${_browserPrefix}marquee-increment');
+
+  /** Sets the value of "marquee-increment" */
+  void set marqueeIncrement(String value) {
+    setProperty('${_browserPrefix}marquee-increment', value, '');
+  }
+
+  /** Gets the value of "marquee-repetition" */
+  String get marqueeRepetition() =>
+    getPropertyValue('${_browserPrefix}marquee-repetition');
+
+  /** Sets the value of "marquee-repetition" */
+  void set marqueeRepetition(String value) {
+    setProperty('${_browserPrefix}marquee-repetition', value, '');
+  }
+
+  /** Gets the value of "marquee-speed" */
+  String get marqueeSpeed() =>
+    getPropertyValue('${_browserPrefix}marquee-speed');
+
+  /** Sets the value of "marquee-speed" */
+  void set marqueeSpeed(String value) {
+    setProperty('${_browserPrefix}marquee-speed', value, '');
+  }
+
+  /** Gets the value of "marquee-style" */
+  String get marqueeStyle() =>
+    getPropertyValue('${_browserPrefix}marquee-style');
+
+  /** Sets the value of "marquee-style" */
+  void set marqueeStyle(String value) {
+    setProperty('${_browserPrefix}marquee-style', value, '');
+  }
+
+  /** Gets the value of "mask" */
+  String get mask() =>
+    getPropertyValue('${_browserPrefix}mask');
+
+  /** Sets the value of "mask" */
+  void set mask(String value) {
+    setProperty('${_browserPrefix}mask', value, '');
+  }
+
+  /** Gets the value of "mask-attachment" */
+  String get maskAttachment() =>
+    getPropertyValue('${_browserPrefix}mask-attachment');
+
+  /** Sets the value of "mask-attachment" */
+  void set maskAttachment(String value) {
+    setProperty('${_browserPrefix}mask-attachment', value, '');
+  }
+
+  /** Gets the value of "mask-box-image" */
+  String get maskBoxImage() =>
+    getPropertyValue('${_browserPrefix}mask-box-image');
+
+  /** Sets the value of "mask-box-image" */
+  void set maskBoxImage(String value) {
+    setProperty('${_browserPrefix}mask-box-image', value, '');
+  }
+
+  /** Gets the value of "mask-box-image-outset" */
+  String get maskBoxImageOutset() =>
+    getPropertyValue('${_browserPrefix}mask-box-image-outset');
+
+  /** Sets the value of "mask-box-image-outset" */
+  void set maskBoxImageOutset(String value) {
+    setProperty('${_browserPrefix}mask-box-image-outset', value, '');
+  }
+
+  /** Gets the value of "mask-box-image-repeat" */
+  String get maskBoxImageRepeat() =>
+    getPropertyValue('${_browserPrefix}mask-box-image-repeat');
+
+  /** Sets the value of "mask-box-image-repeat" */
+  void set maskBoxImageRepeat(String value) {
+    setProperty('${_browserPrefix}mask-box-image-repeat', value, '');
+  }
+
+  /** Gets the value of "mask-box-image-slice" */
+  String get maskBoxImageSlice() =>
+    getPropertyValue('${_browserPrefix}mask-box-image-slice');
+
+  /** Sets the value of "mask-box-image-slice" */
+  void set maskBoxImageSlice(String value) {
+    setProperty('${_browserPrefix}mask-box-image-slice', value, '');
+  }
+
+  /** Gets the value of "mask-box-image-source" */
+  String get maskBoxImageSource() =>
+    getPropertyValue('${_browserPrefix}mask-box-image-source');
+
+  /** Sets the value of "mask-box-image-source" */
+  void set maskBoxImageSource(String value) {
+    setProperty('${_browserPrefix}mask-box-image-source', value, '');
+  }
+
+  /** Gets the value of "mask-box-image-width" */
+  String get maskBoxImageWidth() =>
+    getPropertyValue('${_browserPrefix}mask-box-image-width');
+
+  /** Sets the value of "mask-box-image-width" */
+  void set maskBoxImageWidth(String value) {
+    setProperty('${_browserPrefix}mask-box-image-width', value, '');
+  }
+
+  /** Gets the value of "mask-clip" */
+  String get maskClip() =>
+    getPropertyValue('${_browserPrefix}mask-clip');
+
+  /** Sets the value of "mask-clip" */
+  void set maskClip(String value) {
+    setProperty('${_browserPrefix}mask-clip', value, '');
+  }
+
+  /** Gets the value of "mask-composite" */
+  String get maskComposite() =>
+    getPropertyValue('${_browserPrefix}mask-composite');
+
+  /** Sets the value of "mask-composite" */
+  void set maskComposite(String value) {
+    setProperty('${_browserPrefix}mask-composite', value, '');
+  }
+
+  /** Gets the value of "mask-image" */
+  String get maskImage() =>
+    getPropertyValue('${_browserPrefix}mask-image');
+
+  /** Sets the value of "mask-image" */
+  void set maskImage(String value) {
+    setProperty('${_browserPrefix}mask-image', value, '');
+  }
+
+  /** Gets the value of "mask-origin" */
+  String get maskOrigin() =>
+    getPropertyValue('${_browserPrefix}mask-origin');
+
+  /** Sets the value of "mask-origin" */
+  void set maskOrigin(String value) {
+    setProperty('${_browserPrefix}mask-origin', value, '');
+  }
+
+  /** Gets the value of "mask-position" */
+  String get maskPosition() =>
+    getPropertyValue('${_browserPrefix}mask-position');
+
+  /** Sets the value of "mask-position" */
+  void set maskPosition(String value) {
+    setProperty('${_browserPrefix}mask-position', value, '');
+  }
+
+  /** Gets the value of "mask-position-x" */
+  String get maskPositionX() =>
+    getPropertyValue('${_browserPrefix}mask-position-x');
+
+  /** Sets the value of "mask-position-x" */
+  void set maskPositionX(String value) {
+    setProperty('${_browserPrefix}mask-position-x', value, '');
+  }
+
+  /** Gets the value of "mask-position-y" */
+  String get maskPositionY() =>
+    getPropertyValue('${_browserPrefix}mask-position-y');
+
+  /** Sets the value of "mask-position-y" */
+  void set maskPositionY(String value) {
+    setProperty('${_browserPrefix}mask-position-y', value, '');
+  }
+
+  /** Gets the value of "mask-repeat" */
+  String get maskRepeat() =>
+    getPropertyValue('${_browserPrefix}mask-repeat');
+
+  /** Sets the value of "mask-repeat" */
+  void set maskRepeat(String value) {
+    setProperty('${_browserPrefix}mask-repeat', value, '');
+  }
+
+  /** Gets the value of "mask-repeat-x" */
+  String get maskRepeatX() =>
+    getPropertyValue('${_browserPrefix}mask-repeat-x');
+
+  /** Sets the value of "mask-repeat-x" */
+  void set maskRepeatX(String value) {
+    setProperty('${_browserPrefix}mask-repeat-x', value, '');
+  }
+
+  /** Gets the value of "mask-repeat-y" */
+  String get maskRepeatY() =>
+    getPropertyValue('${_browserPrefix}mask-repeat-y');
+
+  /** Sets the value of "mask-repeat-y" */
+  void set maskRepeatY(String value) {
+    setProperty('${_browserPrefix}mask-repeat-y', value, '');
+  }
+
+  /** Gets the value of "mask-size" */
+  String get maskSize() =>
+    getPropertyValue('${_browserPrefix}mask-size');
+
+  /** Sets the value of "mask-size" */
+  void set maskSize(String value) {
+    setProperty('${_browserPrefix}mask-size', value, '');
+  }
+
+  /** Gets the value of "match-nearest-mail-blockquote-color" */
+  String get matchNearestMailBlockquoteColor() =>
+    getPropertyValue('${_browserPrefix}match-nearest-mail-blockquote-color');
+
+  /** Sets the value of "match-nearest-mail-blockquote-color" */
+  void set matchNearestMailBlockquoteColor(String value) {
+    setProperty('${_browserPrefix}match-nearest-mail-blockquote-color', value, '');
+  }
+
+  /** Gets the value of "max-height" */
+  String get maxHeight() =>
+    getPropertyValue('max-height');
+
+  /** Sets the value of "max-height" */
+  void set maxHeight(String value) {
+    setProperty('max-height', value, '');
+  }
+
+  /** Gets the value of "max-logical-height" */
+  String get maxLogicalHeight() =>
+    getPropertyValue('${_browserPrefix}max-logical-height');
+
+  /** Sets the value of "max-logical-height" */
+  void set maxLogicalHeight(String value) {
+    setProperty('${_browserPrefix}max-logical-height', value, '');
+  }
+
+  /** Gets the value of "max-logical-width" */
+  String get maxLogicalWidth() =>
+    getPropertyValue('${_browserPrefix}max-logical-width');
+
+  /** Sets the value of "max-logical-width" */
+  void set maxLogicalWidth(String value) {
+    setProperty('${_browserPrefix}max-logical-width', value, '');
+  }
+
+  /** Gets the value of "max-width" */
+  String get maxWidth() =>
+    getPropertyValue('max-width');
+
+  /** Sets the value of "max-width" */
+  void set maxWidth(String value) {
+    setProperty('max-width', value, '');
+  }
+
+  /** Gets the value of "min-height" */
+  String get minHeight() =>
+    getPropertyValue('min-height');
+
+  /** Sets the value of "min-height" */
+  void set minHeight(String value) {
+    setProperty('min-height', value, '');
+  }
+
+  /** Gets the value of "min-logical-height" */
+  String get minLogicalHeight() =>
+    getPropertyValue('${_browserPrefix}min-logical-height');
+
+  /** Sets the value of "min-logical-height" */
+  void set minLogicalHeight(String value) {
+    setProperty('${_browserPrefix}min-logical-height', value, '');
+  }
+
+  /** Gets the value of "min-logical-width" */
+  String get minLogicalWidth() =>
+    getPropertyValue('${_browserPrefix}min-logical-width');
+
+  /** Sets the value of "min-logical-width" */
+  void set minLogicalWidth(String value) {
+    setProperty('${_browserPrefix}min-logical-width', value, '');
+  }
+
+  /** Gets the value of "min-width" */
+  String get minWidth() =>
+    getPropertyValue('min-width');
+
+  /** Sets the value of "min-width" */
+  void set minWidth(String value) {
+    setProperty('min-width', value, '');
+  }
+
+  /** Gets the value of "nbsp-mode" */
+  String get nbspMode() =>
+    getPropertyValue('${_browserPrefix}nbsp-mode');
+
+  /** Sets the value of "nbsp-mode" */
+  void set nbspMode(String value) {
+    setProperty('${_browserPrefix}nbsp-mode', value, '');
+  }
+
+  /** Gets the value of "opacity" */
+  String get opacity() =>
+    getPropertyValue('opacity');
+
+  /** Sets the value of "opacity" */
+  void set opacity(String value) {
+    setProperty('opacity', value, '');
+  }
+
+  /** Gets the value of "orphans" */
+  String get orphans() =>
+    getPropertyValue('orphans');
+
+  /** Sets the value of "orphans" */
+  void set orphans(String value) {
+    setProperty('orphans', value, '');
+  }
+
+  /** Gets the value of "outline" */
+  String get outline() =>
+    getPropertyValue('outline');
+
+  /** Sets the value of "outline" */
+  void set outline(String value) {
+    setProperty('outline', value, '');
+  }
+
+  /** Gets the value of "outline-color" */
+  String get outlineColor() =>
+    getPropertyValue('outline-color');
+
+  /** Sets the value of "outline-color" */
+  void set outlineColor(String value) {
+    setProperty('outline-color', value, '');
+  }
+
+  /** Gets the value of "outline-offset" */
+  String get outlineOffset() =>
+    getPropertyValue('outline-offset');
+
+  /** Sets the value of "outline-offset" */
+  void set outlineOffset(String value) {
+    setProperty('outline-offset', value, '');
+  }
+
+  /** Gets the value of "outline-style" */
+  String get outlineStyle() =>
+    getPropertyValue('outline-style');
+
+  /** Sets the value of "outline-style" */
+  void set outlineStyle(String value) {
+    setProperty('outline-style', value, '');
+  }
+
+  /** Gets the value of "outline-width" */
+  String get outlineWidth() =>
+    getPropertyValue('outline-width');
+
+  /** Sets the value of "outline-width" */
+  void set outlineWidth(String value) {
+    setProperty('outline-width', value, '');
+  }
+
+  /** Gets the value of "overflow" */
+  String get overflow() =>
+    getPropertyValue('overflow');
+
+  /** Sets the value of "overflow" */
+  void set overflow(String value) {
+    setProperty('overflow', value, '');
+  }
+
+  /** Gets the value of "overflow-x" */
+  String get overflowX() =>
+    getPropertyValue('overflow-x');
+
+  /** Sets the value of "overflow-x" */
+  void set overflowX(String value) {
+    setProperty('overflow-x', value, '');
+  }
+
+  /** Gets the value of "overflow-y" */
+  String get overflowY() =>
+    getPropertyValue('overflow-y');
+
+  /** Sets the value of "overflow-y" */
+  void set overflowY(String value) {
+    setProperty('overflow-y', value, '');
+  }
+
+  /** Gets the value of "padding" */
+  String get padding() =>
+    getPropertyValue('padding');
+
+  /** Sets the value of "padding" */
+  void set padding(String value) {
+    setProperty('padding', value, '');
+  }
+
+  /** Gets the value of "padding-after" */
+  String get paddingAfter() =>
+    getPropertyValue('${_browserPrefix}padding-after');
+
+  /** Sets the value of "padding-after" */
+  void set paddingAfter(String value) {
+    setProperty('${_browserPrefix}padding-after', value, '');
+  }
+
+  /** Gets the value of "padding-before" */
+  String get paddingBefore() =>
+    getPropertyValue('${_browserPrefix}padding-before');
+
+  /** Sets the value of "padding-before" */
+  void set paddingBefore(String value) {
+    setProperty('${_browserPrefix}padding-before', value, '');
+  }
+
+  /** Gets the value of "padding-bottom" */
+  String get paddingBottom() =>
+    getPropertyValue('padding-bottom');
+
+  /** Sets the value of "padding-bottom" */
+  void set paddingBottom(String value) {
+    setProperty('padding-bottom', value, '');
+  }
+
+  /** Gets the value of "padding-end" */
+  String get paddingEnd() =>
+    getPropertyValue('${_browserPrefix}padding-end');
+
+  /** Sets the value of "padding-end" */
+  void set paddingEnd(String value) {
+    setProperty('${_browserPrefix}padding-end', value, '');
+  }
+
+  /** Gets the value of "padding-left" */
+  String get paddingLeft() =>
+    getPropertyValue('padding-left');
+
+  /** Sets the value of "padding-left" */
+  void set paddingLeft(String value) {
+    setProperty('padding-left', value, '');
+  }
+
+  /** Gets the value of "padding-right" */
+  String get paddingRight() =>
+    getPropertyValue('padding-right');
+
+  /** Sets the value of "padding-right" */
+  void set paddingRight(String value) {
+    setProperty('padding-right', value, '');
+  }
+
+  /** Gets the value of "padding-start" */
+  String get paddingStart() =>
+    getPropertyValue('${_browserPrefix}padding-start');
+
+  /** Sets the value of "padding-start" */
+  void set paddingStart(String value) {
+    setProperty('${_browserPrefix}padding-start', value, '');
+  }
+
+  /** Gets the value of "padding-top" */
+  String get paddingTop() =>
+    getPropertyValue('padding-top');
+
+  /** Sets the value of "padding-top" */
+  void set paddingTop(String value) {
+    setProperty('padding-top', value, '');
+  }
+
+  /** Gets the value of "page" */
+  String get page() =>
+    getPropertyValue('page');
+
+  /** Sets the value of "page" */
+  void set page(String value) {
+    setProperty('page', value, '');
+  }
+
+  /** Gets the value of "page-break-after" */
+  String get pageBreakAfter() =>
+    getPropertyValue('page-break-after');
+
+  /** Sets the value of "page-break-after" */
+  void set pageBreakAfter(String value) {
+    setProperty('page-break-after', value, '');
+  }
+
+  /** Gets the value of "page-break-before" */
+  String get pageBreakBefore() =>
+    getPropertyValue('page-break-before');
+
+  /** Sets the value of "page-break-before" */
+  void set pageBreakBefore(String value) {
+    setProperty('page-break-before', value, '');
+  }
+
+  /** Gets the value of "page-break-inside" */
+  String get pageBreakInside() =>
+    getPropertyValue('page-break-inside');
+
+  /** Sets the value of "page-break-inside" */
+  void set pageBreakInside(String value) {
+    setProperty('page-break-inside', value, '');
+  }
+
+  /** Gets the value of "perspective" */
+  String get perspective() =>
+    getPropertyValue('${_browserPrefix}perspective');
+
+  /** Sets the value of "perspective" */
+  void set perspective(String value) {
+    setProperty('${_browserPrefix}perspective', value, '');
+  }
+
+  /** Gets the value of "perspective-origin" */
+  String get perspectiveOrigin() =>
+    getPropertyValue('${_browserPrefix}perspective-origin');
+
+  /** Sets the value of "perspective-origin" */
+  void set perspectiveOrigin(String value) {
+    setProperty('${_browserPrefix}perspective-origin', value, '');
+  }
+
+  /** Gets the value of "perspective-origin-x" */
+  String get perspectiveOriginX() =>
+    getPropertyValue('${_browserPrefix}perspective-origin-x');
+
+  /** Sets the value of "perspective-origin-x" */
+  void set perspectiveOriginX(String value) {
+    setProperty('${_browserPrefix}perspective-origin-x', value, '');
+  }
+
+  /** Gets the value of "perspective-origin-y" */
+  String get perspectiveOriginY() =>
+    getPropertyValue('${_browserPrefix}perspective-origin-y');
+
+  /** Sets the value of "perspective-origin-y" */
+  void set perspectiveOriginY(String value) {
+    setProperty('${_browserPrefix}perspective-origin-y', value, '');
+  }
+
+  /** Gets the value of "pointer-events" */
+  String get pointerEvents() =>
+    getPropertyValue('pointer-events');
+
+  /** Sets the value of "pointer-events" */
+  void set pointerEvents(String value) {
+    setProperty('pointer-events', value, '');
+  }
+
+  /** Gets the value of "position" */
+  String get position() =>
+    getPropertyValue('position');
+
+  /** Sets the value of "position" */
+  void set position(String value) {
+    setProperty('position', value, '');
+  }
+
+  /** Gets the value of "quotes" */
+  String get quotes() =>
+    getPropertyValue('quotes');
+
+  /** Sets the value of "quotes" */
+  void set quotes(String value) {
+    setProperty('quotes', value, '');
+  }
+
+  /** Gets the value of "region-break-after" */
+  String get regionBreakAfter() =>
+    getPropertyValue('${_browserPrefix}region-break-after');
+
+  /** Sets the value of "region-break-after" */
+  void set regionBreakAfter(String value) {
+    setProperty('${_browserPrefix}region-break-after', value, '');
+  }
+
+  /** Gets the value of "region-break-before" */
+  String get regionBreakBefore() =>
+    getPropertyValue('${_browserPrefix}region-break-before');
+
+  /** Sets the value of "region-break-before" */
+  void set regionBreakBefore(String value) {
+    setProperty('${_browserPrefix}region-break-before', value, '');
+  }
+
+  /** Gets the value of "region-break-inside" */
+  String get regionBreakInside() =>
+    getPropertyValue('${_browserPrefix}region-break-inside');
+
+  /** Sets the value of "region-break-inside" */
+  void set regionBreakInside(String value) {
+    setProperty('${_browserPrefix}region-break-inside', value, '');
+  }
+
+  /** Gets the value of "region-overflow" */
+  String get regionOverflow() =>
+    getPropertyValue('${_browserPrefix}region-overflow');
+
+  /** Sets the value of "region-overflow" */
+  void set regionOverflow(String value) {
+    setProperty('${_browserPrefix}region-overflow', value, '');
+  }
+
+  /** Gets the value of "resize" */
+  String get resize() =>
+    getPropertyValue('resize');
+
+  /** Sets the value of "resize" */
+  void set resize(String value) {
+    setProperty('resize', value, '');
+  }
+
+  /** Gets the value of "right" */
+  String get right() =>
+    getPropertyValue('right');
+
+  /** Sets the value of "right" */
+  void set right(String value) {
+    setProperty('right', value, '');
+  }
+
+  /** Gets the value of "rtl-ordering" */
+  String get rtlOrdering() =>
+    getPropertyValue('${_browserPrefix}rtl-ordering');
+
+  /** Sets the value of "rtl-ordering" */
+  void set rtlOrdering(String value) {
+    setProperty('${_browserPrefix}rtl-ordering', value, '');
+  }
+
+  /** Gets the value of "size" */
+  String get size() =>
+    getPropertyValue('size');
+
+  /** Sets the value of "size" */
+  void set size(String value) {
+    setProperty('size', value, '');
+  }
+
+  /** Gets the value of "speak" */
+  String get speak() =>
+    getPropertyValue('speak');
+
+  /** Sets the value of "speak" */
+  void set speak(String value) {
+    setProperty('speak', value, '');
+  }
+
+  /** Gets the value of "src" */
+  String get src() =>
+    getPropertyValue('src');
+
+  /** Sets the value of "src" */
+  void set src(String value) {
+    setProperty('src', value, '');
+  }
+
+  /** Gets the value of "table-layout" */
+  String get tableLayout() =>
+    getPropertyValue('table-layout');
+
+  /** Sets the value of "table-layout" */
+  void set tableLayout(String value) {
+    setProperty('table-layout', value, '');
+  }
+
+  /** Gets the value of "tap-highlight-color" */
+  String get tapHighlightColor() =>
+    getPropertyValue('${_browserPrefix}tap-highlight-color');
+
+  /** Sets the value of "tap-highlight-color" */
+  void set tapHighlightColor(String value) {
+    setProperty('${_browserPrefix}tap-highlight-color', value, '');
+  }
+
+  /** Gets the value of "text-align" */
+  String get textAlign() =>
+    getPropertyValue('text-align');
+
+  /** Sets the value of "text-align" */
+  void set textAlign(String value) {
+    setProperty('text-align', value, '');
+  }
+
+  /** Gets the value of "text-combine" */
+  String get textCombine() =>
+    getPropertyValue('${_browserPrefix}text-combine');
+
+  /** Sets the value of "text-combine" */
+  void set textCombine(String value) {
+    setProperty('${_browserPrefix}text-combine', value, '');
+  }
+
+  /** Gets the value of "text-decoration" */
+  String get textDecoration() =>
+    getPropertyValue('text-decoration');
+
+  /** Sets the value of "text-decoration" */
+  void set textDecoration(String value) {
+    setProperty('text-decoration', value, '');
+  }
+
+  /** Gets the value of "text-decorations-in-effect" */
+  String get textDecorationsInEffect() =>
+    getPropertyValue('${_browserPrefix}text-decorations-in-effect');
+
+  /** Sets the value of "text-decorations-in-effect" */
+  void set textDecorationsInEffect(String value) {
+    setProperty('${_browserPrefix}text-decorations-in-effect', value, '');
+  }
+
+  /** Gets the value of "text-emphasis" */
+  String get textEmphasis() =>
+    getPropertyValue('${_browserPrefix}text-emphasis');
+
+  /** Sets the value of "text-emphasis" */
+  void set textEmphasis(String value) {
+    setProperty('${_browserPrefix}text-emphasis', value, '');
+  }
+
+  /** Gets the value of "text-emphasis-color" */
+  String get textEmphasisColor() =>
+    getPropertyValue('${_browserPrefix}text-emphasis-color');
+
+  /** Sets the value of "text-emphasis-color" */
+  void set textEmphasisColor(String value) {
+    setProperty('${_browserPrefix}text-emphasis-color', value, '');
+  }
+
+  /** Gets the value of "text-emphasis-position" */
+  String get textEmphasisPosition() =>
+    getPropertyValue('${_browserPrefix}text-emphasis-position');
+
+  /** Sets the value of "text-emphasis-position" */
+  void set textEmphasisPosition(String value) {
+    setProperty('${_browserPrefix}text-emphasis-position', value, '');
+  }
+
+  /** Gets the value of "text-emphasis-style" */
+  String get textEmphasisStyle() =>
+    getPropertyValue('${_browserPrefix}text-emphasis-style');
+
+  /** Sets the value of "text-emphasis-style" */
+  void set textEmphasisStyle(String value) {
+    setProperty('${_browserPrefix}text-emphasis-style', value, '');
+  }
+
+  /** Gets the value of "text-fill-color" */
+  String get textFillColor() =>
+    getPropertyValue('${_browserPrefix}text-fill-color');
+
+  /** Sets the value of "text-fill-color" */
+  void set textFillColor(String value) {
+    setProperty('${_browserPrefix}text-fill-color', value, '');
+  }
+
+  /** Gets the value of "text-indent" */
+  String get textIndent() =>
+    getPropertyValue('text-indent');
+
+  /** Sets the value of "text-indent" */
+  void set textIndent(String value) {
+    setProperty('text-indent', value, '');
+  }
+
+  /** Gets the value of "text-line-through" */
+  String get textLineThrough() =>
+    getPropertyValue('text-line-through');
+
+  /** Sets the value of "text-line-through" */
+  void set textLineThrough(String value) {
+    setProperty('text-line-through', value, '');
+  }
+
+  /** Gets the value of "text-line-through-color" */
+  String get textLineThroughColor() =>
+    getPropertyValue('text-line-through-color');
+
+  /** Sets the value of "text-line-through-color" */
+  void set textLineThroughColor(String value) {
+    setProperty('text-line-through-color', value, '');
+  }
+
+  /** Gets the value of "text-line-through-mode" */
+  String get textLineThroughMode() =>
+    getPropertyValue('text-line-through-mode');
+
+  /** Sets the value of "text-line-through-mode" */
+  void set textLineThroughMode(String value) {
+    setProperty('text-line-through-mode', value, '');
+  }
+
+  /** Gets the value of "text-line-through-style" */
+  String get textLineThroughStyle() =>
+    getPropertyValue('text-line-through-style');
+
+  /** Sets the value of "text-line-through-style" */
+  void set textLineThroughStyle(String value) {
+    setProperty('text-line-through-style', value, '');
+  }
+
+  /** Gets the value of "text-line-through-width" */
+  String get textLineThroughWidth() =>
+    getPropertyValue('text-line-through-width');
+
+  /** Sets the value of "text-line-through-width" */
+  void set textLineThroughWidth(String value) {
+    setProperty('text-line-through-width', value, '');
+  }
+
+  /** Gets the value of "text-orientation" */
+  String get textOrientation() =>
+    getPropertyValue('${_browserPrefix}text-orientation');
+
+  /** Sets the value of "text-orientation" */
+  void set textOrientation(String value) {
+    setProperty('${_browserPrefix}text-orientation', value, '');
+  }
+
+  /** Gets the value of "text-overflow" */
+  String get textOverflow() =>
+    getPropertyValue('text-overflow');
+
+  /** Sets the value of "text-overflow" */
+  void set textOverflow(String value) {
+    setProperty('text-overflow', value, '');
+  }
+
+  /** Gets the value of "text-overline" */
+  String get textOverline() =>
+    getPropertyValue('text-overline');
+
+  /** Sets the value of "text-overline" */
+  void set textOverline(String value) {
+    setProperty('text-overline', value, '');
+  }
+
+  /** Gets the value of "text-overline-color" */
+  String get textOverlineColor() =>
+    getPropertyValue('text-overline-color');
+
+  /** Sets the value of "text-overline-color" */
+  void set textOverlineColor(String value) {
+    setProperty('text-overline-color', value, '');
+  }
+
+  /** Gets the value of "text-overline-mode" */
+  String get textOverlineMode() =>
+    getPropertyValue('text-overline-mode');
+
+  /** Sets the value of "text-overline-mode" */
+  void set textOverlineMode(String value) {
+    setProperty('text-overline-mode', value, '');
+  }
+
+  /** Gets the value of "text-overline-style" */
+  String get textOverlineStyle() =>
+    getPropertyValue('text-overline-style');
+
+  /** Sets the value of "text-overline-style" */
+  void set textOverlineStyle(String value) {
+    setProperty('text-overline-style', value, '');
+  }
+
+  /** Gets the value of "text-overline-width" */
+  String get textOverlineWidth() =>
+    getPropertyValue('text-overline-width');
+
+  /** Sets the value of "text-overline-width" */
+  void set textOverlineWidth(String value) {
+    setProperty('text-overline-width', value, '');
+  }
+
+  /** Gets the value of "text-rendering" */
+  String get textRendering() =>
+    getPropertyValue('text-rendering');
+
+  /** Sets the value of "text-rendering" */
+  void set textRendering(String value) {
+    setProperty('text-rendering', value, '');
+  }
+
+  /** Gets the value of "text-security" */
+  String get textSecurity() =>
+    getPropertyValue('${_browserPrefix}text-security');
+
+  /** Sets the value of "text-security" */
+  void set textSecurity(String value) {
+    setProperty('${_browserPrefix}text-security', value, '');
+  }
+
+  /** Gets the value of "text-shadow" */
+  String get textShadow() =>
+    getPropertyValue('text-shadow');
+
+  /** Sets the value of "text-shadow" */
+  void set textShadow(String value) {
+    setProperty('text-shadow', value, '');
+  }
+
+  /** Gets the value of "text-size-adjust" */
+  String get textSizeAdjust() =>
+    getPropertyValue('${_browserPrefix}text-size-adjust');
+
+  /** Sets the value of "text-size-adjust" */
+  void set textSizeAdjust(String value) {
+    setProperty('${_browserPrefix}text-size-adjust', value, '');
+  }
+
+  /** Gets the value of "text-stroke" */
+  String get textStroke() =>
+    getPropertyValue('${_browserPrefix}text-stroke');
+
+  /** Sets the value of "text-stroke" */
+  void set textStroke(String value) {
+    setProperty('${_browserPrefix}text-stroke', value, '');
+  }
+
+  /** Gets the value of "text-stroke-color" */
+  String get textStrokeColor() =>
+    getPropertyValue('${_browserPrefix}text-stroke-color');
+
+  /** Sets the value of "text-stroke-color" */
+  void set textStrokeColor(String value) {
+    setProperty('${_browserPrefix}text-stroke-color', value, '');
+  }
+
+  /** Gets the value of "text-stroke-width" */
+  String get textStrokeWidth() =>
+    getPropertyValue('${_browserPrefix}text-stroke-width');
+
+  /** Sets the value of "text-stroke-width" */
+  void set textStrokeWidth(String value) {
+    setProperty('${_browserPrefix}text-stroke-width', value, '');
+  }
+
+  /** Gets the value of "text-transform" */
+  String get textTransform() =>
+    getPropertyValue('text-transform');
+
+  /** Sets the value of "text-transform" */
+  void set textTransform(String value) {
+    setProperty('text-transform', value, '');
+  }
+
+  /** Gets the value of "text-underline" */
+  String get textUnderline() =>
+    getPropertyValue('text-underline');
+
+  /** Sets the value of "text-underline" */
+  void set textUnderline(String value) {
+    setProperty('text-underline', value, '');
+  }
+
+  /** Gets the value of "text-underline-color" */
+  String get textUnderlineColor() =>
+    getPropertyValue('text-underline-color');
+
+  /** Sets the value of "text-underline-color" */
+  void set textUnderlineColor(String value) {
+    setProperty('text-underline-color', value, '');
+  }
+
+  /** Gets the value of "text-underline-mode" */
+  String get textUnderlineMode() =>
+    getPropertyValue('text-underline-mode');
+
+  /** Sets the value of "text-underline-mode" */
+  void set textUnderlineMode(String value) {
+    setProperty('text-underline-mode', value, '');
+  }
+
+  /** Gets the value of "text-underline-style" */
+  String get textUnderlineStyle() =>
+    getPropertyValue('text-underline-style');
+
+  /** Sets the value of "text-underline-style" */
+  void set textUnderlineStyle(String value) {
+    setProperty('text-underline-style', value, '');
+  }
+
+  /** Gets the value of "text-underline-width" */
+  String get textUnderlineWidth() =>
+    getPropertyValue('text-underline-width');
+
+  /** Sets the value of "text-underline-width" */
+  void set textUnderlineWidth(String value) {
+    setProperty('text-underline-width', value, '');
+  }
+
+  /** Gets the value of "top" */
+  String get top() =>
+    getPropertyValue('top');
+
+  /** Sets the value of "top" */
+  void set top(String value) {
+    setProperty('top', value, '');
+  }
+
+  /** Gets the value of "transform" */
+  String get transform() =>
+    getPropertyValue('${_browserPrefix}transform');
+
+  /** Sets the value of "transform" */
+  void set transform(String value) {
+    setProperty('${_browserPrefix}transform', value, '');
+  }
+
+  /** Gets the value of "transform-origin" */
+  String get transformOrigin() =>
+    getPropertyValue('${_browserPrefix}transform-origin');
+
+  /** Sets the value of "transform-origin" */
+  void set transformOrigin(String value) {
+    setProperty('${_browserPrefix}transform-origin', value, '');
+  }
+
+  /** Gets the value of "transform-origin-x" */
+  String get transformOriginX() =>
+    getPropertyValue('${_browserPrefix}transform-origin-x');
+
+  /** Sets the value of "transform-origin-x" */
+  void set transformOriginX(String value) {
+    setProperty('${_browserPrefix}transform-origin-x', value, '');
+  }
+
+  /** Gets the value of "transform-origin-y" */
+  String get transformOriginY() =>
+    getPropertyValue('${_browserPrefix}transform-origin-y');
+
+  /** Sets the value of "transform-origin-y" */
+  void set transformOriginY(String value) {
+    setProperty('${_browserPrefix}transform-origin-y', value, '');
+  }
+
+  /** Gets the value of "transform-origin-z" */
+  String get transformOriginZ() =>
+    getPropertyValue('${_browserPrefix}transform-origin-z');
+
+  /** Sets the value of "transform-origin-z" */
+  void set transformOriginZ(String value) {
+    setProperty('${_browserPrefix}transform-origin-z', value, '');
+  }
+
+  /** Gets the value of "transform-style" */
+  String get transformStyle() =>
+    getPropertyValue('${_browserPrefix}transform-style');
+
+  /** Sets the value of "transform-style" */
+  void set transformStyle(String value) {
+    setProperty('${_browserPrefix}transform-style', value, '');
+  }
+
+  /** Gets the value of "transition" */
+  String get transition() =>
+    getPropertyValue('${_browserPrefix}transition');
+
+  /** Sets the value of "transition" */
+  void set transition(String value) {
+    setProperty('${_browserPrefix}transition', value, '');
+  }
+
+  /** Gets the value of "transition-delay" */
+  String get transitionDelay() =>
+    getPropertyValue('${_browserPrefix}transition-delay');
+
+  /** Sets the value of "transition-delay" */
+  void set transitionDelay(String value) {
+    setProperty('${_browserPrefix}transition-delay', value, '');
+  }
+
+  /** Gets the value of "transition-duration" */
+  String get transitionDuration() =>
+    getPropertyValue('${_browserPrefix}transition-duration');
+
+  /** Sets the value of "transition-duration" */
+  void set transitionDuration(String value) {
+    setProperty('${_browserPrefix}transition-duration', value, '');
+  }
+
+  /** Gets the value of "transition-property" */
+  String get transitionProperty() =>
+    getPropertyValue('${_browserPrefix}transition-property');
+
+  /** Sets the value of "transition-property" */
+  void set transitionProperty(String value) {
+    setProperty('${_browserPrefix}transition-property', value, '');
+  }
+
+  /** Gets the value of "transition-timing-function" */
+  String get transitionTimingFunction() =>
+    getPropertyValue('${_browserPrefix}transition-timing-function');
+
+  /** Sets the value of "transition-timing-function" */
+  void set transitionTimingFunction(String value) {
+    setProperty('${_browserPrefix}transition-timing-function', value, '');
+  }
+
+  /** Gets the value of "unicode-bidi" */
+  String get unicodeBidi() =>
+    getPropertyValue('unicode-bidi');
+
+  /** Sets the value of "unicode-bidi" */
+  void set unicodeBidi(String value) {
+    setProperty('unicode-bidi', value, '');
+  }
+
+  /** Gets the value of "unicode-range" */
+  String get unicodeRange() =>
+    getPropertyValue('unicode-range');
+
+  /** Sets the value of "unicode-range" */
+  void set unicodeRange(String value) {
+    setProperty('unicode-range', value, '');
+  }
+
+  /** Gets the value of "user-drag" */
+  String get userDrag() =>
+    getPropertyValue('${_browserPrefix}user-drag');
+
+  /** Sets the value of "user-drag" */
+  void set userDrag(String value) {
+    setProperty('${_browserPrefix}user-drag', value, '');
+  }
+
+  /** Gets the value of "user-modify" */
+  String get userModify() =>
+    getPropertyValue('${_browserPrefix}user-modify');
+
+  /** Sets the value of "user-modify" */
+  void set userModify(String value) {
+    setProperty('${_browserPrefix}user-modify', value, '');
+  }
+
+  /** Gets the value of "user-select" */
+  String get userSelect() =>
+    getPropertyValue('${_browserPrefix}user-select');
+
+  /** Sets the value of "user-select" */
+  void set userSelect(String value) {
+    setProperty('${_browserPrefix}user-select', value, '');
+  }
+
+  /** Gets the value of "vertical-align" */
+  String get verticalAlign() =>
+    getPropertyValue('vertical-align');
+
+  /** Sets the value of "vertical-align" */
+  void set verticalAlign(String value) {
+    setProperty('vertical-align', value, '');
+  }
+
+  /** Gets the value of "visibility" */
+  String get visibility() =>
+    getPropertyValue('visibility');
+
+  /** Sets the value of "visibility" */
+  void set visibility(String value) {
+    setProperty('visibility', value, '');
+  }
+
+  /** Gets the value of "white-space" */
+  String get whiteSpace() =>
+    getPropertyValue('white-space');
+
+  /** Sets the value of "white-space" */
+  void set whiteSpace(String value) {
+    setProperty('white-space', value, '');
+  }
+
+  /** Gets the value of "widows" */
+  String get widows() =>
+    getPropertyValue('widows');
+
+  /** Sets the value of "widows" */
+  void set widows(String value) {
+    setProperty('widows', value, '');
+  }
+
+  /** Gets the value of "width" */
+  String get width() =>
+    getPropertyValue('width');
+
+  /** Sets the value of "width" */
+  void set width(String value) {
+    setProperty('width', value, '');
+  }
+
+  /** Gets the value of "word-break" */
+  String get wordBreak() =>
+    getPropertyValue('word-break');
+
+  /** Sets the value of "word-break" */
+  void set wordBreak(String value) {
+    setProperty('word-break', value, '');
+  }
+
+  /** Gets the value of "word-spacing" */
+  String get wordSpacing() =>
+    getPropertyValue('word-spacing');
+
+  /** Sets the value of "word-spacing" */
+  void set wordSpacing(String value) {
+    setProperty('word-spacing', value, '');
+  }
+
+  /** Gets the value of "word-wrap" */
+  String get wordWrap() =>
+    getPropertyValue('word-wrap');
+
+  /** Sets the value of "word-wrap" */
+  void set wordWrap(String value) {
+    setProperty('word-wrap', value, '');
+  }
+
+  /** Gets the value of "wrap-shape" */
+  String get wrapShape() =>
+    getPropertyValue('${_browserPrefix}wrap-shape');
+
+  /** Sets the value of "wrap-shape" */
+  void set wrapShape(String value) {
+    setProperty('${_browserPrefix}wrap-shape', value, '');
+  }
+
+  /** Gets the value of "writing-mode" */
+  String get writingMode() =>
+    getPropertyValue('${_browserPrefix}writing-mode');
+
+  /** Sets the value of "writing-mode" */
+  void set writingMode(String value) {
+    setProperty('${_browserPrefix}writing-mode', value, '');
+  }
+
+  /** Gets the value of "z-index" */
+  String get zIndex() =>
+    getPropertyValue('z-index');
+
+  /** Sets the value of "z-index" */
+  void set zIndex(String value) {
+    setProperty('z-index', value, '');
+  }
+
+  /** Gets the value of "zoom" */
+  String get zoom() =>
+    getPropertyValue('zoom');
+
+  /** Sets the value of "zoom" */
+  void set zoom(String value) {
+    setProperty('zoom', value, '');
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface CustomEvent extends Event factory CustomEventWrappingImplementation {
+
+  CustomEvent(String type, [bool canBubble, bool cancelable, Object detail]);
+
+  String get detail();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class CustomEventWrappingImplementation extends EventWrappingImplementation implements CustomEvent {
+  CustomEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory CustomEventWrappingImplementation(String type,
+      [bool canBubble = true, bool cancelable = true, Object detail = null]) {
+    final e = dom.document.createEvent("CustomEvent");
+    e.initCustomEvent(type, canBubble, cancelable, detail);
+    return LevelDom.wrapCustomEvent(e);
+  }
+
+  String get detail() => _ptr.detail;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface DOMApplicationCacheEvents extends Events {
+  EventListenerList get cached();
+  EventListenerList get checking();
+  EventListenerList get downloading();
+  EventListenerList get error();
+  EventListenerList get noUpdate();
+  EventListenerList get obsolete();
+  EventListenerList get progress();
+  EventListenerList get updateReady();  
+}
+
+interface DOMApplicationCache extends EventTarget {
+
+  static final int CHECKING = 2;
+
+  static final int DOWNLOADING = 3;
+
+  static final int IDLE = 1;
+
+  static final int OBSOLETE = 5;
+
+  static final int UNCACHED = 0;
+
+  static final int UPDATEREADY = 4;
+
+  int get status();
+
+  void swapCache();
+
+  void update();
+
+  DOMApplicationCacheEvents get on();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18782,6 +21939,91 @@ class _DataAttributeMap implements Map<String, String> {
   String _strip(String key) => key.substring(5);
 }
 
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Utils for device detection.
+ */
+class _Device {
+  /**
+   * Gets the browser's user agent. Using this function allows tests to inject
+   * the user agent.
+   * Returns the user agent.
+   */
+  static String get userAgent() => dom.window.navigator.userAgent;
+
+  /**
+   * Determines if the current device is running Firefox.
+   */
+  static bool get isFirefox() => userAgent.contains("Firefox", 0);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface DeviceMotionEvent extends Event factory DeviceMotionEventWrappingImplementation {
+
+  // TODO(nweiz): Add more arguments to the constructor when we support
+  // DeviceMotionEvent more thoroughly.
+  DeviceMotionEvent(String type, [bool canBubble, bool cancelable]);
+
+  num get interval();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class DeviceMotionEventWrappingImplementation extends EventWrappingImplementation implements DeviceMotionEvent {
+  DeviceMotionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory DeviceMotionEventWrappingImplementation(String type,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("DeviceMotionEvent");
+    e.initEvent(type, canBubble, cancelable);
+    return LevelDom.wrapDeviceMotionEvent(e);
+  }
+
+  num get interval() => _ptr.interval;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface DeviceOrientationEvent extends Event factory DeviceOrientationEventWrappingImplementation {
+
+  DeviceOrientationEvent(String type, double alpha, double beta, double gamma,
+      [bool canBubble, bool cancelable]);
+
+  num get alpha();
+
+  num get beta();
+
+  num get gamma();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class DeviceOrientationEventWrappingImplementation extends EventWrappingImplementation implements DeviceOrientationEvent {
+  DeviceOrientationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory DeviceOrientationEventWrappingImplementation(String type,
+      double alpha, double beta, double gamma, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent("DeviceOrientationEvent");
+    e.initDeviceOrientationEvent(
+        type, canBubble, cancelable, alpha, beta, gamma);
+    return LevelDom.wrapDeviceOrientationEvent(e);
+  }
+
+  num get alpha() => _ptr.alpha;
+
+  num get beta() => _ptr.beta;
+
+  num get gamma() => _ptr.gamma;
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19093,16 +22335,10 @@ class FilteredElementList implements ElementList {
   Element last() => _filtered.last();
 }
 
-class EmptyStyleDeclaration implements CSSStyleDeclaration {
-  String get cssText() => "";
-  int get length() => 0;
-  CSSRule get parentRule() => null;
-  CSSValue getPropertyCSSValue(String propertyName) => null;
-  String getPropertyPriority(String propertyName) => "";
-  String getPropertyShorthand(String propertyName) => null;
-  String getPropertyValue(String propertyName) => null;
-  bool isPropertyImplicit(String propertyName) => false;
-  String item(int index) => "";
+class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
+  // This can't call super(), since that's a factory constructor
+  EmptyStyleDeclaration()
+    : super._wrap(dom.document.createElement('div').style);
 
   void set cssText(String value) {
     throw new UnsupportedOperationException(
@@ -19247,7 +22483,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   String get tagName() => "";
   String get webkitdropzone() => "";
   Element get firstElementChild() => elements.first();
-  Element get lastElementChild() => elements.last;
+  Element get lastElementChild() => elements.last();
   Element get nextElementSibling() => null;
   Element get previousElementSibling() => null;
   Element get offsetParent() => null;
@@ -20354,6 +23590,181 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface ErrorEvent extends Event factory ErrorEventWrappingImplementation {
+
+  ErrorEvent(String type, String message, String filename, int lineNo,
+      [bool canBubble, bool cancelable]);
+
+  String get filename();
+
+  int get lineno();
+
+  String get message();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class ErrorEventWrappingImplementation extends EventWrappingImplementation implements ErrorEvent {
+  ErrorEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory ErrorEventWrappingImplementation(String type, String message,
+      String filename, int lineNo, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent("ErrorEvent");
+    e.initErrorEvent(type, canBubble, cancelable, message, filename, lineNo);
+    return LevelDom.wrapErrorEvent(e);
+  }
+
+  String get filename() => _ptr.filename;
+
+  int get lineno() => _ptr.lineno;
+
+  String get message() => _ptr.message;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Event factory EventWrappingImplementation {
+
+  static final int AT_TARGET = 2;
+
+  static final int BLUR = 8192;
+
+  static final int BUBBLING_PHASE = 3;
+
+  static final int CAPTURING_PHASE = 1;
+
+  static final int CHANGE = 32768;
+
+  static final int CLICK = 64;
+
+  static final int DBLCLICK = 128;
+
+  static final int DRAGDROP = 2048;
+
+  static final int FOCUS = 4096;
+
+  static final int KEYDOWN = 256;
+
+  static final int KEYPRESS = 1024;
+
+  static final int KEYUP = 512;
+
+  static final int MOUSEDOWN = 1;
+
+  static final int MOUSEDRAG = 32;
+
+  static final int MOUSEMOVE = 16;
+
+  static final int MOUSEOUT = 8;
+
+  static final int MOUSEOVER = 4;
+
+  static final int MOUSEUP = 2;
+
+  static final int SELECT = 16384;
+
+  // In JS, canBubble and cancelable are technically required parameters to
+  // init*Event. In practice, though, if they aren't provided they simply
+  // default to false (since that's Boolean(undefined)).
+  //
+  // Contrary to JS, we default canBubble and cancelable to true, since that's
+  // what people want most of the time anyway.
+  Event(String type, [bool canBubble, bool cancelable]);
+
+  bool get bubbles();
+
+  bool get cancelBubble();
+
+  void set cancelBubble(bool value);
+
+  bool get cancelable();
+
+  EventTarget get currentTarget();
+
+  bool get defaultPrevented();
+
+  int get eventPhase();
+
+  bool get returnValue();
+
+  void set returnValue(bool value);
+
+  EventTarget get srcElement();
+
+  EventTarget get target();
+
+  int get timeStamp();
+
+  String get type();
+
+  void preventDefault();
+
+  void stopImmediatePropagation();
+
+  void stopPropagation();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class EventWrappingImplementation extends DOMWrapperBase implements Event {
+  EventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory EventWrappingImplementation(String type, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent("Event");
+    e.initEvent(type, canBubble, cancelable);
+    return LevelDom.wrapEvent(e);
+  }
+
+  bool get bubbles() => _ptr.bubbles;
+
+  bool get cancelBubble() => _ptr.cancelBubble;
+
+  void set cancelBubble(bool value) { _ptr.cancelBubble = value; }
+
+  bool get cancelable() => _ptr.cancelable;
+
+  EventTarget get currentTarget() => LevelDom.wrapEventTarget(_ptr.currentTarget);
+
+  bool get defaultPrevented() => _ptr.defaultPrevented;
+
+  int get eventPhase() => _ptr.eventPhase;
+
+  bool get returnValue() => _ptr.returnValue;
+
+  void set returnValue(bool value) { _ptr.returnValue = value; }
+
+  EventTarget get srcElement() => LevelDom.wrapEventTarget(_ptr.srcElement);
+
+  EventTarget get target() => LevelDom.wrapEventTarget(_ptr.target);
+
+  int get timeStamp() => _ptr.timeStamp;
+
+  String get type() => _ptr.type;
+
+  void preventDefault() {
+    _ptr.preventDefault();
+    return;
+  }
+
+  void stopImmediatePropagation() {
+    _ptr.stopImmediatePropagation();
+    return;
+  }
+
+  void stopPropagation() {
+    _ptr.stopPropagation();
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef void EventListener(Event event);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20582,6 +23993,693 @@ Document get document() {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface HashChangeEvent extends Event factory HashChangeEventWrappingImplementation {
+
+  HashChangeEvent(String type, String oldURL, String newURL, [bool canBubble,
+      bool cancelable]);
+
+  String get newURL();
+
+  String get oldURL();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class HashChangeEventWrappingImplementation extends EventWrappingImplementation implements HashChangeEvent {
+  HashChangeEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory HashChangeEventWrappingImplementation(String type, String oldURL,
+      String newURL, [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("HashChangeEvent");
+    e.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
+    return LevelDom.wrapHashChangeEvent(e);
+  }
+
+  String get newURL() => _ptr.newURL;
+
+  String get oldURL() => _ptr.oldURL;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface KeyboardEvent extends UIEvent factory KeyboardEventWrappingImplementation {
+
+  static final int KEY_LOCATION_LEFT = 0x01;
+
+  static final int KEY_LOCATION_NUMPAD = 0x03;
+
+  static final int KEY_LOCATION_RIGHT = 0x02;
+
+  static final int KEY_LOCATION_STANDARD = 0x00;
+
+  KeyboardEvent(String type, Window view, String keyIdentifier, int keyLocation,
+      [bool canBubble, bool cancelable, bool ctrlKey, bool altKey,
+      bool shiftKey, bool metaKey, bool altGraphKey]);
+
+  bool get altGraphKey();
+
+  bool get altKey();
+
+  bool get ctrlKey();
+
+  String get keyIdentifier();
+
+  int get keyLocation();
+
+  bool get metaKey();
+
+  bool get shiftKey();
+
+  bool getModifierState(String keyIdentifierArg);
+}
+
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Defines the standard key locations returned by
+ * KeyboardEvent.getKeyLocation.
+ */
+interface KeyLocation {
+
+  /**
+   * The event key is not distinguished as the left or right version
+   * of the key, and did not originate from the numeric keypad (or did not
+   * originate with a virtual key corresponding to the numeric keypad).
+   */
+  static final int STANDARD = 0;
+
+  /**
+   * The event key is in the left key location.
+   */
+  static final int LEFT = 1;
+
+  /**
+   * The event key is in the right key location.
+   */
+  static final int RIGHT = 2;
+
+  /**
+   * The event key originated on the numeric keypad or with a virtual key
+   * corresponding to the numeric keypad.
+   */
+  static final int NUMPAD = 3;
+
+  /**
+   * The event key originated on a mobile device, either on a physical
+   * keypad or a virtual keyboard.
+   */
+  static final int MOBILE = 4;
+
+  /**
+   * The event key originated on a game controller or a joystick on a mobile
+   * device.
+   */
+  static final int JOYSTICK = 5;
+}
+
+/**
+ * Defines the standard keyboard identifier names for keys that are returned
+ * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
+ * unicode mapping.
+ */
+interface KeyName {
+
+  /** The Accept (Commit, OK) key */
+  static final String ACCEPT = "Accept";
+
+  /** The Add key */
+  static final String ADD = "Add";
+
+  /** The Again key */
+  static final String AGAIN = "Again";
+
+  /** The All Candidates key */
+  static final String ALL_CANDIDATES = "AllCandidates";
+
+  /** The Alphanumeric key */
+  static final String ALPHANUMERIC = "Alphanumeric";
+
+  /** The Alt (Menu) key */
+  static final String ALT = "Alt";
+
+  /** The Alt-Graph key */
+  static final String ALT_GRAPH = "AltGraph";
+
+  /** The Application key */
+  static final String APPS = "Apps";
+
+  /** The ATTN key */
+  static final String ATTN = "Attn";
+
+  /** The Browser Back key */
+  static final String BROWSER_BACK = "BrowserBack";
+
+  /** The Browser Favorites key */
+  static final String BROWSER_FAVORTIES = "BrowserFavorites";
+
+  /** The Browser Forward key */
+  static final String BROWSER_FORWARD = "BrowserForward";
+
+  /** The Browser Home key */
+  static final String BROWSER_NAME = "BrowserHome";
+
+  /** The Browser Refresh key */
+  static final String BROWSER_REFRESH = "BrowserRefresh";
+
+  /** The Browser Search key */
+  static final String BROWSER_SEARCH = "BrowserSearch";
+
+  /** The Browser Stop key */
+  static final String BROWSER_STOP = "BrowserStop";
+
+  /** The Camera key */
+  static final String CAMERA = "Camera";
+
+  /** The Caps Lock (Capital) key */
+  static final String CAPS_LOCK = "CapsLock";
+
+  /** The Clear key */
+  static final String CLEAR = "Clear";
+
+  /** The Code Input key */
+  static final String CODE_INPUT = "CodeInput";
+
+  /** The Compose key */
+  static final String COMPOSE = "Compose";
+
+  /** The Control (Ctrl) key */
+  static final String CONTROL = "Control";
+
+  /** The Crsel key */
+  static final String CRSEL = "Crsel";
+
+  /** The Convert key */
+  static final String CONVERT = "Convert";
+
+  /** The Copy key */
+  static final String COPY = "Copy";
+
+  /** The Cut key */
+  static final String CUT = "Cut";
+
+  /** The Decimal key */
+  static final String DECIMAL = "Decimal";
+
+  /** The Divide key */
+  static final String DIVIDE = "Divide";
+
+  /** The Down Arrow key */
+  static final String DOWN = "Down";
+
+  /** The diagonal Down-Left Arrow key */
+  static final String DOWN_LEFT = "DownLeft";
+
+  /** The diagonal Down-Right Arrow key */
+  static final String DOWN_RIGHT = "DownRight";
+
+  /** The Eject key */
+  static final String EJECT = "Eject";
+
+  /** The End key */
+  static final String END = "End";
+
+  /**
+   * The Enter key. Note: This key value must also be used for the Return
+   *  (Macintosh numpad) key
+   */
+  static final String ENTER = "Enter";
+
+  /** The Erase EOF key */
+  static final String ERASE_EOF= "EraseEof";
+
+  /** The Execute key */
+  static final String EXECUTE = "Execute";
+
+  /** The Exsel key */
+  static final String EXSEL = "Exsel";
+
+  /** The Function switch key */
+  static final String FN = "Fn";
+
+  /** The F1 key */
+  static final String F1 = "F1";
+
+  /** The F2 key */
+  static final String F2 = "F2";
+
+  /** The F3 key */
+  static final String F3 = "F3";
+
+  /** The F4 key */
+  static final String F4 = "F4";
+
+  /** The F5 key */
+  static final String F5 = "F5";
+
+  /** The F6 key */
+  static final String F6 = "F6";
+
+  /** The F7 key */
+  static final String F7 = "F7";
+
+  /** The F8 key */
+  static final String F8 = "F8";
+
+  /** The F9 key */
+  static final String F9 = "F9";
+
+  /** The F10 key */
+  static final String F10 = "F10";
+
+  /** The F11 key */
+  static final String F11 = "F11";
+
+  /** The F12 key */
+  static final String F12 = "F12";
+
+  /** The F13 key */
+  static final String F13 = "F13";
+
+  /** The F14 key */
+  static final String F14 = "F14";
+
+  /** The F15 key */
+  static final String F15 = "F15";
+
+  /** The F16 key */
+  static final String F16 = "F16";
+
+  /** The F17 key */
+  static final String F17 = "F17";
+
+  /** The F18 key */
+  static final String F18 = "F18";
+
+  /** The F19 key */
+  static final String F19 = "F19";
+
+  /** The F20 key */
+  static final String F20 = "F20";
+
+  /** The F21 key */
+  static final String F21 = "F21";
+
+  /** The F22 key */
+  static final String F22 = "F22";
+
+  /** The F23 key */
+  static final String F23 = "F23";
+
+  /** The F24 key */
+  static final String F24 = "F24";
+
+  /** The Final Mode (Final) key used on some asian keyboards */
+  static final String FINAL_MODE = "FinalMode";
+
+  /** The Find key */
+  static final String FIND = "Find";
+
+  /** The Full-Width Characters key */
+  static final String FULL_WIDTH = "FullWidth";
+
+  /** The Half-Width Characters key */
+  static final String HALF_WIDTH = "HalfWidth";
+
+  /** The Hangul (Korean characters) Mode key */
+  static final String HANGUL_MODE = "HangulMode";
+
+  /** The Hanja (Korean characters) Mode key */
+  static final String HANJA_MODE = "HanjaMode";
+
+  /** The Help key */
+  static final String HELP = "Help";
+
+  /** The Hiragana (Japanese Kana characters) key */
+  static final String HIRAGANA = "Hiragana";
+
+  /** The Home key */
+  static final String HOME = "Home";
+
+  /** The Insert (Ins) key */
+  static final String INSERT = "Insert";
+
+  /** The Japanese-Hiragana key */
+  static final String JAPANESE_HIRAGANA = "JapaneseHiragana";
+
+  /** The Japanese-Katakana key */
+  static final String JAPANESE_KATAKANA = "JapaneseKatakana";
+
+  /** The Japanese-Romaji key */
+  static final String JAPANESE_ROMAJI = "JapaneseRomaji";
+
+  /** The Junja Mode key */
+  static final String JUNJA_MODE = "JunjaMode";
+
+  /** The Kana Mode (Kana Lock) key */
+  static final String KANA_MODE = "KanaMode";
+
+  /**
+   * The Kanji (Japanese name for ideographic characters of Chinese origin)
+   * Mode key
+   */
+  static final String KANJI_MODE = "KanjiMode";
+
+  /** The Katakana (Japanese Kana characters) key */
+  static final String KATAKANA = "Katakana";
+
+  /** The Start Application One key */
+  static final String LAUNCH_APPLICATION_1 = "LaunchApplication1";
+
+  /** The Start Application Two key */
+  static final String LAUNCH_APPLICATION_2 = "LaunchApplication2";
+
+  /** The Start Mail key */
+  static final String LAUNCH_MAIL = "LaunchMail";
+
+  /** The Left Arrow key */
+  static final String LEFT = "Left";
+
+  /** The Menu key */
+  static final String MENU = "Menu";
+
+  /**
+   * The Meta key. Note: This key value shall be also used for the Apple
+   * Command key
+   */
+  static final String META = "Meta";
+
+  /** The Media Next Track key */
+  static final String MEDIA_NEXT_TRACK = "MediaNextTrack";
+
+  /** The Media Play Pause key */
+  static final String MEDIA_PAUSE_PLAY = "MediaPlayPause";
+
+  /** The Media Previous Track key */
+  static final String MEDIA_PREVIOUS_TRACK = "MediaPreviousTrack";
+
+  /** The Media Stop key */
+  static final String MEDIA_STOP = "MediaStop";
+
+  /** The Mode Change key */
+  static final String MODE_CHANGE = "ModeChange";
+
+  /** The Next Candidate function key */
+  static final String NEXT_CANDIDATE = "NextCandidate";
+
+  /** The Nonconvert (Don't Convert) key */
+  static final String NON_CONVERT = "Nonconvert";
+
+  /** The Number Lock key */
+  static final String NUM_LOCK = "NumLock";
+
+  /** The Page Down (Next) key */
+  static final String PAGE_DOWN = "PageDown";
+
+  /** The Page Up key */
+  static final String PAGE_UP = "PageUp";
+
+  /** The Paste key */
+  static final String PASTE = "Paste";
+
+  /** The Pause key */
+  static final String PAUSE = "Pause";
+
+  /** The Play key */
+  static final String PLAY = "Play";
+
+  /**
+   * The Power key. Note: Some devices may not expose this key to the
+   * operating environment
+   */
+  static final String POWER = "Power";
+
+  /** The Previous Candidate function key */
+  static final String PREVIOUS_CANDIDATE = "PreviousCandidate";
+
+  /** The Print Screen (PrintScrn, SnapShot) key */
+  static final String PRINT_SCREEN = "PrintScreen";
+
+  /** The Process key */
+  static final String PROCESS = "Process";
+
+  /** The Props key */
+  static final String PROPS = "Props";
+
+  /** The Right Arrow key */
+  static final String RIGHT = "Right";
+
+  /** The Roman Characters function key */
+  static final String ROMAN_CHARACTERS = "RomanCharacters";
+
+  /** The Scroll Lock key */
+  static final String SCROLL = "Scroll";
+
+  /** The Select key */
+  static final String SELECT = "Select";
+
+  /** The Select Media key */
+  static final String SELECT_MEDIA = "SelectMedia";
+
+  /** The Separator key */
+  static final String SEPARATOR = "Separator";
+
+  /** The Shift key */
+  static final String SHIFT = "Shift";
+
+  /** The Soft1 key */
+  static final String SOFT_1 = "Soft1";
+
+  /** The Soft2 key */
+  static final String SOFT_2 = "Soft2";
+
+  /** The Soft3 key */
+  static final String SOFT_3 = "Soft3";
+
+  /** The Soft4 key */
+  static final String SOFT_4 = "Soft4";
+
+  /** The Stop key */
+  static final String STOP = "Stop";
+
+  /** The Subtract key */
+  static final String SUBTRACT = "Subtract";
+
+  /** The Symbol Lock key */
+  static final String SYMBOL_LOCK = "SymbolLock";
+
+  /** The Up Arrow key */
+  static final String UP = "Up";
+
+  /** The diagonal Up-Left Arrow key */
+  static final String UP_LEFT = "UpLeft";
+
+  /** The diagonal Up-Right Arrow key */
+  static final String UP_RIGHT = "UpRight";
+
+  /** The Undo key */
+  static final String UNDO = "Undo";
+
+  /** The Volume Down key */
+  static final String VOLUME_DOWN = "VolumeDown";
+
+  /** The Volume Mute key */
+  static final String VOLUMN_MUTE = "VolumeMute";
+
+  /** The Volume Up key */
+  static final String VOLUMN_UP = "VolumeUp";
+
+  /** The Windows Logo key */
+  static final String WIN = "Win";
+
+  /** The Zoom key */
+  static final String ZOOM = "Zoom";
+
+  /**
+   * The Backspace (Back) key. Note: This key value shall be also used for the
+   * key labeled 'delete' MacOS keyboards when not modified by the 'Fn' key
+   */
+  static final String BACKSPACE = "Backspace";
+
+  /** The Horizontal Tabulation (Tab) key */
+  static final String TAB = "Tab";
+
+  /** The Cancel key */
+  static final String CANCEL = "Cancel";
+
+  /** The Escape (Esc) key */
+  static final String ESC = "Esc";
+
+  /** The Space (Spacebar) key:   */
+  static final String SPACEBAR = "Spacebar";
+
+  /**
+   * The Delete (Del) Key. Note: This key value shall be also used for the key
+   * labeled 'delete' MacOS keyboards when modified by the 'Fn' key
+   */
+  static final String DEL = "Del";
+
+  /** The Combining Grave Accent (Greek Varia, Dead Grave) key */
+  static final String DEAD_GRAVE = "DeadGrave";
+
+  /**
+   * The Combining Acute Accent (Stress Mark, Greek Oxia, Tonos, Dead Eacute)
+   * key
+   */
+  static final String DEAD_EACUTE = "DeadEacute";
+
+  /** The Combining Circumflex Accent (Hat, Dead Circumflex) key */
+  static final String DEAD_CIRCUMFLEX = "DeadCircumflex";
+
+  /** The Combining Tilde (Dead Tilde) key */
+  static final String DEAD_TILDE = "DeadTilde";
+
+  /** The Combining Macron (Long, Dead Macron) key */
+  static final String DEAD_MACRON = "DeadMacron";
+
+  /** The Combining Breve (Short, Dead Breve) key */
+  static final String DEAD_BREVE = "DeadBreve";
+
+  /** The Combining Dot Above (Derivative, Dead Above Dot) key */
+  static final String DEAD_ABOVE_DOT = "DeadAboveDot";
+
+  /**
+   * The Combining Diaeresis (Double Dot Abode, Umlaut, Greek Dialytika,
+   * Double Derivative, Dead Diaeresis) key
+   */
+  static final String DEAD_UMLAUT = "DeadUmlaut";
+
+  /** The Combining Ring Above (Dead Above Ring) key */
+  static final String DEAD_ABOVE_RING = "DeadAboveRing";
+
+  /** The Combining Double Acute Accent (Dead Doubleacute) key */
+  static final String DEAD_DOUBLEACUTE = "DeadDoubleacute";
+
+  /** The Combining Caron (Hacek, V Above, Dead Caron) key */
+  static final String DEAD_CARON = "DeadCaron";
+
+  /** The Combining Cedilla (Dead Cedilla) key */
+  static final String DEAD_CEDILLA = "DeadCedilla";
+
+  /** The Combining Ogonek (Nasal Hook, Dead Ogonek) key */
+  static final String DEAD_OGONEK = "DeadOgonek";
+
+  /**
+   * The Combining Greek Ypogegrammeni (Greek Non-Spacing Iota Below, Iota
+   * Subscript, Dead Iota) key
+   */
+  static final String DEAD_IOTA = "DeadIota";
+
+  /**
+   * The Combining Katakana-Hiragana Voiced Sound Mark (Dead Voiced Sound) key
+   */
+  static final String DEAD_VOICED_SOUND = "DeadVoicedSound";
+
+  /**
+   * The Combining Katakana-Hiragana Semi-Voiced Sound Mark (Dead Semivoiced
+   * Sound) key
+   */
+  static final String DEC_SEMIVOICED_SOUND= "DeadSemivoicedSound";
+
+  /**
+   * Key value used when an implementation is unable to identify another key
+   * value, due to either hardware, platform, or software constraints
+   */
+  static final String UNIDENTIFIED = "Unidentified";
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation implements KeyboardEvent {
+  KeyboardEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory KeyboardEventWrappingImplementation(String type, Window view,
+      String keyIdentifier, int keyLocation, [bool canBubble = true,
+      bool cancelable = true, bool ctrlKey = false, bool altKey = false,
+      bool shiftKey = false, bool metaKey = false, bool altGraphKey = false]) {
+    final e = dom.document.createEvent("KeyboardEvent");
+    e.initKeyboardEvent(type, canBubble, cancelable, LevelDom.unwrap(view),
+        keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey,
+        altGraphKey);
+    return LevelDom.wrapKeyboardEvent(e);
+  }
+
+  bool get altGraphKey() => _ptr.altGraphKey;
+
+  bool get altKey() => _ptr.altKey;
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  String get keyIdentifier() => _ptr.keyIdentifier;
+
+  int get keyLocation() => _ptr.keyLocation;
+
+  bool get metaKey() => _ptr.metaKey;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  bool getModifierState(String keyIdentifierArg) {
+    return _ptr.getModifierState(keyIdentifierArg);
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface MessageEvent extends Event factory MessageEventWrappingImplementation {
+
+  MessageEvent(String type, String data, String origin, String lastEventId,
+      Window source, [bool canBubble, bool cancelable, MessagePort port]);
+
+  String get data();
+
+  String get lastEventId();
+
+  MessagePort get messagePort();
+
+  String get origin();
+
+  Window get source();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class MessageEventWrappingImplementation extends EventWrappingImplementation implements MessageEvent {
+  MessageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory MessageEventWrappingImplementation(String type, String data,
+      String origin, String lastEventId, Window source, MessagePort port,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("MessageEvent");
+    e.initMessageEvent(type, canBubble, cancelable, data, origin, lastEventId,
+        LevelDom.unwrap(source), LevelDom.unwrap(port));
+    return LevelDom.wrapMessageEvent(e);
+  }
+
+  String get data() => _ptr.data;
+
+  String get lastEventId() => _ptr.lastEventId;
+
+  MessagePort get messagePort() => LevelDom.wrapMessagePort(_ptr.messagePort);
+
+  String get origin() => _ptr.origin;
+
+  Window get source() => LevelDom.wrapWindow(_ptr.source);
+
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort) {
+    _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 interface MessagePort extends EventTarget {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -20590,6 +24688,153 @@ interface MessagePort extends EventTarget {
 
 class MessagePortWrappingImplementation extends EventTargetWrappingImplementation implements MessagePort {
   MessagePortWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface MouseEvent extends UIEvent factory MouseEventWrappingImplementation {
+
+  MouseEvent(String type, Window view, int detail, int screenX, int screenY,
+      int clientX, int clientY, int button, [bool canBubble, bool cancelable,
+      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
+      EventTarget relatedTarget]);
+
+  bool get altKey();
+
+  int get button();
+
+  int get clientX();
+
+  int get clientY();
+
+  bool get ctrlKey();
+
+  Node get fromElement();
+
+  bool get metaKey();
+
+  int get offsetX();
+
+  int get offsetY();
+
+  EventTarget get relatedTarget();
+
+  int get screenX();
+
+  int get screenY();
+
+  bool get shiftKey();
+
+  Node get toElement();
+
+  int get x();
+
+  int get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class MouseEventWrappingImplementation extends UIEventWrappingImplementation implements MouseEvent {
+  MouseEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory MouseEventWrappingImplementation(String type, Window view, int detail,
+      int screenX, int screenY, int clientX, int clientY, int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+    final e = dom.document.createEvent("MouseEvent");
+    e.initMouseEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail,
+        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
+        button, LevelDom.unwrap(relatedTarget));
+    return LevelDom.wrapMouseEvent(e);
+  }
+
+  bool get altKey() => _ptr.altKey;
+
+  int get button() => _ptr.button;
+
+  int get clientX() => _ptr.clientX;
+
+  int get clientY() => _ptr.clientY;
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  Node get fromElement() => LevelDom.wrapNode(_ptr.fromElement);
+
+  bool get metaKey() => _ptr.metaKey;
+
+  int get offsetX() => _ptr.offsetX;
+
+  int get offsetY() => _ptr.offsetY;
+
+  EventTarget get relatedTarget() => LevelDom.wrapEventTarget(_ptr.relatedTarget);
+
+  int get screenX() => _ptr.screenX;
+
+  int get screenY() => _ptr.screenY;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  Node get toElement() => LevelDom.wrapNode(_ptr.toElement);
+
+  int get x() => _ptr.x;
+
+  int get y() => _ptr.y;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface MutationEvent extends Event factory MutationEventWrappingImplementation {
+
+  MutationEvent(String type, Node relatedNode, String prevValue,
+      String newValue, String attrName, int attrChange, [bool canBubble,
+      bool cancelable]);
+
+  static final int ADDITION = 2;
+
+  static final int MODIFICATION = 1;
+
+  static final int REMOVAL = 3;
+
+  int get attrChange();
+
+  String get attrName();
+
+  String get newValue();
+
+  String get prevValue();
+
+  Node get relatedNode();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class MutationEventWrappingImplementation extends EventWrappingImplementation implements MutationEvent {
+  MutationEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory MutationEventWrappingImplementation(String type, Node relatedNode,
+      String prevValue, String newValue, String attrName, int attrChange,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("MutationEvent");
+    e.initMutationEvent(type, canBubble, cancelable,
+        LevelDom.unwrap(relatedNode), prevValue, newValue, attrName,
+        attrChange);
+    return LevelDom.wrapMutationEvent(e);
+  }
+
+  int get attrChange() => _ptr.attrChange;
+
+  String get attrName() => _ptr.attrName;
+
+  String get newValue() => _ptr.newValue;
+
+  String get prevValue() => _ptr.prevValue;
+
+  Node get relatedNode() => LevelDom.wrapNode(_ptr.relatedNode);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20934,6 +25179,137 @@ class NotificationWrappingImplementation extends EventTargetWrappingImplementati
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface OverflowEvent extends Event factory OverflowEventWrappingImplementation {
+
+  OverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow);
+
+  static final int BOTH = 2;
+
+  static final int HORIZONTAL = 0;
+
+  static final int VERTICAL = 1;
+
+  bool get horizontalOverflow();
+
+  int get orient();
+
+  bool get verticalOverflow();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class OverflowEventWrappingImplementation extends EventWrappingImplementation implements OverflowEvent {
+  OverflowEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory OverflowEventWrappingImplementation(int orient,
+      bool horizontalOverflow, bool verticalOverflow) {
+    final e = dom.document.createEvent("OverflowEvent");
+    e.initOverflowEvent(orient, horizontalOverflow, verticalOverflow);
+    return LevelDom.wrapOverflowEvent(e);
+  }
+
+  bool get horizontalOverflow() => _ptr.horizontalOverflow;
+
+  int get orient() => _ptr.orient;
+
+  bool get verticalOverflow() => _ptr.verticalOverflow;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface PageTransitionEvent extends Event factory PageTransitionEventWrappingImplementation {
+
+  PageTransitionEvent(String type, [bool canBubble, bool cancelable,
+      bool persisted]);
+
+  bool get persisted();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class PageTransitionEventWrappingImplementation extends EventWrappingImplementation implements PageTransitionEvent {
+  PageTransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory PageTransitionEventWrappingImplementation(String type,
+      [bool canBubble = true, bool cancelable = true,
+      bool persisted = false]) {
+    final e = dom.document.createEvent("PageTransitionEvent");
+    e.initPageTransitionEvent(type, canBubble, cancelable, persisted);
+    return LevelDom.wrapPageTransitionEvent(e);
+  }
+
+  bool get persisted() => _ptr.persisted;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface PopStateEvent extends Event factory PopStateEventWrappingImplementation {
+
+  PopStateEvent(String type, Object state, [bool canBubble, bool cancelable]);
+
+  String get state();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class PopStateEventWrappingImplementation extends EventWrappingImplementation implements PopStateEvent {
+  PopStateEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory PopStateEventWrappingImplementation(String type, Object state,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("PopStateEvent");
+    e.initPopStateEvent(type, canBubble, cancelable, state);
+    return LevelDom.wrapPopStateEvent(e);
+  }
+
+  String get state() => _ptr.state;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface ProgressEvent extends Event factory ProgressEventWrappingImplementation {
+
+  ProgressEvent(String type, int loaded, [bool canBubble, bool cancelable,
+      bool lengthComputable, int total]);
+
+  bool get lengthComputable();
+
+  int get loaded();
+
+  int get total();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class ProgressEventWrappingImplementation extends EventWrappingImplementation implements ProgressEvent {
+  ProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory ProgressEventWrappingImplementation(String type, int loaded,
+      [bool canBubble = true, bool cancelable = true,
+      bool lengthComputable = false, int total = 0]) {
+    final e = dom.document.createEvent("ProgressEvent");
+    e.initProgressEvent(type, canBubble, cancelable, lengthComputable, loaded,
+        total);
+    return LevelDom.wrapProgressEvent(e);
+  }
+
+  bool get lengthComputable() => _ptr.lengthComputable;
+
+  int get loaded() => _ptr.loaded;
+
+  int get total() => _ptr.total;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef bool RequestAnimationFrameCallback(int time);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20951,6 +25327,52 @@ class SharedWorkerWrappingImplementation extends AbstractWorkerWrappingImplement
   SharedWorkerWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   MessagePort get port() { return LevelDom.wrapMessagePort(_ptr.port); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface StorageEvent extends Event factory StorageEventWrappingImplementation {
+
+  StorageEvent(String type, String key, String url, Storage storageArea,
+      [bool canBubble, bool cancelable, String oldValue, String newValue]);
+
+  String get key();
+
+  String get newValue();
+
+  String get oldValue();
+
+  Storage get storageArea();
+
+  String get url();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class StorageEventWrappingImplementation extends EventWrappingImplementation implements StorageEvent {
+  StorageEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory StorageEventWrappingImplementation(String type, String key,
+      String url, Storage storageArea, [bool canBubble = true,
+      bool cancelable = true, String oldValue = null,
+      String newValue = null]) {
+    final e = dom.document.createEvent("StorageEvent");
+    e.initStorageEvent(type, canBubble, cancelable, key, oldValue, newValue,
+        url, LevelDom.unwrap(storageArea));
+    return LevelDom.wrapStorageEvent(e);
+  }
+
+  String get key() => _ptr.key;
+
+  String get newValue() => _ptr.newValue;
+
+  String get oldValue() => _ptr.oldValue;
+
+  Storage get storageArea() => LevelDom.wrapStorage(_ptr.storageArea);
+
+  String get url() => _ptr.url;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21000,7 +25422,197 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface TextEvent extends UIEvent factory TextEventWrappingImplementation {
+
+  TextEvent(String type, Window view, String data, [bool canBubble,
+      bool cancelable]);
+
+  String get data();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class TextEventWrappingImplementation extends UIEventWrappingImplementation implements TextEvent {
+  TextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory TextEventWrappingImplementation(String type, Window view, String data,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("TextEvent");
+    e.initTextEvent(type, canBubble, cancelable, LevelDom.unwrap(view), data);
+    return LevelDom.wrapTextEvent(e);
+  }
+
+  String get data() => _ptr.data;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef void TimeoutHandler();
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface TouchEvent extends UIEvent factory TouchEventWrappingImplementation {
+
+  TouchEvent(TouchList touches, TouchList targetTouches,
+      TouchList changedTouches, String type, Window view, int screenX,
+      int screenY, int clientX, int clientY, [bool ctrlKey, bool altKey,
+      bool shiftKey, bool metaKey]);
+
+  bool get altKey();
+
+  TouchList get changedTouches();
+
+  bool get ctrlKey();
+
+  bool get metaKey();
+
+  bool get shiftKey();
+
+  TouchList get targetTouches();
+
+  TouchList get touches();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class TouchEventWrappingImplementation extends UIEventWrappingImplementation implements TouchEvent {
+  TouchEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  TouchEvent(TouchList touches, TouchList targetTouches,
+      TouchList changedTouches, String type, Window view, int screenX,
+      int screenY, int clientX, int clientY, [bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false]) {
+    final e = dom.document.createEvent("TouchEvent");
+    e.initTouchEvent(LevelDom.unwrap(touches), LevelDom.unwrap(targetTouches),
+        LevelDom.unwrap(changedTouches), type, LevelDom.unwrap(view), screenX,
+        screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+    return LevelDom.wrapTouchEvent(e);
+  }
+
+  bool get altKey() => _ptr.altKey;
+
+  TouchList get changedTouches() => LevelDom.wrapTouchList(_ptr.changedTouches);
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  bool get metaKey() => _ptr.metaKey;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  TouchList get targetTouches() => LevelDom.wrapTouchList(_ptr.targetTouches);
+
+  TouchList get touches() => LevelDom.wrapTouchList(_ptr.touches);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface TransitionEvent extends Event factory TransitionEventWrappingImplementation {
+
+  TransitionEvent(String type, String propertyName, double elapsedTime,
+      [bool canBubble, bool cancelable]);
+
+  num get elapsedTime();
+
+  String get propertyName();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class TransitionEventWrappingImplementation extends EventWrappingImplementation implements TransitionEvent {
+  static String _name;
+
+  TransitionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  static String get _eventName() {
+    if (_name != null) return _name;
+
+    try {
+      dom.document.createEvent("WebKitTransitionEvent");
+      _name = "WebKitTransitionEvent";
+    } catch (var e) {
+      _name = "TransitionEvent";
+    }
+    return _name;
+  }
+
+  factory TransitionEventWrappingImplementation(String type,
+      String propertyName, double elapsedTime, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent(_eventName);
+    e.initWebKitTransitionEvent(type, canBubble, cancelable, propertyName,
+        elapsedTime);
+    return LevelDom.wrapTransitionEvent(e);
+  }
+
+  num get elapsedTime() => _ptr.elapsedTime;
+
+  String get propertyName() => _ptr.propertyName;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface UIEvent extends Event factory UIEventWrappingImplementation {
+
+  UIEvent(String type, Window view, int detail, [bool canBubble,
+      bool cancelable]);
+
+  int get charCode();
+
+  int get detail();
+
+  int get keyCode();
+
+  int get layerX();
+
+  int get layerY();
+
+  int get pageX();
+
+  int get pageY();
+
+  Window get view();
+
+  int get which();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class UIEventWrappingImplementation extends EventWrappingImplementation implements UIEvent {
+  UIEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory UIEventWrappingImplementation(String type, Window view, int detail,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("UIEvent");
+    e.initUIEvent(type, canBubble, cancelable, LevelDom.unwrap(view), detail);
+    return LevelDom.wrapUIEvent(e);
+  }
+
+  int get charCode() => _ptr.charCode;
+
+  int get detail() => _ptr.detail;
+
+  int get keyCode() => _ptr.keyCode;
+
+  int get layerX() => _ptr.layerX;
+
+  int get layerY() => _ptr.layerY;
+
+  int get pageX() => _ptr.pageX;
+
+  int get pageY() => _ptr.pageY;
+
+  Window get view() => LevelDom.wrapWindow(_ptr.view);
+
+  int get which() => _ptr.which;
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21093,6 +25705,92 @@ class WebSocketWrappingImplementation extends EventTargetWrappingImplementation 
   }
 
   String get typeName() { return "WebSocket"; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface WheelEvent extends UIEvent factory WheelEventWrappingImplementation {
+
+  WheelEvent(int deltaX, int deltaY, Window view, int screenX, int screenY,
+      int clientX, int clientY, [bool ctrlKey, bool altKey, bool shiftKey,
+      bool metaKey]);
+
+  bool get altKey();
+
+  int get clientX();
+
+  int get clientY();
+
+  bool get ctrlKey();
+
+  bool get metaKey();
+
+  int get offsetX();
+
+  int get offsetY();
+
+  int get screenX();
+
+  int get screenY();
+
+  bool get shiftKey();
+
+  int get wheelDelta();
+
+  int get wheelDeltaX();
+
+  int get wheelDeltaY();
+
+  int get x();
+
+  int get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class WheelEventWrappingImplementation extends UIEventWrappingImplementation implements WheelEvent {
+  WheelEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory WheelEventWrappingImplementation(int deltaX, int deltaY, Window view,
+      int screenX, int screenY, int clientX, int clientY, [bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false]) {
+    final e = dom.document.createEvent("WheelEvent");
+    e.initWheelEvent(deltaX, deltaY, LevelDom.unwrap(view), screenX, screenY,
+        clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+    return LevelDom.wrapWheelEvent(e);
+  }
+
+  bool get altKey() => _ptr.altKey;
+
+  int get clientX() => _ptr.clientX;
+
+  int get clientY() => _ptr.clientY;
+
+  bool get ctrlKey() => _ptr.ctrlKey;
+
+  bool get metaKey() => _ptr.metaKey;
+
+  int get offsetX() => _ptr.offsetX;
+
+  int get offsetY() => _ptr.offsetY;
+
+  int get screenX() => _ptr.screenX;
+
+  int get screenY() => _ptr.screenY;
+
+  bool get shiftKey() => _ptr.shiftKey;
+
+  int get wheelDelta() => _ptr.wheelDelta;
+
+  int get wheelDeltaX() => _ptr.wheelDeltaX;
+
+  int get wheelDeltaY() => _ptr.wheelDeltaY;
+
+  int get x() => _ptr.x;
+
+  int get y() => _ptr.y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22404,6 +27102,39 @@ interface XMLHttpRequest extends EventTarget factory XMLHttpRequestWrappingImple
   void setRequestHeader(String header, String value);
 
   XMLHttpRequestEvents get on();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface XMLHttpRequestProgressEvent extends ProgressEvent factory XMLHttpRequestProgressEventWrappingImplementation {
+
+  XMLHttpRequestProgressEvent(String type, int loaded, [bool canBubble,
+      bool cancelable, bool lengthComputable, int total]);
+
+  int get position();
+
+  int get totalSize();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class XMLHttpRequestProgressEventWrappingImplementation extends ProgressEventWrappingImplementation implements XMLHttpRequestProgressEvent {
+  XMLHttpRequestProgressEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory XMLHttpRequestProgressEventWrappingImplementation(String type,
+      int loaded, [bool canBubble = true, bool cancelable = true,
+      bool lengthComputable = false, int total = 0]) {
+    final e = dom.document.createEvent("XMLHttpRequestProgressEvent");
+    e.initProgressEvent(type, canBubble, cancelable, lengthComputable, loaded,
+        total);
+    return LevelDom.wrapProgressEvent(e);
+  }
+
+  int get position() => _ptr.position;
+
+  int get totalSize() => _ptr.totalSize;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -9,8 +9,16 @@
 #import('../../../testing/unittest/unittest.dart');
 #import('../../../util/utilslib.dart');
 
+// Ugly, temporary hack: this import disables implicit
+// import of dart:dom by Dartium.
+#import('dart:html', prefix: 'no_use');
+
+#source('CSSStyleDeclarationTests.dart');
 #source('DocumentFragmentTests.dart');
+#source('EventTests.dart');
 
 main() {
-  DocumentFragmentTests.main();
+  group('CSSStyleDeclaration', testCSSStyleDeclaration);
+  group('DocumentFragment', testDocumentFragment);
+  group('Event', testEvents);
 }

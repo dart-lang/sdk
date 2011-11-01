@@ -11,9 +11,11 @@
 namespace dart {
 
 // Forward declaration.
+class Array;
 class Code;
 class ExternalLabel;
 class Function;
+class RawArray;
 class String;
 
 class CodePatcher : public AllStatic {
@@ -22,12 +24,6 @@ class CodePatcher : public AllStatic {
 
   // Patch static call to the new target.
   static void PatchStaticCallAt(uword addr, uword new_target_address);
-
-  // Overwrites code at 'at_addr' with a call to 'label'.
-  static void InsertCall(uword at_addr, const ExternalLabel* label);
-
-  // Overwrites code at 'at_addr' with a jump to 'label'.
-  static void InsertJump(uword at_addr, const ExternalLabel* label);
 
   // Patch entry point with a jump as specified in the code's patch region.
   static void PatchEntry(const Code& code);
@@ -44,15 +40,19 @@ class CodePatcher : public AllStatic {
                               Function* function,
                               uword* target);
 
-  // Patch instance call to the new target.
-  static void PatchInstanceCallAt(uword addr, uword new_target_address);
-
   // Get instance call information.
   static void GetInstanceCallAt(uword return_address,
                                 String* function_name,
                                 int* num_arguments,
                                 int* num_named_arguments,
                                 uword* target);
+
+  static RawArray* GetInstanceCallIcDataAt(uword return_address);
+
+  static void SetInstanceCallIcDataAt(uword return_address,
+                                      const Array& ic_data);
+
+  static intptr_t InstanceCallSizeInBytes();
 };
 
 }  // namespace dart

@@ -48,19 +48,11 @@ public interface DartCompilerContext {
   LibraryUnit getLibraryUnit(LibrarySource lib);
 
   /**
-   * Called by the compiler when a compilation error has occurred in a Dart
-   * file.
+   * Called by the compiler when a error (fatal or non-fatal) has occurred in a Dart file.
    *
    * @param event the event information (not <code>null</code>)
    */
-  void compilationError(DartCompilationError event);
-
-  /**
-   * Called by the compiler when a (non-fatal) type error has been detected.
-   *
-   * @param event the event information (not <code>null</code>)
-   */
-  void typeError(DartCompilationError event);
+  void onError(DartCompilationError event);
 
   /**
    * Gets a reader for an artifact associated with the specified source, which

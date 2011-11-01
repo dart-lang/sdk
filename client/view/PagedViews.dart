@@ -151,12 +151,12 @@ class PagedColumnView extends View {
   /** Read the column-gap setting so we know how far to translate the child. */
   void _computeColumnGap() {
     final style = window.getComputedStyle(contentView.node, '');
-    String gap = Css.getColumnGap(style);
+    String gap = style.columnGap;
     if (gap == 'normal') {
-      gap = Css.getFontSize(style);
+      gap = style.fontSize;
     }
     _columnGap = _toPixels(gap, 'column-gap or font-size');
-    _columnWidth = _toPixels(Css.getColumnWidth(style), 'column-width');
+    _columnWidth = _toPixels(style.columnWidth, 'column-width');
   }
 
   static int _toPixels(String value, String message) {
@@ -175,7 +175,7 @@ class PagedColumnView extends View {
     // The content needs to have its height explicitly set, or columns don't
     // flow to the right correctly. So we copy our own height and set the height
     // of the content.
-    Css.setHeight(contentView.node.style, '${node.offsetHeight}px');
+    contentView.node.style.height = '${node.offsetHeight}px';
 
     _updatePageCount();
     scroller.reconfigure();

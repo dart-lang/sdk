@@ -121,12 +121,13 @@ class _ChildrenNodeList implements NodeList {
     throw const NotImplementedException();
   }
 
-  int indexOf(Node element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(Node element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(Node element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(Node element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {

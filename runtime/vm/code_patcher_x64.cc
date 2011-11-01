@@ -30,21 +30,6 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
 }
 
 
-void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
-  UNIMPLEMENTED();
-}
-
-
-void CodePatcher::InsertCall(uword at_addr, const ExternalLabel* label) {
-  UNIMPLEMENTED();
-}
-
-
-void CodePatcher::InsertJump(uword at_addr, const ExternalLabel* label) {
-  UNIMPLEMENTED();
-}
-
-
 void CodePatcher::PatchEntry(const Code& code) {
   UNIMPLEMENTED();
 }
@@ -58,6 +43,18 @@ void CodePatcher::RestoreEntry(const Code& code) {
 bool CodePatcher::CodeIsPatchable(const Code& code) {
   UNIMPLEMENTED();
   return false;
+}
+
+
+RawArray* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void CodePatcher::SetInstanceCallIcDataAt(uword return_address,
+                                         const Array& ic_data) {
+  UNIMPLEMENTED();
 }
 
 }  // namespace dart

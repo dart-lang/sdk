@@ -348,10 +348,11 @@ public class ClosureJsBackend extends AbstractJsBackend {
           source = new MockSource(error.sourceName);
         }
         System.err.println("error optimizing:" + error.toString());
-        @SuppressWarnings("deprecation")
-        DartCompilationError event = new DartCompilationError(
-            new JSErrorSourceInfo(error, source), error.description);
-        context.compilationError(event);
+        DartCompilationError dartError =
+            new DartCompilationError(new JSErrorSourceInfo(error, source),
+                ClosureJsErrorCode.INTERNAL_ERROR,
+                error.description);
+        context.onError(dartError);
       }
     }
 

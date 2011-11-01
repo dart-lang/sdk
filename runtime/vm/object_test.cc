@@ -656,6 +656,7 @@ TEST_CASE(StringConcat) {
     EXPECT(str7.IsOneByteString());
     EXPECT_EQ(6, str7.Length());
     EXPECT(str7.Equals("oneone"));
+    EXPECT(!str7.Equals("oneoneone"));
   }
 
   // Create a string by concatenating non-empty 1-byte strings.
@@ -1651,17 +1652,17 @@ TEST_CASE(ContextScope) {
   LocalScope* local_scope =
       new LocalScope(parent_scope, local_scope_function_level, 0);
 
-  const Type& var_type = Type::ZoneHandle(Type::VarType());
+  const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(String::New("a"));
-  LocalVariable* var_a = new LocalVariable(kPos, a, var_type);
+  LocalVariable* var_a = new LocalVariable(kPos, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(String::New("b"));
-  LocalVariable* var_b = new LocalVariable(kPos, b, var_type);
+  LocalVariable* var_b = new LocalVariable(kPos, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(String::New("c"));
-  LocalVariable* var_c = new LocalVariable(kPos, c, var_type);
+  LocalVariable* var_c = new LocalVariable(kPos, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
@@ -1745,11 +1746,11 @@ TEST_CASE(Closure) {
   const String& function_name = String::Handle(String::NewSymbol("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
   const Class& signature_class = Class::Handle(
-      Class::NewSignatureClass(function_name, function, script, 0));
-  function.set_signature_class(signature_class);
+      Class::NewSignatureClass(function_name, function, script));
   const Closure& closure = Closure::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT(closure_class.IsSignatureClass());
+  EXPECT(closure_class.IsCanonicalSignatureClass());
   EXPECT_EQ(closure_class.raw(), signature_class.raw());
   const Function& signature_function =
     Function::Handle(signature_class.signature_function());

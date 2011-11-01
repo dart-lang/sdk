@@ -102,6 +102,18 @@ static RawTypeArray* NewTypeArray(const GrowableArray<Type*>& objs) {
 }
 
 
+static ThrowNode* CreateEvalConstConstructorThrow(intptr_t token_pos,
+                                                  const Instance& instance) {
+  UnhandledException& excp = UnhandledException::Handle();
+  excp ^= instance.raw();
+  const Instance& exception = Instance::ZoneHandle(excp.exception());
+  const Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
+  return new ThrowNode(token_pos,
+                       new LiteralNode(token_pos, exception),
+                       new LiteralNode(token_pos, stack_trace));
+}
+
+
 struct Parser::Block : public ZoneAllocated {
   Block(Block* outer_block, LocalScope* local_scope, SequenceNode* seq)
     : parent(outer_block), scope(local_scope), statements(seq) {
@@ -323,7 +335,9 @@ struct ParamList {
   void AddReceiver(intptr_t name_pos) {
     ASSERT(this->parameters->length() == 0);
     // The receiver does not need to be type checked.
-    AddFinalParameter(name_pos, kThisName, &Type::ZoneHandle(Type::VarType()));
+    AddFinalParameter(name_pos,
+                      kThisName,
+                      &Type::ZoneHandle(Type::DynamicType()));
   }
 
   void SetImplicitlyFinal() {
@@ -768,8 +782,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   } else if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
     var_seen = true;
-    // The parameter type is the 'var' type.
-    parameter.type = &Type::ZoneHandle(Type::VarType());
+    // The parameter type is the 'Dynamic' type.
+    parameter.type = &Type::ZoneHandle(Type::DynamicType());
   }
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
@@ -805,7 +819,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       parameter.type = &Type::ZoneHandle(
           ParseType(is_top_level_ ? kCanResolve : kMustResolve));
     } else {
-      parameter.type = &Type::ZoneHandle(Type::VarType());
+      parameter.type = &Type::ZoneHandle(Type::DynamicType());
     }
   }
   if (!this_seen && (CurrentToken() == Token::kTHIS)) {
@@ -849,21 +863,21 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       signature_function.set_result_type(result_type);
       AddFormalParamsToFunction(&func_params, signature_function);
       const String& signature = String::Handle(signature_function.Signature());
-      // Lookup the class named signature and only create a new class if it does
-      // not exist yet.
-      Class& signature_class = Class::ZoneHandle(LookupClass(signature));
+      // Lookup the signature class, i.e. the class whose name is the signature.
+      // We only lookup in the current library, but not in its imports, and only
+      // create a new canonical signature class if it does not exist yet.
+      Class& signature_class = Class::ZoneHandle(
+          library_.LookupLocalClass(signature));
       if (signature_class.IsNull()) {
         signature_class = Class::NewSignatureClass(signature,
                                                    signature_function,
-                                                   script_,
-                                                   parameter.name_pos);
-        // Record the function signature class in the library.
+                                                   script_);
+        // Record the function signature class in the current library.
         library_.AddClass(signature_class);
+      } else {
+        signature_function.set_signature_class(signature_class);
       }
-      ASSERT(!Function::Handle(signature_class.signature_function()).IsNull());
-      ASSERT(Class::Handle(signature_function.signature_class()).IsNull());
-      signature_function.set_signature_class(signature_class);
-
+      ASSERT(signature_function.signature_class() == signature_class.raw());
       // The type of the parameter is now the signature type.
       parameter.type = &Type::ZoneHandle(signature_class.SignatureType());
       if (!is_top_level_ && !parameter.type->IsFinalized()) {
@@ -896,11 +910,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       params->num_optional_parameters++;
       parameter.default_value = &Object::ZoneHandle();
     } else {
-      // TODO(regis): Remove support of legacy syntax.
       params->num_fixed_parameters++;
-      if (params->num_optional_parameters > 0) {
-        ErrorMsg("optional parameters must be last");
-      }
+      ASSERT(params->num_optional_parameters == 0);
     }
   }
   if (parameter.type->IsVoidType()) {
@@ -919,9 +930,7 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
     // Parse positional parameters.
     ParseFormalParameters(allow_explicit_default_values,
                           params);
-    if (CurrentToken() == Token::kLBRACK) {
-      ASSERT(!params->has_named_optional_parameters);
-      params->has_named_optional_parameters = true;
+    if (params->has_named_optional_parameters) {
       // Parse named optional parameters.
       ParseFormalParameters(allow_explicit_default_values,
                             params);
@@ -950,6 +959,7 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
     if (!params->has_named_optional_parameters &&
         (CurrentToken() == Token::kLBRACK)) {
       // End of normal parameters, start of named parameters.
+      params->has_named_optional_parameters = true;
       return;
     }
     ParseFormalParameter(allow_explicit_default_values, params);
@@ -1363,7 +1373,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
 void Parser::ParseInitializers(const Class& cls) {
   TRACE_PARSER("ParseInitializers");
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
-  bool super_init_seen = false;
+  AstNode* super_init_statement = NULL;
   if (CurrentToken() == Token::kCOLON) {
     if ((LookaheadToken(1) == Token::kTHIS) &&
         ((LookaheadToken(2) == Token::kLPAREN) ||
@@ -1380,26 +1390,27 @@ void Parser::ParseInitializers(const Class& cls) {
 
     do {
       ConsumeToken();  // Colon or comma.
-      AstNode* init_statement = NULL;
       if (CurrentToken() == Token::kSUPER) {
-        if (super_init_seen) {
+        if (super_init_statement != NULL) {
           ErrorMsg("Duplicate call to super constructor");
         }
-        init_statement = ParseSuperInitializer(cls, receiver);
-        super_init_seen = true;
+        super_init_statement = ParseSuperInitializer(cls, receiver);
       } else {
-        init_statement = ParseInitializer(cls, receiver);
+        AstNode* init_statement = ParseInitializer(cls, receiver);
+        current_block_->statements->Add(init_statement);
       }
-      current_block_->statements->Add(init_statement);
     } while (CurrentToken() == Token::kCOMMA);
   }
 
-  // Generate implicit super() if we haven't seen an explicit super call
-  // or constructor redirection.
-  // Omit the implicit super() if there is no super class (i.e.
-  // we're not compiling class Object), or if the super class is an
-  // artificially generated "wrapper class" that has no constructor.
-  if (!super_init_seen) {
+  if (super_init_statement != NULL) {
+    // Move explicit supercall to the end of the initializer list to
+    // avoid executing constructor code on partially initialized objects.
+    // TODO(hausner): Fix issue 4995181, evaluation order of constructor
+    // initializer lists.
+    current_block_->statements->Add(super_init_statement);
+  } else {
+    // Generate implicit super() if we haven't seen an explicit super call
+    // or constructor redirection.
     GenerateSuperInitializerCall(cls, receiver);
   }
 
@@ -1461,7 +1472,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   LocalVariable* receiver = new LocalVariable(
       ctor_pos,
       String::ZoneHandle(String::NewSymbol(kThisName)),
-      Type::ZoneHandle(Type::VarType()));
+      Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(receiver);
 
   // Now that the "this" parameter is in scope, we can generate the code
@@ -2063,8 +2074,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     ConsumeToken();
     member.has_var = true;
-    // The member type is the 'var' type.
-    member.type = &Type::ZoneHandle(Type::VarType());
+    // The member type is the 'Dynamic' type.
+    member.type = &Type::ZoneHandle(Type::DynamicType());
   } else if (CurrentToken() == Token::kFACTORY) {
     ConsumeToken();
     member.has_factory = true;
@@ -2149,17 +2160,16 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
-    // If the result type was not specified, it will be set to VarType below.
+    // If the result type was not specified, it will be set to DynamicType.
   } else if (CurrentToken() == Token::kSET) {
     ConsumeToken();
     member.kind = RawFunction::kSetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
     // The grammar allows a return type, so member.type is not always NULL here.
-    // However, the return type of a setter is ignored.
-    // TODO(regis): Revisit depending on the outcome of issue 4745047.
+    // If no return type is specified, the return type of the setter is Dynamic.
     if (member.type == NULL) {
-      member.type = &Type::ZoneHandle(Type::VoidType());
+      member.type = &Type::ZoneHandle(Type::DynamicType());
     }
   } else if (CurrentToken() == Token::kOPERATOR) {
     ConsumeToken();
@@ -2193,7 +2203,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     // Constructor or method.
     if (member.type == NULL) {
-      member.type = &Type::ZoneHandle(Type::VarType());
+      member.type = &Type::ZoneHandle(Type::DynamicType());
     }
     ParseMethodOrConstructor(members, &member);
   } else if (CurrentToken() ==  Token::kSEMICOLON ||
@@ -2202,7 +2212,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     // Field definition.
     if (member.type == NULL) {
       if (member.has_final) {
-        member.type = &Type::ZoneHandle(Type::VarType());
+        member.type = &Type::ZoneHandle(Type::DynamicType());
       } else {
         ErrorMsg("missing 'var', 'final' or type in field declaration");
       }
@@ -2369,7 +2379,7 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
-  Type& result_type = Type::Handle(Type::VarType());
+  Type& result_type = Type::Handle(Type::DynamicType());
   intptr_t result_type_pos = token_index_;
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
@@ -2419,23 +2429,22 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
     OS::Print("TopLevel parsing function type alias '%s'\n",
               signature.ToCString());
   }
-  // Lookup the class by its signature and only create a new canonical signature
-  // class if it does not exist yet.
-  Class& signature_class = Class::ZoneHandle(LookupClass(signature));
+  // Lookup the signature class, i.e. the class whose name is the signature.
+  // We only lookup in the current library, but not in its imports, and only
+  // create a new canonical signature class if it does not exist yet.
+  Class& signature_class = Class::ZoneHandle(
+      library_.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     signature_class = Class::NewSignatureClass(signature,
                                                signature_function,
-                                               script_,
-                                               alias_name_pos);
-    // Record the function signature class in the library.
+                                               script_);
+    // Record the function signature class in the current library.
     library_.AddClass(signature_class);
-    ASSERT(Class::Handle(signature_function.signature_class()).IsNull());
-    signature_function.set_signature_class(signature_class);
   } else {
-    // Forget the just created function type desc and use the existing one.
+    // Forget the just created signature function and use the existing one.
     signature_function = signature_class.signature_function();
-    ASSERT(signature_function.signature_class() == signature_class.raw());
   }
+  ASSERT(signature_function.signature_class() == signature_class.raw());
   // Lookup the class by its alias name and report an error if it exists.
   Class& function_type_alias = Class::ZoneHandle(LookupClass(*alias_name));
   if (function_type_alias.IsNull()) {
@@ -2443,8 +2452,7 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
     // canonical signature class.
     function_type_alias = Class::NewSignatureClass(*alias_name,
                                                    signature_function,
-                                                   script_,
-                                                   alias_name_pos);
+                                                   script_);
     library_.AddClass(function_type_alias);
   } else {
     const char* format = function_type_alias.is_interface() ?
@@ -2592,7 +2600,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
       }
       String& type_parameter_name = *CurrentLiteral();
       ConsumeToken();
-      Type& type_extends = Type::ZoneHandle(Type::VarType());
+      Type& type_extends = Type::ZoneHandle(Type::DynamicType());
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         type_extends = ParseType(kCanResolve);
@@ -2644,11 +2652,6 @@ RawArray* Parser::ParseInterfaceList() {
   GrowableArray<Type*> interfaces;
   do {
     ConsumeToken();
-    // TODO(regis): The way we handle unresolved classes is not going to fly.
-    // We are currently not able to provide a token position for errors occuring
-    // after parsing, as in the class finalizer. We need to introduce an
-    // 'unresolved class' class consisting of a string, a token position, and a
-    // script, maybe a library too.
     Type& interface = Type::ZoneHandle(ParseType(kCanResolve));
     interfaces.Add(&interface);
   } while (CurrentToken() == Token::kCOMMA);
@@ -2734,7 +2737,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
 
 
 void Parser::ParseTopLevelFunction(TopLevel* top_level) {
-  Type& result_type = Type::Handle(Type::VarType());
+  Type& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
@@ -2789,8 +2792,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   if (CurrentToken() == Token::kGET ||
       CurrentToken() == Token::kSET) {
     ConsumeToken();
-    // TODO(regis): Revisit, see issue 4745047.
-    result_type = Type::VarType();
+    result_type = Type::DynamicType();
   } else {
     if (CurrentToken() == Token::kVOID) {
       ConsumeToken();
@@ -2874,19 +2876,18 @@ void Parser::ParseLibraryName() {
 }
 
 
-Dart_Result Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
+Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                    intptr_t token_pos,
                                    const String& url) {
   Dart_LibraryTagHandler handler = Isolate::Current()->library_tag_handler();
   if (handler == NULL) {
     ErrorMsg(token_pos, "no library handler registered");
   }
-  Dart_Result result = handler(tag,
+  Dart_Handle result = handler(tag,
                                Api::NewLocalHandle(library_),
                                Api::NewLocalHandle(url));
-  if (!Dart_IsValidResult(result)) {
-    ErrorMsg(token_pos, "library handler failed: %s",
-             Dart_GetErrorCString(result));
+  if (!Dart_IsValid(result)) {
+    ErrorMsg(token_pos, "library handler failed: %s", Dart_GetError(result));
   }
   return result;
 }
@@ -2920,10 +2921,9 @@ void Parser::ParseLibraryImport() {
     }
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Result result = CallLibraryTagHandler(kCanonicalizeUrl,
+    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                import_pos,
                                                url);
-    Dart_Handle handle = Dart_GetResult(result);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
@@ -2962,10 +2962,9 @@ void Parser::ParseLibraryInclude() {
     ConsumeToken();
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Result result = CallLibraryTagHandler(kCanonicalizeUrl,
+    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                source_pos,
                                                url);
-    Dart_Handle handle = Dart_GetResult(result);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
     CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
   }
@@ -3269,13 +3268,13 @@ AstNode* Parser::ParseVariableDeclaration(const Type& type, bool is_final) {
 // Parses ('var' | 'final' [type] | type).
 // The presence of 'final' must be detected and remembered before the call.
 // If type_specification is kIsOptional, and no type can be parsed, then return
-// the VarType.
+// the DynamicType.
 // If a type is parsed, it is resolved (or not) according to type_resolution.
 RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
                                      TypeResolution type_resolution) {
   if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
-    return Type::VarType();
+    return Type::DynamicType();
   }
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
@@ -3283,7 +3282,7 @@ RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
   }
   if (CurrentToken() != Token::kIDENT) {
     if (type_specification == kIsOptional) {
-      return Type::VarType();
+      return Type::DynamicType();
     } else {
       ErrorMsg("identifier expected");
     }
@@ -3296,7 +3295,7 @@ RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
         (follower != Token::kPERIOD) &&  // Qualified class name of type.
         (follower != Token::kIDENT) &&  // Variable name following a type.
         (follower != Token::kTHIS)) {  // Field parameter following a type.
-      return Type::VarType();
+      return Type::DynamicType();
     }
   }
   return ParseType(type_resolution);
@@ -3345,7 +3344,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   const String* variable_name = NULL;
   const String* function_name = NULL;
 
-  result_type = Type::VarType();
+  result_type = Type::DynamicType();
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
     result_type = Type::VoidType();
@@ -3415,22 +3414,22 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   SequenceNode* statements = Parser::ParseFunc(function,
                                                default_parameter_values);
 
-  // Now that the local function has formal parameters, lookup or create a new
-  // signature class for it.
+  // Now that the local function has formal parameters, lookup the signature
+  // class in the current library (but not in its imports) and only create a new
+  // canonical signature class if it does not exist yet.
   const String& signature = String::Handle(function.Signature());
-  Class& signature_class = Class::Handle(LookupClass(signature));
+  Class& signature_class = Class::ZoneHandle(
+      library_.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     signature_class = Class::NewSignatureClass(signature,
                                                function,
-                                               script_,
-                                               ident_pos);
-    // Record the function signature class in the library.
+                                               script_);
+    // Record the function signature class in the current library.
     library_.AddClass(signature_class);
+  } else {
+    function.set_signature_class(signature_class);
   }
-  ASSERT(!Function::Handle(signature_class.signature_function()).IsNull());
-  ASSERT(Class::Handle(function.signature_class()).IsNull());
-  function.set_signature_class(signature_class);
-
+  ASSERT(function.signature_class() == signature_class.raw());
   // Local functions are not registered in the enclosing class, which is already
   // finalized.
   ASSERT(current_class().is_finalized());
@@ -3895,7 +3894,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   LocalVariable* temp_variable =
       new LocalVariable(expr_pos,
                         String::ZoneHandle(String::NewSymbol(":switch_expr")),
-                        Type::ZoneHandle(Type::VarType()));
+                        Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(temp_variable);
   AstNode* save_switch_expr =
       new StoreLocalNode(expr_pos, *temp_variable, switch_expr);
@@ -4027,7 +4026,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // would refer to the compiler generated iterator and could confuse the user.
   // It is better to leave the iterator untyped and postpone the type error
   // until the loop variable is assigned to.
-  const Type& iterator_type = Type::ZoneHandle(Type::VarType());
+  const Type& iterator_type = Type::ZoneHandle(Type::DynamicType());
   LocalVariable* iterator_var =
       new LocalVariable(collection_pos, iterator_name, iterator_type);
   current_block_->scope->AddVariable(iterator_var);
@@ -4365,7 +4364,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   if (context_var == NULL) {
     context_var = new LocalVariable(token_index_,
                                     context_var_name,
-                                    Type::ZoneHandle(Type::VarType()));
+                                    Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(context_var);
   }
   const String& catch_excp_var_name =
@@ -4375,7 +4374,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   if (catch_excp_var == NULL) {
     catch_excp_var = new LocalVariable(token_index_,
                                        catch_excp_var_name,
-                                       Type::ZoneHandle(Type::VarType()));
+                                       Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(catch_excp_var);
   }
   const String& catch_trace_var_name =
@@ -4385,7 +4384,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   if (catch_trace_var == NULL) {
     catch_trace_var = new LocalVariable(token_index_,
                                         catch_trace_var_name,
-                                        Type::ZoneHandle(Type::VarType()));
+                                        Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(catch_trace_var);
   }
 
@@ -4483,7 +4482,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     SequenceNode* catch_handler = CloseBlock();
     ExpectToken(Token::kRBRACE);
 
-    if (!exception_param.type->IsVarType()) {  // Has a type specification.
+    if (!exception_param.type->IsDynamicType()) {  // Has a type specification.
       // Now form an 'if type check' as an exception type exists in
       // the catch specifier.
       if (!exception_param.type->IsInstantiated() &&
@@ -4975,7 +4974,7 @@ LocalVariable* Parser::CreateTempConstVariable(intptr_t token_index,
   LocalVariable* temp =
       new LocalVariable(token_index,
                         String::ZoneHandle(String::NewSymbol(name)),
-                        Type::ZoneHandle(Type::VarType()));
+                        Type::ZoneHandle(Type::DynamicType()));
   temp->set_is_final();
   current_block_->scope->AddVariable(temp);
   return temp;
@@ -5831,14 +5830,15 @@ RawInstance* Parser::EvaluateConstConstructorCall(
   const Instance& result = Instance::Handle(
       DartEntry::InvokeStatic(constructor, arg_values, opt_arg_names));
   if (result.IsUnhandledException()) {
-    ErrorMsg("Exception thrown in EvaluateConstConstructorCall");
-  }
-  if (constructor.IsFactory()) {
-    // The factory method returns the allocated object.
     instance = result.raw();
-  }
-  if (!instance.IsNull()) {
-    instance ^= instance.Canonicalize();
+  } else {
+    if (constructor.IsFactory()) {
+      // The factory method returns the allocated object.
+      instance = result.raw();
+    }
+    if (!instance.IsNull()) {
+      instance ^= instance.Canonicalize();
+    }
   }
   return instance.raw();
 }
@@ -6153,7 +6153,7 @@ AstNode* Parser::ParseArrayLiteral(intptr_t type_pos,
   ConsumeToken();
 
   // If no type arguments are provided, leave them as null, which is equivalent
-  // to using Array<var>. See issue 4966724.
+  // to using Array<Dynamic>. See issue 4966724.
   if (!type_arguments.IsNull()) {
     // For now, only check the number of type arguments. See issue 4975876.
     if (type_arguments.Length() != 1) {
@@ -6267,7 +6267,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   TypeArguments& map_type_arguments =
       TypeArguments::ZoneHandle(type_arguments.raw());
   // If no type arguments are provided, leave them as null, which is equivalent
-  // to using Map<var, var>. See issue 4966724.
+  // to using Map<Dynamic, Dynamic>. See issue 4966724.
   if (!map_type_arguments.IsNull()) {
     // For now, only check the number of type arguments. See issue 4975876.
     if (map_type_arguments.Length() != 2) {
@@ -6331,9 +6331,16 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const Function& map_constr = Function::ZoneHandle(
         map_class.LookupConstructor(constr_name));
     ASSERT(!map_constr.IsNull());
-    return new LiteralNode(literal_pos, Instance::ZoneHandle(
-        EvaluateConstConstructorCall(
-            map_class, map_type_arguments, map_constr, constr_args)));
+    const Instance& const_instance = Instance::ZoneHandle(
+        EvaluateConstConstructorCall(map_class,
+                                     map_type_arguments,
+                                     map_constr,
+                                     constr_args));
+    if (const_instance.IsUnhandledException()) {
+      return CreateEvalConstConstructorThrow(literal_pos, const_instance);
+    } else {
+      return new LiteralNode(literal_pos, const_instance);
+    }
   } else {
     // Static call at runtime.
     const String& static_factory_name =
@@ -6557,9 +6564,15 @@ AstNode* Parser::ParseNewOperator() {
           String::Handle(constructor.name()).ToCString());
     }
     const Instance& const_instance = Instance::ZoneHandle(
-        EvaluateConstConstructorCall(
-            type_class, type_arguments, constructor, arguments));
-    new_object = new LiteralNode(new_pos, const_instance);
+        EvaluateConstConstructorCall(type_class,
+                                     type_arguments,
+                                     constructor,
+                                     arguments));
+    if (const_instance.IsUnhandledException()) {
+      new_object = CreateEvalConstConstructorThrow(new_pos, const_instance);
+    } else {
+      new_object = new LiteralNode(new_pos, const_instance);
+    }
   } else {
     CheckFunctionIsCallable(new_pos, constructor);
     if (!type_arguments.IsNull() &&

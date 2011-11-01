@@ -50,13 +50,14 @@ class FutureImpl<T> implements Future<T> {
 
   FutureImpl() : _listeners = new List(), _exceptionHandlers = new List() {
     _isComplete = false;
+    _exceptionHandled = false;
   }
 
   T get value() {
     if (!isComplete) {
       throw new FutureNotCompleteException();
     }
-    if (_exception != null) {
+    if (_exception !== null) {
       throw _exception;
     }
     return _value;
@@ -74,7 +75,7 @@ class FutureImpl<T> implements Future<T> {
   }
 
   bool get hasValue() {
-    return isComplete && exception == null;
+    return isComplete && _exception === null;
   }
 
   void then(void onComplete(T value)) {
@@ -91,7 +92,7 @@ class FutureImpl<T> implements Future<T> {
 
   void _complete() {
     _isComplete = true;
-    if (_exception != null) {
+    if (_exception !== null) {
       for (Function handler in _exceptionHandlers) {
         if (handler(_exception)) {
           _exceptionHandled = true;
@@ -118,7 +119,7 @@ class FutureImpl<T> implements Future<T> {
   }
 
   void _setException(var exception) {
-    if (exception == null) {
+    if (exception === null) {
       // null is not a legal value for the exception of a Future
       throw new IllegalArgumentException(null);
     }

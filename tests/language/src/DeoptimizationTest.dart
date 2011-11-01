@@ -54,6 +54,19 @@ class SmiBinop {
     // Deoptimize.
     Expect.equals(2.0, subWithLiteral(3.0));
   }
+
+  static mul(x) {
+    return x * 1024;
+  }
+
+  static void smiBinopOverflowTest() {
+    final int big = 536870912;
+    for (int i = 0; i < 2000; i++) {
+      Expect.equals(1024, mul(1));
+    }
+    // Deoptimize by overflow.
+    Expect.equals(1024 * big, mul(big));
+  }
 }
 
 
@@ -164,6 +177,7 @@ class DeoptimizationTest {
     test4();
     SmiCompares.smiComparesTest();
     SmiBinop.smiBinopTest();
+    SmiBinop.smiBinopOverflowTest();
     ObjectsEquality.objectsEqualityTest();
   }
 }

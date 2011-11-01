@@ -63,7 +63,7 @@ class CTConstTest {
     Expect.equals(true, l1 === l2);
 
     final evenNumbers = const <int>[2, 2*2, 2*3, 2*4, 2*5];
-    Expect.equals(true, evenNumbers === const [2, 4, 6, 8, 10]);
+    Expect.equals(true, evenNumbers !== const [2, 4, 6, 8, 10]);
 
     final c11dGermany1 = const {"black": 1, "red": 2, "yellow": 3};
     Expect.equals(true,

@@ -242,10 +242,11 @@ void Isolate::StandardRunLoop() {
     HandleScope handle_scope;
 
     PortMessage* message = message_queue()->Dequeue(0);
-    ASSERT(message != NULL);
-    Dart_HandleMessage(
-        message->dest_port(), message->reply_port(), message->data());
-    delete message;
+    if (message != NULL) {
+      Dart_HandleMessage(
+          message->dest_port(), message->reply_port(), message->data());
+      delete message;
+    }
   }
 }
 

@@ -164,7 +164,9 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
             class_name.ToCString(),
             interface_name.ToCString(),
             function_name.ToCString());
-      } else if (class_function.IsSubtypeOf(interface_function)) {
+      } else if (class_function.IsSubtypeOf(TypeArguments::Handle(),
+                                            interface_function,
+                                            TypeArguments::Handle())) {
         OS::Print("The type of instance method '%s' in class '%s' is not a "
                   "subtype of the type of '%s' in interface '%s'\n",
                   function_name.ToCString(),
@@ -260,6 +262,40 @@ void ClassFinalizer::ResolveSuperClass(const Class& cls) {
                 "both classes or both interfaces.\n",
                 class_name.ToCString(),
                 super_class_name.ToCString());
+  }
+  // If cls belongs to core lib or to core lib's implementation, restrictions
+  // about allowed interfaces are lifted.
+  if ((cls.library() != Library::CoreLibrary()) &&
+      (cls.library() != Library::CoreImplLibrary())) {
+    // Prevent extending core implementation classes Bool, Double, ObjectArray,
+    // ImmutableArray, GrowableObjectArray, IntegerImplementation, Smi, Mint,
+    // BigInt, OneByteString, TwoByteString, FourByteString.
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+    const String& integer_implementation_name =
+        String::Handle(String::NewSymbol("IntegerImplementation"));
+    const Class& integer_implementation_class =
+        Class::Handle(core_impl_lib.LookupClass(integer_implementation_name));
+    const String& growable_object_array_name =
+        String::Handle(String::NewSymbol("GrowableObjectArray"));
+    const Class& growable_object_array_class =
+        Class::Handle(core_impl_lib.LookupClass(growable_object_array_name));
+    if ((super_class.raw() == object_store->bool_class()) ||
+        (super_class.raw() == object_store->double_class()) ||
+        (super_class.raw() == object_store->array_class()) ||
+        (super_class.raw() == object_store->immutable_array_class()) ||
+        (super_class.raw() == growable_object_array_class.raw()) ||
+        (super_class.raw() == integer_implementation_class.raw()) ||
+        (super_class.raw() == object_store->smi_class()) ||
+        (super_class.raw() == object_store->mint_class()) ||
+        (super_class.raw() == object_store->bigint_class()) ||
+        (super_class.raw() == object_store->one_byte_string_class()) ||
+        (super_class.raw() == object_store->two_byte_string_class()) ||
+        (super_class.raw() == object_store->four_byte_string_class())) {
+      ReportError("'%s' is not allowed to extend '%s'\n",
+                  String::Handle(cls.Name()).ToCString(),
+                  String::Handle(super_class.Name()).ToCString());
+    }
   }
   return;
 }
@@ -394,7 +430,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
            (extends_array.Length() == num_type_params));
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_extends = extends_array.TypeAt(i);
-      if (!type_extends.IsVarType()) {
+      if (!type_extends.IsDynamicType()) {
         type = arguments.TypeAt(offset + i);
         if (type.IsInstantiated()) {
           if (!type_extends.IsInstantiated()) {
@@ -494,10 +530,10 @@ void ClassFinalizer::FinalizeType(const Type& type) {
     // Copy the parsed type arguments at the correct offset in the full type
     // argument vector.
     const intptr_t offset = num_type_arguments - num_type_parameters;
-    Type& type = Type::Handle(Type::VarType());
+    Type& type = Type::Handle(Type::DynamicType());
     for (intptr_t i = 0; i < num_type_parameters; i++) {
       // If no type parameters were provided, a raw type is desired, so we
-      // create a vector of VarType.
+      // create a vector of DynamicType.
       if (!arguments.IsNull()) {
         type = arguments.TypeAt(i);
       }
@@ -875,6 +911,13 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     return;
   }
 
+  // If cls belongs to core lib or to core lib's implementation, restrictions
+  // about allowed interfaces are lifted.
+  const bool cls_belongs_to_core_lib =
+      (cls.library() == Library::CoreLibrary()) ||
+      (cls.library() == Library::CoreImplLibrary());
+
+  // Resolve and check the interfaces of cls.
   visited->Add(&cls);
   Type& interface = Type::Handle();
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
@@ -887,12 +930,28 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     }
     const Class& interface_class = Class::Handle(interface.type_class());
     if (!interface_class.is_interface()) {
-      ReportError("Class name '%s' used where interface expected\n",
+      ReportError("Class '%s' is used where an interface is expected\n",
                   String::Handle(interface_class.Name()).ToCString());
     }
-    // TODO(regis): Verify that unless cls is in core lib, it cannot implement
-    // an instance of Number or String. Any other? bool?
-
+    // Verify that unless cls belongs to core lib, it cannot extend or implement
+    // any of bool, num, int, double, String, Function, Dynamic.
+    // The exception is signature classes, which are compiler generated and
+    // represent a function type, therefore implementing the Function interface.
+    if (!cls_belongs_to_core_lib) {
+      if (interface.IsBoolInterface() ||
+          interface.IsNumberInterface() ||
+          interface.IsIntInterface() ||
+          interface.IsDoubleInterface() ||
+          interface.IsStringInterface() ||
+          (interface.IsFunctionInterface() && !cls.IsSignatureClass()) ||
+          interface.IsDynamicType()) {
+        ReportError("'%s' is not allowed to extend or implement '%s'\n",
+                    String::Handle(cls.Name()).ToCString(),
+                    String::Handle(interface_class.Name()).ToCString());
+      }
+      // TODO(regis): We also need to prevent extending classes Smi, Mint,
+      // BigInt, Double, OneByteString, TwoByteString, FourByteString.
+    }
     // Now resolve the super interfaces.
     ResolveInterfaces(interface_class, visited);
   }

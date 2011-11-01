@@ -153,12 +153,12 @@ echo "" > $STAT2
 echo "Compiling dartc with your changes (mode=release)"
 cd $ROOT_OF_REPO/compiler
 gclient runhooks >> $LOG_FILE 2>&1
-../tools/build.py --mode release --arch dartc >> $LOG_FILE 2>&1
+../tools/build.py --mode release >> $LOG_FILE 2>&1
 failTest $? "Error compiling your location changes, check $LOG_FILE"
 
 echo "Running first test against current working copy"
-echo $SCRIPT_PATH/compiler_metrics.sh --stats-prefix=yours --dartc=./out/Release_dartc/dartc $COMPARE_OPTIONS --app=$APP >> $LOG_FILE
-$SCRIPT_PATH/compiler_metrics.sh --stats-prefix=yours --dartc=./out/Release_dartc/dartc $COMPARE_OPTIONS --app=$APP > $STAT1
+echo $SCRIPT_PATH/compiler_metrics.sh --stats-prefix=yours --dartc=./out/Release_ia32/dartc $COMPARE_OPTIONS --app=$APP >> $LOG_FILE
+$SCRIPT_PATH/compiler_metrics.sh --stats-prefix=yours --dartc=./out/Release_ia32/dartc $COMPARE_OPTIONS --app=$APP > $STAT1
 failTest $? "Error collecting statistics from working copy"
 
 # switch to tmp for remainder of building
@@ -179,13 +179,13 @@ failTest $? "Error calling gclient sync"
 echo "Compiler clean version; may take some time"
 cd compiler
 gclient runhooks >> $LOG_FILE 2>&1
-../tools/build.py --mode release --arch dartc >> $LOG_FILE 2>&1
+../tools/build.py --mode release >> $LOG_FILE 2>&1
 failTest $? "Error compiling comparison revision"
 
 # Do the second test
 echo "Running second test against clean copy"
-echo $SCRIPT_PATH/compiler_metrics.sh --stats-prefix=clean --dartc=./out/Release_dartc/dartc $COMPARE_OPTIONS --app=$APP >> $LOG_FILE
-$SCRIPT_PATH/compiler_metrics.sh --stats-prefix=clean --dartc=./out/Release_dartc/dartc $COMPARE_OPTIONS --app=$APP > $STAT2
+echo $SCRIPT_PATH/compiler_metrics.sh --stats-prefix=clean --dartc=./out/Release_ia32/dartc $COMPARE_OPTIONS --app=$APP >> $LOG_FILE
+$SCRIPT_PATH/compiler_metrics.sh --stats-prefix=clean --dartc=./out/Release_ia32/dartc $COMPARE_OPTIONS --app=$APP > $STAT2
 failTest $? "Error collecting statistics from clean copy"
 
 calcStats

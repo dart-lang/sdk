@@ -42,12 +42,13 @@ class _TouchListWrappingImplementation extends DOMWrapperBase implements TouchLi
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
-  int indexOf(Touch element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(Touch element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(Touch element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(Touch element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {

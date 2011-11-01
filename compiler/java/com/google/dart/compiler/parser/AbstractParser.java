@@ -5,9 +5,7 @@
 package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ast.DartNode;
 
 /**
  * Abstract base class for sharing common utility methods between implementation
@@ -100,20 +98,14 @@ abstract class AbstractParser {
     ctx.error(dartError);
   }
 
-  protected void reportWarning(DartNode node, ErrorCode errorCode, Object... arguments) {
-    DartCompilationError dartError = new DartCompilationError(node, errorCode, arguments);
-    dartError.setSource(ctx.getSource());
-    ctx.warning(dartError);
-  }
-
   protected void reportUnexpectedToken(DartScanner.Position position, Token expected,
       Token actual) {
     if (expected == Token.EOS) {
-      reportError(position, DartCompilerErrorCode.EXPECTED_EOS, actual);
+      reportError(position, ParserErrorCode.EXPECTED_EOS, actual);
     } else if (expected == null) {
-      reportError(position, DartCompilerErrorCode.UNEXPECTED_TOKEN, actual);
+      reportError(position, ParserErrorCode.UNEXPECTED_TOKEN, actual);
     } else {
-      reportError(position, DartCompilerErrorCode.EXPECTED_TOKEN, actual, expected);
+      reportError(position, ParserErrorCode.EXPECTED_TOKEN, actual, expected);
     }
   }
 

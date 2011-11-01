@@ -5,8 +5,7 @@
 interface Process factory _Process {
   /*
    * Creates a new process object preparing to run the executable
-   * found at [path] with the specified [arguments].  [arguments] has
-   * to be a const string array, c.f. bug 5314640.
+   * found at [path] with the specified [arguments].
    */
   Process(String path, List<String> arguments);
 

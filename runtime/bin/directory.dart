@@ -59,7 +59,7 @@ interface Directory factory _Directory {
   void setDoneHandler(void doneHandler(bool completed));
 
   /**
-   * Sets the error handler that is called on errors listing
+   * Sets the error handler that is called on error listing
    * directories.
    */
   void setErrorHandler(void errorHandler(String error));
@@ -68,4 +68,11 @@ interface Directory factory _Directory {
    * Gets the path of this directory.
    */
   final String path;
+}
+
+
+class DirectoryException {
+  const DirectoryException(String this.message);
+  String toString() => "DirectoryException: $message";
+  final String message;
 }

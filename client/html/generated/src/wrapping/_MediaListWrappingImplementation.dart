@@ -41,12 +41,13 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
-  int indexOf(String element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(String element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(String element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(String element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {

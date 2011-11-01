@@ -198,18 +198,8 @@ class DeltaAnalyzer {
     }
 
     @Override
-    public void compilationError(DartCompilationError event) {
-      listener.compilationError(event);
-    }
-
-    @Override
-    public void compilationWarning(DartCompilationError event) {
-      listener.compilationWarning(event);
-    }
-
-    @Override
-    public void typeError(DartCompilationError event) {
-      listener.typeError(event);
+    public void onError(DartCompilationError event) {
+      listener.onError(event);
     }
 
     @Override

@@ -55,9 +55,9 @@ class ConveyorView extends CompositeView {
     final style = container.style;
     // TODO(jacobr): modify setTransitionDuration so the input is always
     // specified in miliseconds rather than accepting a string.
-    Css.setTransitionDuration(style, '${durationSeconds}s');
+    style.transitionDuration = '${durationSeconds}s';
     final xTranslationPercent = -index * 100;
-    Css.setTransform(style, 'translate3d(${xTranslationPercent}%, 0px, 0px)');
+    style.transform = 'translate3d(${xTranslationPercent}%, 0px, 0px)';
 
     if (animationTimeoutId != null) {
       window.clearTimeout(animationTimeoutId);

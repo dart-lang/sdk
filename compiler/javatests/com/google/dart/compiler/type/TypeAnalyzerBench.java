@@ -152,15 +152,7 @@ public class TypeAnalyzerBench {
   private static DartCompilerListener getListener() {
     return new DartCompilerListener() {
       @Override
-      public void compilationError(DartCompilationError event) {
-      }
-
-      @Override
-      public void compilationWarning(DartCompilationError event) {
-      }
-
-      @Override
-      public void typeError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
       }
 
       @Override

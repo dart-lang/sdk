@@ -8,6 +8,8 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
+import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -48,27 +50,19 @@ final class DartCompilerMainContext extends DartCompilerListener implements
   }
 
   @Override
-  public void compilationError(DartCompilationError event) {
-    incrementErrorCount();
-    listener.compilationError(event);
-  }
-
-  @Override
-  public void compilationWarning(DartCompilationError event) {
-    incrementWarningCount();
-    listener.compilationWarning(event);
-  }
-
-  @Override
-  public void typeError(DartCompilationError event) {
-    if (!shouldWarnOnNoSuchType()
-        || ((event.getErrorCode() != DartCompilerErrorCode.CANNOT_BE_RESOLVED)
-            && (event.getErrorCode() != DartCompilerErrorCode.NO_SUCH_TYPE)
-            && (event.getErrorCode() != DartCompilerErrorCode.INTERFACE_HAS_NO_METHOD_NAMED))) {
-
+  public void onError(DartCompilationError event) {
+    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE
+        && (!shouldWarnOnNoSuchType() || (
+            (event.getErrorCode() != TypeErrorCode.CANNOT_BE_RESOLVED) &&
+            (event.getErrorCode() != TypeErrorCode.NO_SUCH_TYPE) &&
+            (event.getErrorCode() != TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED)))) {
       incrementTypeErrorCount();
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+      incrementErrorCount();
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+      incrementWarningCount();
     }
-    listener.typeError(event);
+    listener.onError(event);
   }
 
   @Override
@@ -85,8 +79,8 @@ final class DartCompilerMainContext extends DartCompilerListener implements
           try {
             appLibraryUnit =
                 DartParser.getSourceParser(lib, listener).preProcessLibraryDirectives(lib);
-          } catch (IOException ex) {
-            compilationError(new DartCompilationError(lib, ex));
+          } catch (IOException e) {
+            onError(new DartCompilationError(lib, DartCompilerErrorCode.IO, e.getMessage()));
             return null;
           }
         }
@@ -131,8 +125,8 @@ final class DartCompilerMainContext extends DartCompilerListener implements
     }
     try {
       return DartParser.getSourceParser(libSrc, listener).preProcessLibraryDirectives(libSrc);
-    } catch (IOException ex) {
-      compilationError(new DartCompilationError(libSrc, ex));
+    } catch (IOException e) {
+      onError(new DartCompilationError(libSrc, DartCompilerErrorCode.IO, e.getMessage()));
       return null;
     }
   }

@@ -9,7 +9,9 @@
 
 #include "lib/error.h"
 #include "vm/ast_printer.h"
+#include "vm/class_finalizer.h"
 #include "vm/dart_entry.h"
+#include "vm/ic_data.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -256,7 +258,7 @@ void CodeGenerator::GenerateCode() {
     AstPrinter::PrintFunctionNodes(parsed_function_);
   }
   if (FLAG_trace_functions) {
-    // Preserve ECX (function name or object) and EDX (arguments descriptor).
+    // Preserve ECX (ic-data array or object) and EDX (arguments descriptor).
     __ pushl(ECX);
     __ pushl(EDX);
     const Function& function =
@@ -474,10 +476,14 @@ void CodeGenerator::GenerateInstanceCall(
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
-  __ LoadObject(ECX, function_name);
+  ICData ic_data(function_name, 1);
+  __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
-  __ call(&StubCode::CallInstanceFunctionLabel());
+  ExternalLabel target_label(
+      "InlineCache", StubCode::InlineCacheEntryPoint());
+
+  __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,
                        node_id,
                        token_index);
@@ -698,12 +704,13 @@ void CodeGenerator::GenerateEntryCode() {
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
-      __ LoadObject(ECX, String::ZoneHandle(function.name()));
+      ICData ic_data(String::Handle(function.name()), 1);
+      __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
       // EBP : points to previous frame pointer.
       // EBP + 4 : points to return address.
       // EBP + 8 : address of last argument (arg n-1).
       // ESP + 8 + 4*(n-1) : address of first argument (arg 0).
-      // ECX : function name.
+      // ECX : ic-data array.
       // EDX : arguments descriptor array.
       __ call(&StubCode::CallNoSuchMethodFunctionLabel());
     }
@@ -862,7 +869,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const bool requires_type_arguments = cls.HasTypeArguments();
   if (requires_type_arguments) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
-    GenerateInstantiatorTypeArguments();
+    GenerateInstantiatorTypeArguments(node->token_index());
   }
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
@@ -1421,7 +1428,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t token_index,
   __ pushl(EAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
-    GenerateInstantiatorTypeArguments();
+    GenerateInstantiatorTypeArguments(token_index);
   } else {
     __ pushl(raw_null);  // Null instantiator.
   }
@@ -1473,8 +1480,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
 
-  // Any expression is assignable to the VarType. Skip the test.
-  if (dst_type.IsVarType()) {
+  // Any expression is assignable to the DynamicType. Skip the test.
+  if (dst_type.IsDynamicType()) {
     return;
   }
 
@@ -1578,7 +1585,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t token_index,
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   if (!dst_type.IsInstantiated()) {
-    GenerateInstantiatorTypeArguments();
+    GenerateInstantiatorTypeArguments(token_index);
   } else {
     __ pushl(raw_null);  // Null instantiator.
   }
@@ -1640,10 +1647,7 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t token_index) {
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
   __ pushl(location);  // Push the source location.
   __ pushl(EAX);  // Push the source object.
-  // TODO(regis): Once we enforce the rule prohibiting subtyping of bool, we
-  // should rename the runtime call 'ConditionTypeCheck' to
-  // 'ConditionTypeError'.
-  GenerateCallRuntime(token_index, kConditionTypeCheckRuntimeEntry);
+  GenerateCallRuntime(token_index, kConditionTypeErrorRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ addl(ESP, Immediate(3 * kWordSize));
@@ -2133,8 +2137,7 @@ void CodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
 
 
 void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
-  // TODO(regis): Does the spec mention if the closure is evaluated before or
-  // after the arguments? We evaluate it first, i.e. left to right.
+  // The spec states that the closure is evaluated before the arguments.
   // Preserve the current context, since it will be overridden by the closure
   // context during the call.
   __ pushl(CTX);
@@ -2161,22 +2164,36 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 
 
 // Pushes the type arguments of the instantiator on the stack.
-void CodeGenerator::GenerateInstantiatorTypeArguments() {
-  ASSERT(parsed_function().instantiator() != NULL);
-  parsed_function().instantiator()->Visit(this);
-  if (!parsed_function().function().IsInFactoryScope()) {
-    __ popl(EAX);  // Pop instantiator.
-    const Class& instantiator_class =
-        Class::Handle(parsed_function().function().owner());
-    // The instantiator is the receiver of the caller, which is not a factory.
-    // The receiver cannot be null; extract its TypeArguments object.
-    // Note that in the factory case, the instantiator is the first parameter
-    // of the factory, i.e. already a TypeArguments object.
-    intptr_t type_arguments_instance_field_offset =
-        instantiator_class.type_arguments_instance_field_offset();
-    ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
-    __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
-    __ pushl(EAX);
+void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
+  const Class& instantiator_class =
+      Class::Handle(parsed_function().function().owner());
+  if (instantiator_class.NumTypeParameters() == 0) {
+    // The type arguments are compile time constants.
+    TypeArguments& type_arguments = TypeArguments::ZoneHandle();
+    const Type& type = Type::Handle(
+        Type::NewParameterizedType(instantiator_class, type_arguments));
+    const String& errmsg = String::Handle(
+        ClassFinalizer::FinalizeTypeWhileParsing(type));
+    if (!errmsg.IsNull()) {
+      ErrorMsg(token_index, errmsg.ToCString());
+    }
+    type_arguments = type.arguments();
+    __ PushObject(type_arguments);
+  } else {
+    ASSERT(parsed_function().instantiator() != NULL);
+    parsed_function().instantiator()->Visit(this);
+    if (!parsed_function().function().IsInFactoryScope()) {
+      __ popl(EAX);  // Pop instantiator.
+      // The instantiator is the receiver of the caller, which is not a factory.
+      // The receiver cannot be null; extract its TypeArguments object.
+      // Note that in the factory case, the instantiator is the first parameter
+      // of the factory, i.e. already a TypeArguments object.
+      intptr_t type_arguments_instance_field_offset =
+          instantiator_class.type_arguments_instance_field_offset();
+      ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
+      __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
+      __ pushl(EAX);
+    }
   }
 }
 
@@ -2211,7 +2228,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
   } else {
     // The type arguments are uninstantiated.
     ASSERT(node->constructor().IsFactory() || requires_type_arguments);
-    GenerateInstantiatorTypeArguments();
+    GenerateInstantiatorTypeArguments(node->token_index());
     __ popl(EAX);  // Pop instantiator.
     // EAX is the instantiator TypeArguments object (or null).
     // If EAX is null, no need to instantiate the type arguments, use null, and

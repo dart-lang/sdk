@@ -6,6 +6,8 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ErrorSeverity;
+import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
@@ -53,6 +55,14 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkNumErrors("Initializer6NegativeTest.dart", 1);
   }
 
+  public void testArrayLiteralNegativeTest() {
+    checkNumErrors("ArrayLiteralNegativeTest.dart", 1);
+  }
+  
+  public void testMapLiteralNegativeTest() {
+    checkNumErrors("MapLiteralNegativeTest.dart", 1);
+  }
+  
   public void testCall1() {
     checkNumErrors("StaticInstanceCallNegativeTest.dart", 1);
   }
@@ -169,16 +179,20 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkNumErrors("ConstRedirectedConstructorNegativeTest.dart", 1);
   }
 
+  public void testRawTypesNegativeTest() {
+    checkNumErrors("RawTypesNegativeTest.dart", 4);
+  }
+  
   private TestCompilerContext getContext() {
     return new TestCompilerContext() {
       @Override
-      public void compilationError(DartCompilationError event) {
-        errors.add(event);
-      }
-
-      @Override
-      public void typeError(DartCompilationError event) {
-        typeErrors.add(event);
+      public void onError(DartCompilationError event) {
+        if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+          typeErrors.add(event);
+        }
+        if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+          errors.add(event);
+        }
       }
     };
   }

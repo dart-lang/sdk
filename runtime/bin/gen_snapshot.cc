@@ -5,7 +5,6 @@
 // Generate a snapshot file after loading all the scripts specified on the
 // command line.
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -93,7 +92,7 @@ static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
 
 static void* SnapshotCreateCallback(void* data) {
   const char* script_name = reinterpret_cast<const char*>(data);
-  Dart_Result result;
+  Dart_Handle result;
   Dart_EnterScope();
 
   ASSERT(snapshot_filename != NULL);
@@ -102,15 +101,14 @@ static void* SnapshotCreateCallback(void* data) {
   // is created.
   if (script_name != NULL) {
     // Load the specified script.
-    result = LoadScript(script_name);
-    if (!Dart_IsValidResult(result)) {
-      const char* err_msg = Dart_GetErrorCString(result);
+    Dart_Handle library = LoadSnapshotCreationScript(script_name);
+    if (!Dart_IsValid(library)) {
+      const char* err_msg = Dart_GetError(library);
       fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
       Dart_ExitScope();
       exit(255);
     }
 
-    Dart_Handle library = Dart_GetResult(result);
     if (!Dart_IsLibrary(library)) {
       fprintf(stderr,
               "Expected a library when loading script: %s",
@@ -118,19 +116,19 @@ static void* SnapshotCreateCallback(void* data) {
       Dart_ExitScope();
       exit(255);
     }
-    Builtin_ImportLibrary(library);
   } else {
+    // Implicitly load builtin library.
     Builtin_LoadLibrary();
+    // Setup the native resolver for built in library functions.
+    Builtin_SetNativeResolver();
   }
-  // Setup the native resolver for built in library functions.
-  Builtin_SetNativeResolver();
 
   uint8_t* buffer = NULL;
   intptr_t size = 0;
   // First create the snapshot.
   result = Dart_CreateSnapshot(&buffer, &size);
-  if (!Dart_IsValidResult(result)) {
-    const char* err_msg = Dart_GetErrorCString(result);
+  if (!Dart_IsValid(result)) {
+    const char* err_msg = Dart_GetError(result);
     fprintf(stderr, "Error while creating snapshot: %s\n", err_msg);
     Dart_ExitScope();
     exit(255);

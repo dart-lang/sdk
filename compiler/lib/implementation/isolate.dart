@@ -165,7 +165,6 @@ class IsolateNatives {
   }
 
   static SendPort _spawn(Isolate isolate, bool light, SendPort port) native;
-  static Function bind(Function f) native;
 }
 
 

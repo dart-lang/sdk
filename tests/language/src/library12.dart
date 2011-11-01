@@ -8,6 +8,9 @@
 #import("library11.dart");
 class Library12 {
   Library12(this.fld);
+  Library12.other(fld, multiplier) {
+    this.fld = fld*multiplier;
+  }
   func() {
     return 2;
   }

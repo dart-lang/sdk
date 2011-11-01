@@ -62,15 +62,18 @@ class TestOutput(object):
     Returns:
       True if the test had an unexpected output.
     """
+    return not self.GetOutcome() in self.test.outcomes
+
+  def GetOutcome(self):
+    """Returns one of testing.CRASH, testing.TIMEOUT, testing.FAIL, or
+    testing.PASS."""
     if self.HasCrashed():
-      outcome = testing.CRASH
-    elif self.HasTimedOut():
-      outcome = testing.TIMEOUT
-    elif self.HasFailed():
-      outcome = testing.FAIL
-    else:
-      outcome = testing.PASS
-    return not outcome in self.test.outcomes
+      return testing.CRASH
+    if self.HasTimedOut():
+      return testing.TIMEOUT
+    if self.HasFailed():
+      return testing.FAIL
+    return testing.PASS
 
   def HasCrashed(self):
     """Returns True if the test should be considered testing.CRASH."""

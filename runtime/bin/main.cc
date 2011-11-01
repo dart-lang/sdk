@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -111,19 +110,18 @@ static void DumpPprofSymbolInfo() {
 
 static void* MainIsolateInitCallback(void* data) {
   const char* script_name = reinterpret_cast<const char*>(data);
-  Dart_Result result;
+  Dart_Handle library;
   Dart_EnterScope();
 
   // Load the specified script.
-  result = LoadScript(script_name);
-  if (!Dart_IsValidResult(result)) {
-    const char* err_msg = Dart_GetErrorCString(result);
+  library = LoadScript(script_name);
+  if (!Dart_IsValid(library)) {
+    const char* err_msg = Dart_GetError(library);
     fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
     Dart_ExitScope();
     exit(255);
   }
 
-  Dart_Handle library = Dart_GetResult(result);
   if (!Dart_IsLibrary(library)) {
     fprintf(stderr,
             "Expected a library when loading script: %s",
@@ -157,12 +155,11 @@ static bool HasCompileAll(const CommandLineOptions& options) {
 
 
 static void PrintObject(FILE* out, Dart_Handle object) {
-  Dart_Result result = Dart_ObjectToString(object);
-  if (Dart_IsValidResult(result)) {
-    Dart_Handle string = Dart_GetResult(result);
-    PrintString(out, string);
+  Dart_Handle result = Dart_ObjectToString(object);
+  if (Dart_IsValid(result)) {
+    PrintString(out, result);
   } else {
-    fprintf(out, "%s\n", Dart_GetErrorCString(result));
+    fprintf(out, "%s\n", Dart_GetError(result));
   }
 }
 
@@ -189,8 +186,15 @@ int main(int argc, char** argv) {
 
   // Create an isolate. As a side effect, MainIsolateInitCallback
   // gets called, which loads the scripts and libraries.
-  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer, script_name);
+  char* canonical_script_name = File::GetCanonicalPath(script_name);
+  if (canonical_script_name == NULL) {
+    fprintf(stderr, "Unable to find '%s'\n", script_name);
+    return 255;  // Indicates we encountered an error.
+  }
+  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer,
+                                            canonical_script_name);
   if (isolate == NULL) {
+    free(canonical_script_name);
     return 255;
   }
 
@@ -198,62 +202,65 @@ int main(int argc, char** argv) {
   // TODO(asiva): Create a dart options object that can be accessed from
   // dart code.
   if (HasCompileAll(vm_options)) {
-    Dart_Result result = Dart_CompileAll();
-    if (!Dart_IsValidResult(result)) {
-      fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
+    Dart_Handle result = Dart_CompileAll();
+    if (!Dart_IsValid(result)) {
+      fprintf(stderr, "%s\n", Dart_GetError(result));
       Dart_ExitScope();
       Dart_ShutdownIsolate();
+      free(canonical_script_name);
       return 255;  // Indicates we encountered an error.
     }
   }
 
   // Lookup and invoke the top level main function.
-  Dart_Handle script_url = Dart_NewString(script_name);
-  Dart_Result result = Dart_LookupLibrary(script_url);
-  if (!Dart_IsValidResult(result)) {
-    fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
+  Dart_Handle script_url = Dart_NewString(canonical_script_name);
+  Dart_Handle library = Dart_LookupLibrary(script_url);
+  if (!Dart_IsValid(library)) {
+    fprintf(stderr, "%s\n", Dart_GetError(library));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
+    free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
-  Dart_Handle library = Dart_GetResult(result);
-  result = Dart_InvokeStatic(library,
-                             Dart_NewString(""),
-                             Dart_NewString("main"),
-                             0,
-                             NULL);
-
-  if (Dart_IsValidResult(result)) {
-    Dart_Handle result_obj = Dart_GetResult(result);
-    if (Dart_ExceptionOccurred(result_obj)) {
+  Dart_Handle result = Dart_InvokeStatic(library,
+                                         Dart_NewString(""),
+                                         Dart_NewString("main"),
+                                         0,
+                                         NULL);
+  if (Dart_IsValid(result)) {
+    if (Dart_ExceptionOccurred(result)) {
       // Print the exception object.
       fprintf(stderr, "An unhandled exception has been thrown\n");
-      Dart_Result exception_result = Dart_GetException(result_obj);
-      assert(Dart_IsValidResult(exception_result));
-      PrintObject(stderr, Dart_GetResult(exception_result));
+      Dart_Handle exception_result = Dart_GetException(result);
+      ASSERT(Dart_IsValid(exception_result));
+      PrintObject(stderr, exception_result);
       // Print the stack trace.
-      Dart_Result stacktrace = Dart_GetStacktrace(result_obj);
-      assert(Dart_IsValidResult(stacktrace));
-      PrintObject(stderr, Dart_GetResult(stacktrace));
+      Dart_Handle stacktrace = Dart_GetStacktrace(result);
+      ASSERT(Dart_IsValid(stacktrace));
+      PrintObject(stderr, stacktrace);
       fprintf(stderr, "\n");
       Dart_ExitScope();
       Dart_ShutdownIsolate();
+      free(canonical_script_name);
       return 255;  // We had an unhandled exception, hence indicate an error.
     }
   } else {
-    fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
+    fprintf(stderr, "%s\n", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
+    free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
   // Keep handling messages until the last active receive port is closed.
   result = Dart_RunLoop();
-  if (!Dart_IsValidResult(result)) {
-    fprintf(stderr, "%s\n", Dart_GetErrorCString(result));
+  if (!Dart_IsValid(result)) {
+    fprintf(stderr, "%s\n", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
+    free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
+  free(canonical_script_name);
   Dart_ExitScope();
   // Dump symbol information for the profiler.
   DumpPprofSymbolInfo();

@@ -2,23 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*
- * SocketNativeWrapper is defined in native and holds a field to store the
- * native socket object.
- */
-class _SocketBase {
 
-  /*
-   * Keep these constants in sync with the native poll event identifiers.
-   */
+class _SocketBase {
+  // Bit flags used when communicating between the eventhandler and
+  // dart code. The EVENT flags are used to indicate events of
+  // interest when sending a message from dart code to the
+  // eventhandler. When receiving a message from the eventhandler the
+  // EVENT flags indicate the events that actually happened. The
+  // COMMAND flags are used to send commands from dart to the
+  // eventhandler. COMMAND flags are never received from the
+  // eventhandler. Additional flags are used to communicate other
+  // information.
   static final int _IN_EVENT = 0;
   static final int _OUT_EVENT = 1;
   static final int _ERROR_EVENT = 2;
   static final int _CLOSE_EVENT = 3;
+
+  static final int _CLOSE_COMMAND = 8;
+
+  // Flag send to the eventhandler saying that the file descriptor in
+  // question represents a listening socket.
+  static final int _LISTENING_SOCKET = 16;
+
   static final int _FIRST_EVENT = _IN_EVENT;
   static final int _LAST_EVENT = _CLOSE_EVENT;
-
-  static final int _CLOSE_COMMAND = 4;
 
   _SocketBase () {
     _handler = new ReceivePort();
@@ -40,29 +47,31 @@ class _SocketBase {
     _canActivateHandlers = false;
     int event_mask = message[0];
       for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
-        if (((event_mask & (1 << i)) != 0) && _handlerMap[i] !== null) {
+        if (((event_mask & (1 << i)) != 0) && _handlerMap[i] != null) {
           var handleEvent = _handlerMap[i];
-          /*
-           * Unregister the out handler before executing it.
-           */
-          if (i == _OUT_EVENT) {
-            _setHandler(i, null);
-          }
+
+          // Unregister the out handler before executing it.
+          if (i == _OUT_EVENT) _setHandler(i, null);
+
+          // Don't call the in handler if there is no data available
+          // after all.
+          if (i == _IN_EVENT && this is _Socket && available() == 0) continue;
+
           handleEvent();
         }
       }
     _canActivateHandlers = true;
-    _doActivateHandlers();
+    _activateHandlers();
   }
 
   void _setHandler(int event, void callback()) {
-    if (callback === null) {
+    if (callback == null) {
       _handlerMask &= ~(1 << event);
     } else {
       _handlerMask |= (1 << event);
     }
     _handlerMap[event] = callback;
-    _doActivateHandlers();
+    _activateHandlers();
   }
 
   void _getPort() native "Socket_GetPort";
@@ -71,9 +80,11 @@ class _SocketBase {
     _setHandler(_ERROR_EVENT, callback);
   }
 
-  void _doActivateHandlers() {
+  void _activateHandlers() {
     if (_canActivateHandlers && (_id >= 0)) {
-      EventHandler._sendData(_id, _handler, _handlerMask);
+      int data = _handlerMask;
+      if (_isListenSocket()) data |= (1 << _LISTENING_SOCKET);
+      EventHandler._sendData(_id, _handler, data);
     }
   }
 
@@ -82,7 +93,7 @@ class _SocketBase {
   }
 
   int get port() {
-    if (_port == null) {
+    if (_port === null) {
       _port = _getPort();
     }
     return _port;
@@ -94,19 +105,15 @@ class _SocketBase {
       _handler.close();
       _handler = null;
       _id = -1;
-    } else {
+    } else if (_handler != null) {
       // This is to support closing sockets created but never assigned
       // any actual socket.
-      if (_handler == null) {
-        throw new
-            SocketIOException("Error: close failed - invalid socket handle");
-      } else {
-        _handler.close();
-        _handler = null;
-      }
+      _handler.close();
+      _handler = null;
     }
   }
 
+  abstract bool _isListenSocket();
 
   /*
    * Socket id is set from native. -1 indicates that the socket was closed.
@@ -181,6 +188,8 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   void setConnectionHandler(void callback()) {
     _setHandler(_IN_EVENT, callback);
   }
+
+  bool _isListenSocket() => true;
 }
 
 
@@ -275,6 +284,8 @@ class _Socket extends _SocketBase implements Socket {
   void setCloseHandler(void callback()) {
     _setHandler(_CLOSE_EVENT, callback);
   }
+
+  bool _isListenSocket() => false;
 
   InputStream get inputStream() {
     if (_inputStream === null) {

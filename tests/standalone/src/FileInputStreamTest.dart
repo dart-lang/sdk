@@ -3,37 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing FileInputStream, VM-only, standalone test.
 
-
-String callbackString = null;
-
-callback(List<int> buffer) {
-  callbackString =  new String.fromCharCodes(buffer);
-}
-
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getFilename(String path) =>
-    FileUtil.fileExists(path) ? path : '../' + path;
+    new File(path).existsSync() ? path : '../' + path;
 
 main() {
   String fName = getFilename("tests/standalone/src/readuntil_test.dat");
-  // File contains "Hello Dart, wassup!"
-  File file = new File(fName, false);
-  FileInputStream x = new FileInputStream(file);
-  x.readUntil("Dart".charCodes(), callback);
-  file.close();
-  Expect.stringEquals("Hello Dart", callbackString);
-
-  callbackString = null;
-  file = new File(fName, false);
-  x = new FileInputStream(file);
-  x.readUntil("Darty".charCodes(), callback);
-  file.close();
-  Expect.isNull(callbackString);
-
-  file = new File(fName, false);
-  x = new FileInputStream(file);
-  x.readUntil("wassup!".charCodes(), callback);
-  file.close();
-  Expect.stringEquals("Hello Dart, wassup!", callbackString);
+  // File contains "Hello Dart\nwassup!"
+  File file = new File(fName);
+  file.openSync();
+  StringInputStream x = new StringInputStream(file.openInputStream());
+  String line = x.readLine();
+  Expect.equals("Hello Dart", line);
+  file.closeSync();
+  line = x.readLine();
+  Expect.equals("wassup!", line);
 }

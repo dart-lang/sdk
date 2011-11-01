@@ -103,6 +103,13 @@ intptr_t RawObject::Size() const {
         instance_size = Array::InstanceSize(array_length);
         break;
       }
+      case kTypeArray: {
+        const RawTypeArray* raw_array =
+            reinterpret_cast<const RawTypeArray*>(this);
+        intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
+        instance_size = TypeArray::InstanceSize(array_length);
+        break;
+      }
       case kPcDescriptors: {
         const RawPcDescriptors* raw_descriptors =
             reinterpret_cast<const RawPcDescriptors*>(this);

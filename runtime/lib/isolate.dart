@@ -44,7 +44,7 @@ class ReceivePortImpl implements ReceivePort {
 
   // Called from the VM to dispatch to the handler.
   static void handleMessage_(int id, int replyId, var message) {
-    assert(_portMap != null);
+    assert(_portMap !== null);
     ReceivePort port = _portMap[id];
     SendPort replyTo = (replyId == 0) ? null : new SendPortImpl(replyId);
     (port._onMessage)(message, replyTo);
@@ -148,8 +148,4 @@ class IsolateNatives {
   // This method is being dispatched to from the public core library code.
   static SendPort _start(Isolate isolate, bool light)
       native "IsolateNatives_start";
-
-  // The VM knows in which isolate the function must be run, therefore
-  // there is no need for wrapping it.
-  static Function bind(Function f) { return f; }
 }

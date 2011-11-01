@@ -4,38 +4,16 @@
 
 {
   'includes': [
-    'dart_server.gypi',
     'fling/fling.gypi',
   ],
   'targets': [
     {
-      'target_name': 'dartserver',
+      # this target is needed because gyp fails on Mac if there is a single
+      # target
+      'target_name': 'noop',
       'type': 'none',
-      'dependencies': ['../compiler/dart-compiler.gyp:dartc'],
-      'actions': [
-        {
-          'action_name': 'Build DartServer',
-          'inputs': [
-            'dart_server.gypi',
-            '<@(dart_server_sources)',
-            '<@(dart_server_resources)',
-            '<(PRODUCT_DIR)/dartc',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/dartserver/dartserver.jar',
-          ],
-          'action' : [
-            '../third_party/apache_ant/v1_7_1/bin/ant',
-            '-f', 'tools/dartserver/build.xml',
-            '-Dbuild.dir=<(PRODUCT_DIR)',
-            'clean',
-            'build'
-          ],
-          'message': 'Running DartServer build actions.',
-        },
-      ],
+      'actions': [],
     },
-
     {
       'target_name': 'fling',
       'type': 'none',

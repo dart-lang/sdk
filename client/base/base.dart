@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('base');
-#import('dart:html');
+#import('../html/html.dart');
 #import('../observable/observable.dart');
 #import('../util/utilslib.dart');
 
 #source('AnimationScheduler.dart');
-#source('Css.dart');
 #source('Device.dart');
 #source('DomWrapper.dart');
 #source('Env.dart');

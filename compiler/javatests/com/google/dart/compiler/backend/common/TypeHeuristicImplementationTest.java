@@ -71,16 +71,8 @@ public class TypeHeuristicImplementationTest extends CompilerTestCase {
     DefaultCompilerConfiguration config = new DefaultCompilerConfiguration();
     DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(Files.createTempDir());
     DartCompilerListener listener = new DartCompilerListener() {
-      @Override
-      public void typeError(DartCompilationError event) {
-      }
-
-      @Override
-      public void compilationWarning(DartCompilationError event) {
-      }
-
       @Override      
-      public void compilationError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
       }
 
       @Override

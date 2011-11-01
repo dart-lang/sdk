@@ -7,6 +7,7 @@
 
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
+#include "vm/ic_data.h"
 #include "vm/object_store.h"
 #include "vm/pages.h"
 #include "vm/resolver.h"
@@ -224,7 +225,8 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // Stub is entered after a call but before the callee's frame has been
 // constructed.
 // Handle stack overflow by calling the runtime routine and preserving
-// the argument descriptor (EDX) and the name/function object of the call (ECX).
+// the argument descriptor (EDX) and the ic-data array/function object of
+// the call (ECX).
 // The stub must be able to return to callee in case the stack overflow
 // exception is not thrown.
 void StubCode::GenerateStackOverflowStub(Assembler* assembler) {
@@ -235,9 +237,9 @@ void StubCode::GenerateStackOverflowStub(Assembler* assembler) {
   // TOS + 2: Last argument of caller.
   // ....
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve object (function name or function object).
+  __ pushl(ECX);  // Preserve object (ic-data array or function object).
   __ CallRuntimeFromStub(kStackOverflowRuntimeEntry);
-  __ popl(ECX);  // Restore object (function name or function object).
+  __ popl(ECX);  // Restore object (ic-data array or function object).
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
   __ int3();
@@ -290,7 +292,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 // Lookup for [function-name, arg count] in 'functions_map_'.
 // Input parameters (to be treated as read only, unless calling to target!):
-//   ECX: function name string.
+//   ECX: ic-data array.
 //   EDX: arguments descriptor array (num_args is first Smi element).
 //   Stack: return address, arguments.
 // If the lookup succeeds we jump to the target method from here, otherwise
@@ -339,7 +341,8 @@ static void MegamorphicLookup(Assembler* assembler) {
   __ cmpl(EDI, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
 
-  __ cmpl(EDI, ECX);
+  ASSERT(ICData::kNameIndex == 0);
+  __ cmpl(EDI, FieldAddress(ECX, Array::data_offset()));
   __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
   // Name found, check total argument count and named argument count.
@@ -402,7 +405,7 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 
 
 // Input parameters:
-//   ECX: function name string.
+//   ECX: ic-data array.
 //   EDX: arguments descriptor array (num_args is first Smi element).
 // Note: The receiver object is the first argument to the function being
 //       called, the stub accesses the receiver from this location directly
@@ -431,7 +434,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ movl(EAX, Address(ESP, EAX, TIMES_2, kWordSize));  // Get receiver.
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(EAX);  // Preserve receiver.
-  __ pushl(ECX);  // Preserve function name.
+  __ pushl(ECX);  // Preserve ic-data array.
   // First resolve the function to get the function object.
 
   // Setup space for return value on stack by pushing smi 0.
@@ -441,7 +444,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ popl(EAX);  // Remove receiver pushed earlier.
   __ popl(ECX);  // Pop returned code object into ECX.
   // Pop preserved values
-  __ popl(EDX);  // Restore function name.
+  __ popl(EDX);  // Restore ic-data array.
   __ popl(EAX);  // Restore receiver.
   __ popl(EDI);  // Restore arguments descriptor array.
 
@@ -459,7 +462,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ Bind(&check_implicit_closure);
   // EAX: receiver.
-  // EDX: function name.
+  // EDX: ic-data array.
   // ECX: raw_null.
   // EDI: arguments descriptor array.
   // The target function was not found.
@@ -467,12 +470,12 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // trying to create a closure of an instance function.
   // Push values that need to be preserved across runtime call.
   __ pushl(EAX);  // Preserve receiver.
-  __ pushl(EDX);  // Preserve function name.
+  __ pushl(EDX);  // Preserve ic-data array.
   __ pushl(EDI);  // Preserve arguments descriptor array.
 
   __ pushl(Immediate(0));
   __ pushl(EAX);  // Push receiver.
-  __ pushl(EDX);  // Function name.
+  __ pushl(EDX);  // Ic-data array.
   __ CallRuntimeFromStub(kResolveImplicitClosureFunctionRuntimeEntry);
   __ popl(EAX);
   __ popl(EAX);
@@ -480,7 +483,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   // Pop preserved values.
   __ popl(EDI);  // Restore arguments descriptor array.
-  __ popl(EDX);  // Restore function name.
+  __ popl(EDX);  // Restore ic-data array.
   __ popl(EAX);  // Restore receiver.
 
   __ cmpl(ECX, raw_null);
@@ -494,7 +497,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ Bind(&check_implicit_closure_through_getter);
   // EAX: receiver.
-  // EDX: function name.
+  // EDX: ic-data array.
   // ECX: raw_null.
   // EDI: arguments descriptor array.
   // This is not the case of an instance so invoke the getter of the
@@ -502,20 +505,20 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // supposed to invoke.
   // Push values that need to be preserved across runtime call.
   __ pushl(EAX);  // Preserve receiver.
-  __ pushl(EDX);  // Preserve function name.
+  __ pushl(EDX);  // Preserve ic-data array.
   __ pushl(EDI);  // Preserve arguments descriptor array.
 
   __ pushl(Immediate(0));
   __ pushl(EAX);  // Push receiver.
-  __ pushl(EDX);  // Function name.
+  __ pushl(EDX);  // Ic-data array.
   __ CallRuntimeFromStub(kResolveImplicitClosureThroughGetterRuntimeEntry);
-  __ popl(EDX);  // Restore function name.
-  __ popl(EAX);  // Restore receiver.
+  __ popl(EDX);  // Pop argument.
+  __ popl(EAX);  // Pop argument.
   __ popl(ECX);  // get return value into ECX, might be Closure object.
 
   // Pop preserved values.
   __ popl(EDI);  // Restore arguments descriptor array.
-  __ popl(EDX);  // Restore function name.
+  __ popl(EDX);  // Restore ic-data array.
   __ popl(EAX);  // Restore receiver.
 
   __ cmpl(ECX, raw_null);
@@ -556,14 +559,14 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // The target function was not found, so invoke method
   // "void noSuchMethod(function_name, args_array)".
   //   EAX: receiver.
-  //   EDX: function name.
+  //   EDX: ic-data array.
   //   ECX: raw_null.
   //   EDI: argument descriptor array.
 
   // Setup space for return value on stack by pushing smi 0.
   __ pushl(Immediate(0));  // Result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
-  __ pushl(EDX);  // Function name.
+  __ pushl(EDX);  // IC-data array.
   __ pushl(EDI);  // Argument descriptor array.
   __ movl(EDI, FieldAddress(EDI, Array::data_offset()));
   __ SmiUntag(EDI);
@@ -574,7 +577,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // Stack:
   // TOS + 0: Argument array.
   // TOS + 1: Argument descriptor array.
-  // TOS + 2: Function name.
+  // TOS + 2: IC-data array.
   // TOS + 3: Receiver.
   // TOS + 4: Place for result from noSuchMethod.
   // TOS + 5: Saved EBP of previous frame. <== EBP
@@ -593,32 +596,6 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // Remove the stub frame as we are about to return.
   __ LeaveFrame();
   __ ret();
-}
-
-
-void StubCode::GenerateCallInstanceFunctionStub(Assembler* assembler) {
-  __ EnterFrame(0);
-  // Stack at this point:
-  // TOS + 0: Saved EBP of previous frame. <== EBP
-  // TOS + 1: Dart code return address
-  // TOS + 2: Last argument of caller.
-  // ....
-  // Total number of args is the first Smi in args descriptor array (EDX).
-  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));  // EAX is a Smi.
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, kWordSize));  // Load receiver.
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve function name.
-  __ pushl(EAX);  // Push receiver.
-  __ CallRuntimeFromStub(kResolvePatchInstanceCallRuntimeEntry);
-  __ popl(EAX);  // Remove receiver pushed earlier.
-  // Pop preserved values
-  __ popl(ECX);  // Restore function name.
-  __ popl(EDX);  // Restore arguments descriptor array.
-  __ LeaveFrame();
-  __ popl(EAX);
-  // Reexecute call.
-  __ subl(EAX, Immediate(Assembler::kCallExternalLabelSize));
-  __ jmp(EAX);
 }
 
 
@@ -1396,7 +1373,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 //   EBP + 4 : points to return address.
 //   EBP + 8 : address of last argument (arg n-1).
 //   EBP + 8 + 4*(n-1) : address of first argument (arg 0).
-//   ECX : function name.
+//   ECX : ic-data array.
 //   EDX : arguments descriptor array.
 // Uses EAX, EBX, EDI as temporary registers.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
@@ -1418,7 +1395,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // Setup space for return value on stack by pushing smi 0.
   __ pushl(Immediate(0));  // Result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
-  __ pushl(ECX);  // Function name.
+  __ pushl(ECX);  // IC data array.
   __ pushl(EDX);  // Arguments descriptor array.
   __ subl(EDI, Immediate(1));  // Arguments array length, minus the receiver.
   // See stack layout below explaining "wordSize * 8" offset.
@@ -1427,7 +1404,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // Stack:
   // TOS + 0: Argument array.
   // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Function name.
+  // TOS + 2: Ic-data array.
   // TOS + 3: Receiver.
   // TOS + 4: Place for result from noSuchMethod.
   // TOS + 5: Saved EBP of previous frame. <== EBP
@@ -1447,6 +1424,94 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // Remove the stub frame as we are about to return.
   __ LeaveFrame();
   __ ret();
+}
+
+
+// Use inline cache data array to invoke the target or continue in inline
+// cache miss handler. Stub for 1-argument check (receiver class).
+//  ECX: Inline cache data array
+//  EDX: Arguments array
+//  TOS(0): return address
+void StubCode::GenerateInlineCacheStub(Assembler* assembler) {
+  Label ic_miss, is_smi, test_class;
+  // Get receiver.
+  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
+
+  __ CompareObject(EAX, Instance::ZoneHandle(Instance::null()));
+  __ j(EQUAL, &ic_miss, Assembler::kNearJump);  // Null receiver -> IC miss.
+
+  // Test if Smi -> load Smi class for comparison.
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &is_smi, Assembler::kNearJump);
+  __ movl(EAX, FieldAddress(EAX, Object::class_offset()));
+  __ jmp(&test_class);
+  __ Bind(&is_smi);
+  const Class& smi_class =
+      Class::ZoneHandle(Isolate::Current()->object_store()->smi_class());
+  __ LoadObject(EAX, smi_class);
+
+  __ Bind(&test_class);
+  // EAX: receiver's class
+  // ECX: IC data array.
+
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == 1.
+    __ movl(EBX, FieldAddress(ECX,
+        Array::data_offset() + ICData::kNumArgsCheckedIndex * kWordSize));
+    const Immediate value = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
+    __ cmpl(EBX, value);
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect stub for IC data");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ leal(EBX, FieldAddress(ECX,
+      Array::data_offset() + ICData::kChecksStartIndex * kWordSize));
+  Label loop, found, call_target_function;
+  __ Bind(&loop);
+  __ movl(EDI, Address(EBX, 0));  // Get class to check.
+  __ cmpl(EAX, EDI);  // Match?
+  __ j(EQUAL, &found, Assembler::kNearJump);
+  __ addl(EBX, Immediate(kWordSize * 2));  // next element (class + target).
+  __ cmpl(EDI, raw_null);   // Done?
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+
+  __ Bind(&ic_miss);
+
+    // Get receiver.
+  __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
+  __ EnterFrame(0);
+  // Setup space for return value on stack by pushing smi 0.
+  __ pushl(EDX);  // Preserve arguments array.
+  __ pushl(ECX);  // Preserve IC data array
+  __ pushl(Immediate(0));
+  __ pushl(EAX);  // Push receiver.
+  __ CallRuntimeFromStub(kInlineCacheMissHandlerRuntimeEntry);
+  __ popl(EAX);  // Remove receiver pushed earlier.
+  __ popl(EAX);  // Pop returned code object into EAX.
+  __ popl(ECX);  // Restore IC data array.
+  __ popl(EDX);  // Restore arguments array.
+  __ LeaveFrame();
+  __ cmpl(EAX, raw_null);
+  __ j(NOT_EQUAL, &call_target_function, Assembler::kNearJump);
+  // NoSuchMethod or closure.
+  __ jmp(&StubCode::MegamorphicLookupLabel());
+
+  __ Bind(&found);
+  __ movl(EAX, Address(EBX, kWordSize));  // Target function.
+
+  __ Bind(&call_target_function);
+  // EAX: Target function.
+  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EAX);
 }
 
 }  // namespace dart

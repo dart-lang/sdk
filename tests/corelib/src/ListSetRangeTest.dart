@@ -52,6 +52,8 @@ main() {
   Expect.listEquals([1, 9, 10, 6], list);
 
   testNegativeIndices();
+
+  testNonExtendableList();
 }
 
 void expectIOORE(Function f) {
@@ -77,4 +79,12 @@ void testNegativeIndices() {
 
   list.setRange(0, 0, [1], -1);
   Expect.listEquals([1, 2], list);
+}
+
+void testNonExtendableList() {
+  var list = new List<int>(6);
+  Expect.listEquals([null, null, null, null, null, null], list);
+  list.setRange(0, 3, [1, 2, 3, 4]);
+  list.setRange(3, 3, [1, 2, 3, 4]);
+  Expect.listEquals([1, 2, 3, 1, 2, 3], list);
 }

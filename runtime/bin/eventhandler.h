@@ -7,6 +7,20 @@
 
 #include "bin/builtin.h"
 
+// Flags used to provide information and actions to the eventhandler
+// when sending a message about a file descriptor. These flags should
+// be kept in sync with the constants in socket_impl.dart. For more
+// information see the comments in socket_impl.dart
+enum MessageFlags {
+  kInEvent = 0,
+  kOutEvent = 1,
+  kErrorEvent = 2,
+  kCloseEvent = 3,
+  kCloseCommand = 8,
+  kListeningSocket = 16,
+};
+
+
 // The event handler delegation class is OS specific.
 #if defined(TARGET_OS_LINUX)
 #include "bin/eventhandler_linux.h"
@@ -17,18 +31,6 @@
 #else
 #error Unknown target os.
 #endif
-
-/*
- * Keep these constant in sync with the dart poll event identifiers.
- */
-enum Message {
-  kInEvent = 0,
-  kOutEvent,
-  kErrorEvent,
-  kCloseEvent,
-  kCloseCommand,
-};
-
 
 class EventHandler {
  public:

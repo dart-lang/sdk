@@ -131,16 +131,18 @@ public class CompileService {
     private final List<CompileError> warnings = Lists.newArrayList();
 
     @Override
+    public void onError(DartCompilationError error) {
+      fatalErrors.add(CompileError.from(error));
+    }
+
     public void compilationError(DartCompilationError error) {
       fatalErrors.add(CompileError.from(error));
     }
 
-    @Override
     public void compilationWarning(DartCompilationError error) {
       warnings.add(CompileError.from(error));
     }
 
-    @Override
     public void typeError(DartCompilationError error) {
       typeErrors.add(CompileError.from(error));
     }
@@ -193,16 +195,7 @@ public class CompileService {
           snapshot,
           new DartCompilerListener() {
             @Override
-            public void compilationError(DartCompilationError error) {
-              throw new RuntimeException("Unable to build runtime lib: " + error);
-            }
-
-            @Override
-            public void compilationWarning(DartCompilationError warning) {
-            }
-
-            @Override
-            public void typeError(DartCompilationError error) {
+            public void onError(DartCompilationError error) {
               throw new RuntimeException("Unable to build runtime lib: " + error);
             }
 

@@ -5,7 +5,6 @@
 package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -84,13 +83,7 @@ public class SyntaxTest extends AbstractParserTest {
       DartScannerParserContext context =
         new DartScannerParserContext(dartSrc, sourceCode, new DartCompilerListener() {
         @Override
-        public void typeError(DartCompilationError event) {
-        }
-        @Override
-        public void compilationWarning(DartCompilationError event) {
-        }
-        @Override
-        public void compilationError(DartCompilationError event) {
+        public void onError(DartCompilationError event) {
         }
         @Override
         public void unitCompiled(DartUnit unit) {
@@ -148,7 +141,7 @@ public class SyntaxTest extends AbstractParserTest {
     assertNotNull(tryCatch.getFinallyBlock());
 
     parseUnitErrors("TryCatchNegative.dart",
-      DartCompilerErrorCode.CATCH_OR_FINALLY_EXPECTED, 8, 3);
+      ParserErrorCode.CATCH_OR_FINALLY_EXPECTED, 8, 3);
   }
 
   public void testArrayLiteral() {

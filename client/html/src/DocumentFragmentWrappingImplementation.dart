@@ -99,23 +99,21 @@ class FilteredElementList implements ElementList {
   Iterator<Element> iterator() => _filtered.iterator();
   List<Element> getRange(int start, int length) =>
     _filtered.getRange(start, length);
-  int indexOf(Element element, int startIndex) =>
-    _filtered.indexOf(element, startIndex);
-  int lastIndexOf(Element element, int startIndex) =>
-    _filtered.lastIndexOf(element, startIndex);
+  int indexOf(Element element, [int start = 0]) =>
+    _filtered.indexOf(element, start);
+
+  int lastIndexOf(Element element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _filtered.lastIndexOf(element, start);
+  }
+
   Element last() => _filtered.last();
 }
 
-class EmptyStyleDeclaration implements CSSStyleDeclaration {
-  String get cssText() => "";
-  int get length() => 0;
-  CSSRule get parentRule() => null;
-  CSSValue getPropertyCSSValue(String propertyName) => null;
-  String getPropertyPriority(String propertyName) => "";
-  String getPropertyShorthand(String propertyName) => null;
-  String getPropertyValue(String propertyName) => null;
-  bool isPropertyImplicit(String propertyName) => false;
-  String item(int index) => "";
+class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
+  // This can't call super(), since that's a factory constructor
+  EmptyStyleDeclaration()
+    : super._wrap(dom.document.createElement('div').style);
 
   void set cssText(String value) {
     throw new UnsupportedOperationException(
@@ -260,7 +258,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   String get tagName() => "";
   String get webkitdropzone() => "";
   Element get firstElementChild() => elements.first();
-  Element get lastElementChild() => elements.last;
+  Element get lastElementChild() => elements.last();
   Element get nextElementSibling() => null;
   Element get previousElementSibling() => null;
   Element get offsetParent() => null;

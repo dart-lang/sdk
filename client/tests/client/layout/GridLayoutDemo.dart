@@ -95,7 +95,7 @@ class MockView extends View {
     node.id = id;
     CollectionUtils.copyMap(customStyle, styles);
     // TODO(jmesserly): this is needed to get horizontal content-sizing to work
-    Css.setDisplay(node.style, 'inline-block');
+    node.style.display = 'inline-block';
   }
 }
 

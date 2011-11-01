@@ -11,14 +11,24 @@ class _ProcessStartStatus {
 class _Process implements Process {
 
   _Process(String path, List<String> arguments) {
-    _path = path;
-    {
-      int len = arguments.length;
-      _arguments = new ObjectArray<String>(len);
-      for (int i = 0; i < len; i++) {
-        _arguments[i] = arguments[i];
-      }
+    if (path is !String) {
+      throw new ProcessException("Path is not a String: $path");
     }
+    _path = path;
+
+    if (arguments is !List) {
+      throw new ProcessException("Arguments is not a List: $arguments");
+    }
+    int len = arguments.length;
+    _arguments = new ObjectArray<String>(len);
+    for (int i = 0; i < len; i++) {
+      var arg = arguments[i];
+      if (arg is !String) {
+        throw new ProcessException("Non-string argument: $arg");
+      }
+      _arguments[i] = arguments[i];
+    }
+
     _in = new _Socket._internal();
     _out = new _Socket._internal();
     _err = new _Socket._internal();
@@ -39,11 +49,19 @@ class _Process implements Process {
     }
     _started = true;
 
+    // Make sure to activate socket handlers now that the file
+    // descriptors have been set.
+    _in._activateHandlers();
+    _out._activateHandlers();
+    _err._activateHandlers();
+
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
     _exitHandler.setDataHandler(() {
-        List<int> buffer = new List<int>(8);
-        SocketInputStream input = _exitHandler.inputStream;
+        final int EXIT_DATA_SIZE = 8;
+        List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
+        InputStream input = _exitHandler.inputStream;
+        int exitDataRead = 0;
 
         int exitCode(List<int> ints) {
           return ints[4] + (ints[5] << 8) + (ints[6] << 16) + (ints[7] << 24);
@@ -54,20 +72,19 @@ class _Process implements Process {
         }
 
         void handleExit() {
-          _processExit(exitPid(buffer));
-          if (_exitHandlerCallback != null) {
-            _exitHandlerCallback(exitCode(buffer));
+          _processExit(exitPid(exitDataBuffer));
+          if (_exitHandlerCallback !== null) {
+            _exitHandlerCallback(exitCode(exitDataBuffer));
           }
         }
 
-        void readData() {
-          handleExit();
+        void exitData() {
+          exitDataRead += input.readInto(
+              exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
+          if (exitDataRead == EXIT_DATA_SIZE) handleExit();
         }
 
-        bool result = input.read(buffer, 0, 8, readData);
-        if (result) {
-          handleExit();
-        }
+        input.dataHandler = exitData;
       });
   }
 
@@ -103,7 +120,7 @@ class _Process implements Process {
   }
 
   bool kill() {
-    if (_closed && _pid == null) {
+    if (_closed && _pid === null) {
       throw new ProcessException("Process closed");
     }
     if (_killed) {

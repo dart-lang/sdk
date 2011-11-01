@@ -27,12 +27,12 @@ interface Positionable {
 class LayoutParams {
   // TODO(jmesserly): should be const, but there's a bug in DartC preventing us
   // from calling "window." in an initializer. See b/5332777
-  Css style;
+  CSSStyleDeclaration style;
 
   int get layer() => 0;
 
   LayoutParams(Element node) {
-    style = new Css(window.getComputedStyle(node, ''));
+    style = window.getComputedStyle(node, '');
   }
 }
 
@@ -101,7 +101,7 @@ class ViewLayout {
     return view.customStyle['display'] == "-dart-grid";
   }
 
-  Css get _style() => layoutParams.style;
+  CSSStyleDeclaration get _style() => layoutParams.style;
 
   int get currentWidth() => view.node.offsetWidth;
   int get currentHeight() => view.node.offsetHeight;
@@ -137,13 +137,13 @@ class ViewLayout {
   void applyLayout() {
     if (_measuredLeft != null) {
       // TODO(jmesserly): benchmark the performance of this DOM interaction
-      final css = new Css(view.node.style);
-      css.position = 'absolute';
-      css.left = '${_measuredLeft}px';
-      css.top = '${_measuredTop}px';
-      css.width = '${_measuredWidth}px';
-      css.height = '${_measuredHeight}px';
-      css.zIndex = '${layoutParams.layer}';
+      final style = view.node.style;
+      style.position = 'absolute';
+      style.left = '${_measuredLeft}px';
+      style.top = '${_measuredTop}px';
+      style.width = '${_measuredWidth}px';
+      style.height = '${_measuredHeight}px';
+      style.zIndex = '${layoutParams.layer}';
 
       _measuredLeft = null;
       _measuredTop = null;

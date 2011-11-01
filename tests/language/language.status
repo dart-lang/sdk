@@ -17,7 +17,7 @@
 prefix language
 
 
-[ $arch == ia32 || $arch == dartium ]
+[ $component == vm || $component == dartium ]
 ClassTest: Fail             # Bug 4504458 (pseudo keyword)
 NamingTest: Fail            # Bug 4504458 (pseudo keyword)
 SuperTest: Fail             # Bug 4995181
@@ -29,39 +29,32 @@ TypeVariableBoundsTest/07: Fail # Bug 5257789
 TypeVariableScopeTest/03: Fail # Bug 5349550, was 5316513
 TypeVariableScopeTest/04: Fail # Bug 5349550, was 5316513
 ImpliedInterfaceTest: Fail # Bug 5349944
-CallThroughNullGetterTest: Fail # Bug 4968741
-
-BlackListedTest/01: Fail # Bug 5469684
-BlackListedTest/02: Fail # Bug 5469684
-BlackListedTest/03: Fail # Bug 5469684
-BlackListedTest/04: Fail # Bug 5469684
-BlackListedTest/05: Fail # Bug 5469684
-BlackListedTest/06: Fail # Bug 5469684
-BlackListedTest/07: Fail # Bug 5469684
-BlackListedTest/08: Fail # Bug 5469684
-BlackListedTest/09: Fail # Bug 5469684
-BlackListedTest/10: Fail # Bug 5469684
-BlackListedTest/11: Fail # Bug 5469684
-BlackListedTest/12: Fail # Bug 5469684
-
-ConstructorTest: Fail          # Bug 4995181, execution order
-ParameterInitializerTest: Fail # Bug 4995181, execution order
 
 # These bugs refer currently ongoing language discussions.
 ExampleConstructorTest: Fail    # Bug 4995181
-
+Constructor2Test: Fail          # Bug 4995181 (evaluation order)
+Constructor3Test: Fail          # Bug 4995181 (evaluation order)
 
 # Regular bugs which should be fixed.
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
-CanonicalConstTest: Fail        # Bug 5270133
-GenericParameterizedExtendsTest: Skip  # Bug 5391643
+CanonicalConstTest: Fail        # Bug 5271563
+
+ConstructorReturnNegativeTest: Fail                   # Issue 224
+ConstructorReturnWithInitNegativeTest: Fail           # Issue 224
+ConstructorReturnWithArrowNegativeTest: Fail          # Issue 224
+ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 224
+
+NonParameterizedFactory2Test: Fail # Bug 5257789
 
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
 
+[ $component == vm && $mode == debug ]
+NonParameterizedFactoryTest: Crash  # Issue 226
+
 # Problems specific to dartc optimized mode
-[ ($arch == dartc || $arch == chromium) && $mode == release ]
+[ ($component == dartc || $component == chromium) && $mode == release ]
 MethodInvocationTest: Fail               # Bug  5392266
 Label2NegativeTest: Crash                # Bug 5318228
 NullPointerExceptionTest: Fail           # Bug 5391976
@@ -72,10 +65,10 @@ BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not thr
 CTConst2Test: Fail                       # Codesite issue 124
 
 # Problems specific to dartc debug mode
-[ ($arch == dartc || $arch == chromium) && $mode == debug ]
+[ ($component == dartc || $component == chromium) && $mode == debug ]
 
 
-[ $arch == dartc || $arch == chromium ]
+[ $component == dartc || $component == chromium ]
 Library4NegativeTest: Fail               # Bug 5406175
 Prefix3NegativeTest: Fail                # Bug 5406175
 Prefix11NegativeTest: Fail               # Bug 5406175
@@ -85,7 +78,6 @@ Prefix15Test: Skip                       # Bug 5406175
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
-ConstructorSetterNegativeTest: FAIL      # Bug 92
 
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.
@@ -117,12 +109,17 @@ NoSuchMethodTest: Fail       # Bug 4202974.
 NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 LocalFunction3Test: Fail     # Bug 4202974.
+MethodOverrideTest: Crash    # Bug 5516001.
+DynamicTest: Fail            # Bug 5527899.
 
 FieldNegativeTest: Fail      # Bug 4207626.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 ExampleConstructorTest: Fail # Bug 4205742.
 CTConstTest: Fail            # Bug 4510015.
 Constructor2NegativeTest: Fail  # Bug 4208594.
+Constructor2Test: Fail       # Issue 255
+Constructor3Test: Fail       # Issue 257
+Constructor4Test: Fail       # Issue 286
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
 BitOperationsTest: Fail      # Uses bignums.
 ListLiteral3Test: Fail      # Bug 4510015.
@@ -136,10 +133,10 @@ OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
-FieldOverrideTest/01: Fail	       # Bug 5215249
-FieldOverrideTest/02: Fail	       # Bug 5215249
+FieldOverrideTest/01: Fail       # Bug 5215249
+FieldOverrideTest/02: Fail       # Bug 5215249
 OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
-OverrideFieldTest/04: Fail	       # Bug 5215249
+OverrideFieldTest/04: Fail       # Bug 5215249
 CharEscapeTest: Fail
 GetterClosureExecutionOrderTest: Fail # Bug 5481595
 
@@ -165,38 +162,14 @@ BlackListedTest/12: Fail # Bug 5469684
 *VMTest: Skip
 
 
-[ $arch == dartium ]
-# Bug 5476054: print is only available if DOM is imported.
-Throw5Test: Fail
-ExceptionTest: Fail
+[ $component == dartium ]
+# TODO: These need to be retriaged.
 ExpectTest: Fail
-StringInterpolateTest: Fail
-ExecuteFinally7Test: Fail
-SavannahTest: Fail
-Throw2Test: Fail
-Throw3Test: Fail
-HelloDartTest: Fail
-ThrowTest: Fail
-TryCatch3Test: Fail
 StackTraceTest: Fail
-Throw1Test: Fail
-RegExp2Test: Fail
-FannkuchTest: Fail
 RichardsTest: Fail
-Throw6Test: Fail
-RegEx2Test: Fail
-DivByZeroTest: Fail
 UnboundGetterTest: Fail
-NativeTest: Fail
-Throw4Test: Fail
-ImplicitClosure1Test: Fail
 Private2Test: Fail
-ImportCoreImplNoPrefixTest: Fail
-HelloScriptTest: Fail
-ImportCoreImplNoPrefixTest: Fail
-ImportCoreNoPrefixTest: Fail
 Private3Test: Fail
-GetterClosureExecutionOrderTest: Fail # Bug 5481595
 
 TypedMessageTest: Fail # Bug 5246195
 

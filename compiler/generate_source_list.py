@@ -3,6 +3,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+from __future__ import with_statement
 import StringIO
 import os
 import sys
@@ -53,7 +54,7 @@ class Generator:
   def _print_gypi_files(self, out, name, files):
     out.write("    '%s': [\n" % name)
     for filename in files:
-      out.write("      '%s/%s',\n" % (self.path, filename))
+      out.write('''      r'%s',%s''' % (os.path.join(self.path, filename),'\n'))
     out.write("    ],\n")
 
   def _print_ant_files(self, out, name, files):

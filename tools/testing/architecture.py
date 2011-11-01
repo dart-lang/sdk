@@ -3,16 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 #
 
-"""Runs a Dart unit test in different configurations.
-
-Currently supported architectures include dartium, chromium, ia32, x64,
-arm, simarm, and dartc.
-
-Example:
-  run.py --arch=dartium --mode=release --test=Test.dart
-
-"""
-
 import os
 import platform
 import re
@@ -41,15 +31,25 @@ HTML_CONTENTS = """
   <script type="text/javascript" src="%(controller_script)s"></script>
   <script type="%(script_type)s" src="%(source_script)s"></script>
   <script type="text/javascript">
-    // If 'startedDartTest' is not set, that means that the test did not have
-    // a chance to load. This will happen when a load error occurs in the VM.
-    // Give the machine time to start up.
-    setTimeout(function() {
-      if (window.layoutTestController
-          && !window.layoutTestController.startedDartTest) {
-        window.layoutTestController.notifyDone();
-      }
-    }, 3000);
+    // If nobody intercepts the error, finish the test.
+    window.onerror = function() { window.layoutTestController.notifyDone() };
+
+    window.addEventListener('DOMContentLoaded', function() {
+      // If 'startedDartTest' is not set, that means that the test did not have
+      // a chance to load. This will happen when a load error occurs in the VM.
+      // Give the machine time to start up.
+      setTimeout(function() {
+        // A window.postMessage might have been enqueued after this timeout.
+        // Just sleep another time to give the browser the time to process the
+        // posted message.
+        setTimeout(function() {
+          if (window.layoutTestController
+              && !window.layoutTestController.startedDartTest) {
+            window.layoutTestController.notifyDone();
+          }
+        }, 0);
+      }, 50);
+    }, false);
   </script>
 </body>
 </html>
@@ -68,6 +68,10 @@ DART_CONTENTS = """
 
 #import('%(library)s', prefix: "Test");
 
+waitForDone() {
+  window.postMessage('unittest-suite-wait-for-done', '*');
+}
+
 pass() {
   document.body.innerHTML = 'PASS';
   window.postMessage('unittest-suite-done', '*');
@@ -78,11 +82,6 @@ fail(e, trace) {
   window.postMessage('unittest-suite-done', '*');
 }
 
-// All tests are registered as async tests on the UnitTestSuite.
-// If the test uses the [:TestRunner:] we will a callback to wait for the
-// done callback.
-// Otherwise we will call [:testSuite.done():] immediately after the test
-// finished.
 main() {
   bool needsToWait = false;
   bool mainIsFinished = false;
@@ -96,7 +95,11 @@ main() {
   };
   try {
     Test.main();
-    if (!needsToWait) pass();
+    if (needsToWait) {
+      waitForDone();
+    } else {
+      pass();
+    }
     mainIsFinished = true;
   } catch(var e, var trace) {
     fail(e, trace);
@@ -106,7 +109,7 @@ main() {
 
 
 # Patterns for matching test options in .dart files.
-DART_OPTIONS_PATTERN = re.compile(r"// DartOptions=(.*)")
+DART_OPTIONS_PATTERN = re.compile(r'// DartOptions=(.*)')
 
 # Pattern for checking if the test is a web test.
 DOM_IMPORT_PATTERN = re.compile(r'#import.*(dart:(dom|html)|html\.dart).*\);',
@@ -144,12 +147,13 @@ def IsLibraryDefinition(test, source):
 
 
 class Architecture(object):
-  """Definitions for different ways to test based on the --arch flag."""
+  """Definitions for different ways to test based on the component flag."""
 
-  def __init__(self, root_path, arch, mode, test):
+  def __init__(self, root_path, arch, mode, component, test):
     self.root_path = root_path
     self.arch = arch
     self.mode = mode
+    self.component = component
     self.test = test
     self.build_root = utils.GetBuildRoot(OS_GUESS, self.mode, self.arch)
     source = file(test).read()
@@ -161,7 +165,7 @@ class Architecture(object):
     self.temp_dir = None
 
   def HasFatalTypeErrors(self):
-    """Returns True if this type of arch supports --fatal-type-errors."""
+    """Returns True if this type of component supports --fatal-type-errors."""
     return False
 
   def GetTestFrameworkPath(self):
@@ -173,8 +177,9 @@ class Architecture(object):
 class BrowserArchitecture(Architecture):
   """Architecture that runs compiled dart->JS through a browser."""
 
-  def __init__(self, root_path, arch, mode, test):
-    super(BrowserArchitecture, self).__init__(root_path, arch, mode, test)
+  def __init__(self, root_path, arch, mode, component, test):
+    super(BrowserArchitecture, self).__init__(root_path, arch, mode, component,
+                                              test)
     self.temp_dir = tempfile.mkdtemp()
     if not self.is_web_test: self.GenerateWebTestScript()
 
@@ -219,7 +224,7 @@ class BrowserArchitecture(Architecture):
     unittest_path = os.path.join(self.root_path, 'client', 'testing',
                                  'unittest', 'unittest.dart')
 
-    if self.arch == 'chromium':
+    if self.component == 'chromium':
       dom_path = os.path.join(self.root_path, 'client', 'testing',
                               'unittest', 'dom_for_unittest.dart')
     else:
@@ -271,8 +276,6 @@ class BrowserArchitecture(Architecture):
     dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
     dart_flags += ' '.join(self.vm_options)
 
-    if self.arch == 'chromium' and self.mode == 'release':
-      dart_flags += ' --optimize '
     drt_flags.append(dart_flags)
 
     html_output_file = os.path.join(self.GetHtmlPath(), self.GetHtmlName())
@@ -326,8 +329,8 @@ class BrowserArchitecture(Architecture):
 class ChromiumArchitecture(BrowserArchitecture):
   """Architecture that runs compiled dart->JS through a chromium DRT."""
 
-  def __init__(self, root_path, arch, mode, test):
-    super(ChromiumArchitecture, self).__init__(root_path, arch, mode, test)
+  def __init__(self, root_path, arch, mode, component, test):
+    super(ChromiumArchitecture, self).__init__(root_path, arch, mode, component, test)
 
   def GetScriptType(self):
     return 'text/javascript'
@@ -353,6 +356,8 @@ class ChromiumArchitecture(BrowserArchitecture):
                                          'dartc'))
     if utils.IsWindows(): dartc += '.exe'
     cmd = [dartc, '--work', self.temp_dir]
+    if self.mode == 'release':
+      cmd += ['--optimize']
     cmd += self.vm_options
     cmd += ['--out', self.GetScriptPath()]
     if fatal_static_type_errors:
@@ -368,8 +373,8 @@ class ChromiumArchitecture(BrowserArchitecture):
 class DartiumArchitecture(BrowserArchitecture):
   """Architecture that runs dart in an VM embedded in DumpRenderTree."""
 
-  def __init__(self, root_path, arch, mode, test):
-    super(DartiumArchitecture, self).__init__(root_path, arch, mode, test)
+  def __init__(self, root_path, arch, mode, component, test):
+    super(DartiumArchitecture, self).__init__(root_path, arch, mode, component, test)
 
   def GetScriptType(self):
     return 'application/dart'
@@ -392,8 +397,9 @@ class DartiumArchitecture(BrowserArchitecture):
 class StandaloneArchitecture(Architecture):
   """Base class for architectures that run tests without a browser."""
 
-  def __init__(self, root_path, arch, mode, test):
-    super(StandaloneArchitecture, self).__init__(root_path, arch, mode, test)
+  def __init__(self, root_path, arch, mode, component, test):
+    super(StandaloneArchitecture, self).__init__(root_path, arch, mode, component,
+                                                 test)
 
   def GetCompileCommand(self, fatal_static_type_errors=False):
     fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
@@ -405,6 +411,8 @@ class StandaloneArchitecture(Architecture):
     test_name = os.path.basename(self.test)
     test_path = os.path.abspath(self.test)
     command = [dart] + self.vm_options
+    if self.mode == 'release':
+      command += ['--optimize']
     (classname, extension) = os.path.splitext(test_name)
     if self.dart_options:
       command += self.dart_options
@@ -435,8 +443,8 @@ class StandaloneArchitecture(Architecture):
 class DartcArchitecture(StandaloneArchitecture):
   """Runs the Dart ->JS compiler then runs the result in a standalone JS VM."""
 
-  def __init__(self, root_path, arch, mode, test):
-    super(DartcArchitecture, self).__init__(root_path, arch, mode, test)
+  def __init__(self, root_path, arch, mode, component, test):
+    super(DartcArchitecture, self).__init__(root_path, arch, mode, component, test)
 
   def GetExecutable(self):
     """Returns the name of the executable to run the test."""
@@ -461,8 +469,9 @@ class DartcArchitecture(StandaloneArchitecture):
 class RuntimeArchitecture(StandaloneArchitecture):
   """Executes tests on the standalone VM (runtime)."""
 
-  def __init__(self, root_path, arch, mode, test):
-    super(RuntimeArchitecture, self).__init__(root_path, arch, mode, test)
+  def __init__(self, root_path, arch, mode, component, test):
+    super(RuntimeArchitecture, self).__init__(root_path, arch, mode, component,
+                                              test)
 
   def GetExecutable(self):
     """Returns the name of the executable to run the test."""
@@ -488,16 +497,16 @@ def ExecuteCommand(cmd, verbose=False):
   return subprocess.call(cmd)
 
 
-def GetArchitecture(arch, mode, test):
+def GetArchitecture(arch, mode, component, test):
   root_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..'))
-  if arch == 'chromium':
-    return ChromiumArchitecture(root_path, arch, mode, test)
+  if component == 'chromium':
+    return ChromiumArchitecture(root_path, arch, mode, component, test)
 
-  elif arch == 'dartium':
-    return DartiumArchitecture(root_path, arch, mode, test)
+  elif component == 'dartium':
+    return DartiumArchitecture(root_path, arch, mode, component, test)
 
-  elif arch in ['ia32', 'x64', 'simarm', 'arm']:
-    return RuntimeArchitecture(root_path, arch, mode, test)
+  elif component == 'vm':
+    return RuntimeArchitecture(root_path, arch, mode, component, test)
 
-  elif arch == 'dartc':
-    return DartcArchitecture(root_path, arch, mode, test)
+  elif component == 'dartc':
+    return DartcArchitecture(root_path, arch, mode, component, test)

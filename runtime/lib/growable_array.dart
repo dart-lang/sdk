@@ -66,15 +66,15 @@ class GrowableObjectArray<T> implements List<T> {
   List<T> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    return new List<T>.fromList(this, start, start + length);
+    List list = new List<T>();
+    list.length = length;
+    Arrays.copy(this, start, list, 0, length);
+    return list;
   }
 
   // The length of this growable array. It is always less than the
   // length of the backing array.
   int _length;
-  // Constant used by indexOf and lastIndexOf when the element given
-  // is not in the array.
-  static final int ABSENT = -1;
 
   GrowableObjectArray()
       : _length = 0, backingArray = new ObjectArray<T>(4) {}
@@ -117,6 +117,9 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   T operator [](int index) {
+    if (index is !int) {
+      throw new IllegalArgumentException("[] with $index");
+    }
     if (index >= _length) {
       throw new IndexOutOfRangeException(index);
     }
@@ -124,7 +127,10 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   void operator []=(int index, T value) {
-    if (index >= _length) {
+   if (index is !int) {
+     throw new IllegalArgumentException("[]= with $index");
+   }
+   if (index >= _length) {
       throw new IndexOutOfRangeException(index);
     }
     backingArray[index] = value;
@@ -169,12 +175,13 @@ class GrowableObjectArray<T> implements List<T> {
     return backingArray[_length - 1];
   }
 
-  int indexOf(T element, int startIndex) {
-    return Arrays.indexOf(backingArray, element, startIndex, _length);
+  int indexOf(T element, [int start = 0]) {
+    return Arrays.indexOf(backingArray, element, start, _length);
   }
 
-  int lastIndexOf(T element, int startIndex) {
-    return Arrays.lastIndexOf(backingArray, element, startIndex);
+  int lastIndexOf(T element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return Arrays.lastIndexOf(backingArray, element, start);
   }
 
   /**

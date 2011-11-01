@@ -21,9 +21,7 @@ class VmTestCase(test.TestCase):
     return False
 
   def GetLabel(self):
-    return "%s %s" % (
-      self.context.GetBuildConf(self.mode, self.arch),
-      '/'.join(self.path))
+    return '%s%s vm %s' % (self.mode, self.arch, '/'.join(self.path))
 
   def GetCommand(self):
     command = self.context.GetRunTests(self.mode, self.arch)
@@ -42,9 +40,8 @@ class VmTestConfiguration(test.TestConfiguration):
   def __init__(self, context, root):
     super(VmTestConfiguration, self).__init__(context, root)
 
-  def ListTests(self, current_path, path, mode, arch):
-    if not arch in ['ia32', 'x64', 'arm', 'simarm']:
-      return []
+  def ListTests(self, current_path, path, mode, arch, component):
+    if component != 'vm': return []
     run_tests = self.context.GetRunTests(mode, arch)
     output = test_runner.Execute(run_tests + ['--list'], self.context)
     if output.exit_code != 0:

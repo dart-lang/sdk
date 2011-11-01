@@ -130,7 +130,7 @@ public class SystemLibraryManager {
             throw new AssertionError();
           }
         } else {
-          throw new RuntimeException("Don't know how to expand dart URI: " + uri);
+          return null;
         }
       }
     }

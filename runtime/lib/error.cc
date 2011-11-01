@@ -194,7 +194,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   const TypeArguments& dst_type_instantiator =
       TypeArguments::CheckedHandle(arguments.At(3));
   const String& dst_name = String::CheckedHandle(arguments.At(4));
-  ASSERT(!dst_type.IsVarType());  // No need to check assignment to 'var type'.
+  ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
   if (!src_instance.IsAssignableTo(dst_type, dst_type_instantiator)) {
@@ -216,28 +216,24 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
 }
 
 
-// Check that the type of the given object is allowed in conditional context.
+// Report that the type of the given object is not bool in conditional context.
 // Arg0: index of the token of the assignment (source location).
-// Arg1: object being checked.
-// Return value: checked value, otherwise allocate and throw a TypeError.
-DEFINE_RUNTIME_ENTRY(ConditionTypeCheck, 2) {
+// Arg1: bad object.
+// Return value: none, throws a TypeError.
+DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
   ASSERT(arguments.Count() ==
-      kConditionTypeCheckRuntimeEntry.argument_count());
+      kConditionTypeErrorRuntimeEntry.argument_count());
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
-
+  ASSERT(src_instance.IsNull() || !src_instance.IsBool());
   const char* msg = "boolean expression";
-  if (src_instance.IsNull() || !src_instance.IsBool()) {
-    const Type& bool_interface = Type::Handle(Type::BoolInterface());
-    const Type& src_type = Type::Handle(src_instance.GetType());
-    const String& src_type_name = String::Handle(src_type.Name());
-    const String& bool_type_name = String::Handle(bool_interface.Name());
-    ThrowTypeError(location, src_type_name, bool_type_name,
-                   String::Handle(String::NewSymbol(msg)));
-    UNREACHABLE();
-  }
-
-  arguments.SetReturn(src_instance);
+  const Type& bool_interface = Type::Handle(Type::BoolInterface());
+  const Type& src_type = Type::Handle(src_instance.GetType());
+  const String& src_type_name = String::Handle(src_type.Name());
+  const String& bool_type_name = String::Handle(bool_interface.Name());
+  ThrowTypeError(location, src_type_name, bool_type_name,
+                 String::Handle(String::NewSymbol(msg)));
+  UNREACHABLE();
 }
 
 
@@ -258,7 +254,7 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
   const TypeArguments& element_type_instantiator =
       TypeArguments::CheckedHandle(arguments.At(3));
   const String& rest_name = String::CheckedHandle(arguments.At(4));
-  ASSERT(!element_type.IsVarType());  // No need to check assignment.
+  ASSERT(!element_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!rest_array.IsNull());
 
   Instance& elem = Instance::Handle();

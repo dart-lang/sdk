@@ -88,18 +88,14 @@ public abstract class CompilerTestCase extends TestCase {
     }
 
     @Override
-    public void compilationError(DartCompilationError event) {
-      compilationErrors.add(event);
-    }
-
-    @Override
-    public void compilationWarning(DartCompilationError event) {
-      compilationWarnings.add(event);
-    }
-
-    @Override
-    public void typeError(DartCompilationError event) {
-      typeErrors.add(event);
+    public void onError(DartCompilationError event) {
+      if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+        typeErrors.add(event);
+      } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+        compilationErrors.add(event);
+      }   else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+        compilationWarnings.add(event);
+      }
     }
 
     /**
@@ -220,6 +216,23 @@ public abstract class CompilerTestCase extends TestCase {
     ParserContext context = makeParserContext(src, sourceCode,
         new DartCompilerListenerTest(srcName));
     return makeParser(context).parseUnit(src);
+  }
+
+  /**
+   * Parse a single compilation unit with given name and source, and check for a set of expected errors.
+   *
+   * @param errors a sequence of errors represented as triples of the form
+   *        (String msg, int line, int column) or
+   *        (ErrorCode code, int line, int column)
+   */
+  protected DartUnit parseSourceUnitErrors(String sourceCode,  Object... errors) {
+    String srcName = "Test.dart";
+    DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
+    DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
+    ParserContext context = makeParserContext(src, sourceCode, listener);
+    DartUnit unit = makeParser(context).parseUnit(src);
+    listener.checkAllErrorsReported();
+    return unit;
   }
 
   /**

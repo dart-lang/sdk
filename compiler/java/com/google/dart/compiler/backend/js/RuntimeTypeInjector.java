@@ -27,6 +27,19 @@
 
 package com.google.dart.compiler.backend.js;
 
+import static com.google.dart.compiler.util.AstUtil.and;
+import static com.google.dart.compiler.util.AstUtil.assign;
+import static com.google.dart.compiler.util.AstUtil.call;
+import static com.google.dart.compiler.util.AstUtil.comma;
+import static com.google.dart.compiler.util.AstUtil.nameref;
+import static com.google.dart.compiler.util.AstUtil.neq;
+import static com.google.dart.compiler.util.AstUtil.newAssignment;
+import static com.google.dart.compiler.util.AstUtil.newInvocation;
+import static com.google.dart.compiler.util.AstUtil.newNameRef;
+import static com.google.dart.compiler.util.AstUtil.newQualifiedNameRef;
+import static com.google.dart.compiler.util.AstUtil.newVar;
+import static com.google.dart.compiler.util.AstUtil.not;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.InternalCompilerException;
@@ -57,15 +70,12 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.ElementKind;
-import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
-
-import static com.google.dart.compiler.util.AstUtil.*;
 
 import java.util.List;
 import java.util.Map;
@@ -85,6 +95,7 @@ public class RuntimeTypeInjector {
   private final Map<ClassElement, String> builtInTypeChecks;
   private CoreTypeProvider typeProvider;
   private final TranslationContext translationContext;
+  private final Types types;
 
   RuntimeTypeInjector(
       TraversalContextProvider context,
@@ -98,6 +109,7 @@ public class RuntimeTypeInjector {
     this.builtInTypeChecks = makeBuiltinTypes(typeProvider);
     this.typeProvider = typeProvider;
     this.emitTypeChecks = emitTypeChecks;
+    types = Types.getInstance(typeProvider);
   }
 
   private Map<ClassElement, String> makeBuiltinTypes(CoreTypeProvider typeProvider) {
@@ -837,19 +849,19 @@ public class RuntimeTypeInjector {
   /**
    * Check if an assignment is statically known to have a type error.
    *
-   * @param type
-   * @param exprType
+   * @param type type of assignment target
+   * @param exprType type of value being assigned
    * @param expr
    * @return true if the assignment is known to be bad statically
    */
   private boolean isStaticallyBadAssignment(Type type, Type exprType, JsExpression expr) {
-    if (!expr.isDefinitelyNotNull()) {
-      // nulls can be assigned to any type, so if this may be null we can't assume it is a bad
-      // assignment
+    if (!expr.isDefinitelyNotNull() || type == null || exprType == null
+          || type.getKind() == TypeKind.DYNAMIC || exprType.getKind() == TypeKind.DYNAMIC) {
+      // nulls can be assigned to any type, and if either is dynamic we can't
+      // reject it
       return false;
     }
-    // TODO(jat): implement static subtype checks
-    return false;
+    return !types.isAssignable(type, exprType);
   }
 
   /**
@@ -858,12 +870,15 @@ public class RuntimeTypeInjector {
    * @return true if the assignment is statically known to not need a check
    */
   private boolean isStaticallyGoodAssignment(Type type, Type exprType) {
-    if (type == null || type instanceof DynamicType) {
+    if (type == null || type.getKind() == TypeKind.DYNAMIC) {
       // if there is no target type or it is dynamic, it is good
       return true;
     }
-    // TODO(jat): implement static subtype checks
-    return false;
+    if (exprType == null || exprType.getKind() == TypeKind.DYNAMIC) {
+      // otherwise, if the source type is unknown or dynamic, we need a check
+      return false;
+    }
+    return types.isAssignable(type, exprType);
   }
 
   /**
@@ -920,14 +935,17 @@ public class RuntimeTypeInjector {
     switch (TypeKind.of(type)) {
       case INTERFACE:
         InterfaceType interfaceType = (InterfaceType) type;
-        // TODO(jat): do we need a special case for raw interfaces?
+        // TODO: do we need a special case for raw interfaces?
         return generateRTTLookup(interfaceType, enclosingClass);
       case VARIABLE:
         TypeVariable typeVar = (TypeVariable) type;
         return getReifiedTypeVariableRTT(typeVar, enclosingClass);
+      case FUNCTION:
+        // TODO: do we need a more detailed RTT than just a generic function?
+        return generateRTTLookup(typeProvider.getFunctionType(), enclosingClass);
       case VOID:
       case FUNCTION_ALIAS:
-        // TODO(jat): implement, no checks for now
+        // TODO: implement, no checks for now
       case DYNAMIC:
         // no check required
         return null;

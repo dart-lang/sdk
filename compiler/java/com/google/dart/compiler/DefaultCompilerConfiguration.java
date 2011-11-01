@@ -208,6 +208,11 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
+
+    // Verify the dart system library exists
+    if( null == this.systemLibraryManager.expandRelativeDartUri(systemUri) ) {
+      return null;
+    }
     return new UrlLibrarySource(systemUri, this.systemLibraryManager);
   }
 

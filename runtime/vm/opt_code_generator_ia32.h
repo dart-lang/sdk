@@ -91,16 +91,25 @@ class OptimizingCodeGenerator : public CodeGenerator {
                           Register temp,
                           Label* is_smi,
                           Label* not_double_or_smi);
+  void GenerateDirectCall(intptr_t node_id,
+                          intptr_t token_index,
+                          Function& target,
+                          intptr_t arg_count,
+                          const Array& optional_argument_names);
+  void GenerateCheckedInstanceCalls(AstNode* node,
+                                    AstNode* receiver,
+                                    intptr_t node_id,
+                                    intptr_t token_index,
+                                    intptr_t num_args,
+                                    const Array& optional_argument_names);
   bool GenerateSmiComparison(ComparisonNode* node);
+  void GenerateSmiEquality(ComparisonNode* node);
   bool GenerateDoubleComparison(ComparisonNode* node);
   bool GenerateEqualityComparison(ComparisonNode* node);
   void GenerateLogicalBinaryOp(BinaryOpNode* node);
   void GenerateConditionalJumps(const CodeGenInfo& nInfo, Condition condition);
   bool TryInlineInstanceCall(InstanceCallNode* node);
   bool TryInlineStaticCall(StaticCallNode* node);
-  bool GenerateCheckedInstanceCalls(InstanceCallNode* node);
-  void GenerateDirectInstanceCall(InstanceCallNode* node, const Class& cls);
-
 
   bool IsResultInEaxRequested(AstNode* node) const;
   bool NodeMayBeSmi(AstNode* node) const;

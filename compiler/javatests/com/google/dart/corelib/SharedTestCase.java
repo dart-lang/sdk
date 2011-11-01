@@ -14,8 +14,10 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.DefaultDartArtifactProvider;
 import com.google.dart.compiler.DefaultLibrarySource;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.runner.DartRunner;
 import com.google.dart.runner.RunnerError;
@@ -218,8 +220,14 @@ public class SharedTestCase extends TestCase {
   private DartCompilerListener getListener() {
     DartCompilerListener listener = new DartCompilerListener() {
       @Override
-      public void compilationError(DartCompilationError event) {
-        compilationErrorCount.incrementAndGet();
+      public void onError(DartCompilationError event) {
+        if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+          typeErrorCount.incrementAndGet();
+        } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+          compilationErrorCount.incrementAndGet();
+        } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+          warningCount.incrementAndGet();
+        }
         maybeThrow(event);
       }
 
@@ -231,18 +239,6 @@ public class SharedTestCase extends TestCase {
           // It is easier to debug a failing regular test if we throw an exception.
           throw new AssertionError(event);
         }
-      }
-
-      @Override
-      public void compilationWarning(DartCompilationError event) {
-        warningCount.incrementAndGet();
-        maybeThrow(event);
-      }
-
-      @Override
-      public void typeError(DartCompilationError event) {
-        typeErrorCount.incrementAndGet();
-        maybeThrow(event);
       }
 
       @Override

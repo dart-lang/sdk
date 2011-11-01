@@ -12,7 +12,6 @@ import com.google.dart.compiler.util.TextOutput;
 import com.google.debugging.sourcemap.FilePosition;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 

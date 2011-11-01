@@ -41,7 +41,7 @@ class AnimationScheduler {
   List<CallbackData> _callbacks;
   int _intervalId;
   bool _isMobileSafari = false;
-  Css _safariHackCss;
+  CSSStyleDeclaration _safariHackStyle;
   int _frameCount = 0;
   bool _webkitAnimationFrameMaybeAvailable = true;
 
@@ -52,8 +52,8 @@ class AnimationScheduler {
       // sometimes don't render on iOS without forcing a layout.
       final element = new Element.tag('div');
       document.body.nodes.add(element);
-      _safariHackCss = new Css(element.style);
-      _safariHackCss.position = 'absolute';
+      _safariHackStyle = element.style;
+      _safariHackStyle.position = 'absolute';
     }
   }
 
@@ -160,7 +160,7 @@ class AnimationScheduler {
       // render if only webkit transforms were modified.
       // TODO(jacobr): find a cleaner workaround.
       int offset = _frameCount % 2;
-      _safariHackCss.left = '${offset}px';
+      _safariHackStyle.left = '${offset}px';
     }
   }
 }

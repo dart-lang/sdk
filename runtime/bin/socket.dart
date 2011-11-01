@@ -110,7 +110,8 @@ interface Socket factory _Socket {
   int get port();
 
   /*
-   * Closes the socket
+   * Closes the socket. Calling [close] will never throw an exception
+   * and calling it several times is supported.
    */
   void close();
 }

@@ -26,7 +26,6 @@ class RawCode;
   V(AllocateArray)                                                             \
   V(CallNoSuchMethodFunction)                                                  \
   V(MegamorphicLookup)                                                         \
-  V(CallInstanceFunction)                                                      \
   V(CallStaticFunction)                                                        \
   V(CallClosureFunction)                                                       \
   V(StackOverflow)                                                             \
@@ -34,13 +33,18 @@ class RawCode;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
 
-// TODO(regis): Is it OK for the stubs above to refer to Object::null()?
+// Is it permitted for the stubs above to refer to Object::null(), which is
+// allocated in the VM isolate and shared across all isolates.
+// However, in cases where a simple GC-safe placeholder is needed on the stack,
+// using Smi 0 instead of Object::null() is slightly more efficient, since a Smi
+// does not require relocation.
 
 // List of stubs created per isolate, these stubs could potentially contain
 // embedded objects and hence cannot be shared across isolates.
 #define STUB_CODE_LIST(V)                                                      \
   V(InvokeDartCode)                                                            \
   V(AllocateContext)                                                           \
+  V(InlineCache)                                                               \
 
 
 // class StubEntry is used to describe stub methods generated in dart to
@@ -72,7 +76,7 @@ class StubCode {
  public:
   StubCode()
     :
-#define STUB_CODE_INITIALIZER(name) \
+#define STUB_CODE_INITIALIZER(name)                                            \
         name##_entry_(NULL),
   STUB_CODE_LIST(STUB_CODE_INITIALIZER)
         dummy_(NULL) {}
@@ -93,8 +97,6 @@ class StubCode {
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
-  // Check if specified pc is in CallInstanceFunction stub.
-  static bool InCallInstanceFunctionStubCode(uword pc);
   // Check if specified pc is in StubCallToRuntime stub.
   static bool InStubCallToRuntimeStubCode(uword pc);
 

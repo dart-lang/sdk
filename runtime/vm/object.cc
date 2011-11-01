@@ -18,7 +18,7 @@
 #include "vm/debuginfo.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
-#include "vm/ic_stubs.h"
+#include "vm/ic_data.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -48,7 +48,7 @@ RawInstance* Object::transition_sentinel_ =
     reinterpret_cast<RawInstance*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::var_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -83,8 +83,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kClassClass;
   } else if (raw_class == null_class()) {
     return kNullClass;
-  } else if (raw_class == var_class()) {
-    return kVarClass;
+  } else if (raw_class == dynamic_class()) {
+    return kDynamicClass;
   } else if (raw_class == void_class()) {
     return kVoidClass;
   } else if (raw_class == unresolved_class_class()) {
@@ -136,7 +136,7 @@ RawClass* Object::GetSingletonClass(int index) {
   switch (index) {
     case kClassClass: return class_class();
     case kNullClass: return null_class();
-    case kVarClass: return var_class();
+    case kDynamicClass: return dynamic_class();
     case kVoidClass: return void_class();
     case kUnresolvedClassClass: return unresolved_class_class();
     case kParameterizedTypeClass: return parameterized_type_class();
@@ -170,7 +170,7 @@ const char* Object::GetSingletonClassName(int index) {
   switch (index) {
     case kClassClass: return "Class";
     case kNullClass: return "Null";
-    case kVarClass: return "var";
+    case kDynamicClass: return "Dynamic";
     case kVoidClass: return "void";
     case kUnresolvedClassClass: return "UnresolvedClass";
     case kParameterizedTypeClass: return "ParameterizedType";
@@ -258,12 +258,18 @@ void Object::InitOnce() {
     transition_sentinel_ = transition_sentinel.raw();
   }
 
+  // The interface "Dynamic" is not a VM internal class. It is the type class of
+  // the "unknown type". For efficiency, we allocate it in the VM isolate.
+  // Therefore, it cannot have a heap allocated name (the name is hard coded,
+  // see GetSingletonClassIndex) and its array fields cannot be set to the empty
+  // array, but remain null.
+  cls = Class::New<Instance>();
+  cls.set_is_interface();
+  dynamic_class_ = cls.raw();
+
   // Allocate the remaining VM internal classes.
   cls = Class::New<UnresolvedClass>();
   unresolved_class_class_ = cls.raw();
-
-  cls = Class::New<Instance>();
-  var_class_ = cls.raw();
 
   cls = Class::New<Instance>();
   void_class_ = cls.raw();
@@ -557,20 +563,32 @@ void Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
-  // The classes 'null', 'var', and 'void' are not registered in the class
-  // dictionary and are not named, but corresponding types are stored in the
-  // object store.
+  name = String::NewSymbol("List");
+  cls = Class::NewInterface(name, script);
+  core_lib.AddClass(cls);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_list_interface(type);
+
+  // The classes 'Null' and 'void' are not registered in the class dictionary,
+  // because their names are reserved keywords. Their names are not heap
+  // allocated, because the classes reside in the VM isolate.
+  // The corresponding types are stored in the object store.
   cls = null_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_null_type(type);
 
-  cls = var_class_;
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_var_type(type);
-
   cls = void_class_;
   type = Type::NewNonParameterizedType(cls);
   object_store->set_void_type(type);
+
+  // The class 'Dynamic' is registered in the class dictionary because its name
+  // is a built-in identifier, rather than a reserved keyword. Its name is not
+  // heap allocated, because the class resides in the VM isolate.
+  // The corresponding type, the "unknown type", is stored in the object store.
+  cls = dynamic_class_;
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_dynamic_type(type);
+  core_lib.AddClass(cls);
 
   // Finish the initialization by compiling the bootstrap script containing the
   // implementation of the internal classes.
@@ -1013,8 +1031,7 @@ RawClass* Class::NewInterface(const String& name, const Script& script) {
 
 RawClass* Class::NewSignatureClass(const String& name,
                                    const Function& signature_function,
-                                   const Script& script,
-                                   intptr_t token_index) {
+                                   const Script& script) {
   ASSERT(!signature_function.IsNull());
   Type& super_type = Type::Handle(Type::ObjectType());
   const Class& owner_class = Class::Handle(signature_function.owner());
@@ -1046,6 +1063,12 @@ RawClass* Class::NewSignatureClass(const String& name,
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
   interfaces.SetAt(0, function_interface);
   result.set_interfaces(interfaces);
+  // Unless the signature function already has a signature class, create a
+  // canonical signature class by having the signature function pointing back to
+  // the signature class.
+  if (signature_function.signature_class() == Object::null()) {
+    signature_function.set_signature_class(result);
+  }
   return result.raw();
 }
 
@@ -1199,18 +1222,21 @@ bool Class::IsObjectClass() const {
 }
 
 
-// TODO(regis): We can probably merge this function with IsSubtypeOf, but since
-// the spec is not definitive, we still follow it somewhat closely, to make it
-// easier to implement spec changes.
+bool Class::IsCanonicalSignatureClass() const {
+  const Function& function = Function::Handle(signature_function());
+  return (!function.IsNull() && (function.signature_class() == raw()));
+}
+
+
 bool Class::IsMoreSpecificThan(
     const TypeArguments& type_arguments,
     const Class& other,
     const TypeArguments& other_type_arguments) const {
-  // Check for VarType.
-  // The VarType on the lefthand side is replaced by the bottom type, which is
-  // more specific than any type.
-  // Any type is more specific than the VarType on the righthand side.
-  if (IsVarClass() || other.IsVarClass()) {
+  // Check for DynamicType.
+  // The DynamicType on the lefthand side is replaced by the bottom type, which
+  // is more specific than any type.
+  // Any type is more specific than the DynamicType on the righthand side.
+  if (IsDynamicClass() || other.IsDynamicClass()) {
     return true;
   }
   // Check for reflexivity.
@@ -1224,11 +1250,19 @@ bool Class::IsMoreSpecificThan(
     // Check for covariance.
     if (type_arguments.IsNull() ||
         other_type_arguments.IsNull() ||
-        type_arguments.IsVarTypes(len) ||
-        other_type_arguments.IsVarTypes(len)) {
+        type_arguments.IsDynamicTypes(len) ||
+        other_type_arguments.IsDynamicTypes(len)) {
       return true;
     }
     return type_arguments.IsMoreSpecificThan(other_type_arguments, len);
+  }
+  // Check for two function types.
+  if (IsSignatureClass() && other.IsSignatureClass()) {
+    const Function& fun = Function::Handle(signature_function());
+    const Function& other_fun = Function::Handle(other.signature_function());
+    return fun.IsSubtypeOf(type_arguments,
+                           other_fun,
+                           other_type_arguments);
   }
   // Check for 'direct super type' in the case of an interface and check for
   // transitivity at the same time.
@@ -1259,7 +1293,7 @@ bool Class::IsMoreSpecificThan(
           interface_args = interface_args.InstantiateFrom(type_arguments,
                                                           offset);
           // TODO(regis): Check the subtyping constraints if any, i.e. if
-          // interface.type_parameter_extends() is not an array of VarType.
+          // interface.type_parameter_extends() is not an array of DynamicType.
           // Should we pass the constraints to InstantiateFrom and it would
           // return null on failure?
         }
@@ -1271,19 +1305,14 @@ bool Class::IsMoreSpecificThan(
       }
     }
   }
-  if (IsSignatureClass() && other.IsSignatureClass()) {
-    const Function& fun = Function::Handle(signature_function());
-    const Function& other_fun = Function::Handle(other.signature_function());
-    // TODO(regis): We need to consider the type arguments.
-    return fun.IsSubtypeOf(other_fun);
-  }
+  // Check the interface case.
   if (is_interface()) {
     // We already checked the case where 'other' is an interface. Now, 'this',
     // an interface, cannot be more specific than a class, except class Object,
     // because although Object is not considered an interface by the vm, it is
     // one. In other words, all classes implementing this interface also extend
-    // class Object. An interface is also more specific than the VarType.
-    return (other.IsVarClass() || other.IsObjectClass());
+    // class Object. An interface is also more specific than the DynamicType.
+    return (other.IsDynamicClass() || other.IsObjectClass());
   }
   const Class& super_class = Class::Handle(SuperClass());
   if (super_class.IsNull()) {
@@ -1308,16 +1337,19 @@ bool Class::TestType(TypeTestKind test,
                      const Class& other,
                      const TypeArguments& other_type_arguments) const {
   if (test == kIsAssignableTo) {
-    // TODO(regis): We do not follow the guide that says that "a type T is
-    // assignable to a type S if T is a subtype of S or S is a subtype of T",
-    // since this would lead to heap pollution. We only apply that rule to
-    // parameter types when checking assignability of function types.
-    // Revisit if necessary.
+    // The spec states that "a type T is assignable to a type S if T is a
+    // subtype of S or S is a subtype of T". This is from the perspective of a
+    // static checker, which does not know the actual type of the assigned
+    // value. However, this type information is available at run time in checked
+    // mode. We therefore apply a more restrictive subtype check, which prevents
+    // heap pollution. We only keep the assignability check when assigning
+    // values of a function type.
     if (IsSignatureClass() && other.IsSignatureClass()) {
       const Function& src_fun = Function::Handle(signature_function());
       const Function& dst_fun = Function::Handle(other.signature_function());
-      // TODO(regis): We need to consider the type arguments.
-      return src_fun.IsAssignableTo(dst_fun);
+      return src_fun.IsAssignableTo(type_arguments,
+                                    dst_fun,
+                                    other_type_arguments);
     }
     // Continue with a subtype test.
     test = kIsSubtypeOf;
@@ -1325,20 +1357,7 @@ bool Class::TestType(TypeTestKind test,
   ASSERT(test == kIsSubtypeOf);
 
   // Check for "more specific" relation.
-  if (IsMoreSpecificThan(type_arguments, other, other_type_arguments)) {
-    return true;
-  }
-  // TODO(regis): Merge IsMoreSpecificThan here after type checks for
-  // function types are finalized and implemented.
-  // For now, keep the assert below.
-
-  // The optionality and dubious bliss rules described in the guide have
-  // already been checked in IsMoreSpecificThan call above.
-  if (raw() != other.raw()) {
-    return false;
-  }
-  ASSERT(HasTypeArguments());  // Otherwise, IsMoreSpecificThan would be true.
-  return false;
+  return IsMoreSpecificThan(type_arguments, other, other_type_arguments);
 }
 
 
@@ -1645,6 +1664,8 @@ RawType* Type::InstantiateFrom(
 
 
 RawString* Type::Name() const {
+  // If the type is still being finalized, we may be reporting an error about
+  // an illformed type, so proceed with caution.
   const TypeArguments& args = TypeArguments::Handle(arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
   String& class_name = String::Handle();
@@ -1655,26 +1676,31 @@ RawString* Type::Name() const {
     class_name = cls.Name();
     num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
     if (num_type_params > num_args) {
-      ASSERT(num_args == 0);  // Type is raw.
-      // We fill up with "var".
       first_type_param_index = 0;
+      if (IsBeingFinalized()) {
+        // Most probably an illformed type. Do not fill up with "Dynamic".
+        num_type_params = num_args;
+      } else {
+        ASSERT(num_args == 0);  // Type is raw.
+        // We fill up with "Dynamic".
+      }
     } else {
       first_type_param_index = num_args - num_type_params;
     }
     if (cls.IsSignatureClass()) {
-      const Function& signature_function = Function::Handle(
-          cls.signature_function());
       // We may be reporting an error about an illformed function type. In that
       // case, avoid instantiating the signature, since it may lead to cycles.
       if (IsBeingFinalized()) {
         return class_name.raw();
       }
+      const Function& signature_function = Function::Handle(
+          cls.signature_function());
       return signature_function.InstantiatedSignatureFrom(
           args, first_type_param_index);
     }
   } else {
-    const UnresolvedClass& type = UnresolvedClass::Handle(unresolved_class());
-    class_name = type.Name();
+    const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
+    class_name = cls.Name();
     num_type_params = num_args;
     first_type_param_index = 0;
   }
@@ -1691,7 +1717,7 @@ RawString* Type::Name() const {
     Type& type = Type::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       if (first_type_param_index + i >= num_args) {
-        type = VarType();
+        type = DynamicType();
       } else {
         type = args.TypeAt(first_type_param_index + i);
       }
@@ -1769,11 +1795,8 @@ bool Type::IsMoreSpecificThan(const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::IsMoreSpecificThan().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
-    return
-        (!IsTypeParameter() && other.IsTypeParameter()) ||
-        (IsTypeParameter() && other.IsTypeParameter() &&
-         (Index() == other.Index()));
+    return IsTypeParameter() && other.IsTypeParameter() &&
+        (Index() == other.Index());
   }
   const Class& cls = Class::Handle(type_class());
   return cls.IsMoreSpecificThan(TypeArguments::Handle(arguments()),
@@ -1787,11 +1810,8 @@ bool Type::Test(TypeTestKind test, const Type& other) const {
   ASSERT(other.IsFinalized());
   // Type parameters cannot be handled by Class::TestType().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    // TODO(regis): Revisit this temporary workaround. See issue 5474672.
-    return
-        (!IsTypeParameter() && other.IsTypeParameter()) ||
-        (IsTypeParameter() && other.IsTypeParameter() &&
-         (Index() == other.Index()));
+    return IsTypeParameter() && other.IsTypeParameter() &&
+        (Index() == other.Index());
   }
   const Class& cls = Class::Handle(type_class());
   if (test == kIsSubtypeOf) {
@@ -1812,8 +1832,8 @@ RawType* Type::NullType() {
 }
 
 
-RawType* Type::VarType() {
-  return Isolate::Current()->object_store()->var_type();
+RawType* Type::DynamicType() {
+  return Isolate::Current()->object_store()->dynamic_type();
 }
 
 
@@ -2038,7 +2058,7 @@ RawType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
   if (instantiator_type_arguments.IsNull()) {
-    return VarType();
+    return DynamicType();
   }
   return instantiator_type_arguments.TypeAt(Index() + offset);
 }
@@ -2166,7 +2186,7 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
 }
 
 
-bool TypeArguments::IsVarTypes(intptr_t len) const {
+bool TypeArguments::IsDynamicTypes(intptr_t len) const {
   ASSERT(Length() >= len);
   Type& type = Type::Handle();
   Class& type_class = Class::Handle();
@@ -2178,7 +2198,7 @@ bool TypeArguments::IsVarTypes(intptr_t len) const {
       return false;
     }
     type_class = type.type_class();
-    if (!type_class.IsVarClass()) {
+    if (!type_class.IsDynamicClass()) {
       return false;
     }
   }
@@ -2708,7 +2728,10 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
 }
 
 
-bool Function::TestType(TypeTestKind test, const Function& other) const {
+bool Function::TestType(TypeTestKind test,
+                        const TypeArguments& type_arguments,
+                        const Function& other,
+                        const TypeArguments& other_type_arguments) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
@@ -2718,23 +2741,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
        (num_opt_params < other_num_opt_params))) {
     return false;
   }
-  // TODO(regis): We currently ignore type parameters. We need to consider the
-  // parameter type upper bound, if any.
-  // Note that unless we use this code to check function overrides at compile
-  // time, all parameter types should be instantiated and we can remove code
-  // checking for type parameters.
-
   // Check the result type.
-  const Type& other_res_type = Type::Handle(other.result_type());
-  if (!other_res_type.IsTypeParameter() &&
-      !other_res_type.IsVarType() &&
-      !other_res_type.IsVoidType()) {
-    const Type& res_type = Type::Handle(result_type());
-    if (!res_type.IsTypeParameter() &&
-        !res_type.IsVarType() &&
-        (res_type.IsVoidType() || !res_type.IsSubtypeOf(other_res_type)) &&
-        ((test == Type::kIsSubtypeOf) ||
-         (!other_res_type.IsSubtypeOf(res_type)))) {
+  Type& other_res_type = Type::Handle(other.result_type());
+  if (!other_res_type.IsInstantiated()) {
+    other_res_type = other_res_type.InstantiateFrom(other_type_arguments, 0);
+  }
+  if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
+    Type& res_type = Type::Handle(result_type());
+    if (!res_type.IsInstantiated()) {
+      res_type = res_type.InstantiateFrom(type_arguments, 0);
+    }
+    if (!res_type.IsDynamicType() &&
+        (res_type.IsVoidType() || !res_type.IsAssignableTo(other_res_type))) {
       return false;
     }
   }
@@ -2743,11 +2761,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
   Type& other_param_type = Type::Handle();
   for (intptr_t i = 0; i < num_fixed_params; i++) {
     param_type = ParameterTypeAt(i);
-    if (param_type.IsTypeParameter() || param_type.IsVarType()) {
+    if (!param_type.IsInstantiated()) {
+      param_type = param_type.InstantiateFrom(type_arguments, 0);
+    }
+    if (param_type.IsDynamicType()) {
       continue;
     }
     other_param_type = other.ParameterTypeAt(i);
-    if (other_param_type.IsTypeParameter() || other_param_type.IsVarType()) {
+    if (!other_param_type.IsInstantiated()) {
+      other_param_type =
+          other_param_type.InstantiateFrom(other_type_arguments, 0);
+    }
+    if (other_param_type.IsDynamicType()) {
       continue;
     }
     // Subtyping and assignability rules are identical when applied to parameter
@@ -2777,12 +2802,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
         param_type = ParameterTypeAt(j);
-        if (param_type.IsTypeParameter() || param_type.IsVarType()) {
+        if (!param_type.IsInstantiated()) {
+          param_type = param_type.InstantiateFrom(type_arguments, 0);
+        }
+        if (param_type.IsDynamicType()) {
           break;
         }
         other_param_type = other.ParameterTypeAt(i);
-        if (other_param_type.IsTypeParameter() ||
-            other_param_type.IsVarType()) {
+        if (!other_param_type.IsInstantiated()) {
+          other_param_type =
+              other_param_type.InstantiateFrom(other_type_arguments, 0);
+        }
+        if (other_param_type.IsDynamicType()) {
           break;
         }
         if (!param_type.IsSubtypeOf(other_param_type) &&
@@ -2819,12 +2850,18 @@ bool Function::TestType(TypeTestKind test, const Function& other) const {
       if (other.ParameterNameAt(j) == param_name.raw()) {
         found_param_name = true;
         other_param_type = other.ParameterTypeAt(j);
-        if (other_param_type.IsTypeParameter() ||
-            other_param_type.IsVarType()) {
+        if (!other_param_type.IsInstantiated()) {
+          other_param_type =
+              other_param_type.InstantiateFrom(other_type_arguments, 0);
+        }
+        if (other_param_type.IsDynamicType()) {
           break;
         }
         param_type = ParameterTypeAt(i);
-        if (param_type.IsTypeParameter() || param_type.IsVarType()) {
+        if (!param_type.IsInstantiated()) {
+          param_type = param_type.InstantiateFrom(type_arguments, 0);
+        }
+        if (param_type.IsDynamicType()) {
           break;
         }
         if (!other_param_type.IsSubtypeOf(param_type) &&
@@ -2944,25 +2981,25 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
 
-  // Lookup or create a new function type for the closure function in the
+  // Lookup or create a new signature class for the closure function in the
   // library of the owner class.
   const Class& owner_class = Class::Handle(owner());
   ASSERT(!owner_class.IsNull() && (owner() == closure_function.owner()));
   const Library& library = Library::Handle(owner_class.library());
   ASSERT(!library.IsNull());
   const String& signature = String::Handle(closure_function.Signature());
-  Class& signature_class = Class::ZoneHandle(library.LookupClass(signature));
+  Class& signature_class = Class::ZoneHandle(
+      library.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     const Script& script = Script::Handle(owner_class.script());
     signature_class = Class::NewSignatureClass(signature,
                                                closure_function,
-                                               script,
-                                               token_index());
+                                               script);
     library.AddClass(signature_class);
+  } else {
+    closure_function.set_signature_class(signature_class);
   }
-  ASSERT(!Function::Handle(signature_class.signature_function()).IsNull());
-  ASSERT(Class::Handle(closure_function.signature_class()).IsNull());
-  closure_function.set_signature_class(signature_class);
+  ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
@@ -3009,7 +3046,7 @@ RawString* Function::BuildSignature(bool instantiate,
         type_parameter ^= type_parameters.At(i);
         pieces.Add(&type_parameter);
         parameter_extends = type_parameter_extends.TypeAt(i);
-        if (!parameter_extends.IsNull() && !parameter_extends.IsVarType()) {
+        if (!parameter_extends.IsNull() && !parameter_extends.IsDynamicType()) {
           pieces.Add(&kSpaceExtendsSpace);
           pieces.Add(&String::ZoneHandle(parameter_extends.Name()));
         }
@@ -3547,7 +3584,9 @@ void Library::AddObject(const Object& obj, const String& name) const {
          obj.IsField() ||
          obj.IsLibraryPrefix());
   ASSERT((LookupObject(name) == Object::null()) ||
-         (obj.IsLibraryPrefix() &&
+         ((obj.IsLibraryPrefix() ||
+           (obj.IsClass() &&
+            Class::CheckedHandle(obj.raw()).IsCanonicalSignatureClass())) &&
           (LookupLocalObject(name) == Object::null())));
   const Array& dict = Array::Handle(dictionary());
   intptr_t dict_size = dict.Length() - 1;
@@ -3722,7 +3761,7 @@ RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
     ASSERT(!obj.IsNull());
     if (obj.IsClass()) {
       cls ^= obj.raw();
-      if (cls.IsSignatureClass()) {
+      if (cls.IsCanonicalSignatureClass()) {
         continue;
       }
       entry_name = cls.Name();
@@ -4276,7 +4315,6 @@ RawCode* Code::New(int pointer_offsets_length) {
     result.set_is_optimized(false);
   }
   result.raw_ptr()->ic_data_ = Array::Empty();
-  result.raw_ptr()->class_ic_stubs_ = Array::Empty();
   return result.raw();
 }
 
@@ -4358,18 +4396,6 @@ void Code::set_ic_data(const Array& ic_data) const {
   StorePointer(&raw_ptr()->ic_data_, ic_data.raw());
 }
 
-
-RawArray* Code::class_ic_stubs() const {
-  return raw_ptr()->class_ic_stubs_;
-}
-
-
-void Code::set_class_ic_stubs(const Array& class_ic_stubs) const {
-  ASSERT(!class_ic_stubs.IsNull());
-  StorePointer(&raw_ptr()->class_ic_stubs_, class_ic_stubs.raw());
-}
-
-
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   intptr_t token_index = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
@@ -4396,15 +4422,11 @@ uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
 
 
 const char* Code::ToCString() const {
-  const char* kFormat = "Code entry:0x%d icstubs: %d";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-      EntryPoint(),
-      (Array::Handle(class_ic_stubs()).Length() / 2)) + 1;
+  const char* kFormat = "Code entry:0x%d";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat,
-      EntryPoint(),
-      (Array::Handle(class_ic_stubs()).Length() / 2));
+  OS::SNPrint(chars, len, kFormat, EntryPoint());
   return chars;
 }
 
@@ -4431,35 +4453,18 @@ bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
 }
 
 
-void Code::ExtractTypesAtIcCalls(
+void Code::ExtractIcDataArraysAtCalls(
     GrowableArray<intptr_t>* node_ids,
-    GrowableArray<ZoneGrowableArray<const Class*>*>* type_arrays) const {
+    GrowableArray<const Array*>* arrays) const {
   ASSERT(node_ids != NULL);
-  ASSERT(type_arrays != NULL);
+  ASSERT(arrays != NULL);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
-  String& function_name = String::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
-      int num_arguments = -1;
-      int num_named_arguments = -1;
-      uword caller_target = 0;
-      CodePatcher::GetInstanceCallAt(descriptors.PC(i),
-                                     &function_name,
-                                     &num_arguments,
-                                     &num_named_arguments,
-                                     &caller_target);
-      GrowableArray<const Class*> classes;
-      GrowableArray<const Function*> targets;
-      bool is_ic = ICStubs::RecognizeICStub(caller_target, &classes, &targets);
-      ASSERT(is_ic);
-      ZoneGrowableArray<const Class*>* types =
-          new ZoneGrowableArray<const Class*>();
-      for (intptr_t k = 0; k < classes.length(); k++) {
-        types->Add(classes[k]);
-      }
       node_ids->Add(descriptors.NodeId(i));
-      type_arrays->Add(types);
+      arrays->Add(&Array::ZoneHandle(
+          CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
     }
   }
 }
@@ -4727,7 +4732,7 @@ bool Instance::TestType(TypeTestKind test,
                         const Type& other,
                         const TypeArguments& other_instantiator) const {
   ASSERT(other.IsFinalized());
-  ASSERT(!other.IsVarType());
+  ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
   if (IsNull()) {
     if (test == Type::kIsSubtypeOf) {
@@ -4771,7 +4776,7 @@ bool Instance::TestType(TypeTestKind test,
       instantiated_other = other_instantiator.TypeAt(other.Index());
       ASSERT(instantiated_other.IsInstantiated());
     } else {
-      instantiated_other = Type::VarType();
+      instantiated_other = Type::DynamicType();
     }
     other_class = instantiated_other.type_class();
     other_type_arguments = instantiated_other.arguments();
@@ -4830,14 +4835,21 @@ const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
   } else {
-    // TODO(regis): Print type arguments if any.
     const char* kFormat = "Instance of '%s'";
     Class& cls = Class::Handle(clazz());
+    TypeArguments& type_arguments = TypeArguments::Handle();
+    const intptr_t num_type_arguments = cls.NumTypeArguments();
+    if (num_type_arguments > 0) {
+      type_arguments = GetTypeArguments();
+    }
+    const Type& type = Type::Handle(
+        Type::NewParameterizedType(cls, type_arguments));
+    const String& type_name = String::Handle(type.Name());
     // Calculate the size of the string.
-    intptr_t len = OS::SNPrint(NULL, 0, kFormat, cls.ToCString()) + 1;
+    intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
     char* chars = reinterpret_cast<char*>(
         Isolate::Current()->current_zone()->Allocate(len));
-    OS::SNPrint(chars, len, kFormat, cls.ToCString());
+    OS::SNPrint(chars, len, kFormat, type_name.ToCString());
     return chars;
   }
 }
@@ -5360,7 +5372,7 @@ bool String::Equals(const char* str) const {
     }
     str += consumed;
   }
-  return true;
+  return *str == '\0';
 }
 
 
@@ -6406,6 +6418,11 @@ bool Array::Equals(const Instance& other) const {
   }
 
   if (!other.IsArray() || other.IsNull()) {
+    return false;
+  }
+
+  // Must have the same type.
+  if (GetTypeArguments() != other.GetTypeArguments()) {
     return false;
   }
 

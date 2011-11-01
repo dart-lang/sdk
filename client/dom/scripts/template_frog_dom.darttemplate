@@ -1,0 +1,18 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT
+// Auto-generated Dart DOM library.
+
+#library("dom");
+#native("frog_dom.js");
+
+$!GENERATED_DART_FILES
+#source('src/EventListener.dart');
+#source('src/RequestAnimationFrameCallback.dart');
+#source('src/TimeoutHandler.dart');
+
+class Window extends DOMWindow {}
+Window window;
+HTMLDocument get document() => window.document;

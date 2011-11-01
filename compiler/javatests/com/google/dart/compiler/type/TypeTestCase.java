@@ -7,6 +7,7 @@ package com.google.dart.compiler.type;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartFunction;
@@ -166,18 +167,8 @@ abstract class TypeTestCase extends TestCase {
 
   final DartCompilerListener listener = new DartCompilerListener() {
     @Override
-    public void compilationError(DartCompilationError event) {
+    public void onError(DartCompilationError event) {
       throw new AssertionError(event);
-    }
-
-    @Override
-    public void compilationWarning(DartCompilationError event) {
-      compilationError(event);
-    }
-
-    @Override
-    public void typeError(DartCompilationError event) {
-      compilationError(event);
     }
 
     @Override
@@ -186,12 +177,13 @@ abstract class TypeTestCase extends TestCase {
   };
 
   final TestCompilerContext context = new TestCompilerContext() {
-    @Override
-    public void typeError(DartCompilationError event) {
-      getErrorCodes().add(event.getErrorCode());
-      expectedTypeErrors--;
-      if (expectedTypeErrors < 0) {
-        throw new TestTypeError(event);
+    public void onError(DartCompilationError event) {
+      if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+        getErrorCodes().add(event.getErrorCode());
+        expectedTypeErrors--;
+        if (expectedTypeErrors < 0) {
+          throw new TestTypeError(event);
+        }
       }
     }
   };

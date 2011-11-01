@@ -11,25 +11,13 @@ compiler/vm/*: Skip
 corelib/SharedTests: Skip
 
 
-[ $arch == ia32 ]
+[ $component == vm ]
 *: Skip
 
 
-[ $arch == x64 ]
+[ $component == dartium ]
 *: Skip
 
 
-[ $arch == simarm ]
-*: Skip
-
-
-[ $arch == arm ]
-*: Skip
-
-
-[ $arch == dartium ]
-*: Skip
-
-
-[ $arch == chromium ]
+[ $component == chromium ]
 *: Skip

@@ -1151,7 +1151,8 @@ RECURSE:
                 stack.currentFrame->args.instructionPtr += stack.currentFrame->locals.length;
                 
                 if (stack.currentFrame->locals.fc <= 0xFFFF) {
-                    int othercase = md.ignoreCase ? kjs_pcre_ucp_othercase(stack.currentFrame->locals.fc) : -1;
+                    int othercase;
+                    othercase = md.ignoreCase ? kjs_pcre_ucp_othercase(stack.currentFrame->locals.fc) : -1;
                     
                     for (int i = 1; i <= min; i++) {
                         if (*stack.currentFrame->args.subjectPtr != stack.currentFrame->locals.fc && *stack.currentFrame->args.subjectPtr != othercase)

@@ -31,6 +31,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartCompilerListenerTest;
 import com.google.dart.compiler.DartLibrarySourceTest;
+import com.google.dart.compiler.SubSystem;
 
 /**
  * Tests for lots of cases involving named parameters.
@@ -40,9 +41,14 @@ public class NamedParameterTest extends End2EndTestCase {
   public void testStuff() throws Exception {
     DartCompilerListener listener = new DartCompilerListenerTest(null) {
       @Override
-      public void typeError(DartCompilationError event) {
+      public void onError(DartCompilationError event) {
         // Skip type errors -- we trigger some intentionally in order to test that
         // NoSuchMethodException gets thrown.
+        if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+          return;
+        }
+        // Propagate error.
+        super.onError(event);
       }
     };
     DartLibrarySourceTest app = new DartLibrarySourceTest(getClass(), "NamedParameterTest.dart");

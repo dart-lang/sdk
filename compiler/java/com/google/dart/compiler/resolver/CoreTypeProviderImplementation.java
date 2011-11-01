@@ -5,7 +5,6 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.type.DynamicType;
@@ -60,11 +59,10 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   private static InterfaceType getType(String name, Scope scope, DartCompilerListener listener) {
     ClassElement element = (ClassElement) scope.findElement(scope.getLibrary(), name);
     if (element == null) {
-      Location location = null;
       DartCompilationError error =
           new DartCompilationError(null, Location.NONE,
-              DartCompilerErrorCode.CANNOT_BE_RESOLVED, name);
-      listener.compilationError(error);
+              ResolverErrorCode.CANNOT_BE_RESOLVED, name);
+      listener.onError(error);
       return Types.newDynamicType();
     }
     return element.getType();

@@ -12,8 +12,8 @@ class MyList<T> implements List<T> {
   void addAll(Collection<T> collection) {}
   void sort(int f(T, T)) {}
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {}
-  int indexOf(T element, int startIndex) { return null; }
-  int lastIndexOf(T element, int startIndex) { return null; }
+  int indexOf(T element, [int start = 0]) { return null; }
+  int lastIndexOf(T element, [int start = null]) { return null; }
   void setRange(int start, int length, List from, [int startFrom = 0]) {}
   void removeRange(int start, int length) {}
   void insertRange(int start, int length, [initialValue = null]) {}

@@ -7,7 +7,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <limits.h>
 
+#include "bin/builtin.h"
 #include "bin/file.h"
 
 class FileHandle {
@@ -36,7 +38,7 @@ File::~File() {
 
 
 void File::Close() {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   int err = close(handle_->fd());
   if (err != 0) {
     const int kBufferSize = 1024;
@@ -54,31 +56,31 @@ bool File::IsClosed() {
 
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   return read(handle_->fd(), buffer, num_bytes);
 }
 
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   return write(handle_->fd(), buffer, num_bytes);
 }
 
 
 off_t File::Position() {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   return lseek(handle_->fd(), 0, SEEK_CUR);
 }
 
 
 void File::Flush() {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   fsync(handle_->fd());
 }
 
 
 off_t File::Length() {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   off_t position = lseek(handle_->fd(), 0, SEEK_CUR);
   if (position < 0) {
     // The file is not capable of seeking. Return an error.
@@ -115,6 +117,22 @@ bool File::FileExists(const char* name) {
 
 bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
+}
+
+
+char* File::GetCanonicalPath(const char* pathname) {
+  char* abs_path = NULL;
+  if (pathname != NULL) {
+    // On some older MacOs versions the default behaviour of realpath allocating
+    // space for the resolved_path when a NULL is passed in does not seem to
+    // work, so we explicitly allocate space. The caller is responsible for
+    // freeing this space as in a regular realpath call.
+    char* resolved_path = reinterpret_cast<char*>(malloc(PATH_MAX+1));
+    ASSERT(resolved_path != NULL);
+    abs_path = realpath(pathname, resolved_path);
+    assert(abs_path == NULL || IsAbsolutePath(abs_path));
+  }
+  return abs_path;
 }
 
 

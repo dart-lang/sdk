@@ -177,18 +177,4 @@ class Isolate {
 
   final bool _isLight;
   ReceivePort _port;
-
-  /**
-   * Before callbacks can be registered in the DOM, they need to be bound
-   * to the current isolate.
-   *
-   * This is necessary due to a bug in the Dart-to-JavaScript pipeline and
-   * should soon be fixed.
-   */
-  // BUG(5151491): Remove this once we automatically bind functions to
-  // the isolate they live in.
-  static Function bind(Function f) {
-    // This method just forwards to the isolate native implementation.
-    return IsolateNatives.bind(f);
-  }
 }

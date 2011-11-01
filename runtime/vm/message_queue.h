@@ -48,7 +48,11 @@ class MessageQueue {
 
   void Enqueue(PortMessage* msg);
 
-  // May block if no message is available.
+  // Gets the next message from the message queue, possibly blocking
+  // if no message is available. 'millis' is a timeout in
+  // milliseconds. If 'millis' is 0, then this means to block
+  // indefinitely. May block if no message is available. May return
+  // NULL even if 'millis' is 0 due to spurious wakeups.
   PortMessage* Dequeue(int64_t millis);
 
   void Flush(Dart_Port port);

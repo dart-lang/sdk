@@ -135,7 +135,7 @@ interface Mint$Proxy {
 }
 
 
-class Mint$ProxyImpl extends Proxy implements Mint$Proxy {
+class Mint$ProxyImpl extends ProxyImpl implements Mint$Proxy {
 
   Mint$ProxyImpl(Proxy isolate) : super.forReply(isolate.call([null])) {}
 
@@ -185,7 +185,7 @@ interface Purse$Proxy {
 }
 
 
-class Purse$ProxyImpl extends Proxy implements Purse$Proxy {
+class Purse$ProxyImpl extends ProxyImpl implements Purse$Proxy {
 
   Purse$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
 

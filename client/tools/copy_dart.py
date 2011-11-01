@@ -12,15 +12,15 @@ import re
 from os.path import abspath, basename, dirname, exists, isabs, join
 from glob import glob
 
-re_library = re.compile(r'^#library\([\'"](.*)[\'"]\);$')
-re_import = re.compile(r'^#import\([\'"](.*)[\'"]\);$')
-re_source = re.compile(r'^#source\([\'"](.*)[\'"]\);$')
+re_directive = re.compile(
+    r'^#(library|import|source|native|resource)\([\'"]([^\'"]*)[\'"](.*)\);$')
 
 class Library(object):
-  def __init__(self, name, imports, sources, code):
+  def __init__(self, name, imports, sources, natives, code):
     self.name = name
     self.imports = imports
     self.sources = sources
+    self.natives = natives
     self.code = code
 
 def parseLibrary(library):
@@ -31,27 +31,32 @@ def parseLibrary(library):
   libraryname = None
   imports = []
   sources = []
+  natives = []
   inlinecode = []
   if exists(library):
     # TODO(sigmund): stop parsing when import/source
     for line in fileinput.input(library):
-      match = re_import.match(line)
+      match = re_directive.match(line)
       if match:
-        imports.append(match.group(1))
-      else:
-        match = re_source.match(line)
-        if match:
-          sources.append(match.group(1))
+        directive = match.group(1)
+        if directive == 'library':
+          assert libraryname is None
+          libraryname = match.group(2)
+        elif directive == 'source':
+          sources.append(match.group(2))
+        elif directive == 'import':
+          imports.append((match.group(2), match.group(3)))
+        elif directive == 'native':
+          natives.append(match.group(2))
+        elif directive == 'resource':
+          # currently ignored
+          pass
         else:
-          match = re_library.match(line)
-          if match:
-            assert libraryname is None
-            libraryname = match.group(1)
-          else:
-            inlinecode.append(line)
-
+          raise 'unknown directive %s' % directive
+      else:
+        inlinecode.append(line)
     fileinput.close()
-  return Library(libraryname, imports, sources, inlinecode)
+  return Library(libraryname, imports, sources, natives, inlinecode)
 
 def normjoin(*args):
   return os.path.normpath(os.path.join(*args))
@@ -60,6 +65,13 @@ def mergefiles(srcs, dstfile):
   for src in srcs:
     with open(src, 'r') as s:
       dstfile.write(s.read())
+
+def copyfile(src, dst):
+  if not exists(dirname(dst)):
+    os.makedirs(dirname(dst))
+  with open(src, 'r') as s:
+    with open(dst, 'w') as d:
+      d.write(s.read())
 
 def main(outdir = None, *inputs):
   if not outdir or not inputs:
@@ -116,12 +128,22 @@ def main(outdir = None, *inputs):
           f.write("#library('%s');\n\n" % library.name)
         else:
           f.write("#library('%s');\n\n" % basename(lib))
-        for importfile in library.imports:
-          f.write("#import('%s');\n" % importfile)
+        for (importfile, optional_prefix) in library.imports:
+          f.write("#import('%s'%s);\n" % (importfile, optional_prefix))
+        for native in library.natives:
+          if isabs(native):
+            npath = native[1:]
+          else:
+            npath = native
+          f.write("#native('%s');\n" % npath)
+          copyfile(normjoin(dirname(lib), native),
+              join(dirname(outpath), npath))
         f.write('%s' % (''.join(library.code)))
         mergefiles([normjoin(dirname(lib), s) for s in library.sources], f)
 
-      worklist.extend([normjoin(dirname(lib), i) for i in library.imports])
+      for (i, prefix) in library.imports:
+        if not i.startswith('dart:'):
+          worklist.append(normjoin(dirname(lib), i));
 
   return 0
 

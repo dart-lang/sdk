@@ -5,6 +5,8 @@
   'conditions': [
     [ 'OS=="linux"', { 'variables' : {
       'common_gcc_warning_flags': [ '-Wno-conversion-null', ], }, } ],
+    [ 'OS=="mac"', { 'variables' : {
+      'common_gcc_warning_flags': [ '-w', ], }, } ],
   ],
   'includes': [
     '../../../tools/gyp/xcode.gypi',

@@ -31,7 +31,7 @@ class BundleMaker(object):
     self._debug_build_root = utils.GetBuildRoot(self._os, mode='debug',
                                                 arch='ia32')
     self._dartc_build_root = utils.GetBuildRoot(self._os, mode='release',
-                                                arch='dartc')
+                                                arch='ia32')
 
   @staticmethod
   def BuildOptions():
@@ -141,7 +141,7 @@ class BundleMaker(object):
     if not self._skip_build:
       self._InvokeTool('runtime', 'build.py', '--arch=ia32',
                        '--mode=release,debug')
-      self._InvokeTool('compiler', 'build.py', '--arch=dartc', '--mode=release')
+      self._InvokeTool('compiler', 'build.py', '--arch=ia32', '--mode=release')
       self._InvokeTool('language', 'build.py', '--arch=ia32', '--mode=release')
 
     release_vm = self._GetReleaseOutput('runtime', 'dart_bin')

@@ -12,7 +12,6 @@ typedef unsigned __int8 uint8_t;
 #include <stdint.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -56,6 +55,7 @@ class File {
   static File* OpenFile(const char* name, bool writable);
   static bool FileExists(const char* name);
   static bool IsAbsolutePath(const char* pathname);
+  static char* GetCanonicalPath(const char* name);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
 

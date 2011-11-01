@@ -37,7 +37,7 @@ File::~File() {
 
 
 void File::Close() {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   int err = close(handle_->fd());
   if (err != 0) {
     fprintf(stderr, "%s\n", strerror(errno));
@@ -52,31 +52,31 @@ bool File::IsClosed() {
 
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   return read(handle_->fd(), buffer, num_bytes);
 }
 
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   return write(handle_->fd(), buffer, num_bytes);
 }
 
 
 off_t File::Position() {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   return lseek(handle_->fd(), 0, SEEK_CUR);
 }
 
 
 void File::Flush() {
-  assert(handle_->fd());
+  ASSERT(handle_->fd());
   _commit(handle_->fd());
 }
 
 
 off_t File::Length() {
-  assert(handle_->fd() >= 0);
+  ASSERT(handle_->fd() >= 0);
   off_t position = lseek(handle_->fd(), 0, SEEK_CUR);
   if (position < 0) {
     // The file is not capable of seeking. Return an error.
@@ -117,6 +117,15 @@ bool File::IsAbsolutePath(const char* pathname) {
   return (strlen(pathname) > 2) &&
       (pathname[1] == ':') &&
       (pathname[2] == '\\');
+}
+
+
+char* File::GetCanonicalPath(const char* pathname) {
+  int required_size = GetFullPathName(pathname, 0, NULL, NULL);
+  char* path = static_cast<char*>(malloc(required_size));
+  int written = GetFullPathName(pathname, required_size, path, NULL);
+  ASSERT(written == (required_size - 1));
+  return path;
 }
 
 

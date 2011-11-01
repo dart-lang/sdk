@@ -22,15 +22,14 @@
         'runtime/dart-runtime.gyp:process_test',
       ],
     },
-    {
-      'target_name': 'client',
-      'type': 'none',
-      'dependencies': [
-        # TODO(ngeoffray): Fling does not have proper dependencies,
-        # so don't build it for now.
-        # 'client/dart.gyp:fling',
-        'client/dart.gyp:dartserver',
-      ],
-    },
+    # TODO(ngeoffray): Fling does not have proper dependencies,
+    # so don't build it for now.
+    #{
+    #  'target_name': 'client',
+    #  'type': 'none',
+    #  'dependencies': [
+    #    'client/dart.gyp:fling',
+    #  ],
+    #},
   ],
 }

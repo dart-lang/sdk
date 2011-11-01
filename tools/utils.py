@@ -130,18 +130,15 @@ def GetBuildMode(mode):
 def GetBuildConf(mode, arch):
   return GetBuildMode(mode) + "_" + arch
 
-# Temporary variables that we should remove once the buildbots build 'ia32'
-# instead of 'dartc'.
-RUN_FROM_TOP_DIR = os.path.basename(os.path.abspath(os.curdir)) == 'dart'
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
-if RUN_FROM_TOP_DIR:
-  BASE_DIR = os.path.abspath(os.curdir)
 
 def GetBuildRoot(target_os, mode=None, arch=None):
-  if arch == 'dartc' and RUN_FROM_TOP_DIR: arch = ARCH_GUESS
   global BUILD_ROOT
   if mode:
+    # TODO(ngeoffray): Remove this test once the testing infrastructure does not
+    # treat 'dartc' as an arch.
+    if arch == 'dartc': arch = ARCH_GUESS
     return os.path.join(BUILD_ROOT[target_os], GetBuildConf(mode, arch))
   else:
     return BUILD_ROOT[target_os]

@@ -173,7 +173,7 @@ function compileRevision() {
     echo "Compiling clean version of dartc; may take some time"
     date
     cd compiler
-    ../tools/build.py --mode release --arch dartc >> $LOG_FILE 2>&1
+    ../tools/build.py --mode release >> $LOG_FILE 2>&1
     if [ ! $? -eq 0 ]; then
       echo "error compiling"
       failStats $REVISION
@@ -185,7 +185,7 @@ function compileRevision() {
     cd ..
     mkdir -p $ROOT_OF_REPO/compiler/revs/$REVISION/prebuilt
     cd $ROOT_OF_REPO/compiler/revs/$REVISION/prebuilt
-    COMPILER_OUTDIR=$TMP_DIR/compiler/out/Release_dartc
+    COMPILER_OUTDIR=$TMP_DIR/compiler/out/Release_ia32
     cp -r $COMPILER_OUTDIR/compiler ./compiler
   else
     echo "Cached prebuilt of $REVISION!"

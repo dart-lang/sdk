@@ -66,7 +66,7 @@ class ObjectArray<T> implements List<T> {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }
-    copyFrom(from, start, startFrom, count);
+    copyFrom(from, startFrom, start, length);
   }
 
   void removeRange(int start, int length) {
@@ -82,7 +82,10 @@ class ObjectArray<T> implements List<T> {
   List<T> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    return new List<T>.fromList(this, start, start + length);
+    List list = new List<T>();
+    list.length = length;
+    Arrays.copy(this, start, list, 0, length);
+    return list;
   }
 
   /**
@@ -113,12 +116,13 @@ class ObjectArray<T> implements List<T> {
     DualPivotQuicksort.sort(this, compare);
   }
 
-  int indexOf(T element, int startIndex) {
-    return Arrays.indexOf(this, element, startIndex, this.length);
+  int indexOf(T element, [int start = 0]) {
+    return Arrays.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(T element, int startIndex) {
-    return Arrays.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(T element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
   }
 
   Iterator<T> iterator() {
@@ -201,7 +205,10 @@ class ImmutableArray<T> implements List<T> {
   List<T> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    return new List<T>.fromList(this, start, start + length);
+    List list = new List<T>();
+    list.length = length;
+    Arrays.copy(this, start, list, 0, length);
+    return list;
   }
 
   /**
@@ -237,12 +244,13 @@ class ImmutableArray<T> implements List<T> {
     return "ImmutableArray";
   }
 
-  int indexOf(T element, int startIndex) {
-    return Arrays.indexOf(this, element, startIndex, this.length);
+  int indexOf(T element, [int start = 0]) {
+    return Arrays.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(T element, int startIndex) {
-    return Arrays.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(T element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
   }
 
   Iterator<T> iterator() {

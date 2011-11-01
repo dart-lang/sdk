@@ -66,7 +66,7 @@ class JUnitTestConfiguration(test.TestConfiguration):
   def __init__(self, context, root):
     super(JUnitTestConfiguration, self).__init__(context, root)
 
-  def ListTests(self, current_path, path, mode, arch):
+  def ListTests(self, current_path, path, mode, arch, component):
     test_path = current_path + ['junit_tests']
     if not self.Contains(path, test_path):
       return []

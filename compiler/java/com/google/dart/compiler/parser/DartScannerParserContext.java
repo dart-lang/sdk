@@ -118,12 +118,7 @@ public class DartScannerParserContext implements ParserContext {
 
   @Override
   public void error(DartCompilationError dartError) {
-    listener.compilationError(dartError);
-  }
-
-  @Override
-  public void warning(DartCompilationError dartError) {
-    listener.compilationWarning(dartError);
+    listener.onError(dartError);
   }
 
   @Override

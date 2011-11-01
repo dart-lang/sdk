@@ -161,7 +161,7 @@ class PromiseImpl<T> implements Promise<T> {
     if (_state == COMPLETE_NORMAL) {
       completeHandler(_value);
     } else if (!isDone()) {
-      if (_normalListeners == null) {
+      if (_normalListeners === null) {
         _normalListeners = new Queue<Function>();
       }
       _normalListeners.addLast(completeHandler);
@@ -172,7 +172,7 @@ class PromiseImpl<T> implements Promise<T> {
     if (_state == COMPLETE_ERROR) {
       errorHandler(_error);
     } else if (!isDone()) {
-      if (_errorListeners == null) {
+      if (_errorListeners === null) {
         _errorListeners = new Queue<Function>();
       }
       _errorListeners.addLast(errorHandler);
@@ -183,7 +183,7 @@ class PromiseImpl<T> implements Promise<T> {
     if (isCancelled()) {
       cancelHandler();
     } else if (!isDone()) {
-      if (_cancelListeners == null) {
+      if (_cancelListeners === null) {
         _cancelListeners = new Queue<Function>();
       }
       _cancelListeners.addLast(cancelHandler);
@@ -262,23 +262,23 @@ class PromiseImpl<T> implements Promise<T> {
   }
 }
 
-class ProxyImpl {
+class ProxyBase {
 
-  ProxyImpl.forPort(SendPort port) {
+  ProxyBase.forPort(SendPort port) {
     _promise = new Promise<SendPort>();
     _promise.complete(port);
   }
 
   // Construct a proxy for a message reply; see the [Proxy.forReply]
   // documentation for more details.
-  ProxyImpl.forReply(Promise<SendPort> port) {
+  ProxyBase.forReply(Promise<SendPort> port) {
     _promise = port;
   }
 
   // Note that comparing proxies or using them in maps is illegal
   // until they complete.
   bool operator ==(var other) {
-    return (other is ProxyImpl) && _promise.value == other._promise.value;
+    return (other is ProxyBase) && _promise.value == other._promise.value;
   }
 
   int hashCode() => _promise.value.hashCode();
