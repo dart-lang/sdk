@@ -38,14 +38,14 @@ def GetBuildInfo(srcpath):
   """Returns a tuple (name, version, arch, mode, platform) where:
     - name: A name for the build - the buildbot host if a buildbot.
     - version: A version string corresponding to this build.
-    - arch: 'dartium' (default) or 'chromium'
+    - component: 'dartium' (default) or 'chromium'
     - mode: 'debug' or 'release' (default)
     - platform: 'linux' or 'mac'
   """
   name = None
   version = None
   mode = 'release'
-  arch = 'dartium'
+  component = 'dartium'
   platform = 'linux'
 
   # Populate via builder environment variables.
@@ -56,7 +56,7 @@ def GetBuildInfo(srcpath):
     pattern = re.match(BUILDER_PATTERN, name)
     if pattern:
       platform = pattern.group(1)
-      arch = pattern.group(2)
+      component = pattern.group(2)
       mode = pattern.group(3)
 
   # Fall back if not on builder.
@@ -71,7 +71,7 @@ def GetBuildInfo(srcpath):
       version = output[0]
     else:
       version = 'unknown'
-  return (name, version, arch, mode, platform)
+  return (name, version, component, mode, platform)
 
 
 def RunDartcCompiler(client_path, mode, outdir):
@@ -81,7 +81,7 @@ def RunDartcCompiler(client_path, mode, outdir):
   return subprocess.call(
       [sys.executable, '../tools/build.py', '--mode=' + mode])
 
-def RunBrowserTests(client_path, arch, mode, platform):
+def RunBrowserTests(client_path, component, mode, platform):
   """Runs the Dart client tests."""
   if platform == 'linux':
     cmd = ['xvfb-run']
@@ -90,7 +90,7 @@ def RunBrowserTests(client_path, arch, mode, platform):
   # Move to the client directory and call the test script
   os.chdir(client_path)
   cmd += [sys.executable, '../tools/test.py',
-     '--arch=' + arch, '--mode=' + mode,
+     '--component=' + component, '--mode=' + mode,
      '--time', '--report', '--progress=buildbot', '-v']
   return subprocess.call(cmd)
 
@@ -119,18 +119,18 @@ def GetOutDir(utils, mode, name):
   '''
   return utils.GetBuildRoot(utils.GuessOS(), mode, name)
 
-def ProcessDartClientTests(srcpath, arch, mode, platform, name):
+def ProcessDartClientTests(srcpath, component, mode, platform, name):
   '''
   build and test the dart client applications
 
   args:
   srcpath - the location of the source code to build
-  arch - the architecture we are building for
+  component - the component we are testing against
   mode - the mode release or debug
   platform - the platform we are building for
   '''
   print 'ProcessDartClientTests'
-  if arch == 'chromium':
+  if component == 'chromium':
     print ('@@@BUILD_STEP dartc dart clients: %s@@@' % name)
 
     utils = GetUtils(srcpath)
@@ -139,7 +139,7 @@ def ProcessDartClientTests(srcpath, arch, mode, platform, name):
     if status != 0:
       return status
 
-  if arch == 'dartium':
+  if component == 'dartium':
     version_file = os.path.join(srcpath, DARTIUM_VERSION_FILE)
     if os.path.exists(version_file):
       latest = open(version_file, 'r').read()
@@ -148,7 +148,7 @@ def ProcessDartClientTests(srcpath, arch, mode, platform, name):
         print '@@@BUILD_STEP vm r%s (dartium r%s)@@@' % (
             match.group(2), match.group(1))
   print '@@@BUILD_STEP browser unit tests@@@'
-  return RunBrowserTests(srcpath, arch, mode, platform)
+  return RunBrowserTests(srcpath, component, mode, platform)
 
 def ProcessTools(srcpath, mode, name, version):
   '''
@@ -199,14 +199,14 @@ def main():
   scriptdir = os.path.dirname(sys.argv[0])
   srcpath = os.path.abspath(os.path.join(scriptdir, '..'))
 
-  (name, version, arch, mode, platform) = GetBuildInfo(srcpath)
+  (name, version, component, mode, platform) = GetBuildInfo(srcpath)
   if name == 'dart-editor':
     status = ProcessTools(srcpath, mode, name, version)
   #TODO(sigmund): remove this indirection once we update out bots
   elif name.startswith('frog'):
     status = ProcessFrog(srcpath)
   else:
-    status = ProcessDartClientTests(srcpath, arch, mode, platform, name)
+    status = ProcessDartClientTests(srcpath, component, mode, platform, name)
 
   if status:
     print '@@@STEP_FAILURE@@@'

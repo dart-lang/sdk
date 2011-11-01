@@ -7,7 +7,7 @@ prefix co19
 #
 # Problems specific to compiler in release build (--optimize)
 #
-[ $arch == dartc && $mode == release ]
+[ $component == dartc && $mode == release ]
 
 # OK to fail - the optimized code doesn't execute correctly after type errors
 LibTest/core/List/List/List/A01/t04: Fail
@@ -26,12 +26,12 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/A09/t02: Fail # Issue 219
 #
 # Tests that pass in release mode but fail in debug mode
 #
-[  $arch == dartc && $mode == debug ]
+[ $component == dartc && $mode == debug ]
 
 #
 # Problems in both debug and release builds
 #
-[ $arch == dartc ]
+[ $component == dartc ]
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A02/t01: Fail # Bug 5371670.
@@ -189,9 +189,9 @@ LibTest/core/Queue/iterator_hasNext/Queue/iterator/hasNext/A01/t01: Skip # Timeo
 # List.fromList has been removed.
 LibTest/core/List/List.fromList/*: Fail
 
-[ $arch == dartium ]
+[ $component == dartium ]
 *: Skip
 
 
-[ $arch == chromium ]
+[ $component == chromium ]
 *: Skip

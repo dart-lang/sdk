@@ -4,10 +4,10 @@
 
 prefix isolate
 
-[ $arch == ia32 ]
+[ $component == vm ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 
-[ $arch == dartium || $arch == ia32 || $arch == x64 || $arch == simarm || $arch == arm ]
+[ $component == dartium || $component == vm ]
 SerializationTest: Skip  # DartC test (uses coreimpl).
 
 [ $arch == chromium && $arch == release ]

@@ -54,7 +54,7 @@ class StandardTestConfiguration(test.TestConfiguration):
       return
     os.execlp('rm', *(['rm', '-rf'] + dirs))
 
-  def CreateTestCases(self, test_path, path, filename, mode, arch):
+  def CreateTestCases(self, test_path, path, filename, mode, arch, component):
     """Given a .dart filename, create a StandardTestCase from it."""
     # Look for VM specified as comments in the source file. If
     # several sets of VM options are specified create a separate
@@ -66,7 +66,7 @@ class StandardTestConfiguration(test.TestConfiguration):
     tags = {}
     if filename.endswith('.dart'):
       tags = self.SplitMultiTest(test_path, filename)
-    if arch in ['dartium', 'chromium']:
+    if component in ['dartium', 'chromium']:
       if tags:
         return []
       else:
@@ -74,11 +74,12 @@ class StandardTestConfiguration(test.TestConfiguration):
           tests = []
           for options in vm_options_list:
             tests.append(test_case.BrowserTestCase(
-                self.context, test_path, filename, False, mode, arch, options))
+                self.context, test_path, filename, False, mode, arch, component,
+                options))
           return tests
         else:
           return [test_case.BrowserTestCase(
-              self.context, test_path, filename, False, mode, arch)]
+              self.context, test_path, filename, False, mode, arch, component)]
     else:
       tests = []
       if tags:
@@ -90,18 +91,18 @@ class StandardTestConfiguration(test.TestConfiguration):
                                                test_path + [tag],
                                                test_source,
                                                kind,
-                                               mode, arch))
+                                               mode, arch, component))
       else:
         if vm_options_list:
           for options in vm_options_list:
             tests.append(test_case.StandardTestCase(self.context,
-                test_path, filename, mode, arch, options))
+                test_path, filename, mode, arch, component, options))
         else:
           tests.append(test_case.StandardTestCase(self.context,
-              test_path, filename, mode, arch))
+              test_path, filename, mode, arch, component))
       return tests
 
-  def ListTests(self, current_path, path, mode, arch):
+  def ListTests(self, current_path, path, mode, arch, component):
     """Searches for *Test.dart files and returns list of TestCases."""
     tests = []
     for root, unused_dirs, files in os.walk(os.path.join(self.root, 'src')):
@@ -116,7 +117,7 @@ class StandardTestConfiguration(test.TestConfiguration):
           continue
         tests.extend(self.CreateTestCases(test_path, path,
                                           os.path.join(root, f),
-                                          mode, arch))
+                                          mode, arch, component))
     atexit.register(lambda: self._Cleanup(tests))
     return tests
 
@@ -220,7 +221,7 @@ class BrowserTestConfiguration(StandardTestConfiguration):
     super(BrowserTestConfiguration, self).__init__(context, root)
     self.fatal_static_type_errors = fatal_static_type_errors
 
-  def ListTests(self, current_path, path, mode, arch):
+  def ListTests(self, current_path, path, mode, arch, component):
     """Searches for *Test .dart files and returns list of TestCases."""
     tests = []
     for root, unused_dirs, files in os.walk(self.root):
@@ -233,7 +234,7 @@ class BrowserTestConfiguration(StandardTestConfiguration):
                                                test_path,
                                                os.path.join(root, f),
                                                self.fatal_static_type_errors,
-                                               mode, arch))
+                                               mode, arch, component))
     atexit.register(lambda: self._Cleanup(tests))
     return tests
 
@@ -250,7 +251,7 @@ class CompilationTestConfiguration(test.TestConfiguration):
   def __init__(self, context, root):
     super(CompilationTestConfiguration, self).__init__(context, root)
 
-  def ListTests(self, current_path, path, mode, arch):
+  def ListTests(self, current_path, path, mode, arch, component):
     """Searches for *Test.dart files and returns list of TestCases."""
     tests = []
     client_path = os.path.normpath(os.path.join(self.root, '..', '..'))
@@ -273,7 +274,8 @@ class CompilationTestConfiguration(test.TestConfiguration):
                                                      self.context,
                                                      test_dart_file,
                                                      mode,
-                                                     arch))
+                                                     arch,
+                                                     component))
     atexit.register(lambda: self._Cleanup(tests))
     return tests
 

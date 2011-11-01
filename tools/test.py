@@ -417,10 +417,11 @@ class TestCase(object):
     self.context = context
     self.duration = None
     self.arch = []
+    self.component = []
 
   def IsBatchable(self):
     if self.context.use_batch:
-      if self.arch and 'dartc' in self.arch:
+      if self.component and 'dartc' in self.component:
         return True
     return False
 
@@ -530,11 +531,12 @@ class TestRepository(TestSuite):
         filename.close()
     return self.config
 
-  def ListTests(self, current_path, path, context, mode, arch):
+  def ListTests(self, current_path, path, context, mode, arch, component):
     return self.GetConfiguration(context).ListTests(current_path,
                                                     path,
                                                     mode,
-                                                    arch)
+                                                    arch,
+                                                    component)
 
   def GetTestStatus(self, context, sections, defs):
     self.GetConfiguration(context).GetTestStatus(sections, defs)
@@ -547,14 +549,14 @@ class LiteralTestSuite(TestSuite):
     super(LiteralTestSuite, self).__init__('root')
     self.tests = tests
 
-  def ListTests(self, current_path, path, context, mode, arch):
+  def ListTests(self, current_path, path, context, mode, arch, component):
     name = path[0]
     result = []
     for test in self.tests:
       test_name = test.GetName()
       if name.match(test_name):
         full_path = current_path + [test_name]
-        result += test.ListTests(full_path, path, context, mode, arch)
+        result += test.ListTests(full_path, path, context, mode, arch, component)
     return result
 
   def GetTestStatus(self, context, sections, defs):
@@ -598,9 +600,9 @@ class Context(object):
     else:
       return path
 
-  def GetDart(self, mode, arch):
+  def GetDart(self, mode, arch, component):
     """Returns the path to the Dart test runner (executes the .dart file)."""
-    if arch == 'dartc':
+    if component == 'dartc':
       command = [os.path.abspath(
           os.path.join(self.GetBuildRoot(mode, arch),
                        'compiler', 'bin', 'dartc_test'))]
@@ -743,7 +745,6 @@ class Operation(Expression):
 
   def Evaluate(self, env, defs):
     """Evaluates expression in the .status file. e.g. ($arch == ia32)."""
-
     if self.op == '||' or self.op == ',':
       return self.left.Evaluate(env, defs) or self.right.Evaluate(env, defs)
     elif self.op == 'if':
@@ -808,7 +809,7 @@ class Tokenizer(object):
     """Lexical analysis of an expression in a .status file.
 
     Example:
-      [ $mode == debug && ($arch == chromium || $arch == dartc) ]
+      [ $mode == debug && ($component == chromium || $component == dartc) ]
 
     Args:
       None.
@@ -983,7 +984,7 @@ class Configuration(object):
     Args:
       cases: list of TestCase objects to classify.
       env:   dictionary containing values for 'mode',
-             'system', 'arch' and 'checked'.
+             'system', 'component', 'arch' and 'checked'.
 
     Returns:
       A triplet of (result, rules, expected_outcomes).
@@ -1153,7 +1154,7 @@ def BuildOptions():
   result.add_option(
       '--arch',
       help='The architecture to run tests for',
-      metavar='[all,ia32,x64,simarm,arm,dartc]',
+      metavar='[all,ia32,x64,simarm,arm]',
       default=ARCH_GUESS)
   result.add_option(
       '--os',
@@ -1186,7 +1187,7 @@ def BuildOptions():
       action='store_true')
   result.add_option(
       '--batch',
-      help='Run multiple tests for dartc architecture in a single vm',
+      help='Run multiple tests for dartc component in a single vm',
       choices=['true', 'false'],
       default='true',
       type='choice')
@@ -1195,6 +1196,12 @@ def BuildOptions():
       help='Invoke dart compiler with --optimize flag',
       default=False,
       action='store_true')
+  result.add_option(
+      '-c', '--component',
+      help='The component to test against '
+           '(most, vm, dartc, chromium, dartium)',
+      metavar='[most,vm,dartc,chromium,dartium]',
+      default='vm')
   return result
 
 
@@ -1204,28 +1211,42 @@ def ProcessOptions(options):
     options.arch = 'ia32,x64,simarm'
   if options.mode == 'all':
     options.mode = 'debug,release'
+  if options.component == 'most':
+    options.component = 'vm,dartc'
+
+  if 'dartc' in options.arch:
+    options.component = 'dartc'
+  if 'dartium' in options.arch:
+    options.component = 'dartium'
+  if 'chromium' in options.arch:
+    options.component = 'chromium'
+
   # By default we run with a higher timeout setting in when running on
   # a simulated architecture and in debug mode.
   if not options.timeout:
     options.timeout = TIMEOUT_SECS
-    if 'dartc' in options.arch:
+    if 'dartc' in options.component:
       options.timeout *= 4
-    elif 'chromium' in options.arch:
+    elif 'chromium' in options.component:
       options.timeout *= 4
-    elif 'dartium' in options.arch:
+    elif 'dartium' in options.component:
       options.timeout *= 4
     elif 'debug' in options.mode:
       options.timeout *= 2
   options.mode = options.mode.split(',')
   options.arch = options.arch.split(',')
+  options.component = options.component.split(',')
   for mode in options.mode:
     if not mode in ['debug', 'release']:
       print 'Unknown mode %s' % mode
       return False
   for arch in options.arch:
-    if not arch in ['ia32', 'x64', 'simarm', 'arm', 'dartc', 'dartium',
-                    'chromium']:
+    if not arch in ['ia32', 'x64', 'simarm', 'arm']:
       print 'Unknown arch %s' % arch
+      return False
+  for component in options.component:
+    if not component in ['vm', 'dartc', 'chromium', 'dartium']:
+      print 'Unknown component %s' % component
       return False
   options.flags = []
   options.flags.append('--ignore-unrecognized-flags')
@@ -1423,22 +1444,24 @@ def Main():
   for path in paths:
     for mode in options.mode:
       for arch in options.arch:
-        env = {
-            'mode': mode,
-            'system': utils.GuessOS(),
-            'arch': arch,
-            'checked': options.checked
-        }
-        test_list = root.ListTests([], path, context, mode, arch)
-        (cases, unused_rules, unused_outcomes) = config.ClassifyTests(
-            test_list, env)
-        if globally_unused_rules is None:
-          globally_unused_rules = set(unused_rules)
-        else:
-          globally_unused_rules = (
-              globally_unused_rules.intersection(unused_rules))
-        all_cases += cases
-        all_unused.append(unused_rules)
+        for component in options.component:
+          env = {
+              'mode': mode,
+              'system': utils.GuessOS(),
+              'arch': arch,
+              'component': component,
+              'checked': options.checked
+          }
+          test_list = root.ListTests([], path, context, mode, arch, component)
+          (cases, unused_rules, unused_outcomes) = config.ClassifyTests(
+              test_list, env)
+          if globally_unused_rules is None:
+            globally_unused_rules = set(unused_rules)
+          else:
+            globally_unused_rules = (
+                globally_unused_rules.intersection(unused_rules))
+          all_cases += cases
+          all_unused.append(unused_rules)
 
   if options.report:
     PrintReport(all_cases)

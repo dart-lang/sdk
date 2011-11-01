@@ -34,7 +34,7 @@ public class SharedTests extends TestSetup {
 
   private static final String[] listTests = {
       TEST_PY,
-      "--arch=dartc",
+      "--component=dartc",
       "--mode=release",
       "--list"};
 

@@ -18,12 +18,15 @@ class Error(Exception):
 class StandardTestCase(test.TestCase):
   """A test case defined by a *Test.dart file."""
 
-  def __init__(self, context, path, filename, mode, arch, vm_options=None):
+  def __init__(self, context, path, filename, mode, arch, component,
+               vm_options=None):
     super(StandardTestCase, self).__init__(context, path)
     self.filename = filename
     self.mode = mode
     self.arch = arch
+    self.component = component
     self.run_arch = architecture.GetArchitecture(self.arch, self.mode,
+                                                 self.component,
                                                  self.filename)
     for flag in context.flags:
       self.run_arch.vm_options.append(flag)
@@ -36,7 +39,8 @@ class StandardTestCase(test.TestCase):
     return self.GetName().endswith('NegativeTest')
 
   def GetLabel(self):
-    return '%s%s %s' % (self.mode, self.arch, '/'.join(self.path))
+    return '%s%s %s %s' % (self.mode, self.arch, self.component,
+                           '/'.join(self.path))
 
   def GetCommand(self):
     return self.run_arch.GetRunCommand()
@@ -60,8 +64,9 @@ class StandardTestCase(test.TestCase):
 class MultiTestCase(StandardTestCase):
   """Multiple test cases defined within a single *Test.dart file."""
 
-  def __init__(self, context, path, filename, kind, mode, arch):
-    super(MultiTestCase, self).__init__(context, path, filename, mode, arch)
+  def __init__(self, context, path, filename, kind, mode, arch, component):
+    super(MultiTestCase, self).__init__(context, path, filename, mode, arch,
+                                        component)
     self.kind = kind
 
   def GetCommand(self):
@@ -90,9 +95,9 @@ class BrowserTestCase(StandardTestCase):
   """A test case that executes inside a browser (or DumpRenderTree)."""
 
   def __init__(self, context, path, filename,
-               fatal_static_type_errors, mode, arch, vm_options=None):
+               fatal_static_type_errors, mode, arch, component, vm_options=None):
     super(BrowserTestCase, self).__init__(
-        context, path, filename, mode, arch, vm_options)
+        context, path, filename, mode, arch, component, vm_options)
     self.fatal_static_type_errors = fatal_static_type_errors
 
   def Run(self):
@@ -125,12 +130,15 @@ class BrowserTestCase(StandardTestCase):
 class CompilationTestCase(test.TestCase):
   """Run the dartc compiler on a given top level .dart file."""
 
-  def __init__(self, path, context, filename, mode, arch):
+  def __init__(self, path, context, filename, mode, arch, component):
     super(CompilationTestCase, self).__init__(context, path)
     self.filename = filename
     self.mode = mode
     self.arch = arch
-    self.run_arch = architecture.GetArchitecture(self.arch, self.mode,
+    self.component = component
+    self.run_arch = architecture.GetArchitecture(self.arch,
+                                                 self.mode,
+                                                 self.component,
                                                  self.filename)
     self.temp_dir = tempfile.mkdtemp(prefix='dartc-output-')
 
@@ -138,7 +146,8 @@ class CompilationTestCase(test.TestCase):
     return False
 
   def GetLabel(self):
-    return '%s/%s %s' % (self.mode, self.arch, '/'.join(self.path))
+    return '%s/%s %s %s' % (self.mode, self.arch, self.component,
+                            '/'.join(self.path))
 
   def GetCommand(self):
     """Returns a command line to run the test."""

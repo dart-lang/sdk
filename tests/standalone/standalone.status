@@ -4,27 +4,27 @@
 
 prefix standalone
 
-[ $arch == ia32 && $checked ]
+[ $component == vm && $checked ]
 # These tests have type errors on purpose.
 ProcessInvalidArgumentsTest: Fail, OK
 DirectoryInvalidArgumentsTest: Fail, OK
 
-[ $arch == ia32]
+[ $component == vm]
 ManyEchoServerTest: Skip        # Bug 5103754
 
-[ $arch == ia32 && $mode == release]
+[ $component == vm && $mode == release]
 # Currently process tests are bound to debug mode.
 Process*: Skip # Bug 172
 
-[ $arch == ia32 && $system == macos]
+[ $component == vm && $system == macos]
 Process*: Skip # Bug 172
 # This test fails with "Too many open files" on the Mac OS buildbot.
 SocketManyConnectionsTest: Skip
 
-[ $arch == ia32 && $system == win32]
+[ $component == vm && $system == win32]
 Process*: Skip
 
-[ $arch == dartium ]
+[ $component == dartium ]
 # Server specific tests OK to fail in the browser
 EchoServerTest: Skip  # Uses Socket
 EchoServerStreamTest: Skip # Uses Socket
@@ -47,7 +47,7 @@ Directory*: Skip # Uses Directory
 StringStreamTest: Skip # Uses InputStream
 
 
-[ $arch == dartc || $arch == chromium ]
+[ $component == dartc || $component == chromium ]
 *: Skip
 
 

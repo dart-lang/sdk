@@ -4,9 +4,9 @@
 
 prefix stub-generator
 
-[ $arch == ia32 ]
+[ $component == vm ]
 
-[ $arch == dartc ]
+[ $component == dartc ]
 
 [ $arch == x64 ]
 *: Skip
@@ -17,8 +17,8 @@ prefix stub-generator
 [ $arch == arm ]
 *: Skip
 
-[ $arch == dartium ]
+[ $component == dartium ]
 *: Skip
 
-[ $arch == chromium ]
+[ $component == chromium ]
 *: Skip

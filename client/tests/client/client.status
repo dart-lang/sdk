@@ -4,31 +4,22 @@
 
 prefix client
 
-[ $arch == dartium ]
+[ $component == dartium ]
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 
-[ $arch == chromium ]
+[ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 
-[ $arch == chromium && $mode == release ]
+[ $component == chromium && $mode == release ]
 html/html_tests: Skip # Timeout
 
 
 # 'client' tests import the DOM library, so they only make sense in
 # a browser environment.
-[ $arch == dartc ]
+[ $component == dartc ]
 *: Skip
 
-[ $arch == ia32 ]
-*: Skip
-
-[ $arch == x64 ]
-*: Skip
-
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == arm ]
+[ $component == vm ]
 *: Skip

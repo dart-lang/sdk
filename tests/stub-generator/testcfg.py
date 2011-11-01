@@ -18,11 +18,13 @@ def GeneratedName(src):
   return re.sub('\.dart$', '-generatedTest.dart', src)
 
 class DartStubTestCase(test_case.StandardTestCase):
-  def __init__(self, context, path, filename, mode, arch):
-    super(DartStubTestCase, self).__init__(context, path, filename, mode, arch)
+  def __init__(self, context, path, filename, mode, arch, component):
+    super(DartStubTestCase, self).__init__(context, path, filename, mode, arch,
+                                           component)
     self.filename = filename
     self.mode = mode
     self.arch = arch
+    self.component = component
 
   def IsBatchable(self):
     return False
@@ -86,7 +88,7 @@ class DartStubTestCase(test_case.StandardTestCase):
     (interface, _, implementation) = self.GetStubs()
 
     # Combine everything into a command array and return it.
-    command = self.context.GetDart(self.mode, self.arch)
+    command = self.context.GetDart(self.mode, self.arch, self.component)
     if interface is None:
       f = self.filename
     else:
@@ -102,7 +104,7 @@ class DartStubTestConfiguration(test_configuration.StandardTestConfiguration):
   def __init__(self, context, root):
     super(DartStubTestConfiguration, self).__init__(context, root)
 
-  def ListTests(self, current_path, path, mode, arch):
+  def ListTests(self, current_path, path, mode, arch, component):
     dartc = self.context.GetDartC(mode, 'dartc')
     self.context.generate = os.access(dartc[0], os.X_OK)
     tests = []
@@ -124,7 +126,8 @@ class DartStubTestConfiguration(test_configuration.StandardTestConfiguration):
                                       test_path,
                                       join(root, f),
                                       mode,
-                                      arch))
+                                      arch,
+                                      component))
     return tests
 
 

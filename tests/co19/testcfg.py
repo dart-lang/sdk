@@ -1,5 +1,5 @@
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-# for details. All rights reserved. Use of this source code is governed by a 
+# for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
 
@@ -16,17 +16,18 @@ class Error(Exception):
 
 
 class Co19TestCase(test.TestCase):
-  def __init__(self, path, context, filename, mode, arch):
+  def __init__(self, path, context, filename, mode, arch, component):
     super(Co19TestCase, self).__init__(context, path)
     self.filename = filename
     self.mode = mode
     self.arch = arch
+    self.component = component
     self._is_negative = None
 
   def IsNegative(self):
     if self._is_negative is None :
       contents = self.GetSource()
-      for tag in ('@compile-error','@static-type-error', 
+      for tag in ('@compile-error','@static-type-error',
                   '@dynamic-type-error', '@runtime-error'):
         if tag in contents:
           self._is_negative = True
@@ -37,7 +38,7 @@ class Co19TestCase(test.TestCase):
     return self._is_negative
 
   def GetLabel(self):
-    return "%s%s %s" % (self.mode, self.arch, "/".join(self.path))
+    return "%s%s %s %s" % (self.mode, self.arch, self.component, "/".join(self.path))
 
   def GetCommand(self):
     # Parse the options by reading the .dart source file.
@@ -48,7 +49,7 @@ class Co19TestCase(test.TestCase):
                                           self.context.workspace)
 
     # Combine everything into a command array and return it.
-    command = self.context.GetDart(self.mode, self.arch)
+    command = self.context.GetDart(self.mode, self.arch, self.component)
     command += self.context.flags
     if self.mode == 'release': command += ['--optimize']
     if vm_options: command += vm_options
@@ -71,7 +72,7 @@ class Co19TestConfiguration(test.TestConfiguration):
   def __init__(self, context, root):
     super(Co19TestConfiguration, self).__init__(context, root)
 
-  def ListTests(self, current_path, path, mode, arch):
+  def ListTests(self, current_path, path, mode, arch, component):
     tests = []
     src_dir = join(self.root, "src")
     strip = len(src_dir.split(os.path.sep))
@@ -92,16 +93,16 @@ class Co19TestConfiguration(test.TestConfiguration):
         # remove suffixes
         if short_name.endswith(".dart"):
           short_name = short_name[:-5]  # Remove .dart suffix.
-        # now .app suffix discarded at self.IsTest() 
+        # now .app suffix discarded at self.IsTest()
         #elif short_name.endswith(".app"):
         #  short_name = short_name[:-4]  # Remove .app suffix.
         else:
           raise Error('Unknown suffix in "%s", fix IsTest() predicate' % f)
 
-        
+
         while short_name.startswith('_'):
           short_name = short_name[1:]
-        
+
         test_path.extend(short_name.split('_'))
 
         # test full name and shorted name matches given path pattern
@@ -109,12 +110,13 @@ class Co19TestConfiguration(test.TestConfiguration):
         elif self.Contains(path, test_path + [test_name]): pass
         else:
           continue
- 
+
         tests.append(Co19TestCase(test_path,
                                   self.context,
                                   join(root, f),
                                   mode,
-                                  arch))
+                                  arch,
+                                  component))
     return tests
 
   _TESTNAME_PATTERN = re.compile(r'.*_t[0-9]{2}\.dart$')
@@ -132,7 +134,7 @@ class Co19TestConfiguration(test.TestConfiguration):
   def Contains(self, path, file):
     """ reimplemented for support '**' glob pattern """
     if len(path) > len(file):
-      return 
+      return
     # ** matches to any number of directories, a/**/d matches a/b/c/d
     # paths like a/**/x/**/b not allowed
     patterns = [p.pattern for p in path]

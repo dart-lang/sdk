@@ -17,7 +17,7 @@
 prefix language
 
 
-[ $arch == ia32 || $arch == dartium ]
+[ $component == vm || $component == dartium ]
 ClassTest: Fail             # Bug 4504458 (pseudo keyword)
 NamingTest: Fail            # Bug 4504458 (pseudo keyword)
 SuperTest: Fail             # Bug 4995181
@@ -50,11 +50,11 @@ NonParameterizedFactory2Test: Fail # Bug 5257789
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
 
-[ $arch == ia32 && $mode == debug ]
+[ $component == vm && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
 
 # Problems specific to dartc optimized mode
-[ ($arch == dartc || $arch == chromium) && $mode == release ]
+[ ($component == dartc || $component == chromium) && $mode == release ]
 MethodInvocationTest: Fail               # Bug  5392266
 Label2NegativeTest: Crash                # Bug 5318228
 NullPointerExceptionTest: Fail           # Bug 5391976
@@ -65,10 +65,10 @@ BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not thr
 CTConst2Test: Fail                       # Codesite issue 124
 
 # Problems specific to dartc debug mode
-[ ($arch == dartc || $arch == chromium) && $mode == debug ]
+[ ($component == dartc || $component == chromium) && $mode == debug ]
 
 
-[ $arch == dartc || $arch == chromium ]
+[ $component == dartc || $component == chromium ]
 Library4NegativeTest: Fail               # Bug 5406175
 Prefix3NegativeTest: Fail                # Bug 5406175
 Prefix11NegativeTest: Fail               # Bug 5406175
@@ -164,7 +164,7 @@ FactoryArrowTest: Fail # Issue 223
 *VMTest: Skip
 
 
-[ $arch == dartium ]
+[ $component == dartium ]
 # TODO: These need to be retriaged.
 ExpectTest: Fail
 StackTraceTest: Fail

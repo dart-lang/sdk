@@ -6,7 +6,7 @@
 
 #import("../../isolate/src/TestFramework.dart");
 
-/* class = Mint (file:/usr/local/google/users/scheglov/Clients/Dart/dart/tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 9) */
+/* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 9) */
 
 interface Mint$Proxy {
   Purse$Proxy createPurse(int balance);
@@ -59,7 +59,7 @@ class Mint$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = Purse (file:/usr/local/google/users/scheglov/Clients/Dart/dart/tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 17) */
+/* class = Purse (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 17) */
 
 interface Purse$Proxy {
   Promise<int> queryBalance();
