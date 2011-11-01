@@ -91,11 +91,12 @@ LibTest/core/List/List.fromList/*: Fail
 [ $component == vm && $mode == debug ]
 LibTest/core/Expect/throws/Expect/throws/A01/t03: Crash
 LibTest/core/Expect/throws/Expect/throws/A01/t04: Crash
-LibTest/core/Isolate/spawn/Isolate/spawn/A01/t12: Timeout
 LibTest/core/List/copyFrom/List/copyFrom/A01/t03: Crash
 LibTest/core/List/copyFrom/List/copyFrom/A01/t04: Crash
 LibTest/core/double/ceil/double/ceil/A01/t05: Crash
 LibTest/core/double/floor/double/floor/A01/t05: Crash
+[ $component == vm && $mode == debug && $unchecked ]
+LibTest/core/Isolate/spawn/Isolate/spawn/A01/t12: Pass || Timeout
 [ $component == vm && $mode == release ]
 LibTest/core/List/copyFrom/List/copyFrom/A01/t03: Fail
 LibTest/core/List/copyFrom/List/copyFrom/A01/t04: Fail
