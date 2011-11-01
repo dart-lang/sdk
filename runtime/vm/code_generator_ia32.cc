@@ -2170,10 +2170,10 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
     TypeArguments& type_arguments = TypeArguments::ZoneHandle();
-    const Type& type = Type::Handle(
+    Type& type = Type::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
-    const String& errmsg = String::Handle(
-        ClassFinalizer::FinalizeTypeWhileParsing(type));
+    String& errmsg = String::Handle();
+    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(token_index, errmsg.ToCString());
     }

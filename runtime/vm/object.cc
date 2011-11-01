@@ -614,8 +614,7 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   // Set up empty classes in the object store, these will get
   // initialized correctly when we read from the snapshot.
-  // This is done do allow bootstrapping of reading classes from
-  // the snapshot.
+  // This is done to allow bootstrapping of reading classes from the snapshot.
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
 
@@ -774,6 +773,7 @@ RawClass* Class::New() {
   result.raw_ptr()->class_state_ = RawClass::kPreFinalized;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_constants_ = 0;
+  result.raw_ptr()->num_canonical_types_ = 0;
   result.raw_ptr()->num_native_fields_ = 0;
   result.InitEmptyFields();
   return result.raw();
@@ -793,6 +793,7 @@ void Class::InitEmptyFields() {
       Array::Handle(Array::New(FunctionsCache::kNumEntries * 32, Heap::kOld));
   StorePointer(&raw_ptr()->functions_cache_, fcache.raw());
   StorePointer(&raw_ptr()->constants_, empty_array.raw());
+  StorePointer(&raw_ptr()->canonical_types_, empty_array.raw());
   StorePointer(&raw_ptr()->functions_, empty_array.raw());
   StorePointer(&raw_ptr()->fields_, empty_array.raw());
 }
@@ -1010,6 +1011,7 @@ RawClass* Class::New(const String& name, const Script& script) {
   result.raw_ptr()->class_state_ = RawClass::kAllocated;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_constants_ = 0;
+  result.raw_ptr()->num_canonical_types_ = 0;
   result.raw_ptr()->num_native_fields_ = 0;
   result.InitEmptyFields();
   return result.raw();
@@ -1207,6 +1209,26 @@ intptr_t Class::num_constants() const {
 
 void Class::set_num_constants(intptr_t value) const {
   raw_ptr()->num_constants_ = value;
+}
+
+
+RawArray* Class::canonical_types() const {
+  return raw_ptr()->canonical_types_;
+}
+
+void Class::set_canonical_types(const Array& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->canonical_types_, value.raw());
+}
+
+
+intptr_t Class::num_canonical_types() const {
+  return raw_ptr()->num_canonical_types_;
+}
+
+
+void Class::set_num_canonical_types(intptr_t value) const {
+  raw_ptr()->num_canonical_types_ = value;
 }
 
 
@@ -1654,9 +1676,23 @@ bool Type::IsBeingFinalized() const {
 }
 
 
+bool Type::Equals(const Type& other) const {
+  // Type is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 RawType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
+  // Type is an abstract class.
+  UNREACHABLE();
+  return Type::null();
+}
+
+
+RawType* Type::Canonicalize() const {
   // Type is an abstract class.
   UNREACHABLE();
   return Type::null();
@@ -1891,6 +1927,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
   type ^= ParameterizedType::New(
       Object::Handle(type_class.raw()), no_type_arguments);
   type.set_is_finalized();
+  type ^= type.Canonicalize();
   return type.raw();
 }
 
@@ -1997,6 +2034,62 @@ RawType* ParameterizedType::InstantiateFrom(
 }
 
 
+bool ParameterizedType::Equals(const Type& other) const {
+  ASSERT(IsFinalized() && other.IsFinalized());
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsParameterizedType()) {
+    return false;
+  }
+  ParameterizedType& other_parameterized_type = ParameterizedType::Handle();
+  other_parameterized_type ^= other.raw();
+  if (type_class() != other_parameterized_type.type_class()) {
+    return false;
+  }
+  return TypeArguments::AreEqual(TypeArguments::Handle(arguments()),
+                                 TypeArguments::Handle(other.arguments()));
+}
+
+
+RawType* ParameterizedType::Canonicalize() const {
+  const Class& cls = Class::Handle(type_class());
+  Array& canonical_types = Array::Handle(cls.canonical_types());
+  if (canonical_types.IsNull()) {
+    // Types defined in the VM isolate are canonicalized via the object store.
+    // TODO(regis): Should we add null_class_, void_class_, dynamic_class_ to
+    // the object store, remove all types from the object store, and replace
+    // the test above by an assert?
+    return this->raw();
+  }
+  const intptr_t num_canonical_types = cls.num_canonical_types();
+  ASSERT(canonical_types.Length() >= num_canonical_types);
+  // Linear search to see whether this type is already present in the
+  // list of canonicalized types.
+  Type& type = Type::Handle();
+  for (int i = 0; i < num_canonical_types; i++) {
+    type ^= canonical_types.At(i);
+    ASSERT(!type.IsNull());
+    if (this->Equals(type)) {
+      return type.raw();
+    }
+  }
+  // The type needs to be added to the list. Grow the list if it is full.
+  if (canonical_types.Length() == num_canonical_types) {
+    const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
+    const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
+    const Array& new_canonical_types =
+        Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
+    cls.set_canonical_types(new_canonical_types);
+    new_canonical_types.SetAt(num_canonical_types, *this);
+  } else {
+    canonical_types.SetAt(num_canonical_types, *this);
+  }
+  cls.set_num_canonical_types(num_canonical_types + 1);
+  return this->raw();
+}
+
+
 void ParameterizedType::set_type_class(const Object& value) const {
   ASSERT(!value.IsNull() && (value.IsClass() || value.IsUnresolvedClass()));
   StorePointer(&raw_ptr()->type_class_, value.raw());
@@ -2039,6 +2132,19 @@ void ParameterizedType::set_type_state(int8_t state) const {
 
 const char* ParameterizedType::ToCString() const {
   return "ParameterizedType";
+}
+
+
+bool TypeParameter::Equals(const Type& other) const {
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsTypeParameter()) {
+    return false;
+  }
+  TypeParameter& other_type_parameter = TypeParameter::Handle();
+  other_type_parameter ^= other.raw();
+  return Index() == other_type_parameter.Index();
 }
 
 
@@ -2177,6 +2283,28 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+bool TypeArguments::Equals(const TypeArguments& other) const {
+  // TypeArguments is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+bool TypeArguments::AreEqual(const TypeArguments& arguments,
+                             const TypeArguments& other_arguments) {
+  if (arguments.raw() == other_arguments.raw()) {
+    return true;
+  }
+  if (arguments.IsNull()) {
+    return other_arguments.IsDynamicTypes(other_arguments.Length());
+  }
+  if (other_arguments.IsNull()) {
+    return arguments.IsDynamicTypes(arguments.Length());
+  }
+  return arguments.Equals(other_arguments);
+}
+
+
 RawTypeArguments* TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
@@ -2296,6 +2424,24 @@ bool TypeArray::IsUninstantiatedIdentity() const {
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsTypeParameter() || (type.Index() != i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool TypeArray::Equals(const TypeArguments& other) const {
+  intptr_t num_types = Length();
+  if (num_types != other.Length()) {
+    return false;
+  }
+  Type& type = Type::Handle();
+  Type& other_type = Type::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    other_type = other.TypeAt(i);
+    if (!type.Equals(other_type)) {
       return false;
     }
   }
@@ -6421,8 +6567,10 @@ bool Array::Equals(const Instance& other) const {
     return false;
   }
 
-  // Must have the same type.
-  if (GetTypeArguments() != other.GetTypeArguments()) {
+  // Must have the same type arguments.
+  if (!TypeArguments::AreEqual(
+      TypeArguments::Handle(GetTypeArguments()),
+      TypeArguments::Handle(other.GetTypeArguments()))) {
     return false;
   }
 

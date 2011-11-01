@@ -12,9 +12,9 @@ namespace dart {
 
 class Class;
 class Function;
-class RawString;
 class RawType;
 class Script;
+class String;
 class Type;
 class TypeArguments;
 
@@ -32,9 +32,9 @@ class ClassFinalizer : public AllStatic {
                                    Type* interface,
                                    Type* conflicting);
 
-  // Finalize type. Used for local variable types.
-  static void FinalizeType(const Type& type);
-  static RawString* FinalizeTypeWhileParsing(const Type& type);
+  // Finalize and canonicalize type while parsing.
+  // Set the error message on failure (to String::null() if no error).
+  static RawType* FinalizeAndCanonicalizeType(const Type& type, String* errmsg);
 
   // Pending classes are classes that need to be finalized.
   static void AddPendingClasses(const GrowableArray<const Class*>& classes);
@@ -63,6 +63,7 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments);
   static RawType* ResolveType(const Class& cls, const Type& type);
+  static void FinalizeType(const Type& type);
   static void ResolveAndFinalizeSignature(const Class& cls,
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);

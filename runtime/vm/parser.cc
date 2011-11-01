@@ -878,15 +878,18 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         signature_function.set_signature_class(signature_class);
       }
       ASSERT(signature_function.signature_class() == signature_class.raw());
-      // The type of the parameter is now the signature type.
-      parameter.type = &Type::ZoneHandle(signature_class.SignatureType());
-      if (!is_top_level_ && !parameter.type->IsFinalized()) {
-        const String& errmsg = String::Handle(
-            ClassFinalizer::FinalizeTypeWhileParsing(*parameter.type));
+      Type& signature_type = Type::ZoneHandle(signature_class.SignatureType());
+      if (!is_top_level_ && !signature_type.IsFinalized()) {
+        String& errmsg = String::Handle();
+        signature_type =
+            ClassFinalizer::FinalizeAndCanonicalizeType(signature_type,
+                                                        &errmsg);
         if (!errmsg.IsNull()) {
           ErrorMsg(errmsg.ToCString());
         }
       }
+      // The type of the parameter is now the signature type.
+      parameter.type = &signature_type;
     }
   }
 
@@ -3444,15 +3447,16 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // Patch the function type now that the signature is known.
     // We need to create a new type for proper finalization, since the existing
     // type is already marked as finalized.
-    const Type& signature_type = Type::Handle(signature_class.SignatureType());
+    Type& signature_type = Type::Handle(signature_class.SignatureType());
     const TypeArguments& signature_type_arguments = TypeArguments::Handle(
         signature_type.arguments());
 
     // Since the signature type is cached by the signature class, it may have
     // been finalized already.
     if (!signature_type.IsFinalized()) {
-      const String& errmsg = String::Handle(
-          ClassFinalizer::FinalizeTypeWhileParsing(signature_type));
+      String& errmsg = String::Handle();
+      signature_type =
+          ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
       if (!errmsg.IsNull()) {
         ErrorMsg(errmsg.ToCString());
       }
@@ -6126,12 +6130,12 @@ RawType* Parser::ParseType(TypeResolution type_resolution) {
   }
   TypeArguments& type_arguments =
       TypeArguments::Handle(ParseTypeArguments(type_resolution));
-  const Type& type = Type::Handle(
+  Type& type = Type::Handle(
       Type::NewParameterizedType(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
     ASSERT(type_class.IsClass());  // Must be resolved.
-    const String& errmsg = String::Handle(
-        ClassFinalizer::FinalizeTypeWhileParsing(type));
+    String& errmsg = String::Handle();
+    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(errmsg.ToCString());
     }
@@ -6457,8 +6461,8 @@ AstNode* Parser::ParseNewOperator() {
   if (named_constructor == NULL) {
     type_arguments = ParseTypeArguments(kMustResolve);
     type = Type::NewParameterizedType(type_class, type_arguments);
-    const String& errmsg = String::Handle(
-        ClassFinalizer::FinalizeTypeWhileParsing(type));
+    String& errmsg = String::Handle();
+    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(errmsg.ToCString());
     }

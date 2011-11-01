@@ -38,7 +38,6 @@ Constructor3Test: Fail          # Bug 4995181 (evaluation order)
 # Regular bugs which should be fixed.
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
-CanonicalConstTest: Fail        # Bug 5271563
 
 ConstructorReturnNegativeTest: Fail                   # Issue 224
 ConstructorReturnWithInitNegativeTest: Fail           # Issue 224

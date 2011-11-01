@@ -40,6 +40,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_instance_size(reader->Read<intptr_t>());
     cls.set_type_arguments_instance_field_offset(reader->Read<intptr_t>());
     cls.set_num_constants(reader->Read<intptr_t>());
+    cls.set_num_canonical_types(reader->Read<intptr_t>());
     cls.set_next_field_offset(reader->Read<intptr_t>());
     cls.set_num_native_fields(reader->Read<intptr_t>());
     cls.set_class_state(reader->Read<int8_t>());
@@ -83,6 +84,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->Write<intptr_t>(ptr()->instance_size_);
     writer->Write<intptr_t>(ptr()->type_arguments_instance_field_offset_);
     writer->Write<intptr_t>(ptr()->num_constants_);
+    writer->Write<intptr_t>(ptr()->num_canonical_types_);
     writer->Write<intptr_t>(ptr()->next_field_offset_);
     writer->Write<intptr_t>(ptr()->num_native_fields_);
     writer->Write<int8_t>(ptr()->class_state_);
