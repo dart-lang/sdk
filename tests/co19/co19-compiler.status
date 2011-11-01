@@ -190,8 +190,6 @@ LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A04/t02: Crash
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A06/t02: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A11/t01: Crash
-LangSpecTest/13_Types/13_4_Interface_Types/A11/t02: Crash
 LangSpecTest/13_Types/13_4_Interface_Types/A11/t04: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t02: Fail
@@ -299,11 +297,8 @@ LibTest/core/Match/groups/Match/groups/A02/t01: Fail
 LibTest/core/Match/operator\[]/Match/operator\[]/A01/t01: Fail
 LibTest/core/Match/operator\[]/Match/operator\[]/A02/t01: Fail
 LibTest/core/Match/pattern/Match/pattern/A01/t01: Fail
-LibTest/core/Math/acos/Math/acos/A01/t01: Fail
 LibTest/core/Math/acos/Math/acos/A01/t04: Fail
-LibTest/core/Math/asin/Math/asin/A01/t01: Fail
 LibTest/core/Math/asin/Math/asin/A01/t04: Fail
-LibTest/core/Math/atan/Math/atan/A01/t01: Fail
 LibTest/core/Math/atan/Math/atan/A01/t03: Fail
 LibTest/core/Math/atan2/Math/atan2/A01/t03: Fail
 LibTest/core/Math/atan2/Math/atan2/A01/t04: Fail
@@ -366,8 +361,6 @@ LibTest/core/String/replaceAll/String/replaceAll/A02/t01: Fail
 LibTest/core/String/replaceFirst/String/replaceFirst/A01/t01: Fail
 LibTest/core/String/replaceFirst/String/replaceFirst/A02/t01: Fail
 LibTest/core/String/split/String/split/A02/t01: Fail
-LibTest/core/String/toLowerCase/String/toLowerCase/A01/t04: Fail
-LibTest/core/String/toUpperCase/String/toUpperCase/A01/t04: Fail
 LibTest/core/StringBuffer/add/StringBuffer/add/A02/t01: Fail
 LibTest/core/Strings/concatAll/Strings/concatAll/A03/t01: Fail
 LibTest/core/Strings/join/Strings/join/A03/t01: Fail
