@@ -1305,6 +1305,11 @@ public class Resolver {
         // Field parameters are not visible as parameters, so we do not declare them
         // in the context. Instead we record the resolved field element.
         Elements.setParameterInitializerElement(parameter.getSymbol(), element);
+
+        // The editor expects the referenced elements to be non-null
+        DartPropertyAccess prop = (DartPropertyAccess)parameter.getName();
+        prop.setReferencedElement(element);
+        prop.getName().setReferencedElement(element);
       } else {
         onError(parameter.getName(),
             ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
