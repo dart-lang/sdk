@@ -192,7 +192,7 @@ class IDLDictNode {
 }
 
 class IDLExtAttrs extends IDLDictNode {
-  IDLExtAttrs([List attrs = const []]) {
+  IDLExtAttrs([List attrs = const []]) : super() {
     setMap(attrs);
   }
 
@@ -214,7 +214,7 @@ class IDLArgument extends IDLNode {
 }
 
 class IDLAnnotations extends IDLDictNode {
-  IDLAnnotations(List annotations) {
+  IDLAnnotations(List annotations) : super() {
     for (var annotation in annotations) {
       map[annotation.id] = annotation;
     }
@@ -225,7 +225,7 @@ class IDLAnnotations extends IDLDictNode {
 
 class IDLAnnotation extends IDLDictNode {
   String id;
-  IDLAnnotation(String this.id, List args) {
+  IDLAnnotation(String this.id, List args) : super() {
     setMap(args);
   }
 
