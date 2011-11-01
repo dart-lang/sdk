@@ -176,10 +176,6 @@ LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t06: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t08: Fail
 LibTest/core/Match/operator\[]/Match/operator\[]/A01/t01: Fail
 LibTest/core/Match/pattern/Match/pattern/A01/t01: Fail
-LibTest/core/Math/acos/Math/acos/A01/t01: Fail
-LibTest/core/Math/asin/Math/asin/A01/t01: Fail
-LibTest/core/Math/atan/Math/atan/A01/t01: Fail
-LibTest/core/Math/cos/Math/cos/A01/t01: Fail
 LibTest/core/Math/exp/Math/exp/A01/t01: Fail
 LibTest/core/Math/max/Math/max/A01/t02: Fail
 LibTest/core/Math/pow/Math/pow/A01/t01: Fail
@@ -275,6 +271,7 @@ LibTest/core/int/toRadixString/int/toRadixString/A01/t01: Fail
 LibTest/core/int/toStringAsExponential/int/toStringAsExponential/A01/t01: Fail
 LibTest/core/int/toStringAsFixed/int/toStringAsFixed/A01/t01: Fail
 LibTest/core/int/toStringAsPrecision/int/toStringAsPrecision/A01/t01: Fail
+
 
 [ $arch == x64 ]
 *: Skip
