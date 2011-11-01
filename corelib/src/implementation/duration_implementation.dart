@@ -5,46 +5,42 @@
 // Dart core library.
 
 class DurationImplementation implements Duration {
-  final int _durationInMilliseconds;
+  final int inMilliseconds;
 
   const DurationImplementation([int days = 0,
                                 int hours = 0,
                                 int minutes = 0,
                                 int seconds = 0,
                                 int milliseconds = 0])
-    : _durationInMilliseconds = days * Duration.MILLISECONDS_PER_DAY +
-                                hours * Duration.MILLISECONDS_PER_HOUR +
-                                minutes * Duration.MILLISECONDS_PER_MINUTE +
-                                seconds * Duration.MILLISECONDS_PER_SECOND +
-                                milliseconds;
+    : inMilliseconds = days * Duration.MILLISECONDS_PER_DAY +
+                       hours * Duration.MILLISECONDS_PER_HOUR +
+                       minutes * Duration.MILLISECONDS_PER_MINUTE +
+                       seconds * Duration.MILLISECONDS_PER_SECOND +
+                       milliseconds;
 
   int get inDays() {
-    return _durationInMilliseconds ~/ Duration.MILLISECONDS_PER_DAY;
+    return inMilliseconds ~/ Duration.MILLISECONDS_PER_DAY;
   }
 
   int get inHours() {
-    return _durationInMilliseconds ~/ Duration.MILLISECONDS_PER_HOUR;
+    return inMilliseconds ~/ Duration.MILLISECONDS_PER_HOUR;
   }
 
   int get inMinutes() {
-    return _durationInMilliseconds ~/ Duration.MILLISECONDS_PER_MINUTE;
+    return inMilliseconds ~/ Duration.MILLISECONDS_PER_MINUTE;
   }
 
   int get inSeconds() {
-    return _durationInMilliseconds ~/ Duration.MILLISECONDS_PER_SECOND;
-  }
-
-  int get inMilliseconds() {
-    return _durationInMilliseconds;
+    return inMilliseconds ~/ Duration.MILLISECONDS_PER_SECOND;
   }
 
   bool operator ==(other) {
-    if (!(other is DurationImplementation)) return false;
-    return _durationInMilliseconds == other.inMilliseconds;
+    if (other is !Duration) return false;
+    return inMilliseconds == other.inMilliseconds;
   }
 
   int hashCode() {
-    return _durationInMilliseconds.hashCode();
+    return inMilliseconds.hashCode();
   }
 
   int compareTo(Duration other) {
@@ -62,9 +58,9 @@ class DurationImplementation implements Duration {
       return "0${n}";
     }
 
-    if (_durationInMilliseconds < 0) {
+    if (inMilliseconds < 0) {
       Duration duration =
-          new DurationImplementation(milliseconds: -_durationInMilliseconds);
+          new DurationImplementation(milliseconds: -inMilliseconds);
       return "-${duration}";
     }
     String twoDigitMinutes =
