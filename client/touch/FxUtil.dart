@@ -18,17 +18,6 @@ class FxUtil {
   /** The scale transform function. */
   static final SCALE = 'scale';
 
-  /**
-   * Apply a -webkit-transition on an element using the [duration] of this
-   * animation in ms.
-   */
-  static void setWebkitTransition(
-      Element el, num duration,
-      [String property = StyleUtil.TRANSFORM_STYLE,
-       String timingFunction = TransitionTimingFunction.EASE_IN_OUT]) {
-    el.style.transition = '${property} ${duration}ms ${timingFunction}';
-  }
-
   /** Stops and clears the transition on an element. */
   static void clearWebkitTransition(Element el) {
     el.style.transition = '';
@@ -104,35 +93,6 @@ class FxUtil {
     final style = el.style;
     style.left = '${x}px';
     style.top = '${y}px';
-  }
-}
-
-
-/**
- * Utilities for element styles.
- */
-class StyleUtil {
-  // TODO(jacobr): Need a good way to set this to -moz, or -o names.
-  /** Style name for transform. */
-  static final TRANSFORM_STYLE = '-webkit-transform';
-
-  /**
-   * Retrieves a computed style value of a node.
-   *
-   * Limitations:
-   * - Does not report border styles correctly in Webkit.
-   */
-  static CSSStyleDeclaration getComputedStyle(Element element) {
-    // TODO(jmesserly): last param should be null, see b/5045788
-    return window.getComputedStyle(element, '');
-  }
-
-  /** Retrieves the current transform of an element. */
-  static CSSMatrix getCurrentTransformMatrix(Element element) {
-    // TODO(jacobr): when poossible switch back to
-    // return new CSSMatrix(transform);
-    return new CSSMatrix(
-        getComputedStyle(element).transform);
   }
 }
 

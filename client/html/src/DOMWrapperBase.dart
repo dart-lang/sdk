@@ -12,3 +12,7 @@ class DOMWrapperBase {
   }
 }
 
+/** This function is provided for unittest purposes only. */
+unwrapDomObject(DOMWrapperBase wrapper) {
+  return wrapper._ptr;
+}

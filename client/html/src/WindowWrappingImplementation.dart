@@ -597,9 +597,8 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     }
   }
 
-  FileReader createFileReader() {
-    return LevelDom.wrapFileReader(_ptr.createFileReader());
-  }
+  FileReader createFileReader() =>
+    LevelDom.wrapFileReader(_ptr.createFileReader());
 
   CSSMatrix createCSSMatrix([String cssValue = null]) {
     if (cssValue === null) {
@@ -688,24 +687,8 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     _ptr.focus();
   }
 
-  CSSStyleDeclaration getComputedStyle([Element element = null, String pseudoElement = null]) {
-    if (element === null) {
-      if (pseudoElement === null) {
-        return LevelDom.wrapCSSStyleDeclaration(_ptr.getComputedStyle());
-      }
-    } else {
-      if (pseudoElement === null) {
-        return LevelDom.wrapCSSStyleDeclaration(_ptr.getComputedStyle(LevelDom.unwrap(element)));
-      } else {
-        return LevelDom.wrapCSSStyleDeclaration(_ptr.getComputedStyle(LevelDom.unwrap(element), pseudoElement));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  DOMSelection getSelection() {
-    return LevelDom.wrapDOMSelection(_ptr.getSelection());
-  }
+  DOMSelection getSelection() =>
+    LevelDom.wrapDOMSelection(_ptr.getSelection());
 
   MediaQueryList matchMedia(String query) {
     return LevelDom.wrapMediaQueryList(_ptr.matchMedia(query));
@@ -788,24 +771,11 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     _ptr.scrollTo(x, y);
   }
 
-  int setInterval(TimeoutHandler handler, int timeout) {
-    return _ptr.setInterval(handler, timeout);
-  }
+  int setInterval(TimeoutHandler handler, int timeout) =>
+    _ptr.setInterval(handler, timeout);
 
-  int setTimeout([TimeoutHandler handler = null, int timeout = null]) {
-    if (handler === null) {
-      if (timeout === null) {
-        return _ptr.setTimeout();
-      }
-    } else {
-      if (timeout === null) {
-        return _ptr.setTimeout(handler);
-      } else {
-        return _ptr.setTimeout(handler, timeout);
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  int setTimeout(TimeoutHandler handler, int timeout) =>
+    _ptr.setTimeout(handler, timeout);
 
   Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) {
     if (dialogArgs === null) {
@@ -865,8 +835,13 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     if (element === null) {
       return _ptr.webkitRequestAnimationFrame(callback);
     } else {
-      return _ptr.webkitRequestAnimationFrame(callback, LevelDom.unwrap(element));
+      return _ptr.webkitRequestAnimationFrame(
+          callback, LevelDom.unwrap(element));
     }
+  }
+
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
   }
 
   WindowEvents get on() {

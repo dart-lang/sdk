@@ -36,6 +36,30 @@ testDocumentFragment() {
     Expect.fail('Expected immutability error');
   };
 
+  void expectEmptyStyleDeclaration(CSSStyleDeclaration style) {
+    Expect.equals("", style.cssText);
+    Expect.equals("", style.getPropertyPriority('color'));
+    Expect.equals("", style.item(0));
+    Expect.equals(0, style.length);
+    // TODO(jacobr): these checks throw NotImplementedExceptions in dartium.
+    // Expect.isNull(style.parentRule);
+    // Expect.isNull(style.getPropertyCSSValue('color'));
+    // Expect.isNull(style.getPropertyShorthand('color'));
+    // Expect.isFalse(style.isPropertyImplicit('color'));
+    assertUnsupported(() => style.cssText = '* {color: blue}');
+    assertUnsupported(() => style.removeProperty('color'));
+    assertUnsupported(() => style.setProperty('color', 'blue'));
+  }
+
+  void expectEmptyRect(ClientRect rect) {
+    Expect.equals(0, rect.bottom);
+    Expect.equals(0, rect.top);
+    Expect.equals(0, rect.left);
+    Expect.equals(0, rect.right);
+    Expect.equals(0, rect.height);
+    Expect.equals(0, rect.width);
+  }
+
   test('Unsupported operations throw errors', () {
     var emptyFragment = new DocumentFragment();
     assertUnsupported(() => emptyFragment.attributes = {});
@@ -245,20 +269,16 @@ testDocumentFragment() {
     fragment.scrollIntoView();
   });
 
-  test('getters return default values', () {
+  asyncTest('default values', 1, () {
     var fragment = new DocumentFragment();
-    Expect.equals(0, fragment.clientHeight);
-    Expect.equals(0, fragment.clientWidth);
-    Expect.equals(0, fragment.offsetHeight);
-    Expect.equals(0, fragment.offsetWidth);
-    Expect.equals(0, fragment.scrollHeight);
-    Expect.equals(0, fragment.scrollWidth);
-    Expect.equals(0, fragment.clientLeft);
-    Expect.equals(0, fragment.clientTop);
-    Expect.equals(0, fragment.offsetLeft);
-    Expect.equals(0, fragment.offsetTop);
-    Expect.equals(0, fragment.scrollLeft);
-    Expect.equals(0, fragment.scrollTop);
+    fragment.rect.then((ElementRect rect) {
+       expectEmptyRect(rect.client);
+       expectEmptyRect(rect.offset);
+       expectEmptyRect(rect.scroll);
+       expectEmptyRect(rect.bounding);
+       Expect.isTrue(rect.clientRects.isEmpty());
+       callbackDone();
+    });
     Expect.equals("false", fragment.contentEditable);
     Expect.equals(-1, fragment.tabIndex);
     Expect.equals("", fragment.id);
@@ -276,41 +296,25 @@ testDocumentFragment() {
     Expect.isTrue(fragment.attributes.isEmpty());
     Expect.isTrue(fragment.classes.isEmpty());
     Expect.isTrue(fragment.dataAttributes.isEmpty());
-    Expect.isTrue(fragment.getClientRects().isEmpty());
     Expect.isFalse(fragment.matchesSelector("foo"));
     Expect.isFalse(fragment.matchesSelector("*"));
   });
 
-  group('style', () {
-    test('getters return default values', () {
-      var style = new DocumentFragment().style;
-      Expect.equals("", style.cssText);
-      Expect.equals("", style.getPropertyPriority('color'));
-      Expect.equals("", style.item(0));
-      Expect.equals(0, style.length);
-      // These checks throw NotImplementedExceptions:
-      // Expect.isNull(style.parentRule);
-      // Expect.isNull(style.getPropertyCSSValue('color'));
-      Expect.isNull(style.getPropertyShorthand('color'));
-      Expect.isFalse(style.isPropertyImplicit('color'));
-    });
-
-    test('setters throw errors', () {
-      var style = new DocumentFragment().style;
-      assertUnsupported(() => style.cssText = '* {color: blue}');
-      assertUnsupported(() => style.removeProperty('color'));
-      assertUnsupported(() => style.setProperty('color', 'blue'));
+  asyncTest('style', 1, () {
+    var fragment = new DocumentFragment();
+    var style = fragment.style;
+    expectEmptyStyleDeclaration(style);
+    fragment.computedStyle.then((computedStyle) {
+      expectEmptyStyleDeclaration(computedStyle);
+      callbackDone();
     });
   });
 
-  test('boundingClientRect has default values', () {
-    var rect = new DocumentFragment().getBoundingClientRect();
-    Expect.equals(0, rect.bottom);
-    Expect.equals(0, rect.top);
-    Expect.equals(0, rect.left);
-    Expect.equals(0, rect.right);
-    Expect.equals(0, rect.height);
-    Expect.equals(0, rect.width);
+  test('setters throw errors', () {
+    var style = new DocumentFragment().style;
+    assertUnsupported(() => style.cssText = '* {color: blue}');
+    assertUnsupported(() => style.removeProperty('color'));
+    assertUnsupported(() => style.setProperty('color', 'blue'));
   });
 
   // TODO(nweiz): re-enable when const is better supported in dartc and/or frog
@@ -318,7 +322,10 @@ testDocumentFragment() {
   //   var fragment = new DocumentFragment();
   //   assertConstError(() => fragment.attributes['title'] = 'foo');
   //   assertConstError(() => fragment.dataAttributes['title'] = 'foo');
-  //   assertConstError(() => fragment.getClientRects().add(null));
+  //   fragment.rect.then((ElementRect rect) {
+  //     assertConstError(() => rect.clientRects.add(null));
+  //     callbackDone();
+  //   });
   //   // Issue 174: #classes is currently not const
   //   // assertConstError(() => fragment.classes.add('foo'));
   // });

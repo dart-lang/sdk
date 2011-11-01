@@ -73,10 +73,9 @@ interface Momentum factory TimeoutMomentum {
 interface MomentumDelegate {
   /**
    * Callback for a deceleration step. The delegate is responsible for redrawing
-   * the element in its new position specified in px. The [duration] of the
-   * translation is in ms.
+   * the element in its new position specified in px.
    */
-  void onDecelerate(num x, num y, [num duration, String timingFunction]);
+  void onDecelerate(num x, num y);
 
   /**
    * Callback for end of deceleration.

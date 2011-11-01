@@ -115,7 +115,14 @@ class PagedColumnView extends View {
         false /* verticalScrollEnabled */,
         true /* horizontalScrollEnabled */,
         true /* momementumEnabled */,
-        () => new Size(_viewLength, 1), // Only view width matters.
+        () {
+          final completer = new Completer<Size>();
+          _container.rect.then((ElementRect rect) {
+            // Only view width matters.
+            completer.complete(new Size(_getViewLength(rect), 1));
+          });
+          return completer.future;
+        },
         Scroller.FAST_SNAP_DECELERATION_FACTOR);
 
     scroller.onDecelStart.add(_snapToPage);
@@ -124,33 +131,36 @@ class PagedColumnView extends View {
     return node;
   }
 
-  int get _viewLength() => _computePageSize() * pages.length.value;
+  int _getViewLength(ElementRect rect) {
+    return _computePageSize(rect) * pages.length.value;
+  }
 
   // TODO(jmesserly): would be better to not have this code in enterDocument.
-  // But we need getComputedStyles to read our CSS properties.
+  // But we need computedStyle to read our CSS properties.
   void enterDocument() {
-    _computeColumnGap();
+    contentView.node.computedStyle.then((CSSStyleDeclaration style) {
+      _computeColumnGap(style);
 
-    // Trigger a fake resize event so we measure our height.
-    windowResized();
+      // Trigger a fake resize event so we measure our height.
+      windowResized();
 
-    // Hook img onload events, so we find out about changes in content size
-    for (ImageElement img in contentView.node.queryAll("img")) {
-      if (!img.complete) {
-        img.on.load.add((e) {
-          _updatePageCount();
-        });
+      // Hook img onload events, so we find out about changes in content size
+      for (ImageElement img in contentView.node.queryAll("img")) {
+        if (!img.complete) {
+          img.on.load.add((e) {
+            _updatePageCount(null);
+          });
+        }
       }
-    }
 
-    // If the selected page changes, animate to it.
-    watch(pages.target, (s) => _onPageSelected());
-    watch(pages.length, (s) => _onPageSelected());
+      // If the selected page changes, animate to it.
+      watch(pages.target, (s) => _onPageSelected());
+      watch(pages.length, (s) => _onPageSelected());
+    });
   }
 
   /** Read the column-gap setting so we know how far to translate the child. */
-  void _computeColumnGap() {
-    final style = window.getComputedStyle(contentView.node, '');
+  void _computeColumnGap(CSSStyleDeclaration style) {
     String gap = style.columnGap;
     if (gap == 'normal') {
       gap = style.fontSize;
@@ -175,78 +185,86 @@ class PagedColumnView extends View {
     // The content needs to have its height explicitly set, or columns don't
     // flow to the right correctly. So we copy our own height and set the height
     // of the content.
-    contentView.node.style.height = '${node.offsetHeight}px';
-
-    _updatePageCount();
-    scroller.reconfigure();
-    // TODO(jacobr): calling snapToPage here is overkill.
-    _snapToPage(null);
+    node.rect.then((ElementRect rect) {
+      contentView.node.style.height = '${rect.offset.height}px';
+    });
+    _updatePageCount(null);
   }
 
-  bool _updatePageCount() {
+  bool _updatePageCount(Callback callback) {
     int pageLength = 1;
-    if (_container.scrollWidth > _container.offsetWidth) {
-      pageLength = (_container.scrollWidth / _computePageSize()).ceil().toInt();
-    }
-    pageLength = Math.max(pageLength, 1);
+    _container.rect.then((ElementRect rect) {
+      if (rect.scroll.width > rect.offset.width) {
+        pageLength = (rect.scroll.width / _computePageSize(rect))
+            .ceil().toInt();
+      }
+      pageLength = Math.max(pageLength, 1);
 
-    int oldPage = pages.target.value;
-    int newPage = Math.min(oldPage, pageLength - 1);
+      int oldPage = pages.target.value;
+      int newPage = Math.min(oldPage, pageLength - 1);
 
-    // Hacky: make sure a change event always fires.
-    // This is so we adjust the 3d transform after resize.
-    if (oldPage == newPage) {
-      pages.target.value = 0;
-    }
-    assert(newPage < pageLength);
-    pages.target.value = newPage;
-    pages.length.value = pageLength;
+      // Hacky: make sure a change event always fires.
+      // This is so we adjust the 3d transform after resize.
+      if (oldPage == newPage) {
+        pages.target.value = 0;
+      }
+      assert(newPage < pageLength);
+      pages.target.value = newPage;
+      pages.length.value = pageLength;
+      if (callback != null) {
+        callback();
+      }
+    });
   }
 
   void _onContentMoved(Event e) {
-    num current = scroller.contentOffset.x;
-    int pageSize = _computePageSize();
-    pages.current.value = -(current / pageSize).round().toInt();    
+    _container.rect.then((ElementRect rect) {
+      num current = scroller.contentOffset.x;    
+      int pageSize = _computePageSize(rect);
+      pages.current.value = -(current / pageSize).round().toInt();
+    });
   }
 
   void _snapToPage(Event e) {
     num current = scroller.contentOffset.x;
     num currentTarget = scroller.currentTarget.x;
-    int pageSize = _computePageSize();
-    int destination;
-    num currentPageNumber = -(current / pageSize).round();
-    num pageNumber = -currentTarget / pageSize;
-    if (current == currentTarget) {
-      // User was just static dragging so round to the nearest page.
-      pageNumber = pageNumber.round();
-    } else {
-      if (currentPageNumber == pageNumber.round() &&
-        (pageNumber - currentPageNumber).abs() > MIN_THROW_PAGE_FRACTION &&
-        -current + _viewportSize < _viewLength && current < 0) {
-        // The user is trying to throw so we want to round up to the
-        // nearest page in the direction they are throwing.
-        pageNumber = currentTarget < current
-            ? currentPageNumber + 1 : currentPageNumber - 1;
-      } else {
+    _container.rect.then((ElementRect rect) {
+      int pageSize = _computePageSize(rect);
+      int destination;
+      num currentPageNumber = -(current / pageSize).round();
+      num pageNumber = -currentTarget / pageSize;
+      if (current == currentTarget) {
+        // User was just static dragging so round to the nearest page.
         pageNumber = pageNumber.round();
+      } else {
+        if (currentPageNumber == pageNumber.round() &&
+          (pageNumber - currentPageNumber).abs() > MIN_THROW_PAGE_FRACTION &&
+          -current + _viewportSize < _getViewLength(rect) && current < 0) {
+          // The user is trying to throw so we want to round up to the
+          // nearest page in the direction they are throwing.
+          pageNumber = currentTarget < current
+              ? currentPageNumber + 1 : currentPageNumber - 1;
+        } else {
+          pageNumber = pageNumber.round();
+        }
       }
-    }
-    pageNumber = pageNumber.toInt();
-    num translate = -pageNumber * pageSize;
-    pages.current.value = pageNumber;
-    if (currentTarget != translate) {
-      scroller.throwTo(translate, 0);
-    } else {
-      // Update the target page number when we are done animating.
-      pages.target.value = pageNumber;
-    }
+      pageNumber = pageNumber.toInt();
+      num translate = -pageNumber * pageSize;
+      pages.current.value = pageNumber;
+      if (currentTarget != translate) {
+        scroller.throwTo(translate, 0);
+      } else {
+        // Update the target page number when we are done animating.
+        pages.target.value = pageNumber;
+      }
+    });
   }
 
-  int _computePageSize() {
+  int _computePageSize(ElementRect rect) {
     // Hacky: we need to duplicate the way the columns are being computed,
     // including rounding, to figure out how far to translate the div.
     // See http://www.w3.org/TR/css3-multicol/#column-width
-    _viewportSize = _container.offsetWidth;
+    _viewportSize = rect.offset.width;
 
     // Figure out how many columns we're rendering.
     // The algorithm ensures we're bigger than the specified min size.
@@ -261,8 +279,9 @@ class PagedColumnView extends View {
   }
 
   void _onPageSelected() {
-    int translate = -pages.target.value * _computePageSize();
-    scroller.reconfigure();
-    scroller.throwTo(translate, 0);
+    _container.rect.then((ElementRect rect) {
+      int translate = -pages.target.value * _computePageSize(rect);
+      scroller.throwTo(translate, 0);
+    });
   }
 }

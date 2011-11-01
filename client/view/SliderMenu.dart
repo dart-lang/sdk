@@ -153,13 +153,19 @@ class SliderMenu extends View {
    * animate - if true, then animate the movement of the triangle slider
    */
   void updateIndicator(bool animate) {
-    num x = 0;
     if (selectedItem != null) {
       // calculate where we want to put the triangle
-      x = selectedItem.offsetLeft +
-          selectedItem.offsetWidth / 2 - TRIANGLE_WIDTH / 2;
+      selectedItem.rect.then((ElementRect rect) {
+        num x = rect.offset.left +
+            rect.offset.width / 2 - TRIANGLE_WIDTH / 2;
+        _moveIndicator(x, animate);
+      });
+    } else {
+      _moveIndicator(0, animate);
     }
+  }
 
+  void _moveIndicator(num x, bool animate) {
     // find the slider filler (the div element to the left of the
     // triangle) set its width the push the triangle to where we want it.
     String duration = animate ? '.3s' : '0s';

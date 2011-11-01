@@ -80,6 +80,21 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
   }
 }
 
+void serialInvokeAsync(List closures) {
+  final length = closures.length;
+  if (length > 0) {
+    int i = 0;
+    void invokeNext() {
+      closures[i]();
+      i++;
+      if (i < length) {
+        window.setTimeout(invokeNext, 0);
+      }
+    }
+    window.setTimeout(invokeNext, 0);
+  }
+} 
+
 /**
  * Creates a new named group of tests. Calls to group() or test() within the
  * body of the function passed to this will inherit this group's description.

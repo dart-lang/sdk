@@ -64,9 +64,10 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
 
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
-  Promise<Range> caretRangeFromPoint([int x = null, int y = null]) {
-    throw 'TODO(jacobr): impl promise.';
-    // return LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y));
+  Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y)),
+        new Completer<Range>());
   }
 
   Element createElement([String tagName = null]) {
@@ -77,9 +78,10 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 
-  Promise<Element> elementFromPoint([int x = null, int y = null]) {
-    throw 'TODO(jacobr): impl using promise';
-    // return LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y));
+  Future<Element> elementFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y)),
+        new Completer<Element>());
   }
 
   bool execCommand([String command = null, bool userInterface = null, String value = null]) {

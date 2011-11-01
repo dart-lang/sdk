@@ -131,13 +131,19 @@ class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
   }
 }
 
-class EmptyClientRect implements ClientRect {
-  num get bottom() => 0;
-  num get top() => 0;
-  num get left() => 0;
-  num get right() => 0;
-  num get height() => 0;
-  num get width() => 0;
+Future<CSSStyleDeclaration> _emptyStyleFuture() {
+  return _createMeasurementFuture(() => new EmptyStyleDeclaration(),
+                                  new Completer<CSSStyleDeclaration>());
+}
+
+class EmptyElementRect implements ElementRect {
+  final ClientRect client = const SimpleClientRect(0, 0, 0, 0);
+  final ClientRect offset = const SimpleClientRect(0, 0, 0, 0);
+  final ClientRect scroll = const SimpleClientRect(0, 0, 0, 0);
+  final ClientRect bounding = const SimpleClientRect(0, 0, 0, 0);
+  final List<ClientRect> clientRects = const <ClientRect>[];
+
+  const EmptyElementRect();
 }
 
 class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation implements DocumentFragment {
@@ -226,6 +232,11 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return _on;
   }
 
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(() => const EmptyElementRect(),
+                                    new Completer<ElementRect>());
+  }
+
   Element query(String selectors) =>
     LevelDom.wrapElement(_ptr.querySelector(selectors));
 
@@ -235,18 +246,6 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   // If we can come up with a semi-reasonable default value for an Element
   // getter, we'll use it. In general, these return the same values as an
   // element that has no parent.
-  int get clientHeight() => 0;
-  int get clientWidth() => 0;
-  int get offsetHeight() => 0;
-  int get offsetWidth() => 0;
-  int get scrollHeight() => 0;
-  int get scrollWidth() => 0;
-  int get clientLeft() => 0;
-  int get clientTop() => 0;
-  int get offsetLeft() => 0;
-  int get offsetTop() => 0;
-  int get scrollLeft() => 0;
-  int get scrollTop() => 0;
   String get contentEditable() => "false";
   bool get isContentEditable() => false;
   bool get draggable() => false;
@@ -268,8 +267,10 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   Set<String> get classes() => new Set<String>();
   Map<String, String> get dataAttributes() => const {};
   CSSStyleDeclaration get style() => new EmptyStyleDeclaration();
-  ClientRect getBoundingClientRect() => new EmptyClientRect();
-  List<ClientRect> getClientRects() => const [];
+  Future<CSSStyleDeclaration> get computedStyle() =>
+      _emptyStyleFuture();
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+      _emptyStyleFuture();
   bool matchesSelector([String selectors]) => false;
 
   // Imperative Element methods are made into no-ops, as they are on parentless

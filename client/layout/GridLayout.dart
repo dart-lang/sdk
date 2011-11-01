@@ -85,23 +85,32 @@ class GridLayout extends ViewLayout {
     _columnTracks = columns != null ? columns.tracks : new List<GridTrack>();
   }
 
+
   int get currentWidth() => _gridWidth;
   int get currentHeight() => _gridHeight;
 
+  void cacheExistingBrowserLayout() {
+    // We don't need to do anything as we don't rely on the _cachedViewRect
+    // when the grid layout is used.
+  }
+
+  // TODO(jacobr): cleanup this method so that it returns a Future
+  // rather than taking a Completer as an argument.
   /** The main entry point for layout computation. */
-  bool measureLayout(int width, int height) {
-    _gridWidth = width;
-    _gridHeight = height;
-
+  void measureLayout(Future<Size> size, Completer<bool> changed) {
     _ensureAllTracks();
+    window.requestLayoutFrame(() {
+      _gridWidth = size.value.width;
+      _gridHeight = size.value.height;
 
-    if (_rowTracks.length < 1 || _columnTracks.length < 1) {
-      return false; // nothing to do
-    }
-
-    _measureTracks();
-    _setBoundsOfChildren();
-    return true;
+      if (_rowTracks.length > 0 && _columnTracks.length > 0) {
+        _measureTracks();
+        _setBoundsOfChildren();
+        if (changed != null) {
+          changed.complete(true);
+        }
+      }
+    });
   }
 
   /**
@@ -418,6 +427,7 @@ class GridLayout extends ViewLayout {
         _ensureTrack(_columnTracks, columnSizing, p.column, p.columnSpan);
         child.layoutParams = p;
       }
+      child.cacheExistingBrowserLayout();
     }
   }
 

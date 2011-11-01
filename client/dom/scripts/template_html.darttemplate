@@ -35,6 +35,8 @@ $!GENERATED_DART_FILES
 #source('src/Element.dart');
 #source('src/ElementWrappingImplementation.dart');
 #source('src/EventListener.dart');
+#source('src/Event.dart');
+#source('src/EventWrappingImplementation.dart');
 #source('src/EventSource.dart');
 #source('src/EventSourceWrappingImplementation.dart');
 #source('src/EventTarget.dart');

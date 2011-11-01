@@ -33,7 +33,7 @@
 main() {
   addGridStyles('400px', '400px');
 
-  test('Spec Example 1', () {
+  asyncTest('Spec Example 1', 1, () {
     verifyExample('1 Adaptive Layouts', {
       'title': [0, 0, 144, 24],
       'score': [0, 376, 144, 24],
@@ -43,7 +43,7 @@ main() {
     });
   });
 
-  test('Spec Example 2a', () {
+  asyncTest('Spec Example 2a', 1, () {
     verifyExample('2a Source Independence: Portrait', {
       'title': [0, 0, 144, 24],
       'score': [0, 24, 144, 24],
@@ -53,7 +53,7 @@ main() {
     });
   });
 
-  test('Spec Example 2b', () {
+  asyncTest('Spec Example 2b', 1, () {
     verifyExample('2b Source Independence: Landscape', {
       'title': [0, 0, 144, 24],
       'score': [0, 376, 144, 24],
@@ -63,7 +63,7 @@ main() {
     });
   });
 
-  test('Spec Example 3', () {
+  asyncTest('Spec Example 3', 1, () {
     verifyExample('3 Grid Layering of Elements', {
       'lower-label': [0, 0, 204, 24],
       'track': [204, 0, 144, 24],
@@ -74,38 +74,38 @@ main() {
     });
   });
 
-  test('Spec Example 5', () {
+  asyncTest('Spec Example 5', 1, () {
     verifyExample('5 Grid Lines', {
       'item1': [125, 0, 275, 400],
     });
   });
 
-  test('Spec Example 6', () {
+  asyncTest('Spec Example 6', 1, () {
     verifyExample('6 Grid Lines', {
       'item1': [125, 0, 275, 400],
     });
   });
 
-  test('Spec Example 7', () {
+  asyncTest('Spec Example 7', 1, () {
     verifyExample('7 Grid Cells', {
       'item2': [0, 50, 125, 24],
       'item3': [-19, 326, 144, 24],
     });
   });
 
-  test('Spec Example 11a', () {
+  asyncTest('Spec Example 11a', 1, () {
     verifyExample('11a Starting and Ending Grid Lines', {
       'item': [0, 0, 400, 400],
     });
   });
 
-  test('Spec Example 11b', () {
+  asyncTest('Spec Example 11b', 1, () {
     verifyExample('11b Starting and Ending Grid Lines', {
       'item': [0, 0, 400, 400],
     });
   });
 
-  test('Spec Example 12', () {
+  asyncTest('Spec Example 12', 1, () {
     verifyExample('12 Repeating Columns and Rows', {
       'col2': [10, 0, 88, 400],
       'col4': [108, 0, 87, 400],
@@ -114,7 +114,7 @@ main() {
     });
   });
 
-  test('Spec Example 17', () {
+  asyncTest('Spec Example 17', 1, () {
     verifyExample('17 Anonymous Grid Cells', {
       'header': [0, 0, 400, 24],
       'main': [0, 24, 400, 352],
@@ -122,7 +122,7 @@ main() {
     });
   });
 
-  test('Spec Example 20', () {
+  asyncTest('Spec Example 20', 1, () {
     verifyExample('20 Implicit Columns and Rows', {
       'A': [0, 0, 104, 24],
       'B': [104, 0, 104, 44],
@@ -130,14 +130,14 @@ main() {
     });
   });
 
-  test('Spec Example 22', () {
+  asyncTest('Spec Example 22', 1, () {
     verifyExample('22 Grid Item Alignment', {
       'A': [0, 0, 104, 24],
       'B': [296, 376, 104, 24],
     });
   });
 
-  test('Spec Example 23', () {
+  asyncTest('Spec Example 23', 1, () {
     verifyExample('23 Drawing Order of Grid Items', {
       'A': [0, 376, 400, 24],
       'B': [0, 0, 200, 200],
@@ -149,16 +149,18 @@ main() {
 }
 
 // Note: to debug failures, best bet is to use GridLayoutDemo to run an
-// individual test and see the resulting layout.
+// individual asyncTest and see the resulting layout.
 
 usingGrid(String example, void test(View grid)) {
   final grid = createGrid(GridExamples.styles[example]);
-  try {
-    grid.addToDocument(document.body);
+  grid.addToDocument(document.body);
+  window.setTimeout(() {
     test(grid);
-  } finally {
-    grid.removeFromDocument();
-  }
+    window.setTimeout(() {
+      grid.removeFromDocument();
+      callbackDone();
+    }, 0);
+  }, 0); 
 }
 
 verifyGrid(String example, [Map expected = null]) {
@@ -171,10 +173,13 @@ verifyGrid(String example, [Map expected = null]) {
     final values = expected[name];
     final node = document.body.query('#$name');
     Expect.isNotNull(node);
-    Expect.equals(values[0], node.offsetLeft);
-    Expect.equals(values[1], node.offsetTop);
-    Expect.equals(values[2], node.offsetWidth);
-    Expect.equals(values[3], node.offsetHeight);
+    node.rect.then((rect) {
+      final offset = rect.offset;
+      Expect.equals(values[0], offset.left);
+      Expect.equals(values[1], offset.top);
+      Expect.equals(values[2], offset.width);
+      Expect.equals(values[3], offset.height);
+    });
   }
 }
 

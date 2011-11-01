@@ -106,19 +106,27 @@ void printMetrics(String example) {
   final sb = new StringBuffer();
   sb.add("test('Spec Example $exampleId', () {\n");
   sb.add("  verifyExample('$example', {\n");
-  final elems = new List.from(node.elements);
-  for (Element child in node.elements) {
-    _appendMetrics(sb, child, '    ');
+  final rects = new List();
+  final elements = node.elements;
+  for (Element child in elements) {
+    rects.add(child.rect);
   }
-  sb.add('  });\n');
-  sb.add('});\n\n');
-  window.console.log(sb.toString());
+
+  window.requestLayoutFrame(() {
+    for (int i = 0; i < elements.length; i++) {
+      _appendMetrics(sb, elements[i], rects[i].value, '    ');
+    }
+    sb.add('  });\n');
+    sb.add('});\n\n');
+    window.console.log(sb.toString());
+  });
 }
 
-void _appendMetrics(StringBuffer sb, Element node, [String indent = '']) {
+void _appendMetrics(StringBuffer sb, Element node, ElementRect rect,
+    [String indent = '']) {
   String id = node.id;
-  num left = node.offsetLeft, top = node.offsetTop;
-  num width = node.offsetWidth, height = node.offsetHeight;
+  final offset = rect.offset;
+  num left = offset.left, top = offset.top;
+  num width = offset.width, height = offset.height;
   sb.add("${indent}'$id': [$left, $top, $width, $height],\n");
 }
-
