@@ -13,6 +13,7 @@ DoubleCompareTest: Fail  # Bug 5427703
 
 
 [ $component == dartc || $component == chromium ]
+ListSetRangeTest: Fail          # Bug 291
 ConstListLiteralTest: Fail      # Bug 5202940
 ConstListSetRangeTest: Fail     # Bug 5202940
 ConstListRemoveRangeTest: Fail  # Bug 5202940

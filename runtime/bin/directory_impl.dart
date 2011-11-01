@@ -16,6 +16,7 @@ class _DirectoryListingIsolate extends Isolate {
                            message['donePort'],
                            message['errorPort']);
       replyTo.send(started);
+      port.close();
     });
   }
 

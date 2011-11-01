@@ -68,6 +68,39 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
+    file.errorHandler = (s) {
+      Expect.fail("No errors expected");
+    };
+    file.openHandler = () {
+      List<int> buffer = new List<int>(10);
+      file.readListHandler = (bytes_read) {
+        Expect.equals(5, bytes_read);
+        file.readListHandler = (bytes_read) {
+          Expect.equals(5, bytes_read);
+          Expect.equals(47, buffer[0]);  // represents '/' in the file.
+          Expect.equals(47, buffer[1]);  // represents '/' in the file.
+          Expect.equals(32, buffer[2]);  // represents ' ' in the file.
+          Expect.equals(67, buffer[3]);  // represents 'C' in the file.
+          Expect.equals(111, buffer[4]);  // represents 'o' in the file.
+          Expect.equals(112, buffer[5]);  // represents 'p' in the file.
+          Expect.equals(121, buffer[6]);  // represents 'y' in the file.
+          Expect.equals(114, buffer[7]);  // represents 'r' in the file.
+          Expect.equals(105, buffer[8]);  // represents 'i' in the file.
+          Expect.equals(103, buffer[9]);  // represents 'g' in the file.
+          file.close();
+        };
+        file.readList(buffer, 5, 5);
+      };
+      file.readList(buffer, 0, 5);
+    };
+    file.open();
+    return 1;
+  }
+
+  static int testReadSync() {
+    // Read a file and check part of it's contents.
+    String filename = getFilename("bin/file_test.cc");
+    File file = new File(filename);
     file.openSync();
     List<int> buffer = new List<int>(42);
     int bytes_read = 0;
@@ -92,6 +125,66 @@ class FileTest {
 
   // Test for file read and write functionality.
   static int testReadWrite() {
+    // Read a file.
+    String inFilename = getFilename("tests/vm/data/fixed_length_file");
+    File file = new File(inFilename);
+    file.errorHandler = (s) {
+      Expect.fail("No errors expected");
+    };
+    file.openHandler = () {
+      List<int> buffer1 = new List<int>(42);
+      file.readListHandler = (bytes_read) {
+        Expect.equals(42, bytes_read);
+        file.closeHandler = () {
+          // Write the contents of the file just read into another file.
+          String outFilenameBase =
+          getFilename("tests/vm/data/fixed_length_file_out");
+          file = new File(outFilenameBase);
+          file.errorHandler = (s) {
+            Expect.fail("No errors expected");
+          };
+          file.openHandler = () {
+            file.noPendingWriteHandler = () {
+              file.closeHandler = () {
+                // Now read the contents of the file just written.
+                List<int> buffer2 = new List<int>(bytes_read);
+                file = new File(getFilename(outFilenameBase));
+                file.errorHandler = (s) {
+                  Expect.fail("No errors expected");
+                };
+                file.openHandler = () {
+                  file.readListHandler = (bytes_read) {
+                    Expect.equals(42, bytes_read);
+                    file.closeHandler = () {
+                      // Now compare the two buffers to check if they
+                      // are identical.
+                      Expect.equals(buffer1.length, buffer2.length);
+                      for (int i = 0; i < buffer1.length; i++) {
+                        Expect.equals(buffer1[i],  buffer2[i]);
+                      }
+                    };
+                    file.close();
+                  };
+                  file.readList(buffer2, 0, 42);
+                };
+                file.open();
+              };
+              file.close();
+            };
+            file.writeList(buffer1, 0, bytes_read);
+          };
+          file.open(true);
+        };
+        file.close();
+      };
+      file.readList(buffer1, 0, 42);
+    };
+    file.open();
+    return 1;
+
+  }
+
+  static int testReadWriteSync() {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     File file = new File(inFilename);
@@ -127,6 +220,21 @@ class FileTest {
   static int testLength() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     File input = new File(filename);
+    input.errorHandler = (s) {
+      Expect.fail("No errors expected");
+    };
+    input.openSync();
+    input.lengthHandler = (length) {
+      Expect.equals(42, length);
+      input.close();
+    };
+    input.length();
+    return 1;
+  }
+
+  static int testLengthSync() {
+    String filename = getFilename("tests/vm/data/fixed_length_file");
+    File input = new File(filename);
     input.openSync();
     Expect.equals(42, input.lengthSync());
     input.closeSync();
@@ -135,6 +243,35 @@ class FileTest {
 
   // Test for file position functionality.
   static int testPosition() {
+    String filename = getFilename("tests/vm/data/fixed_length_file");
+    File input = new File(filename);
+    input.errorHandler = (s) {
+      Expect.fail("No errors expected");
+    };
+    input.openSync();
+    input.positionHandler = (position) {
+      Expect.equals(0, position);
+      List<int> buffer = new List<int>(100);
+      input.readListHandler = (bytes_read) {
+        input.positionHandler = (position) {
+          Expect.equals(12, position);
+          input.readListHandler = (bytes_read) {
+            input.positionHandler = (position) {
+              Expect.equals(18, position);
+              input.close();
+            };
+          };
+          input.readList(buffer, 12, 6);
+        };
+        input.position();
+      };
+      input.readList(buffer, 0, 12);
+    };
+    input.position();
+    return 1;
+  }
+
+  static int testPositionSync() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     File input = new File(filename);
     input.openSync();
@@ -372,6 +509,24 @@ class FileTest {
     return 1;
   }
 
+  static int testMixedSyncAndAsync() {
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var f = new File(name);
+    f.errorHandler = (s) {
+      Expect.fail("No errors expected");
+    };
+    f.existsHandler = (exists) {
+      try {
+        f.existsSync();
+        Expect.fail("Expected exception");
+      } catch (var e) {
+        Expect.isTrue(e is FileIOException);
+      }
+    };
+    f.exists();
+    return 1;
+  }
+
   // Helper method to be able to run the test from the runtime
   // directory, or the top directory.
   static String getFilename(String path) =>
@@ -380,14 +535,19 @@ class FileTest {
   // Main test entrypoint.
   static testMain() {
     Expect.equals(1, testRead());
+    Expect.equals(1, testReadSync());
     Expect.equals(1, testReadWrite());
+    Expect.equals(1, testReadWriteSync());
     Expect.equals(1, testReadStream());
     Expect.equals(1, testReadWriteStream());
     Expect.equals(1, testLength());
+    Expect.equals(1, testLengthSync());
     Expect.equals(1, testPosition());
+    Expect.equals(1, testPositionSync());
     Expect.equals(1, testCloseException());
     Expect.equals(1, testCloseExceptionStream());
     Expect.equals(1, testBufferOutOfBoundsException());
+    Expect.equals(1, testMixedSyncAndAsync());
   }
 }
 

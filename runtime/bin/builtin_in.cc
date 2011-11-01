@@ -28,14 +28,14 @@ static const char Builtin_source_[] = {
   V(Directory_Exists, 2)                                                       \
   V(Directory_Create, 2)                                                       \
   V(Directory_Delete, 2)                                                       \
-  V(File_OpenFile, 3)                                                          \
-  V(File_Exists, 2)                                                            \
+  V(File_Open, 2)                                                              \
+  V(File_Exists, 1)                                                            \
   V(File_Close, 1)                                                             \
   V(File_ReadByte, 1)                                                          \
   V(File_WriteByte, 2)                                                         \
   V(File_WriteString, 2)                                                       \
   V(File_ReadList, 4)                                                          \
-  V(File_WriteList , 4)                                                        \
+  V(File_WriteList, 4)                                                         \
   V(File_Position, 1)                                                          \
   V(File_Length, 1)                                                            \
   V(File_Flush, 1)                                                             \

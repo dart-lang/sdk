@@ -40,25 +40,13 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 }
 
 
-static File* GetFileHandle(Dart_Handle fileobj) {
-  intptr_t value =
-      DartUtils::GetIntegerInstanceField(fileobj, DartUtils::kIdFieldName);
-  File* file = reinterpret_cast<File*>(value);
-  return file;
-}
-
-
-void FUNCTION_NAME(File_OpenFile)(Dart_NativeArguments args) {
+void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle fileobj = Dart_GetNativeArgument(args, 0);
   const char* filename =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
-  bool writable = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  bool writable = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
   File* file = File::OpenFile(filename, writable);
-  DartUtils::SetIntegerInstanceField(fileobj,
-                                     DartUtils::kIdFieldName,
-                                     reinterpret_cast<intptr_t>(file));
-  Dart_SetReturnValue(args, Dart_NewBoolean(file != NULL));
+  Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }
 
@@ -66,7 +54,7 @@ void FUNCTION_NAME(File_OpenFile)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* filename =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool exists = File::FileExists(filename);
   Dart_SetReturnValue(args, Dart_NewBoolean(exists));
   Dart_ExitScope();
@@ -76,10 +64,10 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  Dart_Handle fileobj = Dart_GetNativeArgument(args, 0);
-  File* file = GetFileHandle(fileobj);
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
-    DartUtils::SetIntegerInstanceField(fileobj, DartUtils::kIdFieldName, 0);
     delete file;
     return_value = 0;
   }
@@ -91,7 +79,9 @@ void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     uint8_t buffer;
     int bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
@@ -107,7 +97,9 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     int64_t value = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
     uint8_t buffer = static_cast<uint8_t>(value & 0xff);
@@ -124,7 +116,9 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_WriteString)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     const char* str =
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
@@ -142,7 +136,9 @@ void FUNCTION_NAME(File_WriteString)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
     ASSERT(Dart_IsArray(buffer_obj));
@@ -176,7 +172,9 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
     ASSERT(Dart_IsArray(buffer_obj));
@@ -206,7 +204,9 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     return_value = file->Position();
   }
@@ -218,7 +218,9 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     return_value = file->Length();
   }
@@ -230,7 +232,9 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
-  File* file = GetFileHandle(Dart_GetNativeArgument(args, 0));
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     file->Flush();
     return_value = 0;

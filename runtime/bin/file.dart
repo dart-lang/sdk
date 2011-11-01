@@ -88,10 +88,10 @@ interface File factory _File {
   void writeByte(int value);
 
   /**
-   * Synchronously write a single byte to the file. Returns true if
-   * the byte was successfully written and false otherwise.
+   * Synchronously write a single byte to the file. Returns the
+   * number of bytes successfully written.
    */
-  bool writeByteSync(int value);
+  int writeByteSync(int value);
 
   /**
    * Write a List<int> to the file. If the list cannot be written the
@@ -101,10 +101,10 @@ interface File factory _File {
   void writeList(List<int> buffer, int offset, int bytes);
 
   /**
-   * Synchronously write a List<int> to the file. Returns true if the
-   * list was successfully written and false otherwise.
+   * Synchronously write a List<int> to the file. Returns the number
+   * of bytes successfully written.
    */
-  bool writeListSync(List<int> buffer, int offset, int bytes);
+  int writeListSync(List<int> buffer, int offset, int bytes);
 
   /**
    * Write a string to the file. If the string cannot be written the
@@ -115,11 +115,11 @@ interface File factory _File {
   void writeString(String string);
 
   /**
-   * Synchronously write a single string to the file. Returns true if
-   * the string was successfully written and false otherwise.
+   * Synchronously write a single string to the file. Returns the number
+   * of characters successfully written.
    */
   // TODO(ager): writeStringSync should take an encoding.
-  bool writeStringSync(String string);
+  int writeStringSync(String string);
 
   /**
    * Get the current position of the file. When the operation
@@ -145,9 +145,8 @@ interface File factory _File {
   int lengthSync();
 
   /**
-   * Flush the contents of the file to disk. If there are no pending
-   * write operation after the flush operation completes, the
-   * [noPendingWriteHandler] is called.
+   * Flush the contents of the file to disk. The [flushHandler] is
+   * called when the flush operation completes.
    */
    void flush();
 
@@ -181,6 +180,9 @@ interface File factory _File {
   void set readByteHandler(void handler(int byte));
   void set readListHandler(void handler(int read));
   void set noPendingWriteHandler(void handler());
+  void set positionHandler(void handler(int position));
+  void set lengthHandler(void handler(int length));
+  void set flushHandler(void handler());
   void set errorHandler(void handler(String error));
 }
 

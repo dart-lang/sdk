@@ -66,7 +66,7 @@ class ObjectArray<T> implements List<T> {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }
-    copyFrom(from, start, startFrom, count);
+    copyFrom(from, startFrom, start, length);
   }
 
   void removeRange(int start, int length) {
