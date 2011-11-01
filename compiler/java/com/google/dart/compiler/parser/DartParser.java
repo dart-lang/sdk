@@ -2625,10 +2625,11 @@ public class DartParser extends CompletionHooksParserBase {
       case IDENTIFIER:
         // we have already eliminated function declarations earlier, so just need to check for
         // variable declarations here.
-        if (peek(1) == Token.LT || peek(1) == Token.IDENTIFIER) {
+        if (peek(1) == Token.LT || peek(1) == Token.IDENTIFIER
+            || (peek(1) == Token.PERIOD && peek(2) == Token.IDENTIFIER)) {
           beginTypeFunctionOrVariable();
           DartTypeNode type = tryTypeAnnotation();
-          if (type != null) {
+          if (type != null && peek(0) == Token.IDENTIFIER) {
             List<DartVariable> vars = parseInitializedVariableList();
             expect(Token.SEMICOLON);
             return done(new DartVariableStatement(vars, type));
