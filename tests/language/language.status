@@ -119,6 +119,7 @@ CTConstTest: Fail            # Bug 4510015.
 Constructor2NegativeTest: Fail  # Bug 4208594.
 Constructor2Test: Fail       # Issue 255
 Constructor3Test: Fail       # Issue 257
+Constructor4Test: Fail       # Issue 286
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
 BitOperationsTest: Fail      # Uses bignums.
 ListLiteral3Test: Fail      # Bug 4510015.
