@@ -177,7 +177,6 @@ LibTest/core/List/List.fromList/*: Fail
 
 # New problems on 2011-11-01.
 [ $component == dartc ]
-LangSpecTest/13_Types/13_1_Static_Types/A02/t08: Fail
 LangSpecTest/13_Types/13_1_Static_Types/A04/t01: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t02: Fail
