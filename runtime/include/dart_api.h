@@ -5,6 +5,16 @@
 #ifndef INCLUDE_DART_API_H_
 #define INCLUDE_DART_API_H_
 
+/** \mainpage Dart Embedding API Reference
+ *
+ * Dart is a class-based programming language for creating structured
+ * web applications. This reference describes the Dart embedding api,
+ * which is used to embed the Dart Virtual Machine within an
+ * application.
+ *
+ * This reference is generated from the header include/dart_api.h.
+ */
+
 #ifdef __cplusplus
 #define DART_EXTERN_C extern "C"
 #else
@@ -42,44 +52,40 @@ typedef unsigned __int64 uint64_t;
 
 #include <assert.h>
 
-typedef void* Dart_Isolate;
+// --- Handles ---
+
+/**
+ * An object reference managed by the Dart VM garbage collector.
+ *
+ * Because the garbage collector may move objects, it is unsafe to
+ * refer to objects directly. Instead, we refer to objects through
+ * handles, which are known to the garbage collector and updated
+ * automatically when the object is moved. Handles should be passed
+ * by value (except in cases like out-parameters) and should never be
+ * allocated on the heap.
+ *
+ * A handle may either be valid or invalid. Valid handles refer to a
+ * object in the Dart VM heap. Note that a valid handle may in some
+ * cases refer to null or an unhandled exception. Invalid handles are
+ * returned by many Dart api functions when they encounter an error.
+ * Invalid handles have an associated error message.
+ *
+ * Local handles are allocated within the current scope (see
+ * Dart_EnterScope) and go away when the current scope exits. Unless
+ * otherwise indicated, all functions in the Dart embedding api return
+ * local handles.
+ *
+ * Persistent handles are allocated within the current isolate. They
+ * can be used to store objects across scopes. Persistent handles
+ * need to be explicitly deallocated when they are no longer needed.
+ */
 typedef void* Dart_Handle;
-typedef void* Dart_NativeArguments;
 
-typedef enum {
-  kLibraryTag = 0,
-  kImportTag,
-  kSourceTag,
-  kCanonicalizeUrl,
-} Dart_LibraryTag;
-
-typedef void Dart_Snapshot;
-
-typedef int64_t Dart_Port;
-typedef void* Dart_Message;
-
-// Allow the embedder to intercept isolate creation. Both at startup
-// and when spawning new isolates from Dart code. The result returned
-// from this callback is handed to all isolates spawned from the
-// isolate currently being initialized.
-//
-// Return NULL if an error is encountered. The isolate being
-// initialized will be shutdown. No Dart code will execute before it
-// is shutdown.
-//
-// TODO(iposva): Pass a specification of the app file being spawned.
-typedef void* (*Dart_IsolateInitCallback)(void* data);
-
-typedef void (*Dart_NativeFunction)(Dart_NativeArguments arguments);
-typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
-                                                        int num_of_arguments);
-typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
-                                              Dart_Handle library,
-                                              Dart_Handle url);
-
-// TODO(iposva): This is a placeholder for the eventual external Dart API.
-
-// Returns true if 'handle' is valid and false if invalid.
+/**
+ * Is this handle valid?
+ *
+ * Requires there to be a current isolate.
+ */
 DART_EXPORT bool Dart_IsValid(const Dart_Handle& handle);
 
 // Internal routine used for reporting invalid handles.
@@ -88,300 +94,1033 @@ DART_EXPORT void _Dart_ReportInvalidHandle(const char* file,
                                            const char* handle_string,
                                            const char* error);
 
-// Aborts the process if 'handle' is invalid.
+/**
+ * Aborts the process if 'handle' is invalid.
+ *
+ * Provided for convenience.
+ */
 #define DART_CHECK_VALID(handle)                                        \
   if (!Dart_IsValid((handle))) {                                        \
     _Dart_ReportInvalidHandle(__FILE__, __LINE__,                       \
                               #handle, Dart_GetError(handle));          \
   }
 
-// Gets the error message associated with an invalid handle.
+/**
+ * Gets the error message from an invalid handle.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A C string containing an error message if the handle is
+ *   invalid. An empty C string ("") if the handle is valid.  This C
+ *   String is scope allocated and is only valid until the next call
+ *   to Dart_ExitScope.
+*/
 DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle);
 
-// Produces an invalid handle with an associated error message
+/**
+ * Produces an invalid handle with the provided error message.
+ *
+ * This function makes its own copy of the error message and does not
+ * claim ownership of the 'error' parameter.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param error A C string containing an error message.
+ */
 DART_EXPORT Dart_Handle Dart_Error(const char* error);
+// TODO(turnidge): Accept printf-style args here.
 
-// Initialize the VM with commmand line flags.
+/**
+ * Allocates a persistent handle for an object.
+ *
+ * This handle has the lifetime of the current isolate unless it is
+ * explicitly deallocated by calling Dart_DeletePersistentHandle.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object);
+// TODO(turnidge): This function currently only works when passes a
+// local handle.  Make it work for both local and persistent handles.
+
+/**
+ * Deallocates a persistent handle.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
+
+/**
+ * Takes a persistent handle and makes it weak.
+ *
+ * UNIMPLEMENTED.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_MakeWeakPersistentHandle(Dart_Handle object);
+// TODO(turnidge): Needs a "near death" callback here.
+// TODO(turnidge): Add IsWeak, Clear, etc.
+
+/**
+ * Takes a weak persistent handle and makes it non-weak.
+ *
+ * UNIMPLEMENTED.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
+
+// --- Initialization and Globals ---
+
+/**
+ * An isolate initialization callback function.
+ *
+ * This callback, provided by the embedder, is called during isolate
+ * creation. It is called for all isolates, regardless of whether they
+ * are created via Dart_CreateIsolate or directly from Dart code.
+ *
+ * \param data Embedder-specific data used during isolate initialization.
+ *
+ * \return If the embedder returns NULL, then the isolate being
+ *   initialized will be shut down without executing any Dart code.
+ *   Otherwise, the embedder should return a pointer to
+ *   embedder-specific data created during the initialization of this
+ *   isolate. This data will, in turn, be passed by the VM to all
+ *   isolates spawned from the isolate currently being initialized.
+ */
+typedef void* (*Dart_IsolateInitCallback)(void* embedder_data);
+// TODO(iposva): Pass a specification of the app file being spawned.
+// TODO(turnidge): We don't actually shut down the isolate on NULL yet.
+// TODO(turnidge): Should we separate the two return values?
+
+/**
+ * Initializes the VM with the given commmand line flags.
+ *
+ * \param argc The length of the arguments array.
+ * \param argv An array of arguments.
+ * \param callback A function to be called during isolate creation.
+ *   See Dart_IsolateInitCallback.
+ *
+ * \return True if initialization is successful.
+ */
 DART_EXPORT bool Dart_Initialize(int argc, char** argv,
                                  Dart_IsolateInitCallback callback);
 
+/**
+ * Returns true if the named VM flag is set.
+ */
+DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 
-// Isolate handling.
+// --- Isolates ---
+
+/**
+ * An isolate is the unit of concurrency in Dart. Each isolate has
+ * its own memory and thread of control. No state is shared between
+ * isolates. Instead, isolates communicate by message passing.
+ *
+ * Each thread keeps track of its current isolate, which is the
+ * isolate which is ready to execute on the current thread. The
+ * current isolate may be NULL, in which case no isolate is ready to
+ * execute. Most of the Dart apis require there to be a current
+ * isolate in order to function without error.  The current isolate is
+ * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
+ */
+typedef void* Dart_Isolate;
+
+/**
+ * A buffer containing a snapshot of the Dart VM. A snapshot can be
+ * used to restore the VM quickly to a saved state and is useful for
+ * fast startup.
+ */
+typedef void Dart_Snapshot;
+
+/**
+ * Creates a new isolate. If snapshot data is provided, the isolate
+ * will be started using that snapshot data. The new isolate becomes
+ * the current isolate.
+ *
+ * Requires there to be no current isolate.
+ *
+ * \param snapshot A buffer containing a VM snapshot or NULL if no
+ *   snapshot is provided.
+ * \param data Embedder-specific data. See Dart_IsolateInitCallback.
+ *
+ * \return The new isolate is returned. May be NULL if an error
+ *   occurs duing isolate initialization.
+ */
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
                                             void* data);
+// TODO(turnidge): Document behavior when there is already a current
+// isolate.
+
+/**
+ * Shuts down the current isolate. After this call, the current
+ * isolate is NULL.
+ *
+ * Requires there to be a current isolate.
+ */
 DART_EXPORT void Dart_ShutdownIsolate();
+// TODO(turnidge): Document behavior when there is no current isolate.
 
+/**
+ * Returns the current isolate. Will return NULL if there is no
+ * current isolate.
+ */
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate();
+
+/**
+ * Enters an isolate. After calling this function,
+ * the current isolate will be set to the provided isolate.
+ *
+ * Requires there to be no current isolate.
+ */
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
+// TODO(turnidge): Describe what happens if two threads attempt to
+// enter the same isolate simultaneously.  Check for this in the code.
+// Describe whether isolates are allowed to migrate.
+
+/**
+ * Exits an isolate. After this call, Dart_CurrentIsolate will
+ * return NULL.
+ *
+ * Requires there to be a current isolate.
+ */
 DART_EXPORT void Dart_ExitIsolate();
+// TODO(turnidge): We don't want users of the api to be able to exit a
+// "pure" dart isolate.  Implement and document.
 
-// A convenience routine which processes any incoming messages for the
-// current isolate. The routine exits when all ports to the current
-// isolate are closed.
-//
-// This routine may only be used when the embedder has not provided an
-// alternate message delivery mechanism with Dart_SetPostMessageCallback.
-DART_EXPORT Dart_Handle Dart_RunLoop();
+/**
+ * Creates a snapshot of the state of the current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snaphot_buffer,
+                                            intptr_t* snapshot_size);
+// TODO(turnidge): Does this include the current script or only libs?
+// is it possible to take a snapshot and load more scripts into it?
 
-// Messages/ports
+// --- Messages and Ports ---
 
-// A post message callback allows the embedder to provide an alternate
-// delivery mechanism for inter-isolate messages. It is the
-// responsibility of the embedder to call Dart_HandleMessage to
-// process the message.
-//
-// If there is no reply port, then the constant 'kNoReplyPort' is
-// passed as the 'reply_port' parameter.
-//
-// The memory pointed to by 'message' has been allocated by malloc.  It
-// is the responsibility of the callback to ensure that free(message)
-// is called once the message has been processed.
-//
-// The callback should return false if it runs into a problem
-// processing this message.
-//
-// Todo(turnidge): Add a Dart_ReleaseMessage to hide allocation details?
+/**
+ * Messages are used to communicate between isolates.
+ */
+typedef void* Dart_Message;
+
+/**
+ * A port is used to send or receive inter-isolate messages
+ */
+typedef int64_t Dart_Port;
+
+const Dart_Port kNoReplyPort = 0;
+
+/**
+ * A message posting callback.
+ *
+ * This callback allows the embedder to provide an alternate delivery
+ * mechanism for inter-isolate messages. It is the responsibility of
+ * the embedder to call Dart_HandleMessage to process the message.
+ *
+ * If there is no reply port, then the constant 'kNoReplyPort' is
+ * passed as the 'reply_port' parameter.
+ *
+ * The memory pointed to by 'message' has been allocated by malloc. It
+ * is the responsibility of the callback to ensure that free(message)
+ * is called once the message has been processed.
+ *
+ * The callback should return false if it runs into a problem
+ * processing this message.
+ */
 typedef bool (*Dart_PostMessageCallback)(Dart_Isolate dest_isolate,
                                          Dart_Port dest_port,
                                          Dart_Port reply_port,
                                          Dart_Message message);
-const Dart_Port kNoReplyPort = 0;
+// TODO(turnidge): Add a Dart_ReleaseMessage to hide allocation details.
 
-// A close port callback allows the embedder to receive notification
-// when a port is closed. The constant 'kCloseAllPorts' is passed as
-// the 'port' parameter when all active ports are being closed at
-// once.
-typedef void (*Dart_ClosePortCallback)(Dart_Isolate isolate,
-                                       Dart_Port port);
 const Dart_Port kCloseAllPorts = 0;
 
-// Allows embedders to provide an alternative mechanism for sending
-// inter-isolate messages. This setting only applies to the current
-// isolate.
-//
-// Most embedders will only call this function once, before isolate
-// execution begins.  If this function is called after isolate
-// execution begins, the embedder is responsible for threading issues.
-//
-// TODO(turnidge): Consider moving this to isolate creation so that it
-// is impossible to mess up.
+/**
+ * A close port callback.
+ *
+ * This callback allows the embedder to receive notification when a
+ * port is closed. The constant 'kCloseAllPorts' is passed as the
+ * 'port' parameter when all active ports are being closed at once.
+ */
+typedef void (*Dart_ClosePortCallback)(Dart_Isolate isolate,
+                                       Dart_Port port);
+
+/**
+ * Allows embedders to provide an alternative mechanism for sending
+ * inter-isolate messages. This setting only applies to the current
+ * isolate.
+ *
+ * Most embedders will only call this function once, before isolate
+ * execution begins. If this function is called after isolate
+ * execution begins, the embedder is responsible for threading issues.
+ */
 DART_EXPORT void Dart_SetMessageCallbacks(
     Dart_PostMessageCallback post_message_callback,
     Dart_ClosePortCallback close_port_callback);
+// TODO(turnidge): Consider moving this to isolate creation so that it
+// is impossible to mess up.
 
-// Handle a message on the current isolate.
+/**
+ * Handles a message on the current isolate.
+ *
+ * Note that this function does not free the memory associated with
+ * 'dart_message'.
+ */
 DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
                                     Dart_Port reply_port,
                                     Dart_Message dart_message);
+// TODO(turnidge): Revisit memory management of 'dart_message'.
 
+/**
+ * Processes any incoming messages for the current isolate.
+ *
+ * This function may only be used when the embedder has not provided
+ * an alternate message delivery mechanism with
+ * Dart_SetMessageCallbacks. It is provided for convenience.
+ *
+ * This function waits for incoming messages for the current
+ * isolate. As new messages arrive, they are handled using
+ * Dart_HandleMessage. The routine exits when all ports to the
+ * current isolate are closed.
+ */
+DART_EXPORT Dart_Handle Dart_RunLoop();
+// TODO(turnidge): Should this be removed from the public api?
 
-// Object.
-DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object);
+/**
+ * Posts a message for some isolate. The message is built from a raw
+ * array.
+ *
+ * \param port The destination port.
+ * \param length The length of the data array.
+ * \param data A data array to be sent in the message.
+ *
+ * \return True if the message was posted.
+ */
+DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
+                                   intptr_t length,
+                                   intptr_t* data);
+// TODO(turnidge): Should this be intptr_t or some fixed length type?
+// TODO(turnidge): Reverse length/data for consistency.
+
+/**
+ * Posts a message for some isolate. The message is a serialized
+ * object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param port The destination port.
+ * \param object An object from the current isolate.
+ *
+ * \return True if the message was posted.
+ */
+DART_EXPORT bool Dart_Post(Dart_Port port, Dart_Handle object);
+
+// --- Scopes ----
+
+/**
+ * Enters a new scope.
+ *
+ * All new local handles will be created in this scope. Additionally,
+ * some functions may return "scope allocated" memory which is only
+ * valid within this scope.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_EnterScope();
+
+/**
+ * Exits a scope.
+ *
+ * The previous scope (if any) becomes the current scope.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_ExitScope();
+
+// --- Objects ----
+
+/**
+ * Is this object null?
+ */
 DART_EXPORT bool Dart_IsNull(Dart_Handle object);
 
+/**
+ * Converts an object to a string.
+ *
+ * If an exception occurs during the conversion, this is treated as an
+ * error.
+ *
+ * \return A handle to the converted string if no errors occur during
+ * the conversion. If an error does occur, an invalid handle is
+ * returned.
+ */
+DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object);
+// TODO(turnidge): Consider shortening name to Dart_ToString.
 
-// Returns true if the two objects are equal.
+/**
+ * Returns true if the two objects are equal.
+ *
+ * The result of the comparison is returned through the 'equal'
+ * parameter. The return value itself is used to indicate success or
+ * failure, not equality.
+ *
+ * \param obj1 An object to be compared.
+ * \param obj2 An object to be compared.
+ * \param equal Returns the result of the equality comparison.
+ *
+ * \return A valid handle if no error occurs during the comparison.
+ */
 DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1,
                                            Dart_Handle obj2,
-                                           bool* value);
+                                           bool* equal);
+// TODO(turnidge): Consider renaming for consistency. Maybe just
+// Dart_Equals.
+// TODO(turnidge): Need to add identity equality function.
 
-
-// Classes.
-DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name);
+/**
+ * Is this object an instance of some type?
+ *
+ * The result of the test is returned through the 'instanceif' parameter.
+ * The return value itself is used to indicate success or failure.
+ *
+ * \param object An object.
+ * \param type A type.
+ * \param instanceof Return true if 'object' is an instance of type 'type'.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_IsInstanceOf(Dart_Handle object,
-                                          Dart_Handle cls,
-                                          bool* value);
+                                          Dart_Handle type,
+                                          bool* instanceof);
 
+// --- Numbers ----
 
-// Number.
+/**
+ * Is this object a Number?
+ */
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object);
 
+// --- Integers ----
 
-// Integer.
+/**
+ * Is this object an Integer?
+ */
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object);
+
+/**
+ * Does this Integer fit into a 64-bit signed integer?
+ *
+ * \param integer An integer.
+ * \param fits Returns true if the integer fits into a 64-bit signed integer.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
+                                                  bool* fits);
+
+/**
+ * Returns an Integer with the provided value.
+ *
+ * \param value The value of the integer.
+ *
+ * \return The Integer object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value);
+
+/**
+ * Returns an Integer with the provided value.
+ *
+ * \param value The value of the integer represented as a C string
+ *   containing a hexadecimal number.
+ *
+ * \return The Integer object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* value);
+
+/**
+ * Gets the value of an Integer.
+ *
+ * The integer must fit into a 64-bit signed integer, otherwise an error occurs.
+ *
+ * \param integer An Integer.
+ * \param value Returns the value of the Integer.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value);
+
+/**
+ * Gets the value of an integer as a hexadecimal C string.
+ *
+ * \param integer An Integer.
+ * \param value Returns the value of the Integer as a hexadecimal C
+ *   string. This C string is scope allocated and is only valid until
+ *   the next call to Dart_ExitScope.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
                                                     const char** value);
-DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
-                                                  bool* value);
 
+// --- Booleans ----
 
-// Boolean.
+/**
+ * Is this object a Boolean?
+ */
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object);
+
+/**
+ * Returns a Boolean with the provided value.
+ *
+ * \param value true or false.
+ *
+ * \return The Boolean object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value);
+
+/**
+ * Gets the value of a Boolean
+ *
+ * \param bool_object A Boolean
+ * \param value Returns the value of the Boolean.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle bool_object, bool* value);
 
+// --- Doubles ---
 
-// Double.
+/**
+ * Is this object a Double?
+ */
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object);
+
+/**
+ * Returns a Double with the provided value.
+ *
+ * \param value A double.
+ *
+ * \return The Double object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewDouble(double value);
+
+/**
+ * Gets the value of a Double
+ *
+ * \param bool_object A Double
+ * \param value Returns the value of the Double.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle integer, double* result);
 
+// --- Strings ---
 
-// String.
+/**
+ * Is this object a String?
+ */
 DART_EXPORT bool Dart_IsString(Dart_Handle object);
 
-DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len);
+/**
+ * Is this object a String whose codepoints all fit into 8 bits?
+ */
+DART_EXPORT bool Dart_IsString8(Dart_Handle object);
 
+/**
+ * Is this object a String whose codepoints all fit into 16 bits?
+ */
+DART_EXPORT bool Dart_IsString16(Dart_Handle object);
+
+/**
+ * Gets the length of a String.
+ *
+ * \param str A String.
+ * \param length Returns the length of the String.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* length);
+
+/**
+ * Returns a String built from the provided C string
+ *
+ * \param value A C String
+ *
+ * \return The String object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewString(const char* str);
+
+/**
+ * Returns a String built from an array of 8-bit codepoints.
+ *
+ * \param value An array of 8-bit codepoints.
+ * \param length The length of the codepoints array.
+ *
+ * \return The String object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
                                         intptr_t length);
+
+/**
+ * Returns a String built from an array of 16-bit codepoints.
+ *
+ * \param value An array of 16-bit codepoints.
+ * \param length The length of the codepoints array.
+ *
+ * \return The String object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
                                          intptr_t length);
+
+/**
+ * Returns a String built from an array of 32-bit codepoints.
+ *
+ * \param value An array of 32-bit codepoints.
+ * \param length The length of the codepoints array.
+ *
+ * \return The String object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length);
 
-// The functions below test whether the object is a String and its codepoints
-// all fit into 8 or 16 bits respectively.
-DART_EXPORT bool Dart_IsString8(Dart_Handle object);
-DART_EXPORT bool Dart_IsString16(Dart_Handle object);
-
+/**
+ * Gets the codepoints from a String.
+ *
+ * This function is only valid on strings for which Dart_IsString8 is
+ * true. Otherwise an error occurs.
+ *
+ * \param str A string.
+ * \param codepoints An array allocated by the caller, used to return
+ *   the array of codepoints.
+ * \param length Used to pass in the length of the provided array.
+ *   Used to return the length of the array which was actually used.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
                                         uint8_t* codepoints,
                                         intptr_t* length);
+// TODO(turnidge): Rename to GetString8 to be consistent with the Is*
+// and New* functions above?
+
+/**
+ * Gets the codepoints from a String.
+ *
+ * This function is only valid on strings for which Dart_IsString8 or
+ * Dart_IsString16 is true. Otherwise an error occurs.
+ *
+ * \param str A string.
+ * \param codepoints An array allocated by the caller, used to return
+ *   the array of codepoints.
+ * \param length Used to pass in the length of the provided array.
+ *   Used to return the length of the array which was actually used.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
                                          uint16_t* codepoints,
                                          intptr_t* length);
+
+/**
+ * Gets the codepoints from a String
+ *
+ * \param str A string.
+ * \param codepoints An array allocated by the caller, used to return
+ *   the array of codepoints.
+ * \param length Used to pass in the length of the provided array.
+ *   Used to return the length of the array which was actually used.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
                                          uint32_t* codepoints,
                                          intptr_t* length);
 
+/**
+ * Gets the utf8 encoded representation of a String.
+ *
+ * \param str A string.
+ * \param utf8 Returns the String represented as a utf8 encoded C
+ *   string. This C string is scope allocated and is only valid until
+ *   the next call to Dart_ExitScope.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
-                                             const char** result);
+                                             const char** utf8);
 
+// --- Arrays ---
 
-// Array.
+/**
+ * Is this object an Array?
+ */
 DART_EXPORT bool Dart_IsArray(Dart_Handle object);
+// TODO(turnidge): Rename Array -> List.
+
+/**
+ * Returns an Array of the desired length.
+ *
+ * \param length The length of the array.
+ *
+ * \return The Array object if no errors occurs. Otherwise returns
+ *   an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length);
-DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* len);
+// TODO(turnidge): Rename Array -> List.
+
+/**
+ * Gets the length of an Array.
+ *
+ * \param array An Array.
+ * \param length Returns the length of the Array.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* length);
+// TODO(turnidge): Rename Array -> List.
+
+/**
+ * Gets the Object at some index of an Array.
+ *
+ * If the index is out of bounds, an error occurs.
+ *
+ * \param array An Array.
+ * \param index A valid index into the Array.
+ *
+ * \return The Object in the Array at the specified index if no errors
+ *   occurs. Otherwise returns an invalid handle.
+ */
 DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array,
                                         intptr_t index);
+// TODO(turnidge): Rename Array -> List.
+
+/**
+ * Sets the Object at some index of an Array.
+ *
+ * If the index is out of bounds, an error occurs.
+ *
+ * \param array An Array.
+ * \param index A valid index into the Array.
+ * \param value The Object to put in the Array.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
+                                        intptr_t index,
+                                        Dart_Handle value);
+// TODO(turnidge): Rename Array -> List.
+
+// TODO(turnidge): Figure out what this is for.
 DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
                                       intptr_t offset,
                                       uint8_t* native_array,
                                       intptr_t length);
-DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
-                                        intptr_t index,
-                                        Dart_Handle value);
+
+// TODO(turnidge): Figure out what this is for.
 DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
                                       intptr_t offset,
                                       uint8_t* native_array,
                                       intptr_t length);
 
-// Closure.
+// --- Closures ---
+
+/**
+ * Is this object a Closure?
+ */
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
+
+/**
+ * Invokes a Closure with the given arguments.
+ *
+ * \return If no error occurs during execution, then the result of
+ *   invoking the closure is returned. Note that this may be an
+ *   uncaught exception (see Dart_ExceptionOccurred) or the null
+ *   Object. If an error occurred during execution, then an invalid
+ *   handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
+                                           int number_of_arguments,
+                                           Dart_Handle* arguments);
+
 // DEPRECATED: The API below is a temporary hack.
 DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object);
+
+// DEPRECATED: The API below is a temporary hack.
 DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value);
 
+// --- Methods and Fields ---
 
-// Invocation of methods.
+/**
+ * Invokes a static method with the given arguments.
+ *
+ * \return If no error occurs during execution, then the result of
+ *   invoking the closure is returned. Note that this may be an
+ *   uncaught exception (see Dart_ExceptionOccurred) or the null
+ *   Object. If an error occurred during execution, then an invalid
+ *   handle is returned.
+ */
 DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library,
                                           Dart_Handle class_name,
                                           Dart_Handle function_name,
                                           int number_of_arguments,
                                           Dart_Handle* arguments);
+
+/**
+ * Invokes an instance method with the given arguments.
+ *
+ * \return If no error occurs during execution, then the result of
+ *   invoking the closure is returned. Note that this may be an
+ *   uncaught exception (see Dart_ExceptionOccurred) or the null
+ *   Object. If an error occurred during execution, then an invalid
+ *   handle is returned.
+ */
 DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle receiver,
                                            Dart_Handle function_name,
                                            int number_of_arguments,
                                            Dart_Handle* arguments);
-DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
-                                           int number_of_arguments,
-                                           Dart_Handle* arguments);
 
+/**
+ * Gets the value of a static field.
+ *
+ * \return If no error occurs, then the value of the field is
+ *   returned. Otherwise an invalid handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls, Dart_Handle name);
 
-// Interaction with native methods.
+/**
+ * Sets the value of a static field.
+ *
+ * \return A valid handle if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
+                                            Dart_Handle name,
+                                            Dart_Handle value);
+/**
+ * Gets the value of an instance field.
+ *
+ * \return If no error occurs, then the value of the field is
+ *   returned. Otherwise an invalid handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
+                                              Dart_Handle name);
+/**
+ * Sets the value of an instance field.
+ *
+ * \return A valid handle if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
+                                              Dart_Handle name,
+                                              Dart_Handle value);
+
+/**
+ * Creates a native wrapper class.
+ *
+ * TODO(turnidge): Document.
+ */
+DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
+                                                      Dart_Handle class_name,
+                                                      int field_count);
+
+/**
+ * Gets the value of a native field.
+ *
+ * TODO(turnidge): Document.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
+                                                    int index,
+                                                    intptr_t* value);
+/**
+ * Sets the value of a native field.
+ *
+ * TODO(turnidge): Document.
+ */
+DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
+                                                    int index,
+                                                    intptr_t value);
+
+// --- Exceptions ----
+
+/**
+ * Does this handle hold information about an unhandled exception?
+ */
+DART_EXPORT bool Dart_ExceptionOccurred(Dart_Handle handle);
+// TODO(turnidge): Consider exposing the name of this thing. Maybe
+// IsUnhandledException, IsUncaughtException, or IsThrownException.
+// It is like a regular exception, but plus a stack trace.
+// TODO(turnidge): Consider subsuming exception results into invalid
+// handles so that only one error check needs to be done after method
+// invocation.
+
+/**
+ * Gets the exception Object from an unhandled exception.
+ */
+DART_EXPORT Dart_Handle Dart_GetException(Dart_Handle result);
+
+/**
+ * Gets the stack trace Object from an unhandled exception.
+ */
+DART_EXPORT Dart_Handle Dart_GetStacktrace(Dart_Handle unhandled_exception);
+
+/**
+ * Throws an exception.
+ *
+ * Throws an exception, unwinding all dart frames on the stack.  If
+ * successful, this function does not return.  Note that this means
+ * that the destructors of any stack-allocated C++ objects will not be
+ * called.  If there are no Dart frames on the stack, an error occurs.
+ *
+ * \return An invalid handle if the exception was not thrown.
+ *   Otherwise the function does not return.
+ */
+DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
+
+/**
+ * Rethrows an exception.
+ *
+ * Rethrows an exception, unwinding all dart frames on the stack.  If
+ * successful, this function does not return.  Note that this means
+ * that the destructors of any stack-allocated C++ objects will not be
+ * called.  If there are no Dart frames on the stack, an error occurs.
+ *
+ * \return An invalid handle if the exception was not thrown.
+ *   Otherwise the function does not return.
+ */
+DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
+                                              Dart_Handle stacktrace);
+// TODO(turnidge): ReThrow -> Rethrow.
+
+// --- Native functions ---
+
+/**
+ * The arguments to a native function.
+ *
+ * This object is passed to a native function to represent its
+ * arguments and return value. It allows access to the arguments to a
+ * native function by index. It also allows the return value of a
+ * native function to be set.
+ */
+typedef void* Dart_NativeArguments;
+
+/**
+ * Gets the native argument at some index.
+ */
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index);
+// TODO(turnidge): Specify the behavior of an out-of-bounds access.
+
+/**
+ * Gets the number of native arguments.
+ */
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args);
+
+/**
+ * Sets the return value for a native function.
+ */
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval);
 
-// Library.
+/**
+ * A native function.
+ */
+typedef void (*Dart_NativeFunction)(Dart_NativeArguments arguments);
+
+/**
+ * Native entry resolution callback.
+ *
+ * For libraries and scripts which have native functions, the embedder
+ * can provide a native entry resolver. This callback is used to map a
+ * name/arity to a Dart_NativeFunction. If no function is found, the
+ * callback should return NULL.
+ *
+ * See Dart_SetNativeResolver.
+ */
+typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
+                                                        int num_of_arguments);
+// TODO(turnidge): Consider renaming to NativeFunctionResolver or
+// NativeResolver.
+
+// --- Scripts and Libraries ---
+// TODO(turnidge): Finish documenting this section.
+
+typedef enum {
+  kLibraryTag = 0,
+  kImportTag,
+  kSourceTag,
+  kCanonicalizeUrl,
+} Dart_LibraryTag;
+
+typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
+                                              Dart_Handle library,
+                                              Dart_Handle url);
+
+/**
+ * Loads the root script for the current isolate.
+ *
+ * TODO(turnidge): Document.
+ */
+DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
+                                        Dart_Handle source,
+                                        Dart_LibraryTagHandler handler);
+
+/**
+ * Forces all loaded classes and functions to be compiled eagerly in
+ * the current isolate..
+ *
+ * TODO(turnidge): Document.
+ */
+DART_EXPORT Dart_Handle Dart_CompileAll();
+
+/**
+ * Is this object a Library?
+ */
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
+
+/**
+ * Lookup a class by name from a Library.
+ *
+ * \return If no errors occur, the Library is returned. Otherwise an
+ *   invalid handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name);
+
+DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
+
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
                                                   Dart_Handle import);
-
-DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source);
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
                                         Dart_Handle source);
+
+/**
+ * Sets the callback used to resolve native functions for a library.
+ *
+ * \param library A library.
+ * \param resolver A native entry resolver.
+ *
+ * \return A valid handle if the native resolver was set successfully.
+ */
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver);
 
+// --- Profiling support ----
 
-// Script handling.
-DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
-                                        Dart_Handle source,
-                                        Dart_LibraryTagHandler handler);
-
-// Compile all loaded classes and functions eagerly.
-DART_EXPORT Dart_Handle Dart_CompileAll();
-
-// Exception related.
-DART_EXPORT bool Dart_ExceptionOccurred(Dart_Handle result);
-DART_EXPORT Dart_Handle Dart_GetException(Dart_Handle result);
-DART_EXPORT Dart_Handle Dart_GetStacktrace(Dart_Handle unhandled_exception);
-DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
-DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
-                                              Dart_Handle stacktrace);
-
-// Global Handles and Scope for local handles and zone based memory allocation.
-DART_EXPORT void Dart_EnterScope();
-DART_EXPORT void Dart_ExitScope();
-
-DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object);
-DART_EXPORT Dart_Handle Dart_MakeWeakPersistentHandle(Dart_Handle object);
-DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
-DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
-
-// Fields.
-DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls, Dart_Handle name);
-DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
-                                            Dart_Handle name,
-                                            Dart_Handle value);
-DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
-                                              Dart_Handle name);
-DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
-                                              Dart_Handle name,
-                                              Dart_Handle value);
-
-// Native fields.
-DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
-                                                      Dart_Handle class_name,
-                                                      int field_count);
-DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
-                                                    int index,
-                                                    intptr_t* value);
-DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
-                                                    int index,
-                                                    intptr_t value);
-
-// Snapshot creation.
-DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snaphot_buffer,
-                                            intptr_t* snapshot_size);
-
-// Message communication.
-DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
-                                   int field_count,
-                                   intptr_t* data);
-
-DART_EXPORT bool Dart_Post(Dart_Port port, Dart_Handle value);
-
-// External pprof support for gathering and dumping symbolic information
-// that can be used for better profile reports for dynamically generated
-// code.
+// External pprof support for gathering and dumping symbolic
+// information that can be used for better profile reports for
+// dynamically generated code.
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
-
-// Check set vm flags.
-DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 
 #endif  // INCLUDE_DART_API_H_

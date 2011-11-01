@@ -1860,12 +1860,12 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 
 DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
-                                   int field_count,
+                                   intptr_t len,
                                    intptr_t* data) {
   uint8_t* buffer = NULL;
   MessageWriter writer(&buffer, &allocator);
 
-  writer.WriteMessage(field_count, data);
+  writer.WriteMessage(len, data);
 
   // Post the message at the given port.
   return PortMap::PostMessage(port, kNoReplyPort, buffer);
