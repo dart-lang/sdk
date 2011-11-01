@@ -1471,7 +1471,8 @@ def Main():
               'system': utils.GuessOS(),
               'arch': arch,
               'component': component,
-              'checked': options.checked
+              'checked': options.checked,
+              'unchecked': not options.checked,
           }
           test_list = root.ListTests([], path, context, mode, arch, component)
           (cases, unused_rules, unused_outcomes) = config.ClassifyTests(

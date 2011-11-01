@@ -254,7 +254,7 @@ LibTest/core/Math/acos/Math/acos/A01/t01: Fail
 LibTest/core/Math/asin/Math/asin/A01/t01: Fail
 LibTest/core/Math/atan/Math/atan/A01/t01: Fail
 LibTest/core/Math/cos/Math/cos/A01/t01: Fail
-[ $component == vm && !$checked ]
+[ $component == vm && $unchecked ]
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Fail
 LangGuideTest/08_Expressions/A01/t02: Fail
 LangSpecTest/13_Types/13_1_Static_Types/A04/t01: Fail
