@@ -45,7 +45,7 @@ function doBuild {
 # $3 mode
 # Returns the output from the subcommand
 function doTest {
-  ./tools/test.py --arch $2 --mode $3
+  ./tools/test.py --component $2 --mode $3
   RESULT=$?
   if [ ${RESULT} != 0 ] ; then
     TESTS_FAILED=1
@@ -95,11 +95,11 @@ doBuild ia32 debug
 echo
 echo "=== Runtime tests === "
 echo " Debug (Ctrl-C to skip this set of tests)"
-doTest runtime ia32 debug
+doTest runtime vm debug
 RUNTIME_RESULT=$?
 if [ ${RUNTIME_RESULT} == 0 ] ; then
   echo " Release (Ctrl-C to skip this set of tests)"
-  doTest runtime ia32 release 
+  doTest runtime vm release 
   RUNTIME_RESULT=$?
 fi
 
