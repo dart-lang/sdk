@@ -22,7 +22,7 @@ syn keyword dartBoolean        true false
 syn keyword dartConstant       null
 syn keyword dartTypedef        this super class typedef
 syn keyword dartOperator       new is in factory
-syn match   dartOperator       "+\|-\|*\|[~]\=/\|%\|||\|&&\|!\|==[=]\="
+syn match   dartOperator       "+\|-\|*\|[~]\=/\|%\|||\|&&\|\(!\|=\)=[=]\=\|=>\|="
 syn keyword dartType           void var const bool int double num
 syn keyword dartStatement      return
 syn keyword dartStorageClass   static final abstract
@@ -49,7 +49,7 @@ syn region  dartDocLink       contained start=+\[+ end=+\]+
 " Strings
 syn region  dartString       start=+"+ end=+"+ contains=@Spell,dartInterpolation,dartSpecialChar
 syn region  dartString       start=+'+ end=+'+ contains=@Spell,dartInterpolation,dartSpecialChar
-syn match   dartInterpolation     contained "\$\(\w+\|{\w\+}\)"
+syn match   dartInterpolation     contained "\$\(\w\+\|{[^\}]\+}\)"
 syn match   dartSpecialChar       contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'ntbrf]\|u\x\{4\}\)"
 
 " Numbers
