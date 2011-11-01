@@ -284,6 +284,26 @@ class OneLineProgressIndicator(SimpleProgressIndicator):
     print 'Done %s: %s' % (output.test.GetLabel(), outcome)
 
 
+class StatusFileProgressIndicator(SimpleProgressIndicator):
+
+  def AboutToRun(self, case):
+    """Called before each test case is run."""
+    pass
+
+  def HasRun(self, output):
+    """Called after each test case is run."""
+    actual_outcome = output.GetOutcome()
+    expected_outcomes = set(output.test.outcomes)
+    if not actual_outcome in expected_outcomes:
+      expected_outcomes.discard(testing.PASS)
+      if expected_outcomes:
+        print 'Incorrect status for %s: %s' % (output.test.GetLabel(),
+                                               ', '.join(expected_outcomes))
+      else:
+        print 'Update status for %s: %s' % (output.test.GetLabel(),
+                                            actual_outcome)
+
+
 class OneLineProgressIndicatorForBuildBot(OneLineProgressIndicator):
 
   def HasRun(self, output):
@@ -400,7 +420,8 @@ PROGRESS_INDICATORS = {
     'mono': MonochromeProgressIndicator,
     'color': ColorProgressIndicator,
     'line': OneLineProgressIndicator,
-    'buildbot': OneLineProgressIndicatorForBuildBot
+    'buildbot': OneLineProgressIndicatorForBuildBot,
+    'status': StatusFileProgressIndicator,
 }
 
 
