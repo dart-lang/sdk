@@ -167,16 +167,12 @@ LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t06: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t08: Fail
 LibTest/core/Match/operator\[]/Match/operator\[]/A01/t01: Fail
 LibTest/core/Match/pattern/Match/pattern/A01/t01: Fail
-LibTest/core/Math/exp/Math/exp/A01/t01: Fail
 LibTest/core/Math/max/Math/max/A01/t02: Fail
 LibTest/core/Math/pow/Math/pow/A01/t01: Fail
 LibTest/core/Math/pow/Math/pow/A01/t02: Fail
 LibTest/core/Math/pow/Math/pow/A11/t01: Fail
 LibTest/core/Math/pow/Math/pow/A13/t01: Fail
-LibTest/core/Math/pow/Math/pow/A18/t01: Fail
-LibTest/core/Math/sin/Math/sin/A01/t01: Fail
 LibTest/core/Math/sqrt/Math/sqrt/A01/t03: Fail
-LibTest/core/Math/tan/Math/tan/A01/t01: Fail
 LibTest/core/Promise/addCancelHandler/Promise/addCancelHandler/A01/t04: Fail
 LibTest/core/Promise/addCompleteHandler/Promise/addCompleteHandler/A01/t05: Fail
 LibTest/core/Promise/addErrorHandler/Promise/addErrorHandler/A01/t05: Fail
@@ -260,6 +256,15 @@ LibTest/core/Math/acos/Math/acos/A01/t01: Fail
 LibTest/core/Math/asin/Math/asin/A01/t01: Fail
 LibTest/core/Math/atan/Math/atan/A01/t01: Fail
 LibTest/core/Math/cos/Math/cos/A01/t01: Fail
+LibTest/core/Math/exp/Math/exp/A01/t01: Fail
+LibTest/core/Math/pow/Math/pow/A18/t01: Fail
+LibTest/core/Math/sin/Math/sin/A01/t01: Fail
+LibTest/core/Math/tan/Math/tan/A01/t01: Fail
+[ $component == vm && $system == linux ]
+LibTest/core/Math/exp/Math/exp/A01/t01: Fail
+LibTest/core/Math/pow/Math/pow/A18/t01: Fail
+LibTest/core/Math/sin/Math/sin/A01/t01: Fail
+LibTest/core/Math/tan/Math/tan/A01/t01: Fail
 [ $component == vm && $unchecked ]
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Fail
 LangGuideTest/08_Expressions/A01/t02: Fail
@@ -326,6 +331,15 @@ LibTest/core/double/operator~div/double/operator~div/A01/t07: Fail
 LibTest/core/double/remainder/double/remainder/A01/t01: Fail
 LibTest/core/double/truncate/double/truncate/A01/t01: Fail
 LibTest/core/int/operator_div/int/operator/div/A01/t01: Fail
+[ $component == vm && $system == win32 ]
+LibTest/core/Isolate/spawn/Isolate/spawn/A01/t12: Crash
+LibTest/core/int/operator\^/int/operator\^/A01/t01: Skip # Bad file name.
+LibTest/core/Math/pow/Math/pow/A07/t01: Fail
+LibTest/core/FallThroughError/url/FallThroughError/url/A01/t01: Fail
+LibTest/core/FallThroughError/url/FallThroughError/url/A01/t02: Fail
+LibTest/core/Math/atan2/Math/atan2/A01/t03: Fail
+LibTest/core/double/operator%/double/operator%/A01/t04: Fail
+LibTest/core/double/round/double/round/A01/t01: Fail
 
 
 [ $arch == x64 ]
