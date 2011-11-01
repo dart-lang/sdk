@@ -6,17 +6,28 @@
 #define BIN_EVENTHANDLER_LINUX_H_
 
 
-typedef struct {
+class InterruptMessage {
+ public:
   intptr_t id;
   Dart_Port dart_port;
   int64_t data;
-} InterruptMessage;
+};
 
 
-typedef struct {
-  Dart_Port dart_port;
-  intptr_t mask;
-} PortData;
+class SocketData {
+ public:
+  void FillPollEvents(struct pollfd* pollfds);
+  bool IsListeningSocket() { return (_mask & (1 << kListeningSocket)) != 0; }
+
+  Dart_Port port() { return _port; }
+  void set_port(Dart_Port port) { _port = port; }
+  intptr_t mask() { return _mask; }
+  void set_mask(intptr_t mask) { _mask = mask; }
+
+ private:
+  Dart_Port _port;
+  intptr_t _mask;
+};
 
 
 class EventHandlerImplementation {
@@ -24,6 +35,7 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   ~EventHandlerImplementation();
 
+  SocketData* GetSocketData(intptr_t fd);
   void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
   void StartEventHandler();
 
@@ -41,14 +53,11 @@ class EventHandlerImplementation {
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   void HandleInterruptFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
-  Dart_Port PortFor(intptr_t fd);
-  bool IsListeningSocket(intptr_t fd);
   intptr_t GetPollEvents(struct pollfd* pollfd);
-  void SetPollEvents(struct pollfd* pollfds, intptr_t mask);
 
-  PortData* port_map_;
-  intptr_t port_map_entries_;
-  intptr_t port_map_size_;
+  SocketData* socket_map_;
+  intptr_t socket_map_entries_;
+  intptr_t socket_map_size_;
   int64_t timeout_;  // Time for next timeout.
   Dart_Port timeout_port_;
   int interrupt_fds_[2];

@@ -7,17 +7,6 @@
 
 #include "bin/builtin.h"
 
-// The event handler delegation class is OS specific.
-#if defined(TARGET_OS_LINUX)
-#include "bin/eventhandler_linux.h"
-#elif defined(TARGET_OS_MACOS)
-#include "bin/eventhandler_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
-#include "bin/eventhandler_win.h"
-#else
-#error Unknown target os.
-#endif
-
 // Flags used to provide information and actions to the eventhandler
 // when sending a message about a file descriptor. These flags should
 // be kept in sync with the constants in socket_impl.dart. For more
@@ -31,6 +20,17 @@ enum MessageFlags {
   kListeningSocket = 16,
 };
 
+
+// The event handler delegation class is OS specific.
+#if defined(TARGET_OS_LINUX)
+#include "bin/eventhandler_linux.h"
+#elif defined(TARGET_OS_MACOS)
+#include "bin/eventhandler_macos.h"
+#elif defined(TARGET_OS_WINDOWS)
+#include "bin/eventhandler_win.h"
+#else
+#error Unknown target os.
+#endif
 
 class EventHandler {
  public:

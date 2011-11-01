@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/eventhandler.h"
 #include "bin/dartutils.h"
+#include "bin/eventhandler.h"
 
 #include "include/dart_api.h"
 

@@ -31,13 +31,27 @@ static const int kInfinityTimeout = -1;
 static const int kTimerId = -1;
 
 
+
+void SocketData::FillPollEvents(struct pollfd* pollfds) {
+  // Do not ask for POLLERR and POLLHUP explicitly as they are
+  // triggered anyway.
+  if ((_mask & (1 << kInEvent)) != 0) {
+    pollfds->events |= POLLIN;
+  }
+  if ((_mask & (1 << kOutEvent)) != 0) {
+    pollfds->events |= POLLOUT;
+  }
+  pollfds->events |= POLLRDHUP;
+}
+
+
 EventHandlerImplementation::EventHandlerImplementation() {
   intptr_t result;
-  port_map_entries_ = 0;
-  port_map_size_ = kInitialPortMapSize;
-  port_map_ = reinterpret_cast<PortData*>(calloc(port_map_size_,
-                                                 sizeof(PortData)));
-  ASSERT(port_map_ != NULL);
+  socket_map_entries_ = 0;
+  socket_map_size_ = kInitialPortMapSize;
+  socket_map_ = reinterpret_cast<SocketData*>(calloc(socket_map_size_,
+                                                     sizeof(SocketData)));
+  ASSERT(socket_map_ != NULL);
   result = pipe(interrupt_fds_);
   if (result != 0) {
     FATAL("Pipe creation failed");
@@ -50,54 +64,50 @@ EventHandlerImplementation::EventHandlerImplementation() {
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
-  free(port_map_);
+  free(socket_map_);
   close(interrupt_fds_[0]);
   close(interrupt_fds_[1]);
 }
 
 
 // TODO(hpayer): Use hash table instead of array.
+SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
+  ASSERT(fd >= 0);
+  if (fd >= socket_map_size_) {
+    intptr_t new_socket_map_size = socket_map_size_;
+    do {
+      new_socket_map_size = new_socket_map_size * kPortMapGrowingFactor;
+    } while (fd >= new_socket_map_size);
+    size_t new_socket_map_bytes = new_socket_map_size * sizeof(SocketData);
+    socket_map_ = reinterpret_cast<SocketData*>(realloc(socket_map_,
+                                                      new_socket_map_bytes));
+    ASSERT(socket_map_ != NULL);
+    size_t socket_map_bytes = socket_map_size_ * sizeof(SocketData);
+    memset(socket_map_ + socket_map_size_,
+           0,
+           new_socket_map_bytes - socket_map_bytes);
+    socket_map_size_ = new_socket_map_size;
+  }
+
+  return socket_map_ + fd;
+}
+
+
 void EventHandlerImplementation::SetPort(intptr_t fd,
                                          Dart_Port dart_port,
                                          intptr_t mask) {
-  ASSERT(fd >= 0);
-  if (fd >= port_map_size_) {
-    intptr_t new_port_map_size = port_map_size_;
-    do {
-      new_port_map_size = new_port_map_size * kPortMapGrowingFactor;
-    } while (fd >= new_port_map_size);
-    size_t new_port_map_bytes = new_port_map_size * sizeof(PortData);
-    port_map_ = reinterpret_cast<PortData*>(realloc(port_map_,
-                                                    new_port_map_bytes));
-    ASSERT(port_map_ != NULL);
-    size_t port_map_bytes = port_map_size_ * sizeof(PortData);
-    memset(port_map_ + port_map_size_,
-           0,
-           new_port_map_bytes - port_map_bytes);
-    port_map_size_ = new_port_map_size;
+  SocketData* sd = GetSocketData(fd);
+
+  // Only change the port map entries count if SetPort changes the
+  // port map state.
+  if (dart_port == 0 && sd->port() != 0) {
+    socket_map_entries_--;
+  } else if (dart_port != 0 && sd->port() == 0) {
+    socket_map_entries_++;
   }
 
-  /*
-   * Only change the port map entries count if SetPort changes
-   * the port map state.
-   */
-  if (dart_port == 0 && PortFor(fd) != 0) {
-    port_map_entries_--;
-  } else if (dart_port != 0 && PortFor(fd) == 0) {
-    port_map_entries_++;
-  }
-  port_map_[fd].dart_port = dart_port;
-  port_map_[fd].mask = mask;
-}
-
-
-Dart_Port EventHandlerImplementation::PortFor(intptr_t fd) {
-  return port_map_[fd].dart_port;
-}
-
-
-bool EventHandlerImplementation::IsListeningSocket(intptr_t fd) {
-  return (port_map_[fd].mask & (1 << kListeningSocket)) != 0;
+  sd->set_port(dart_port);
+  sd->set_mask(mask);
 }
 
 
@@ -139,24 +149,10 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 }
 
 
-void EventHandlerImplementation::SetPollEvents(struct pollfd* pollfds,
-                                               intptr_t mask) {
-  // Do not ask for POLLERR and POLLHUP explicitly as they are
-  // triggered anyway.
-  if ((mask & (1 << kInEvent)) != 0) {
-    pollfds->events |= POLLIN;
-  }
-  if ((mask & (1 << kOutEvent)) != 0) {
-    pollfds->events |= POLLOUT;
-  }
-  pollfds->events |= POLLRDHUP;
-}
-
-
 struct pollfd* EventHandlerImplementation::GetPollFds(intptr_t* pollfds_size) {
   struct pollfd* pollfds;
 
-  intptr_t numPollfds = 1 + port_map_entries_;
+  intptr_t numPollfds = 1 + socket_map_entries_;
   pollfds = reinterpret_cast<struct pollfd*>(calloc(sizeof(struct pollfd),
                                                     numPollfds));
   pollfds[0].fd = interrupt_fds_[0];
@@ -164,11 +160,12 @@ struct pollfd* EventHandlerImplementation::GetPollFds(intptr_t* pollfds_size) {
 
   // TODO(hpayer): optimize the following iteration over the hash map
   int j = 1;
-  for (int i = 0; i < port_map_size_; i++) {
-    if (port_map_[i].dart_port != 0) {
+  for (int i = 0; i < socket_map_size_; i++) {
+    SocketData* sd = &socket_map_[i];
+    if (sd->port() != 0) {
       // Fd is added to the poll set.
       pollfds[j].fd = i;
-      SetPollEvents(&pollfds[j], port_map_[i].mask);
+      sd->FillPollEvents(&pollfds[j]);
       j++;
     }
   }
@@ -216,7 +213,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
   intptr_t event_mask = 0;
-  if (IsListeningSocket(pollfd->fd)) {
+  SocketData* sd = GetSocketData(pollfd->fd);
+  if (sd->IsListeningSocket()) {
     // For listening sockets the POLLIN event indicate that there are
     // connections ready for accept unless accompanied with one of the
     // other flags.
@@ -260,7 +258,7 @@ void EventHandlerImplementation::HandleEvents(struct pollfd* pollfds,
       intptr_t event_mask = GetPollEvents(&pollfds[i]);
       if (event_mask != 0) {
         intptr_t fd = pollfds[i].fd;
-        Dart_Port port = PortFor(fd);
+        Dart_Port port = GetSocketData(fd)->port();
         ASSERT(port != 0);
         UnregisterFd(fd);
         Dart_PostIntArray(port, 1, &event_mask);
