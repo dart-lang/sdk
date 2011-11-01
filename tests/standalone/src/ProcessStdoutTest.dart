@@ -29,30 +29,25 @@ class ProcessStdoutTest {
 
     int received = 0;
 
-    void dataWritten() {
-      void readData() {
-        List<int> buffer = input.read();
-        for (int i = 0; i < buffer.length; i++) {
-          Expect.equals(data[received + i], buffer[i]);
-        }
-        received += buffer.length;
-        if (received == BUFFERSIZE) {
-          process.close();
-        }
+    void readData() {
+      List<int> buffer = input.read();
+      for (int i = 0; i < buffer.length; i++) {
+        Expect.equals(data[received + i], buffer[i]);
       }
-
-      void streamClosed() {
-        Expect.equals(BUFFERSIZE, received);
+      received += buffer.length;
+      if (received == BUFFERSIZE) {
+        process.close();
       }
-
-      input.dataHandler = readData;
-      input.closeHandler = streamClosed;
     }
 
-    bool written = output.write(data, 0, BUFFERSIZE, dataWritten);
-    if (written) {
-      dataWritten();
+    void streamClosed() {
+      Expect.equals(BUFFERSIZE, received);
     }
+
+    output.write(data);
+    output.end();
+    input.dataHandler = readData;
+    input.closeHandler = streamClosed;
   }
 
   static void testMain() {

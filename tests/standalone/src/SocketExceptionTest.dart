@@ -23,7 +23,7 @@ class SocketExceptionTest {
     } catch (Exception ex) {
       wrongExceptionCaught = true;
     }
-    Expect.equals(true, exceptionCaught);
+    Expect.equals(false, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
@@ -56,7 +56,7 @@ class SocketExceptionTest {
     } catch (Exception ex) {
       wrongExceptionCaught = true;
     }
-    Expect.equals(true, exceptionCaught);
+    Expect.equals(false, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
@@ -104,7 +104,7 @@ class SocketExceptionTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(42);
-      bool readDone = output.write(buffer, 0, 12, null);
+      output.writeFrom(buffer, 0, 12);
     } catch (SocketIOException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {

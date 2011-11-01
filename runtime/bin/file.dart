@@ -191,7 +191,6 @@ interface FileInputStream extends InputStream {
 
 
 interface FileOutputStream extends OutputStream {
-  void close();
 }
 
 

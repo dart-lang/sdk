@@ -28,26 +28,20 @@ class ProcessStderrTest {
     process.start();
 
     int received = 0;
-
-    void dataWritten() {
-      void readData() {
-        List<int> buffer = input.read();
-        for (int i = 0; i < buffer.length; i++) {
-          Expect.equals(data[received + i], buffer[i]);
-        }
-        received += buffer.length;
-        if (received == BUFFERSIZE) {
-          process.close();
-        }
+    void readData() {
+      List<int> buffer = input.read();
+      for (int i = 0; i < buffer.length; i++) {
+        Expect.equals(data[received + i], buffer[i]);
       }
-
-      input.dataHandler = readData;
+      received += buffer.length;
+      if (received == BUFFERSIZE) {
+        process.close();
+      }
     }
 
-    bool written = output.write(data, 0, BUFFERSIZE, dataWritten);
-    if (written) {
-      dataWritten();
-    }
+    output.write(data);
+    output.end();
+    input.dataHandler = readData;
   }
 
   static void testMain() {

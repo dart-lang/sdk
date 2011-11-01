@@ -92,10 +92,8 @@ class EchoServerGame {
 
       _socket.setCloseHandler(closeHandler);
       _socket.setErrorHandler(errorHandler);
-      bool written = stream.write(_buffer, 0, MSGSIZE, dataSent);
-      if (written) {
-        dataSent();
-      }
+      stream.write(_buffer);
+      dataSent();
     }
 
     _socket = new Socket(EchoServer.HOST, _port);
@@ -149,7 +147,7 @@ class EchoServer extends Isolate {
             Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
           }
           if (offset == MSGSIZE) {
-            outputStream.write(buffer, 0, buffer.length, null);
+            outputStream.write(buffer);
           }
         }
       }

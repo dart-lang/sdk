@@ -47,7 +47,7 @@ class FileTest {
     String outFilename = getFilename("tests/vm/data/fixed_length_file_out");
     file = new File(outFilename);
     OutputStream output = file.openOutputStream();
-    bool writeDone = output.write(buffer1, 0, 42, null);
+    bool writeDone = output.writeFrom(buffer1, 0, 42);
     Expect.equals(true, writeDone);
     output.close();
     // Now read the contents of the file just written.
@@ -259,11 +259,11 @@ class FileTest {
     Expect.equals(true, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
-    FileOutputStream output = file.openOutputStream();
+    OutputStream output = file.openOutputStream();
     output.close();
     try {
       List<int> buffer = new List<int>(42);
-      bool readDone = output.write(buffer, 0, 12, null);
+      bool readDone = output.writeFrom(buffer, 0, 12);
     } catch (FileIOException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {

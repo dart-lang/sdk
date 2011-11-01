@@ -73,18 +73,41 @@ class _FileOutputStream implements FileOutputStream {
     _file.openSync(true);
   }
 
-  bool write(List<int> buffer, int offset, int len, void callback()) {
-    int bytesWritten = _file.writeListSync(buffer, offset, len);
+  bool write(List<int> buffer) {
+    return _write(buffer, 0, buffer.length);
+  }
 
+  bool writeFrom(List<int> buffer, [int offset, int len]) {
+    return _write(buffer, offset, (len == null) ? buffer.length : len);
+  }
+
+  void end() {
+    _file.closeSync();
+  }
+
+  void close() {
+    _file.closeSync();
+  }
+
+  void set noPendingWriteHandler(void callback()) {
+    // TODO(sgjesse): How to handle this?
+  }
+
+  void set closeHandler(void callback()) {
+    // TODO(sgjesse): How to handle this?
+  }
+
+  void set errorHandler(void callback()) {
+    // TODO(sgjesse): How to handle this?
+  }
+
+  bool _write(List<int> buffer, int offset, int len) {
+    int bytesWritten = _file.writeListSync(buffer, offset, len);
     if (bytesWritten == len) {
       return true;
     } else {
       throw "FileOutputStream: write error";
     }
-  }
-
-  void close() {
-    _file.closeSync();
   }
 
   File _file;

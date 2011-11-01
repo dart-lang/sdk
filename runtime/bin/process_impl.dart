@@ -49,6 +49,12 @@ class _Process implements Process {
     }
     _started = true;
 
+    // Make sure to activate socket handlers now that the file
+    // descriptors have been set.
+    _in._activateHandlers();
+    _out._activateHandlers();
+    _err._activateHandlers();
+
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
     _exitHandler.setDataHandler(() {

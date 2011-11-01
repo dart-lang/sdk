@@ -47,7 +47,7 @@ class _SocketBase {
     _canActivateHandlers = false;
     int event_mask = message[0];
       for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
-        if (((event_mask & (1 << i)) != 0) && _handlerMap[i] !== null) {
+        if (((event_mask & (1 << i)) != 0) && _handlerMap[i] != null) {
           var handleEvent = _handlerMap[i];
 
           // Unregister the out handler before executing it.
@@ -61,17 +61,17 @@ class _SocketBase {
         }
       }
     _canActivateHandlers = true;
-    _doActivateHandlers();
+    _activateHandlers();
   }
 
   void _setHandler(int event, void callback()) {
-    if (callback === null) {
+    if (callback == null) {
       _handlerMask &= ~(1 << event);
     } else {
       _handlerMask |= (1 << event);
     }
     _handlerMap[event] = callback;
-    _doActivateHandlers();
+    _activateHandlers();
   }
 
   void _getPort() native "Socket_GetPort";
@@ -80,7 +80,7 @@ class _SocketBase {
     _setHandler(_ERROR_EVENT, callback);
   }
 
-  void _doActivateHandlers() {
+  void _activateHandlers() {
     if (_canActivateHandlers && (_id >= 0)) {
       int data = _handlerMask;
       if (_isListenSocket()) data |= (1 << _LISTENING_SOCKET);
@@ -105,16 +105,11 @@ class _SocketBase {
       _handler.close();
       _handler = null;
       _id = -1;
-    } else {
+    } else if (_handler != null) {
       // This is to support closing sockets created but never assigned
       // any actual socket.
-      if (_handler === null) {
-        throw new
-            SocketIOException("Error: close failed - invalid socket handle");
-      } else {
-        _handler.close();
-        _handler = null;
-      }
+      _handler.close();
+      _handler = null;
     }
   }
 
