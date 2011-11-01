@@ -69,6 +69,13 @@ LibTest/core/Queue/forEach/Queue/forEach/A01/t04: Fail
 LibTest/core/Queue/some/Queue/some/A01/t06: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A06/t02: Fail
 LibTest/core/StringBuffer/isEmpty/StringBuffer/isEmpty/A01/t01: Fail
+
+
+# List.fromList has been removed.
+LibTest/core/List/List.fromList/*: Fail
+
+
+
 [ $component == vm && $unchecked ]
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Fail
 LangGuideTest/08_Expressions/A02/t02: Fail
@@ -81,10 +88,6 @@ LibTest/core/List/forEach/List/forEach/A01/t07: Fail
 LibTest/core/List/some/List/some/A01/t04: Fail
 LibTest/core/List/some/List/some/A01/t05: Fail
 LibTest/core/List/some/List/some/A01/t06: Fail
-
-
-# List.fromList has been removed.
-LibTest/core/List/List.fromList/*: Fail
 
 
 # New problems on 2011-11-01.
@@ -301,7 +304,6 @@ LibTest/core/Isolate/spawn/Isolate/spawn/A01/t12: Fail
 LibTest/core/List/every/List/every/A01/t02: Fail
 LibTest/core/List/every/List/every/A01/t09: Fail
 LibTest/core/List/every/List/every/A01/t10: Fail
-LibTest/core/List/filter/List/filter/A01/t07: Fail
 LibTest/core/List/filter/List/filter/A01/t09: Fail
 LibTest/core/List/forEach/List/forEach/A01/t04: Fail
 LibTest/core/List/some/List/some/A01/t02: Fail
