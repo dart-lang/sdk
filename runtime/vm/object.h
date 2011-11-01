@@ -611,14 +611,8 @@ class Class : public Object {
   void set_constants(const Array& value) const;
   RawArray* constants() const;
 
-  void set_num_constants(intptr_t value) const;
-  intptr_t num_constants() const;
-
   void set_canonical_types(const Array& value) const;
   RawArray* canonical_types() const;
-
-  void set_num_canonical_types(intptr_t value) const;
-  intptr_t num_canonical_types() const;
 
   void CalculateFieldOffsets() const;
 

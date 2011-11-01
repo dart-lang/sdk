@@ -214,8 +214,6 @@ class RawClass : public RawObject {
   intptr_t instance_size_;
   ObjectKind instance_kind_;
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
-  intptr_t num_constants_;  // Number of objects in constants_ array.
-  intptr_t num_canonical_types_;  // Number of types in canonical_types_ array.
   intptr_t next_field_offset_;  // Offset of then next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   int8_t class_state_;  // Of type ClassState.

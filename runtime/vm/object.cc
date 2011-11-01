@@ -772,8 +772,6 @@ RawClass* Class::New() {
   // references, but do not recompute size.
   result.raw_ptr()->class_state_ = RawClass::kPreFinalized;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
-  result.raw_ptr()->num_constants_ = 0;
-  result.raw_ptr()->num_canonical_types_ = 0;
   result.raw_ptr()->num_native_fields_ = 0;
   result.InitEmptyFields();
   return result.raw();
@@ -1010,8 +1008,6 @@ RawClass* Class::New(const String& name, const Script& script) {
   result.raw_ptr()->is_interface_ = false;
   result.raw_ptr()->class_state_ = RawClass::kAllocated;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
-  result.raw_ptr()->num_constants_ = 0;
-  result.raw_ptr()->num_canonical_types_ = 0;
   result.raw_ptr()->num_native_fields_ = 0;
   result.InitEmptyFields();
   return result.raw();
@@ -1202,16 +1198,6 @@ void Class::set_constants(const Array& value) const {
 }
 
 
-intptr_t Class::num_constants() const {
-  return raw_ptr()->num_constants_;
-}
-
-
-void Class::set_num_constants(intptr_t value) const {
-  raw_ptr()->num_constants_ = value;
-}
-
-
 RawArray* Class::canonical_types() const {
   return raw_ptr()->canonical_types_;
 }
@@ -1219,16 +1205,6 @@ RawArray* Class::canonical_types() const {
 void Class::set_canonical_types(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->canonical_types_, value.raw());
-}
-
-
-intptr_t Class::num_canonical_types() const {
-  return raw_ptr()->num_canonical_types_;
-}
-
-
-void Class::set_num_canonical_types(intptr_t value) const {
-  raw_ptr()->num_canonical_types_ = value;
 }
 
 
@@ -2062,30 +2038,32 @@ RawType* ParameterizedType::Canonicalize() const {
     // the test above by an assert?
     return this->raw();
   }
-  const intptr_t num_canonical_types = cls.num_canonical_types();
-  ASSERT(canonical_types.Length() >= num_canonical_types);
+  const intptr_t canonical_types_len = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
   Type& type = Type::Handle();
-  for (int i = 0; i < num_canonical_types; i++) {
-    type ^= canonical_types.At(i);
-    ASSERT(!type.IsNull());
+  intptr_t index = 0;
+  while (index < canonical_types_len) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
     if (this->Equals(type)) {
       return type.raw();
     }
+    index++;
   }
   // The type needs to be added to the list. Grow the list if it is full.
-  if (canonical_types.Length() == num_canonical_types) {
+  if (index == canonical_types_len) {
     const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
     const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
     const Array& new_canonical_types =
         Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
     cls.set_canonical_types(new_canonical_types);
-    new_canonical_types.SetAt(num_canonical_types, *this);
+    new_canonical_types.SetAt(index, *this);
   } else {
-    canonical_types.SetAt(num_canonical_types, *this);
+    canonical_types.SetAt(index, *this);
   }
-  cls.set_num_canonical_types(num_canonical_types + 1);
   return this->raw();
 }
 
@@ -4810,23 +4788,27 @@ bool Instance::Equals(const Instance& other) const {
 
 
 RawInstance* Instance::Canonicalize() const {
+  ASSERT(!IsNull());
   const Class& cls = Class::Handle(this->clazz());
   Array& constants = Array::Handle(cls.constants());
-  const intptr_t num_constants = cls.num_constants();
-  ASSERT(constants.Length() >= num_constants);
+  const intptr_t constants_len = constants.Length();
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
   Instance& norm_value = Instance::Handle();
-  for (int i = 0; i < num_constants; i++) {
-    norm_value ^= constants.At(i);
-    ASSERT(!norm_value.IsNull());
+  intptr_t index = 0;
+  while (index < constants_len) {
+    norm_value ^= constants.At(index);
+    if (norm_value.IsNull()) {
+      break;
+    }
     if (this->Equals(norm_value)) {
       return norm_value.raw();
     }
+    index++;
   }
   // The value needs to be added to the list. Grow the list if
   // it is full.
-  if (constants.Length() == num_constants) {
+  if (index == constants_len) {
     const intptr_t kInitialConstLength = 4;
     const intptr_t old_length = constants.Length();
     const intptr_t new_length =
@@ -4834,11 +4816,10 @@ RawInstance* Instance::Canonicalize() const {
     const Array& new_constants =
         Array::Handle(Array::Grow(constants, new_length, Heap::kOld));
     cls.set_constants(new_constants);
-    new_constants.SetAt(num_constants, *this);
+    new_constants.SetAt(index, *this);
   } else {
-    constants.SetAt(num_constants, *this);
+    constants.SetAt(index, *this);
   }
-  cls.set_num_constants(num_constants + 1);
   return this->raw();
 }
 
