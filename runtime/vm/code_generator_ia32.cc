@@ -1233,8 +1233,8 @@ void CodeGenerator::VisitIncrOpInstanceFieldNode(
     IncrOpInstanceFieldNode* node) {
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
   node->receiver()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
   __ pushl(Address(ESP, 0));  // Duplicate receiver (preserve for setter).
+  MarkDeoptPoint(node->getter_id(), node->token_index());
   GenerateInstanceGetterCall(node->getter_id(),
                              node->token_index(),
                              node->field_name());

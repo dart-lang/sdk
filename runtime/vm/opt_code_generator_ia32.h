@@ -25,6 +25,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
 
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitIncrOpLocalNode(IncrOpLocalNode* node);
+  virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitInstanceGetterNode(InstanceGetterNode* node);
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitComparisonNode(ComparisonNode* node);
@@ -67,8 +68,11 @@ class OptimizingCodeGenerator : public CodeGenerator {
   void IntrinsifyGetter();
   void IntrinsifySetter();
 
-  void InlineInstanceGettersWithSameTarget(InstanceGetterNode* node,
-                                           const Function& target);
+  bool ICDataToSameInlineableInstanceGetter(const ICData& ic_data);
+  void InlineInstanceGettersWithSameTarget(AstNode* node,
+                                           AstNode* receiver,
+                                           const String& field_name,
+                                           Register recv_reg);
 
   // Helper method to load a value quickly into register instead of pushing
   // and popping it.
@@ -79,6 +83,11 @@ class OptimizingCodeGenerator : public CodeGenerator {
                     Register right_reg);
 
   bool IsInlineableInstanceGetter(const Function& function);
+  void InlineInstanceGetter(AstNode* node,
+                            intptr_t id,
+                            AstNode* receiver,
+                            const String& field_name,
+                            Register recv_reg);
 
   void CallDeoptimize(intptr_t node_id, intptr_t token_index);
 
