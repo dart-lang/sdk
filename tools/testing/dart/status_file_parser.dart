@@ -30,7 +30,7 @@ String getFilename(String path) =>
  
 void ReadConfigurationInto(path, sections) {
   File file = new File(getFilename(path));
-  Expect.isTrue(file.existsSync());  // TODO(whesse): Handle missing file.
+  if (!file.existsSync()) return;  // TODO(whesse): Handle missing file.
   FileInputStream file_stream = file.openInputStream();
   StringInputStream lines = new StringInputStream(file_stream);
 
