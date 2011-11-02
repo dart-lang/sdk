@@ -45,7 +45,7 @@ FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory
 StringStreamTest: Skip # Uses InputStream
-
+StatusFileParserTest: Skip # Uses FileInputStream
 
 [ $component == dartc || $component == chromium ]
 *: Skip

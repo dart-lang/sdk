@@ -7,24 +7,28 @@
 #import("../../../tools/testing/dart/status_file_parser.dart");
 
 
-main() {
-  ReadConfigurationInto("tests/co19/co19-compiler.status", new List<Section>());
-  ReadConfigurationInto("tests/co19/co19-runtime.status", new List<Section>());
-  ReadConfigurationInto("tests/corelib/corelib.status", new List<Section>());
-  ReadConfigurationInto("tests/isolate/isolate.status", new List<Section>());
-  ReadConfigurationInto("tests/language/language.status", new List<Section>());
-  ReadConfigurationInto("tests/standalone/standalone.status",
-                        new List<Section>());
-  ReadConfigurationInto("tests/stub-generator/stub-generator.status",
-                        new List<Section>());
-  ReadConfigurationInto("samples/tests/samples/samples.status",
-                        new List<Section>());
-  ReadConfigurationInto("runtime/tests/vm/vm.status", new List<Section>());
-  ReadConfigurationInto("frog/tests/frog/frog.status", new List<Section>());
-  ReadConfigurationInto("compiler/tests/dartc/dartc.status",
-                        new List<Section>());
-  ReadConfigurationInto("client/tests/client/client.status",
-                        new List<Section>());
-  ReadConfigurationInto("client/tests/dartc/dartc.status",
-                        new List<Section>());
+void main() {
+  TestReadStatusFile("tests/co19/co19-compiler.status");
+  TestReadStatusFile("tests/co19/co19-runtime.status");
+  TestReadStatusFile("tests/corelib/corelib.status");
+  TestReadStatusFile("tests/isolate/isolate.status");
+  TestReadStatusFile("tests/language/language.status");
+  TestReadStatusFile("tests/standalone/standalone.status");
+  TestReadStatusFile("tests/stub-generator/stub-generator.status");
+  TestReadStatusFile("samples/tests/samples/samples.status");
+  TestReadStatusFile("runtime/tests/vm/vm.status");
+  TestReadStatusFile("frog/tests/frog/frog.status");
+  TestReadStatusFile("compiler/tests/dartc/dartc.status");
+  TestReadStatusFile("client/tests/client/client.status");
+  TestReadStatusFile("client/tests/dartc/dartc.status");
+}
+
+
+void TestReadStatusFile(String filePath) {
+  File file = new File(getFilename(filePath));
+  if (file.existsSync()) {
+    List<Section> sections = new List<Section>();
+    ReadConfigurationInto(filePath, sections);
+    Expect.isTrue(sections.length > 0);
+  }
 }
