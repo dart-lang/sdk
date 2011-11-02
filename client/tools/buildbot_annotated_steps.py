@@ -26,7 +26,7 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 REVISION = 'BUILDBOT_REVISION'
 
 # latest dartium location
-DARTIUM_VERSION_FILE = 'tests/drt/LAST_VERSION'
+DARTIUM_VERSION_FILE = 'client/tests/drt/LAST_VERSION'
 DARTIUM_V_MATCHER = (
     'gs://dartium-archive/[^/]*/dartium-\w*-inc-([0-9]*).([0-9]*).zip')
 
@@ -133,7 +133,7 @@ def ProcessDartClientTests(component, mode, platform, name):
 
   if component == 'dartium':
     if os.path.exists(DARTIUM_VERSION_FILE):
-      latest = open(version_file, 'r').read()
+      latest = open(DARTIUM_VERSION_FILE, 'r').read()
       match = re.match(DARTIUM_V_MATCHER, latest)
       if match:
         print '@@@BUILD_STEP vm r%s (dartium r%s)@@@' % (
