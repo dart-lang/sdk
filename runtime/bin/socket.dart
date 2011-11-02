@@ -18,12 +18,12 @@ interface ServerSocket factory _ServerSocket {
    * The connection handler gets executed when there are incoming connections
    * on the socket.
    */
-  void setConnectionHandler(void callback());
+  void set connectionHandler(void callback());
 
   /*
    * The error handler gets executed when a socket error occurs.
    */
-  void setErrorHandler(void callback());
+  void set errorHandler(void callback());
 
   /*
    * Returns the port used by this socket.
@@ -71,28 +71,28 @@ interface Socket factory _Socket {
    * The connect handler gets executed when connection to a given host
    * succeeded.
    */
-  void setConnectHandler(void callback());
+  void set connectHandler(void callback());
 
   /*
    * The data handler gets executed when data becomes available at the socket.
    */
-  void setDataHandler(void callback());
+  void set dataHandler(void callback());
 
   /*
    * The write handler gets executed when the socket becomes available for
    * writing.
    */
-  void setWriteHandler(void callback());
+  void set writeHandler(void callback());
 
   /*
    * The error handler gets executed when a socket error occurs.
    */
-  void setErrorHandler(void callback());
+  void set errorHandler(void callback());
 
   /*
    * The close handler gets executed when the socket was closed.
    */
-  void setCloseHandler(void callback());
+  void set closeHandler(void callback());
 
   /*
    * Returns input stream to the socket.

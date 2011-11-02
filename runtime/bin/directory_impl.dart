@@ -33,7 +33,7 @@ class _Directory implements Directory {
 
   _Directory(String this._path);
 
-  bool exists() {
+  bool existsSync() {
     int exists = _exists(_path);
     if (exists < 0) {
       // TODO(ager): Supply a better error message.
@@ -42,14 +42,14 @@ class _Directory implements Directory {
     return (exists == 1);
   }
 
-  void create() {
+  void createSync() {
     if (!_create(_path)) {
       // TODO(ager): Supply a better error message.
       throw new DirectoryException("Directory creation failed: $_path");
     }
   }
 
-  void delete() {
+  void deleteSync() {
     if (!_delete(_path)) {
       // TODO(ager): Supply a better error message.
       throw new DirectoryException("Directory deletion failed: $_path");
@@ -120,19 +120,19 @@ class _Directory implements Directory {
     });
   }
 
-  void setDirHandler(void dirHandler(String dir)) {
+  void set dirHandler(void dirHandler(String dir)) {
     _dirHandler = dirHandler;
   }
 
-  void setFileHandler(void fileHandler(String file)) {
+  void set fileHandler(void fileHandler(String file)) {
     _fileHandler = fileHandler;
   }
 
-  void setDoneHandler(void doneHandler(bool completed)) {
+  void set doneHandler(void doneHandler(bool completed)) {
     _doneHandler = doneHandler;
   }
 
-  void setErrorHandler(void errorHandler(String error)) {
+  void set errorHandler(void errorHandler(String error)) {
     _errorHandler = errorHandler;
   }
 

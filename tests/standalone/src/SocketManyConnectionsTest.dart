@@ -37,7 +37,7 @@ class SocketManyConnectionsTest {
     for (int i = 0; i < CONNECTIONS; i++) {
       _sockets[i] = new Socket(HOST, _port);
       if (_sockets[i] !== null) {
-        _sockets[i].setConnectHandler(connectHandler);
+        _sockets[i].connectHandler = connectHandler;
       } else {
         Expect.fail("socket creation failed");
       }
@@ -82,8 +82,8 @@ class TestServer extends Isolate {
 
       _client = _server.accept();
       _connections++;
-      _client.setCloseHandler(closeHandler);
-      _client.setErrorHandler(errorHandler);
+      _client.closeHandler = closeHandler;
+      _client.errorHandler = errorHandler;
     }
 
     void errorHandlerServer() {
@@ -95,8 +95,8 @@ class TestServer extends Isolate {
       if (message == SERVERINIT) {
         _server = new ServerSocket(HOST, 0, 10);
         Expect.equals(true, _server !== null);
-        _server.setConnectionHandler(connectionHandler);
-        _server.setErrorHandler(errorHandlerServer);
+        _server.connectionHandler = connectionHandler;
+        _server.errorHandler = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else if (message == SERVERSHUTDOWN) {
         _server.close();

@@ -146,7 +146,7 @@ class _Process implements Process {
     _closed = true;
   }
 
-  void setExitHandler(void callback(int exitCode)) {
+  void set exitHandler(void callback(int exitCode)) {
     if (_closed) {
       throw new ProcessException("Process closed");
     }

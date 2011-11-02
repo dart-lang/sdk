@@ -76,7 +76,7 @@ class _SocketBase {
 
   void _getPort() native "Socket_GetPort";
 
-  void setErrorHandler(void callback()) {
+  void set errorHandler(void callback()) {
     _setHandler(_ERROR_EVENT, callback);
   }
 
@@ -185,7 +185,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   bool _createBindListen(String bindAddress, int port, int backlog)
       native "ServerSocket_CreateBindListen";
 
-  void setConnectionHandler(void callback()) {
+  void set connectionHandler(void callback()) {
     _setHandler(_IN_EVENT, callback);
   }
 
@@ -269,19 +269,19 @@ class _Socket extends _SocketBase implements Socket {
 
   bool _createConnect(String host, int port) native "Socket_CreateConnect";
 
-  void setWriteHandler(void callback()) {
+  void set writeHandler(void callback()) {
     _setHandler(_OUT_EVENT, callback);
   }
 
-  void setConnectHandler(void callback()) {
+  void set connectHandler(void callback()) {
     _setHandler(_OUT_EVENT, callback);
   }
 
-  void setDataHandler(void callback()) {
+  void set dataHandler(void callback()) {
     _setHandler(_IN_EVENT, callback);
   }
 
-  void setCloseHandler(void callback()) {
+  void set closeHandler(void callback()) {
     _setHandler(_CLOSE_EVENT, callback);
   }
 

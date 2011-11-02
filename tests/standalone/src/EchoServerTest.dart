@@ -54,7 +54,7 @@ class EchoServerGame {
           for (int i = 0; i < bytesRead; i++) {
             Expect.equals(FIRSTCHAR + i, bufferReceived[i]);
           }
-          _socket.setDataHandler(handleRead);
+          _socket.dataHandler = handleRead;
         } else {
           // We check every time the whole buffer to verify data integrity.
           for (int i = 0; i < MSGSIZE; i++) {
@@ -91,22 +91,22 @@ class EchoServerGame {
           bytesWritten += _socket.writeList(
               _buffer, bytesWritten, MSGSIZE - bytesWritten);
           if (bytesWritten < MSGSIZE) {
-            _socket.setWriteHandler(handleWrite);
+            _socket.writeHandler = handleWrite;
           }
         }
 
         handleWrite();
       }
 
-      _socket.setDataHandler(messageHandler);
-      _socket.setCloseHandler(closeHandler);
-      _socket.setErrorHandler(errorHandler);
+      _socket.dataHandler = messageHandler;
+      _socket.closeHandler = closeHandler;
+      _socket.errorHandler = errorHandler;
       writeMessage();
     }
 
     _socket = new Socket(EchoServer.HOST, _port);
     if (_socket !== null) {
-      _socket.setConnectHandler(connectHandler);
+      _socket.connectHandler = connectHandler;
     } else {
       Expect.fail("socket creation failed");
     }
@@ -157,7 +157,7 @@ class EchoServer extends Isolate {
               for (int i = 0; i < bytesRead; i++) {
                 Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
               }
-              _client.setDataHandler(handleRead);
+              _client.dataHandler = handleRead;
             } else {
               // We check every time the whole buffer to verify data integrity.
               for (int i = 0; i < msgSize; i++) {
@@ -173,7 +173,7 @@ class EchoServer extends Isolate {
                         buffer, bytesWritten, msgSize - bytesWritten);
                   bytesWritten += written;
                   if (bytesWritten < msgSize) {
-                    _client.setWriteHandler(handleWrite);
+                    _client.writeHandler = handleWrite;
                   }
                 }
                 handleWrite();
@@ -196,9 +196,9 @@ class EchoServer extends Isolate {
       }
 
       _client = _server.accept();
-      _client.setDataHandler(messageHandler);
-      _client.setCloseHandler(closeHandler);
-      _client.setErrorHandler(errorHandler);
+      _client.dataHandler = messageHandler;
+      _client.closeHandler = closeHandler;
+      _client.errorHandler = errorHandler;
     }
 
     void errorHandlerServer() {
@@ -210,8 +210,8 @@ class EchoServer extends Isolate {
       if (message == EchoServerGame.SERVERINIT) {
         _server = new ServerSocket(HOST, 0, 10);
         Expect.equals(true, _server !== null);
-        _server.setConnectionHandler(connectionHandler);
-        _server.setErrorHandler(errorHandlerServer);
+        _server.connectionHandler = connectionHandler;
+        _server.errorHandler = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else if (message == EchoServerGame.SERVERSHUTDOWN) {
         _server.close();

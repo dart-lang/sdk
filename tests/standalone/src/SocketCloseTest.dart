@@ -53,9 +53,9 @@ class SocketClose {
     }
 
     void connectHandler() {
-      _socket.setDataHandler(dataHandler);
-      _socket.setCloseHandler(closeHandler);
-      _socket.setErrorHandler(errorHandler);
+      _socket.dataHandler = dataHandler;
+      _socket.closeHandler = closeHandler;
+      _socket.errorHandler = errorHandler;
 
       if ((_iterations % 2) == 0) {
         _socket.writeList("Hello".charCodes(), 0, 5);
@@ -64,7 +64,7 @@ class SocketClose {
 
     _socket = new Socket(SocketCloseServer.HOST, _port);
     Expect.equals(true, _socket !== null);
-    _socket.setConnectHandler(connectHandler);
+    _socket.connectHandler = connectHandler;
   }
 
   void start() {
@@ -128,9 +128,9 @@ class SocketCloseServer extends Isolate {
       if ((_iterations % 2) == 1) {
         _client.close();
       }
-      _client.setDataHandler(messageHandler);
-      _client.setCloseHandler(closeHandler);
-      _client.setErrorHandler(errorHandler);
+      _client.dataHandler = messageHandler;
+      _client.closeHandler = closeHandler;
+      _client.errorHandler = errorHandler;
       _iterations++;
     }
 
@@ -146,8 +146,8 @@ class SocketCloseServer extends Isolate {
         _iterations = 0;
         _server = new ServerSocket(HOST, 0, 10);
         Expect.equals(true, _server !== null);
-        _server.setConnectionHandler(connectionHandler);
-        _server.setErrorHandler(errorHandlerServer);
+        _server.connectionHandler = connectionHandler;
+        _server.errorHandler = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else if (message == SocketClose.SERVERSHUTDOWN) {
         Expect.equals(SocketClose.ITERATIONS/2, _dataEvents);

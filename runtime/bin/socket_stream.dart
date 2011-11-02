@@ -41,15 +41,15 @@ class SocketInputStream implements InputStream {
   }
 
   void set dataHandler(void callback()) {
-    _socket.setDataHandler(callback);
+    _socket.dataHandler = callback;
   }
 
   void set closeHandler(void callback()) {
-    _socket.setCloseHandler(callback);
+    _socket.closeHandler = callback;
   }
 
   void set errorHandler(void callback()) {
-    _socket.setErrorHandler(callback);
+    _socket.errorHandler = callback;
   }
 
   Socket _socket;
@@ -105,8 +105,8 @@ class _BufferList2 {
 class SocketOutputStream implements OutputStream {
   SocketOutputStream(Socket socket)
       : _socket = socket, _pendingWrites = new _BufferList2() {
-    _socket.setWriteHandler(_writeHandler);
-    _socket.setErrorHandler(_errorHandler);
+    _socket.writeHandler = _writeHandler;
+    _socket.errorHandler = _errorHandler;
   }
 
   bool write(List<int> buffer) {
@@ -126,7 +126,7 @@ class SocketOutputStream implements OutputStream {
   }
 
   void close() {
-    _socket.setWriteHandler(null);
+    _socket.writeHandler = null;
     _pendingWrites.clear();
     _socket.close();
     _ended = true;
@@ -134,15 +134,15 @@ class SocketOutputStream implements OutputStream {
 
   void set noPendingWriteHandler(void callback()) {
     _noPendingWriteHandler = callback;
-    _socket.setWriteHandler(_writeHandler);
+    _socket.writeHandler = _writeHandler;
   }
 
   void set closeHandler(void callback()) {
-    _socket.setCloseHandler(callback());
+    _socket.closeHandler = callback;
   }
 
   void set errorHandler(void callback()) {
-    _streamErrorHandler = callback();
+    _streamErrorHandler = callback;
   }
 
   bool _write(List<int> buffer, int offset, int len, bool copyBuffer) {
@@ -167,7 +167,7 @@ class SocketOutputStream implements OutputStream {
   }
 
   void _writeHandler() {
-    _socket.setWriteHandler(_writeHandler);
+    _socket.writeHandler = _writeHandler;
     // Write as much buffered data to the socket as possible.
     while (!_pendingWrites.isEmpty()) {
       List<int> buffer = _pendingWrites.first;
