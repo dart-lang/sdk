@@ -169,7 +169,10 @@ public class Elements {
   }
 
   static ConstructorElement lookupConstructor(ClassElement cls, String name) {
-    return ((ClassElementImplementation) cls).lookupConstructor(name);
+    if (cls instanceof  ClassElementImplementation) {
+      return ((ClassElementImplementation) cls).lookupConstructor(name);
+    }
+    return null;
   }
 
   public static MethodElement lookupLocalMethod(ClassElement cls, String name) {

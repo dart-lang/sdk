@@ -76,6 +76,7 @@ Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
 Prefix14Test: Fail                       # Bug 5406175
 Prefix15Test: Skip                       # Bug 5406175
+Prefix16NegativeTest: Fail               # Bug 5532534
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
@@ -111,7 +112,7 @@ NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 LocalFunction3Test: Fail     # Bug 4202974.
 MethodOverrideTest: Crash    # Bug 5516001.
-DynamicTest: Fail            # Bug 5527899.
+DynamicTest: Crash            # Bug 5527899.
 
 FieldNegativeTest: Fail      # Bug 4207626.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
@@ -160,6 +161,8 @@ BlackListedTest/09: Fail # Bug 5469684
 BlackListedTest/10: Fail # Bug 5469684
 BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
+BlackListedTest/13: Crash # Bug 5469684
+BlackListedTest/14: Crash # Bug 5469684
 
 # VM specific tests that should not be run by DartC.
 *VMTest: Skip

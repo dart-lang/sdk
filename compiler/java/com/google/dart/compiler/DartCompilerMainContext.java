@@ -8,7 +8,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.io.IOException;

@@ -41,6 +41,8 @@ public enum ResolverErrorCode implements ErrorCode {
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATE_DEFINITION("duplicate definition of %s"),
   DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
+  DYNAMIC_EXTENDS("Dynamic can not be used as superclass"),
+  DYNAMIC_IMPLEMENTS("Dynamic can not be used as superinterface"),
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
       "expected an instance field in the super class, but got %s"),
   EXPECTED_CONSTANT_EXPRESSION("Expected constant expression"),
@@ -77,6 +79,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NO_SUCH_TYPE("no such type \"%s\""),
+  NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
   NOT_A_CLASS("\"%s\" is not a class"),
   NOT_A_CLASS_OR_INTERFACE("\"%s\" is not a class or interface"),
   NOT_A_LABEL("\"%s\" is not a label"),

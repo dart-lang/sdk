@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {
-  main() {
-    Map<String, int, int> map = {'foo':1};
-  }
+Map<String> foo;  // Static type warning: Map takes 2 type arguments.
+
+main() {
+  foo = null;
 }

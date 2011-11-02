@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2011, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -174,6 +174,8 @@ LibTest/core/List/List.fromList/*: Fail
 
 # New problems on 2011-11-01.
 [ $component == dartc ]
+LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail # Bug 5532690
+LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail # Bug 5532690
 LangSpecTest/13_Types/13_1_Static_Types/A04/t01: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t02: Fail
@@ -201,7 +203,7 @@ LangSpecTest/13_Types/13_4_Interface_Types/A12/t17: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t01: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t02: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t03: Crash
-LangSpecTest/13_Types/13_5_Function_Types/A01/t05: Fail
+LangSpecTest/13_Types/13_5_Function_Types/A01/t05: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t06: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t07: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t08: Crash
@@ -220,7 +222,16 @@ LangSpecTest/13_Types/13_5_Function_Types/A01/t20: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t21: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t22: Crash
 LangSpecTest/13_Types/13_5_Function_Types/A01/t23: Crash
+
 LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t01: Fail
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t01: Fail # Bug 5532690
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t02: Fail # Bug 5532690
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t03: Fail # Bug 5532690
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t04: Fail # Bug 5532690
+LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t02: Fail # Bug 5532690
+LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t03: Fail # Bug 5532690
+
+
 LibTest/core/AssertError/column/AssertError/column/A01/t01: Fail
 LibTest/core/AssertError/column/AssertError/column/A01/t02: Fail
 LibTest/core/AssertError/failedAssertion/AssertError/failedAssertion/A01/t01: Fail

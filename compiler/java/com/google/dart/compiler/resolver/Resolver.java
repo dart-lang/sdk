@@ -420,7 +420,11 @@ public class Resolver {
 
     private void resolveVariableStatement(DartVariableStatement node,
                                           boolean isImplicitlyInitialized) {
-       Type type = resolveType(node.getTypeNode(), inStaticContext(currentMethod));
+      Type type =
+          resolveType(
+              node.getTypeNode(),
+              inStaticContext(currentMethod),
+              TypeErrorCode.NO_SUCH_TYPE);
        for (DartVariable variable : node.getVariables()) {
          Elements.setType(resolveVariable(variable, node.getModifiers()), type);
          checkVariableStatement(node, variable, isImplicitlyInitialized);
@@ -702,7 +706,7 @@ public class Resolver {
 
     @Override
     public Element visitTypeNode(DartTypeNode x) {
-      return resolveType(x, inStaticContext(currentMethod)).getElement();
+      return resolveType(x, inStaticContext(currentMethod), ResolverErrorCode.NO_SUCH_TYPE).getElement();
     }
 
     @Override
@@ -883,7 +887,9 @@ public class Resolver {
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
         @Override public Element visitTypeNode(DartTypeNode type) {
-          return recordType(type, resolveType(type, inStaticContext(currentMethod)));
+          return recordType(
+              type,
+              resolveType(type, inStaticContext(currentMethod), ResolverErrorCode.NO_SUCH_TYPE));
         }
 
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
@@ -1194,8 +1200,13 @@ public class Resolver {
     @Override
     public Element visitMapLiteral(DartMapLiteral node) {
       List<DartTypeNode> typeArgs = node.getTypeArguments();
-      InterfaceType type = topLevelContext.instantiateParameterizedType(
-        defaultLiteralMapType.getElement(), node, typeArgs, inStaticContext(currentMethod));
+      InterfaceType type =
+          topLevelContext.instantiateParameterizedType(
+              defaultLiteralMapType.getElement(),
+              node,
+              typeArgs,
+              inStaticContext(currentMethod),
+              ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=2)
       recordType(node, type);
       visit(node.getEntries());
@@ -1205,8 +1216,13 @@ public class Resolver {
     @Override
     public Element visitArrayLiteral(DartArrayLiteral node) {
       List<DartTypeNode> typeArgs = node.getTypeArguments();
-      InterfaceType type = topLevelContext.instantiateParameterizedType(rawArrayType.getElement(),
-        node, typeArgs, inStaticContext(currentMethod));
+      InterfaceType type =
+          topLevelContext.instantiateParameterizedType(
+              rawArrayType.getElement(),
+              node,
+              typeArgs,
+              inStaticContext(currentMethod),
+              ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=1)
       recordType(node, type);
       visit(node.getExpressions());

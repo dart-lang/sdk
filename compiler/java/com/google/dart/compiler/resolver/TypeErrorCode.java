@@ -27,9 +27,10 @@ public enum TypeErrorCode implements ErrorCode {
   MISSING_ARGUMENT("missing argument of type %s"),
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
   NO_SUCH_TYPE("no such type \"%s\""),
+  NOT_A_FUNCTION("\"%s\" is not a function"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
-  NOT_A_FUNCTION("\"%s\" is not a function"),
+  NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),
@@ -37,7 +38,8 @@ public enum TypeErrorCode implements ErrorCode {
   SUPERTYPE_HAS_METHOD("%s is a method in %s"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   VOID("expression does not yield a value"),
-  VOID_CANNOT_RETURN_VALUE("cannot return a value from a void function");
+  VOID_CANNOT_RETURN_VALUE("cannot return a value from a void function"),
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");
   private final ErrorSeverity severity;
   private final String message;
 

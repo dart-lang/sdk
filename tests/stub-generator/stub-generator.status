@@ -7,6 +7,8 @@ prefix stub-generator
 [ $component == vm ]
 
 [ $component == dartc ]
+MintMakerPromiseWithStubsTest : Skip    # Bug 5365165
+MintMakerFullyIsolatedTest : Skip       # Bug 5365165
 
 [ $arch == x64 ]
 *: Skip

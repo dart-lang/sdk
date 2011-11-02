@@ -37,16 +37,16 @@ import java.util.List;
  */
 abstract class ResolverTestCase extends TestCase {
 
-  private List<DartCompilationError> encounteredErrors = Lists.newArrayList();
+  private List<DartCompilationError> parseErrors = Lists.newArrayList();
 
   @Override
   public void setUp() {
-    resetExpectedErrors();
+    resetParseErrors();
   }
 
   @Override
   public void tearDown() {
-    resetExpectedErrors();
+    resetParseErrors();
   }
 
   static Scope resolve(DartUnit unit, TestCompilerContext context) {
@@ -283,7 +283,7 @@ abstract class ResolverTestCase extends TestCase {
     return new DartCompilerListener() {
       @Override
       public void onError(DartCompilationError event) {
-        encounteredErrors.add(event);
+        parseErrors.add(event);
       }
 
       @Override
@@ -293,7 +293,7 @@ abstract class ResolverTestCase extends TestCase {
   }
 
   protected void checkExpectedErrors(ErrorCode[] errorCodes) {
-    checkExpectedErrors(encounteredErrors, errorCodes, null);
+    checkExpectedErrors(parseErrors, errorCodes, null);
   }
 
   /**
@@ -332,7 +332,7 @@ abstract class ResolverTestCase extends TestCase {
     return new TestCompilerContext() {
       @Override
       public void onError(DartCompilationError event) {
-        recordError(event);
+        recordParseError(event);
       }
     };
   }
@@ -340,16 +340,16 @@ abstract class ResolverTestCase extends TestCase {
   /**
    * Resets the global list of encountered errors.  Call this before evaluating a new test.
    */
-  protected void resetExpectedErrors() {
-    encounteredErrors = Lists.newArrayList();
+  protected void resetParseErrors() {
+    parseErrors = Lists.newArrayList();
   }
 
   /**
    * Save an error event in the global list of encountered errors.  For use by
    * custom {@link DartCompilerListener} implementations.
    */
-  protected void recordError(DartCompilationError event) {
-    encounteredErrors.add(event);
+  protected void recordParseError(DartCompilationError event) {
+    parseErrors.add(event);
   }
 
   protected void printSource(String source) {
@@ -379,23 +379,29 @@ abstract class ResolverTestCase extends TestCase {
 
   /**
    * Convenience method to parse and resolve a code snippet, then test for error codes.
+   * 
+   * @return resolve errors.
    */
-  protected void resolveAndTest(String source, ErrorCode... errorCodes) {
-    resetExpectedErrors();
-    final List<DartCompilationError> encountered = Lists.newArrayList();
+  protected List<DartCompilationError> resolveAndTest(String source, ErrorCode... errorCodes) {
+    // parse DartUnit
+    DartUnit unit = parseUnit(source);
+    if (parseErrors.size() != 0) {
+      printSource(source);
+      printEncountered(parseErrors);
+      assertEquals("Expected no errors in parse step:", 0, parseErrors.size());
+    }
+    // prepare for recording resolving errors
+    resetParseErrors();
+    final List<DartCompilationError> resolveErrors = Lists.newArrayList();
     TestCompilerContext ctx =  new TestCompilerContext() {
       @Override
       public void onError(DartCompilationError event) {
-        encountered.add(event);
+        resolveErrors.add(event);
       }
     };
-    DartUnit unit = parseUnit(source);
-    if (encounteredErrors.size() != 0) {
-      printSource(source);
-      printEncountered(encounteredErrors);
-      assertEquals("Expected no errors in parse step:", 0, encounteredErrors.size());
-    }
+    // resolve and check errors
     resolve(unit, ctx);
-    checkExpectedErrors(encountered, errorCodes, source);
+    checkExpectedErrors(resolveErrors, errorCodes, source);
+    return resolveErrors;
   }
 }
