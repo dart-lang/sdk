@@ -131,7 +131,7 @@ static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
   // url chars.
   Dart_Handle source = ReadStringFromFile(url_chars);
   if (!Dart_IsValid(source)) {
-    return result;
+    return source;
   }
   if (tag == kImportTag) {
     Dart_Handle new_lib = Dart_LoadLibrary(url, source);
