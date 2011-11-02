@@ -29,6 +29,10 @@ class Heap {
     kExecutable
   };
 
+  // Default allocation sizes in MB for the old gen and code heaps.
+  static const intptr_t kHeapSizeInMB = 512;
+  static const intptr_t kCodeHeapSizeInMB = 4;
+
   ~Heap();
 
   uword Allocate(intptr_t size, Space space) {
@@ -68,10 +72,6 @@ class Heap {
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size);
   uword AllocateCode(intptr_t size);
-
-  // Allocation is limited to the below sizes.
-  static const intptr_t kHeapSize = 512 * MB;
-  static const intptr_t kCodeHeapSize = 4 * MB;
 
   // The different spaces used for allocation.
   Scavenger* new_space_;
