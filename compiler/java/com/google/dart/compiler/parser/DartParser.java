@@ -376,6 +376,11 @@ public class DartParser extends CompletionHooksParserBase {
       expect(Token.COLON);
       beginLiteral();
       expect(Token.STRING);
+      String id = ctx.getTokenString();
+      // The specification requires the value of this string be a valid identifier
+      if(id == null || !id.matches("[_a-zA-Z]([_A-Za-z0-9]*)")) {
+        reportError(position(), ParserErrorCode.EXPECTED_PREFIX_IDENTIFIER);
+      }
       prefix = done(DartStringLiteral.get(ctx.getTokenString()));
     }
     expectCloseParen();
