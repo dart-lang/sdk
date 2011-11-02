@@ -45,9 +45,8 @@ ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 224
 NonParameterizedFactory2Test: Fail # Bug 5257789
 
 WrongNumberTypeArgumentsTest: Fail # Bug 5532690
-Prefix18NegativeTest_1: Fail # Issue 307
-Prefix18NegativeTest_2: Fail # Issue 307
-Prefix18NegativeTest_3: Fail # Issue 307
+Prefix18NegativeTest: Fail # Issue 307
+Prefix20NegativeTest: Fail # Issue 307
 
 # DartC specific tests that should not be run by the VM.
 *DartcTest: Skip
