@@ -147,6 +147,7 @@ class DeoptimizationBlob : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DeoptimizationBlob);
 };
 
+// TODO(srdjan): Add String_get:length, String_charCodeAt, String_hashCode.
 
 #define RECOGNIZED_LIST(V)                                                     \
   V(ObjectArray, get:length, ObjectArrayLength)                                \

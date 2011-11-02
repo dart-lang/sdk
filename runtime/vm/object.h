@@ -2499,6 +2499,8 @@ class OneByteString : public String {
     return *CharAddr(index);
   }
 
+  static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawOneByteString) == OFFSET_OF(RawOneByteString, data_));
     return 0;
