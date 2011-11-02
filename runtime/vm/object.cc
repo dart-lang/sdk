@@ -5349,7 +5349,7 @@ static uword ZoneAllocator(intptr_t size) {
 
 
 const char* Bigint::ToCString() const {
-  return BigintOperations::ToHexCString(*this, &ZoneAllocator);
+  return BigintOperations::ToDecCString(*this, &ZoneAllocator);
 }
 
 

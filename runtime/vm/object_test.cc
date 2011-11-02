@@ -357,8 +357,7 @@ TEST_CASE(Bigint) {
   const String& test = String::Handle(String::New("1234"));
   b = Bigint::New(test);
   const char* str = b.ToCString();
-  // Currently only hex output supported.
-  EXPECT_STREQ("0x4D2", str);
+  EXPECT_STREQ("1234", str);
 
   int64_t t64 = DART_2PART_UINT64_C(1, 0);
   Bigint& big = Bigint::Handle();

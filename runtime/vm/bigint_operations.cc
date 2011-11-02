@@ -220,6 +220,23 @@ const char* BigintOperations::ToHexCString(const BIGNUM *bn,
 }
 
 
+const char* BigintOperations::ToDecCString(const Bigint& bigint,
+                                           uword (*allocator)(intptr_t size)) {
+  return ToDecCString(bigint.BNAddr(), allocator);
+}
+
+
+const char* BigintOperations::ToDecCString(const BIGNUM *bn,
+                                           uword (*allocator)(intptr_t size)) {
+  char* str = BN_bn2dec(bn);
+  intptr_t length = strlen(str) + 1;  // '\0'-terminated.
+  char* result = reinterpret_cast<char*>(allocator(length));
+  memmove(result, str, length);
+  OPENSSL_free(str);
+  return result;
+}
+
+
 const char* BigintOperations::ToHexCString(const Bigint& bigint,
                                            uword (*allocator)(intptr_t size)) {
   return ToHexCString(bigint.BNAddr(), allocator);
