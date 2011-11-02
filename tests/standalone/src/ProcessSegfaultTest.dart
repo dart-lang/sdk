@@ -14,7 +14,7 @@ class ProcessSegfaultTest {
       process.close();
     }
 
-    process.setExitHandler(exitHandler);
+    process.exitHandler = exitHandler;
     process.start();
   }
 

@@ -57,7 +57,7 @@ class _Process implements Process {
 
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
-    _exitHandler.setDataHandler(() {
+    _exitHandler.dataHandler = () {
         final int EXIT_DATA_SIZE = 8;
         List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
         InputStream input = _exitHandler.inputStream;
@@ -85,7 +85,7 @@ class _Process implements Process {
         }
 
         input.dataHandler = exitData;
-      });
+      };
   }
 
   bool _start(String path,

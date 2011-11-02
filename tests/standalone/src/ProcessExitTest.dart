@@ -15,7 +15,7 @@ class ProcessExitTest {
       process.close();
     }
 
-    process.setExitHandler(exitHandler);
+    process.exitHandler = exitHandler;
     process.start();
   }
 

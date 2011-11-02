@@ -15,7 +15,7 @@ class ProcessStartExceptionTest {
       exitHandlerCalled = false;
     }
 
-    process.setExitHandler(exitHandler);
+    process.exitHandler = exitHandler;
     try {
       process.start();
     } catch (ProcessException e) {

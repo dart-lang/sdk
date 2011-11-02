@@ -7,11 +7,9 @@
 
 void main() {
   Process p = new Process("true", []);
-  p.setExitHandler(
-    (int s) {
-      print(a.toString());  // Should cause a compilation error here.
-      p.close();
-    }
-  );
+  p.exitHandler = (int s) {
+    print(a.toString());  // Should cause a compilation error here.
+    p.close();
+  };
   p.start();
 }
