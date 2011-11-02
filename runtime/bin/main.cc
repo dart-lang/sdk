@@ -93,7 +93,7 @@ static int ParseArguments(int argc,
 static void DumpPprofSymbolInfo() {
   if (generate_pprof_symbols_filename != NULL) {
     Dart_EnterScope();
-    File* pprof_file = File::OpenFile(generate_pprof_symbols_filename, true);
+    File* pprof_file = File::Open(generate_pprof_symbols_filename, true);
     ASSERT(pprof_file != NULL);
     void* buffer;
     int buffer_size;

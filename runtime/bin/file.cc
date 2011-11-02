@@ -45,7 +45,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool writable = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
-  File* file = File::OpenFile(filename, writable);
+  File* file = File::Open(filename, writable);
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }
@@ -55,7 +55,7 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  bool exists = File::FileExists(filename);
+  bool exists = File::Exists(filename);
   Dart_SetReturnValue(args, Dart_NewBoolean(exists));
   Dart_ExitScope();
 }
@@ -240,5 +240,15 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
     return_value = 0;
   }
   Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  bool result = File::Create(str);
+  Dart_SetReturnValue(args, Dart_NewBoolean(result));
   Dart_ExitScope();
 }

@@ -58,7 +58,7 @@ static const char* CanonicalizeUrl(const char* reference_dir,
 
 
 static Dart_Handle ReadStringFromFile(const char* filename) {
-  File* file = File::OpenFile(filename, false);
+  File* file = File::Open(filename, false);
   if (file == NULL) {
     const char* format = "Unable to open file: %s";
     intptr_t len = snprintf(NULL, 0, format, filename);

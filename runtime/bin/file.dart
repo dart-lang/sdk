@@ -22,12 +22,16 @@ interface File factory _File {
   /**
    * Create the file. The [createHandler] is called when the file has
    * been created. The errorHandler is called if the file cannot be
-   * created.
+   * created. Existing files are left untouched by create. Calling
+   * create on an existing file might fail if there are restrictive
+   * permissions on the file.
    */
   void create();
 
   /**
-   * Synchronously create the file.
+   * Synchronously create the file. Existing files are left untouched
+   * by create. Calling create on an existing file might fail if there
+   * are restrictive permissions on the file.
    */
   void createSync();
 

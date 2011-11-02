@@ -301,6 +301,17 @@ class _FlushOperation extends _FileOperation {
 }
 
 
+class _CreateOperation extends _FileOperation {
+  _CreateOperation(String this._name);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._create(_name), port.toSendPort());
+  }
+
+  String _name;
+}
+
+
 class _ExitOperation extends _FileOperation {
   void execute(ReceivePort port) {
     port.close();
@@ -390,6 +401,7 @@ class _File implements File {
   static int _position(int id) native "File_Position";
   static int _length(int id) native "File_Length";
   static int _flush(int id) native "File_Flush";
+  static bool _create(String name) native "File_Create";
 
   static int _checkReadWriteListArguments(int length, int offset, int bytes) {
     if (offset < 0) return offset;
@@ -416,7 +428,16 @@ class _File implements File {
 
   void create() {
     _asyncUsed = true;
-    throw "Unimplemented";
+    var handler = (_createHandler != null) ? _createHandler : () => null;
+    var handleCreateResult = (created, ignored) {
+      if (created) {
+        handler();
+      } else if (_errorHandler != null) {
+        _errorHandler("Cannot create file: $_name");
+      }
+    };
+    var operation = new _CreateOperation(_name);
+    _scheduler.enqueue(operation, handleCreateResult);
   }
 
   void createSync() {
@@ -424,7 +445,10 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    throw "Unimplemented";
+    bool created = _create(_name);
+    if (!created) {
+      throw new FileIOException("Cannot create file: $_name");
+    }
   }
 
   void open([bool writable = false]) {

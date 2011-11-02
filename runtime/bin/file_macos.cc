@@ -92,7 +92,7 @@ off_t File::Length() {
 }
 
 
-File* File::OpenFile(const char* name, bool writable) {
+File* File::Open(const char* name, bool writable) {
   int flags = O_RDONLY;
   if (writable) {
     flags = (O_RDWR | O_CREAT | O_TRUNC);
@@ -105,7 +105,7 @@ File* File::OpenFile(const char* name, bool writable) {
 }
 
 
-bool File::FileExists(const char* name) {
+bool File::Exists(const char* name) {
   struct stat st;
   if (stat(name, &st) == 0) {
     return S_ISREG(st.st_mode);  // Deal with symlinks?
@@ -117,6 +117,15 @@ bool File::FileExists(const char* name) {
 
 bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
+}
+
+
+bool File::Create(const char* name) {
+  int fd = open(name, O_RDONLY | O_CREAT, 0666);
+  if (fd < 0) {
+    return false;
+  }
+  return (close(fd) == 0);
 }
 
 
