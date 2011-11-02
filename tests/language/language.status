@@ -20,7 +20,6 @@ prefix language
 [ $component == vm || $component == dartium ]
 ClassTest: Fail             # Bug 4504458 (pseudo keyword)
 NamingTest: Fail            # Bug 4504458 (pseudo keyword)
-SuperTest: Fail             # Bug 4995181
 TypeVariableBoundsTest/none: Fail # Bug 5257789
 TypeVariableBoundsTest/02: Fail # Bug 5257789
 TypeVariableBoundsTest/03: Fail # Bug 5257789
@@ -31,9 +30,6 @@ TypeVariableScopeTest/04: Fail # Bug 5349550, was 5316513
 ImpliedInterfaceTest: Fail # Bug 5349944
 
 # These bugs refer currently ongoing language discussions.
-ExampleConstructorTest: Fail    # Bug 4995181
-Constructor2Test: Fail          # Bug 4995181 (evaluation order)
-Constructor3Test: Fail          # Bug 4995181 (evaluation order)
 Constructor5Test: Fail          # Bug 8440015
 Constructor6Test: Fail          # Bug 8440015
 

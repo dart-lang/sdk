@@ -2315,13 +2315,20 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (IsResultNeeded(node)) {
     __ pushl(EAX);  // Set up return value from allocate.
   }
-  __ pushl(EAX);  // First argument(this) for constructor call which follows.
+
+  // First argument(this) for constructor call which follows.
+  __ pushl(EAX);
+  // Second argument is the implicit constructor phase parameter.
+  // Run both the constructor initializer list and the constructor body.
+  __ PushObject(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
+
 
   // Now setup rest of the arguments for the constructor call.
   node->arguments()->Visit(this);
 
   // Call the constructor.
-  int num_args = node->arguments()->length() + 1;  // +1 to include receiver.
+  // +2 to include implicit receiver and phase arguments.
+  int num_args = node->arguments()->length() + 2;
   __ LoadObject(ECX, node->constructor());
   __ LoadObject(EDX, ArgumentsDescriptor(num_args, node->arguments()->names()));
   GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());

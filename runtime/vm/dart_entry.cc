@@ -124,8 +124,9 @@ RawInstance* DartLibraryCalls::ExceptionCreate(
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
   const Instance& exception_object = Instance::Handle(Instance::New(cls));
-  GrowableArray<const Object*> constructor_arguments(arguments.length() + 1);
+  GrowableArray<const Object*> constructor_arguments(arguments.length() + 2);
   constructor_arguments.Add(&exception_object);
+  constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   constructor_arguments.AddArray(arguments);
 
   const String& period = String::Handle(String::New("."));

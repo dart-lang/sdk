@@ -169,6 +169,7 @@ static void RunIsolate(uword parameter) {
     if (!default_constructor.IsNull()) {
       GrowableArray<const Object*> arguments(1);
       arguments.Add(&target);
+      arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
       const Array& kNoArgumentNames = Array::Handle();
       result = DartEntry::InvokeStatic(default_constructor,
                                        arguments,

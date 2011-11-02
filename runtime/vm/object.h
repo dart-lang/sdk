@@ -1283,6 +1283,10 @@ class Function : public Object {
                                          const Function& parent,
                                          intptr_t token_index);
 
+  static const int kCtorPhaseInit = 1 << 0;
+  static const int kCtorPhaseBody = 1 << 1;
+  static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
+
  private:
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
