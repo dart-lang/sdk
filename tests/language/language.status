@@ -34,6 +34,8 @@ ImpliedInterfaceTest: Fail # Bug 5349944
 ExampleConstructorTest: Fail    # Bug 4995181
 Constructor2Test: Fail          # Bug 4995181 (evaluation order)
 Constructor3Test: Fail          # Bug 4995181 (evaluation order)
+Constructor5Test: Fail          # Bug 8440015
+Constructor6Test: Fail          # Bug 8440015
 
 # Regular bugs which should be fixed.
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
@@ -119,6 +121,8 @@ Constructor2NegativeTest: Fail  # Bug 4208594.
 Constructor2Test: Fail       # Issue 255
 Constructor3Test: Fail       # Issue 257
 Constructor4Test: Fail       # Issue 286
+Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
 BitOperationsTest: Fail      # Uses bignums.
 ListLiteral3Test: Fail      # Bug 4510015.
