@@ -142,7 +142,7 @@ GetterClosureExecutionOrderTest: Fail # Bug 5481595
 # The following tests use missing error classes. Bug 4385894.
 AssertTest: Fail             # Uses AssertError class.
 
-ThirdTest: Fail              # Bug 5339586
+ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 
 BlackListedTest/01: Fail # Bug 5469684
 BlackListedTest/02: Fail # Bug 5469684

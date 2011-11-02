@@ -6,8 +6,8 @@
 // which define the same top level name.
 
 #library("Library2NegativeTest.dart");
-#import("library3.dart");  // imports library2.dart which defines foo/foo1.
 #import("library4.dart");  // imports library2.dart and defines foo/foo1.
+#import("library2.dart");
 
 main() {
   Expect.equals(0, foo1);
