@@ -34,7 +34,7 @@ DARTIUM_V_MATCHER = (
 BUILDER_PATTERN = r'dart_client-(\w+)-(\w+)-(\w+)'
 
 
-def GetBuildInfo(srcpath):
+def GetBuildInfo():
   """Returns a tuple (name, version, arch, mode, platform) where:
     - name: A name for the build - the buildbot host if a buildbot.
     - version: A version string corresponding to this build.
@@ -63,7 +63,6 @@ def GetBuildInfo(srcpath):
   if not name:
     name = socket.gethostname().split('.')[0]
   if not version:
-    os.chdir(srcpath)
     pipe = subprocess.Popen(
         ['svnversion', '-n'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = pipe.communicate()
@@ -74,27 +73,23 @@ def GetBuildInfo(srcpath):
   return (name, version, component, mode, platform)
 
 
-def RunDartcCompiler(client_path, mode, outdir):
+def RunDartcCompiler(mode, outdir):
   """Compiles the client code to javascript for dartc tests."""
-  # Move to the client directory and call the build script
-  os.chdir(client_path)
   return subprocess.call(
-      [sys.executable, '../tools/build.py', '--mode=' + mode])
+      [sys.executable, './tools/build.py', '--mode=' + mode])
 
-def RunBrowserTests(client_path, component, mode, platform):
+def RunBrowserTests(component, mode, platform):
   """Runs the Dart client tests."""
   if platform == 'linux':
     cmd = ['xvfb-run']
   else:
     cmd = []
-  # Move to the client directory and call the test script
-  os.chdir(client_path)
-  cmd += [sys.executable, '../tools/test.py',
+  cmd += [sys.executable, './tools/test.py',
      '--component=' + component, '--mode=' + mode,
      '--time', '--report', '--progress=buildbot', '-v']
   return subprocess.call(cmd)
 
-def GetUtils(srcpath):
+def GetUtils():
   '''
   dynamically get the utils module
   We use a dynamic import for tools/util.py because we derive its location
@@ -102,29 +97,26 @@ def GetUtils(srcpath):
   different directories.
 
   args:
-  srcpath - the location of the source code to build
   '''
-  sys.path.append(os.path.abspath(os.path.join(srcpath, '..', 'tools')))
+  sys.path.append(os.path.abspath(os.path.join('.', 'tools')))
   utils = __import__('utils')
   return utils
 
-def GetOutDir(utils, mode, name):
+def GetOutDir(utils, mode):
   '''
   get the location to place the output
 
   args:
   utils - the tools/utils.py module
   mode - the mode release or debug
-  name - the name of the builder
   '''
-  return utils.GetBuildRoot(utils.GuessOS(), mode, name)
+  return utils.GetBuildRoot(utils.GuessOS(), mode, utils.ARCH_GUESS)
 
-def ProcessDartClientTests(srcpath, component, mode, platform, name):
+def ProcessDartClientTests(component, mode, platform, name):
   '''
   build and test the dart client applications
 
   args:
-  srcpath - the location of the source code to build
   component - the component we are testing against
   mode - the mode release or debug
   platform - the platform we are building for
@@ -133,24 +125,23 @@ def ProcessDartClientTests(srcpath, component, mode, platform, name):
   if component == 'chromium':
     print ('@@@BUILD_STEP dartc dart clients: %s@@@' % name)
 
-    utils = GetUtils(srcpath)
-    outdir = GetOutDir(utils, mode, "dartc")
-    status = RunDartcCompiler(srcpath, mode, outdir)
+    utils = GetUtils()
+    outdir = GetOutDir(utils, mode)
+    status = RunDartcCompiler(mode, outdir)
     if status != 0:
       return status
 
   if component == 'dartium':
-    version_file = os.path.join(srcpath, DARTIUM_VERSION_FILE)
-    if os.path.exists(version_file):
+    if os.path.exists(DARTIUM_VERSION_FILE):
       latest = open(version_file, 'r').read()
       match = re.match(DARTIUM_V_MATCHER, latest)
       if match:
         print '@@@BUILD_STEP vm r%s (dartium r%s)@@@' % (
             match.group(2), match.group(1))
   print '@@@BUILD_STEP browser unit tests@@@'
-  return RunBrowserTests(srcpath, component, mode, platform)
+  return RunBrowserTests(component, mode, platform)
 
-def ProcessTools(srcpath, mode, name, version):
+def ProcessTools(mode, name, version):
   '''
   build and test the tools
 
@@ -161,34 +152,29 @@ def ProcessTools(srcpath, mode, name, version):
   '''
   print 'ProcessTools'
 
-  toolsBuildScript = os.path.join(srcpath, '..', 'editor', 'build', 'build.py')
+  toolsBuildScript = os.path.join('.', 'editor', 'build', 'build.py')
 
   #TODO: debug statements to be removed in the future.
-  print "srcpath = " + srcpath
   print "mode = " + mode
   print "name = " + name
   print "version = " + version
   print "toolsBuildScript = " + os.path.abspath(toolsBuildScript)
 
-  utils = GetUtils(srcpath)
-  outdir = GetOutDir(utils, mode, "tools")
+  utils = GetUtils()
+  outdir = GetOutDir(utils, mode)
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
   return subprocess.call(cmds)
 
-def ProcessFrog(srcpath):
+def ProcessFrog():
   '''
   build and test experimental frog build
-
-  args:
-  srcpath - the location of the source code to build
   '''
   print 'ProcessFrog'
 
   return subprocess.call([sys.executable,
-      os.path.join(srcpath, '..', 'frog',
-        'scripts', 'buildbot_annotated_steps.py')])
+      os.path.join('frog', 'scripts', 'buildbot_annotated_steps.py')])
 
 def main():
   print 'main'
@@ -197,16 +183,17 @@ def main():
     return 1
 
   scriptdir = os.path.dirname(sys.argv[0])
-  srcpath = os.path.abspath(os.path.join(scriptdir, '..'))
+  # Get at the top-level directory. This script is in client/tools
+  os.chdir(os.path.abspath(os.path.join(scriptdir, os.pardir, os.pardir)))
 
-  (name, version, component, mode, platform) = GetBuildInfo(srcpath)
+  (name, version, component, mode, platform) = GetBuildInfo()
   if name == 'dart-editor':
-    status = ProcessTools(srcpath, mode, name, version)
-  #TODO(sigmund): remove this indirection once we update out bots
+    status = ProcessTools(mode, name, version)
+  #TODO(sigmund): remove this indirection once we update our bots
   elif name.startswith('frog'):
-    status = ProcessFrog(srcpath)
+    status = ProcessFrog()
   else:
-    status = ProcessDartClientTests(srcpath, component, mode, platform, name)
+    status = ProcessDartClientTests(component, mode, platform, name)
 
   if status:
     print '@@@STEP_FAILURE@@@'
