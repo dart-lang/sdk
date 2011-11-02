@@ -713,9 +713,17 @@ RawString* Class::Name() const {
 
 
 RawType* Class::SignatureType() const {
-  // Return the cached signature type if any.
-  if (raw_ptr()->signature_type_ != Type::null()) {
-    return raw_ptr()->signature_type_;
+  // Return the only canonical signature type if already computed.
+  const Array& signature_types = Array::Handle(canonical_types());
+  if (signature_types.Length() > 0) {
+    Type& signature_type = Type::Handle();
+    signature_type ^= signature_types.At(0);
+    if (!signature_type.IsNull()) {
+      // A signature class has a unique canonical signature type.
+      ASSERT((signature_types.Length() == 1) ||
+             signature_types.At(1) == Object::null());
+      return signature_type.raw();
+    }
   }
   ASSERT(IsSignatureClass());
   TypeArguments& signature_type_arguments = TypeArguments::Handle();
@@ -738,9 +746,8 @@ RawType* Class::SignatureType() const {
   const ParameterizedType& signature_type = ParameterizedType::Handle(
       ParameterizedType::New(*this, signature_type_arguments));
 
-  // Cache and return the still unfinalized signature type.
+  // Return the still unfinalized signature type.
   ASSERT(!signature_type.IsFinalized());
-  set_signature_type(signature_type);
   return signature_type.raw();
 }
 
@@ -812,11 +819,6 @@ void Class::SetFunctions(const Array& value) const {
 void Class::set_signature_function(const Function& value) const {
   ASSERT(value.IsClosureFunction() || value.IsSignatureFunction());
   StorePointer(&raw_ptr()->signature_function_, value.raw());
-}
-
-
-void Class::set_signature_type(const Type& value) const {
-  StorePointer(&raw_ptr()->signature_type_, value.raw());
 }
 
 

@@ -201,7 +201,6 @@ class RawClass : public RawObject {
   RawType* super_type_;
   RawType* factory_type_;
   RawFunction* signature_function_;  // Associated function for signature class.
-  RawType* signature_type_;  // Cached function type for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.

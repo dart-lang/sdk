@@ -63,7 +63,7 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments);
   static RawType* ResolveType(const Class& cls, const Type& type);
-  static void FinalizeType(const Type& type);
+  static RawType* FinalizeType(const Type& type);
   static void ResolveAndFinalizeSignature(const Class& cls,
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
