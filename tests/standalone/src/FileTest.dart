@@ -44,8 +44,8 @@ class FileTest {
     Expect.equals(42, bytesRead);
     input.close();
     // Write the contents of the file just read into another file.
-    String outFilename = getFilename("tests/vm/data/fixed_length_file_out");
-    file = new File(outFilename);
+    String outFilename = getFilename("tests/vm/data/fixed_length_file");
+    file = new File(outFilename + "_out");
     OutputStream output = file.openOutputStream();
     bool writeDone = output.writeFrom(buffer1, 0, 42);
     Expect.equals(true, writeDone);
@@ -138,8 +138,8 @@ class FileTest {
         file.closeHandler = () {
           // Write the contents of the file just read into another file.
           String outFilenameBase =
-          getFilename("tests/vm/data/fixed_length_file_out");
-          file = new File(outFilenameBase);
+          getFilename("tests/vm/data/fixed_length_file");
+          file = new File(outFilenameBase + "_out");
           file.errorHandler = (s) {
             Expect.fail("No errors expected");
           };
@@ -196,8 +196,8 @@ class FileTest {
     Expect.equals(42, bytes_read);
     file.closeSync();
     // Write the contents of the file just read into another file.
-    String outFilenameBase = getFilename("tests/vm/data/fixed_length_file_out");
-    file = new File(outFilenameBase);
+    String outFilenameBase = getFilename("tests/vm/data/fixed_length_file");
+    file = new File(outFilenameBase + "_out");
     file.openSync(true);
     file.writeListSync(buffer1, 0, bytes_read);
     file.closeSync();
@@ -289,8 +289,8 @@ class FileTest {
   static int testCloseException() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
-    String filename = getFilename("tests/vm/data/fixed_length_file_out");
-    File input = new File(filename);
+    String filename = getFilename("tests/vm/data/fixed_length_file");
+    File input = new File(filename + "_out");
     input.openSync(true);
     input.closeSync();
     try {
@@ -381,8 +381,8 @@ class FileTest {
   static int testCloseExceptionStream() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
-    String filename = getFilename("tests/vm/data/fixed_length_file_out");
-    File file = new File(filename);
+    String filename = getFilename("tests/vm/data/fixed_length_file");
+    File file = new File(filename + "_out");
     FileInputStream input = file.openInputStream();
     input.close();
     try {
@@ -415,8 +415,8 @@ class FileTest {
   static int testBufferOutOfBoundsException() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
-    String filename = getFilename("tests/vm/data/fixed_length_file_out");
-    File file = new File(filename);
+    String filename = getFilename("tests/vm/data/fixed_length_file");
+    File file = new File(filename + "_out");
     file.openSync(true);
     try {
       List<int> buffer = new List<int>(10);

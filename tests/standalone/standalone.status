@@ -24,10 +24,6 @@ SocketManyConnectionsTest: Skip
 [ $component == vm && $system == win32]
 Process*: Skip
 
-[ $component == vm ]
-# Test has started failing on fresh checkouts.
-FileTest: Skip
-
 [ $component == dartium ]
 # Server specific tests OK to fail in the browser
 EchoServerTest: Skip  # Uses Socket
