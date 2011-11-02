@@ -15,7 +15,7 @@
 // This string forms the content of builtin functionality which is injected
 // into standalone dart to provide some test/debug functionality.
 static const char Builtin_source_[] = {
-  %s
+  {{DART_SOURCE}}
 };
 
 
