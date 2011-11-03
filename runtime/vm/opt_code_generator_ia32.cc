@@ -1599,6 +1599,8 @@ void OptimizingCodeGenerator::GenerateConditionalJumps(const CodeGenInfo& nInfo,
 // when compared with double).
 // This code will be more optimized once we collect types for two arguments.
 void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   ASSERT((node->kind() == Token::kEQ) || (node->kind() == Token::kNE));
   CodeGenInfo left_info(node->left());
   CodeGenInfo right_info(node->right());
@@ -1656,8 +1658,8 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
                                  node->token_index(),
                                  kNumberOfArguments,
                                  kNoArgumentNames);
-    __ pushl(EAX);
-    __ jmp(&done, Assembler::kNearJump);
+    __ CompareObject(EAX, bool_true);
+    // Fall through to evaluate result.
   }
   __ Bind(&evaluate_comparison);
   // Condition is set by a previous comparison operation.
@@ -1668,8 +1670,6 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
     GenerateConditionalJumps(*(node->info()), condition);
     node->info()->set_labels_used(true);
   } else {
-    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-    const Bool& bool_false = Bool::ZoneHandle(Bool::False());
     Label true_label;
     __ j(condition, &true_label, Assembler::kNearJump);
     __ PushObject(bool_false);

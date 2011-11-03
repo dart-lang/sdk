@@ -4963,6 +4963,9 @@ bool Instance::IsValidFieldOffset(int offset) const {
 const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
+  } else if (Isolate::Current()->no_gc_scope_depth() > 0) {
+    // Can occur when running disassembler.
+    return "Instance";
   } else {
     const char* kFormat = "Instance of '%s'";
     Class& cls = Class::Handle(clazz());
