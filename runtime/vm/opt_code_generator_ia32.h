@@ -68,11 +68,17 @@ class OptimizingCodeGenerator : public CodeGenerator {
   void IntrinsifyGetter();
   void IntrinsifySetter();
 
-  bool ICDataToSameInlineableInstanceGetter(const ICData& ic_data);
   void InlineInstanceGettersWithSameTarget(AstNode* node,
+                                           intptr_t id,
                                            AstNode* receiver,
                                            const String& field_name,
                                            Register recv_reg);
+  void InlineInstanceSettersWithSameTarget(AstNode* node,
+                                           intptr_t id,
+                                           AstNode* receiver,
+                                           const String& field_name,
+                                           Register recv_reg,
+                                           Register value_reg);
 
   // Helper method to load a value quickly into register instead of pushing
   // and popping it.
@@ -82,12 +88,17 @@ class OptimizingCodeGenerator : public CodeGenerator {
                     Register left_reg,
                     Register right_reg);
 
-  bool IsInlineableInstanceGetter(const Function& function);
   void InlineInstanceGetter(AstNode* node,
                             intptr_t id,
                             AstNode* receiver,
                             const String& field_name,
                             Register recv_reg);
+  void InlineInstanceSetter(AstNode* node,
+                            intptr_t id,
+                            AstNode* receiver,
+                            const String& field_name,
+                            Register recv_reg,
+                            Register value_reg);
 
   void CallDeoptimize(intptr_t node_id, intptr_t token_index);
 
@@ -123,7 +134,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
   bool IsResultInEaxRequested(AstNode* node) const;
   bool NodeMayBeSmi(AstNode* node) const;
 
-  void PrintCollectedClasses(AstNode* node);
+  void PrintCollectedClassesAtId(AstNode* node, intptr_t id);
   void TraceOpt(AstNode* node, const char* message);
   void TraceNotOpt(AstNode* node, const char* message);
 
