@@ -29,6 +29,39 @@ SortTest: Fail
 ListSortTest: Fail
 
 
+[ $component == frog || $component == frogsh ]
+# VM or DartC specific tests not to be run by Frog. See language.status.
+*VMTest: Skip
+*VMNegativeTest: Skip
+*DartcTest: Skip
+*DartcNegativeTest: Skip
+
+ConstList*: Fail # 'const' is not currently checked.
+CoreRuntimeTypesTest: Fail
+DateTimeTest: Fail
+DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
+ExpressionTest: Fail
+ForInTest: Fail
+IndexedListAccessTest: Fail
+IndexOutOfRangeExceptionTest: Fail
+ListGetRangeTest: Fail
+ListFromListTest: Fail
+ListInsertRangeTest: Fail
+ListRemoveRangeTest: Fail
+ListSetRangeTest: Fail
+ListTest: Fail
+MapFromTest: Fail
+MapsTest: Fail
+MathTest: Fail
+NanInfinityTest: Fail
+PortTest: Fail
+RegExpAllMatchesTest: Fail
+RegExp4Test: Fail # New test added on 10/28.
+StringPatternTest: Fail
+StringSubstringTest: Fail
+StringTest: Fail  # Needs index out of range checks.
+
+
 [ $arch == x64 ]
 *: Skip
 

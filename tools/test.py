@@ -611,26 +611,22 @@ class Context(object):
     result = utils.GetBuildConf(mode, arch)
     return result
 
-  def GetExecutable(self, mode, arch, name):
+  def GetExecutable(self, mode, arch, path):
     """Returns the name of the executable used to run the test."""
     if self.executable is not None:
       return self.executable
-    path = os.path.abspath(os.path.join(self.GetBuildRoot(mode, arch), name))
     if utils.IsWindows() and not path.endswith('.exe'):
       return path + '.exe'
     else:
       return path
 
-  def GetDart(self, mode, arch, component):
-    """Returns the path to the Dart test runner (executes the .dart file)."""
-    if component == 'dartc':
-      command = [os.path.abspath(
-          os.path.join(self.GetBuildRoot(mode, arch),
-                       'compiler', 'bin', 'dartc_test'))]
-    else:
-      command = [self.GetExecutable(mode, arch, 'dart_bin')]
+  def GetD8(self, mode, arch):
+    d8 = os.path.join(self.GetBuildRoot(mode, arch), 'd8')
+    return self.GetExecutable(mode, arch, d8)
 
-    return command
+  def GetDart(self, mode, arch, component):
+    dart = utils.GetDartRunner(mode, arch, component)
+    return [self.GetExecutable(mode, arch, dart)]
 
   def GetDartC(self, mode, arch):
     """Returns the path to the Dart --> JS compiler."""
@@ -644,7 +640,8 @@ class Context(object):
     return command
 
   def GetRunTests(self, mode, arch):
-    return [self.GetExecutable(mode, arch, 'run_vm_tests')]
+    path = os.path.join(self.GetBuildRoot(mode, arch), 'run_vm_tests')
+    return [self.GetExecutable(mode, arch, path)]
 
 
 def RunTestCases(cases_to_run, progress, tasks, context):
@@ -1220,7 +1217,7 @@ def BuildOptions():
   result.add_option(
       '-c', '--component',
       help='The component to test against '
-           '(most, vm, dartc, chromium, dartium)',
+           '(most, vm, dartc, frog, frogsh, chromium, dartium)',
       metavar='[most,vm,dartc,chromium,dartium]',
       default='vm')
   return result
@@ -1234,13 +1231,6 @@ def ProcessOptions(options):
     options.mode = 'debug,release'
   if options.component == 'most':
     options.component = 'vm,dartc'
-
-  if 'dartc' in options.arch:
-    options.component = 'dartc'
-  if 'dartium' in options.arch:
-    options.component = 'dartium'
-  if 'chromium' in options.arch:
-    options.component = 'chromium'
 
   # By default we run with a higher timeout setting in when running on
   # a simulated architecture and in debug mode.
@@ -1266,7 +1256,8 @@ def ProcessOptions(options):
       print 'Unknown arch %s' % arch
       return False
   for component in options.component:
-    if not component in ['vm', 'dartc', 'chromium', 'dartium']:
+    if not component in ['vm', 'dartc', 'frog', 'frogsh',
+                         'chromium', 'dartium']:
       print 'Unknown component %s' % component
       return False
   options.flags = []

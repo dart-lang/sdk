@@ -179,6 +179,167 @@ Private3Test: Fail
 
 TypedMessageTest: Fail # Bug 5246195
 
+
+[ $component == frogsh ]
+PrivateMemberTest/01: Skip  # Leads to stack overflows when self-hosted.
+PrivateMemberTest/02: Skip  # Leads to stack overflows when self-hosted.
+PrivateMemberTest/03: Skip  # Leads to stack overflows when self-hosted.
+PrivateMemberTest/04: Skip  # Leads to stack overflows when self-hosted.
+CTConstTest: Fail # Not checking for generic type in const expression.
+
+[ $component == frog ]
+ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
+CTConstTest: Pass # pass for the wrong reason: how numbers are printed, rather
+                  # than checking for generic type in const expression
+PrivateMemberTest/01: Fail
+PrivateMemberTest/02: Fail
+PrivateMemberTest/03: Fail
+PrivateMemberTest/04: Fail
+
+[ $component == frogsh ||  $component == frog ]
+
+# VM or DartC specific tests not to be run by Frog. See language.status
+*VMTest: Skip
+*VMNegativeTest: Skip
+*DartcTest: Skip
+*DartcNegativeTest: Skip
+
+BitOperationsTest: Skip  # relies on big integers not available in JS
+CallThroughGetterTest: Fail
+CallThroughNullGetterTest: Fail
+CanonicalConstTest: Fail # type in const array allocation is erased
+CharEscapeTest: Fail
+ClassOverrideNegativeTest: Fail
+ClosuresWithComplexParamsTest: Fail
+CompoundAssignmentOperatorTest: Fail
+ConstFactoryNegativeTest: Fail
+ConstObjectsAreImmutableTest: Fail
+ConstructorDefaultTest: Fail
+ConstructorSetterNegativeTest: Fail    # we were passing this test for the wrong reason
+DynamicTest: Fail                      # newly added on 10/27
+EmptyBodyMemberNegativeTest: Fail
+ExampleConstructorTest: Fail
+Constructor2Test: Fail
+Constructor3Test: Fail
+Constructor4Test: Fail
+Constructor5Test: Fail    # Order of initializers.
+Constructor6Test: Fail    # Parse failure in initializers.
+ExecuteFinally6Test: Fail
+ExpectTest: Fail
+#FauxverrideTest/01: Fail  # see r607 (10/21) passes, but we should be issuing warnings
+#FauxverrideTest/02: Fail  # see r607 (10/21) passes, but we should be issuing warnings
+FauxverrideTest/03: Fail
+#FauxverrideTest/04: Fail  # see r607 (10/21) passes, but we should be issuing warnings
+FauxverrideTest/05: Fail
+FieldOverrideTest/01: Fail # newly added on r607 (10/21)
+FieldOverrideTest/02: Fail # newly added on r607 (10/21)
+Field3NegativeTest: Fail
+FieldNegativeTest: Fail
+FinalParamNegativeTest: Fail
+FinalVarNegativeTest: Fail
+FunctionLiterals2Test: Fail
+FunctionSyntaxTest: Fail
+FunctionTest: Fail
+FunctionTypeAliasNegativeTest: Fail
+FunctionTypeAliasTest: Fail
+FunctionTypeParameter2Test: Fail
+FunctionTypeParameterTest: Fail
+GenericDeepTest: Fail
+GenericInstanceofTest: Fail
+GenericSyntaxTest: Fail
+GenericTest: Fail
+GenericsTest: Fail
+ImplicitScopeTest: Fail
+ImpliedInterfaceTest: Fail
+IncrOpTest: Fail
+InstanceFieldNegativeTest: Fail
+Instanceof2Test: Fail
+InstanceofTest: Fail
+InterfaceFactory3NegativeTest: Fail
+InterfaceFactoryConstructorNegativeTest: Fail
+InterfaceStaticMethodNegativeTest: Fail
+IsNotClass4NegativeTest: Fail
+IsOperatorTest: Fail
+LabelTest: Fail
+LibraryPrefixesTest: Fail
+Library1NegativeTest: Fail
+Library4NegativeTest: Fail
+Library5NegativeTest: Fail # newly added on r658 (10/24)
+Library6NegativeTest: Fail # newly added on r658 (10/24)
+ListLiteral3Test: Fail
+ListTest: Fail         # array bound checks not implemented
+LocalFunction3Test: Fail
+LocalFunctionTest: Fail
+ManyGenericInstanceofTest: Fail
+MathTest: Fail
+MethodInvocationTest: Fail
+MethodOverrideTest: Fail # newly added on r771 (10/26)
+NamedParameters5NegativeTest: Skip # passes, but for the wrong reason
+NamedParameters6NegativeTest: Skip # passes, but for the wrong reason
+NamedParameters7NegativeTest: Skip # passes, but for the wrong reason
+NamedParameters8NegativeTest: Skip # passes, but for the wrong reason
+NamedParametersPassingFalsyTest: Fail
+NamedParametersTypeTest: Fail
+NamedParametersWithConversionsTest: Fail
+NamingTest: Fail
+NonConstSuperNegativeTest: Fail
+NullPointerExceptionTest: Fail
+NullTest: Fail
+NullToStringTest: Fail
+NumberSyntaxTest: Fail
+NumbersTest: Fail
+Operator1NegativeTest: Fail
+OperatorTest: Fail
+OverrideMethodWithFieldTest/01: Fail # newly added in r607 (10/21)
+OverrideFieldTest/01: Fail # newly added in r607 (10/21)
+#OverrideFieldTest/02: Fail # see r607 (10/21) passes, but we should be issuing warnings
+#OverrideFieldTest/03: Fail # see r607 (10/21) passes, but we should be issuing warnings
+OverrideFieldTest/04: Fail # newly added in r607 (10/21)
+Prefix3NegativeTest: Fail
+Prefix7NegativeTest: Fail
+Prefix8NegativeTest: Fail  # was passing for the wrong reason
+Prefix9NegativeTest: Fail  # was passing for the wrong reason
+Prefix11NegativeTest: Fail
+Prefix14NegativeTest: Fail
+Prefix16NegativeTest: Fail
+Prefix20NegativeTest: Fail # added in r1104 (11/02)
+Prefix15Test: Fail
+Private3Test: Fail
+PrivateTest: Fail
+PseudoKWNegativeTest: Fail
+RegExp3Test: Fail
+SavannahTest: Fail
+ScopeNegativeTest: Fail
+Script1NegativeTest: Fail
+ScriptNegativeTest: Fail
+SourceSelfNegativeTest: Skip   # imports itself and gets confused
+StaticField3NegativeTest: Fail
+StaticField3aNegativeTest: Fail
+StaticField4NegativeTest: Fail
+StaticFinalFieldNegativeTest: Fail
+StringConcatTest: Fail
+StringEscapesTest: Fail
+StringInterpolate1NegativeTest: Fail
+StringInterpolate2Test: Fail
+StringInterpolateTest: Fail
+StringTest: Fail
+SuperFieldTest: Fail
+SuperImplicitClosureTest: Fail
+SuperNegativeTest: Fail
+SuperOperatorTest: Fail
+SuperTest: Fail
+SwitchLabelTest: Fail
+TryCatch9NegativeTest: Fail
+TypeVariableBoundsTest/00: Fail # Is the test syntax valid? VM gives an error.
+TypeVariableBoundsTest/05: Fail # Disagree!  Body not analyzed if not invoked.
+TypedMessageTest: Fail
+UnboundGetterTest: Fail
+VarInitTest: Fail
+WrongNumberTypeArgumentsTest: Skip # Test updated without clarity!
+GetterClosureExecutionOrderTest: Fail
+
+
+
 [ $arch == x64 ]
 *: Skip
 
