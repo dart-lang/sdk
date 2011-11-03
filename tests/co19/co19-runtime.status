@@ -98,10 +98,6 @@ LibTest/core/List/some/List/some/A01/t06: Fail
 
 # New problems on 2011-11-01.
 [ $component == vm && $mode == debug ]
-LibTest/core/Expect/throws/Expect/throws/A01/t03: Crash
-LibTest/core/Expect/throws/Expect/throws/A01/t04: Crash
-LibTest/core/List/copyFrom/List/copyFrom/A01/t03: Crash
-LibTest/core/List/copyFrom/List/copyFrom/A01/t04: Crash
 LibTest/core/double/ceil/double/ceil/A01/t05: Crash
 LibTest/core/double/floor/double/floor/A01/t05: Crash
 [ $component == vm && $mode == debug && $unchecked ]

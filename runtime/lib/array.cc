@@ -121,12 +121,12 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
   }
   intptr_t isrc_start = src_start.Value();
   intptr_t idst_start = dst_start.Value();
-  if ((isrc_start + icount) > source.Length()) {
+  if ((isrc_start < 0) || ((isrc_start + icount) > source.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&src_start);
     Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
   }
-  if ((idst_start + icount) > dest.Length()) {
+  if ((idst_start < 0) || ((idst_start + icount) > dest.Length())) {
     GrowableArray<const Object*> arguments;
     arguments.Add(&dst_start);
     Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
