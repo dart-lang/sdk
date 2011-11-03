@@ -1770,6 +1770,9 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
+    if (func.IsConstructor()) {
+      ErrorMsg("constructors may not return a value");
+    }
     intptr_t expr_pos = token_index_;
     AstNode* expr = ParseExpr(kAllowConst);
     ASSERT(expr != NULL);
@@ -4838,8 +4841,13 @@ AstNode* Parser::ParseStatement() {
   } else if (CurrentToken() == Token::kTRY) {
     statement = ParseTryStatement(label_name);
   } else if (CurrentToken() == Token::kRETURN) {
+    const intptr_t return_pos = token_index_;
     ConsumeToken();
     if (CurrentToken() != Token::kSEMICOLON) {
+      if (current_function().IsConstructor() &&
+          (current_block_->scope->function_level() == 0)) {
+        ErrorMsg(return_pos, "return of a value not allowed in constructors");
+      }
       AstNode* expr = ParseExpr(kAllowConst);
       statement = new ReturnNode(statement_pos, expr);
     } else {

@@ -38,11 +38,6 @@ Constructor6Test: Fail          # Bug 8440015
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
 
-ConstructorReturnNegativeTest: Fail                   # Issue 224
-ConstructorReturnWithInitNegativeTest: Fail           # Issue 224
-ConstructorReturnWithArrowNegativeTest: Fail          # Issue 224
-ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 224
-
 NonParameterizedFactory2Test: Fail # Bug 5257789
 
 WrongNumberTypeArgumentsTest: Fail # Bug 5532690
