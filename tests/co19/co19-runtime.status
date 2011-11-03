@@ -4,6 +4,7 @@
 
 prefix co19
 
+
 # Flaky tests, see http://code.google.com/p/co19/issues/detail?id=4
 LibTest/core/StopWatch/elapsedInMs/StopWatch/elapsedInMs/A01/t01: Skip
 LibTest/core/StopWatch/elapsedInUs/StopWatch/elapsedInUs/A01/t01: Skip
@@ -12,6 +13,12 @@ LibTest/core/StopWatch/stop/StopWatch/stop/A01/t01: Skip
 
 
 [ $component == vm ]
+
+LibTest/core/double/isNegative/double/isNegative/A01/t01: Fail  # Issue 6
+LibTest/core/double/operatorDivision/double/operatorDivision/A01/t05: Fail  # Issue 7
+LibTest/core/double/operator~div/double/operator~div/A01/t05: Fail  # Issue 7
+LibTest/core/Math/atan2/Math/atan2/A01/t03: Fail  # Issue 8
+
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fail # Bug 5371433
@@ -69,7 +76,6 @@ LibTest/core/Queue/forEach/Queue/forEach/A01/t04: Fail
 LibTest/core/Queue/some/Queue/some/A01/t06: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A06/t02: Fail
 LibTest/core/StringBuffer/isEmpty/StringBuffer/isEmpty/A01/t01: Fail
-
 
 # List.fromList has been removed.
 LibTest/core/List/List.fromList/*: Fail
@@ -214,8 +220,6 @@ LibTest/core/StringBuffer/add/StringBuffer/add/A02/t01: Fail
 LibTest/core/Strings/concatAll/Strings/concatAll/A03/t01: crash
 LibTest/core/Strings/join/Strings/join/A03/t01: crash
 LibTest/core/TypeError/srcType/TypeError/srcType/A01/t01: Fail
-LibTest/core/double/compareTo/double/compareTo/A01/t02: Fail
-LibTest/core/double/compareTo/double/compareTo/A01/t03: Fail
 LibTest/core/double/isOdd/double/isOdd/A01/t02: Fail
 LibTest/core/double/operator%/double/operator%/A01/t06: Fail
 LibTest/core/double/operatorAddition/double/operatorAddition/A01/t02: Fail
