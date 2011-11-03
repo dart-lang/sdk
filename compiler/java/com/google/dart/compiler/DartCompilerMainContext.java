@@ -9,7 +9,6 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
-import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -51,14 +50,11 @@ final class DartCompilerMainContext extends DartCompilerListener implements
 
   @Override
   public void onError(DartCompilationError event) {
-    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE
-        && (!shouldWarnOnNoSuchType() || (
-            (event.getErrorCode() != TypeErrorCode.CANNOT_BE_RESOLVED) &&
-            (event.getErrorCode() != TypeErrorCode.NO_SUCH_TYPE) &&
-            (event.getErrorCode() != TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED)))) {
+    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
       incrementTypeErrorCount();
-    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR &&
-        (!shouldWarnOnNoSuchType() || event.getErrorCode() != ResolverErrorCode.NO_SUCH_TYPE)) {
+    } else if (shouldWarnOnNoSuchType() && event.getErrorCode() == ResolverErrorCode.NO_SUCH_TYPE) {
+      incrementTypeErrorCount();
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
       incrementErrorCount();
     } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
       incrementWarningCount();
