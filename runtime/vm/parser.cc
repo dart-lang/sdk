@@ -1741,6 +1741,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
           new LiteralNode(token_index_,
                Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody)));
       super_call_args->Add(phase_parameter);
+      super_call_args->set_names(initializer_args->names());
       for (int i = 2; i < initializer_args->length(); i++) {
         AstNode* arg = initializer_args->NodeAt(i);
         if (arg->IsLiteralNode()) {
