@@ -245,6 +245,8 @@ class Parser : ValueObject {
   void AddFormalParamsToFunction(const ParamList* params, const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
+  SequenceNode* ParseConstructor(const Function& func,
+                                 Array& default_parameter_values);
   SequenceNode* ParseFunc(const Function& func,
                           Array& default_parameter_values);
 

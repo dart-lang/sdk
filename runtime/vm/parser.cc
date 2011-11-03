@@ -1523,44 +1523,271 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 
 
 // Parser is at the opening parenthesis of the formal parameter declaration
-// of function. Parse the formal parameters and code.
-SequenceNode* Parser::ParseFunc(const Function& func,
-                                Array& default_parameter_values) {
+// of function. Parse the formal parameters, initializers and code.
+SequenceNode* Parser::ParseConstructor(const Function& func,
+                                       Array& default_parameter_values) {
+  ASSERT(func.IsConstructor());
+  ASSERT(!func.IsFactory());
+  ASSERT(!func.is_static());
+  ASSERT(!func.IsLocalFunction());
+  const Class& cls = Class::Handle(func.owner());
+  ASSERT(!cls.IsNull());
+
   if (IsLiteral("class")) {
     // Special case: implicit constructor. There is no source text to
     // parse. We just build the sequence node by hand.
     return MakeImplicitConstructor(func);
   }
 
-  const Class& cls = Class::Handle(func.owner());
-  ASSERT(!cls.IsNull());
-
-  // Build local scope for function.
   OpenFunctionBlock(func);
+  ParamList params;
+  const bool allow_explicit_default_values = true;
+  ASSERT(CurrentToken() == Token::kLPAREN);
+
+  // Add implicit receiver parameter which is passed the allocated
+  // but uninitialized instance to construct.
+  params.AddReceiver(token_index_);
+
+  // Add implicit parameter for constructor phase.
+  params.AddFinalParameter(token_index_, kPhaseParameterName,
+                           &Type::ZoneHandle(Type::DynamicType()));
+
+  if (func.is_const()) {
+    params.SetImplicitlyFinal();
+  }
+  ParseFormalParameterList(allow_explicit_default_values, &params);
+
+  SetupDefaultsForOptionalParams(&params, default_parameter_values);
+  ASSERT(Type::Handle(func.result_type()).IsResolved());
+  ASSERT(func.NumberOfParameters() == params.parameters->length());
+
+  // Initialize instance fields that have an explicit initializer expression.
+  // This has to be done before code for field initializer parameters
+  // are is generated.
+  // NB: the instance field initializers have to be compiled before
+  // the parameters are added to the scope, so that a parameter
+  // name cannot shadow a name used in the field initializer expression.
+  GrowableArray<FieldInitExpression> initializers;
+  ParseInitializedInstanceFields(cls, &initializers);
+
+  // Now populate function scope with the formal parameters.
+  AddFormalParamsToScope(&params, current_block_->scope);
+  LocalVariable* receiver = current_block_->scope->VariableAt(0);
+
+  // Now that the "this" parameter is in scope, we can generate the code
+  // to strore the initializer expressions in the respective instance fields.
+  // We do this before the field parameters and the initializers from the
+  // constructor's initializer list get compiled.
+  OpenBlock();
+  for (int i = 0; i < initializers.length(); i++) {
+    const Field* field = initializers[i].inst_field;
+    AstNode* instance = new LoadLocalNode(field->token_index(), *receiver);
+    AstNode* field_init =
+        new StoreInstanceFieldNode(field->token_index(),
+                                   instance,
+                                   *field,
+                                   initializers[i].expr);
+    current_block_->statements->Add(field_init);
+  }
+
+  // Turn formal field parameters into field initializers or report error
+  // if the function is not a constructor
+  if (params.has_field_initializer) {
+    for (int i = 0; i < params.parameters->length(); i++) {
+      ParamDesc& param = (*params.parameters)[i];
+      if (param.is_field_initializer) {
+        const String& field_name = *param.name;
+        Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
+        if (field.IsNull()) {
+          ErrorMsg(param.name_pos,
+                   "unresolved reference to instance field '%s'",
+                   field_name.ToCString());
+        }
+        const String& mangled_name =
+            String::ZoneHandle(MangledInitParamName(field_name));
+        AstNode* instance = new LoadLocalNode(param.name_pos, *receiver);
+        LocalVariable* p =
+            current_block_->scope->LookupVariable(mangled_name, false);
+        ASSERT(p != NULL);
+        AstNode* value = new LoadLocalNode(param.name_pos, *p);
+        AstNode* initializer = new StoreInstanceFieldNode(
+            param.name_pos, instance, field, value);
+        current_block_->statements->Add(initializer);
+      }
+    }
+  }
+
+  // Now parse the explicit initializer list or constructor redirection.
+  ParseInitializers(cls, receiver);
+
+  SequenceNode* init_statements = CloseBlock();
+  if (init_statements->length() > 0) {
+    // Generate guard around the initializer code.
+    LocalVariable* phase_param = LookupPhaseParameter();
+    AstNode* phase_value = new LoadLocalNode(token_index_, *phase_param);
+    AstNode* phase_check = new BinaryOpNode(
+        token_index_, Token::kBIT_AND, phase_value,
+        new LiteralNode(token_index_,
+                        Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
+    AstNode* comparison =
+        new ComparisonNode(token_index_, Token::kNE_STRICT,
+                           phase_check,
+                           new LiteralNode(token_index_,
+                                           Smi::ZoneHandle(Smi::New(0))));
+    AstNode* guarded_init_statements =
+        new IfNode(token_index_, comparison, init_statements, NULL);
+    current_block_->statements->Add(guarded_init_statements);
+  }
+
+  // Parsing of initializers done. Now we parse the constructor body
+  // and add the implicit super call to the super construcotr's body
+  // if necessary.
+  StaticCallNode* super_call = NULL;
+  // Look for the super initializer call in the sequence of initializer
+  // statements. If it exists and is not the last initializer statement,
+  // we need to create an implicit super call to the super constructor's
+  // body.
+  // Thus, iterate over all but the last initializer to see whether
+  // it's a super constructor call.
+  for (int i = 0; i < init_statements->length() - 1; i++) {
+    if (init_statements->NodeAt(i)->IsStaticCallNode()) {
+      StaticCallNode* static_call =
+      init_statements->NodeAt(i)->AsStaticCallNode();
+      if (static_call->function().IsConstructor()) {
+        super_call = static_call;
+        break;
+      }
+    }
+  }
+  if (super_call != NULL) {
+    // Generate an implicit call to the super constructor's body.
+    // We need to patch the super _initializer_ call so that it
+    // saves the evaluated actual arguments in temporary variables.
+    // The temporary variables are necessary so that the argument
+    // expressions are not evaluated twice.
+    ArgumentListNode* ctor_args = super_call->arguments();
+    // The super initializer call has at least 2 arguments: the
+    // implicit receiver, and the hidden constructor phase.
+    ASSERT(ctor_args->length() >= 2);
+    for (int i = 2; i < ctor_args->length(); i++) {
+      AstNode* arg = ctor_args->NodeAt(i);
+      if (!arg->IsLoadLocalNode() && !arg->IsLiteralNode()) {
+        LocalVariable* temp =
+        CreateTempConstVariable(arg->token_index(), arg->id(), "sca");
+        AstNode* save_temp =
+        new StoreLocalNode(arg->token_index(), *temp, arg);
+        ctor_args->SetNodeAt(i, save_temp);
+      }
+    }
+  }
+  OpenBlock();  // Block to collect constructor body nodes.
+
+  // Insert the implicit super call to the super constructor body.
+  if (super_call != NULL) {
+    ArgumentListNode* initializer_args = super_call->arguments();
+    const Function& super_ctor = super_call->function();
+    // Patch the initializer call so it only executes the super
+    // initializer.
+    initializer_args->SetNodeAt(1,
+        new LiteralNode(token_index_,
+                        Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
+
+    ArgumentListNode* super_call_args = new ArgumentListNode(token_index_);
+    // First argument is the receiver.
+    super_call_args->Add(new LoadLocalNode(token_index_, *receiver));
+    // Second argument is the constructor phase argument.
+    AstNode* phase_parameter =
+    new LiteralNode(token_index_,
+                    Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody)));
+    super_call_args->Add(phase_parameter);
+    super_call_args->set_names(initializer_args->names());
+    for (int i = 2; i < initializer_args->length(); i++) {
+      AstNode* arg = initializer_args->NodeAt(i);
+      if (arg->IsLiteralNode()) {
+        LiteralNode* lit = arg->AsLiteralNode();
+        super_call_args->Add(new LiteralNode(token_index_, lit->literal()));
+      } else {
+        ASSERT(arg->IsLoadLocalNode() || arg->IsStoreLocalNode());
+        if (arg->IsLoadLocalNode()) {
+          const LocalVariable& temp = arg->AsLoadLocalNode()->local();
+          super_call_args->Add(new LoadLocalNode(token_index_, temp));
+        } else if (arg->IsStoreLocalNode()) {
+          const LocalVariable& temp = arg->AsStoreLocalNode()->local();
+          super_call_args->Add(new LoadLocalNode(token_index_, temp));
+        }
+      }
+    }
+    ASSERT(super_ctor.AreValidArguments(super_call_args->length(),
+                                        super_call_args->names()));
+    current_block_->statements->Add(
+        new StaticCallNode(token_index_, super_ctor, super_call_args));
+  }
+
+  if (CurrentToken() == Token::kLBRACE) {
+    ConsumeToken();
+    ParseStatementSequence();
+    ExpectToken(Token::kRBRACE);
+  } else if (CurrentToken() == Token::kARROW) {
+    ErrorMsg("constructors may not return a value");
+  } else if (IsLiteral("native")) {
+    ParseNativeFunctionBlock(&params, func);
+  } else if (CurrentToken() == Token::kSEMICOLON) {
+    // Some constructors have no function body.
+    ConsumeToken();
+  } else {
+    UnexpectedToken();
+  }
+
+  SequenceNode* ctor_block = CloseBlock();
+  if (ctor_block->length() > 0) {
+    // Generate guard around the constructor body code.
+    LocalVariable* phase_param = LookupPhaseParameter();
+    AstNode* phase_value = new LoadLocalNode(token_index_, *phase_param);
+    AstNode* phase_check =
+        new BinaryOpNode(token_index_, Token::kBIT_AND,
+            phase_value,
+            new LiteralNode(token_index_,
+                Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
+    AstNode* comparison =
+       new ComparisonNode(token_index_, Token::kNE_STRICT,
+                         phase_check,
+                         new LiteralNode(token_index_,
+                                         Smi::ZoneHandle(Smi::New(0))));
+    AstNode* guarded_block_statements =
+        new IfNode(token_index_, comparison, ctor_block, NULL);
+    current_block_->statements->Add(guarded_block_statements);
+  }
+
+  SequenceNode* statements = CloseBlock();
+  return statements;
+}
+
+
+// Parser is at the opening parenthesis of the formal parameter
+// declaration of the function or constructor.
+// Parse the formal parameters and code.
+SequenceNode* Parser::ParseFunc(const Function& func,
+                                Array& default_parameter_values) {
+  if (func.IsConstructor()) {
+    return ParseConstructor(func, default_parameter_values);
+  }
+
+  ASSERT(!func.IsConstructor());
+  OpenFunctionBlock(func);  // Build local scope for function.
 
   ParamList params;
-  // Static functions do not have a receiver, except constructors, which are
-  // passed the allocated but uninitialized instance to construct.
+  // Static functions do not have a receiver.
   // An instance closure may capture and access the receiver, but via the
   // context and not via the first formal parameter.
   // The first parameter of a factory is the TypeArguments vector of the type
   // of the instance to be allocated. We name this hidden parameter 'this'.
   const bool has_receiver = !func.IsClosureFunction() &&
-      (!func.is_static() || func.IsConstructor() || func.IsFactory());
-  const bool are_implicitly_final = func.is_const() && func.IsConstructor();
+                            (!func.is_static() || func.IsFactory());
   const bool allow_explicit_default_values = true;
-  ASSERT(CurrentToken() == Token::kLPAREN);
   if (has_receiver) {
     params.AddReceiver(token_index_);
   }
-  if (func.IsConstructor()) {
-    // Add implicit parameter for constructor phase.
-    params.AddFinalParameter(token_index_, kPhaseParameterName,
-                             &Type::ZoneHandle(Type::DynamicType()));
-  }
-  if (are_implicitly_final) {
-    params.SetImplicitlyFinal();
-  }
+  ASSERT(CurrentToken() == Token::kLPAREN);
   ParseFormalParameterList(allow_explicit_default_values, &params);
 
   // The number of parameters and their type are not yet set in local functions,
@@ -1572,100 +1799,19 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   ASSERT(Type::Handle(func.result_type()).IsResolved());
   ASSERT(func.NumberOfParameters() == params.parameters->length());
 
-  // If this is a constructor, initialize instance fields that have an
-  // explicit initializer expression. This has to be done before code
-  // for field initializer parameters are is generated.
-  // NB: the instance field initializers have to be compiled before
-  // the parameters are added to the scope, so that a parameter
-  // name cannot shadow a name used in the field initializer expression.
-  SequenceNode* init_statements = NULL;
-  if (func.IsConstructor()) {
-    GrowableArray<FieldInitExpression> initializers;
-    ParseInitializedInstanceFields(cls, &initializers);
-
-    // Now populate function scope with the formal parameters.
-    AddFormalParamsToScope(&params, current_block_->scope);
-    LocalVariable* receiver = current_block_->scope->VariableAt(0);
-
-    // Now that the "this" parameter is in scope, we can generate the code
-    // to strore the initializer expressions in the respective instance fields.
-    // We do this before the field parameters and the initializers from the
-    // constructor's initializer list get compiled.
-    OpenBlock();
-    if (initializers.length() > 0) {
-      for (int i = 0; i < initializers.length(); i++) {
-        const Field* field = initializers[i].inst_field;
-        AstNode* instance = new LoadLocalNode(field->token_index(), *receiver);
-        AstNode* field_init =
-            new StoreInstanceFieldNode(field->token_index(),
-                                       instance,
-                                       *field,
-                                       initializers[i].expr);
-        current_block_->statements->Add(field_init);
+  // Check whether the function has any field initializer formal parameters,
+  // which are not allowed in non-constructor functions.
+  if (params.has_field_initializer) {
+    for (int i = 0; i < params.parameters->length(); i++) {
+      ParamDesc& param = (*params.parameters)[i];
+      if (param.is_field_initializer) {
+        ErrorMsg(param.name_pos,
+                 "field initializer only allowed in constructors");
       }
     }
-
-    // Turn formal field parameters into field initializers or report error
-    // if the function is not a constructor
-    if (params.has_field_initializer) {
-      for (int i = 0; i < params.parameters->length(); i++) {
-        ParamDesc& param = (*params.parameters)[i];
-        if (param.is_field_initializer) {
-          if (!func.IsConstructor()) {
-            ErrorMsg(param.name_pos,
-                     "field initializer only allowed in constructors");
-          }
-
-          const String& field_name = *param.name;
-          Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
-          if (field.IsNull()) {
-            ErrorMsg(param.name_pos,
-                     "unresolved reference to instance field '%s'",
-                     field_name.ToCString());
-          }
-          const String& mangled_name =
-              String::ZoneHandle(MangledInitParamName(field_name));
-          AstNode* instance = new LoadLocalNode(param.name_pos, *receiver);
-          LocalVariable* p =
-              current_block_->scope->LookupVariable(mangled_name, false);
-          ASSERT(p != NULL);
-          AstNode* value = new LoadLocalNode(param.name_pos, *p);
-          AstNode* initializer = new StoreInstanceFieldNode(
-              param.name_pos, instance, field, value);
-          current_block_->statements->Add(initializer);
-        }
-      }
-    }
-    ParseInitializers(cls, receiver);
-    init_statements = CloseBlock();
-    LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(token_index_, *phase_param);
-    AstNode* phase_check =
-        new BinaryOpNode(token_index_, Token::kBIT_AND,
-                phase_value,
-                new LiteralNode(token_index_,
-                        Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
-    AstNode* comparison =
-        new ComparisonNode(token_index_, Token::kNE_STRICT,
-                phase_check,
-                new LiteralNode(token_index_, Smi::ZoneHandle(Smi::New(0))));
-    AstNode* guarded_init_statements =
-        new IfNode(token_index_, comparison, init_statements, NULL);
-    current_block_->statements->Add(guarded_init_statements);
-  } else {
-    // Parsing a function that is not a constructor.
-    if (params.has_field_initializer) {
-      for (int i = 0; i < params.parameters->length(); i++) {
-        ParamDesc& param = (*params.parameters)[i];
-        if (param.is_field_initializer) {
-          ErrorMsg(param.name_pos,
-                   "field initializer only allowed in constructors");
-        }
-      }
-    }
-    // Populate function scope with the formal parameters.
-    AddFormalParamsToScope(&params, current_block_->scope);
   }
+  // Populate function scope with the formal parameters.
+  AddFormalParamsToScope(&params, current_block_->scope);
 
   if (FLAG_enable_type_checks &&
       (current_block_->scope->function_level() > 0)) {
@@ -1682,126 +1828,20 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     }
   }
 
-  if (func.IsConstructor()) {
-    LocalVariable* receiver = current_block_->scope->VariableAt(0);
-    StaticCallNode* super_call = NULL;
-    ASSERT(init_statements != NULL);
-    // Look for the super initializer call in the sequence of initializer
-    // statements. If it exists and is not the last initializer statement,
-    // we need to create an implicit super call to the super constructor's
-    // body.
-    // Thus, iterate over all but the last initializer to see whether
-    // it's a super constructor call.
-    for (int i = 0; i < init_statements->length() - 1; i++) {
-      if (init_statements->NodeAt(i)->IsStaticCallNode()) {
-        StaticCallNode* static_call =
-            init_statements->NodeAt(i)->AsStaticCallNode();
-        if (static_call->function().IsConstructor()) {
-          super_call = static_call;
-          break;
-        }
-      }
-    }
-    if (super_call != NULL) {
-      // Generate an implicit call to the super constructor's body.
-      // We need to patch the super _initializer_ call so that it
-      // saves the evaluated actual arguments in temporary variables.
-      // The temporary variables are necessary so that the argument
-      // expressions are not evaluated twice.
-      ArgumentListNode* ctor_args = super_call->arguments();
-      // The super initializer call has at least 2 arguments: the
-      // implicit receiver, and the hidden constructor phase.
-      ASSERT(ctor_args->length() >= 2);
-      for (int i = 2; i < ctor_args->length(); i++) {
-        AstNode* arg = ctor_args->NodeAt(i);
-        if (!arg->IsLoadLocalNode() && !arg->IsLiteralNode()) {
-          LocalVariable* temp =
-              CreateTempConstVariable(arg->token_index(), arg->id(), "sca");
-          AstNode* save_temp =
-              new StoreLocalNode(arg->token_index(), *temp, arg);
-          ctor_args->SetNodeAt(i, save_temp);
-        }
-      }
-    }
-    OpenBlock();
-    if (super_call != NULL) {
-      ArgumentListNode* initializer_args = super_call->arguments();
-      const Function& super_ctor = super_call->function();
-      // Patch the initializer call so it only executes the super
-      // initializer.
-      initializer_args->SetNodeAt(1,
-          new LiteralNode(token_index_,
-                  Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
-
-      ArgumentListNode* super_call_args = new ArgumentListNode(token_index_);
-      // First argument is the receiver.
-      super_call_args->Add(new LoadLocalNode(token_index_, *receiver));
-      // Second argument is the constructor phase argument.
-      AstNode* phase_parameter =
-          new LiteralNode(token_index_,
-               Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody)));
-      super_call_args->Add(phase_parameter);
-      super_call_args->set_names(initializer_args->names());
-      for (int i = 2; i < initializer_args->length(); i++) {
-        AstNode* arg = initializer_args->NodeAt(i);
-        if (arg->IsLiteralNode()) {
-          LiteralNode* lit = arg->AsLiteralNode();
-          super_call_args->Add(new LiteralNode(token_index_, lit->literal()));
-        } else {
-          ASSERT(arg->IsLoadLocalNode() || arg->IsStoreLocalNode());
-          if (arg->IsLoadLocalNode()) {
-            const LocalVariable& temp = arg->AsLoadLocalNode()->local();
-            super_call_args->Add(new LoadLocalNode(token_index_, temp));
-          } else if (arg->IsStoreLocalNode()) {
-            const LocalVariable& temp = arg->AsStoreLocalNode()->local();
-            super_call_args->Add(new LoadLocalNode(token_index_, temp));
-          }
-        }
-      }
-      ASSERT(super_ctor.AreValidArguments(super_call_args->length(),
-                                          super_call_args->names()));
-      current_block_->statements->Add(
-          new StaticCallNode(token_index_, super_ctor, super_call_args));
-    }
-  }
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     ParseStatementSequence();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
-    if (func.IsConstructor()) {
-      ErrorMsg("constructors may not return a value");
-    }
     intptr_t expr_pos = token_index_;
     AstNode* expr = ParseExpr(kAllowConst);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
   } else if (IsLiteral("native")) {
     ParseNativeFunctionBlock(&params, func);
-  } else if (CurrentToken() == Token::kSEMICOLON) {
-    ConsumeToken();
-    ASSERT(func.IsConstructor());
-    // Some constructors have no function body.
   } else {
     UnexpectedToken();
-  }
-  if (func.IsConstructor()) {
-    SequenceNode* ctor_block = CloseBlock();
-    LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(token_index_, *phase_param);
-    AstNode* phase_check =
-        new BinaryOpNode(token_index_, Token::kBIT_AND,
-                phase_value,
-                new LiteralNode(token_index_,
-                        Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
-    AstNode* comparison =
-    new ComparisonNode(token_index_, Token::kNE_STRICT,
-            phase_check,
-            new LiteralNode(token_index_, Smi::ZoneHandle(Smi::New(0))));
-    AstNode* guarded_block_statements =
-        new IfNode(token_index_, comparison, ctor_block, NULL);
-    current_block_->statements->Add(guarded_block_statements);
   }
 
   SequenceNode* statements = CloseBlock();
