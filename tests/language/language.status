@@ -7,11 +7,12 @@
 
 # In order to maintain maximum test coverage for all builds,
 # please use the following procedure to mark a test
-# failed on an architecture other than the one you are working on.
+# failed on architectures other than the one you are working on.
 #
 # 1) Copy the old version of the test to
-#    tests/language/src/TestName[Dartc|VM]Test.dart.
-# 2) File a bug for the failure due to the language change.
+#    tests/language/src/TestName[Dartc|VM|Frog]Test.dart.
+#    to maintain coverage.
+# 2) File a bug on each archtiecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
 prefix language
@@ -48,8 +49,12 @@ WrongNumberTypeArgumentsTest: Fail # Bug 5532690
 Prefix18NegativeTest: Fail # Issue 307
 Prefix20NegativeTest: Fail # Issue 307
 
-# DartC specific tests that should not be run by the VM.
+# DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
+*DartcNegativeTest: Skip
+*FrogTest: Skip
+*FrogNegativeTest: Skip
+
 
 [ $component == vm && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
@@ -164,8 +169,11 @@ BlackListedTest/12: Fail # Bug 5469684
 BlackListedTest/13: Crash # Bug 5469684
 BlackListedTest/14: Crash # Bug 5469684
 
-# VM specific tests that should not be run by DartC.
+# VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
+*VMNegativeTest: Skip
+*FrogTest: Skip
+*FrogNegativeTest: Skip
 
 
 [ $component == dartium ]
