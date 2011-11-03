@@ -413,7 +413,7 @@ class _File implements File {
   static int _length(int id) native "File_Length";
   static int _flush(int id) native "File_Flush";
   static bool _create(String name) native "File_Create";
-  static int _fullPath(String name) native "File_FullPath";
+  static String _fullPath(String name) native "File_FullPath";
 
   static int _checkReadWriteListArguments(int length, int offset, int bytes) {
     if (offset < 0) return offset;
