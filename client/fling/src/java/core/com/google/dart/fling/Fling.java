@@ -16,11 +16,8 @@ import java.io.File;
 
 public class Fling {
   static void emitErrorsAndWarnings(CompileResult result) {
-    for (CompileError error : result.getFatalErrors()) {
-      System.err.println("FATAL ERROR: " + error);
-    }
-    for (CompileError error : result.getTypeErrors()) {
-      System.err.println("TYPE ERROR: " + error);
+    for (CompileError error : result.getErrors()) {
+      System.err.println("ERROR: " + error);
     }
     for (CompileError warning : result.getWarnings()) {
       System.err.println("WARNING: " + warning);

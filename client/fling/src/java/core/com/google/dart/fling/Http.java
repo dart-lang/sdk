@@ -317,12 +317,8 @@ public class Http {
       }
 
       private static void emitWarningsAndErrors(StringBuilder buffer, CompileResult result) {
-        for (CompileError error : result.getFatalErrors()) {
+        for (CompileError error : result.getErrors()) {
           buffer.append("console.error("
-              + toJavaScriptStringLiteral(error.toString()) + ");\n");
-        }
-        for (CompileError error : result.getTypeErrors()) {
-          buffer.append("console.warn("
               + toJavaScriptStringLiteral(error.toString()) + ");\n");
         }
         for (CompileError error : result.getWarnings()) {

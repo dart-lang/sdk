@@ -15,27 +15,23 @@ import java.util.List;
 @SuppressWarnings("serial")
 public class CompileResult implements Serializable {
   private final String binary;
-  private final List<CompileError> typeErrors;
-  private final List<CompileError> fatalErrors;
+  private final List<CompileError> errors;
   private final List<CompileError> warnings;
   private final Throwable exception;
   private final long duration;
 
-  CompileResult(List<CompileError> fatalErrors, List<CompileError> typeErrors, List<CompileError> warnings,
-      Throwable exception, long duration) {
+  CompileResult(List<CompileError> errors, List<CompileError> warnings, Throwable exception,
+      long duration) {
     this.binary = null;
-    this.fatalErrors = fatalErrors;
-    this.typeErrors = typeErrors;
+    this.errors = errors;
     this.warnings = warnings;
     this.exception = exception;
     this.duration = duration;
   }
 
-  CompileResult(String binary, List<CompileError> fatalErrors, List<CompileError> typeErrors,
-      List<CompileError> warnings, long duration) {
+  CompileResult(String binary, List<CompileError> errors, List<CompileError> warnings, long duration) {
     this.binary = binary;
-    this.typeErrors = typeErrors;
-    this.fatalErrors = fatalErrors;
+    this.errors = errors;
     this.warnings = warnings;
     this.exception = null;
     this.duration = duration;
@@ -47,7 +43,7 @@ public class CompileResult implements Serializable {
    * Exception that was thrown by the compiler.
    */
   public boolean didBuild() {
-    return fatalErrors.isEmpty() && exception == null;
+    return errors.isEmpty() && exception == null;
   }
 
   /**
@@ -57,12 +53,8 @@ public class CompileResult implements Serializable {
     return duration;
   }
 
-  public List<CompileError> getFatalErrors() {
-    return fatalErrors;
-  }
-
-  public List<CompileError> getTypeErrors() {
-    return typeErrors;
+  public List<CompileError> getErrors() {
+    return errors;
   }
 
   public Throwable getException() {

@@ -23,6 +23,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlLibrarySource;
@@ -124,27 +125,17 @@ public class CompileService {
    */
   private static class Listener  extends DartCompilerListener {
 
-    private final List<CompileError> fatalErrors = Lists.newArrayList();
-
-    private final List<CompileError> typeErrors = Lists.newArrayList();
+    private final List<CompileError> errors = Lists.newArrayList();
 
     private final List<CompileError> warnings = Lists.newArrayList();
 
     @Override
     public void onError(DartCompilationError error) {
-      fatalErrors.add(CompileError.from(error));
-    }
-
-    public void compilationError(DartCompilationError error) {
-      fatalErrors.add(CompileError.from(error));
-    }
-
-    public void compilationWarning(DartCompilationError error) {
-      warnings.add(CompileError.from(error));
-    }
-
-    public void typeError(DartCompilationError error) {
-      typeErrors.add(CompileError.from(error));
+      if (error.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+        errors.add(CompileError.from(error));
+      } else {
+        warnings.add(CompileError.from(error));
+      }
     }
 
     @Override
@@ -279,13 +270,11 @@ public class CompileService {
           artifacts,
           listener);
       return new CompileResult(artifacts.getJavaScriptFor(source),
-          listener.fatalErrors,
-          listener.typeErrors,
+          listener.errors,
           listener.warnings,
           System.currentTimeMillis() - startedAt);
     } catch (Throwable e) {
-      return new CompileResult(listener.fatalErrors,
-          listener.typeErrors,
+      return new CompileResult(listener.errors,
           listener.warnings,
           e,
           System.currentTimeMillis() - startedAt);
