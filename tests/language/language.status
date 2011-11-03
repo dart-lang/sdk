@@ -209,7 +209,6 @@ PrivateMemberTest/04: Fail
 
 BitOperationsTest: Skip  # relies on big integers not available in JS
 CallThroughGetterTest: Fail
-CallThroughNullGetterTest: Fail
 CanonicalConstTest: Fail # type in const array allocation is erased
 CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
@@ -275,7 +274,6 @@ LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MathTest: Fail
-MethodInvocationTest: Fail
 MethodOverrideTest: Fail # newly added on r771 (10/26)
 NamedParameters5NegativeTest: Skip # passes, but for the wrong reason
 NamedParameters6NegativeTest: Skip # passes, but for the wrong reason
