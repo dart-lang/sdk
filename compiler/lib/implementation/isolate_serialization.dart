@@ -46,7 +46,7 @@ class MessageTraverser {
     if (x is ReceivePortImpl) return visitReceivePort(x);
     if (x is ReceivePortSingleShotImpl) return visitReceivePortSingleShot(x);
     // TODO(floitsch): make this a real exception. (which one)?
-    throw "Message serialization: Illegal value $x passed";
+    throw new Exception("Message serialization: Illegal value $x passed");
   }
 
   abstract visitPrimitive(x);

@@ -8,6 +8,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.io.IOException;
@@ -56,7 +57,8 @@ final class DartCompilerMainContext extends DartCompilerListener implements
             (event.getErrorCode() != TypeErrorCode.NO_SUCH_TYPE) &&
             (event.getErrorCode() != TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED)))) {
       incrementTypeErrorCount();
-    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR &&
+        (!shouldWarnOnNoSuchType() || event.getErrorCode() != ResolverErrorCode.NO_SUCH_TYPE)) {
       incrementErrorCount();
     } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
       incrementWarningCount();

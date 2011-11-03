@@ -39,6 +39,9 @@ class DartStubTestCase(test_case.StandardTestCase):
     (interface, _, implementation) = interface.partition('+')
     return (interface, classes, implementation)
 
+  def IsFailureOutput(self, output):
+    return output.exit_code != 0 or not '##DONE##' in output.stdout
+
   def BeforeRun(self):
     if not self.context.generate:
       return
