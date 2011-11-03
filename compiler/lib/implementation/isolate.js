@@ -112,6 +112,10 @@ isolate$Registry.prototype.get = function(id) {
   return this.map[id];
 };
 
+isolate$Registry.prototype.contains = function(id) {
+  return this.map[id] !== void 0;
+};
+
 isolate$Registry.prototype.isEmpty = function() {
   return this.count === 0;
 };
@@ -388,13 +392,15 @@ function isolate$doOneEventLoopIteration() {
   if (!event) {
     if (isolate$inWorker) {
       isolate$closeWorkerIfNecessary();
-    } else if (!isolate$isolateRegistry.isEmpty() &&
+    } else if (isolate$isolateRegistry.contains(isolate$rootIsolate.id) &&
                isolate$workerRegistry.isEmpty() &&
                !isolate$supportsWorkers && (typeof(window) == 'undefined')) {
-      // This should only trigger when running on the command-line.
-      // We don't want this check to execute in the browser where the isolate
-      // might still be alive due to DOM callbacks.
-      // throw Error("Program exited with open ReceivePorts.");
+      // No events anymore, but the main-worker still has open receive-ports.
+      // This simulates the VM's behavior (which instead times out).
+      // We only trigger this message when we run on the console (where we
+      // don't have workers). We don't want this check to execute in the browser
+      // where the isolate might still be alive due to DOM callbacks.
+      throw Error("Program exited with open ReceivePorts.");
     }
     return STOP_LOOP;
   } else {
