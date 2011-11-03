@@ -168,10 +168,12 @@ class StandardTestConfiguration(test.TestConfiguration):
       if sep:
         (tag, sep, kind) = info.partition(': ')
         if tag in tags:
-          raise TestConfigurationError('duplicated tag %s' % tag)
-        if kind not in StandardTestConfiguration.LEGAL_KINDS:
+          if kind != 'continued':
+            raise TestConfigurationError('duplicated tag %s' % tag)
+        elif kind not in StandardTestConfiguration.LEGAL_KINDS:
           raise TestConfigurationError('unrecognized kind %s' % kind)
-        tags[tag] = kind
+        else:
+          tags[tag] = kind
     if not tags:
       return {}
     # Prepare directory for generated tests.

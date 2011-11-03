@@ -13,4 +13,5 @@ class myClass extends lib12.Library13 {
 }
 
 main() {
+  new myClass(1);
 }

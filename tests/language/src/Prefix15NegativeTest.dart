@@ -13,4 +13,5 @@ class myClass implements lib12.Library13 {
 }
 
 main() {
+  new myClass(1);
 }
