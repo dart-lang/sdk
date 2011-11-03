@@ -292,7 +292,7 @@ LibTest/core/Queue/forEach/Queue/forEach/A01/t04: Fail
 LibTest/core/Queue/iterator_hasNext/Queue/iterator/hasNext/A01/t01: Skip # Timeout
 LibTest/core/Queue/some/Queue/some/A01/t03: Fail
 LibTest/core/Queue/some/Queue/some/A01/t06: Fail
-LibTest/core/ReceivePort/receive/ReceivePort/receive/A01/t02: Fail
+LibTest/core/ReceivePort/receive/ReceivePort/receive/A01/t02: Fail, Pass  # Fails for the wrong reason (open receive ports).
 LibTest/core/ReceivePort/toSendPort/ReceivePort/toSendPort/A02/t01: Fail
 LibTest/core/RegExp/RegExp/RegExp/A01/t03: Fail
 LibTest/core/RegExp/RegExp/RegExp/A01/t04: Fail
@@ -333,6 +333,7 @@ LibTest/core/RegExp/firstMatch/RegExp/firstMatch/A03/t01: Fail
 LibTest/core/RegExp/hasMatch/RegExp/hasMatch/A01/t02: Fail
 LibTest/core/RegExp/hasMatch/RegExp/hasMatch/A02/t01: Fail
 LibTest/core/RegExp/stringMatch/RegExp/stringMatch/A02/t01: Fail
+LibTest/core/SendPort/call/SendPort/call/A01/t01: Fail  # Open receive ports.
 LibTest/core/SendPort/send/SendPort/send/A02/t01: Fail
 LibTest/core/SendPort/send/SendPort/send/A03/t02: Fail
 LibTest/core/Set/filter/Set/filter/A01/t03: Fail
