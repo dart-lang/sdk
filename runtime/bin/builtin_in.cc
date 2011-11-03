@@ -40,6 +40,7 @@ static const char Builtin_source_[] = {
   V(File_Length, 1)                                                            \
   V(File_Flush, 1)                                                             \
   V(File_Create, 1)                                                            \
+  V(File_FullPath, 1)                                                          \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
   V(Process_Start, 8)                                                          \

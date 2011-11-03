@@ -301,6 +301,17 @@ class _FlushOperation extends _FileOperation {
 }
 
 
+class _FullPathOperation extends _FileOperation {
+  _FullPathOperation(String this._name);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._fullPath(_name), port.toSendPort());
+  }
+
+  String _name;
+}
+
+
 class _CreateOperation extends _FileOperation {
   _CreateOperation(String this._name);
 
@@ -402,6 +413,7 @@ class _File implements File {
   static int _length(int id) native "File_Length";
   static int _flush(int id) native "File_Flush";
   static bool _create(String name) native "File_Create";
+  static int _fullPath(String name) native "File_FullPath";
 
   static int _checkReadWriteListArguments(int length, int offset, int bytes) {
     if (offset < 0) return offset;
@@ -739,6 +751,33 @@ class _File implements File {
     }
   }
 
+  void fullPath() {
+    _asyncUsed = true;
+    var handler = _fullPathHandler;
+    if (handler == null) handler = (path) => null;
+    var handleFullPathResult = (result, ignored) {
+      if (result != null) {
+        handler(result);
+      } else if (_errorHandler != null) {
+        _errorHandler("canonicalPath failed");
+      }
+    };
+    var operation = new _FullPathOperation(_name);
+    _scheduler.enqueue(operation, handleFullPathResult);
+  }
+
+  String fullPathSync() {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    String result = _fullPath(_name);
+    if (result == null) {
+      throw new FileIOException("fullPath failed");
+    }
+    return result;
+  }
+
   InputStream openInputStream() {
     return new _FileInputStream(this);
   }
@@ -791,6 +830,10 @@ class _File implements File {
     _flushHandler = handler;
   }
 
+  void set fullPathHandler(void handler(String)) {
+    _fullPathHandler = handler;
+  }
+
   void set errorHandler(void handler(String error)) {
     _errorHandler = handler;
   }
@@ -811,5 +854,6 @@ class _File implements File {
   var _positionHandler;
   var _lengthHandler;
   var _flushHandler;
+  var _fullPathHandler;
   var _errorHandler;
 }

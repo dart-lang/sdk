@@ -252,3 +252,16 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewBoolean(result));
   Dart_ExitScope();
 }
+
+
+void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  char* path = File::GetCanonicalPath(str);
+  if (path != NULL) {
+    Dart_SetReturnValue(args, Dart_NewString(path));
+    free(path);
+  }
+  Dart_ExitScope();
+}

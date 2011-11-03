@@ -160,6 +160,18 @@ interface File factory _File {
   void flushSync();
 
   /**
+   * Get the canonical full path corresponding to the file name. The
+   * [fullPathHandler] is called when the fullPath operation
+   * completes.
+   */
+  String fullPath();
+
+  /**
+   * Synchronously get the canonical full path corresponding to the file name.
+   */
+  String fullPathSync();
+
+  /**
    * Create a new independent input stream for the file. The file
    * input stream must be closed when no longer used.
    */
@@ -187,6 +199,7 @@ interface File factory _File {
   void set positionHandler(void handler(int position));
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
+  void set fullPathHandler(void handler(String path));
   void set errorHandler(void handler(String error));
 }
 

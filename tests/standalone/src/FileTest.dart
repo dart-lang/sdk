@@ -144,37 +144,44 @@ class FileTest {
             Expect.fail("No errors expected");
           };
           file.createHandler = () {
-            file.openHandler = () {
-              file.noPendingWriteHandler = () {
-                file.closeHandler = () {
-                  // Now read the contents of the file just written.
-                  List<int> buffer2 = new List<int>(bytes_read);
-                  file = new File(getFilename(outFilenameBase));
-                  file.errorHandler = (s) {
-                    Expect.fail("No errors expected");
-                  };
-                  file.openHandler = () {
-                    file.readListHandler = (bytes_read) {
-                      Expect.equals(42, bytes_read);
-                      file.closeHandler = () {
-                        // Now compare the two buffers to check if they
-                        // are identical.
-                        Expect.equals(buffer1.length, buffer2.length);
-                        for (int i = 0; i < buffer1.length; i++) {
-                          Expect.equals(buffer1[i],  buffer2[i]);
-                        }
-                      };
-                      file.close();
+            file.fullPathHandler = (s) {
+              Expect.isTrue(new File(s).existsSync());
+              if (s[0] != '/' && s[0] != '\\' && s[1] != ':') {
+                Expect.fail("Not a full path");
+              }
+              file.openHandler = () {
+                file.noPendingWriteHandler = () {
+                  file.closeHandler = () {
+                    // Now read the contents of the file just written.
+                    List<int> buffer2 = new List<int>(bytes_read);
+                    file = new File(getFilename(outFilenameBase));
+                    file.errorHandler = (s) {
+                      Expect.fail("No errors expected");
                     };
-                    file.readList(buffer2, 0, 42);
+                    file.openHandler = () {
+                      file.readListHandler = (bytes_read) {
+                        Expect.equals(42, bytes_read);
+                        file.closeHandler = () {
+                          // Now compare the two buffers to check if they
+                          // are identical.
+                          Expect.equals(buffer1.length, buffer2.length);
+                          for (int i = 0; i < buffer1.length; i++) {
+                            Expect.equals(buffer1[i],  buffer2[i]);
+                          }
+                        };
+                        file.close();
+                      };
+                      file.readList(buffer2, 0, 42);
+                    };
+                    file.open();
                   };
-                  file.open();
+                  file.close();
                 };
-                file.close();
+                file.writeList(buffer1, 0, bytes_read);
               };
-              file.writeList(buffer1, 0, bytes_read);
+              file.open(true);
             };
-            file.open(true);
+            file.fullPath();
           };
           file.create();
         };
@@ -202,6 +209,11 @@ class FileTest {
     String outFilenameBase = getFilename("tests/vm/data/fixed_length_file");
     file = new File(outFilenameBase + "_out");
     file.createSync();
+    String path = file.fullPathSync();
+    if (path[0] != '/' && path[0] != '\\' && path[1] != ':') {
+      Expect.fail("Not a full path");
+    }
+    Expect.isTrue(new File(path).existsSync());
     file.openSync(true);
     file.writeListSync(buffer1, 0, bytes_read);
     file.closeSync();
