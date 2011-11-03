@@ -55,10 +55,11 @@ class DartStubTestCase(test_case.StandardTestCase):
     src = join(self.GetPath(), interface)
     dest = join(self.GetPath(), GeneratedName(interface))
     (_, tmp) = tempfile.mkstemp()
-    command = self.context.GetDartC(self.mode, 'dartc')
+    command = self.context.GetDartC(self.mode, self.arch)
     self.RunCommand(command + [ src,
                                 # dartc generates output even if it has no
                                 # output to generate.
+                                '-noincremental',
                                 '-out', tmpdir,
                                 '-isolate-stub-out', tmp,
                                 '-generate-isolate-stubs', classes ])
@@ -108,7 +109,7 @@ class DartStubTestConfiguration(test_configuration.StandardTestConfiguration):
     super(DartStubTestConfiguration, self).__init__(context, root)
 
   def ListTests(self, current_path, path, mode, arch, component):
-    dartc = self.context.GetDartC(mode, 'dartc')
+    dartc = self.context.GetDartC(mode, arch)
     self.context.generate = os.access(dartc[0], os.X_OK)
     tests = []
     for root, dirs, files in os.walk(join(self.root, 'src')):
