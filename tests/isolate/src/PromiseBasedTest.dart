@@ -33,12 +33,13 @@ void test(TestExpectation expect) {
   Proxy proxy = new Proxy.forIsolate(new TestIsolate());
   proxy.send([42]);  // Seed the isolate.
   Promise<int> result = new PromiseProxy<int>(proxy.call([87]));
-  Promise promise = expect.completes(result).then((int value) {
+  Completer completer = new Completer();
+  expect.completes(result).then((int value) {
     //print("expect 1: $value");
     Expect.equals(42 + 87, value);
-    return 99;
+    completer.complete(99);
   });
-  expect.completes(promise).then((int value) {
+  expect.completes(completer.future).then((int value) {
     //print("expect 2: $value");
     Expect.equals(99, value);
     expect.succeeded();
@@ -50,21 +51,22 @@ void expandedTest(TestExpectation expect) {
   proxy.send([42]);  // Seed the isolate.
   Promise<SendPort> sendCompleter = proxy.call([87]);
   Promise<int> result = new Promise<int>();
-  ReceivePort completer = new ReceivePort.singleShot();
-  completer.receive((var msg, SendPort _) {
+  ReceivePort receivePort = new ReceivePort.singleShot();
+  receivePort.receive((var msg, SendPort _) {
     //print("test completer");
     result.complete(msg[0]);
   });
   sendCompleter.addCompleteHandler((SendPort port) {
     //print("test send");
-    port.send([completer.toSendPort()], null);
+    port.send([receivePort.toSendPort()], null);
   });
-  Promise promise = expect.completes(result).then((int value) {
+  Completer completer = new Completer();
+  expect.completes(result).then((int value) {
     //print("expect 1: $value");
     Expect.equals(42 + 87, value);
-    return 99;
+    completer.complete(99);
   });
-  expect.completes(promise).then((int value) {
+  expect.completes(completer.future).then((int value) {
     //print("expect 2: $value");
     Expect.equals(99, value);
     expect.succeeded();

@@ -107,9 +107,9 @@ class HeavyIsolate3 extends Isolate {
 }
 
 void test(TestExpectation expect) {
-  Promise<SendPort> heavy1 = expect.completes(new HeavyIsolate1().spawn());
-  Promise<SendPort> heavy2 = expect.completes(new HeavyIsolate2().spawn());
-  Promise<SendPort> heavy3 = expect.completes(new HeavyIsolate3().spawn());
+  Future<SendPort> heavy1 = expect.completes(new HeavyIsolate1().spawn());
+  Future<SendPort> heavy2 = expect.completes(new HeavyIsolate2().spawn());
+  Future<SendPort> heavy3 = expect.completes(new HeavyIsolate3().spawn());
 
   heavy2.then(expect.runs1((SendPort heavy2Port) {
     heavy3.then(expect.runs1((SendPort heavy3Port) {
