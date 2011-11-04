@@ -261,7 +261,6 @@ InterfaceFactory3NegativeTest: Fail
 InterfaceFactoryConstructorNegativeTest: Fail
 InterfaceStaticMethodNegativeTest: Fail
 IsNotClass4NegativeTest: Fail
-IsOperatorTest: Fail
 LabelTest: Fail
 LibraryPrefixesTest: Fail
 Library1NegativeTest: Fail
