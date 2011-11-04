@@ -96,7 +96,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
 class AstNode : public ZoneAllocated {
  public:
-  static const int kInvalidId = -1;
+  static const int kNoId = -1;
 
   explicit AstNode(intptr_t token_index)
       : token_index_(token_index),

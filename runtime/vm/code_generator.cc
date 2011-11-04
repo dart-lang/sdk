@@ -852,14 +852,14 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
       PcDescriptors::Handle(optimized_code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
   // Locate node id at deoptimization point inside optimized code.
-  intptr_t deopt_node_id = AstNode::kInvalidId;
+  intptr_t deopt_node_id = AstNode::kNoId;
   for (int i = 0; i < descriptors.Length(); i++) {
     if (static_cast<uword>(descriptors.PC(i)) == caller_frame->pc()) {
       deopt_node_id = descriptors.NodeId(i);
       break;
     }
   }
-  ASSERT(deopt_node_id != AstNode::kInvalidId);
+  ASSERT(deopt_node_id != AstNode::kNoId);
   uword continue_at_pc =
       unoptimized_code.GetDeoptPcAtNodeId(deopt_node_id);
   ASSERT(continue_at_pc != 0);

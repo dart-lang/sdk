@@ -111,14 +111,16 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
                             int num_arguments,
                             const Array& optional_arguments_names);
 
-  void GenerateInstanceOf(intptr_t token_index,
+  void GenerateInstanceOf(intptr_t node_id,
+                          intptr_t token_index,
                           const Type& type,
                           bool negate_result);
-  void GenerateAssertAssignable(intptr_t token_index,
+  void GenerateAssertAssignable(intptr_t node_id,
+                                intptr_t token_index,
                                 const Type& dst_type,
                                 const String& dst_name);
   void GenerateArgumentTypeChecks();
-  void GenerateConditionTypeCheck(intptr_t token_index);
+  void GenerateConditionTypeCheck(intptr_t node_id, intptr_t token_index);
 
   void GenerateInstantiatorTypeArguments(intptr_t token_index);
   void GenerateTypeArguments(ConstructorCallNode* node,
@@ -130,7 +132,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   bool IsResultNeeded(AstNode* node) const;
 
   void GenerateCall(intptr_t token_index, const ExternalLabel* ext_label);
-  void GenerateCallRuntime(intptr_t token_index, const RuntimeEntry& entry);
+  void GenerateCallRuntime(intptr_t node_id,
+                           intptr_t token_index,
+                           const RuntimeEntry& entry);
 
   void GenerateInlinedFinallyBlocks(SourceLabel* label);
 
