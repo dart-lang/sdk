@@ -11,6 +11,8 @@ LibTest/core/StopWatch/elapsedInUs/StopWatch/elapsedInUs/A01/t01: Skip
 LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t02: Skip
 LibTest/core/StopWatch/stop/StopWatch/stop/A01/t01: Skip
 LibTest/core/SendPort/call/SendPort/call/A01/t01: Skip  # Issue co19 - 10
+LibTest/core/Isolate/A01/t01: Skip # Issue co19 - 11
+LibTest/core/Isolate/A02/t01: Skip # Issue co19 - 11
 
 
 [ $component == vm ]
@@ -142,8 +144,6 @@ LibTest/core/Expect/throws/Expect/throws/A02/t01: Fail
 LibTest/core/Expect/throws/Expect/throws/A03/t01: Fail
 LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t01: Fail  # Illegal position argument.
 LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t02: Fail  # Illegal position argument.
-LibTest/core/Isolate/A01/t01: Fail
-LibTest/core/Isolate/A02/t01: Fail
 LibTest/core/Isolate/port/Isolate/port/A01/t01: Fail
 LibTest/core/List/every/List/every/A01/t04: Fail
 LibTest/core/List/filter/List/filter/A01/t04: Fail
