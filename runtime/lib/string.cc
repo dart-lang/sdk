@@ -96,30 +96,15 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
 
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   const String& str = String::CheckedHandle(arguments->At(0));
-  const Instance& index_instance = Instance::CheckedHandle(arguments->At(1));
-  if (!index_instance.IsInteger()) {
-    GrowableArray<const Object*> args;
-    args.Add(&index_instance);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  Integer& index = Integer::Handle();
-  index ^= index_instance.raw();
+  GET_NATIVE_ARGUMENT(Integer, index, arguments->At(1));
   uint32_t value = StringValueAt(str, index);
   ASSERT(value <= 0x10FFFF);
   arguments->SetReturn(String::Handle(String::NewSymbol(&value, 1)));
 }
 
-
 DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
   const String& str = String::CheckedHandle(arguments->At(0));
-  const Integer& index_instance = Integer::CheckedHandle(arguments->At(1));
-  if (!index_instance.IsInteger()) {
-    GrowableArray<const Object*> args;
-    args.Add(&index_instance);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  Integer& index = Integer::Handle();
-  index ^= index_instance.raw();
+  GET_NATIVE_ARGUMENT(Integer, index, arguments->At(1));
   int32_t value = StringValueAt(str, index);
   ASSERT(value >= 0);
   ASSERT(value <= 0x10FFFF);
@@ -129,14 +114,7 @@ DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
 
 DEFINE_NATIVE_ENTRY(String_concat, 2) {
   const String& a = String::CheckedHandle(arguments->At(0));
-  ASSERT(!a.IsNull());  // The receiver cannot be null.
-  const Instance& b_instance = Instance::CheckedHandle(arguments->At(1));
-  if (!b_instance.IsString()) {
-    GrowableArray<const Object*> args;
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  String& b = String::Handle();
-  b  ^= b_instance.raw();
+  GET_NATIVE_ARGUMENT(String, b, arguments->At(1));
   const String& result = String::Handle(String::Concat(a, b));
   arguments->SetReturn(result);
 }

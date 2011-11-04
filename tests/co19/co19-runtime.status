@@ -140,8 +140,8 @@ LibTest/core/Expect/stringEquals/Expect/stringEquals/A01/t02: Fail
 LibTest/core/Expect/stringEquals/Expect/stringEquals/A02/t01: Fail
 LibTest/core/Expect/throws/Expect/throws/A02/t01: Fail
 LibTest/core/Expect/throws/Expect/throws/A03/t01: Fail
-LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t01: Crash
-LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t02: Crash
+LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t01: Fail  # Illegal position argument.
+LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t02: Fail  # Illegal position argument.
 LibTest/core/Isolate/A01/t01: Fail
 LibTest/core/Isolate/A02/t01: Fail
 LibTest/core/Isolate/port/Isolate/port/A01/t01: Fail
@@ -235,9 +235,7 @@ LibTest/core/double/toStringAsPrecision/double/toStringAsPrecision/A01/t01: Fail
 LibTest/core/int/compareTo/int/compareTo/A01/t02: Fail
 LibTest/core/int/operator%/int/operator%/A01/t01: Fail
 LibTest/core/int/operator%/int/operator%/A01/t02: Fail
-LibTest/core/int/operator_l_shift/int/operator/l/shift/A01/t03: crash
 LibTest/core/int/operator_mul/int/operator/mul/A01/t01: Fail
-LibTest/core/int/operator_r_shift/int/operator/r/shift/A01/t03: crash
 LibTest/core/int/remainder/int/remainder/A01/t02: Fail
 LibTest/core/int/remainder/int/remainder/A01/t03: Fail
 LibTest/core/int/toRadixString/int/toRadixString/A01/t01: Fail
