@@ -12,6 +12,7 @@
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/zone.h"
@@ -172,13 +173,14 @@ class TestCase : TestCaseBase {
 class TestIsolateScope {
  public:
   TestIsolateScope() {
-    isolate_ = Dart::CreateIsolate(NULL, NULL);
+    isolate_ = reinterpret_cast<Isolate*>(Dart_CreateIsolate(NULL, NULL));
+    EXPECT(isolate_ != NULL);
     Dart_EnterScope();  // Create a Dart API scope for unit tests.
   }
   ~TestIsolateScope() {
     Dart_ExitScope();  // Exit the Dart API scope created for unit tests.
     ASSERT(isolate_ == Isolate::Current());
-    Dart::ShutdownIsolate();
+    Dart_ShutdownIsolate();
     isolate_ = NULL;
   }
 

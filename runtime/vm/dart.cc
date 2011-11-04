@@ -9,6 +9,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -51,10 +52,18 @@ bool Dart::InitOnce(int argc, char** argv,
 }
 
 
-Isolate* Dart::CreateIsolate(const Dart_Snapshot* snapshot_buffer,
-                             void* data) {
+Isolate* Dart::CreateIsolate() {
   // Create and initialize a new isolate.
   Isolate* isolate = Isolate::Init();
+  ASSERT(isolate != NULL);
+  return isolate;
+}
+
+
+void Dart::InitializeIsolate(const Dart_Snapshot* snapshot_buffer, void* data) {
+  // Initialize the new isolate.
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
   Zone zone;
   HandleScope handle_scope;
   Heap::Init(isolate);
@@ -67,7 +76,9 @@ Isolate* Dart::CreateIsolate(const Dart_Snapshot* snapshot_buffer,
     // of Object::Init(..) in a regular isolate creation path.
     Object::InitFromSnapshot(isolate);
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
-    SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+    SnapshotReader reader(snapshot,
+                          isolate->heap(),
+                          isolate->object_store());
     reader.ReadFullSnapshot();
   }
 
@@ -75,12 +86,10 @@ Isolate* Dart::CreateIsolate(const Dart_Snapshot* snapshot_buffer,
   CodeIndexTable::Init(isolate);
 
   // Give the embedder a shot at setting up this isolate.
-  // Isolates spawned from within this isolate will be given the callback data
-  // returned by the callback.
+  // Isolates spawned from within this isolate will be given the
+  // callback data returned by the callback.
   data = Isolate::InitCallback()(data);
-  // TODO(iposva): Shutdown the isolate on failure.
   isolate->set_init_callback_data(data);
-  return isolate;
 }
 
 

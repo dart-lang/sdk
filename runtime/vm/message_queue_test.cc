@@ -58,8 +58,9 @@ static Monitor* sync = NULL;
 static MessageQueue* shared_queue = NULL;
 void MessageReceiver_start(uword unused) {
   // We only need an isolate here because the MonitorLocker in the
-  // MessageQueue expects it.
-  Dart::CreateIsolate(NULL, NULL);
+  // MessageQueue expects it, we don't need to initialize the isolate
+  // as it does not run any dart code.
+  Dart::CreateIsolate();
 
   // Create a message queue and share it.
   MessageQueue* queue = new MessageQueue();

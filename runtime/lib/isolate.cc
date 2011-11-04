@@ -256,16 +256,25 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   const Library& library = Library::Handle(runnable_class.library());
   ASSERT(!library.IsNull());
   const char* library_url = String::Handle(library.url()).ToCString();
-
   intptr_t port_id = 0;
   const char* error_msg = NULL;
+  LongJump jump;
+  bool init_successful = true;
 
-  Isolate* spawned_isolate =
-      Dart::CreateIsolate(NULL, preserved_isolate->init_callback_data());
+  Isolate* spawned_isolate = Dart::CreateIsolate();
   if (spawned_isolate != NULL) {
+    // First initialize the spawned isolate.
+    LongJump* base = spawned_isolate->long_jump_base();
+    spawned_isolate->set_long_jump_base(&jump);
+    if (setjmp(*jump.Set()) == 0) {
+      Dart::InitializeIsolate(NULL, preserved_isolate->init_callback_data());
+    } else {
+      init_successful = false;
+    }
+    spawned_isolate->set_long_jump_base(base);
     // Check arguments to see if the specified library and classes are
     // loaded, this check will throw an exception if they are not loaded.
-    if (CheckArguments(library_url, class_name)) {
+    if (init_successful && CheckArguments(library_url, class_name)) {
       port_id = PortMap::CreatePort();
       uword data = reinterpret_cast<uword>(
           new IsolateStartData(spawned_isolate,
@@ -274,8 +283,9 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
                                port_id));
       new Thread(RunIsolate, data);
     } else {
-      // Error loading application into spawned isolate, shut it down and
-      // report error.
+      // Error spawning the isolate, maybe due to initialization errors or
+      // errors while loading the application into spawned isolate, shut
+      // it down and report error.
       // Make sure to grab the error message out of the isolate before it has
       // been shutdown and to allocate it in the preserved isolates zone.
       {

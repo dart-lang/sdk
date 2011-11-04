@@ -82,10 +82,28 @@ DART_EXPORT bool Dart_Initialize(int argc,
 
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
                                             void* data) {
-  ASSERT(Isolate::Current() == NULL);
-  Isolate* isolate = Dart::CreateIsolate(snapshot, data);
-  START_TIMER(time_total_runtime);
-  return reinterpret_cast<Dart_Isolate>(isolate);
+  Isolate* isolate = Dart::CreateIsolate();
+  ASSERT(isolate != NULL);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    Dart::InitializeIsolate(snapshot, data);
+    START_TIMER(time_total_runtime);
+    isolate->set_long_jump_base(base);
+    return reinterpret_cast<Dart_Isolate>(isolate);
+  } else {
+    {
+      Zone zone;  // Setup a VM zone as we are creating some handles.
+      HandleScope scope;  // Setup a VM handle scope.
+      const String& error =
+          String::Handle(Isolate::Current()->object_store()->sticky_error());
+      // TODO(asiva): Need to return this as a error.
+      OS::PrintErr(error.ToCString());
+    }
+    Dart::ShutdownIsolate();
+  }
+  return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
 
