@@ -10,6 +10,7 @@ LibTest/core/StopWatch/elapsedInMs/StopWatch/elapsedInMs/A01/t01: Skip
 LibTest/core/StopWatch/elapsedInUs/StopWatch/elapsedInUs/A01/t01: Skip
 LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t02: Skip
 LibTest/core/StopWatch/stop/StopWatch/stop/A01/t01: Skip
+LibTest/core/SendPort/call/SendPort/call/A01/t01: Skip  # Issue co19 - 10
 
 
 [ $component == vm ]
@@ -206,7 +207,6 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.15_NonEmptyClassRanges/
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.15_NonEmptyClassRanges/RegExp/firstMatch/NonEmptyClassRanges/A01/t06: Fail
 LibTest/core/RegExp/firstMatch/RegExp/firstMatch/A01/t01: Fail
 LibTest/core/RegExp/hasMatch/RegExp/hasMatch/A01/t02: Fail
-LibTest/core/SendPort/call/SendPort/call/A01/t01: Timeout
 LibTest/core/SendPort/send/SendPort/send/A03/t02: Fail
 LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail
 LibTest/core/StopWatch/stop/StopWatch/stop/A01/t01: Fail
