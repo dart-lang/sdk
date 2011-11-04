@@ -38,7 +38,6 @@ public enum TypeErrorCode implements ErrorCode {
   SUPERTYPE_HAS_METHOD("%s is a method in %s"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   VOID("expression does not yield a value"),
-  VOID_CANNOT_RETURN_VALUE("cannot return a value from a void function"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");
   private final ErrorSeverity severity;
   private final String message;

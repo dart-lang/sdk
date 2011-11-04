@@ -559,8 +559,8 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze(returnWithType("String", null));
     analyze(returnWithType("int", null));
     analyze(returnWithType("void", ""));
-    analyzeFail(returnWithType("void", 1), TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail(returnWithType("void", null), TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail(returnWithType("void", 1), TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze(returnWithType("void", null));
     analyzeFail(returnWithType("String", ""), TypeErrorCode.MISSING_RETURN_VALUE);
     analyze("String foo() {};"); // Should probably fail, http://b/4484060.
   }
@@ -1156,10 +1156,10 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testVoid() {
     // Return a value from a void function.
     analyze("void f() { return; }");
-    analyzeFail("void f() { return null; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { return f(); }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { return 1; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { var x; return x; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyze("void f() { return null; }");
+    analyze("void f() { return f(); }");
+    analyzeFail("void f() { return 1; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("void f() { var x; return x; }");
 
     // No-arg return from non-void function.
     analyzeFail("int f() { return; }", TypeErrorCode.MISSING_RETURN_VALUE);

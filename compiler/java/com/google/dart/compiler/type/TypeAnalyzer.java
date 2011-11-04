@@ -1114,20 +1114,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitReturnStatement(DartReturnStatement node) {
       DartExpression value = node.getValue();
-      Type type;
       if (value == null) {
         if (!types.isSubtype(voidType, expected)) {
           typeError(node, TypeErrorCode.MISSING_RETURN_VALUE, expected);
         }
       } else {
-        type = typeOf(value);
-        if (expected.equals(voidType)) {
-          if (value != null) {
-            typeError(value, TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-            return voidType;
-          }
-        }
-        checkAssignable(value == null ? node : value, expected, type);
+        checkAssignable(value == null ? node : value, expected, typeOf(value));
       }
       return voidType;
     }
