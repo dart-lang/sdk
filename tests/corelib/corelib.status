@@ -28,7 +28,7 @@ SortTest: Fail
 ListSortTest: Fail
 
 
-[ $component == frog || $component == frogsh ]
+[ $component == frog || $component == frogsh || $component == leg ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
 *VMTest: Skip
 *VMNegativeTest: Skip

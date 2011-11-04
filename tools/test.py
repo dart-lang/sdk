@@ -1217,7 +1217,7 @@ def BuildOptions():
   result.add_option(
       '-c', '--component',
       help='The component to test against '
-           '(most, vm, dartc, frog, frogsh, chromium, dartium)',
+           '(most, vm, dartc, frog, frogsh, leg, chromium, dartium)',
       metavar='[most,vm,dartc,chromium,dartium]',
       default='vm')
   return result
@@ -1256,7 +1256,7 @@ def ProcessOptions(options):
       print 'Unknown arch %s' % arch
       return False
   for component in options.component:
-    if not component in ['vm', 'dartc', 'frog', 'frogsh',
+    if not component in ['vm', 'dartc', 'frog', 'frogsh', 'leg',
                          'chromium', 'dartium']:
       print 'Unknown component %s' % component
       return False

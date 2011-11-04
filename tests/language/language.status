@@ -190,7 +190,7 @@ PrivateMemberTest/03: Skip  # Leads to stack overflows when self-hosted.
 PrivateMemberTest/04: Skip  # Leads to stack overflows when self-hosted.
 CTConstTest: Fail # Not checking for generic type in const expression.
 
-[ $component == frog ]
+[ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 CTConstTest: Pass # pass for the wrong reason: how numbers are printed, rather
                   # than checking for generic type in const expression
@@ -199,7 +199,7 @@ PrivateMemberTest/02: Fail
 PrivateMemberTest/03: Fail
 PrivateMemberTest/04: Fail
 
-[ $component == frogsh ||  $component == frog ]
+[ $component == frogsh ||  $component == frog || $component == leg ]
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
@@ -340,6 +340,9 @@ WrongNumberTypeArgumentsTest: Skip # Test updated without clarity!
 GetterClosureExecutionOrderTest: Fail
 
 
+[ $component == leg]
+StaticTopLevelTest/00: Fail
+StaticTopLevelTest/03: Fail
 
 [ $arch == x64 ]
 *: Skip
