@@ -1231,7 +1231,7 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   // Implicit 'this' parameter is the first argument.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
   arguments->Add(implicit_argument);
-  // Implicit constructor phase parameter is second argument.
+  // Implicit construction phase parameter is second argument.
   AstNode* phase_parameter =
       new LiteralNode(supercall_pos,
                       Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
@@ -1275,7 +1275,7 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   // 'this' parameter is the first argument to super class constructor.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
   arguments->Add(implicit_argument);
-  // Second implicit parameter is the constructor phase. We optimistically
+  // Second implicit parameter is the construction phase. We optimistically
   // assume that we can execute both the super initializer and the super
   // constructor body. We may later change this to only execute the
   // super initializer.
@@ -1453,7 +1453,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   // 'this' parameter is the first argument to constructor.
   AstNode* implicit_argument = new LoadLocalNode(call_pos, *receiver);
   arguments->Add(implicit_argument);
-  // Constructor phase parameter is second argument.
+  // Construction phase parameter is second argument.
   LocalVariable* phase_param = LookupPhaseParameter();
   ASSERT(phase_param != NULL);
   AstNode* phase_argument = new LoadLocalNode(call_pos, *phase_param);
@@ -1534,8 +1534,14 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   ASSERT(!cls.IsNull());
 
   if (IsLiteral("class")) {
-    // Special case: implicit constructor. There is no source text to
-    // parse. We just build the sequence node by hand.
+    // Special case: implicit constructor.
+    // The parser adds an implicit default constructor when a class
+    // does not have any explicit constructor or factory (see
+    // Parser::CheckConstructors). The token position of this implicit
+    // constructor points to the 'class' keyword, which is followed
+    // by the name of the class (which is also the constructor name).
+    // There is no source text to parse. We just build the
+    // sequence node by hand.
     return MakeImplicitConstructor(func);
   }
 
@@ -1548,7 +1554,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   // but uninitialized instance to construct.
   params.AddReceiver(token_index_);
 
-  // Add implicit parameter for constructor phase.
+  // Add implicit parameter for construction phase.
   params.AddFinalParameter(token_index_, kPhaseParameterName,
                            &Type::ZoneHandle(Type::DynamicType()));
 
@@ -1563,7 +1569,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 
   // Initialize instance fields that have an explicit initializer expression.
   // This has to be done before code for field initializer parameters
-  // are is generated.
+  // is generated.
   // NB: the instance field initializers have to be compiled before
   // the parameters are added to the scope, so that a parameter
   // name cannot shadow a name used in the field initializer expression.
@@ -1575,7 +1581,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
 
   // Now that the "this" parameter is in scope, we can generate the code
-  // to strore the initializer expressions in the respective instance fields.
+  // to store the initializer expressions in the respective instance fields.
   // We do this before the field parameters and the initializers from the
   // constructor's initializer list get compiled.
   OpenBlock();
@@ -1640,7 +1646,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
 
   // Parsing of initializers done. Now we parse the constructor body
-  // and add the implicit super call to the super construcotr's body
+  // and add the implicit super call to the super constructor's body
   // if necessary.
   StaticCallNode* super_call = NULL;
   // Look for the super initializer call in the sequence of initializer
@@ -1667,7 +1673,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     // expressions are not evaluated twice.
     ArgumentListNode* ctor_args = super_call->arguments();
     // The super initializer call has at least 2 arguments: the
-    // implicit receiver, and the hidden constructor phase.
+    // implicit receiver, and the hidden construction phase.
     ASSERT(ctor_args->length() >= 2);
     for (int i = 2; i < ctor_args->length(); i++) {
       AstNode* arg = ctor_args->NodeAt(i);
@@ -1686,8 +1692,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (super_call != NULL) {
     ArgumentListNode* initializer_args = super_call->arguments();
     const Function& super_ctor = super_call->function();
-    // Patch the initializer call so it only executes the super
-    // initializer.
+    // Patch the initializer call so it only executes the super initializer.
     initializer_args->SetNodeAt(1,
         new LiteralNode(token_index_,
                         Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
@@ -1695,7 +1700,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     ArgumentListNode* super_call_args = new ArgumentListNode(token_index_);
     // First argument is the receiver.
     super_call_args->Add(new LoadLocalNode(token_index_, *receiver));
-    // Second argument is the constructor phase argument.
+    // Second argument is the construction phase argument.
     AstNode* phase_parameter =
     new LiteralNode(token_index_,
                     Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody)));
@@ -1990,7 +1995,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (has_this_param) {
     method->params.AddReceiver(formal_param_pos);
   }
-  // Constructors have an implicit parameter for the constructor phase.
+  // Constructors have an implicit parameter for the construction phase.
   if (method->IsConstructor()) {
     method->params.AddFinalParameter(token_index_, kPhaseParameterName,
                                      &Type::ZoneHandle(Type::DynamicType()));
@@ -2512,6 +2517,8 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
         String::Concat(class_desc->class_name(),
                        String::Handle(String::NewSymbol("."))));
     ctor_name = String::NewSymbol(ctor_name);
+    // The token position for the implicit constructor is the 'class'
+    // keyword of the constructor's class.
     Function& ctor = Function::ZoneHandle(
         Function::New(ctor_name,
                       RawFunction::kConstructor,
@@ -2521,7 +2528,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
     ParamList params;
     // Add implicit 'this' parameter.
     params.AddReceiver(token_index_);
-    // Add implicit parameter for constructor phase.
+    // Add implicit parameter for construction phase.
     params.AddFinalParameter(token_index_, kPhaseParameterName,
                              &Type::ZoneHandle(Type::DynamicType()));
 
@@ -6027,7 +6034,7 @@ RawInstance* Parser::EvaluateConstConstructorCall(
     const TypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
-  // +2 for implicit receiver and constructor phase arguments.
+  // +2 for implicit receiver and construction phase arguments.
   GrowableArray<const Object*> arg_values(arguments->length() + 2);
   Instance& instance = Instance::Handle();
   if (!constructor.IsFactory()) {

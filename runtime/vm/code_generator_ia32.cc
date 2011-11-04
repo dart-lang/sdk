@@ -2318,7 +2318,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
 
   // First argument(this) for constructor call which follows.
   __ pushl(EAX);
-  // Second argument is the implicit constructor phase parameter.
+  // Second argument is the implicit construction phase parameter.
   // Run both the constructor initializer list and the constructor body.
   __ PushObject(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
 
