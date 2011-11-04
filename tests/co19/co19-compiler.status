@@ -192,6 +192,7 @@ LibTest/core/InternalError/toString/InternalError/toString/A01/t01: Fail
 LibTest/core/Isolate/A01/t01: Fail
 LibTest/core/Isolate/A02/t01: Fail
 LibTest/core/Isolate/port/Isolate/port/A01/t01: Fail
+LibTest/core/Isolate/spawn/Isolate/spawn/A01/t07: Skip  # http://code.google.com/p/co19/issues/detail?id=13
 LibTest/core/Isolate/spawn/Isolate/spawn/A01/t09: Fail
 LibTest/core/Isolate/spawn/Isolate/spawn/A01/t10: Fail
 LibTest/core/Isolate/spawn/Isolate/spawn/A01/t11: Fail
