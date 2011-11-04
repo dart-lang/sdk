@@ -343,6 +343,7 @@ GetterClosureExecutionOrderTest: Fail
 [ $component == leg]
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
+DoubleComparisonTest: Fail
 
 [ $arch == x64 ]
 *: Skip
