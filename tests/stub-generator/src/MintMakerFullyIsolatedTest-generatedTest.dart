@@ -8,7 +8,7 @@
 
 /* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 9) */
 
-interface Purse$Proxy {
+interface Purse$Proxy extends Proxy {
   Promise<int> queryBalance();
 
   Purse$Proxy sproutPurse();
@@ -16,7 +16,7 @@ interface Purse$Proxy {
   Promise<int> deposit(int amount, Purse$Proxy source);
 }
 
-class Purse$ProxyImpl extends Proxy implements Purse$Proxy {
+class Purse$ProxyImpl extends ProxyImpl implements Purse$Proxy {
   Purse$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   Purse$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory Purse$ProxyImpl.createIsolate() {
@@ -32,11 +32,11 @@ class Purse$ProxyImpl extends Proxy implements Purse$Proxy {
   }
 
   Purse$Proxy sproutPurse() {
-    return new Purse$ProxyImpl(this.call(["sproutPurse"]));
+    return new Purse$ProxyImpl(new PromiseProxy<SendPort>(this.call(["sproutPurse"])));
   }
 
   Promise<int> deposit(int amount, Purse$Proxy source) {
-    return this.call(["deposit", amount, source]);
+    return new PromiseProxy<int>(this.call(["deposit", amount, source]));
   }
 }
 
@@ -54,7 +54,9 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
       reply(sproutPurse);
     } else if (command == "deposit") {
       int amount = message[1];
-      Purse$Proxy source = new Purse$ProxyImpl(new Promise<SendPort>.fromValue(message[2]));
+      List<Promise<SendPort>> promises = new List<Promise<SendPort>>();
+      promises.add(new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(message[2])));
+      Purse$Proxy source = new Purse$ProxyImpl(promises[0]);
       Promise<int> deposit = target.deposit(amount, source);
       reply(deposit);
     } else {
@@ -79,7 +81,7 @@ class Purse$Dispatcher$Isolate extends Isolate {
 
 /* class = PowerfulPurse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 18) */
 
-interface PowerfulPurse$Proxy {
+interface PowerfulPurse$Proxy extends Proxy {
   void init(Mint$Proxy mint, int balance);
 
   Promise<int> grab(int amount);
@@ -87,7 +89,7 @@ interface PowerfulPurse$Proxy {
   Purse$Proxy weak();
 }
 
-class PowerfulPurse$ProxyImpl extends Proxy implements PowerfulPurse$Proxy {
+class PowerfulPurse$ProxyImpl extends ProxyImpl implements PowerfulPurse$Proxy {
   PowerfulPurse$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   PowerfulPurse$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory PowerfulPurse$ProxyImpl.createIsolate() {
@@ -118,8 +120,10 @@ class PowerfulPurse$Dispatcher extends Dispatcher<PowerfulPurse> {
     String command = message[0];
     if (command == "PowerfulPurse") {
     } else if (command == "init") {
-      Mint$Proxy mint = new Mint$ProxyImpl(new Promise<SendPort>.fromValue(message[1]));
+      List<Promise<SendPort>> promises = new List<Promise<SendPort>>();
+      promises.add(new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(message[1])));
       int balance = message[2];
+      Mint$Proxy mint = new Mint$ProxyImpl(promises[0]);
       target.init(mint, balance);
     } else if (command == "grab") {
       int amount = message[1];
@@ -151,13 +155,13 @@ class PowerfulPurse$Dispatcher$Isolate extends Isolate {
 
 /* class = Mint (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 28) */
 
-interface Mint$Proxy {
+interface Mint$Proxy extends Proxy {
   Purse$Proxy createPurse(int balance);
 
   Promise<PowerfulPurse$Proxy> promote(Purse$Proxy purse);
 }
 
-class Mint$ProxyImpl extends Proxy implements Mint$Proxy {
+class Mint$ProxyImpl extends ProxyImpl implements Mint$Proxy {
   Mint$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   Mint$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory Mint$ProxyImpl.createIsolate() {
@@ -169,11 +173,11 @@ class Mint$ProxyImpl extends Proxy implements Mint$Proxy {
   }
 
   Purse$Proxy createPurse(int balance) {
-    return new Purse$ProxyImpl(this.call(["createPurse", balance]));
+    return new Purse$ProxyImpl(new PromiseProxy<SendPort>(this.call(["createPurse", balance])));
   }
 
   Promise<PowerfulPurse$Proxy> promote(Purse$Proxy purse) {
-    return this.call(["promote", purse]);
+    return new Promise<PowerfulPurse$Proxy>.fromValue(new PowerfulPurse$ProxyImpl(new PromiseProxy<SendPort>(new PromiseProxy<SendPort>(this.call(["promote", purse])))));
   }
 }
 
@@ -188,7 +192,9 @@ class Mint$Dispatcher extends Dispatcher<Mint> {
       Purse$Proxy createPurse = target.createPurse(balance);
       reply(createPurse);
     } else if (command == "promote") {
-      Purse$Proxy purse = new Purse$ProxyImpl(new Promise<SendPort>.fromValue(message[1]));
+      List<Promise<SendPort>> promises = new List<Promise<SendPort>>();
+      promises.add(new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(message[1])));
+      Purse$Proxy purse = new Purse$ProxyImpl(promises[0]);
       Promise<PowerfulPurse$Proxy> promote = target.promote(purse);
       reply(promote);
     } else {
