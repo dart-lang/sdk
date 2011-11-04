@@ -141,13 +141,13 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-    ASSERT(Dart_IsArray(buffer_obj));
+    ASSERT(Dart_IsList(buffer_obj));
     int64_t offset =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     intptr_t array_len = 0;
-    Dart_Handle result = Dart_GetLength(buffer_obj, &array_len);
+    Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
     ASSERT(Dart_IsValid(result));
     ASSERT((offset + length) <= array_len);
     uint8_t* buffer = new uint8_t[length];
@@ -158,7 +158,7 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
      */
     if (total_bytes_read >= 0) {
       result =
-          Dart_ArraySet(buffer_obj, offset, buffer, total_bytes_read);
+          Dart_ListSetAsBytes(buffer_obj, offset, buffer, total_bytes_read);
       ASSERT(Dart_IsValid(result));
       return_value = total_bytes_read;
     }
@@ -177,17 +177,17 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-    ASSERT(Dart_IsArray(buffer_obj));
+    ASSERT(Dart_IsList(buffer_obj));
     int64_t offset =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     intptr_t buffer_len = 0;
-    Dart_Handle result = Dart_GetLength(buffer_obj, &buffer_len);
+    Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
     ASSERT(Dart_IsValid(result));
     ASSERT((offset + length) <= buffer_len);
     uint8_t* buffer = new uint8_t[length];
-    result = Dart_ArrayGet(buffer_obj, offset, buffer, length);
+    result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
     ASSERT(Dart_IsValid(result));
     int total_bytes_written =
         file->Write(reinterpret_cast<void*>(buffer), length);

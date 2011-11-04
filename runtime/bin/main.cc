@@ -92,7 +92,7 @@ static int ParseArguments(int argc,
 
 static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
-  Dart_Handle dart_arguments = Dart_NewArray(options_count);
+  Dart_Handle dart_arguments = Dart_NewList(options_count);
   if (!Dart_IsValid(dart_arguments)) {
     return dart_arguments;
   }
@@ -101,7 +101,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
     if (!Dart_IsValid(argument_value)) {
       return argument_value;
     }
-    Dart_Handle result = Dart_ArraySetAt(dart_arguments, i, argument_value);
+    Dart_Handle result = Dart_ListSetAt(dart_arguments, i, argument_value);
     if (!Dart_IsValid(result)) {
       return result;
     }

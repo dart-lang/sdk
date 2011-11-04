@@ -757,78 +757,71 @@ DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
                                              const char** utf8);
 
-// --- Arrays ---
+// --- Lists ---
 
 /**
- * Is this object an Array?
+ * Is this object a List?
  */
-DART_EXPORT bool Dart_IsArray(Dart_Handle object);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT bool Dart_IsList(Dart_Handle object);
 
 /**
- * Returns an Array of the desired length.
+ * Returns a List of the desired length.
  *
- * \param length The length of the array.
+ * \param length The length of the list.
  *
- * \return The Array object if no errors occurs. Otherwise returns
+ * \return The List object if no errors occurs. Otherwise returns
  *   an invalid handle.
  */
-DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_NewList(intptr_t length);
 
 /**
- * Gets the length of an Array.
+ * Gets the length of a List.
  *
- * \param array An Array.
- * \param length Returns the length of the Array.
+ * \param list A List.
+ * \param length Returns the length of the List.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* length);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* length);
 
 /**
- * Gets the Object at some index of an Array.
+ * Gets the Object at some index of a List.
  *
  * If the index is out of bounds, an error occurs.
  *
- * \param array An Array.
- * \param index A valid index into the Array.
+ * \param list A List.
+ * \param index A valid index into the List.
  *
- * \return The Object in the Array at the specified index if no errors
+ * \return The Object in the List at the specified index if no errors
  *   occurs. Otherwise returns an invalid handle.
  */
-DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array,
-                                        intptr_t index);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list,
+                                       intptr_t index);
 
 /**
- * Sets the Object at some index of an Array.
+ * Sets the Object at some index of a List.
  *
  * If the index is out of bounds, an error occurs.
  *
- * \param array An Array.
- * \param index A valid index into the Array.
- * \param value The Object to put in the Array.
+ * \param array A List.
+ * \param index A valid index into the List.
+ * \param value The Object to put in the List.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
-                                        intptr_t index,
-                                        Dart_Handle value);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
+                                       intptr_t index,
+                                       Dart_Handle value);
 
-// TODO(turnidge): Figure out what this is for.
-DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length);
+DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length);
 
-// TODO(turnidge): Figure out what this is for.
-DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length);
+DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length);
 
 // --- Closures ---
 

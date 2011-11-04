@@ -180,30 +180,30 @@ UNIT_TEST_CASE(ArrayValues) {
 
   const int kArrayLength = 10;
   Dart_Handle str = Dart_NewString("test");
-  EXPECT(!Dart_IsArray(str));
-  Dart_Handle val = Dart_NewArray(kArrayLength);
-  EXPECT(Dart_IsArray(val));
+  EXPECT(!Dart_IsList(str));
+  Dart_Handle val = Dart_NewList(kArrayLength);
+  EXPECT(Dart_IsList(val));
   intptr_t len = 0;
-  Dart_Handle result = Dart_GetLength(val, &len);
+  Dart_Handle result = Dart_ListLength(val, &len);
   EXPECT_VALID(result);
   EXPECT_EQ(kArrayLength, len);
 
   // Check invalid array access.
-  result = Dart_ArraySetAt(val, (kArrayLength + 10), Dart_NewInteger(10));
+  result = Dart_ListSetAt(val, (kArrayLength + 10), Dart_NewInteger(10));
   EXPECT(!Dart_IsValid(result));
-  result = Dart_ArraySetAt(val, -10, Dart_NewInteger(10));
+  result = Dart_ListSetAt(val, -10, Dart_NewInteger(10));
   EXPECT(!Dart_IsValid(result));
-  result = Dart_ArrayGetAt(val, (kArrayLength + 10));
+  result = Dart_ListGetAt(val, (kArrayLength + 10));
   EXPECT(!Dart_IsValid(result));
-  result = Dart_ArrayGetAt(val, -10);
+  result = Dart_ListGetAt(val, -10);
   EXPECT(!Dart_IsValid(result));
 
   for (int i = 0; i < kArrayLength; i++) {
-    result = Dart_ArraySetAt(val, i, Dart_NewInteger(i));
+    result = Dart_ListSetAt(val, i, Dart_NewInteger(i));
     EXPECT_VALID(result);
   }
   for (int i = 0; i < kArrayLength; i++) {
-    result = Dart_ArrayGetAt(val, i);
+    result = Dart_ListGetAt(val, i);
     EXPECT_VALID(result);
     int64_t value;
     result = Dart_IntegerValue(result, &value);
@@ -251,69 +251,69 @@ UNIT_TEST_CASE(ListAccess) {
     // First ensure that the returned object is an array.
     Dart_Handle ListAccessTestObj = result;
 
-    EXPECT(Dart_IsArray(ListAccessTestObj));
+    EXPECT(Dart_IsList(ListAccessTestObj));
 
     // Get length of array object.
     intptr_t len = 0;
-    result = Dart_GetLength(ListAccessTestObj, &len);
+    result = Dart_ListLength(ListAccessTestObj, &len);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(3, len);
 
     // Access elements in the array.
     int64_t value;
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 0);
+    result = Dart_ListGetAt(ListAccessTestObj, 0);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(10, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 1);
+    result = Dart_ListGetAt(ListAccessTestObj, 1);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(20, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(30, value);
 
     // Set some elements in the array.
-    result = Dart_ArraySetAt(ListAccessTestObj, 0, Dart_NewInteger(0));
+    result = Dart_ListSetAt(ListAccessTestObj, 0, Dart_NewInteger(0));
     EXPECT(Dart_IsValid(result));
-    result = Dart_ArraySetAt(ListAccessTestObj, 1, Dart_NewInteger(1));
+    result = Dart_ListSetAt(ListAccessTestObj, 1, Dart_NewInteger(1));
     EXPECT(Dart_IsValid(result));
-    result = Dart_ArraySetAt(ListAccessTestObj, 2, Dart_NewInteger(2));
+    result = Dart_ListSetAt(ListAccessTestObj, 2, Dart_NewInteger(2));
     EXPECT(Dart_IsValid(result));
 
     // Get length of array object.
-    result = Dart_GetLength(ListAccessTestObj, &len);
+    result = Dart_ListLength(ListAccessTestObj, &len);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(3, len);
 
     // Now try and access these elements in the array.
-    result = Dart_ArrayGetAt(ListAccessTestObj, 0);
+    result = Dart_ListGetAt(ListAccessTestObj, 0);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(0, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 1);
+    result = Dart_ListGetAt(ListAccessTestObj, 1);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(1, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(2, value);
 
     uint8_t native_array[3];
-    result = Dart_ArrayGet(ListAccessTestObj, 0, native_array, 3);
+    result = Dart_ListGetAsBytes(ListAccessTestObj, 0, native_array, 3);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(0, native_array[0]);
     EXPECT_EQ(1, native_array[1]);
@@ -322,21 +322,21 @@ UNIT_TEST_CASE(ListAccess) {
     native_array[0] = 10;
     native_array[1] = 20;
     native_array[2] = 30;
-    result = Dart_ArraySet(ListAccessTestObj, 0, native_array, 3);
+    result = Dart_ListSetAsBytes(ListAccessTestObj, 0, native_array, 3);
     EXPECT(Dart_IsValid(result));
-    result = Dart_ArrayGet(ListAccessTestObj, 0, native_array, 3);
+    result = Dart_ListGetAsBytes(ListAccessTestObj, 0, native_array, 3);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(10, native_array[0]);
     EXPECT_EQ(20, native_array[1]);
     EXPECT_EQ(30, native_array[2]);
-    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(30, value);
 
     // Check if we get an exception when accessing beyond limit.
-    result = Dart_ArrayGetAt(ListAccessTestObj, 4);
+    result = Dart_ListGetAt(ListAccessTestObj, 4);
     EXPECT(!Dart_IsValid(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.

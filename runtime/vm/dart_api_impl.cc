@@ -871,17 +871,17 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 }
 
 
-DART_EXPORT bool Dart_IsArray(Dart_Handle object) {
+DART_EXPORT bool Dart_IsList(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
-  return (obj.IsArray() || (GetListInstance(Isolate::Current(), obj) !=
-                            Instance::null()));
+  return (obj.IsArray() ||
+          (GetListInstance(Isolate::Current(), obj) != Instance::null()));
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length) {
+DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Array& obj = Array::Handle(Array::New(length));
@@ -889,10 +889,10 @@ DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* len) {
+DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -949,11 +949,11 @@ DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* len) {
 }
 
 
-static RawObject* GetArrayAt(Isolate* isolate,
-                             const Instance& instance,
-                             const Integer& index,
-                             const Function& function,
-                             Dart_Handle* result) {
+static RawObject* GetListAt(Isolate* isolate,
+                            const Instance& instance,
+                            const Integer& index,
+                            const Function& function,
+                            Dart_Handle* result) {
   ASSERT(isolate != NULL);
   ASSERT(result != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -982,13 +982,13 @@ static RawObject* GetArrayAt(Isolate* isolate,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length) {
+DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1021,7 +1021,7 @@ DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
       Dart_Handle result;
       for (int i = 0; i < length; i++) {
         intobj = Integer::New(offset + i);
-        element = GetArrayAt(isolate, instance, intobj, function, &result);
+        element = GetListAt(isolate, instance, intobj, function, &result);
         if (!Dart_IsValid(result)) {
           return result;  // Error condition.
         }
@@ -1038,10 +1038,10 @@ DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
+DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1064,7 +1064,7 @@ DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
       Integer& indexobj = Integer::Handle();
       Dart_Handle result;
       indexobj = Integer::New(index);
-      element = GetArrayAt(isolate, instance, indexobj, function, &result);
+      element = GetListAt(isolate, instance, indexobj, function, &result);
       if (!Dart_IsValid(result)) {
         return result;  // Error condition.
       }
@@ -1075,12 +1075,12 @@ DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
 }
 
 
-static void SetArrayAt(Isolate* isolate,
-                       const Instance& instance,
-                       const Integer& index,
-                       const Object& value,
-                       const Function& function,
-                       Dart_Handle* result) {
+static void SetListAt(Isolate* isolate,
+                      const Instance& instance,
+                      const Integer& index,
+                      const Object& value,
+                      const Function& function,
+                      Dart_Handle* result) {
   ASSERT(isolate != NULL);
   ASSERT(result != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -1108,13 +1108,13 @@ static void SetArrayAt(Isolate* isolate,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length) {
+DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length) {
   Zone zone;
   HandleScope scope;
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1143,7 +1143,7 @@ DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
       for (int i = 0; i < length; i++) {
         indexobj = Integer::New(offset + i);
         valueobj ^= Integer::New(native_array[i]);
-        SetArrayAt(isolate, instance, indexobj, valueobj, function, &result);
+        SetListAt(isolate, instance, indexobj, valueobj, function, &result);
         if (!Dart_IsValid(result)) {
           return result;  // Error condition.
         }
@@ -1155,12 +1155,12 @@ DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
-                                        intptr_t index,
-                                        Dart_Handle value) {
+DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
+                                       intptr_t index,
+                                       Dart_Handle value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1183,7 +1183,7 @@ DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
       Dart_Handle result;
       const Integer& index_obj = Integer::Handle(Integer::New(index));
       const Object& value_obj = Object::Handle(Api::UnwrapHandle(value));
-      SetArrayAt(isolate, instance, index_obj, value_obj, function, &result);
+      SetListAt(isolate, instance, index_obj, value_obj, function, &result);
       return result;
     }
   }
