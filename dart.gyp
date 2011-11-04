@@ -22,21 +22,20 @@
         'runtime/dart-runtime.gyp:process_test',
       ],
     },
-    # TODO(ngeoffray): Requires node to be in the path.
-    #{
-    #  'target_name': 'frog',
-    #  'type': 'none',
-    #  'dependencies': [
-    #    'frog/dart-frog.gyp:frog',
-    #  ],
-    #},
-    #{
-    #  'target_name': 'frogsh',
-    #  'type': 'none',
-    #  'dependencies': [
-    #    'frog/dart-frog.gyp:frogsh',
-    #  ],
-    #},
+    {
+      'target_name': 'frog',
+      'type': 'none',
+      'dependencies': [
+        'frog/dart-frog.gyp:frog',
+      ],
+    },
+    {
+      'target_name': 'frogsh',
+      'type': 'none',
+      'dependencies': [
+        'frog/dart-frog.gyp:frogsh',
+      ],
+    },
     # TODO(ngeoffray): Fling does not have proper dependencies,
     # so don't build it for now.
     #{
