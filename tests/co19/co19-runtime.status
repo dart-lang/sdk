@@ -103,8 +103,7 @@ LibTest/core/List/some/List/some/A01/t06: Fail
 
 # New problems on 2011-11-01.
 [ $component == vm && $mode == debug ]
-LibTest/core/double/ceil/double/ceil/A01/t05: Crash
-LibTest/core/double/floor/double/floor/A01/t05: Crash
+
 [ $component == vm && $mode == debug && $unchecked ]
 
 [ $component == vm && $mode == release ]

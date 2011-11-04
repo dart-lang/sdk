@@ -1177,7 +1177,6 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
     return;
   }
   node->operand()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
   if (node->kind() == Token::kADD) {
     // Unary operator '+' does not exist, it's a NOP, skip it.
     if (!IsResultNeeded(node)) {
@@ -1185,6 +1184,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
     }
     return;
   }
+  MarkDeoptPoint(node->id(), node->token_index());
   String& operator_name = String::ZoneHandle();
   if (node->kind() == Token::kSUB) {
     operator_name = String::NewSymbol(Token::Str(Token::kNEGATE));
