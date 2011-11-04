@@ -19,6 +19,7 @@ LibTest/core/double/isNegative/double/isNegative/A01/t01: Fail  # Issue 6
 LibTest/core/double/operatorDivision/double/operatorDivision/A01/t05: Fail  # Issue 7
 LibTest/core/double/operator~div/double/operator~div/A01/t05: Fail  # Issue 7
 LibTest/core/Math/atan2/Math/atan2/A01/t03: Fail  # Issue 8
+LibTest/core/String/charCodeAt/String/charCodeAt/A03/t01: Fail  # Issue 9
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Bug 5371433
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371433
@@ -49,16 +50,11 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.13_CharacterClass/RegEx
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.15_NonEmptyClassRanges/RegExp/firstMatch/NonEmptyClassRanges/A01/t01: Fail
 LibTest/core/Set/filter/Set/filter/A01/t03: Fail
 LibTest/core/Set/forEach/Set/forEach/A01/t03: Fail
-LibTest/core/String/charCodeAt/String/charCodeAt/A02/t01: Crash
-LibTest/core/String/charCodeAt/String/charCodeAt/A03/t01: Crash
 LibTest/core/String/contains/String/contains/A02/t01: Fail
-LibTest/core/String/operator\[]/String/operator\[]/A02/t01: Crash
 LibTest/core/String/replaceAll/String/replaceAll/A01/t01: Fail
 LibTest/core/String/split/String/split/A01/t01: Fail
 LibTest/core/String/split/String/split/A01/t02: Fail
 LibTest/core/String/trim/String/trim/A01/t02: Fail
-LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Crash
-LibTest/core/Strings/join/Strings/join/A01/t02: Crash
 
 
 # New failures
@@ -212,8 +208,6 @@ LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail
 LibTest/core/StopWatch/stop/StopWatch/stop/A01/t01: Fail
 LibTest/core/String/replaceFirst/String/replaceFirst/A01/t01: Fail
 LibTest/core/StringBuffer/add/StringBuffer/add/A02/t01: Fail
-LibTest/core/Strings/concatAll/Strings/concatAll/A03/t01: crash
-LibTest/core/Strings/join/Strings/join/A03/t01: crash
 LibTest/core/TypeError/srcType/TypeError/srcType/A01/t01: Fail
 LibTest/core/double/isOdd/double/isOdd/A01/t02: Fail
 LibTest/core/double/operator%/double/operator%/A01/t06: Fail

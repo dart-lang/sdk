@@ -85,8 +85,10 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
     }
     return str.CharAt(index);
   } else {
-    // TODO(srdjan): Bigint index not supported.
-    UNIMPLEMENTED();
+    // An index larger than Smi is always illegal.
+    GrowableArray<const Object*> arguments;
+    arguments.Add(&index);
+    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
     return 0;
   }
 }
@@ -159,6 +161,20 @@ DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
 DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
   const Array& strings = Array::CheckedHandle(arguments->At(0));
   ASSERT(!strings.IsNull());
+  // Check that the array contains strings.
+  Instance& elem = Instance::Handle();
+  for (intptr_t i = 0; i < strings.Length(); i++) {
+    elem ^= strings.At(i);
+    if (elem.IsNull()) {
+      GrowableArray<const Object*> args;
+      Exceptions::ThrowByType(Exceptions::kNullPointer, args);
+    }
+    if (!elem.IsString()) {
+      GrowableArray<const Object*> args;
+      args.Add(&elem);
+      Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    }
+  }
   const String& result = String::Handle(String::ConcatAll(strings));
   arguments->SetReturn(result);
 }
