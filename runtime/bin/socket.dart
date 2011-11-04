@@ -68,31 +68,33 @@ interface Socket factory _Socket {
   int writeList(List<int> buffer, int offset, int count);
 
   /*
-   * The connect handler gets executed when connection to a given host
+   * The connect handler gets called when connection to a given host
    * succeeded.
    */
   void set connectHandler(void callback());
 
   /*
-   * The data handler gets executed when data becomes available at the socket.
+   * The data handler gets called when data becomes available at the socket.
    */
   void set dataHandler(void callback());
 
   /*
-   * The write handler gets executed when the socket becomes available for
+   * The write handler gets called when the socket becomes available for
    * writing.
    */
   void set writeHandler(void callback());
 
   /*
-   * The error handler gets executed when a socket error occurs.
-   */
-  void set errorHandler(void callback());
-
-  /*
-   * The close handler gets executed when the socket was closed.
+   * The close handler gets called when a the last byte have been read
+   * from a socket. At this point the socket might still be open for
+   * writing for sending more data.
    */
   void set closeHandler(void callback());
+
+  /*
+   * The error handler gets called when a socket error occurs.
+   */
+  void set errorHandler(void callback());
 
   /*
    * Returns input stream to the socket.
@@ -111,9 +113,12 @@ interface Socket factory _Socket {
 
   /*
    * Closes the socket. Calling [close] will never throw an exception
-   * and calling it several times is supported.
+   * and calling it several times is supported. If [halfClose] is true
+   * the socket will only be closed for writing and it might still be
+   * possible to read data. Calling [close] will not trigger a call to
+   * the [closeHandler].
    */
-  void close();
+  void close([bool halfClose]);
 }
 
 

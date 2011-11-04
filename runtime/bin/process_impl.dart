@@ -29,9 +29,9 @@ class _Process implements Process {
       _arguments[i] = arguments[i];
     }
 
-    _in = new _Socket._internal();
-    _out = new _Socket._internal();
-    _err = new _Socket._internal();
+    _in = new _Socket._internalOutputOnly();
+    _out = new _Socket._internalInputOnly();
+    _err = new _Socket._internalOutputOnly();
     _exitHandler = new _Socket._internal();
     _closed = false;
     _killed = false;

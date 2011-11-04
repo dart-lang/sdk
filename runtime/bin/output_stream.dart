@@ -43,13 +43,13 @@ interface OutputStream {
    * stream. When all data has been written to the communication
    * channel it will be closed.
    */
-  void end();
+  void close();
 
   /**
    * Close the communication channel immediately ignoring any buffered
    * data.
    */
-  void close();
+  void destroy();
 
   /**
    * The no pending write handler gets called when the internal OS

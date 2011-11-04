@@ -35,17 +35,15 @@ class ProcessStdoutTest {
         Expect.equals(data[received + i], buffer[i]);
       }
       received += buffer.length;
-      if (received == BUFFERSIZE) {
-        process.close();
-      }
     }
 
     void streamClosed() {
       Expect.equals(BUFFERSIZE, received);
+      process.close();
     }
 
     output.write(data);
-    output.end();
+    output.close();
     input.dataHandler = readData;
     input.closeHandler = streamClosed;
   }
@@ -56,5 +54,5 @@ class ProcessStdoutTest {
 }
 
 main() {
-  ProcessStdoutTest.testMain();
+  ProcessStdoutTest.testStdout();
 }

@@ -8,11 +8,11 @@
 
 /* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 9) */
 
-interface Mint$Proxy extends Proxy {
+interface Mint$Proxy {
   Purse$Proxy createPurse(int balance);
 }
 
-class Mint$ProxyImpl extends ProxyImpl implements Mint$Proxy {
+class Mint$ProxyImpl extends Proxy implements Mint$Proxy {
   Mint$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   Mint$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory Mint$ProxyImpl.createIsolate() {
@@ -61,7 +61,7 @@ class Mint$Dispatcher$Isolate extends Isolate {
 
 /* class = Purse (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 17) */
 
-interface Purse$Proxy extends Proxy {
+interface Purse$Proxy {
   Promise<int> queryBalance();
 
   Purse$Proxy sproutPurse();
@@ -69,7 +69,7 @@ interface Purse$Proxy extends Proxy {
   Promise<int> deposit(int amount, Purse$Proxy source);
 }
 
-class Purse$ProxyImpl extends ProxyImpl implements Purse$Proxy {
+class Purse$ProxyImpl extends Proxy implements Purse$Proxy {
   Purse$ProxyImpl(Promise<SendPort> port) : super.forReply(port) { }
   Purse$ProxyImpl.forIsolate(Proxy isolate) : super.forReply(isolate.call([null])) { }
   factory Purse$ProxyImpl.createIsolate() {
@@ -89,7 +89,7 @@ class Purse$ProxyImpl extends ProxyImpl implements Purse$Proxy {
   }
 
   Promise<int> deposit(int amount, Purse$Proxy source) {
-    return new PromiseProxy<int>(this.call(["deposit", amount, source]));
+    return this.call(["deposit", amount, source]);
   }
 }
 
@@ -108,9 +108,7 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
       reply(port);
     } else if (command == "deposit") {
       int amount = message[1];
-      List<Promise<SendPort>> promises = new List<Promise<SendPort>>();
-      promises.add(new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(message[2])));
-      Purse$Proxy source = new Purse$ProxyImpl(promises[0]);
+      Purse$Proxy source = new Purse$ProxyImpl(new Promise<SendPort>.fromValue(message[2]));
       Promise<int> deposit = target.deposit(amount, source);
       reply(deposit);
     } else {

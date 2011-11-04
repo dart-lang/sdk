@@ -275,11 +275,13 @@ class ClientSocket : public SocketHandle {
  public:
   explicit ClientSocket(SOCKET s)
       : SocketHandle(s),
-        next_(NULL) { type_ = kClientSocket; }
+        next_(NULL),
+        flags_(0) { type_ = kClientSocket; }
 
   ClientSocket(SOCKET s, Dart_Port port)
       : SocketHandle(s, port),
-        next_(NULL) { type_ = kClientSocket; }
+        next_(NULL),
+        flags_(0) { type_ = kClientSocket; }
 
   virtual ~ClientSocket() {
     // Don't delete this object until all pending requests have been handled.
@@ -287,6 +289,13 @@ class ClientSocket : public SocketHandle {
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == NULL);
   };
+
+  void Shutdown(int how);
+  bool IsClosedRead() { return (flags_ & (1 << kCloseRead)) != 0; }
+  bool IsClosedWrite() { return (flags_ & (1 << kCloseWrite)) != 0; }
+
+  void MarkClosedRead() { flags_ |= (1 << kCloseRead); }
+  void MarkClosedWrite() { flags_ |= (1 << kCloseWrite); }
 
   // Internal interface used by the event handler.
   virtual bool IssueRead();
@@ -300,9 +309,15 @@ class ClientSocket : public SocketHandle {
   void set_next(ClientSocket* next) { next_ = next; }
 
  private:
+  enum Flags {
+    kCloseRead = 0,
+    kCloseWrite = 1
+  };
+
   virtual void AfterClose();
 
   ClientSocket* next_;
+  int flags_;
 };
 
 

@@ -19,6 +19,8 @@ class _SocketBase {
   static final int _CLOSE_EVENT = 3;
 
   static final int _CLOSE_COMMAND = 8;
+  static final int _SHUTDOWN_READ_COMMAND = 9;
+  static final int _SHUTDOWN_WRITE_COMMAND = 10;
 
   // Flag send to the eventhandler saying that the file descriptor in
   // question represents a listening socket.
@@ -27,9 +29,12 @@ class _SocketBase {
   static final int _FIRST_EVENT = _IN_EVENT;
   static final int _LAST_EVENT = _CLOSE_EVENT;
 
+  static final int _FIRST_COMMAND = _CLOSE_COMMAND;
+  static final int _LAST_COMMAND = _SHUTDOWN_WRITE_COMMAND;
+
   _SocketBase () {
     _handler = new ReceivePort();
-    _handlerMap = new List(_CLOSE_EVENT + 1);
+    _handlerMap = new List(_LAST_EVENT + 1);
     _handlerMask = 0;
     _canActivateHandlers = true;
     _id = -1;
@@ -46,20 +51,26 @@ class _SocketBase {
     assert(message.length == 1);
     _canActivateHandlers = false;
     int event_mask = message[0];
-      for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
-        if (((event_mask & (1 << i)) != 0) && _handlerMap[i] != null) {
-          var handleEvent = _handlerMap[i];
+    for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
+      if (((event_mask & (1 << i)) != 0)) {
+        if ((i == _CLOSE_EVENT) && this is _Socket && _id >= 0) {
+          if (_closedWrite) _close();
+        }
 
+        var eventHandler = _handlerMap[i];
+        if (eventHandler != null) {
           // Unregister the out handler before executing it.
           if (i == _OUT_EVENT) _setHandler(i, null);
 
           // Don't call the in handler if there is no data available
           // after all.
-          if (i == _IN_EVENT && this is _Socket && available() == 0) continue;
-
-          handleEvent();
+          if (i == _IN_EVENT && this is _Socket && available() == 0) {
+            continue;
+          }
+          eventHandler();
         }
       }
+    }
     _canActivateHandlers = true;
     _activateHandlers();
   }
@@ -83,7 +94,13 @@ class _SocketBase {
   void _activateHandlers() {
     if (_canActivateHandlers && (_id >= 0)) {
       int data = _handlerMask;
-      if (_isListenSocket()) data |= (1 << _LISTENING_SOCKET);
+      if (_isListenSocket()) {
+        data |= (1 << _LISTENING_SOCKET);
+      } else {
+        if (_closedRead) { data &= ~(1 << _IN_EVENT); }
+        if (_closedWrite) { data &= ~(1 << _OUT_EVENT); }
+        if (_isListenSocket()) data |= (1 << _LISTENING_SOCKET);
+      }
       EventHandler._sendData(_id, _handler, data);
     }
   }
@@ -99,18 +116,44 @@ class _SocketBase {
     return _port;
   }
 
-  void close() {
+  void close([bool halfClose = false]) {
     if (_id >= 0) {
-      EventHandler._sendData(_id, _handler, 1 << _CLOSE_COMMAND);
-      _handler.close();
-      _handler = null;
-      _id = -1;
+      if (halfClose) {
+        _closeWrite();
+      } else {
+        _close();
+      }
     } else if (_handler != null) {
       // This is to support closing sockets created but never assigned
       // any actual socket.
       _handler.close();
       _handler = null;
     }
+  }
+
+  void _closeWrite() {
+    if (_closedRead) {
+      _close();
+    } else {
+      EventHandler._sendData(_id, _handler, 1 << _SHUTDOWN_WRITE_COMMAND);
+    }
+    _closedWrite = true;
+  }
+
+  void _closeRead() {
+    if (_closedWrite) {
+      _close();
+    } else {
+      EventHandler._sendData(_id, _handler, 1 << _SHUTDOWN_READ_COMMAND);
+    }
+    _closedRead = true;
+  }
+
+  void _close() {
+    EventHandler._sendData(_id, _handler, 1 << _CLOSE_COMMAND);
+    _handler.close();
+    _handler = null;
+    _id = -1;
   }
 
   abstract bool _isListenSocket();
@@ -166,7 +209,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
     return socket;
   }
 
-  _ServerSocket._internal() : super() {}
+  _ServerSocket._internal();
 
   Socket accept() {
     if (_id >= 0) {
@@ -199,7 +242,7 @@ class _Socket extends _SocketBase implements Socket {
    * in which the native socket is stored. After that _createConnect is
    * called which creates a file discriptor and connects to the given
    * host on the given port. Null is returned if file descriptor creation
-   * or connect failsed
+   * or connect failed.
    */
   factory _Socket(String host, int port) {
     Socket socket = new _Socket._internal();
@@ -209,7 +252,9 @@ class _Socket extends _SocketBase implements Socket {
     return socket;
   }
 
-  _Socket._internal() : super() {}
+  _Socket._internal();
+  _Socket._internalInputOnly() : _closedRead = true;
+  _Socket._internalOutputOnly() : _closedWrite = true;
 
   int available() {
     if (_id >= 0) {
@@ -220,6 +265,8 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   int _available() native "Socket_Available";
+
+  bool get closed() => _closed;
 
   int readList(List<int> buffer, int offset, int bytes) {
     if (_id >= 0) {
@@ -301,6 +348,8 @@ class _Socket extends _SocketBase implements Socket {
     return _outputStream;
   }
 
+  bool _closedRead = false;
+  bool _closedWrite = false;
   SocketInputStream _inputStream;
   SocketOutputStream _outputStream;
 }

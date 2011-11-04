@@ -342,19 +342,30 @@ bool ListenSocket::IssueAccept() {
 void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
   ScopedLock lock(this);
   if (!closing_) {
-    ClientSocket* client_socket = new ClientSocket(buffer->client(), 0);
-    client_socket->CreateCompletionPort(completion_port);
-    if (accepted_head_ == NULL) {
-      accepted_head_ = client_socket;
-      accepted_tail_ = client_socket;
+    // Update the accepted socket to support the full range of API calls.
+    SOCKET s = socket();
+    int rc = setsockopt(buffer->client(),
+                        SOL_SOCKET,
+                        SO_UPDATE_ACCEPT_CONTEXT,
+                        reinterpret_cast<char*>(&s), sizeof(s));
+    if (rc == NO_ERROR) {
+      // Insert the accepted socket into the list.
+      ClientSocket* client_socket = new ClientSocket(buffer->client(), 0);
+      client_socket->CreateCompletionPort(completion_port);
+      if (accepted_head_ == NULL) {
+        accepted_head_ = client_socket;
+        accepted_tail_ = client_socket;
+      } else {
+        ASSERT(accepted_tail_ != NULL);
+        accepted_tail_->set_next(client_socket);
+        accepted_tail_ = client_socket;
+      }
     } else {
-      ASSERT(accepted_tail_ != NULL);
-      accepted_tail_->set_next(client_socket);
-      accepted_tail_ = client_socket;
+      fprintf(stderr, "setsockopt failed: %d\n", WSAGetLastError());
+      closesocket(buffer->client());
     }
-  } else {
-    closesocket(buffer->client());
   }
+
   pending_accept_count_--;
   IOBuffer::DisposeBuffer(buffer);
 }
@@ -366,6 +377,7 @@ ClientSocket* ListenSocket::Accept() {
   ClientSocket* result = accepted_head_;
   accepted_head_ = accepted_head_->next();
   if (accepted_head_ == NULL) accepted_tail_ = NULL;
+  result->set_next(NULL);
   return result;
 }
 
@@ -431,6 +443,19 @@ int Handle::Write(const void* buffer, int num_bytes) {
   pending_write_->Write(buffer, num_bytes);
   IssueWrite();
   return num_bytes;
+}
+
+void ClientSocket::Shutdown(int how) {
+  int rc = shutdown(socket(), how);
+  if (rc == SOCKET_ERROR) {
+    fprintf(stderr, "shutdown failed: %d %d\n", socket(), WSAGetLastError());
+  }
+  if (how == SD_RECEIVE) MarkClosedRead();
+  if (how == SD_SEND) MarkClosedWrite();
+  if (how == SD_BOTH) {
+    MarkClosedRead();
+    MarkClosedWrite();
+  }
 }
 
 
@@ -554,14 +579,15 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
       Handle::ScopedLock lock(client_socket);
 
-      // If data available callback has been requested and data are
+      // If the data available callback has been requested and data are
       // available post it immediately. Otherwise make sure that a pending
-      // read is issued.
+      // read is issued unless the socket is already closed for read.
       if ((msg->data & (1 << kInEvent)) != 0) {
         if (client_socket->Available() > 0) {
           int event_mask = (1 << kInEvent);
           Dart_PostIntArray(client_socket->port(), 1, &event_mask);
-        } else if (!client_socket->HasPendingRead()) {
+        } else if (!client_socket->HasPendingRead() &&
+                   !client_socket->IsClosedRead()) {
           client_socket->IssueRead();
         }
       }
@@ -573,6 +599,14 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
           int event_mask = (1 << kOutEvent);
           Dart_PostIntArray(client_socket->port(), 1, &event_mask);
         }
+      }
+
+      if ((msg->data & (1 << kShutdownReadCommand)) != 0) {
+        client_socket->Shutdown(SD_RECEIVE);
+      }
+
+      if ((msg->data & (1 << kShutdownWriteCommand)) != 0) {
+        client_socket->Shutdown(SD_SEND);
       }
 
       if ((msg->data & (1 << kCloseCommand)) != 0) {
@@ -621,7 +655,6 @@ void EventHandlerImplementation::HandleRead(ClientSocket* client_socket,
                                             IOBuffer* buffer) {
   buffer->set_data_length(bytes);
   client_socket->ReadComplete(buffer);
-
   if (bytes > 0) {
     if (!client_socket->is_closing()) {
       int event_mask = 1 << kInEvent;
@@ -631,6 +664,7 @@ void EventHandlerImplementation::HandleRead(ClientSocket* client_socket,
     }
   } else {
     ASSERT(bytes == 0);
+    client_socket->MarkClosedRead();
     HandleClosed(client_socket);
   }
 

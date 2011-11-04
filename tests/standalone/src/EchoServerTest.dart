@@ -23,7 +23,7 @@ class EchoServerGame {
   static final MSGSIZE = 10;
   static final SERVERINIT = 0;
   static final SERVERSHUTDOWN = -1;
-  static final MESSAGES = 200;
+  static final MESSAGES = 100;
   static final FIRSTCHAR = 65;
 
   EchoServerGame.start()
@@ -75,13 +75,8 @@ class EchoServerGame {
       handleRead();
     }
 
-    void closeHandler() {
-      _socket.close();
-    }
-
     void errorHandler() {
-      print("Socket error");
-      _socket.close();
+      Expect.fail("Socket error");
     }
 
     void connectHandler() {
@@ -101,7 +96,6 @@ class EchoServerGame {
       }
 
       _socket.dataHandler = messageHandler;
-      _socket.closeHandler = closeHandler;
       _socket.errorHandler = errorHandler;
       writeMessage();
     }
@@ -110,7 +104,7 @@ class EchoServerGame {
     if (_socket !== null) {
       _socket.connectHandler = connectHandler;
     } else {
-      Expect.fail("socket creation failed");
+      Expect.fail("Socket creation failed");
     }
   }
 
@@ -176,6 +170,8 @@ class EchoServer extends Isolate {
                   bytesWritten += written;
                   if (bytesWritten < msgSize) {
                     _client.writeHandler = handleWrite;
+                  } else {
+                    _client.close(true);
                   }
                 }
                 handleWrite();
@@ -193,8 +189,7 @@ class EchoServer extends Isolate {
       }
 
       void errorHandler() {
-        print("Socket error");
-        _client.close();
+        Expect.fail("Socket error");
       }
 
       _client = _server.accept();
@@ -204,8 +199,7 @@ class EchoServer extends Isolate {
     }
 
     void errorHandlerServer() {
-      print("Server socket error");
-      _server.close();
+      Expect.fail("Server socket error");
     }
 
     this.port.receive((message, SendPort replyTo) {

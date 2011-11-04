@@ -21,7 +21,7 @@ class EchoServerGame {
   static final MSGSIZE = 10;
   static final SERVERINIT = 0;
   static final SERVERSHUTDOWN = -1;
-  static final MESSAGES = 200;
+  static final MESSAGES = 100;
   static final FIRSTCHAR = 65;
 
   EchoServerGame.start()
@@ -45,8 +45,7 @@ class EchoServerGame {
     }
 
     void errorHandler() {
-      print("Socket error");
-      _socket.close();
+      Expect.fail("Socket error");
     }
 
     void connectHandler() {
@@ -93,6 +92,7 @@ class EchoServerGame {
       _socket.closeHandler = closeHandler;
       _socket.errorHandler = errorHandler;
       stream.write(_buffer);
+      stream.close();
       dataSent();
     }
 
@@ -139,8 +139,10 @@ class EchoServer extends Isolate {
       int offset = 0;
 
       void dataReceived() {
-        SocketOutputStream outputStream = _client.outputStream;
-        int bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
+        SocketOutputStream outputStream;
+        int bytesRead;
+        outputStream = _client.outputStream;
+        bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
         if (bytesRead > 0) {
           offset += bytesRead;
           for (int i = 0; i < offset; i++) {
@@ -148,29 +150,23 @@ class EchoServer extends Isolate {
           }
           if (offset == MSGSIZE) {
             outputStream.write(buffer);
+            outputStream.close();
           }
         }
       }
 
-      void closeHandler() {
-        _client.close();
-      }
-
       void errorHandler() {
-        print("Socket error");
-        _client.close();
+        Expect.fail("Socket error");
       }
 
       _client = _server.accept();
       inputStream = _client.inputStream;
       inputStream.dataHandler = dataReceived;
-      _client.closeHandler = closeHandler;
       _client.errorHandler = errorHandler;
     }
 
     void errorHandlerServer() {
-      print("Server socket error");
-      _server.close();
+      Expect.fail("Server socket error");
     }
 
     this.port.receive((message, SendPort replyTo) {

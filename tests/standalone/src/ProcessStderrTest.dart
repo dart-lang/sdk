@@ -10,8 +10,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 class ProcessStderrTest {
-
-  static void testExit() {
+  static void testStderr() {
     Process process = new Process("out/Debug_ia32/process_test",
                                   const ["1", "1", "99", "0"]);
     final int BUFFERSIZE = 10;
@@ -28,27 +27,31 @@ class ProcessStderrTest {
     process.start();
 
     int received = 0;
+
     void readData() {
       List<int> buffer = input.read();
       for (int i = 0; i < buffer.length; i++) {
         Expect.equals(data[received + i], buffer[i]);
       }
       received += buffer.length;
-      if (received == BUFFERSIZE) {
-        process.close();
-      }
+    }
+
+    void streamClosed() {
+      Expect.equals(BUFFERSIZE, received);
+      process.close();
     }
 
     output.write(data);
-    output.end();
+    output.close();
     input.dataHandler = readData;
+    input.closeHandler = streamClosed;
   }
 
   static void testMain() {
-    testExit();
+    testStderr();
   }
 }
 
 main() {
-  ProcessStderrTest.testMain();
+  ProcessStderrTest.testStderr();
 }

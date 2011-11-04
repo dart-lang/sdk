@@ -5,6 +5,9 @@
 #ifndef BIN_EVENTHANDLER_LINUX_H_
 #define BIN_EVENTHANDLER_LINUX_H_
 
+#include <unistd.h>
+#include <sys/socket.h>
+
 
 class InterruptMessage {
  public:
@@ -14,19 +17,62 @@ class InterruptMessage {
 };
 
 
+enum PortDataFlags {
+  kClosedRead = 0,
+  kClosedWrite = 1,
+};
+
+
 class SocketData {
  public:
-  void FillPollEvents(struct pollfd* pollfds);
-  bool IsListeningSocket() { return (_mask & (1 << kListeningSocket)) != 0; }
+  intptr_t GetPollEvents();
 
-  Dart_Port port() { return _port; }
-  void set_port(Dart_Port port) { _port = port; }
-  intptr_t mask() { return _mask; }
-  void set_mask(intptr_t mask) { _mask = mask; }
+  void Unregister() {
+    port_ = 0;
+    mask_ = 0;
+  }
+
+  void ShutdownRead() {
+    shutdown(fd_, SHUT_RD);
+    MarkClosedRead();
+  }
+
+  void ShutdownWrite() {
+    shutdown(fd_, SHUT_WR);
+    MarkClosedWrite();
+  }
+
+  void Close() {
+    Unregister();
+    flags_ = 0;
+    close(fd_);
+    fd_ = 0;
+  }
+
+  bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
+  bool IsClosedRead() { return (flags_ & (1 << kClosedRead)) != 0; }
+  bool IsClosedWrite() { return (flags_ & (1 << kClosedWrite)) != 0; }
+
+  void MarkClosedRead() { flags_ |= (1 << kClosedRead); }
+  void MarkClosedWrite() { flags_ |= (1 << kClosedWrite); }
+
+  bool HasPollEvents() { return mask_ != 0; }
+
+  void SetPortAndMask(Dart_Port port, intptr_t mask) {
+    port_ = port;
+    mask_ = mask;
+  }
+
+  intptr_t fd() { return fd_; }
+  void set_fd(intptr_t fd) { fd_ = fd; }
+  Dart_Port port() { return port_; }
+  intptr_t mask() { return mask_; }
 
  private:
-  Dart_Port _port;
-  intptr_t _mask;
+  intptr_t fd_;
+  Dart_Port port_;
+  intptr_t mask_;
+  intptr_t flags_;
 };
 
 
@@ -43,10 +89,6 @@ class EventHandlerImplementation {
   intptr_t GetTimeout();
   bool GetInterruptMessage(InterruptMessage* msg);
   struct pollfd* GetPollFds(intptr_t* size);
-  void RegisterFdWakeup(intptr_t id, Dart_Port dart_port, intptr_t data);
-  void UnregisterFdWakeup(intptr_t id);
-  void CloseFd(intptr_t id);
-  void UnregisterFd(intptr_t id);
   void HandleEvents(struct pollfd* pollfds, int pollfds_size, int result_size);
   void HandleTimeout();
   static void* Poll(void* args);
@@ -56,7 +98,6 @@ class EventHandlerImplementation {
   intptr_t GetPollEvents(struct pollfd* pollfd);
 
   SocketData* socket_map_;
-  intptr_t socket_map_entries_;
   intptr_t socket_map_size_;
   int64_t timeout_;  // Time for next timeout.
   Dart_Port timeout_port_;

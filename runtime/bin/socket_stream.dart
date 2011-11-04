@@ -36,9 +36,7 @@ class SocketInputStream implements InputStream {
     return _socket.readList(buffer, offset, len);
   }
 
-  int available() {
-    return _socket.available();
-  }
+  int available() => _socket.available();
 
   void set dataHandler(void callback()) {
     _socket.dataHandler = callback;
@@ -67,7 +65,7 @@ class _BufferList2 {
   void add(List<int> buffer, [int offset = 0]) {
     assert(offset == 0 || _buffers.isEmpty());
     _buffers.addLast(buffer);
-    _length += buffer.length;
+    _length += buffer.length - offset;
     if (offset != 0) _index = offset;
   }
 
@@ -117,19 +115,23 @@ class SocketOutputStream implements OutputStream {
     return _write(buffer, offset, (len == null) ? buffer.length : len, true);
   }
 
-  void end() {
-    if (_ending || _ended) throw new StreamException("Stream ended");
-    _ending = true;
-    if (_pendingWrites.isEmpty()) {
-      close();
+  void close() {
+    if (!_pendingWrites.isEmpty()) {
+      // Mark the socket for close when all data is written.
+      _closing = true;
+      _socket.writeHandler = _writeHandler;
+    } else {
+      // Close the socket for writing.
+      _socket._closeWrite();
+      _closed = true;
     }
   }
 
-  void close() {
+  void destroy() {
     _socket.writeHandler = null;
     _pendingWrites.clear();
     _socket.close();
-    _ended = true;
+    _closed = true;
   }
 
   void set noPendingWriteHandler(void callback()) {
@@ -146,7 +148,7 @@ class SocketOutputStream implements OutputStream {
   }
 
   bool _write(List<int> buffer, int offset, int len, bool copyBuffer) {
-    if (_ending || _ended) throw new StreamException("Stream ended");
+    if (_closing || _closed) throw new StreamException("Stream closed");
     if (len == null) len = buffer.length;
     int bytesWritten = 0;
     if (_pendingWrites.isEmpty()) {
@@ -167,7 +169,6 @@ class SocketOutputStream implements OutputStream {
   }
 
   void _writeHandler() {
-    _socket.writeHandler = _writeHandler;
     // Write as much buffered data to the socket as possible.
     while (!_pendingWrites.isEmpty()) {
       List<int> buffer = _pendingWrites.first;
@@ -175,13 +176,16 @@ class SocketOutputStream implements OutputStream {
       int bytesToWrite = buffer.length - offset;
       int bytesWritten = _socket.writeList(buffer, offset, bytesToWrite);
       _pendingWrites.removeBytes(bytesWritten);
-      if (bytesWritten < bytesToWrite) return;
+      if (bytesWritten < bytesToWrite) {
+        _socket.writeHandler = _writeHandler;
+        return;
+      }
     }
 
     // All buffered data was written.
-    if (_ending) {
-      _socket.close();
-      _ended = true;
+    if (_closing) {
+      _socket._closeWrite();
+      _closed = true;
     } else {
       if (_noPendingWriteHandler != null) _noPendingWriteHandler();
     }
@@ -194,8 +198,8 @@ class SocketOutputStream implements OutputStream {
 
   Socket _socket;
   _BufferList2 _pendingWrites;
-  bool _ending = false;
-  bool _ended = false;
   var _noPendingWriteHandler;
   var _streamErrorHandler;
+  bool _closing = false;
+  bool _closed = false;
 }
