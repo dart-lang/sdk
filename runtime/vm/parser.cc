@@ -1730,7 +1730,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   } else if (CurrentToken() == Token::kARROW) {
     ErrorMsg("constructors may not return a value");
   } else if (IsLiteral("native")) {
-    ParseNativeFunctionBlock(&params, func);
+    ErrorMsg("native constructors not supported");
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Some constructors have no function body.
     ConsumeToken();
