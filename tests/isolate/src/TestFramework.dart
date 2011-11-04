@@ -174,7 +174,13 @@ class TestExpectation {
     testCase.tearDown();
   }
 
-  Promise completes(Promise promise) {
+  Promise completes(var promise) {
+    if (!(promise is Promise || promise is Future)) {
+      // TODO(mattsh) - remove this hack once we finish conversion of
+      // Promise to Future
+      throw "must pass Promise or Future to TestFramework.completes";
+    }
+
     Promise result = new TestPromise(this);
     promise.then((value) { result.complete(value); });
     return result;

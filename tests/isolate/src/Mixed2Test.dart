@@ -33,9 +33,9 @@ class HeavyIsolate1 extends Isolate {
   HeavyIsolate1() : super.heavy();
 
   void main() {
-    Promise<SendPort> light1 = new LightRedirect().spawn();
-    Promise<SendPort> light2 = new LightRedirect().spawn();
-    Promise<SendPort> light3 = new LightRedirect().spawn();
+    Future<SendPort> light1 = new LightRedirect().spawn();
+    Future<SendPort> light2 = new LightRedirect().spawn();
+    Future<SendPort> light3 = new LightRedirect().spawn();
 
     this.port.receive((SendPort heavy2Light1Port, ignored) {
       light3.then((SendPort light3Port) {
@@ -61,9 +61,9 @@ class HeavyIsolate2 extends Isolate {
   HeavyIsolate2() : super.heavy();
 
   void main() {
-    Promise<SendPort> light1 = new LightRedirect().spawn();
-    Promise<SendPort> light2 = new LightRedirect().spawn();
-    Promise<SendPort> light3 = new LightRedirect().spawn();
+    Future<SendPort> light1 = new LightRedirect().spawn();
+    Future<SendPort> light2 = new LightRedirect().spawn();
+    Future<SendPort> light3 = new LightRedirect().spawn();
 
     this.port.receive((heavy3Port, replyWithLight1Port) {
       light3.then((SendPort light3Port) {
@@ -96,7 +96,7 @@ class HeavyIsolate3 extends Isolate {
   HeavyIsolate3() : super.heavy();
 
   void main() {
-    Promise<SendPort> pong = new LightPong().spawn();
+    Future<SendPort> pong = new LightPong().spawn();
     this.port.receive((msg, replyTo) {
       pong.then((SendPort pongPort) {
         pongPort.send(msg + 30, replyTo);

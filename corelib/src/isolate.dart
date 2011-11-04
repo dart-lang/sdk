@@ -137,14 +137,14 @@ class Isolate {
    * During the initialization of the new isolate a [ReceivePort] is created
    * inside the new isolate and stored in [port]. A corresponding
    * [SendPort] is sent to the isolate that invoked [spawn]. Since spawning an
-   * isolate is an asynchronous operation this method returns a [Promise] of
+   * isolate is an asynchronous operation this method returns a [Future] of
    * this [SendPort].
    *
    * A common pattern to instantiate new isolates is to enqueue the instructions
-   * in [Promise.then].
+   * in [Future.then].
    * [:myIsolate.spawn().then((SendPort port) { port.send('hi there'); });:]
    */
-  Promise<SendPort> spawn() {
+  Future<SendPort> spawn() {
     return IsolateNatives.spawn(this, _isLight);
   }
 

@@ -153,15 +153,15 @@ class ReceivePortSingleShotImpl implements ReceivePort {
 final String _SPAWNED_SIGNAL = "spawned";
 
 class IsolateNatives {
-  static Promise<SendPort> spawn(Isolate isolate, bool isLight) {
-    Promise<SendPort> result = new Promise<SendPort>();
+  static Future<SendPort> spawn(Isolate isolate, bool isLight) {
+    Completer<SendPort> result = new Completer<SendPort>();
     ReceivePort port = new ReceivePort.singleShot();
     port.receive((msg, SendPort replyPort) {
       assert(msg == _SPAWNED_SIGNAL);
       result.complete(replyPort);
     });
     _spawn(isolate, isLight, port.toSendPort());
-    return result;
+    return result.future;
   }
 
   static SendPort _spawn(Isolate isolate, bool light, SendPort port) native;

@@ -101,7 +101,7 @@ class LineProcessorClient {
 
   MandelbrotState _state;
   int _id;
-  Promise<SendPort> _out;
+  Future<SendPort> _out;
 
 }
 
