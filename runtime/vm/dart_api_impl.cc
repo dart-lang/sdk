@@ -768,7 +768,6 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  UNIMPLEMENTED();
   const String& obj = String::Handle(String::New(codepoints, length));
   return Api::NewLocalHandle(obj);
 }
