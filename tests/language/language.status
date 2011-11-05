@@ -188,12 +188,9 @@ PrivateMemberTest/01: Skip  # Leads to stack overflows when self-hosted.
 PrivateMemberTest/02: Skip  # Leads to stack overflows when self-hosted.
 PrivateMemberTest/03: Skip  # Leads to stack overflows when self-hosted.
 PrivateMemberTest/04: Skip  # Leads to stack overflows when self-hosted.
-CTConstTest: Fail # Not checking for generic type in const expression.
 
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
-CTConstTest: Pass # pass for the wrong reason: how numbers are printed, rather
-                  # than checking for generic type in const expression
 PrivateMemberTest/01: Fail
 PrivateMemberTest/02: Fail
 PrivateMemberTest/03: Fail
@@ -218,6 +215,7 @@ ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstructorDefaultTest: Fail
 ConstructorSetterNegativeTest: Fail    # we were passing this test for the wrong reason
+CTConstTest: Fail # Not checking for generic type in const expression.
 DynamicTest: Fail                      # newly added on 10/27
 EmptyBodyMemberNegativeTest: Fail
 ExampleConstructorTest: Fail
