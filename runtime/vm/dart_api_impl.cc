@@ -454,6 +454,11 @@ DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_Null() {
+  return Api::Null();
+}
+
+
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
@@ -655,6 +660,16 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
 }
 
 
+DART_EXPORT Dart_Handle Dart_True() {
+  return Api::True();
+}
+
+
+DART_EXPORT Dart_Handle Dart_False() {
+  return Api::False();
+}
+
+
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
@@ -664,10 +679,7 @@ DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
 
 
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
-  const Bool& obj = Bool::Handle(Bool::Get(value));
-  return Api::NewLocalHandle(obj);
+  return value ? Api::True() : Api::False();
 }
 
 
@@ -1539,14 +1551,16 @@ DART_EXPORT void Dart_ExitScope() {
 
 
 DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  LocalHandle* local_ref = Api::UnwrapAsLocalHandle(*state, object);
-  PersistentHandle* ref = state->persistent_handles().AllocateHandle();
-  ref->set_raw(*local_ref);
-  return reinterpret_cast<Dart_Handle>(ref);
+  const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
+  PersistentHandle* new_ref = state->persistent_handles().AllocateHandle();
+  new_ref->set_raw(old_ref);
+  return reinterpret_cast<Dart_Handle>(new_ref);
 }
 
 
@@ -1568,7 +1582,10 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
-  state->persistent_handles().FreeHandle(ref);
+  ASSERT(!ref->IsProtected());
+  if (!ref->IsProtected()) {
+    state->persistent_handles().FreeHandle(ref);
+  }
 }
 
 
@@ -1997,6 +2014,36 @@ Dart_Handle Api::Error(const char* text) {
   const String& message = String::Handle(String::New(text));
   const Object& obj = Object::Handle(ApiFailure::New(message));
   return Api::NewLocalHandle(obj);
+}
+
+
+Dart_Handle Api::Null() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  PersistentHandle* null_handle = state->Null();
+  return reinterpret_cast<Dart_Handle>(null_handle);
+}
+
+
+Dart_Handle Api::True() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  PersistentHandle* true_handle = state->True();
+  return reinterpret_cast<Dart_Handle>(true_handle);
+}
+
+
+Dart_Handle Api::False() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  PersistentHandle* false_handle = state->False();
+  return reinterpret_cast<Dart_Handle>(false_handle);
 }
 
 

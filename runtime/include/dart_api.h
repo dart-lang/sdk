@@ -139,8 +139,6 @@ DART_EXPORT Dart_Handle Dart_Error(const char* error);
  * Requires there to be a current isolate.
  */
 DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object);
-// TODO(turnidge): This function currently only works when passes a
-// local handle.  Make it work for both local and persistent handles.
 
 /**
  * Deallocates a persistent handle.
@@ -440,6 +438,15 @@ DART_EXPORT void Dart_ExitScope();
 // --- Objects ----
 
 /**
+ * Returns the null object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the null object.
+ */
+DART_EXPORT Dart_Handle Dart_Null();
+
+/**
  * Is this object null?
  */
 DART_EXPORT bool Dart_IsNull(Dart_Handle object);
@@ -565,6 +572,24 @@ DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
                                                     const char** value);
 
 // --- Booleans ----
+
+/**
+ * Returns the True object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object.
+ */
+DART_EXPORT Dart_Handle Dart_True();
+
+/**
+ * Returns the False object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the False object.
+ */
+DART_EXPORT Dart_Handle Dart_False();
 
 /**
  * Is this object a Boolean?

@@ -13,21 +13,71 @@
 
 namespace dart {
 
+UNIT_TEST_CASE(Null) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  Dart_Handle null = Dart_Null();
+  EXPECT_VALID(null);
+  EXPECT(Dart_IsNull(null));
+
+  Dart_Handle str = Dart_NewString("test");
+  EXPECT_VALID(str);
+  EXPECT(!Dart_IsNull(str));
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
 UNIT_TEST_CASE(BooleanValues) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();  // Enter a Dart API scope for the unit test.
 
   Dart_Handle str = Dart_NewString("test");
   EXPECT(!Dart_IsBoolean(str));
+
+  bool value = false;
+  Dart_Handle result = Dart_BooleanValue(str, &value);
+  EXPECT(!Dart_IsValid(result));
+
   Dart_Handle val1 = Dart_NewBoolean(true);
   EXPECT(Dart_IsBoolean(val1));
-  Dart_Handle val2 = Dart_NewBoolean(false);
-  EXPECT(Dart_IsBoolean(val2));
-  bool value = false;
-  Dart_Handle result = Dart_BooleanValue(val1, &value);
+
+  result = Dart_BooleanValue(val1, &value);
   EXPECT_VALID(result);
   EXPECT(value);
+
+  Dart_Handle val2 = Dart_NewBoolean(false);
+  EXPECT(Dart_IsBoolean(val2));
+
   result = Dart_BooleanValue(val2, &value);
+  EXPECT_VALID(result);
+  EXPECT(!value);
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(BooleanConstants) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  Dart_Handle true_handle = Dart_True();
+  EXPECT_VALID(true_handle);
+  EXPECT(Dart_IsBoolean(true_handle));
+
+  bool value = false;
+  Dart_Handle result = Dart_BooleanValue(true_handle, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+
+  Dart_Handle false_handle = Dart_False();
+  EXPECT_VALID(false_handle);
+  EXPECT(Dart_IsBoolean(false_handle));
+
+  result = Dart_BooleanValue(false_handle, &value);
   EXPECT_VALID(result);
   EXPECT(!value);
 
@@ -438,6 +488,35 @@ UNIT_TEST_CASE(PersistentHandles) {
   }
   EXPECT(scope == state->top_scope());
   EXPECT_EQ(2000, state->CountPersistentHandles());
+  Dart_ShutdownIsolate();
+}
+
+
+// Test that we are able to create a persistent handle from a
+// persistent handle.
+UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
+  Dart_CreateIsolate(NULL, NULL);
+
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  EXPECT(state != NULL);
+
+  // Start with a known persistent handle.
+  Dart_Handle obj1 = Dart_True();
+  EXPECT(state->IsValidPersistentHandle(obj1));
+
+  // And use it to allocate a second persistent handle.
+  Dart_Handle obj2 = Dart_NewPersistentHandle(obj1);
+  EXPECT(state->IsValidPersistentHandle(obj2));
+
+  // Make sure that the value transferred.
+  EXPECT(Dart_IsBoolean(obj2));
+  bool value = false;
+  Dart_Handle result = Dart_BooleanValue(obj2, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+
   Dart_ShutdownIsolate();
 }
 

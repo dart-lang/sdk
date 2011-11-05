@@ -74,6 +74,7 @@
     'dart.cc',
     'dart.h',
     'dart_api_impl.h',
+    'dart_api_state.cc',
     'dart_api_state.h',
     'dart_api_impl_test.cc',
     'dart_entry.cc',

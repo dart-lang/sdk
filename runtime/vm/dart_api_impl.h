@@ -37,6 +37,15 @@ class Api : AllStatic {
   // Generate a handle used to designate an error return.
   static Dart_Handle Error(const char* msg);
 
+  // Get a handle to Null.
+  static Dart_Handle Null();
+
+  // Get a handle to True.
+  static Dart_Handle True();
+
+  // Get a handle to False
+  static Dart_Handle False();
+
   // Allocate space in the local zone.
   static uword Allocate(intptr_t size);
 
