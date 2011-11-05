@@ -186,6 +186,7 @@ TypedMessageTest: Fail # Bug 5246195
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
+
 [ $component == frogsh ||  $component == frog || $component == leg ]
 
 # VM or DartC specific tests not to be run by Frog. See language.status
