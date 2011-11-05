@@ -34,6 +34,7 @@ ListSortTest: Fail
 *VMNegativeTest: Skip
 *DartcTest: Skip
 *DartcNegativeTest: Skip
+# Note: Correctly skips 4 VMTests that rely on VM internals
 
 ConstList*: Fail # 'const' is not currently checked.
 CoreRuntimeTypesTest: Fail

@@ -183,18 +183,8 @@ Private3Test: Fail
 TypedMessageTest: Fail # Bug 5246195
 
 
-[ $component == frogsh ]
-PrivateMemberTest/01: Skip  # Leads to stack overflows when self-hosted.
-PrivateMemberTest/02: Skip  # Leads to stack overflows when self-hosted.
-PrivateMemberTest/03: Skip  # Leads to stack overflows when self-hosted.
-PrivateMemberTest/04: Skip  # Leads to stack overflows when self-hosted.
-
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
-PrivateMemberTest/01: Fail
-PrivateMemberTest/02: Fail
-PrivateMemberTest/03: Fail
-PrivateMemberTest/04: Fail
 
 [ $component == frogsh ||  $component == frog || $component == leg ]
 
@@ -203,8 +193,14 @@ PrivateMemberTest/04: Fail
 *VMNegativeTest: Skip
 *DartcTest: Skip
 *DartcNegativeTest: Skip
+# Currently, these patterns skip three tests:
+# MathVMTest - correctly skipped as this relies on VM guarantees
+#    - should add a version of this with the --enable_type_checks flag
+# TypeVMTest - correctly skipped as this relies on detailed of TypeError
 
-BitOperationsTest: Skip  # relies on big integers not available in JS
+TypeDartcTest: Fail # parsing issue with complicated function types
+
+BitOperationsTest: Fail  # relies on big integers not available in JS
 CallThroughGetterTest: Fail
 CanonicalConstTest: Fail # type in const array allocation is erased
 CharEscapeTest: Fail
@@ -272,10 +268,6 @@ LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MathTest: Fail
 MethodOverrideTest: Fail # newly added on r771 (10/26)
-NamedParameters5NegativeTest: Skip # passes, but for the wrong reason
-NamedParameters6NegativeTest: Skip # passes, but for the wrong reason
-NamedParameters7NegativeTest: Skip # passes, but for the wrong reason
-NamedParameters8NegativeTest: Skip # passes, but for the wrong reason
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
@@ -302,15 +294,17 @@ Prefix14NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail # added in r1104 (11/02)
 Prefix15Test: Fail
+PrivateMemberTest/01: Fail # test seems bad - see issue #353
+PrivateMemberTest/02: Fail # test seems bad - see issue #353
+PrivateMemberTest/03: Fail # test seems bad - see issue #353
+PrivateMemberTest/04: Fail # test seems bad - see issue #353
 Private3Test: Fail
 PrivateTest: Fail
 PseudoKWNegativeTest: Fail
 RegExp3Test: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
-Script1NegativeTest: Fail
 ScriptNegativeTest: Fail
-SourceSelfNegativeTest: Skip   # imports itself and gets confused
 StaticField3NegativeTest: Fail
 StaticField3aNegativeTest: Fail
 StaticField4NegativeTest: Fail
@@ -333,7 +327,7 @@ TypeVariableBoundsTest/05: Fail # Disagree!  Body not analyzed if not invoked.
 TypedMessageTest: Fail
 UnboundGetterTest: Fail
 VarInitTest: Fail
-WrongNumberTypeArgumentsTest: Skip # Test updated without clarity!
+WrongNumberTypeArgumentsTest: Fail
 GetterClosureExecutionOrderTest: Fail
 
 
