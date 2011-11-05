@@ -197,8 +197,7 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 # MathVMTest - correctly skipped as this relies on VM guarantees
 #    - should add a version of this with the --enable_type_checks flag
 # TypeVMTest - correctly skipped as this relies on detailed of TypeError
-
-TypeDartcTest: Fail # parsing issue with complicated function types
+# TypeDartcTest - should pass, need refactoring to get frog safe version
 
 BitOperationsTest: Fail  # relies on big integers not available in JS
 CallThroughGetterTest: Fail
@@ -210,9 +209,9 @@ CompoundAssignmentOperatorTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstructorDefaultTest: Fail
-ConstructorSetterNegativeTest: Fail    # we were passing this test for the wrong reason
+ConstructorSetterNegativeTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
-DynamicTest: Fail                      # newly added on 10/27
+DynamicTest: Fail
 EmptyBodyMemberNegativeTest: Fail
 ExampleConstructorTest: Fail
 Constructor2Test: Fail
@@ -227,8 +226,8 @@ ExpectTest: Fail
 FauxverrideTest/03: Fail
 #FauxverrideTest/04: Fail  # see r607 (10/21) passes, but we should be issuing warnings
 FauxverrideTest/05: Fail
-FieldOverrideTest/01: Fail # newly added on r607 (10/21)
-FieldOverrideTest/02: Fail # newly added on r607 (10/21)
+FieldOverrideTest/01: Fail
+FieldOverrideTest/02: Fail
 Field3NegativeTest: Fail
 FieldNegativeTest: Fail
 FinalParamNegativeTest: Fail
@@ -257,17 +256,17 @@ InterfaceStaticMethodNegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail
 LibraryPrefixesTest: Fail
-Library1NegativeTest: Fail
-Library4NegativeTest: Fail
-Library5NegativeTest: Fail # newly added on r658 (10/24)
-Library6NegativeTest: Fail # newly added on r658 (10/24)
+Library1NegativeTest: Fail # issue with test see #354
+Library4NegativeTest: Fail # issue with test see #354
+Library5NegativeTest: Fail # issue with test see #354
+Library6NegativeTest: Fail # issue with test see #354
 ListLiteral3Test: Fail
 ListTest: Fail         # array bound checks not implemented
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MathTest: Fail
-MethodOverrideTest: Fail # newly added on r771 (10/26)
+MethodOverrideTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
@@ -280,19 +279,17 @@ NumberSyntaxTest: Fail
 NumbersTest: Fail
 Operator1NegativeTest: Fail
 OperatorTest: Fail
-OverrideMethodWithFieldTest/01: Fail # newly added in r607 (10/21)
-OverrideFieldTest/01: Fail # newly added in r607 (10/21)
-#OverrideFieldTest/02: Fail # see r607 (10/21) passes, but we should be issuing warnings
-#OverrideFieldTest/03: Fail # see r607 (10/21) passes, but we should be issuing warnings
-OverrideFieldTest/04: Fail # newly added in r607 (10/21)
+OverrideMethodWithFieldTest/01: Fail
+OverrideFieldTest/01: Fail
+OverrideFieldTest/04: Fail
 Prefix3NegativeTest: Fail
 Prefix7NegativeTest: Fail
-Prefix8NegativeTest: Fail  # was passing for the wrong reason
-Prefix9NegativeTest: Fail  # was passing for the wrong reason
+Prefix8NegativeTest: Fail
+Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail
 Prefix14NegativeTest: Fail
 Prefix16NegativeTest: Fail
-Prefix20NegativeTest: Fail # added in r1104 (11/02)
+Prefix20NegativeTest: Fail
 Prefix15Test: Fail
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
@@ -305,10 +302,6 @@ RegExp3Test: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
-StaticField3NegativeTest: Fail
-StaticField3aNegativeTest: Fail
-StaticField4NegativeTest: Fail
-StaticFinalFieldNegativeTest: Fail
 StringConcatTest: Fail
 StringEscapesTest: Fail
 StringInterpolate1NegativeTest: Fail
@@ -323,7 +316,7 @@ SuperTest: Fail
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
 TypeVariableBoundsTest/00: Fail # Is the test syntax valid? VM gives an error.
-TypeVariableBoundsTest/05: Fail # Disagree!  Body not analyzed if not invoked.
+TypeVariableBoundsTest/05: Fail # issue with test filed as #354
 TypedMessageTest: Fail
 UnboundGetterTest: Fail
 VarInitTest: Fail
