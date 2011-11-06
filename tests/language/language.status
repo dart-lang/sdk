@@ -303,7 +303,6 @@ StringInterpolate1NegativeTest: Fail
 StringInterpolate2Test: Fail
 StringInterpolateTest: Fail
 StringTest: Fail
-SuperFieldTest: Fail
 SuperImplicitClosureTest: Fail
 SuperNegativeTest: Fail  # test seems clearly broken - see issue #358
 SuperTest: Fail  # this is testing precise ordering of super constructor call
