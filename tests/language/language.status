@@ -206,7 +206,6 @@ CanonicalConstTest: Fail # type in const array allocation is erased
 CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
 ClosuresWithComplexParamsTest: Fail
-CompoundAssignmentOperatorTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstructorDefaultTest: Fail
@@ -275,8 +274,6 @@ NullTest: Fail
 NullToStringTest: Fail
 NumberSyntaxTest: Fail
 NumbersTest: Fail
-Operator1NegativeTest: Fail
-OperatorTest: Fail
 OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
@@ -308,9 +305,8 @@ StringInterpolateTest: Fail
 StringTest: Fail
 SuperFieldTest: Fail
 SuperImplicitClosureTest: Fail
-SuperNegativeTest: Fail
-SuperOperatorTest: Fail
-SuperTest: Fail
+SuperNegativeTest: Fail  # test seems clearly broken - see issue #358
+SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
 TypeVariableBoundsTest/00: Fail # Is the test syntax valid? VM gives an error.
