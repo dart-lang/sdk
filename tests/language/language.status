@@ -213,7 +213,6 @@ ConstructorDefaultTest: Fail
 ConstructorSetterNegativeTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
 DynamicTest: Fail
-EmptyBodyMemberNegativeTest: Fail
 ExampleConstructorTest: Fail
 Constructor2Test: Fail
 Constructor3Test: Fail
@@ -252,8 +251,6 @@ InstanceFieldNegativeTest: Fail
 Instanceof2Test: Fail
 InstanceofTest: Fail
 InterfaceFactory3NegativeTest: Fail
-InterfaceFactoryConstructorNegativeTest: Fail
-InterfaceStaticMethodNegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail
 LibraryPrefixesTest: Fail
@@ -298,7 +295,7 @@ PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
 Private3Test: Fail
 PrivateTest: Fail
-PseudoKWNegativeTest: Fail
+PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
 RegExp3Test: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
