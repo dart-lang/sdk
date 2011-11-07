@@ -101,6 +101,11 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
+  public boolean printMachineProblems() {
+    return true;
+  }
+
+  @Override
   public boolean collectComments() {
     return false;
   }

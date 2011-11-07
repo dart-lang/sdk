@@ -99,6 +99,11 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
+  public boolean printMachineProblems() {
+    return delegate.printMachineProblems();
+  }
+
+  @Override
   public boolean collectComments() {
     return delegate.collectComments();
   }

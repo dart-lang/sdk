@@ -41,6 +41,10 @@ public class CommandLineOptions {
     @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
     private boolean exposeCoreImpl = false;
 
+    @Option(name = "--machine-problems",
+        usage = "Print problems with all details")
+    private boolean printMachineProblems = false;
+
     @Option(name = "--enable_type_checks",
         usage = "Generate runtime type checks")
     private boolean developerModeChecks = false;
@@ -270,6 +274,14 @@ public class CommandLineOptions {
 
     public boolean showMetrics() {
       return showMetrics;
+    }
+
+    /**
+     * Returns <code>true</code> if the compiler should print compilation problems in machine
+     * format, with all information - severity, subsystem, etc.
+     */
+    public boolean printMachineProblems() {
+      return printMachineProblems;
     }
 
     /**

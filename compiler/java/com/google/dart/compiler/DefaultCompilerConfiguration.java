@@ -196,6 +196,11 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
+  public boolean printMachineProblems() {
+    return compilerOptions.printMachineProblems();
+  }
+
+  @Override
   public boolean collectComments() {
     return compilerOptions.generateDocumentation();
   }

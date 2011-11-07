@@ -33,16 +33,17 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
    * Formatter used to report error messages. Marked protected so that
    * subclasses can override it (e.g. for a test server using HTML formatting).
    */
-  protected ErrorFormatter formatter = new PrettyErrorFormatter(useColor());
+  protected final ErrorFormatter formatter;
 
-  public DefaultDartCompilerListener() {
+  public DefaultDartCompilerListener(boolean printMachineProblems) {
+    this(System.err, printMachineProblems);
   }
 
   /**
    * @param outputStream the {@link PrintStream} to use for {@link ErrorFormatter}.
    */
-  public DefaultDartCompilerListener(PrintStream outputStream) {
-    ((PrettyErrorFormatter) formatter).setOutputStream(outputStream);
+  public DefaultDartCompilerListener(PrintStream outputStream, boolean printMachineProblems) {
+    formatter = new  PrettyErrorFormatter(outputStream, useColor(), printMachineProblems);
   }
 
   @Override
