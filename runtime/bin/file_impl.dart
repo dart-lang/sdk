@@ -142,7 +142,7 @@ class _OpenOperation extends _FileOperation {
   _OpenOperation(String this._name, bool this._writable);
 
   void execute(ReceivePort port) {
-    _replyPort.send(_File._open(_name, _writable), port.toSendPort());
+    _replyPort.send(_File._checkedOpen(_name, _writable), port.toSendPort());
   }
 
   String _name;
@@ -258,7 +258,7 @@ class _WriteStringOperation extends _FileOperation {
   _WriteStringOperation(int this._id, String this._string);
 
   void execute(ReceivePort port) {
-    _replyPort.send(_File._writeString(_id, _string), port.toSendPort());
+    _replyPort.send(_File._checkedWriteString(_id, _string), port.toSendPort());
   }
 
   bool isWrite() => true;
@@ -305,7 +305,7 @@ class _FullPathOperation extends _FileOperation {
   _FullPathOperation(String this._name);
 
   void execute(ReceivePort port) {
-    _replyPort.send(_File._fullPath(_name), port.toSendPort());
+    _replyPort.send(_File._checkedFullPath(_name), port.toSendPort());
   }
 
   String _name;
@@ -316,7 +316,7 @@ class _CreateOperation extends _FileOperation {
   _CreateOperation(String this._name);
 
   void execute(ReceivePort port) {
-    _replyPort.send(_File._create(_name), port.toSendPort());
+    _replyPort.send(_File._checkedCreate(_name), port.toSendPort());
   }
 
   String _name;
@@ -397,7 +397,8 @@ class _File implements File {
   // Constructor for file.
   _File(String this._name)
     : _scheduler = new _FileOperationScheduler(),
-      _asyncUsed = false;
+      _asyncUsed = false,
+      _id = 0;
 
   static bool _exists(String name) native "File_Exists";
   static int _open(String name, bool writable) native "File_Open";
@@ -422,8 +423,34 @@ class _File implements File {
     return 0;
   }
 
+  static int _checkedOpen(String name, bool writable) {
+    if (name is !String || writable is !bool) return 0;
+    return _open(name, writable);
+  }
+
+  static bool _checkedCreate(String name) {
+    if (name is !String) return false;
+    return _create(name);
+  }
+
+  static int _checkedWriteString(int id, String string) {
+    if (string is !String) return -1;
+    return _writeString(id, string);
+  }
+
+  static String _checkedFullPath(String name) {
+    if (name is !String) return null;
+    return _fullPath(name);
+  }
+
   void exists() {
     _asyncUsed = true;
+    if (_name is !String) {
+      if (_errorHandler != null) {
+        _errorHandler('File name is not a string: $_name');
+      }
+      return;
+    }
     var handler =
         (_existsHandler != null) ? _existsHandler : (result) => null;
     var operation = new _ExistsOperation(_name);
@@ -434,6 +461,9 @@ class _File implements File {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
+    }
+    if (_name is !String) {
+      throw new FileIOException('File name is not a string: $_name');
     }
     return _exists(_name);
   }
@@ -457,7 +487,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    bool created = _create(_name);
+    bool created = _checkedCreate(_name);
     if (!created) {
       throw new FileIOException("Cannot create file: $_name");
     }
@@ -483,7 +513,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    _id = _open(_name, writable);
+    _id = _checkedOpen(_name, writable);
     if (_id == 0) {
       throw new FileIOException("Cannot open file: $_name");
     }
@@ -497,7 +527,7 @@ class _File implements File {
         _id = result;
         handler();
       } else if (_errorHandler != null) {
-        _errorHandler("Cannot open file: $_name");
+        _errorHandler("Cannot close file: $_name");
       }
     };
     var operation = new _CloseOperation(_id);
@@ -509,10 +539,11 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    _id = _close(_id);
-    if (_id == -1) {
+    var id = _close(_id);
+    if (id == -1) {
       throw new FileIOException("Cannot close file: $_name");
     }
+    _id = id;
   }
 
   void readByte() {
@@ -544,6 +575,12 @@ class _File implements File {
 
   void readList(List<int> buffer, int offset, int bytes) {
     _asyncUsed = true;
+    if (buffer is !List || offset is !int || bytes is !int) {
+      if (_errorHandler != null) {
+        _errorHandler("Invalid arguments to readList");
+      }
+      return;
+    };
     var handler =
         (_readListHandler != null) ? _readListHandler : (result) => null;
     var handleReadListResult = (result, ignored) {
@@ -566,6 +603,9 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
+    if (buffer is !List || offset is !int || bytes is !int) {
+      throw new FileIOException("Invalid arguments to readList");
+    }
     if (bytes == 0) return 0;
     int index = _checkReadWriteListArguments(buffer.length, offset, bytes);
     if (index != 0) {
@@ -586,6 +626,12 @@ class _File implements File {
 
   void writeByte(int value) {
     _asyncUsed = true;
+    if (value is !int) {
+      if (_errorHandler != null) {
+        _errorHandler("Invalid argument to writeByte");
+      }
+      return;
+    }
     var handleReadByteResult = (result, ignored) {
       if (result == -1 &&_errorHandler != null) {
         _errorHandler("writeByte failed");
@@ -602,6 +648,9 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
+    if (value is !int) {
+      throw new FileIOException("Invalid argument to writeByte");
+    }
     int result = _writeByte(_id, value);
     if (result == -1) {
       throw new FileIOException("writeByte failed");
@@ -611,6 +660,12 @@ class _File implements File {
 
   void writeList(List<int> buffer, int offset, int bytes) {
     _asyncUsed = true;
+    if (buffer is !List || offset is !int || bytes is !int) {
+      if (_errorHandler != null) {
+        _errorHandler("Invalid arguments to writeList");
+      }
+      return;
+    }
     var handleWriteListResult = (result, ignored) {
       if (result is !String && result != -1) {
         if (result < bytes) {
@@ -632,6 +687,9 @@ class _File implements File {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
+    }
+    if (buffer is !List || offset is !int || bytes is !int) {
+      throw new FileIOException("Invalid arguments to writeList");
     }
     if (bytes == 0) return 0;
     int index = _checkReadWriteListArguments(buffer.length, offset, bytes);
@@ -667,9 +725,9 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    int result = _writeString(_id, string);
+    int result = _checkedWriteString(_id, string);
     if (result == -1) {
-      throw new FileIOException("Error: writeString failed");
+      throw new FileIOException("writeString failed");
     }
     return result;
   }
@@ -759,7 +817,7 @@ class _File implements File {
       if (result != null) {
         handler(result);
       } else if (_errorHandler != null) {
-        _errorHandler("canonicalPath failed");
+        _errorHandler("fullPath failed");
       }
     };
     var operation = new _FullPathOperation(_name);
@@ -771,7 +829,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    String result = _fullPath(_name);
+    String result = _checkedFullPath(_name);
     if (result == null) {
       throw new FileIOException("fullPath failed");
     }

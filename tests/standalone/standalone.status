@@ -8,6 +8,7 @@ prefix standalone
 # These tests have type errors on purpose.
 ProcessInvalidArgumentsTest: Fail, OK
 DirectoryInvalidArgumentsTest: Fail, OK
+FileInvalidArgumentsTest: Fail, OK
 
 [ $component == vm]
 ManyEchoServerTest: Skip        # Bug 5103754

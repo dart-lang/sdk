@@ -180,7 +180,7 @@ class StringBase {
     return substringUnchecked_(first, last + 1);
   }
 
-  bool contains(Pattern other, int startIndex) {
+  bool contains(Pattern other, [int startIndex = 0]) {
     if (other is String) {
       return indexOf(other, startIndex) >= 0;
     }
