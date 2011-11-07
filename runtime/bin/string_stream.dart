@@ -252,7 +252,7 @@ class _StringInputStream implements StringInputStream {
       // decoder call the data handler.
       if (_clientDataHandler !== null) _clientDataHandler();
     } else {
-      closed_ = true;
+      _closed = true;
       if (_clientCloseHandler !== null) _clientCloseHandler();
     }
   }
