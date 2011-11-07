@@ -11,6 +11,9 @@ DirectoryInvalidArgumentsTest: Fail, OK
 
 [ $component == vm]
 ManyEchoServerTest: Skip        # Bug 5103754
+# These tests fail, crash, and timeout to test the testing infrastructure.
+FailTest: Fail
+TimeoutTest: Timeout
 
 [ $component == vm && $mode == release]
 # Currently process tests are bound to debug mode.
@@ -47,6 +50,9 @@ Directory*: Skip # Uses Directory
 StringStreamTest: Skip # Uses InputStream
 StatusFileParserTest: Skip # Uses FileInputStream
 OptionsTest: Skip # Expects options being passed from command line.
+FailTest: Fail # Fails intentionally
+TimeoutTest: Skip # Uses Socket
+TestRunnerTest: Skip # Uses Process
 
 [ $component == dartc || $component == chromium ]
 *: Skip
