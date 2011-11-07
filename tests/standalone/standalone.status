@@ -26,7 +26,8 @@ Process*: Skip # Bug 172
 SocketManyConnectionsTest: Skip
 
 [ $component == vm && $system == win32]
-Process*: Skip
+Process*: Skip # Dart issue 363.
+TestRunnerTest: Skip # Uses Process.  Dart issue 363.
 
 [ $component == dartium ]
 # Server specific tests OK to fail in the browser
