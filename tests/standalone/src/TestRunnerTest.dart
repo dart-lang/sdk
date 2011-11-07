@@ -38,6 +38,12 @@ class TestController {
 }
 
 TestCase MakeTestCase(String testName, List<String> expectations) {
+  String test_path = "tests/standalone/src/${testName}.dart";
+  // Working directory may be dart/runtime rather than dart.
+  if (!new File(test_path).existsSync()) {
+    test_path = "../tests/standalone/src/${testName}.dart";
+  }
+
   return new TestCase(getDartShellFileName(), <String>[
                       "--ignore-unrecognized-flags",
                       "--enable_type_checks",
@@ -62,18 +68,18 @@ String getProcessTestFileName() {
 }
 
 void main() {
-  new RunningProcess(MakeTestCase("PassTest", [PASS]), 30).start();
-  new RunningProcess(MakeTestCase("FailTest", [FAIL]), 30).start();
-  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), 30).start();
+  new RunningProcess(MakeTestCase("PassTest", [PASS]), 10).start();
+  new RunningProcess(MakeTestCase("FailTest", [FAIL]), 10).start();
+  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), 10).start();
 
   new RunningProcess(new TestCase(getProcessTestFileName(),
                                   const ["0", "0", "1", "1"],
                                   TestController.processCompletedTest,
                                   new Set<String>.from([CRASH])),
-                     30).start();
+                     10).start();
   Expect.equals(4, TestController.numTests);
   // Throw must be from body of start() function for this test to work.
   Expect.throws(
-      new RunningProcess(MakeTestCase("PassTest", [SKIP]), 30).start);
+      new RunningProcess(MakeTestCase("PassTest", [SKIP]), 10).start);
 }
 
