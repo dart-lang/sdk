@@ -27,6 +27,7 @@ DECLARE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure);
 DECLARE_RUNTIME_ENTRY(AllocateImplicitStaticClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
+DECLARE_RUNTIME_ENTRY(CloneContext);
 DECLARE_RUNTIME_ENTRY(ClosureArgumentMismatch);
 DECLARE_RUNTIME_ENTRY(Deoptimize);
 DECLARE_RUNTIME_ENTRY(FixCallersTarget);

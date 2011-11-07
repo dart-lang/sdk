@@ -4363,6 +4363,18 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body =  true;
   SequenceNode* body = ParseNestedStatement(parsing_loop_body, NULL);
+
+  // Check whether any of the variables in the initializer part of
+  // the for statement are captured by a closure. If so, we insert a
+  // node that creates a new Context at the end of the loop body (but
+  // before the increment expression is evaluated).
+  for (int i = 0; i < init_scope->num_variables(); i++) {
+    if (init_scope->VariableAt(i)->is_captured() &&
+        (init_scope->VariableAt(i)->owner() == init_scope)) {
+      body->Add(new CloneContextNode(for_pos));
+      break;
+    }
+  }
   CloseBlock();
   return new ForNode(for_pos,
                      label,

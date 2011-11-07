@@ -291,6 +291,23 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
 }
 
 
+// Make a copy of the given context, including the values of the captured
+// variables.
+// Arg0: the context to be cloned.
+// Return value: newly allocated context.
+DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
+  CHECK_STACK_ALIGNMENT;
+  ASSERT(arguments.Count() == kCloneContextRuntimeEntry.argument_count());
+  const Context& ctx = Context::CheckedHandle(arguments.At(0));
+  Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
+  cloned_ctx.set_parent(Context::Handle(ctx.parent()));
+  for (int i = 0; i < ctx.num_variables(); i++) {
+    cloned_ctx.SetAt(i, Instance::Handle(ctx.At(i)));
+  }
+  arguments.SetReturn(cloned_ctx);
+}
+
+
 // Check that the given instance is an instance of the given type.
 // Tested instance may not be null, because the null test is inlined.
 // Arg0: instance being checked.

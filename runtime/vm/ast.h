@@ -42,6 +42,7 @@ namespace dart {
   V(InstanceCallNode, "instance call")                                         \
   V(StaticCallNode, "static call")                                             \
   V(ClosureCallNode, "closure call")                                           \
+  V(CloneContextNode, "clone context")                                         \
   V(ConstructorCallNode, "constructor call")                                   \
   V(InstanceGetterNode, "instance getter call")                                \
   V(InstanceSetterNode, "instance setter call")                                \
@@ -230,6 +231,21 @@ class SequenceNode : public AstNode {
   SourceLabel* label_;
 
   DISALLOW_COPY_AND_ASSIGN(SequenceNode);
+};
+
+
+class CloneContextNode : public AstNode {
+ public:
+  explicit CloneContextNode(intptr_t token_index)
+    : AstNode(token_index) {
+  }
+
+  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(CloneContextNode);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CloneContextNode);
 };
 
 

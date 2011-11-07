@@ -97,6 +97,7 @@ NullToStringTest: Fail       # Bug 5421978
 FunctionTypeAliasTest: Crash # Bug 4519208.
 
 # Other bugs (or unimplemented features) in dartc.
+For2Test: Fail               # Bug 4995208.
 SuperOperatorTest: Fail      # Bug 4995463.
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
 Throw7NegativeTest: Fail     # Bug 4208459.
@@ -231,6 +232,7 @@ Field3NegativeTest: Fail
 FieldNegativeTest: Fail
 FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
+For2Test: Fail
 FunctionLiterals2Test: Fail
 FunctionSyntaxTest: Fail
 FunctionTest: Fail

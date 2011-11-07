@@ -903,6 +903,17 @@ void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
 }
 
 
+void CodeGenerator::VisitCloneContextNode(CloneContextNode *node) {
+  const Context& result = Context::ZoneHandle();
+  __ PushObject(result);
+  __ pushl(CTX);
+  GenerateCallRuntime(node->id(),
+      node->token_index(), kCloneContextRuntimeEntry);
+  __ popl(EAX);
+  __ popl(CTX);  // result: cloned context. Set as current context.
+}
+
+
 void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   CodeGeneratorState codegen_state(this);
   LocalScope* scope = node_sequence->scope();
