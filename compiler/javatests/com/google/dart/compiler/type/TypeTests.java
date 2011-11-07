@@ -20,6 +20,7 @@ public class TypeTests extends TestSetup {
     suite.addTestSuite(TypeTest.class);
     suite.addTestSuite(FunctionTypeTest.class);
     suite.addTestSuite(TypeAnalyzerTest.class);
+    suite.addTestSuite(TypeAnalyzerCompilerTest.class);
 
     return suite;
   }

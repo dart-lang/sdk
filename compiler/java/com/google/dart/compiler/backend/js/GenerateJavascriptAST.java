@@ -2471,18 +2471,21 @@ public class GenerateJavascriptAST {
       String mangledName;
       MethodElement method = null;
       switch (kind) {
-        case FIELD:
         case FUNCTION_OBJECT:
-        case PARAMETER:
-        case VARIABLE:
           mangledName = null;
           qualifier = (JsExpression) generate(target);
           EnclosingElement enclosingElement = element.getEnclosingElement();
-          if ((kind == ElementKind.FUNCTION_OBJECT) && (element.getEnclosingElement() != null)) {
+          if (enclosingElement != null && enclosingElement.getKind() == ElementKind.CLASS) {
             // Function-object invocations can be made directly, unless they're closures (in which
             // case their enclosing-element will be null).
             method = (MethodElement) element;
           }
+          break;
+        case FIELD:
+        case PARAMETER:
+        case VARIABLE:
+          mangledName = null;
+          qualifier = (JsExpression) generate(target);
           break;
 
         case NONE:

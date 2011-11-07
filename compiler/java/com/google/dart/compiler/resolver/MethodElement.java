@@ -9,7 +9,7 @@ import com.google.dart.compiler.type.Type;
 
 import java.util.List;
 
-public interface MethodElement extends Element {
+public interface MethodElement extends Element, EnclosingElement {
   boolean isConstructor();
 
   boolean isStatic();
