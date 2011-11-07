@@ -198,6 +198,9 @@ class _StringInputStream implements StringInputStream {
     } else {
       if (decodedString !== null) {
         return decodedString;
+      } else if (_inputClosed) {
+        _streamClosed();
+        return null;
       } else {
         _readData();
         return _decoder.decoded;
@@ -206,6 +209,7 @@ class _StringInputStream implements StringInputStream {
   }
 
   String readLine() {
+    if (_closed) return null;
     // Get line from the buffer if possible.
     if (_buffer !== null) {
       var result = _readLineFromBuffer();
@@ -213,7 +217,10 @@ class _StringInputStream implements StringInputStream {
     }
     // Try to fill more data into the buffer and read a line.
     if (_fillBuffer()) {
-      if (_eof && _buffer === null) return null;
+      if (_eof && _buffer === null) {
+        _streamClosed();
+        return null;
+      }
       return _readLineFromBuffer();
     }
     return null;
@@ -239,9 +246,15 @@ class _StringInputStream implements StringInputStream {
   }
 
   void _closeHandler() {
-    _closed = true;
-    if (_clientDataHandler !== null) _clientDataHandler();
-    if (_clientCloseHandler !== null) _clientCloseHandler();
+    _inputClosed = true;
+    if (_buffer !== null || !_decoder.isEmpty()) {
+      // If there is still data buffered in either the buffer or the
+      // decoder call the data handler.
+      if (_clientDataHandler !== null) _clientDataHandler();
+    } else {
+      closed_ = true;
+      if (_clientCloseHandler !== null) _clientCloseHandler();
+    }
   }
 
   void _readData() {
@@ -261,6 +274,7 @@ class _StringInputStream implements StringInputStream {
           if (_eof) {
             var result = _buffer.substring(_bufferLineStart, i);
             _resetBuffer();
+            _streamClosed();
             return result;
           } else {
             return null;
@@ -269,16 +283,19 @@ class _StringInputStream implements StringInputStream {
         var result = _buffer.substring(_bufferLineStart, i);
         _bufferLineStart = i + 1;
         if (_buffer[_bufferLineStart] == '\n') _bufferLineStart++;
+        if (_bufferLineStart == _buffer.length) _resetBuffer();
         return result;
       } else if (char == '\n') {
         var result = _buffer.substring(_bufferLineStart, i);
         _bufferLineStart = i + 1;
+        if (_bufferLineStart == _buffer.length) _resetBuffer();
         return result;
       }
     }
     if (_eof) {
       var result = _buffer;
       _resetBuffer();
+      _streamClosed();
       return result;
     }
     return null;
@@ -293,13 +310,9 @@ class _StringInputStream implements StringInputStream {
   // added or end of file was reached.
   bool _fillBuffer() {
     if (_eof) return false;
-    if (_buffer !== null && _bufferLineStart == _buffer.length) {
-      _buffer = null;
-      _bufferLineStart = null;
-    }
-    _readData();
+    if (!_inputClosed) _readData();
     var decodedString = _decoder.decoded;
-    if (decodedString === null && _closed) {
+    if (decodedString === null && _inputClosed) {
       _eof = true;
       return true;
     }
@@ -317,12 +330,24 @@ class _StringInputStream implements StringInputStream {
     return false;
   }
 
+  void _streamClosed() {
+    _closed = true;
+
+    // TODO(sgjesse): Find a better way of scheduling callbacks from
+    // the event loop.
+    void issueCloseCallback(Timer timer) {
+      if (_clientCloseHandler !== null) _clientCloseHandler();
+    }
+    new Timer(issueCloseCallback, 0, false);
+  }
+
   InputStream _input;
   String _encoding;
   _Decoder _decoder;
   String _buffer;  // String can be buffered here if readLine is used.
   int _bufferLineStart;  // Current offset into _buffer if any.
-  bool _closed = false;
+  bool _inputClosed = false;  // Is the underlying input stream closed?
+  bool _closed = false;  // Is this stream closed.
   bool _eof = false;  // Has all data been read from the decoder?
   var _clientDataHandler;
   var _clientCloseHandler;
