@@ -42,7 +42,7 @@ public class CommandLineOptions {
     private boolean exposeCoreImpl = false;
 
     @Option(name = "--machine-problems",
-        usage = "Print problems with all details")
+        usage = "Format errors for machine parsing")
     private boolean printMachineProblems = false;
 
     @Option(name = "--enable_type_checks",
