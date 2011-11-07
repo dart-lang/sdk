@@ -55,6 +55,8 @@ OptionsTest: Skip # Expects options being passed from command line.
 FailTest: Fail # Fails intentionally
 TimeoutTest: Skip # Uses Socket
 TestRunnerTest: Skip # Uses Process
+FileInvalidArgumentsTest: Skip # Uses File
+PlatformTest: Skip # Uses Platform
 
 [ $component == dartc || $component == chromium ]
 *: Skip
