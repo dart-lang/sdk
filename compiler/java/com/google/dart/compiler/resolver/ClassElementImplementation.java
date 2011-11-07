@@ -319,35 +319,38 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
       throw new CyclicDeclarationException(this);
     }
     ArrayList<InterfaceType> supertypes = new ArrayList<InterfaceType>();
-    for (InterfaceType intf : getInterfaces()) {
-      addCheckDuplicated(interfaces, supertypes, intf);
-    }
-    for (InterfaceType intf : getInterfaces()) {
-      for (InterfaceType t : intf.getElement().getAllSupertypes()) {
-        if (!t.getElement().isObject()) {
-          addCheckDuplicated(interfaces, supertypes,
-                             t.subst(intf.getArguments(),
-                                     intf.getElement().getTypeParameters()));
+    try {
+      for (InterfaceType intf : getInterfaces()) {
+        addCheckDuplicated(interfaces, supertypes, intf);
+      }
+      for (InterfaceType intf : getInterfaces()) {
+        for (InterfaceType t : intf.getElement().getAllSupertypes()) {
+          if (!t.getElement().isObject()) {
+            addCheckDuplicated(interfaces, supertypes,
+                               t.subst(intf.getArguments(),
+                                       intf.getElement().getTypeParameters()));
+          }
         }
       }
-    }
-    if (supertype != null) {
-      for (InterfaceType t : supertype.getElement().getAllSupertypes()) {
-        if (t.getElement().isInterface()) {
-          addCheckDuplicated(interfaces, supertypes,
-                             t.subst(supertype.getArguments(),
-                                     supertype.getElement().getTypeParameters()));
+      if (supertype != null) {
+        for (InterfaceType t : supertype.getElement().getAllSupertypes()) {
+          if (t.getElement().isInterface()) {
+            addCheckDuplicated(interfaces, supertypes,
+                               t.subst(supertype.getArguments(),
+                                       supertype.getElement().getTypeParameters()));
+          }
+        }
+        supertypes.add(supertype);
+        for (InterfaceType t : supertype.getElement().getAllSupertypes()) {
+          if (!t.getElement().isInterface()) {
+            supertypes.add(t.subst(supertype.getArguments(),
+                                   supertype.getElement().getTypeParameters()));
+          }
         }
       }
-      supertypes.add(supertype);
-      for (InterfaceType t : supertype.getElement().getAllSupertypes()) {
-        if (!t.getElement().isInterface()) {
-          supertypes.add(t.subst(supertype.getArguments(),
-                                 supertype.getElement().getTypeParameters()));
-        }
-      }
+    } finally {
+      seenSupertypes.get().remove(this);
     }
-    seenSupertypes.get().remove(this);
     return supertypes;
   }
 
