@@ -1470,14 +1470,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
       @Override
       public Void visitClass(DartClass node) {
         assert node.getSymbol().getType() == currentClass;
+
+        // Prepare supertypes - all superclasses and interfaces.
         List<InterfaceType> supertypes = Collections.emptyList();
+        boolean hasCyclicDeclaration = false;
         try {
           supertypes = currentClass.getElement().getAllSupertypes();
         } catch (CyclicDeclarationException e) {
           // Already reported by resolver.
+          hasCyclicDeclaration = true;
         } catch (DuplicatedInterfaceException e) {
           // Already reported by resolver.
         }
+
+        // Add all super members to resolve.
         EnclosingElement currentLibrary = currentClass.getElement().getEnclosingElement();
         for (InterfaceType supertype : supertypes) {
           for (Element member : supertype.getElement().getMembers()) {
@@ -1490,10 +1496,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
             superMembers.put(name, member);
           }
         }
+
+        // Visit members, so resolve methods declared in this class.
         this.visit(node.getMembers());
+
+        // If interface, we don't care about unimplemented methods.
         if (currentClass.getElement().isInterface()) {
           return null;
         }
+
+        // If we have cyclic declaration, hierarchy is broken, no reason to report unimplemented.
+        if (hasCyclicDeclaration) {
+          return null;
+        }
+
+        // Visit superclasses (without interfaces) and mark methods as implemented.
         InterfaceType supertype = currentClass.getElement().getSupertype();
         while (supertype != null) {
           ClassElement superclass = supertype.getElement();
@@ -1502,6 +1519,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           supertype = supertype.getElement().getSupertype();
         }
+
+        // All remaining methods are unimplemented.
         for (String name : superMembers.keys()) {
           Collection<Element> elements = superMembers.removeAll(name);
           for (Element element : elements) {

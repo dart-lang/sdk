@@ -1375,6 +1375,25 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyzeFail("(new Class().m)().x;", TypeErrorCode.VOID);
   }
 
+  /**
+   * There  was problem that cyclic class declaration caused infinite loop.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=348
+   */
+  public void test_cyclicDeclaration() {
+    Map<String, ClassElement> source = loadSource(
+        "class Foo extends Bar {",
+        "}",
+        "class Bar extends Foo {",
+        "}");
+    analyzeClasses(source);
+    // Foo and Bar have cyclic declaration
+    ClassElement classFoo = source.get("Foo");
+    ClassElement classBar = source.get("Bar");
+    assertEquals(classFoo, classBar.getSupertype().getElement());
+    assertEquals(classBar, classFoo.getSupertype().getElement());
+  }
+
   private Map<String, ClassElement> analyzeClasses(Map<String, ClassElement> classes,
                                                    ErrorCode... codes) {
     setExpectedTypeErrorCount(codes.length);
