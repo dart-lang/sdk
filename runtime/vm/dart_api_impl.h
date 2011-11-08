@@ -17,39 +17,41 @@ class RawObject;
 
 class Api : AllStatic {
  public:
-  // Create new local handles.
+  // Creates a new local handle.
   static Dart_Handle NewLocalHandle(const Object& object);
 
-  // Unwrap the raw object from the handle.
+  // Unwraps the raw object from the handle.
   static RawObject* UnwrapHandle(Dart_Handle object);
 
-  // Validate and convert the passed in handle as a local handle.
+  // Validates and converts the passed in handle as a local handle.
   static LocalHandle* UnwrapAsLocalHandle(const ApiState& state,
                                           Dart_Handle object);
 
-  // Validate and convert the passed in handle as a persistent handle.
+  // Validates and converts the passed in handle as a persistent handle.
   static PersistentHandle* UnwrapAsPersistentHandle(const ApiState& state,
                                                     Dart_Handle object);
 
-  // Get the handle used to designate successful return.
+  // Gets the handle used to designate successful return.
   static Dart_Handle Success();
 
-  // Generate a handle used to designate an error return.
-  static Dart_Handle Error(const char* msg);
+  // Generates a handle used to designate an error return.
+  static Dart_Handle Error(const char* format, ...);
 
-  // Get a handle to Null.
+  static Dart_Handle VError(const char* format, va_list args);
+
+  // Gets a handle to Null.
   static Dart_Handle Null();
 
-  // Get a handle to True.
+  // Gets a handle to True.
   static Dart_Handle True();
 
-  // Get a handle to False
+  // Gets a handle to False
   static Dart_Handle False();
 
-  // Allocate space in the local zone.
+  // Allocates space in the local zone.
   static uword Allocate(intptr_t size);
 
-  // Reallocate space in the local zone.
+  // Reallocates space in the local zone.
   static uword Reallocate(uword ptr, intptr_t old_size, intptr_t new_size);
 };
 

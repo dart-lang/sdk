@@ -13,6 +13,19 @@
 
 namespace dart {
 
+UNIT_TEST_CASE(Dart_Error) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle error = Dart_Error("An %s", "error");
+  EXPECT(!Dart_IsValid(error));
+  EXPECT_STREQ("An error", Dart_GetError(error));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
 UNIT_TEST_CASE(Null) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();  // Enter a Dart API scope for the unit test.
@@ -1547,6 +1560,30 @@ UNIT_TEST_CASE(GetNativeArgumentCount) {
 
     Dart_ExitScope();
   }
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(GetClass) {
+  const char* kScriptChars =
+      "class DoesExist {"
+      "}";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Lookup a class that does exist.
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("DoesExist"));
+  EXPECT_VALID(cls);
+
+  // Lookup a class that does not exist.
+  cls = Dart_GetClass(lib, Dart_NewString("DoesNotExist"));
+  EXPECT(!Dart_IsValid(cls));
+  EXPECT_STREQ("Class 'DoesNotExist' not found in library 'dart:test-lib'.",
+               Dart_GetError(cls));
+
+  Dart_ExitScope();
   Dart_ShutdownIsolate();
 }
 

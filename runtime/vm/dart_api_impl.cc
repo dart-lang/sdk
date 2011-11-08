@@ -67,8 +67,12 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_Error(const char* error) {
-  return Api::Error(error);
+DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  Dart_Handle error = Api::VError(format, args);
+  va_end(args);
+  return error;
 }
 
 
@@ -527,7 +531,9 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
   cls_name ^= param.raw();
   const Class& cls = Class::Handle(lib.LookupClass(cls_name));
   if (cls.IsNull()) {
-    return Api::Error("Specified class does not exist");
+    const String& lib_name = String::Handle(lib.name());
+    return Api::Error("Class '%s' not found in library '%s'.",
+                      cls_name.ToCString(), lib_name.ToCString());
   }
   return Api::NewLocalHandle(cls);
 }
@@ -2008,12 +2014,26 @@ Dart_Handle Api::Success() {
 }
 
 
-Dart_Handle Api::Error(const char* text) {
+Dart_Handle Api::VError(const char* format, va_list args) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const String& message = String::Handle(String::New(text));
+
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  char* buffer = reinterpret_cast<char*>(zone.Allocate(len+1));
+  OS::VSNPrint(buffer, len+1, format, args);
+
+  const String& message = String::Handle(String::New(buffer));
   const Object& obj = Object::Handle(ApiFailure::New(message));
   return Api::NewLocalHandle(obj);
+}
+
+
+Dart_Handle Api::Error(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  Dart_Handle error = Api::VError(format, args);
+  va_end(args);
+  return error;
 }
 
 

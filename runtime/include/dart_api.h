@@ -120,15 +120,11 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle);
 /**
  * Produces an invalid handle with the provided error message.
  *
- * This function makes its own copy of the error message and does not
- * claim ownership of the 'error' parameter.
- *
  * Requires there to be a current isolate.
  *
  * \param error A C string containing an error message.
  */
-DART_EXPORT Dart_Handle Dart_Error(const char* error);
-// TODO(turnidge): Accept printf-style args here.
+DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
 
 /**
  * Allocates a persistent handle for an object.
