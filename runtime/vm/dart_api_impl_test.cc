@@ -87,6 +87,8 @@ UNIT_TEST_CASE(IsSame) {
 }
 
 
+#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+
 UNIT_TEST_CASE(ObjectEquals) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();  // Enter a Dart API scope for the unit test.
@@ -112,6 +114,7 @@ UNIT_TEST_CASE(ObjectEquals) {
   Dart_ShutdownIsolate();
 }
 
+#endif
 
 UNIT_TEST_CASE(BooleanValues) {
   Dart_CreateIsolate(NULL, NULL);
