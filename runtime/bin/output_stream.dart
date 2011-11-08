@@ -18,7 +18,7 @@
 interface OutputStream {
   /**
    * Writes the content of [buffer] to the stream. If [copyBuffer] is
-   * true ownership of the specified buffer is passed to the system
+   * false ownership of the specified buffer is passed to the system
    * and the caller should not change it afterwards. The default value
    * for [copyBuffer] is true.
    *

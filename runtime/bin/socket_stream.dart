@@ -165,7 +165,7 @@ class SocketOutputStream implements OutputStream {
           buffer.getRange(notWrittenOffset, len - bytesWritten);
       _pendingWrites.add(newBuffer);
     } else {
-      assert(offset + len = buffer.length);
+      assert(offset + len == buffer.length);
       _pendingWrites.add(buffer, notWrittenOffset);
     }
   }
