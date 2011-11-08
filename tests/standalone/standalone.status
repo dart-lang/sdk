@@ -16,17 +16,11 @@ ManyEchoServerTest: Skip        # Bug 5103754
 FailTest: Fail
 TimeoutTest: Timeout
 
-[ $component == vm && $mode == release]
-# Currently process tests are bound to debug mode.
-Process*: Skip # Bug 172
-
 [ $component == vm && $system == macos]
-Process*: Skip # Bug 172
 # This test fails with "Too many open files" on the Mac OS buildbot.
 SocketManyConnectionsTest: Skip
 
 [ $component == vm && $system == win32]
-Process*: Skip # Dart issue 363.
 TestRunnerTest: Skip # Uses Process.  Dart issue 363.
 
 [ $component == dartium ]

@@ -9,11 +9,13 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+#source("ProcessTestUtil.dart");
+
 class ProcessStdoutTest {
 
-  static void testStdout() {
-    Process process = new Process("out/Debug_ia32//process_test",
-                                   const ["0", "1", "99", "0"]);
+  static void testExit() {
+    Process process = new Process(getProcessTestFileName(),
+                                  const ["0", "1", "99", "0"]);
     final int BUFFERSIZE = 10;
     final int STARTCHAR = 65;
     List<int> data = new List<int>(BUFFERSIZE);
@@ -28,18 +30,30 @@ class ProcessStdoutTest {
     process.start();
 
     int received = 0;
+    List<int> buffer = [];
 
     void readData() {
-      List<int> buffer = input.read();
-      for (int i = 0; i < buffer.length; i++) {
-        Expect.equals(data[received + i], buffer[i]);
+      buffer.addAll(input.read());
+      for (int i = received; i < Math.min(data.length, buffer.length) - 1; i++) {
+        Expect.equals(data[i], buffer[i]);
       }
-      received += buffer.length;
+      received = buffer.length;
+      if (received >= BUFFERSIZE) {
+        // We expect an extra character on windows due to carriage return.
+        if (13 === buffer[BUFFERSIZE - 1] && BUFFERSIZE + 1 === received) {
+          Expect.equals(13, buffer[BUFFERSIZE - 1]);
+          Expect.equals(10, buffer[BUFFERSIZE]);
+          buffer.removeLast();
+          process.close();
+        } else if (received === BUFFERSIZE) {
+          Expect.equals(10, buffer[BUFFERSIZE - 1]);
+          process.close();
+        }
+      }
     }
 
     void streamClosed() {
       Expect.equals(BUFFERSIZE, received);
-      process.close();
     }
 
     output.write(data);
@@ -49,10 +63,10 @@ class ProcessStdoutTest {
   }
 
   static void testMain() {
-    testStdout();
+    testExit();
   }
 }
 
 main() {
-  ProcessStdoutTest.testStdout();
+  ProcessStdoutTest.testMain();
 }
