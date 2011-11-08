@@ -44,6 +44,12 @@ WrongNumberTypeArgumentsTest: Fail # Bug 5532690
 Prefix18NegativeTest: Fail # Issue 307
 Prefix20NegativeTest: Fail # Issue 307
 
+ImplicitThisTest/01: Fail # Issue TBD
+ImplicitThisTest/02: Fail # Issue TBD
+ImplicitThisTest/03: Fail # Issue TBD
+ImplicitThisTest/04: Fail # Issue TBD
+ImplicitThisTest/none: Fail # Issue TBD
+
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
 *DartcNegativeTest: Skip
@@ -164,6 +170,8 @@ BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
 BlackListedTest/13: Crash # Bug 5469684
 BlackListedTest/14: Crash # Bug 5469684
+
+ImplicitThisTest/none: Fail # Issue TBD.
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -316,6 +324,11 @@ UnboundGetterTest: Fail
 VarInitTest: Fail
 WrongNumberTypeArgumentsTest: Fail
 GetterClosureExecutionOrderTest: Fail
+ImplicitThisTest/01: Fail # Issue TBD
+ImplicitThisTest/02: Fail # Issue TBD
+ImplicitThisTest/03: Fail # Issue TBD
+ImplicitThisTest/04: Fail # Issue TBD
+ImplicitThisTest/none: Fail # Issue TBD
 
 
 [ $component == leg]
