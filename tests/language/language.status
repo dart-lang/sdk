@@ -312,7 +312,6 @@ SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
 TypeVariableBoundsTest/00: Fail # Is the test syntax valid? VM gives an error.
 TypeVariableBoundsTest/05: Fail # issue with test filed as #354
-TypedMessageTest: Fail
 UnboundGetterTest: Fail
 VarInitTest: Fail
 WrongNumberTypeArgumentsTest: Fail

@@ -54,7 +54,6 @@ MapFromTest: Fail
 MapsTest: Fail
 MathTest: Fail
 NanInfinityTest: Fail
-PortTest: Fail
 RegExpAllMatchesTest: Fail
 RegExp4Test: Fail # New test added on 10/28.
 StringPatternTest: Fail
