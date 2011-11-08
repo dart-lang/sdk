@@ -16,6 +16,7 @@
 #source('PagedViews.dart');
 #source('SliderMenu.dart');
 
+
 // TODO(rnystrom): Note! This class is undergoing heavy construction. It will
 // temporary support both some old and some new ways of doing things until all
 // subclasses are refactored to use the new way. There will be some scaffolding
@@ -316,25 +317,42 @@ class View implements Positionable {
   }
 
   void doLayout() {
-    if (_measureLayout()) {
-      _applyLayoutToChildren();
-    }
+    _measureLayout().then((bool changed) {
+      if (changed) {
+        _applyLayoutToChildren();
+      }
+    });
   }
 
-  bool _measureLayout() {
+  Future<bool> _measureLayout() {
+    final changed = new Completer<bool>();
+    _measureLayoutHelper(changed);
+
+    window.requestLayoutFrame(() {
+      if (!changed.future.isComplete) {
+        changed.complete(false);
+      }
+    });
+    return changed.future;
+  }
+
+  void _measureLayoutHelper(Completer<bool> changed) {
     windowResized();
 
     // TODO(jmesserly): this logic is more complex than it needs to be because
     // we're taking pains to not initialize _layout if it's not needed. Is that
     // a good tradeoff?
     if (ViewLayout.hasCustomLayout(this)) {
-      return layout.measureLayout(_node.clientWidth, _node.clientHeight);
+      Completer sizeCompleter = new Completer<Size>();
+      _node.rect.then((ElementRect rect) {
+        sizeCompleter.complete(
+            new Size(rect.client.width, rect.client.height));
+      });
+      layout.measureLayout(sizeCompleter.future, changed);
     } else {
-      bool changed = false;
       for (final child in childViews) {
-        if (child._measureLayout()) changed = true;
+        child._measureLayoutHelper(changed);
       }
-      return changed;
     }
   }
 

@@ -37,6 +37,11 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node_sequence) {
 }
 
 
+void AstPrinter::VisitCloneContextNode(CloneContextNode* node) {
+  VisitGenericAstNode(node);
+}
+
+
 void AstPrinter::VisitArgumentListNode(ArgumentListNode* arguments) {
   VisitGenericAstNode(arguments);
 }

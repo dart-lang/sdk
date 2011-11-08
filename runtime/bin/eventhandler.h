@@ -17,6 +17,8 @@ enum MessageFlags {
   kErrorEvent = 2,
   kCloseEvent = 3,
   kCloseCommand = 8,
+  kShutdownReadCommand = 9,
+  kShutdownWriteCommand = 10,
   kListeningSocket = 16,
 };
 

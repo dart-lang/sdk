@@ -21,7 +21,7 @@ class EchoServerGame {
   static final MSGSIZE = 10;
   static final SERVERINIT = 0;
   static final SERVERSHUTDOWN = -1;
-  static final MESSAGES = 200;
+  static final MESSAGES = 100;
   static final FIRSTCHAR = 65;
 
   EchoServerGame.start()
@@ -45,8 +45,7 @@ class EchoServerGame {
     }
 
     void errorHandler() {
-      print("Socket error");
-      _socket.close();
+      Expect.fail("Socket error");
     }
 
     void connectHandler() {
@@ -90,15 +89,32 @@ class EchoServerGame {
         inputStream.dataHandler = dataReceived;
       }
 
-      _socket.setCloseHandler(closeHandler);
-      _socket.setErrorHandler(errorHandler);
-      stream.write(_buffer);
+      _socket.closeHandler = closeHandler;
+      _socket.errorHandler = errorHandler;
+
+      // Test both write and writeFrom in different forms.
+      switch (_messages % 2) {
+        case 0:
+          stream.write(_buffer);
+          break;
+        case 1:
+          stream.write(_buffer, false);
+          break;
+        case 2:
+          stream.writeFrom(_buffer);
+          break;
+        case 3:
+          stream.writeFrom(_buffer, len: _buffer.length ~/ 2);
+          stream.writeFrom(_buffer, _buffer.length ~/ 2);
+          break;
+      }
+      stream.close();
       dataSent();
     }
 
     _socket = new Socket(EchoServer.HOST, _port);
     if (_socket !== null) {
-      _socket.setConnectHandler(connectHandler);
+      _socket.connectHandler = connectHandler;
     } else {
       Expect.fail("socket creation failed");
     }
@@ -139,8 +155,10 @@ class EchoServer extends Isolate {
       int offset = 0;
 
       void dataReceived() {
-        SocketOutputStream outputStream = _client.outputStream;
-        int bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
+        SocketOutputStream outputStream;
+        int bytesRead;
+        outputStream = _client.outputStream;
+        bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
         if (bytesRead > 0) {
           offset += bytesRead;
           for (int i = 0; i < offset; i++) {
@@ -148,37 +166,31 @@ class EchoServer extends Isolate {
           }
           if (offset == MSGSIZE) {
             outputStream.write(buffer);
+            outputStream.close();
           }
         }
       }
 
-      void closeHandler() {
-        _client.close();
-      }
-
       void errorHandler() {
-        print("Socket error");
-        _client.close();
+        Expect.fail("Socket error");
       }
 
       _client = _server.accept();
       inputStream = _client.inputStream;
       inputStream.dataHandler = dataReceived;
-      _client.setCloseHandler(closeHandler);
-      _client.setErrorHandler(errorHandler);
+      _client.errorHandler = errorHandler;
     }
 
     void errorHandlerServer() {
-      print("Server socket error");
-      _server.close();
+      Expect.fail("Server socket error");
     }
 
     this.port.receive((message, SendPort replyTo) {
       if (message == EchoServerGame.SERVERINIT) {
         _server = new ServerSocket(HOST, 0, 10);
         Expect.equals(true, _server !== null);
-        _server.setConnectionHandler(connectionHandler);
-        _server.setErrorHandler(errorHandlerServer);
+        _server.connectionHandler = connectionHandler;
+        _server.errorHandler = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else if (message == EchoServerGame.SERVERSHUTDOWN) {
         _server.close();

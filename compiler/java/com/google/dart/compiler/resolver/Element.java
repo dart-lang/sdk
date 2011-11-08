@@ -22,5 +22,8 @@ public interface Element extends Symbol {
 
   Modifiers getModifiers();
 
+  /**
+   * Returns the innermost {@link EnclosingElement} which declares this element.
+   */
   EnclosingElement getEnclosingElement();
 }

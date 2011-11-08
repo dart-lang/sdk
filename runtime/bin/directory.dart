@@ -13,19 +13,19 @@ interface Directory factory _Directory {
   /**
    * Returns whether a directory with this name already exists.
    */
-  bool exists();
+  bool existsSync();
 
   /**
    * Creates the directory with this name if it does not exist.
    * Throw an exception if the directory already exists.
    */
-  void create();
+  void createSync();
 
   /**
    * Deletes the directory with this name. Throws an exception
    * if the directory is not empty or if deletion failed.
    */
-  void delete();
+  void deleteSync();
 
   /**
    * List the sub-directories and files of this
@@ -42,27 +42,27 @@ interface Directory factory _Directory {
    * during listing operations. The directory handler is called with
    * the full path of the directory.
    */
-  void setDirHandler(void dirHandler(String dir));
+  void set dirHandler(void dirHandler(String dir));
 
   /**
    * Sets the file handler that is called for all files during listing
    * operations. The file handler is called with the full path of the
    * file.
    */
-  void setFileHandler(void fileHandler(String file));
+  void set fileHandler(void fileHandler(String file));
 
   /**
    * Set the done handler that is called when a directory listing is
    * done. The handler is called with an indication of whether or not
    * the listing operation completed.
    */
-  void setDoneHandler(void doneHandler(bool completed));
+  void set doneHandler(void doneHandler(bool completed));
 
   /**
    * Sets the error handler that is called on error listing
    * directories.
    */
-  void setErrorHandler(void errorHandler(String error));
+  void set errorHandler(void errorHandler(String error));
 
   /**
    * Gets the path of this directory.

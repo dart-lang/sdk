@@ -95,7 +95,7 @@ public class MemberBuilder {
       for (DartParameter parameter : node.getParameters()) {
         parameters.add((VariableElement) parameter.accept(this));
       }
-      Type returnType = resolveType(node.getReturnTypeNode(), false);
+      Type returnType = resolveType(node.getReturnTypeNode(), false, TypeErrorCode.NO_SUCH_TYPE);
       ClassElement functionElement = getTypeProvider().getFunctionType().getElement();
       element.setFunctionType(Types.makeFunctionType(getContext(), functionElement,
                                                      parameters, returnType, null));
@@ -149,7 +149,7 @@ public class MemberBuilder {
           isStatic = true;
         }
       }
-      Type type = resolveType(node.getTypeNode(), isStatic);
+      Type type = resolveType(node.getTypeNode(), isStatic, TypeErrorCode.NO_SUCH_TYPE);
       for (DartField fieldNode : node.getFields()) {
         if (fieldNode.getModifiers().isAbstractField()) {
           buildAbstractField(fieldNode);
@@ -186,7 +186,12 @@ public class MemberBuilder {
           }
         }
         @Override public Element visitIdentifier(DartIdentifier node) {
-          return context.resolveType(node, node, null, true).getElement();
+          return context.resolveType(
+              node,
+              node,
+              null,
+              true,
+              ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR).getElement();
         }
         @Override public Element visitParameterizedNode(DartParameterizedNode node) {
           Element element = node.getExpression().accept(this);

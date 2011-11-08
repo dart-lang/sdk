@@ -11,3 +11,4 @@
 #source('Device.dart');
 #source('DomWrapper.dart');
 #source('Env.dart');
+#source('Size.dart');

@@ -19,7 +19,8 @@ class Dart : public AllStatic {
   static bool InitOnce(int argc, char** argv,
                        Dart_IsolateInitCallback callback);
 
-  static Isolate* CreateIsolate(const Dart_Snapshot* snapshot, void* data);
+  static Isolate* CreateIsolate();
+  static void InitializeIsolate(const Dart_Snapshot* snapshot, void* data);
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }

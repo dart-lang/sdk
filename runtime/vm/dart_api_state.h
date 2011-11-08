@@ -72,6 +72,11 @@ class LocalHandle {
 };
 
 
+// A distinguished callback which indicates that a persistent handle
+// should not be deleted from the dart api.
+void ProtectedHandleCallback();
+
+
 // Implementation of persistent handles which are handed out through the
 // dart API.
 class PersistentHandle {
@@ -90,6 +95,11 @@ class PersistentHandle {
   void set_callback(void* value) { callback_ = value; }
   intptr_t type() const { return type_; }
   void set_type(intptr_t value) { type_ = value; }
+
+  // Some handles are protected from being freed via the external dart api.
+  bool IsProtected() {
+    return callback() == &ProtectedHandleCallback;
+  }
 
  private:
   friend class PersistentHandles;
@@ -257,16 +267,24 @@ class ApiLocalScope {
 // basis and destroyed when the isolate is shutdown.
 class ApiState {
  public:
-  ApiState() : top_scope_(NULL), true_(NULL) { }
+  ApiState() : top_scope_(NULL), null_(NULL), true_(NULL), false_(NULL) { }
   ~ApiState() {
     while (top_scope_ != NULL) {
       ApiLocalScope* scope = top_scope_;
       top_scope_ = top_scope_->previous();
       delete scope;
     }
+    if (null_ != NULL) {
+      persistent_handles().FreeHandle(null_);
+      null_ = NULL;
+    }
     if (true_ != NULL) {
       persistent_handles().FreeHandle(true_);
       true_ = NULL;
+    }
+    if (false_ != NULL) {
+      persistent_handles().FreeHandle(false_);
+      false_ = NULL;
     }
   }
 
@@ -327,6 +345,18 @@ class ApiState {
     }
     return total;
   }
+  PersistentHandle* Null() {
+    if (null_ == NULL) {
+      Zone zone;  // Setup a VM zone as we are creating some handles.
+      HandleScope scope;  // Setup a VM handle scope.
+
+      Object& null_object = Object::Handle();
+      null_ = persistent_handles().AllocateHandle();
+      null_->set_raw(null_object);
+      null_->set_callback(reinterpret_cast<void*>(&ProtectedHandleCallback));
+    }
+    return null_;
+  }
   PersistentHandle* True() {
     if (true_ == NULL) {
       Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -335,16 +365,31 @@ class ApiState {
       const Object& true_object = Object::Handle(Bool::True());
       true_ = persistent_handles().AllocateHandle();
       true_->set_raw(true_object);
+      true_->set_callback(reinterpret_cast<void*>(&ProtectedHandleCallback));
     }
     return true_;
+  }
+  PersistentHandle* False() {
+    if (false_ == NULL) {
+      Zone zone;  // Setup a VM zone as we are creating some handles.
+      HandleScope scope;  // Setup a VM handle scope.
+
+      const Object& false_object = Object::Handle(Bool::False());
+      false_ = persistent_handles().AllocateHandle();
+      false_->set_raw(false_object);
+      false_->set_callback(reinterpret_cast<void*>(&ProtectedHandleCallback));
+    }
+    return false_;
   }
 
  private:
   PersistentHandles persistent_handles_;
   ApiLocalScope* top_scope_;
 
-  // A persistent handle to the "True" object.
+  // Persistent handles to important objects.
+  PersistentHandle* null_;
   PersistentHandle* true_;
+  PersistentHandle* false_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiState);
 };

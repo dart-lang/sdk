@@ -412,20 +412,120 @@ class ElementEventsImplementation extends EventsImplementation implements Elemen
   EventListenerList get touchMove() => _get("touchmove");
   EventListenerList get touchStart() => _get("touchstart");
   EventListenerList get transitionEnd() => _get("webkitTransitionEnd");
-  EventListenerList get fullscreenChange() => _get("fullscreenchange");
+  EventListenerList get fullscreenChange() => _get("webkitfullscreenchange");
+}
+
+class SimpleClientRect implements ClientRect {
+  final num left;
+  final num top;
+  final num width;
+  final num height;
+  num get right() => left + width;
+  num get bottom() => top + height;
+
+  const SimpleClientRect(this.left, this.top, this.width, this.height);
+
+  bool operator ==(ClientRect other) {
+    return other !== null && left == other.left && top == other.top
+        && width == other.width && height == other.height;
+  }
+
+  String toString() => "($left, $top, $width, $height)";
+}
+
+// TODO(jacobr): we cannot currently be lazy about calculating the client
+// rects as we must perform all measurement queries at a safe point to avoid
+// triggering unneeded layouts.
+/**
+ * All your element measurement needs in one place
+ */
+class ElementRectWrappingImplementation implements ElementRect {
+  final ClientRect client;
+  final ClientRect offset;
+  final ClientRect scroll;
+
+  // TODO(jacobr): should we move these outside of ElementRect to avoid the
+  // overhead of computing them every time even though they are rarely used.
+  // This should be type dom.ClientRect but that fails on dartium. b/5522629
+  final _boundingClientRect; 
+  // an exception due to a dartium bug.
+  final dom.ClientRectList _clientRects;
+
+  ElementRectWrappingImplementation(dom.HTMLElement element) :
+    client = new SimpleClientRect(element.clientLeft,
+                                  element.clientTop,
+                                  element.clientWidth, 
+                                  element.clientHeight), 
+    offset = new SimpleClientRect(element.offsetLeft,
+                                  element.offsetTop,
+                                  element.offsetWidth,
+                                  element.offsetHeight),
+    scroll = new SimpleClientRect(element.scrollLeft,
+                                  element.scrollTop,
+                                  element.scrollWidth,
+                                  element.scrollHeight),
+    _boundingClientRect = element.getBoundingClientRect(),
+    _clientRects = element.getClientRects();
+
+  ClientRect get bounding() =>
+      LevelDom.wrapClientRect(_boundingClientRect);
+
+  List<ClientRect> get clientRects() {
+    final out = new List(_clientRects.length);
+    for (num i = 0; i < _clientRects.length; i++) {
+      out[i] = LevelDom.wrapClientRect(_clientRects.item(i));
+    }
+    return out;
+  }
 }
 
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
+  
+    static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+    static final _CUSTOM_PARENT_TAG_MAP = const {
+      'body' : 'html',
+      'head' : 'html',
+      'caption' : 'table',
+      'td': 'tr',
+      'tbody': 'table',
+      'colgroup': 'table',
+      'col' : 'colgroup',
+      'tr' : 'tbody',
+      'tbody' : 'table',
+      'tfoot' : 'table',
+      'thead' : 'table',
+      'track' : 'audio',
+    };
 
    factory ElementWrappingImplementation.html(String html) {
-    final temp = dom.document.createElement('div');
+    // TODO(jacobr): this method can be made more robust and performant.
+    // 1) Cache the dummy parent elements required to use innerHTML rather than
+    //    creating them every call.
+    // 2) Verify that the html does not contain leading or trailing text nodes.
+    // 3) Verify that the html does not contain both <head> and <body> tags.
+    // 4) Detatch the created element from its dummy parent.
+    String parentTag = 'div';
+    String tag;
+    final match = _START_TAG_REGEXP.firstMatch(html);
+    if (match !== null) {
+      tag = match.group(1).toLowerCase();
+      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
+        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      }
+    }
+    final temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
-    if (temp.childElementCount != 1) {
+    if (temp.childElementCount == 1) {
+      return LevelDom.wrapElement(temp.firstElementChild);     
+    } else if (parentTag == 'html' && temp.childElementCount == 2) {
+      // Work around for edge case in WebKit and possibly other browsers where
+      // both body and head elements are created even though the inner html
+      // only contains a head or body element.
+      return LevelDom.wrapElement(temp.children.item(tag == 'head' ? 0 : 1));
+    } else {
       throw 'HTML had ${temp.childElementCount} top level elements but 1 expected';
     }
-
-    return LevelDom.wrapElement(temp.firstElementChild);
   }
 
   factory ElementWrappingImplementation.tag(String tag) {
@@ -497,14 +597,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
   }
 
-  int get clientHeight() => _ptr.clientHeight;
-
-  int get clientLeft() => _ptr.clientLeft;
-
-  int get clientTop() => _ptr.clientTop;
-
-  int get clientWidth() => _ptr.clientWidth;
-
   String get contentEditable() => _ptr.contentEditable;
 
   void set contentEditable(String value) { _ptr.contentEditable = value; }
@@ -541,31 +633,11 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   Element get nextElementSibling() => LevelDom.wrapElement(_ptr.nextElementSibling);
 
-  int get offsetHeight() => _ptr.offsetHeight;
-
-  int get offsetLeft() => _ptr.offsetLeft;
-
   Element get offsetParent() => LevelDom.wrapElement(_ptr.offsetParent);
-
-  int get offsetTop() => _ptr.offsetTop;
-
-  int get offsetWidth() => _ptr.offsetWidth;
 
   String get outerHTML() => _ptr.outerHTML;
 
   Element get previousElementSibling() => LevelDom.wrapElement(_ptr.previousElementSibling);
-
-  int get scrollHeight() => _ptr.scrollHeight;
-
-  int get scrollLeft() => _ptr.scrollLeft;
-
-  void set scrollLeft(int value) { _ptr.scrollLeft = value; }
-
-  int get scrollTop() => _ptr.scrollTop;
-
-  void set scrollTop(int value) { _ptr.scrollTop = value; }
-
-  int get scrollWidth() => _ptr.scrollWidth;
 
   bool get spellcheck() => _ptr.spellcheck;
 
@@ -597,19 +669,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   void focus() {
     _ptr.focus();
-  }
-
-  ClientRect getBoundingClientRect() {
-    return LevelDom.wrapClientRect(_ptr.getBoundingClientRect());
-  }
-
-  List<ClientRect> getClientRects() {
-    var rects = _ptr.getClientRects();
-    var out = new List(rects.length);
-    for (var i = 0; i < rects.length; i++) {
-      out.add(LevelDom.wrapClientRect(rects.item(i)));
-    }
-    return out;
   }
 
   Element insertAdjacentElement([String where = null, Element element = null]) {
@@ -648,6 +707,28 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   bool matchesSelector([String selectors = null]) {
     return _ptr.webkitMatchesSelector(selectors);
+  }
+
+  void set scrollLeft(int value) { _ptr.scrollLeft = value; }
+ 
+  void set scrollTop(int value) { _ptr.scrollTop = value; }
+
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(
+        () => new ElementRectWrappingImplementation(_ptr),
+        new Completer<ElementRect>());
+  }
+
+  Future<CSSStyleDeclaration> get computedStyle() {
+     // TODO(jacobr): last param should be null, see b/5045788
+     return getComputedStyle('');
+  }
+
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
+    return _createMeasurementFuture(() =>
+        LevelDom.wrapCSSStyleDeclaration(
+            dom.window.getComputedStyle(_ptr, pseudoElement)),
+        new Completer<CSSStyleDeclaration>());
   }
 
   ElementEvents get on() {

@@ -57,6 +57,10 @@ public class SupertypeResolver {
         supertype.getClass(); // Quick null check.
       }
       if (supertype != null) {
+        // TODO(scheglov) check for "extends/implements Dynamic"
+        /*if (supertype == typeProvider.getDynamicType()) {
+          topLevelContext.onError(superclassNode, ResolverErrorCode.EXTENDS_DYNAMIC, node.getName());
+        }*/
         classElement.setSupertype(supertype);
       } else {
         assert classElement.getName().equals("Object") : classElement;
@@ -80,7 +84,11 @@ public class SupertypeResolver {
         DartTypeNode boundNode = typeParameterNode.getBound();
         Type bound;
         if (boundNode != null) {
-          bound = classContext.resolveType(boundNode, false);
+          bound =
+              classContext.resolveType(
+                  boundNode,
+                  false,
+                  ResolverErrorCode.NO_SUCH_TYPE);
           boundNode.setType(bound);
         } else {
           bound = typeProvider.getObjectType();

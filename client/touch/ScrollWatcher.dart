@@ -14,22 +14,18 @@ interface ScrollListener {
 
 /**
  * The scroll watcher is intended to provide a single way to
- * listen for scroll events from instances of Scroller, abstracting the
- * various nuances between momentum strategies that require different scroll
- * listening strategies.
+ * listen for scroll events from instances of Scroller.
+ * TODO(jacobr): this class is obsolete.
  */
 class ScrollWatcher {
   Scroller _scroller;
 
   List<ScrollListener> _listeners;
 
-  TimeoutHandler _boundOnDecel;
   Element _scrollerEl;
-  int _decelIntervalId;
 
   ScrollWatcher(Scroller scroller)
       : _scroller = scroller, _listeners = new List<ScrollListener>() {
-    _boundOnDecel = () { _onDecelerate(); };
   }
 
   void addListener(ScrollListener listener) {
@@ -63,39 +59,5 @@ class ScrollWatcher {
     num scrollX = _scroller.getHorizontalOffset();
     num scrollY = _scroller.getVerticalOffset();
     _dispatchScroll(scrollX, scrollY);
-  }
-
-  /**
-   * This callback is invoked every 30ms while deceleration is happening.
-   */
-  void _onDecelerate() {
-    final transform = StyleUtil.getCurrentTransformMatrix(_scrollerEl);
-    num scrollX = transform.m41;
-    num scrollY = transform.m42;
-    _dispatchScroll(scrollX, scrollY, true);
-  }
-
-  /**
-   * When deceleration begins, clear the interval if it already exists and set
-   * up a new one.
-   */
-  void _onDecelerationStart(Event e) {
-    if (_decelIntervalId !== null) {
-      window.clearInterval(_decelIntervalId);
-    }
-    // TODO(jacobr): use Env.requestAnimationFrame and renable this.
-    // Right now this would kill our performance and is not relevant given
-    // we are using timeout based momentum.
-    // _decelIntervalId = window.setInterval(_boundOnDecel, 30);
-  }
-
-  /**
-   * When scrolling ends, clear the interval if it exists.
-   */
-  void _onScrollerEnd(Event e) {
-    if (_decelIntervalId !== null) {
-      window.clearInterval(_decelIntervalId);
-    }
-    _onContentMoved(e);
   }
 }

@@ -22,7 +22,7 @@ syn keyword dartBoolean        true false
 syn keyword dartConstant       null
 syn keyword dartTypedef        this super class typedef
 syn keyword dartOperator       new is in factory
-syn match   dartOperator       "+\|-\|*\|[~]\=/\|%\|||\|&&\|\(!\|=\)=[=]\=\|=>\|="
+syn match   dartOperator       "+\|-\|*\|[~]\=/\|%\|||\|&&\|\(!\|=\)=[=]\=\|=>\|[<>]=\|=\|!"
 syn keyword dartType           void var const bool int double num
 syn keyword dartStatement      return
 syn keyword dartStorageClass   static final abstract
@@ -47,10 +47,10 @@ syn match   dartLineComment   "//.*" contains=dartTodo,@Spell
 syn region  dartDocLink       contained start=+\[+ end=+\]+
 
 " Strings
-syn region  dartString       start=+"+ end=+"+ contains=@Spell,dartInterpolation,dartSpecialChar
-syn region  dartString       start=+'+ end=+'+ contains=@Spell,dartInterpolation,dartSpecialChar
-syn match   dartInterpolation     contained "\$\(\w\+\|{[^\}]\+}\)"
-syn match   dartSpecialChar       contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'ntbrf]\|u\x\{4\}\)"
+syn region  dartString        start=+\z(["']\)+hs=s+1 end=+\z1+he=e-1 contains=@Spell,dartInterpolation,dartSpecialChar
+syn region  dartRawString     start=+@\z(["']\)+hs=s+2 end=+\z1+he=e-1 contains=@Spell
+syn match   dartInterpolation contained "\$\(\w\+\|{[^}]\+}\)"
+syn match   dartSpecialChar   contained "\\\(u\x\{4\}\|u{\x\+}\|x\x\x\|x{\x\+}\|.\)"
 
 " Numbers
 syn match dartNumber         "\<\d\+\(\.\d\+\)\=\>"
@@ -70,6 +70,7 @@ HiLink dartStorageClass    StorageClass
 HiLink dartClassDecl       dartStorageClass
 HiLink dartBoolean         Boolean
 HiLink dartString          String
+HiLink dartRawString       String
 HiLink dartNumber          Number
 HiLink dartStatement       Statement
 HiLink dartOperator        Operator

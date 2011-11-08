@@ -13,7 +13,6 @@
 
 
 
-
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -7374,12 +7373,13 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
-  int indexOf(int element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(int element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(int element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(int element, [int start = null]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -11511,12 +11511,13 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
-  int indexOf(String element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(String element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(String element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(String element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -13027,12 +13028,13 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
-  int indexOf(StyleSheet element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(StyleSheet element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(StyleSheet element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(StyleSheet element, [int start = null]) {
+    if (start == null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -13599,12 +13601,13 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
     throw new UnsupportedOperationException("This object is immutable.");
   }
 
-  int indexOf(Touch element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(Touch element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(Touch element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(Touch element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -16760,6 +16763,162 @@ class LevelDom {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * The [Collections] class implements static methods useful when
+ * writing a class that implements [Collection] and the [iterator]
+ * method.
+ */
+class _Collections {
+  static void forEach(Iterable<Object> iterable, void f(Object o)) {
+    for (final e in iterable) {
+      f(e);
+    }
+  }
+
+  static bool some(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (f(e)) return true;
+    }
+    return false;
+  }
+
+  static bool every(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (!f(e)) return false;
+    }
+    return true;
+  }
+
+  static List filter(Iterable<Object> source,
+                     List<Object> destination,
+                     bool f(o)) {
+    for (final e in source) {
+      if (f(e)) destination.add(e);
+    }
+    return destination;
+  }
+
+  static bool isEmpty(Iterable<Object> iterable) {
+    return !iterable.iterator().hasNext();
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// These factory methods could all live in one factory provider class but dartc
+// has a bug (5399939) preventing that.
+
+class _FileReaderFactoryProvider {
+
+  factory FileReader() {
+    return new dom.FileReader();
+  }
+}
+
+class _CSSMatrixFactoryProvider {
+
+  factory CSSMatrix([String spec = '']) {
+    return new CSSMatrixWrappingImplementation._wrap(
+        new dom.WebKitCSSMatrix(spec));
+  }
+}
+
+class _PointFactoryProvider {
+
+  factory Point(num x, num y) {
+    return new PointWrappingImplementation._wrap(new dom.WebKitPoint(x, y));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Iterator for lists with fixed size.
+class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+  _FixedSizeListIterator(List<T> list)
+      : super(list),
+        _length = list.length;
+
+  bool hasNext() => _length > _pos;
+
+  final int _length;  // Cache list length for faster access.
+}
+
+// Iterator for lists with variable size.
+class _VariableSizeListIterator<T> implements Iterator<T> {
+  _VariableSizeListIterator(List<T> list)
+      : _list = list,
+        _pos = 0;
+
+  bool hasNext() => _list.length > _pos;
+
+  T next() {
+    if (!hasNext()) {
+      throw const NoMoreElementsException();
+    }
+    return _list[_pos++];
+  }
+
+  final List<T> _list;
+  int _pos;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO(jacobr): move into a core library or at least merge with the copy
+// in client/dom/src
+class _Lists {
+
+  /**
+   * Returns the index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to [endIndex] (exclusive).
+   * Returns -1 if [element] is not found.
+   */
+  static int indexOf(List a,
+                     Object element,
+                     int startIndex,
+                     int endIndex) {
+    if (startIndex >= a.length) {
+      return -1;
+    }
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+    for (int i = startIndex; i < endIndex; i++) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns the last index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to 0.
+   * Returns -1 if [element] is not found.
+   */
+  static int lastIndexOf(List a, Object element, int startIndex) {
+    if (startIndex < 0) {
+      return -1;
+    }
+    if (startIndex >= a.length) {
+      startIndex = a.length - 1;
+    }
+    for (int i = startIndex; i >= 0; i--) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 interface AbstractWorkerEvents extends Events {
   EventListenerList get error();
 }
@@ -16863,6 +17022,59 @@ class BeforeLoadEventWrappingImplementation extends EventWrappingImplementation 
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface BodyElementEvents extends ElementEvents {
+  EventListenerList get beforeUnload();
+  EventListenerList get hashChange();
+  EventListenerList get message();
+  EventListenerList get offline();
+  EventListenerList get online();
+  EventListenerList get orientationChange();
+  EventListenerList get popState();
+  EventListenerList get resize();
+  EventListenerList get storage();
+  EventListenerList get unLoad();
+}
+
+interface BodyElement extends Element { 
+  BodyElementEvents get on();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class BodyElementEventsImplementation
+    extends ElementEventsImplementation implements BodyElementEvents {
+
+  BodyElementEventsImplementation._wrap(_ptr) : super._wrap(_ptr);
+
+  EventListenerList get beforeUnload() => _get('beforeunload');
+  EventListenerList get hashChange() => _get('hashchange');
+  EventListenerList get message() => _get('message');
+  EventListenerList get offline() => _get('offline');
+  EventListenerList get online() => _get('online');
+  EventListenerList get orientationChange() => _get('orientationchange');
+  EventListenerList get popState() => _get('popstate');
+  EventListenerList get resize() => _get('resize');
+  EventListenerList get storage() => _get('storage');
+  EventListenerList get unLoad() => _get('unload');
+}
+
+class BodyElementWrappingImplementation
+    extends ElementWrappingImplementation implements BodyElement {
+
+  BodyElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  BodyElementEvents get on() {
+    if (_on === null) {
+      _on = new BodyElementEventsImplementation._wrap(_ptr);
+    }
+    return _on;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 interface CloseEvent extends Event factory CloseEventWrappingImplementation {
 
   CloseEvent(String type, int code, String reason,
@@ -16922,6 +17134,146 @@ class CompositionEventWrappingImplementation extends UIEventWrappingImplementati
 
   String get data() => _ptr.data;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO - figure out whether classList exists, and if so use that
+// rather than the className property that is being used here.
+
+class _CssClassSet implements Set<String> {
+
+  final _element;
+
+  _CssClassSet(this._element);
+
+  String toString() {
+    return _formatSet(_read());
+  }
+
+  // interface Iterable - BEGIN
+  Iterator<String> iterator() {
+    return _read().iterator();
+  }
+  // interface Iterable - END
+
+  // interface Collection - BEGIN
+  void forEach(void f(String element)) {
+    _read().forEach(f);
+  }
+
+  Collection<String> filter(bool f(String element)) {
+    return _read().filter(f);
+  }
+
+  bool every(bool f(String element)) {
+    return _read().every(f);
+  }
+
+  bool some(bool f(String element)) {
+    return _read().some(f);
+  }
+
+  bool isEmpty() {
+    return _read().isEmpty();
+  }
+
+  int get length() {
+    return _read().length;
+  }
+  // interface Collection - END
+
+  // interface Set - BEGIN
+  bool contains(String value) {
+    return _read().contains(value);
+  }
+
+  void add(String value) {
+    // TODO - figure out if we need to do any validation here
+    // or if the browser natively does enough
+    _modify((s) => s.add(value));
+  }
+
+  bool remove(String value) {
+    Set<String> s = _read();
+    bool result = s.remove(value);
+    _write(s);
+    return result;
+  }
+
+  void addAll(Collection<String> collection) {
+    // TODO - see comment above about validation
+    _modify((s) => s.addAll(collection));
+  }
+
+  void removeAll(Collection<String> collection) {
+    _modify((s) => s.removeAll(collection));
+  }
+
+  bool isSubsetOf(Collection<String> collection) {
+    return _read().isSubsetOf(collection);
+  }
+
+  bool containsAll(Collection<String> collection) {
+    return _read().containsAll(collection);
+  }
+
+  Set<String> intersection(Collection<String> other) {
+    return _read().intersection(other);
+  }
+
+  void clear() {
+    _modify((s) => s.clear());
+  }
+  // interface Set - END
+
+  /**
+   * Helper method used to modify the set of css classes on this element.
+   *
+   *   f - callback with:
+   *      s - a Set of all the css class name currently on this element.
+   *
+   *   After f returns, the modified set is written to the
+   *       className property of this element.
+   */
+  void _modify( f(Set<String> s)) {
+    Set<String> s = _read();
+    f(s);
+    _write(s);
+  }
+
+  /**
+   * Read the class names from the HTMLElement class property,
+   * and put them into a set (duplicates are discarded).
+   */
+  Set<String> _read() {
+    // TODO(mattsh) simplify this once split can take regex.
+    Set<String> s = new Set<String>();
+    for (String name in _element.className.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty()) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  /**
+   * Join all the elements of a set into one string and write
+   * back to the element.
+   */
+  void _write(Set s) {
+    _element.className = _formatSet(s);
+  }
+
+  String _formatSet(Set<String> s) {
+    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
+    List list = new List.from(s);
+    return Strings.join(list, ' ');
+  }
+
+}
+
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21682,185 +22034,6 @@ class CustomEventWrappingImplementation extends EventWrappingImplementation impl
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DOMApplicationCacheEvents extends Events {
-  EventListenerList get cached();
-  EventListenerList get checking();
-  EventListenerList get downloading();
-  EventListenerList get error();
-  EventListenerList get noUpdate();
-  EventListenerList get obsolete();
-  EventListenerList get progress();
-  EventListenerList get updateReady();  
-}
-
-interface DOMApplicationCache extends EventTarget {
-
-  static final int CHECKING = 2;
-
-  static final int DOWNLOADING = 3;
-
-  static final int IDLE = 1;
-
-  static final int OBSOLETE = 5;
-
-  static final int UNCACHED = 0;
-
-  static final int UPDATEREADY = 4;
-
-  int get status();
-
-  void swapCache();
-
-  void update();
-
-  DOMApplicationCacheEvents get on();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class DOMApplicationCacheEventsImplementation extends EventsImplementation
-    implements DOMApplicationCacheEvents {
-  DOMApplicationCacheEventsImplementation._wrap(ptr) : super._wrap(ptr);
-
-  EventListenerList get cached() => _get('cached');
-  EventListenerList get checking() => _get('checking');
-  EventListenerList get downloading() => _get('downloading');
-  EventListenerList get error() => _get('error');
-  EventListenerList get noUpdate() => _get('noupdate');
-  EventListenerList get obsolete() => _get('obsolete');
-  EventListenerList get progress() => _get('progress');
-  EventListenerList get updateReady() => _get('updateready');
-}
-
-class DOMApplicationCacheWrappingImplementation extends EventTargetWrappingImplementation implements DOMApplicationCache {
-  DOMApplicationCacheWrappingImplementation._wrap(ptr) : super._wrap(ptr);
-
-  int get status() => _ptr.status;
-
-  void swapCache() {
-    _ptr.swapCache();
-  }
-
-  void update() {
-    _ptr.update();
-  }
-
-  DOMApplicationCacheEvents get on() {
-    if (_on === null) {
-      _on = new DOMApplicationCacheEventsImplementation._wrap(_ptr);
-    }
-    return _on;  
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class DOMWrapperBase {
-  final _ptr;
-
-  DOMWrapperBase._wrap(this._ptr) {
-  	// We should never be creating duplicate wrappers.
-  	assert(_ptr.dartObjectLocalStorage === null);
-	_ptr.dartObjectLocalStorage = this;
-  }
-}
-
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-interface DocumentEvents extends ElementEvents {
-  EventListenerList get readyStateChange();
-  EventListenerList get selectionChange();
-  EventListenerList get contentLoaded();
-}
-
-// TODO(jacobr): add DocumentFragment ctor
-// add something smarted for document.domain
-interface Document extends Element /*, common.NodeSelector */ {
-
-  // TODO(jacobr): remove.
-  Event createEvent([String eventType]);
-
-  Element get activeElement();
-
-  // TODO(jacobr): add
-  // Map<String, Class> tags;
-
-  Element get body();
-
-  void set body(Element value);
-
-  String get charset();
-
-  void set charset(String value);
-
-  // FIXME(slightlyoff): FIX COOKIES, MMM...COOKIES. ME WANT COOKIES!!
-  //                     Map<String, CookieList> cookies
-  //                     Map<String, Cookie> CookieList
-  String get cookie();
-
-  void set cookie(String value);
-
-  Window get window();
-
-  String get domain();
-
-  HeadElement get head();
-
-  String get lastModified();
-
-  // TODO(jacobr): remove once on.contentLoaded is changed to return a Promise.
-  String get readyState();
-
-  String get referrer();
-
-  StyleSheetList get styleSheets();
-
-  // TODO(jacobr): should this be removed? Users could write document.query("title").text instead.
-  String get title();
-
-  void set title(String value);
-
-  bool get webkitHidden();
-
-  String get webkitVisibilityState();
-
-  Promise<Range> caretRangeFromPoint([int x, int y]);
-
-  // TODO(jacobr): remove.
-  Element createElement([String tagName]);
-
-  Promise<Element> elementFromPoint([int x, int y]);
-
-  bool execCommand([String command, bool userInterface, String value]);
-
-  // TODO(jacobr): remove once a new API is specified
-  CanvasRenderingContext getCSSCanvasContext(String contextId, String name,
-                                             int width, int height);
-
-  bool queryCommandEnabled([String command]);
-
-  bool queryCommandIndeterm([String command]);
-
-  bool queryCommandState([String command]);
-
-  bool queryCommandSupported([String command]);
-
-  String queryCommandValue([String command]);
-
-  String get manifest();
-
-  void set manifest(String value);
-
-  DocumentEvents get on();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 /**
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
@@ -22028,195 +22201,94 @@ class DeviceOrientationEventWrappingImplementation extends EventWrappingImplemen
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface BodyElementEvents extends ElementEvents {
-  EventListenerList get beforeUnload();
-  EventListenerList get hashChange();
-  EventListenerList get message();
-  EventListenerList get offline();
-  EventListenerList get online();
-  EventListenerList get orientationChange();
-  EventListenerList get popState();
-  EventListenerList get resize();
-  EventListenerList get storage();
-  EventListenerList get unLoad();
+interface DocumentEvents extends ElementEvents {
+  EventListenerList get readyStateChange();
+  EventListenerList get selectionChange();
+  EventListenerList get contentLoaded();
 }
 
-interface BodyElement extends Element { 
-  BodyElementEvents get on();
+// TODO(jacobr): add DocumentFragment ctor
+// add something smarted for document.domain
+interface Document extends Element /*, common.NodeSelector */ {
+
+  // TODO(jacobr): remove.
+  Event createEvent([String eventType]);
+
+  Element get activeElement();
+
+  // TODO(jacobr): add
+  // Map<String, Class> tags;
+
+  Element get body();
+
+  void set body(Element value);
+
+  String get charset();
+
+  void set charset(String value);
+
+  // FIXME(slightlyoff): FIX COOKIES, MMM...COOKIES. ME WANT COOKIES!!
+  //                     Map<String, CookieList> cookies
+  //                     Map<String, Cookie> CookieList
+  String get cookie();
+
+  void set cookie(String value);
+
+  Window get window();
+
+  String get domain();
+
+  HeadElement get head();
+
+  String get lastModified();
+
+  // TODO(jacobr): remove once on.contentLoaded is changed to return a Future.
+  String get readyState();
+
+  String get referrer();
+
+  StyleSheetList get styleSheets();
+
+  // TODO(jacobr): should this be removed? Users could write document.query("title").text instead.
+  String get title();
+
+  void set title(String value);
+
+  bool get webkitHidden();
+
+  String get webkitVisibilityState();
+
+  Future<Range> caretRangeFromPoint([int x, int y]);
+
+  // TODO(jacobr): remove.
+  Element createElement([String tagName]);
+
+  Future<Element> elementFromPoint([int x, int y]);
+
+  bool execCommand([String command, bool userInterface, String value]);
+
+  // TODO(jacobr): remove once a new API is specified
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name,
+                                             int width, int height);
+
+  bool queryCommandEnabled([String command]);
+
+  bool queryCommandIndeterm([String command]);
+
+  bool queryCommandState([String command]);
+
+  bool queryCommandSupported([String command]);
+
+  String queryCommandValue([String command]);
+
+  String get manifest();
+
+  void set manifest(String value);
+
+  DocumentEvents get on();
+
+  Future<ElementRect> get rect();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class BodyElementEventsImplementation
-    extends ElementEventsImplementation implements BodyElementEvents {
-
-  BodyElementEventsImplementation._wrap(_ptr) : super._wrap(_ptr);
-
-  EventListenerList get beforeUnload() => _get('beforeunload');
-  EventListenerList get hashChange() => _get('hashchange');
-  EventListenerList get message() => _get('message');
-  EventListenerList get offline() => _get('offline');
-  EventListenerList get online() => _get('online');
-  EventListenerList get orientationChange() => _get('orientationchange');
-  EventListenerList get popState() => _get('popstate');
-  EventListenerList get resize() => _get('resize');
-  EventListenerList get storage() => _get('storage');
-  EventListenerList get unLoad() => _get('unload');
-}
-
-class BodyElementWrappingImplementation
-    extends ElementWrappingImplementation implements BodyElement {
-
-  BodyElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  BodyElementEvents get on() {
-    if (_on === null) {
-      _on = new BodyElementEventsImplementation._wrap(_ptr);
-    }
-    return _on;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// TODO - figure out whether classList exists, and if so use that
-// rather than the className property that is being used here.
-
-class _CssClassSet implements Set<String> {
-
-  final _element;
-
-  _CssClassSet(this._element);
-
-  String toString() {
-    return _formatSet(_read());
-  }
-
-  // interface Iterable - BEGIN
-  Iterator<String> iterator() {
-    return _read().iterator();
-  }
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    _read().forEach(f);
-  }
-
-  Collection<String> filter(bool f(String element)) {
-    return _read().filter(f);
-  }
-
-  bool every(bool f(String element)) {
-    return _read().every(f);
-  }
-
-  bool some(bool f(String element)) {
-    return _read().some(f);
-  }
-
-  bool isEmpty() {
-    return _read().isEmpty();
-  }
-
-  int get length() {
-    return _read().length;
-  }
-  // interface Collection - END
-
-  // interface Set - BEGIN
-  bool contains(String value) {
-    return _read().contains(value);
-  }
-
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
-    _modify((s) => s.add(value));
-  }
-
-  bool remove(String value) {
-    Set<String> s = _read();
-    bool result = s.remove(value);
-    _write(s);
-    return result;
-  }
-
-  void addAll(Collection<String> collection) {
-    // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
-  }
-
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
-  }
-
-  bool isSubsetOf(Collection<String> collection) {
-    return _read().isSubsetOf(collection);
-  }
-
-  bool containsAll(Collection<String> collection) {
-    return _read().containsAll(collection);
-  }
-
-  Set<String> intersection(Collection<String> other) {
-    return _read().intersection(other);
-  }
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = _read();
-    f(s);
-    _write(s);
-  }
-
-  /**
-   * Read the class names from the HTMLElement class property,
-   * and put them into a set (duplicates are discarded).
-   */
-  Set<String> _read() {
-    // TODO(mattsh) simplify this once split can take regex.
-    Set<String> s = new Set<String>();
-    for (String name in _element.className.split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   */
-  void _write(Set s) {
-    _element.className = _formatSet(s);
-  }
-
-  String _formatSet(Set<String> s) {
-    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
-    List list = new List.from(s);
-    return Strings.join(list, ' ');
-  }
-
-}
-
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22328,10 +22400,14 @@ class FilteredElementList implements ElementList {
   Iterator<Element> iterator() => _filtered.iterator();
   List<Element> getRange(int start, int length) =>
     _filtered.getRange(start, length);
-  int indexOf(Element element, int startIndex) =>
-    _filtered.indexOf(element, startIndex);
-  int lastIndexOf(Element element, int startIndex) =>
-    _filtered.lastIndexOf(element, startIndex);
+  int indexOf(Element element, [int start = 0]) =>
+    _filtered.indexOf(element, start);
+
+  int lastIndexOf(Element element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _filtered.lastIndexOf(element, start);
+  }
+
   Element last() => _filtered.last();
 }
 
@@ -22356,13 +22432,19 @@ class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
   }
 }
 
-class EmptyClientRect implements ClientRect {
-  num get bottom() => 0;
-  num get top() => 0;
-  num get left() => 0;
-  num get right() => 0;
-  num get height() => 0;
-  num get width() => 0;
+Future<CSSStyleDeclaration> _emptyStyleFuture() {
+  return _createMeasurementFuture(() => new EmptyStyleDeclaration(),
+                                  new Completer<CSSStyleDeclaration>());
+}
+
+class EmptyElementRect implements ElementRect {
+  final ClientRect client = const SimpleClientRect(0, 0, 0, 0);
+  final ClientRect offset = const SimpleClientRect(0, 0, 0, 0);
+  final ClientRect scroll = const SimpleClientRect(0, 0, 0, 0);
+  final ClientRect bounding = const SimpleClientRect(0, 0, 0, 0);
+  final List<ClientRect> clientRects = const <ClientRect>[];
+
+  const EmptyElementRect();
 }
 
 class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation implements DocumentFragment {
@@ -22451,6 +22533,11 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return _on;
   }
 
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(() => const EmptyElementRect(),
+                                    new Completer<ElementRect>());
+  }
+
   Element query(String selectors) =>
     LevelDom.wrapElement(_ptr.querySelector(selectors));
 
@@ -22460,18 +22547,6 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   // If we can come up with a semi-reasonable default value for an Element
   // getter, we'll use it. In general, these return the same values as an
   // element that has no parent.
-  int get clientHeight() => 0;
-  int get clientWidth() => 0;
-  int get offsetHeight() => 0;
-  int get offsetWidth() => 0;
-  int get scrollHeight() => 0;
-  int get scrollWidth() => 0;
-  int get clientLeft() => 0;
-  int get clientTop() => 0;
-  int get offsetLeft() => 0;
-  int get offsetTop() => 0;
-  int get scrollLeft() => 0;
-  int get scrollTop() => 0;
   String get contentEditable() => "false";
   bool get isContentEditable() => false;
   bool get draggable() => false;
@@ -22493,8 +22568,10 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   Set<String> get classes() => new Set<String>();
   Map<String, String> get dataAttributes() => const {};
   CSSStyleDeclaration get style() => new EmptyStyleDeclaration();
-  ClientRect getBoundingClientRect() => new EmptyClientRect();
-  List<ClientRect> getClientRects() => const [];
+  Future<CSSStyleDeclaration> get computedStyle() =>
+      _emptyStyleFuture();
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+      _emptyStyleFuture();
   bool matchesSelector([String selectors]) => false;
 
   // Imperative Element methods are made into no-ops, as they are on parentless
@@ -22591,13 +22668,14 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     throw new UnsupportedOperationException(
       "WebKit drop zone can't be set for document fragments.");
   }
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class DocumentEventsImplementation extends ElementEventsImplementation
       implements DocumentEvents {
-  
+
   DocumentEventsImplementation._wrap(_ptr) : super._wrap(_ptr);
 
   EventListenerList get readyStateChange() => _get('readystatechange');
@@ -22657,9 +22735,10 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
 
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
-  Promise<Range> caretRangeFromPoint([int x = null, int y = null]) {
-    throw 'TODO(jacobr): impl promise.';
-    // return LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y));
+  Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y)),
+        new Completer<Range>());
   }
 
   Element createElement([String tagName = null]) {
@@ -22670,9 +22749,10 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 
-  Promise<Element> elementFromPoint([int x = null, int y = null]) {
-    throw 'TODO(jacobr): impl using promise';
-    // return LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y));
+  Future<Element> elementFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y)),
+        new Completer<Element>());
   }
 
   bool execCommand([String command = null, bool userInterface = null, String value = null]) {
@@ -22716,6 +22796,98 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface DOMApplicationCacheEvents extends Events {
+  EventListenerList get cached();
+  EventListenerList get checking();
+  EventListenerList get downloading();
+  EventListenerList get error();
+  EventListenerList get noUpdate();
+  EventListenerList get obsolete();
+  EventListenerList get progress();
+  EventListenerList get updateReady();  
+}
+
+interface DOMApplicationCache extends EventTarget {
+
+  static final int CHECKING = 2;
+
+  static final int DOWNLOADING = 3;
+
+  static final int IDLE = 1;
+
+  static final int OBSOLETE = 5;
+
+  static final int UNCACHED = 0;
+
+  static final int UPDATEREADY = 4;
+
+  int get status();
+
+  void swapCache();
+
+  void update();
+
+  DOMApplicationCacheEvents get on();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class DOMApplicationCacheEventsImplementation extends EventsImplementation
+    implements DOMApplicationCacheEvents {
+  DOMApplicationCacheEventsImplementation._wrap(ptr) : super._wrap(ptr);
+
+  EventListenerList get cached() => _get('cached');
+  EventListenerList get checking() => _get('checking');
+  EventListenerList get downloading() => _get('downloading');
+  EventListenerList get error() => _get('error');
+  EventListenerList get noUpdate() => _get('noupdate');
+  EventListenerList get obsolete() => _get('obsolete');
+  EventListenerList get progress() => _get('progress');
+  EventListenerList get updateReady() => _get('updateready');
+}
+
+class DOMApplicationCacheWrappingImplementation extends EventTargetWrappingImplementation implements DOMApplicationCache {
+  DOMApplicationCacheWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  int get status() => _ptr.status;
+
+  void swapCache() {
+    _ptr.swapCache();
+  }
+
+  void update() {
+    _ptr.update();
+  }
+
+  DOMApplicationCacheEvents get on() {
+    if (_on === null) {
+      _on = new DOMApplicationCacheEventsImplementation._wrap(_ptr);
+    }
+    return _on;  
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class DOMWrapperBase {
+  final _ptr;
+
+  DOMWrapperBase._wrap(this._ptr) {
+  	// We should never be creating duplicate wrappers.
+  	assert(_ptr.dartObjectLocalStorage === null);
+	_ptr.dartObjectLocalStorage = this;
+  }
+}
+
+/** This function is provided for unittest purposes only. */
+unwrapDomObject(DOMWrapperBase wrapper) {
+  return wrapper._ptr;
+}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22786,6 +22958,18 @@ interface ElementEvents extends Events {
   EventListenerList get fullscreenChange();
 }
 
+/**
+ * All your element measurement needs in one place
+ */
+interface ElementRect {
+  ClientRect get client();
+  ClientRect get offset();
+  ClientRect get scroll();
+  ClientRect get bounding();
+  List<ClientRect> get clientRects();
+}
+
+
 interface Element extends Node /*, common.NodeSelector, common.ElementTraversal */
     factory ElementWrappingImplementation {
 
@@ -22807,14 +22991,6 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   Map<String, String> get dataAttributes();
   void set dataAttributes(Map<String, String> value);
-
-  int get clientHeight();
-
-  int get clientLeft();
-
-  int get clientTop();
-
-  int get clientWidth();
 
   String get contentEditable();
 
@@ -22852,31 +23028,15 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   Element get nextElementSibling();
 
-  int get offsetHeight();
-
-  int get offsetLeft();
-
   Element get offsetParent();
-
-  int get offsetTop();
-
-  int get offsetWidth();
 
   String get outerHTML();
 
   Element get previousElementSibling();
 
-  int get scrollHeight();
-
-  int get scrollLeft();
-
   void set scrollLeft(int value);
 
-  int get scrollTop();
-
   void set scrollTop(int value);
-
-  int get scrollWidth();
 
   bool get spellcheck();
 
@@ -22902,10 +23062,6 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   void focus();
 
-  ClientRect getBoundingClientRect();
-
-  List<ClientRect> getClientRects();
-
   Element insertAdjacentElement([String where, Element element]);
 
   void insertAdjacentHTML([String position_OR_where, String text]);
@@ -22925,6 +23081,12 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   void scrollIntoView([bool centerIfNeeded]);
 
   bool matchesSelector([String selectors]);
+
+  Future<ElementRect> get rect();
+
+  Future<CSSStyleDeclaration> get computedStyle();
+
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   ElementEvents get on();
 }
@@ -23048,12 +23210,13 @@ class _ChildrenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  int indexOf(Element element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(Element element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(Element element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(Element element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
@@ -23160,11 +23323,11 @@ class FrozenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  int indexOf(Element element, int startIndex) {
+  int indexOf(Element element, [int start = 0]) {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  int lastIndexOf(Element element, int startIndex) {
+  int lastIndexOf(Element element, [int start = null]) {
     throw 'Not impl yet. todo(jacobr)';
   }
 
@@ -23341,20 +23504,120 @@ class ElementEventsImplementation extends EventsImplementation implements Elemen
   EventListenerList get touchMove() => _get("touchmove");
   EventListenerList get touchStart() => _get("touchstart");
   EventListenerList get transitionEnd() => _get("webkitTransitionEnd");
-  EventListenerList get fullscreenChange() => _get("fullscreenchange");
+  EventListenerList get fullscreenChange() => _get("webkitfullscreenchange");
+}
+
+class SimpleClientRect implements ClientRect {
+  final num left;
+  final num top;
+  final num width;
+  final num height;
+  num get right() => left + width;
+  num get bottom() => top + height;
+
+  const SimpleClientRect(this.left, this.top, this.width, this.height);
+
+  bool operator ==(ClientRect other) {
+    return other !== null && left == other.left && top == other.top
+        && width == other.width && height == other.height;
+  }
+
+  String toString() => "($left, $top, $width, $height)";
+}
+
+// TODO(jacobr): we cannot currently be lazy about calculating the client
+// rects as we must perform all measurement queries at a safe point to avoid
+// triggering unneeded layouts.
+/**
+ * All your element measurement needs in one place
+ */
+class ElementRectWrappingImplementation implements ElementRect {
+  final ClientRect client;
+  final ClientRect offset;
+  final ClientRect scroll;
+
+  // TODO(jacobr): should we move these outside of ElementRect to avoid the
+  // overhead of computing them every time even though they are rarely used.
+  // This should be type dom.ClientRect but that fails on dartium. b/5522629
+  final _boundingClientRect; 
+  // an exception due to a dartium bug.
+  final dom.ClientRectList _clientRects;
+
+  ElementRectWrappingImplementation(dom.HTMLElement element) :
+    client = new SimpleClientRect(element.clientLeft,
+                                  element.clientTop,
+                                  element.clientWidth, 
+                                  element.clientHeight), 
+    offset = new SimpleClientRect(element.offsetLeft,
+                                  element.offsetTop,
+                                  element.offsetWidth,
+                                  element.offsetHeight),
+    scroll = new SimpleClientRect(element.scrollLeft,
+                                  element.scrollTop,
+                                  element.scrollWidth,
+                                  element.scrollHeight),
+    _boundingClientRect = element.getBoundingClientRect(),
+    _clientRects = element.getClientRects();
+
+  ClientRect get bounding() =>
+      LevelDom.wrapClientRect(_boundingClientRect);
+
+  List<ClientRect> get clientRects() {
+    final out = new List(_clientRects.length);
+    for (num i = 0; i < _clientRects.length; i++) {
+      out[i] = LevelDom.wrapClientRect(_clientRects.item(i));
+    }
+    return out;
+  }
 }
 
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
+  
+    static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+    static final _CUSTOM_PARENT_TAG_MAP = const {
+      'body' : 'html',
+      'head' : 'html',
+      'caption' : 'table',
+      'td': 'tr',
+      'tbody': 'table',
+      'colgroup': 'table',
+      'col' : 'colgroup',
+      'tr' : 'tbody',
+      'tbody' : 'table',
+      'tfoot' : 'table',
+      'thead' : 'table',
+      'track' : 'audio',
+    };
 
    factory ElementWrappingImplementation.html(String html) {
-    final temp = dom.document.createElement('div');
+    // TODO(jacobr): this method can be made more robust and performant.
+    // 1) Cache the dummy parent elements required to use innerHTML rather than
+    //    creating them every call.
+    // 2) Verify that the html does not contain leading or trailing text nodes.
+    // 3) Verify that the html does not contain both <head> and <body> tags.
+    // 4) Detatch the created element from its dummy parent.
+    String parentTag = 'div';
+    String tag;
+    final match = _START_TAG_REGEXP.firstMatch(html);
+    if (match !== null) {
+      tag = match.group(1).toLowerCase();
+      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
+        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      }
+    }
+    final temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
-    if (temp.childElementCount != 1) {
+    if (temp.childElementCount == 1) {
+      return LevelDom.wrapElement(temp.firstElementChild);     
+    } else if (parentTag == 'html' && temp.childElementCount == 2) {
+      // Work around for edge case in WebKit and possibly other browsers where
+      // both body and head elements are created even though the inner html
+      // only contains a head or body element.
+      return LevelDom.wrapElement(temp.children.item(tag == 'head' ? 0 : 1));
+    } else {
       throw 'HTML had ${temp.childElementCount} top level elements but 1 expected';
     }
-
-    return LevelDom.wrapElement(temp.firstElementChild);
   }
 
   factory ElementWrappingImplementation.tag(String tag) {
@@ -23426,14 +23689,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
   }
 
-  int get clientHeight() => _ptr.clientHeight;
-
-  int get clientLeft() => _ptr.clientLeft;
-
-  int get clientTop() => _ptr.clientTop;
-
-  int get clientWidth() => _ptr.clientWidth;
-
   String get contentEditable() => _ptr.contentEditable;
 
   void set contentEditable(String value) { _ptr.contentEditable = value; }
@@ -23470,31 +23725,11 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   Element get nextElementSibling() => LevelDom.wrapElement(_ptr.nextElementSibling);
 
-  int get offsetHeight() => _ptr.offsetHeight;
-
-  int get offsetLeft() => _ptr.offsetLeft;
-
   Element get offsetParent() => LevelDom.wrapElement(_ptr.offsetParent);
-
-  int get offsetTop() => _ptr.offsetTop;
-
-  int get offsetWidth() => _ptr.offsetWidth;
 
   String get outerHTML() => _ptr.outerHTML;
 
   Element get previousElementSibling() => LevelDom.wrapElement(_ptr.previousElementSibling);
-
-  int get scrollHeight() => _ptr.scrollHeight;
-
-  int get scrollLeft() => _ptr.scrollLeft;
-
-  void set scrollLeft(int value) { _ptr.scrollLeft = value; }
-
-  int get scrollTop() => _ptr.scrollTop;
-
-  void set scrollTop(int value) { _ptr.scrollTop = value; }
-
-  int get scrollWidth() => _ptr.scrollWidth;
 
   bool get spellcheck() => _ptr.spellcheck;
 
@@ -23526,19 +23761,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   void focus() {
     _ptr.focus();
-  }
-
-  ClientRect getBoundingClientRect() {
-    return LevelDom.wrapClientRect(_ptr.getBoundingClientRect());
-  }
-
-  List<ClientRect> getClientRects() {
-    var rects = _ptr.getClientRects();
-    var out = new List(rects.length);
-    for (var i = 0; i < rects.length; i++) {
-      out.add(LevelDom.wrapClientRect(rects.item(i)));
-    }
-    return out;
   }
 
   Element insertAdjacentElement([String where = null, Element element = null]) {
@@ -23577,6 +23799,28 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   bool matchesSelector([String selectors = null]) {
     return _ptr.webkitMatchesSelector(selectors);
+  }
+
+  void set scrollLeft(int value) { _ptr.scrollLeft = value; }
+ 
+  void set scrollTop(int value) { _ptr.scrollTop = value; }
+
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(
+        () => new ElementRectWrappingImplementation(_ptr),
+        new Completer<ElementRect>());
+  }
+
+  Future<CSSStyleDeclaration> get computedStyle() {
+     // TODO(jacobr): last param should be null, see b/5045788
+     return getComputedStyle('');
+  }
+
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
+    return _createMeasurementFuture(() =>
+        LevelDom.wrapCSSStyleDeclaration(
+            dom.window.getComputedStyle(_ptr, pseudoElement)),
+        new Completer<CSSStyleDeclaration>());
   }
 
   ElementEvents get on() {
@@ -23710,61 +23954,6 @@ interface Event factory EventWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class EventWrappingImplementation extends DOMWrapperBase implements Event {
-  EventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
-
-  factory EventWrappingImplementation(String type, [bool canBubble = true,
-      bool cancelable = true]) {
-    final e = dom.document.createEvent("Event");
-    e.initEvent(type, canBubble, cancelable);
-    return LevelDom.wrapEvent(e);
-  }
-
-  bool get bubbles() => _ptr.bubbles;
-
-  bool get cancelBubble() => _ptr.cancelBubble;
-
-  void set cancelBubble(bool value) { _ptr.cancelBubble = value; }
-
-  bool get cancelable() => _ptr.cancelable;
-
-  EventTarget get currentTarget() => LevelDom.wrapEventTarget(_ptr.currentTarget);
-
-  bool get defaultPrevented() => _ptr.defaultPrevented;
-
-  int get eventPhase() => _ptr.eventPhase;
-
-  bool get returnValue() => _ptr.returnValue;
-
-  void set returnValue(bool value) { _ptr.returnValue = value; }
-
-  EventTarget get srcElement() => LevelDom.wrapEventTarget(_ptr.srcElement);
-
-  EventTarget get target() => LevelDom.wrapEventTarget(_ptr.target);
-
-  int get timeStamp() => _ptr.timeStamp;
-
-  String get type() => _ptr.type;
-
-  void preventDefault() {
-    _ptr.preventDefault();
-    return;
-  }
-
-  void stopImmediatePropagation() {
-    _ptr.stopImmediatePropagation();
-    return;
-  }
-
-  void stopPropagation() {
-    _ptr.stopPropagation();
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 typedef void EventListener(Event event);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23846,17 +24035,8 @@ interface EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _ListenerWrapper {
-  final EventListener raw;
-  final Function wrapped;
-  final String type;
-  final bool useCapture;
-
-  _ListenerWrapper(this.raw, this.wrapped, this.type, this.useCapture);
-}
-
 class EventsImplementation implements Events {
-  /* raw event target. */
+  /* Raw event target. */
   var _ptr;
 
   Map<String, EventListenerList> _listenerMap;
@@ -23902,7 +24082,8 @@ class EventListenerListImplementation implements EventListenerList {
   }
 
   bool dispatch(Event evt) {
-    // TODO(jacobr): what is the correct behavior here?
+    // TODO(jacobr): what is the correct behavior here. We could alternately
+    // force the event to have the expected type.
     assert(evt.type == _type);
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
@@ -23926,8 +24107,7 @@ class EventListenerListImplementation implements EventListenerList {
     }
     for (int i = 0; i < _wrappers.length; i++) {
       _EventListenerWrapper wrapper = _wrappers[i];
-      if (wrapper.raw === listener
-          && wrapper.useCapture == useCapture) {
+      if (wrapper.raw === listener && wrapper.useCapture == useCapture) {
         // Order doesn't matter so we swap with the last element instead of
         // performing a more expensive remove from the middle of the list.
         if (i + 1 != _wrappers.length) {
@@ -23951,7 +24131,7 @@ class EventListenerListImplementation implements EventListenerList {
         }
       }
     }
-    final wrapped = (e) => listener(LevelDom.wrapEvent(e));
+    final wrapped = (e) { listener(LevelDom.wrapEvent(e)); };
     _wrappers.add(new _EventListenerWrapper(listener, wrapped, useCapture));
     return wrapped;
   }
@@ -23967,6 +24147,61 @@ class EventTargetWrappingImplementation extends DOMWrapperBase implements EventT
       _on = new EventsImplementation._wrap(_ptr);
     }
     return _on;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class EventWrappingImplementation extends DOMWrapperBase implements Event {
+  EventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory EventWrappingImplementation(String type, [bool canBubble = true,
+      bool cancelable = true]) {
+    final e = dom.document.createEvent("Event");
+    e.initEvent(type, canBubble, cancelable);
+    return LevelDom.wrapEvent(e);
+  }
+
+  bool get bubbles() => _ptr.bubbles;
+
+  bool get cancelBubble() => _ptr.cancelBubble;
+
+  void set cancelBubble(bool value) { _ptr.cancelBubble = value; }
+
+  bool get cancelable() => _ptr.cancelable;
+
+  EventTarget get currentTarget() => LevelDom.wrapEventTarget(_ptr.currentTarget);
+
+  bool get defaultPrevented() => _ptr.defaultPrevented;
+
+  int get eventPhase() => _ptr.eventPhase;
+
+  bool get returnValue() => _ptr.returnValue;
+
+  void set returnValue(bool value) { _ptr.returnValue = value; }
+
+  EventTarget get srcElement() => LevelDom.wrapEventTarget(_ptr.srcElement);
+
+  EventTarget get target() => LevelDom.wrapEventTarget(_ptr.target);
+
+  int get timeStamp() => _ptr.timeStamp;
+
+  String get type() => _ptr.type;
+
+  void preventDefault() {
+    _ptr.preventDefault();
+    return;
+  }
+
+  void stopImmediatePropagation() {
+    _ptr.stopImmediatePropagation();
+    return;
+  }
+
+  void stopPropagation() {
+    _ptr.stopPropagation();
+    return;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -24630,6 +24865,122 @@ class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation 
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+typedef Object ComputeValue();
+
+class _MeasurementRequest<T> {
+  final ComputeValue computeValue;
+  final Completer<T> completer;
+  Object value;
+  bool exception = false;
+  _MeasurementRequest(this.computeValue, this.completer);
+}
+
+final _MEASUREMENT_MESSAGE = "DART-MEASURE";
+List<_MeasurementRequest> _pendingRequests;
+List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
+bool _nextMeasurementFrameScheduled = false;
+bool _firstMeasurementRequest = true;
+
+void _maybeScheduleMeasurementFrame() {
+  if (_nextMeasurementFrameScheduled) return;
+
+  _nextMeasurementFrameScheduled = true;
+  // postMessage gives us a way to receive a callback after the current
+  // event listener has unwound but before the browser has repainted.
+  if (_firstMeasurementRequest) {
+    // Messages from other windows do not cause a security risk as
+    // all we care about is that _onCompleteMeasurementRequests is called
+    // after the current event loop is unwound and calling the function is
+    // a noop when zero requests are pending.
+    window.on.message.add((e) => _completeMeasurementFutures());
+    _firstMeasurementRequest = false;
+  }
+
+  // TODO(jacobr): other mechanisms such as setImmediate and
+  // requestAnimationFrame may work better of platforms that support them.
+  // The key is we need a way to execute code immediately after the current
+  // event listener queue unwinds.
+  window.postMessage(_MEASUREMENT_MESSAGE, "*");
+}
+
+/**
+ * Registers a [callback] which is called after the next batch of measurements
+ * completes. Even if no measurements completed, the callback is triggered
+ * when they would have completed to avoid confusing bugs if it happened that
+ * no measurements were actually requested.
+ */
+void _addMeasurementFrameCallback(TimeoutHandler callback) {
+  if (_pendingMeasurementFrameCallbacks === null) {
+    _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
+    _maybeScheduleMeasurementFrame();
+  }
+  _pendingMeasurementFrameCallbacks.add(callback);
+}
+
+/**
+ * Returns a [Future] whose value will be the result of evaluating
+ * [computeValue] during the next safe measurement interval.
+ * The next safe measurement interval is after the current event loop has
+ * unwound but before the browser has rendered the page.
+ * It is important that the [computeValue] function only queries the html
+ * layout and html in any way.
+ */
+Future _createMeasurementFuture(ComputeValue computeValue,
+                                Completer completer) {
+  if (_pendingRequests === null) {
+    _pendingRequests = <_MeasurementRequest>[];
+    _maybeScheduleMeasurementFrame();
+  }
+  _pendingRequests.add(new _MeasurementRequest(computeValue, completer));
+  return completer.future;
+}
+
+/**
+ * Complete all pending measurement futures evaluating them in a single batch
+ * so that the the browser is guaranteed to avoid multiple layouts.
+ */
+void _completeMeasurementFutures() {
+  if (_nextMeasurementFrameScheduled == false) {
+    // Ignore spurious call to this function.
+    return;
+  }
+
+  _nextMeasurementFrameScheduled = false;
+  // We must compute all new values before fulfilling the futures as
+  // the onComplete callbacks for the futures could modify the DOM making
+  // subsequent measurement calculations expensive to compute.
+  for (_MeasurementRequest request in _pendingRequests) {
+    try {
+      request.value = request.computeValue();
+    } catch(var e) {
+      request.value = e;
+      request.exception = true;
+    }
+  }
+
+  final completedRequests = _pendingRequests;
+  final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
+  _pendingRequests = null;
+  _pendingMeasurementFrameCallbacks = null;
+  for (_MeasurementRequest request in completedRequests) {
+    if (request.exception) {
+      request.completer.completeException(request.value);
+    } else {
+      request.completer.complete(request.value);
+    }
+  }
+
+  if (readyMeasurementFrameCallbacks !== null) {
+    for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
+      // TODO(jacobr): wrap each call to a handler in a try-catch block.
+      handler();
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 interface MessageEvent extends Event factory MessageEventWrappingImplementation {
 
   MessageEvent(String type, String data, String origin, String lastEventId,
@@ -25003,12 +25354,13 @@ class _ChildrenNodeList implements NodeList {
     throw const NotImplementedException();
   }
 
-  int indexOf(Node element, int startIndex) {
-    return _Lists.indexOf(this, element, startIndex, this.length);
+  int indexOf(Node element, [int start = 0]) {
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(Node element, int startIndex) {
-    return _Lists.lastIndexOf(this, element, startIndex);
+  int lastIndexOf(Node element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
@@ -25392,6 +25744,33 @@ interface Text extends CharacterData factory TextWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface TextEvent extends UIEvent factory TextEventWrappingImplementation {
+
+  TextEvent(String type, Window view, String data, [bool canBubble,
+      bool cancelable]);
+
+  String get data();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class TextEventWrappingImplementation extends UIEventWrappingImplementation implements TextEvent {
+  TextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory TextEventWrappingImplementation(String type, Window view, String data,
+      [bool canBubble = true, bool cancelable = true]) {
+    final e = dom.document.createEvent("TextEvent");
+    e.initTextEvent(type, canBubble, cancelable, LevelDom.unwrap(view), data);
+    return LevelDom.wrapTextEvent(e);
+  }
+
+  String get data() => _ptr.data;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class TextWrappingImplementation extends CharacterDataWrappingImplementation implements Text {
   factory TextWrappingImplementation(String content) {
     return new TextWrappingImplementation._wrap(
@@ -25417,33 +25796,6 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
       return LevelDom.wrapText(_ptr.splitText(offset));
     }
   }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-interface TextEvent extends UIEvent factory TextEventWrappingImplementation {
-
-  TextEvent(String type, Window view, String data, [bool canBubble,
-      bool cancelable]);
-
-  String get data();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class TextEventWrappingImplementation extends UIEventWrappingImplementation implements TextEvent {
-  TextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
-
-  factory TextEventWrappingImplementation(String type, Window view, String data,
-      [bool canBubble = true, bool cancelable = true]) {
-    final e = dom.document.createEvent("TextEvent");
-    e.initTextEvent(type, canBubble, cancelable, LevelDom.unwrap(view), data);
-    return LevelDom.wrapTextEvent(e);
-  }
-
-  String get data() => _ptr.data;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26057,8 +26409,6 @@ interface Window extends EventTarget {
 
   void focus();
 
-  CSSStyleDeclaration getComputedStyle([Element element, String pseudoElement]);
-
   DOMSelection getSelection();
 
   MediaQueryList matchMedia(String query);
@@ -26089,7 +26439,7 @@ interface Window extends EventTarget {
 
   int setInterval(TimeoutHandler handler, int timeout);
 
-  int setTimeout([TimeoutHandler handler, int timeout]);
+  int setTimeout(TimeoutHandler handler, int timeout);
 
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
 
@@ -26097,11 +26447,19 @@ interface Window extends EventTarget {
 
   void webkitCancelRequestAnimationFrame(int id);
 
+  // TODO(jacobr): make these return Future<Point>.
   Point webkitConvertPointFromNodeToPage([Node node, Point p]);
 
   Point webkitConvertPointFromPageToNode([Node node, Point p]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element]);
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback);
 
   // Window open(String url, String target, WindowSpec features);
 
@@ -26706,9 +27064,8 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     }
   }
 
-  FileReader createFileReader() {
-    return LevelDom.wrapFileReader(_ptr.createFileReader());
-  }
+  FileReader createFileReader() =>
+    LevelDom.wrapFileReader(_ptr.createFileReader());
 
   CSSMatrix createCSSMatrix([String cssValue = null]) {
     if (cssValue === null) {
@@ -26797,24 +27154,8 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     _ptr.focus();
   }
 
-  CSSStyleDeclaration getComputedStyle([Element element = null, String pseudoElement = null]) {
-    if (element === null) {
-      if (pseudoElement === null) {
-        return LevelDom.wrapCSSStyleDeclaration(_ptr.getComputedStyle());
-      }
-    } else {
-      if (pseudoElement === null) {
-        return LevelDom.wrapCSSStyleDeclaration(_ptr.getComputedStyle(LevelDom.unwrap(element)));
-      } else {
-        return LevelDom.wrapCSSStyleDeclaration(_ptr.getComputedStyle(LevelDom.unwrap(element), pseudoElement));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  DOMSelection getSelection() {
-    return LevelDom.wrapDOMSelection(_ptr.getSelection());
-  }
+  DOMSelection getSelection() =>
+    LevelDom.wrapDOMSelection(_ptr.getSelection());
 
   MediaQueryList matchMedia(String query) {
     return LevelDom.wrapMediaQueryList(_ptr.matchMedia(query));
@@ -26897,24 +27238,11 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     _ptr.scrollTo(x, y);
   }
 
-  int setInterval(TimeoutHandler handler, int timeout) {
-    return _ptr.setInterval(handler, timeout);
-  }
+  int setInterval(TimeoutHandler handler, int timeout) =>
+    _ptr.setInterval(handler, timeout);
 
-  int setTimeout([TimeoutHandler handler = null, int timeout = null]) {
-    if (handler === null) {
-      if (timeout === null) {
-        return _ptr.setTimeout();
-      }
-    } else {
-      if (timeout === null) {
-        return _ptr.setTimeout(handler);
-      } else {
-        return _ptr.setTimeout(handler, timeout);
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  int setTimeout(TimeoutHandler handler, int timeout) =>
+    _ptr.setTimeout(handler, timeout);
 
   Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) {
     if (dialogArgs === null) {
@@ -26974,8 +27302,13 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     if (element === null) {
       return _ptr.webkitRequestAnimationFrame(callback);
     } else {
-      return _ptr.webkitRequestAnimationFrame(callback, LevelDom.unwrap(element));
+      return _ptr.webkitRequestAnimationFrame(
+          callback, LevelDom.unwrap(element));
     }
+  }
+
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
   }
 
   WindowEvents get on() {
@@ -27305,161 +27638,5 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
       _on = new XMLHttpRequestEventsImplementation._wrap(_ptr);
     }
     return _on;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext();
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// These factory methods could all live in one factory provider class but dartc
-// has a bug (5399939) preventing that.
-
-class _FileReaderFactoryProvider {
-
-  factory FileReader() {
-    return new dom.FileReader();
-  }
-}
-
-class _CSSMatrixFactoryProvider {
-
-  factory CSSMatrix([String spec = '']) {
-    return new CSSMatrixWrappingImplementation._wrap(
-        new dom.WebKitCSSMatrix(spec));
-  }
-}
-
-class _PointFactoryProvider {
-
-  factory Point(num x, num y) {
-    return new PointWrappingImplementation._wrap(new dom.WebKitPoint(x, y));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// Iterator for lists with fixed size.
-class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
-  _FixedSizeListIterator(List<T> list)
-      : super(list),
-        _length = list.length;
-
-  bool hasNext() => _length > _pos;
-
-  final int _length;  // Cache list length for faster access.
-}
-
-// Iterator for lists with variable size.
-class _VariableSizeListIterator<T> implements Iterator<T> {
-  _VariableSizeListIterator(List<T> list)
-      : _list = list,
-        _pos = 0;
-
-  bool hasNext() => _list.length > _pos;
-
-  T next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
-    }
-    return _list[_pos++];
-  }
-
-  final List<T> _list;
-  int _pos;
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// TODO(jacobr): move into a core library or at least merge with the copy
-// in client/dom/src
-class _Lists {
-
-  /**
-   * Returns the index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to [endIndex] (exclusive).
-   * Returns -1 if [element] is not found.
-   */
-  static int indexOf(List a,
-                     Object element,
-                     int startIndex,
-                     int endIndex) {
-    if (startIndex >= a.length) {
-      return -1;
-    }
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-    for (int i = startIndex; i < endIndex; i++) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the last index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to 0.
-   * Returns -1 if [element] is not found.
-   */
-  static int lastIndexOf(List a, Object element, int startIndex) {
-    if (startIndex < 0) {
-      return -1;
-    }
-    if (startIndex >= a.length) {
-      startIndex = a.length - 1;
-    }
-    for (int i = startIndex; i >= 0; i--) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
   }
 }

@@ -12,18 +12,6 @@ class ListFactory<T> {
     return list;
   }
 
-  factory List.fromList(List<T> other, int startIndex, int endIndex) {
-    List list = new List<T>();
-    if (endIndex > other.length) endIndex = other.length;
-    if (startIndex < 0) startIndex = 0;
-    int count = endIndex - startIndex;
-    if (count > 0) {
-      list.length = count;
-      Arrays.copy(other, startIndex, list, 0, count);
-    }
-    return list;
-  }
-
   factory List([int length = null]) {
     if (length === null) {
       return new GrowableObjectArray<T>();

@@ -58,7 +58,7 @@ static const char* CanonicalizeUrl(const char* reference_dir,
 
 
 static Dart_Handle ReadStringFromFile(const char* filename) {
-  File* file = File::OpenFile(filename, false);
+  File* file = File::Open(filename, false);
   if (file == NULL) {
     const char* format = "Unable to open file: %s";
     intptr_t len = snprintf(NULL, 0, format, filename);
@@ -131,14 +131,14 @@ static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
   // url chars.
   Dart_Handle source = ReadStringFromFile(url_chars);
   if (!Dart_IsValid(source)) {
-    return result;
+    return source;  // source contains the error string.
   }
   if (tag == kImportTag) {
     Dart_Handle new_lib = Dart_LoadLibrary(url, source);
     if (import_builtin_lib && Dart_IsValid(new_lib)) {
       Builtin_ImportLibrary(new_lib);
     }
-    return result;
+    return new_lib;  // Return library object or an error string.
   } else if (tag == kSourceTag) {
     return Dart_LoadSource(library, url, source);
   }

@@ -23,6 +23,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_LEFT_PAREN("'(' expected"),
   EXPECTED_PERIOD_OR_LEFT_BRACKET("Expected '.' or '['"),
   EXPECTED_PREFIX_KEYWORD("Expected 'prefix' after comma"),
+  EXPECTED_PREFIX_IDENTIFIER("Prefix string can only contain valid identifier characters"),
   EXPECTED_SEMICOLON("Expected ';'"),
   EXPECTED_STRING_LITERAL("Expected string literal"),
   EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),

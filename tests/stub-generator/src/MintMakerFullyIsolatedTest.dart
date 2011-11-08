@@ -29,26 +29,90 @@ interface Mint factory MintImpl {
   Mint();
 
   Purse$Proxy createPurse(int balance);
-  PowerfulPurse$Proxy promote(Purse$Proxy purse);
+  Promise<PowerfulPurse$Proxy> promote(Purse$Proxy purse);
 }
 
 // Because promises can't be used as keys in maps until they have
 // completed, provide a wrapper. Note that if any key promise fails to
-// resolve, then get()'s return may also fail to resolve.  Also,
-// although the logic is fine, this can't be used for a
-// ProxyMap. Perhaps both Proxy and Promise should inherit from
+// resolve, then get()'s return may also fail to resolve. Right now, a
+// Proxy can also be used since it has (kludgily) been made to inherit
+// from Promise. Perhaps both Proxy and Promise should inherit from
 // Completable?
-// NB: not tested and known to be buggy. Will fix in a future change.
+// Note that we cannot extend Set rather than Collection because, for
+// example, Set.remove() returns bool, whereas this will have to
+// return Promise<bool>.
+class PromiseSet<T extends Promise> implements Collection<T> {
+
+  PromiseSet() {
+    _set = new List<T>();
+  }
+
+  PromiseSet.fromList(this._set);
+
+  void add(T t) {
+    print("ProxySet.add");
+    for (T x in _set) {
+      if (x === t)
+        return;
+    }
+    if (t.hasValue()) {
+      for (T x in _set) {
+        if (x.hasValue() && x == t)
+          return;
+      }
+    }
+    _set.add(t);
+    t.addCompleteHandler((_) {
+      // Remove any duplicates.
+      _remove(t, 1);
+    });
+  }
+
+  void _remove(T t, int threshold) {
+    print("PromiseSet.remove $threshold");
+    int count = 0;
+    for (int n = 0; n < _set.length; ++n)
+      if (_set[n].hasValue() && _set[n] == t)
+        if (++count > threshold) {
+          print("  remove $n");
+          _set.removeRange(n, 1);
+          --n;
+        }
+  }
+
+  void remove(T t) {
+    t.addCompleteHandler((_) {
+      _remove(t, 0);
+    });
+  }
+
+  int get length() => _set.length;
+  void forEach(void f(T element)) { _set.forEach(f); }
+  PromiseSet<T> filter(bool f(T element)) {
+    return new PromiseSet<T>.fromList(_set.filter(f));
+  }
+  bool every(bool f(T element)) => _set.every(f);
+  bool some(bool f(T element)) => _set.some(f);
+  bool isEmpty() => _set.isEmpty();
+  Iterator<T> iterator() => _set.iterator();
+
+  List<T> _set;
+    
+} 
+
+
 class PromiseMap<S extends Promise, T> {
 
   PromiseMap() {
     _map = new Map<S, T>();
-    _incomplete = new Set<S>();
+    _incomplete = new PromiseSet<S>();
   }
 
   T add(S s, T t) {
+    print("PromiseMap.add");
     _incomplete.add(s);
     s.addCompleteHandler((_) {
+      print("PromiseMap.add move to map");
       _map[s] = t;
       _incomplete.remove(s);
     });
@@ -56,62 +120,77 @@ class PromiseMap<S extends Promise, T> {
   }
 
   Promise<T> find(S s) {
-    T t = _map[s];
-    if (t != null)
-      return new Promise<T>.fromValue(t);
-    Promise<T> p = new Promise<T>();
-    int counter = _incomplete.length;
-    p.join(_incomplete, bool (S completed) {
-      if (completed != s) {
-        if (--counter == 0) {
-          p.complete(null);
-          return true;
-        }
-        return false;
+    print("PromiseMap.find");
+    Promise<T> result = new Promise<T>();
+    s.addCompleteHandler((_) {
+      print("PromiseMap.find s completed");
+      T t = _map[s];
+      if (t != null) {
+        print("  immediate");
+        result.complete(t);
+        return;
       }
-      p.complete(_map[s]);
-      return true;
+      // Otherwise, we need to wait for map[s] to complete...
+      int counter = _incomplete.length;
+      if (counter == 0) {
+        print("  none incomplete");
+        result.complete(null);
+        return;
+      }
+      result.join(_incomplete, bool (S completed) {
+        if (completed != s) {
+          if (--counter == 0) {
+            print("PromiseMap.find failed");
+            result.complete(null);
+            return true;
+          }
+          print("PromiseMap.find miss");
+          return false;
+        }
+        print("PromiseMap.find complete");
+        result.complete(_map[s]);
+        return true;
+      });
     });
-    return p;
+    return result;
   }
 
-  Set<S> _incomplete;
+  PromiseSet<S> _incomplete;
   Map<S, T> _map;
 
 }
 
+
 class MintImpl implements Mint {
 
   MintImpl() {
-    //print('mint');
+    print('mint');
     if (_power == null)
-      _power = new Map<Purse$Proxy, PowerfulPurse$Proxy>();
+      _power = new PromiseMap<Purse$Proxy, PowerfulPurse$Proxy>();
   }
 
   Purse$Proxy createPurse(int balance) {
-    //print('createPurse');
+    print('createPurse');
     PowerfulPurse$ProxyImpl purse =
       new PowerfulPurse$ProxyImpl.createIsolate();
     Mint$Proxy thisProxy = new Mint$ProxyImpl.localProxy(this);
     purse.init(thisProxy, balance);
 
     Purse$Proxy weakPurse = purse.weak();
-    weakPurse.addCompleteHandler(() {
-      //print('cP1');
-      _power[weakPurse] = purse;
-      //print('cP2');
+    weakPurse.addCompleteHandler((_) {
+      print('cP1');
+      _power.add(weakPurse, purse);
+      print('cP2');
     });
     return weakPurse;
   }
 
-  PowerfulPurse$Proxy promote(Purse$Proxy purse) {
-    // FIXME(benl): we should be using a PromiseMap here. But we get
-    // away with it in this test for now.
-    //print('promote $purse/${_power[purse]}');
-    return _power[purse];
+  Promise<PowerfulPurse$Proxy> promote(Purse$Proxy purse) {
+    print('promote $purse');
+    return _power.find(purse);
   }
 
-  static Map<Purse$Proxy, PowerfulPurse$Proxy> _power;
+  static PromiseMap<Purse$Proxy, PowerfulPurse$Proxy> _power;
 }
 
 class PurseImpl implements PowerfulPurse {
@@ -131,24 +210,28 @@ class PurseImpl implements PowerfulPurse {
   }
 
   Purse$Proxy sproutPurse() {
-    //print('sprout');
+    print('sprout');
     return _mint.createPurse(0);
   }
 
   Promise<int> deposit(int amount, Purse$Proxy proxy) {
-    //print('deposit');
-    Promise<int> grabbed = _mint.promote(proxy).grab(amount);
-    Promise<int> done = new Promise<int>();
-    grabbed.then((int) {
-      //print("deposit done");
-      _balance += amount;
-      done.complete(_balance);
+    print('deposit');
+    Promise<PowerfulPurse$Proxy> powerful = _mint.promote(proxy);
+
+    Promise<int> result = new Promise<int>();
+    powerful.then((_) {
+      Promise<int> grabbed = powerful.value.grab(amount);
+      grabbed.then((int grabbedAmount) {
+        _balance += grabbedAmount;
+        result.complete(_balance);
+      });
     });
-    return done;
+
+    return result;
   }
 
   int grab(int amount) {
-    //print("grab");
+    print("grab");
     if (_balance < amount) throw "Not enough dough.";
     _balance -= amount;
     return amount;
@@ -196,11 +279,16 @@ class MintMakerFullyIsolatedTest {
           .then((int value) => inner2.complete(0));
       });
       expect.completes(d2);
+
+      return 0;
     });
-    expect.completes(d1);
+    expect.completesWithValue(d1, 0);
     Promise<int> allDone = new Promise<int>();
     allDone.waitFor([d3, inner, inner2], 3);
-    allDone.then((_) => expect.succeeded());
+    allDone.then((_) {
+      expect.succeeded();
+      print("##DONE##");
+    });
   }
 
 }

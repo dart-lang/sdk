@@ -33,7 +33,8 @@ def makeString(input_files):
 
 def makeFile(output_file, input_cc_file, input_files):
   bootstrap_cc_text = open(input_cc_file).read()
-  bootstrap_cc_text = bootstrap_cc_text % makeString(input_files)
+  bootstrap_cc_text = bootstrap_cc_text.replace("{{DART_SOURCE}}",
+      makeString(input_files))
   open(output_file, 'w').write(bootstrap_cc_text)
   return True
 

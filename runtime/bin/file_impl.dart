@@ -73,12 +73,13 @@ class _FileOutputStream implements FileOutputStream {
     _file.openSync(true);
   }
 
-  bool write(List<int> buffer) {
+  bool write(List<int> buffer, [bool copyBuffer = false]) {
     return _write(buffer, 0, buffer.length);
   }
 
   bool writeFrom(List<int> buffer, [int offset, int len]) {
-    return _write(buffer, offset, (len == null) ? buffer.length : len);
+    return _write(
+        buffer, offset, (len == null) ? buffer.length - offset : len);
   }
 
   void end() {
@@ -114,109 +115,227 @@ class _FileOutputStream implements FileOutputStream {
 }
 
 
-class _FileOperationIsolate extends Isolate {
-  static int EXISTS = 0;
-  static int OPEN = 1;
-  static int CLOSE = 2;
-  static int READ_BYTE = 3;
-  static int READ_LIST = 4;
-  static int WRITE_BYTE = 5;
-  static int WRITE_LIST = 6;
-  static int WRITE_STRING = 7;
-  static int POSITION = 8;
-  static int LENGTH = 9;
-  static int FLUSH = 10;
-  static int EXIT = 11;
+class _FileOperation {
+  abstract void execute(ReceivePort port);
 
+  SendPort set replyPort(SendPort port) {
+    _replyPort = port;
+  }
+
+  bool isWrite() => false;
+
+  SendPort _replyPort;
+}
+
+
+class _ExistsOperation extends _FileOperation {
+  _ExistsOperation(String this._name);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._exists(_name), port.toSendPort());
+  }
+
+  String _name;
+}
+
+
+class _OpenOperation extends _FileOperation {
+  _OpenOperation(String this._name, bool this._writable);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._checkedOpen(_name, _writable), port.toSendPort());
+  }
+
+  String _name;
+  bool _writable;
+}
+
+
+class _CloseOperation extends _FileOperation {
+  _CloseOperation(int this._id);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._close(_id), port.toSendPort());
+  }
+
+  int _id;
+}
+
+
+class _ReadByteOperation extends _FileOperation {
+  _ReadByteOperation(int this._id);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._readByte(_id), port.toSendPort());
+  }
+
+  int _id;
+}
+
+
+class _ReadListResult {
+  _ReadListResult(this.read, this.buffer);
+  int read;
+  List buffer;
+}
+
+
+class _ReadListOperation extends _FileOperation {
+  _ReadListOperation(int this._id,
+                     int this._length,
+                     int this._offset,
+                     int this._bytes);
+
+  void execute(ReceivePort port) {
+    if (_bytes == 0) {
+      _replyPort.send(0, port.toSendPort());
+      return;
+    }
+    int index = _File._checkReadWriteListArguments(_length, _offset, _bytes);
+    if (index != 0) {
+      _replyPort.send("index out of range in readList: $index",
+                      port.toSendPort());
+      return;
+    }
+    var buffer = new List(_bytes);
+    var result =
+        new _ReadListResult(_File._readList(_id, buffer, 0, _bytes), buffer);
+    _replyPort.send(result, port.toSendPort());
+  }
+
+  int _id;
+  int _length;
+  int _offset;
+  int _bytes;
+}
+
+
+class _WriteByteOperation extends _FileOperation {
+  _WriteByteOperation(int this._id, int this._value);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._writeByte(_id, _value), port.toSendPort());
+  }
+
+  bool isWrite() => true;
+
+  int _id;
+  int _value;
+}
+
+
+class _WriteListOperation extends _FileOperation {
+  _WriteListOperation(int this._id,
+                      List this._buffer,
+                      int this._offset,
+                      int this._bytes);
+
+  void execute(ReceivePort port) {
+    if (_bytes == 0) {
+      _replyPort.send(0, port.toSendPort());
+      return;
+    }
+    int index =
+        _File._checkReadWriteListArguments(_buffer.length, _offset, _bytes);
+    if (index != 0) {
+      _replyPort.send("index out of range in writeList: $index",
+                      port.toSendPort());
+      return;
+    }
+    var result = _File._writeList(_id, _buffer, _offset, _bytes);
+    _replyPort.send(result, port.toSendPort());
+  }
+
+  bool isWrite() => true;
+
+  int _id;
+  List _buffer;
+  int _offset;
+  int _bytes;
+}
+
+
+class _WriteStringOperation extends _FileOperation {
+  _WriteStringOperation(int this._id, String this._string);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._checkedWriteString(_id, _string), port.toSendPort());
+  }
+
+  bool isWrite() => true;
+
+  int _id;
+  String _string;
+}
+
+
+class _PositionOperation extends _FileOperation {
+  _PositionOperation(int this._id);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._position(_id), port.toSendPort());
+  }
+
+  int _id;
+}
+
+
+class _LengthOperation extends _FileOperation {
+  _LengthOperation(int this._id);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._length(_id), port.toSendPort());
+  }
+
+  int _id;
+}
+
+
+class _FlushOperation extends _FileOperation {
+  _FlushOperation(int this._id);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._flush(_id), port.toSendPort());
+  }
+
+  int _id;
+}
+
+
+class _FullPathOperation extends _FileOperation {
+  _FullPathOperation(String this._name);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._checkedFullPath(_name), port.toSendPort());
+  }
+
+  String _name;
+}
+
+
+class _CreateOperation extends _FileOperation {
+  _CreateOperation(String this._name);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._checkedCreate(_name), port.toSendPort());
+  }
+
+  String _name;
+}
+
+
+class _ExitOperation extends _FileOperation {
+  void execute(ReceivePort port) {
+    port.close();
+  }
+}
+
+
+class _FileOperationIsolate extends Isolate {
   _FileOperationIsolate() : super.heavy();
 
-  void handleOperation(Map message, SendPort ignored) {
-    switch (message["type"]) {
-      case EXISTS:
-        message["reply"].send(_File._exists(message["name"]),
-                              port.toSendPort());
-        break;
-      case OPEN:
-        var name = message["name"];
-        var writable = message["writable"];
-        message["reply"].send(_File._open(name, writable),
-                              port.toSendPort());
-        break;
-      case CLOSE:
-        message["reply"].send(_File._close(message["id"]),
-                              port.toSendPort());
-        break;
-      case READ_BYTE:
-        message["reply"].send(_File._readByte(message["id"]),
-                              port.toSendPort());
-        break;
-      case READ_LIST:
-        var replyPort = message["reply"];
-        var bytes = message["bytes"];
-        var offset = message["offset"];
-        var length = message["length"];
-        var id = message["id"];
-        if (bytes == 0) {
-          replyPort.send(0, port.toSendPort());
-          return;
-        }
-        int index = _File._checkReadWriteListArguments(length, offset, bytes);
-        if (index != 0) {
-          replyPort.send("index out of range in readList: $index",
-                         port.toSendPort());
-          return;
-        }
-        var buffer = new List(bytes);
-        var result = { "read": _File._readList(id, buffer, 0, bytes),
-                       "buffer": buffer };
-        replyPort.send(result, port.toSendPort());
-        break;
-      case WRITE_BYTE:
-        message["reply"].send(_File._writeByte(message["id"], message["value"]),
-                              port.toSendPort());
-        break;
-      case WRITE_LIST:
-        var replyPort = message["reply"];
-        var buffer = message["buffer"];
-        var bytes = message["bytes"];
-        var offset = message["offset"];
-        var id = message["id"];
-        if (bytes == 0) {
-          replyPort.send(0, port.toSendPort());
-          return;
-        }
-        int index =
-            _File._checkReadWriteListArguments(buffer.length, offset, bytes);
-        if (index != 0) {
-          replyPort.send("index out of range in writeList: $index",
-                         port.toSendPort());
-          return;
-        }
-        var result = _File._writeList(id, buffer, offset, bytes);
-        replyPort.send(result, port.toSendPort());
-        break;
-      case WRITE_STRING:
-        var id = message["id"];
-        var string = message["string"];
-        message["reply"].send(_File._writeString(id, string),
-                              port.toSendPort());
-        break;
-      case POSITION:
-        message["reply"].send(_File._position(message["id"]),
-                              port.toSendPort());
-        break;
-      case LENGTH:
-        message["reply"].send(_File._length(message["id"]),
-                              port.toSendPort());
-        break;
-      case FLUSH:
-        message["reply"].send(_File._flush(message["id"]),
-                              port.toSendPort());
-        break;
-      case EXIT:
-        port.close();
-        return;
-    }
+  void handleOperation(_FileOperation message, SendPort ignored) {
+    message.execute(port);
     port.receive(handleOperation);
   }
 
@@ -232,7 +351,7 @@ class _FileOperationScheduler {
   void schedule(SendPort port) {
     assert(_isolate != null);
     if (_queue.isEmpty()) {
-      port.send({ "type": _FileOperationIsolate.EXIT });
+      port.send(new _ExitOperation());
       _isolate = null;
     } else {
       port.send(_queue.removeFirst());
@@ -246,11 +365,11 @@ class _FileOperationScheduler {
     };
   }
 
-  void enqueue(Map params, void callback(result, ignored)) {
+  void enqueue(_FileOperation operation, void callback(result, ignored)) {
     ReceivePort replyPort = new ReceivePort.singleShot();
     replyPort.receive(scheduleWrap(callback));
-    params["reply"] = replyPort.toSendPort();
-    _queue.addLast(params);
+    operation.replyPort = replyPort.toSendPort();
+    _queue.addLast(operation);
     if (_isolate == null) {
       _isolate = new _FileOperationIsolate();
       _isolate.spawn().then((port) {
@@ -261,21 +380,15 @@ class _FileOperationScheduler {
 
   bool noPendingWrite() {
     int queuedWrites = 0;
-    _queue.forEach((map) {
-      if (_isWriteOperation(map["type"])) {
+    _queue.forEach((operation) {
+      if (operation.isWrite()) {
         queuedWrites++;
       }
     });
     return queuedWrites == 0;
   }
 
-  bool _isWriteOperation(int type) {
-    return (type == _FileOperationIsolate.WRITE_BYTE) ||
-        (type == _FileOperationIsolate.WRITE_LIST) ||
-        (type == _FileOperationIsolate.WRITE_STRING);
-  }
-
-  Queue<Map> _queue;
+  Queue<_FileOperation> _queue;
   _FileOperationIsolate _isolate;
 }
 
@@ -285,7 +398,8 @@ class _File implements File {
   // Constructor for file.
   _File(String this._name)
     : _scheduler = new _FileOperationScheduler(),
-      _asyncUsed = false;
+      _asyncUsed = false,
+      _id = 0;
 
   static bool _exists(String name) native "File_Exists";
   static int _open(String name, bool writable) native "File_Open";
@@ -300,6 +414,8 @@ class _File implements File {
   static int _position(int id) native "File_Position";
   static int _length(int id) native "File_Length";
   static int _flush(int id) native "File_Flush";
+  static bool _create(String name) native "File_Create";
+  static String _fullPath(String name) native "File_FullPath";
 
   static int _checkReadWriteListArguments(int length, int offset, int bytes) {
     if (offset < 0) return offset;
@@ -308,15 +424,38 @@ class _File implements File {
     return 0;
   }
 
+  static int _checkedOpen(String name, bool writable) {
+    if (name is !String || writable is !bool) return 0;
+    return _open(name, writable);
+  }
+
+  static bool _checkedCreate(String name) {
+    if (name is !String) return false;
+    return _create(name);
+  }
+
+  static int _checkedWriteString(int id, String string) {
+    if (string is !String) return -1;
+    return _writeString(id, string);
+  }
+
+  static String _checkedFullPath(String name) {
+    if (name is !String) return null;
+    return _fullPath(name);
+  }
+
   void exists() {
     _asyncUsed = true;
+    if (_name is !String) {
+      if (_errorHandler != null) {
+        _errorHandler('File name is not a string: $_name');
+      }
+      return;
+    }
     var handler =
         (_existsHandler != null) ? _existsHandler : (result) => null;
-    Map params = {
-      "type": _FileOperationIsolate.EXISTS,
-      "name": _name
-    };
-    _scheduler.enqueue(params, (result, ignored) { _existsHandler(result); });
+    var operation = new _ExistsOperation(_name);
+    _scheduler.enqueue(operation, (result, ignored) { _existsHandler(result); });
   }
 
   bool existsSync() {
@@ -324,12 +463,24 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
+    if (_name is !String) {
+      throw new FileIOException('File name is not a string: $_name');
+    }
     return _exists(_name);
   }
 
   void create() {
     _asyncUsed = true;
-    throw "Unimplemented";
+    var handler = (_createHandler != null) ? _createHandler : () => null;
+    var handleCreateResult = (created, ignored) {
+      if (created) {
+        handler();
+      } else if (_errorHandler != null) {
+        _errorHandler("Cannot create file: $_name");
+      }
+    };
+    var operation = new _CreateOperation(_name);
+    _scheduler.enqueue(operation, handleCreateResult);
   }
 
   void createSync() {
@@ -337,7 +488,10 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    throw "Unimplemented";
+    bool created = _checkedCreate(_name);
+    if (!created) {
+      throw new FileIOException("Cannot create file: $_name");
+    }
   }
 
   void open([bool writable = false]) {
@@ -351,12 +505,8 @@ class _File implements File {
         _errorHandler("Cannot open file: $_name");
       }
     };
-    Map params = {
-      "type": _FileOperationIsolate.OPEN,
-      "name": _name,
-      "writable": writable
-    };
-    _scheduler.enqueue(params, handleOpenResult);
+    var operation = new _OpenOperation(_name, writable);
+    _scheduler.enqueue(operation, handleOpenResult);
   }
 
   void openSync([bool writable = false]) {
@@ -364,7 +514,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    _id = _open(_name, writable);
+    _id = _checkedOpen(_name, writable);
     if (_id == 0) {
       throw new FileIOException("Cannot open file: $_name");
     }
@@ -378,14 +528,11 @@ class _File implements File {
         _id = result;
         handler();
       } else if (_errorHandler != null) {
-        _errorHandler("Cannot open file: $_name");
+        _errorHandler("Cannot close file: $_name");
       }
     };
-    Map params = {
-      "type": _FileOperationIsolate.CLOSE,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleOpenResult);
+    var operation = new _CloseOperation(_id);
+    _scheduler.enqueue(operation, handleOpenResult);
   }
 
   void closeSync() {
@@ -393,10 +540,11 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    _id = _close(_id);
-    if (_id == -1) {
+    var id = _close(_id);
+    if (id == -1) {
       throw new FileIOException("Cannot close file: $_name");
     }
+    _id = id;
   }
 
   void readByte() {
@@ -410,11 +558,8 @@ class _File implements File {
         _errorHandler("readByte failed");
       }
     };
-    Map params = {
-      "type": _FileOperationIsolate.READ_BYTE,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleReadByteResult);
+    var operation = new _ReadByteOperation(_id);
+    _scheduler.enqueue(operation, handleReadByteResult);
   }
 
   int readByteSync() {
@@ -431,12 +576,18 @@ class _File implements File {
 
   void readList(List<int> buffer, int offset, int bytes) {
     _asyncUsed = true;
+    if (buffer is !List || offset is !int || bytes is !int) {
+      if (_errorHandler != null) {
+        _errorHandler("Invalid arguments to readList");
+      }
+      return;
+    };
     var handler =
         (_readListHandler != null) ? _readListHandler : (result) => null;
     var handleReadListResult = (result, ignored) {
-      if (result is Map && result["read"] != -1) {
-        var read = result["read"];
-        buffer.setRange(offset, read, result["buffer"]);
+      if (result is _ReadListResult && result.read != -1) {
+        var read = result.read;
+        buffer.setRange(offset, read, result.buffer);
         handler(read);
         return;
       }
@@ -444,20 +595,17 @@ class _File implements File {
         _errorHandler(result is String ? result : "readList failed");
       }
     };
-    Map params = {
-      "type": _FileOperationIsolate.READ_LIST,
-      "length": buffer.length,
-      "offset": offset,
-      "bytes": bytes,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleReadListResult);
+    var operation = new _ReadListOperation(_id, buffer.length, offset, bytes);
+    _scheduler.enqueue(operation, handleReadListResult);
   }
 
   int readListSync(List<int> buffer, int offset, int bytes) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
+    }
+    if (buffer is !List || offset is !int || bytes is !int) {
+      throw new FileIOException("Invalid arguments to readList");
     }
     if (bytes == 0) return 0;
     int index = _checkReadWriteListArguments(buffer.length, offset, bytes);
@@ -479,6 +627,12 @@ class _File implements File {
 
   void writeByte(int value) {
     _asyncUsed = true;
+    if (value is !int) {
+      if (_errorHandler != null) {
+        _errorHandler("Invalid argument to writeByte");
+      }
+      return;
+    }
     var handleReadByteResult = (result, ignored) {
       if (result == -1 &&_errorHandler != null) {
         _errorHandler("writeByte failed");
@@ -486,18 +640,17 @@ class _File implements File {
       }
       _checkPendingWrites();
     };
-    Map params = {
-      "type": _FileOperationIsolate.WRITE_BYTE,
-      "value": value,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleReadByteResult);
+    var operation = new _WriteByteOperation(_id, value);
+    _scheduler.enqueue(operation, handleReadByteResult);
   }
 
   int writeByteSync(int value) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
+    }
+    if (value is !int) {
+      throw new FileIOException("Invalid argument to writeByte");
     }
     int result = _writeByte(_id, value);
     if (result == -1) {
@@ -508,6 +661,12 @@ class _File implements File {
 
   void writeList(List<int> buffer, int offset, int bytes) {
     _asyncUsed = true;
+    if (buffer is !List || offset is !int || bytes is !int) {
+      if (_errorHandler != null) {
+        _errorHandler("Invalid arguments to writeList");
+      }
+      return;
+    }
     var handleWriteListResult = (result, ignored) {
       if (result is !String && result != -1) {
         if (result < bytes) {
@@ -521,20 +680,17 @@ class _File implements File {
         _errorHandler(result is String ? result : "writeList failed");
       }
     };
-    Map params = {
-      "type": _FileOperationIsolate.WRITE_LIST,
-      "buffer": buffer,
-      "offset": offset,
-      "bytes": bytes,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleWriteListResult);
+    var operation = new _WriteListOperation(_id, buffer, offset, bytes);
+    _scheduler.enqueue(operation, handleWriteListResult);
   }
 
   int writeListSync(List<int> buffer, int offset, int bytes) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
+    }
+    if (buffer is !List || offset is !int || bytes is !int) {
+      throw new FileIOException("Invalid arguments to writeList");
     }
     if (bytes == 0) return 0;
     int index = _checkReadWriteListArguments(buffer.length, offset, bytes);
@@ -561,12 +717,8 @@ class _File implements File {
         _checkPendingWrites();
       }
     };
-    Map params = {
-      "type": _FileOperationIsolate.WRITE_STRING,
-      "string": string,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleWriteStringResult);
+    var operation = new _WriteStringOperation(_id, string);
+    _scheduler.enqueue(operation, handleWriteStringResult);
   }
 
   int writeStringSync(String string) {
@@ -574,9 +726,9 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    int result = _writeString(_id, string);
+    int result = _checkedWriteString(_id, string);
     if (result == -1) {
-      throw new FileIOException("Error: writeString failed");
+      throw new FileIOException("writeString failed");
     }
     return result;
   }
@@ -591,11 +743,8 @@ class _File implements File {
       }
       handler(result);
     };
-    Map params = {
-      "type": _FileOperationIsolate.POSITION,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handlePositionResult);
+    var operation = new _PositionOperation(_id);
+    _scheduler.enqueue(operation, handlePositionResult);
   }
 
   int positionSync() {
@@ -620,11 +769,8 @@ class _File implements File {
       }
       handler(result);
     };
-    Map params = {
-      "type": _FileOperationIsolate.LENGTH,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleLengthResult);
+    var operation = new _LengthOperation(_id);
+    _scheduler.enqueue(operation, handleLengthResult);
   }
 
   int lengthSync() {
@@ -649,11 +795,8 @@ class _File implements File {
       }
       handler();
     };
-    Map params = {
-      "type": _FileOperationIsolate.FLUSH,
-      "id": _id
-    };
-    _scheduler.enqueue(params, handleFlushResult);
+    var operation = new _FlushOperation(_id);
+    _scheduler.enqueue(operation, handleFlushResult);
   }
 
   void flushSync() {
@@ -665,6 +808,33 @@ class _File implements File {
     if (result == -1) {
       throw new FileIOException("flush failed");
     }
+  }
+
+  void fullPath() {
+    _asyncUsed = true;
+    var handler = _fullPathHandler;
+    if (handler == null) handler = (path) => null;
+    var handleFullPathResult = (result, ignored) {
+      if (result != null) {
+        handler(result);
+      } else if (_errorHandler != null) {
+        _errorHandler("fullPath failed");
+      }
+    };
+    var operation = new _FullPathOperation(_name);
+    _scheduler.enqueue(operation, handleFullPathResult);
+  }
+
+  String fullPathSync() {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    String result = _checkedFullPath(_name);
+    if (result == null) {
+      throw new FileIOException("fullPath failed");
+    }
+    return result;
   }
 
   InputStream openInputStream() {
@@ -719,6 +889,10 @@ class _File implements File {
     _flushHandler = handler;
   }
 
+  void set fullPathHandler(void handler(String)) {
+    _fullPathHandler = handler;
+  }
+
   void set errorHandler(void handler(String error)) {
     _errorHandler = handler;
   }
@@ -739,5 +913,6 @@ class _File implements File {
   var _positionHandler;
   var _lengthHandler;
   var _flushHandler;
+  var _fullPathHandler;
   var _errorHandler;
 }

@@ -8,12 +8,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class MethodElementImplementation extends AbstractElement implements MethodElement {
@@ -28,7 +30,7 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
   MethodElementImplementation(DartFunctionExpression node, String name, Modifiers modifiers) {
     super(node, name);
     this.modifiers = modifiers;
-    this.holder = null;
+    this.holder = findParentEnclosingElement(node);
     this.kind = ElementKind.FUNCTION_OBJECT;
   }
 
@@ -114,6 +116,21 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
     return getType();
   }
 
+  @Override
+  public boolean isInterface() {
+    return false;
+  }
+
+  @Override
+  public Iterable<Element> getMembers() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Element lookupLocalElement(String name) {
+    return null;
+  }
+
   public static MethodElementImplementation fromMethodNode(DartMethodDefinition node,
                                                            EnclosingElement holder) {
     assert node.getName() instanceof DartIdentifier;
@@ -124,5 +141,19 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
   public static MethodElementImplementation fromFunctionExpression(DartFunctionExpression node,
                                                                    Modifiers modifiers) {
     return new MethodElementImplementation(node, node.getFunctionName(), modifiers);
+  }
+
+  /**
+   * @return the innermost {@link EnclosingElement} for given {@link DartNode}, may be
+   *         <code>null</code>.
+   */
+  private static EnclosingElement findParentEnclosingElement(DartNode node) {
+    while (node != null && node.getParent() != null) {
+      node = node.getParent();
+      if (node.getSymbol() instanceof EnclosingElement) {
+        return (EnclosingElement) node.getSymbol();
+      }
+    }
+    return null;
   }
 }

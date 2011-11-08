@@ -31,13 +31,13 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_Handle arguments = Dart_GetNativeArgument(args, 2);
   // The arguments are copied into a non-extensible array in the
   // dart code so this should not fail.
-  ASSERT(Dart_IsArray(arguments));
+  ASSERT(Dart_IsList(arguments));
   intptr_t length = 0;
-  Dart_Handle result = Dart_GetLength(arguments, &length);
+  Dart_Handle result = Dart_ListLength(arguments, &length);
   ASSERT(Dart_IsValid(result));
   char** string_args = new char*[length];
   for (int i = 0; i < length; i++) {
-    Dart_Handle arg = Dart_ArrayGetAt(arguments, i);
+    Dart_Handle arg = Dart_ListGetAt(arguments, i);
     ASSERT(Dart_IsValid(arg));
     // The Dart code verifies that the arguments implement the String
     // interface. However, only builtin Strings are handled by

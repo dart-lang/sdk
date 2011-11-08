@@ -559,8 +559,8 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyze(returnWithType("String", null));
     analyze(returnWithType("int", null));
     analyze(returnWithType("void", ""));
-    analyzeFail(returnWithType("void", 1), TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail(returnWithType("void", null), TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyzeFail(returnWithType("void", 1), TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze(returnWithType("void", null));
     analyzeFail(returnWithType("String", ""), TypeErrorCode.MISSING_RETURN_VALUE);
     analyze("String foo() {};"); // Should probably fail, http://b/4484060.
   }
@@ -1156,10 +1156,10 @@ public class TypeAnalyzerTest extends TypeTestCase {
   public void testVoid() {
     // Return a value from a void function.
     analyze("void f() { return; }");
-    analyzeFail("void f() { return null; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { return f(); }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { return 1; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
-    analyzeFail("void f() { var x; return x; }", TypeErrorCode.VOID_CANNOT_RETURN_VALUE);
+    analyze("void f() { return null; }");
+    analyze("void f() { return f(); }");
+    analyzeFail("void f() { return 1; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("void f() { var x; return x; }");
 
     // No-arg return from non-void function.
     analyzeFail("int f() { return; }", TypeErrorCode.MISSING_RETURN_VALUE);
@@ -1373,6 +1373,25 @@ public class TypeAnalyzerTest extends TypeTestCase {
     analyzeFail("fisk: while (true) fisk++;", TypeErrorCode.CANNOT_BE_RESOLVED);
     analyzeFail("new Class().m().x;", TypeErrorCode.VOID);
     analyzeFail("(new Class().m)().x;", TypeErrorCode.VOID);
+  }
+
+  /**
+   * There  was problem that cyclic class declaration caused infinite loop.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=348
+   */
+  public void test_cyclicDeclaration() {
+    Map<String, ClassElement> source = loadSource(
+        "class Foo extends Bar {",
+        "}",
+        "class Bar extends Foo {",
+        "}");
+    analyzeClasses(source);
+    // Foo and Bar have cyclic declaration
+    ClassElement classFoo = source.get("Foo");
+    ClassElement classBar = source.get("Bar");
+    assertEquals(classFoo, classBar.getSupertype().getElement());
+    assertEquals(classBar, classFoo.getSupertype().getElement());
   }
 
   private Map<String, ClassElement> analyzeClasses(Map<String, ClassElement> classes,

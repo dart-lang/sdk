@@ -246,9 +246,10 @@ class Scrollbar implements ScrollListener {
       // No need to refresh if not visible.
       return;
     }
-    _scroller._resize();
-    updateScrollbars(_scroller.getHorizontalOffset(),
-                     _scroller.getVerticalOffset());
+    _scroller._resize(() {
+      updateScrollbars(_scroller.getHorizontalOffset(),
+                       _scroller.getVerticalOffset());
+    });
   }
 
   void updateScrollbars(num scrollX, num scrollY) {

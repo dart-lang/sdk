@@ -11,6 +11,7 @@ class A {
 
 class ConstructorRedirect3NegativeTest {
   static testMain() {
+    new A.named();
   }
 }
 

@@ -11,9 +11,9 @@ import java.io.PrintStream;
  * location.
  */
 public class DefaultErrorFormatter implements ErrorFormatter {
-  protected PrintStream outputStream = System.err;
-
-  public void setOutputStream(PrintStream outputStream) {
+  protected final PrintStream outputStream;
+  
+  public DefaultErrorFormatter(PrintStream outputStream) {
     this.outputStream = outputStream;
   }
 

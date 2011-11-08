@@ -43,7 +43,7 @@ interface Document extends Element /*, common.NodeSelector */ {
 
   String get lastModified();
 
-  // TODO(jacobr): remove once on.contentLoaded is changed to return a Promise.
+  // TODO(jacobr): remove once on.contentLoaded is changed to return a Future.
   String get readyState();
 
   String get referrer();
@@ -59,12 +59,12 @@ interface Document extends Element /*, common.NodeSelector */ {
 
   String get webkitVisibilityState();
 
-  Promise<Range> caretRangeFromPoint([int x, int y]);
+  Future<Range> caretRangeFromPoint([int x, int y]);
 
   // TODO(jacobr): remove.
   Element createElement([String tagName]);
 
-  Promise<Element> elementFromPoint([int x, int y]);
+  Future<Element> elementFromPoint([int x, int y]);
 
   bool execCommand([String command, bool userInterface, String value]);
 
@@ -87,4 +87,6 @@ interface Document extends Element /*, common.NodeSelector */ {
   void set manifest(String value);
 
   DocumentEvents get on();
+
+  Future<ElementRect> get rect();
 }

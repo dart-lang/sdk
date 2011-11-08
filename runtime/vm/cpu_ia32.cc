@@ -26,7 +26,6 @@ void CPU::JumpToExceptionHandler(uword program_counter,
                                  const Instance& exception_object,
                                  const Instance& stacktrace_object) {
   NoGCScope no_gc;
-  ASSERT(!exception_object.IsNull());
   RawInstance* exception = exception_object.raw();
   RawInstance* stacktrace = stacktrace_object.raw();
 

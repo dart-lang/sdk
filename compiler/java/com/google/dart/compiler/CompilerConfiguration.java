@@ -84,6 +84,12 @@ public interface CompilerConfiguration {
   boolean shouldWarnOnNoSuchType();
 
   /**
+   * Returns <code>true</code> if the compiler should print compilation problems in machine
+   * format, with all location information - severity, subsystem, etc.
+   */
+  boolean printMachineProblems();
+
+  /**
    * Returns <code>true</code> if the compiler should collect comments.
    */
   boolean collectComments();

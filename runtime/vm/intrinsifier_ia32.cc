@@ -75,6 +75,9 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(Object, ==, Object_equal)                                                  \
   V(FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                 \
   V(FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)           \
+  V(StringBase, get:length, String_getLength)                                  \
+  V(StringBase, charCodeAt, String_charCodeAt)                                 \
+  V(StringBase, hashCode, String_hashCode)                                     \
 
 #define __ assembler->
 
@@ -896,6 +899,51 @@ static bool FixedSizeArrayIterator_hasNext(Assembler* assembler) {
   return false;
 }
 
+
+static bool String_getLength(Assembler* assembler) {
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
+  __ movl(EAX, FieldAddress(EAX, String::length_offset()));
+  __ ret();
+  return true;
+}
+
+
+// TODO(srdjan): Implement for two and four byte strings as well.
+static bool String_charCodeAt(Assembler* assembler) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Label fall_through;
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // String.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, String::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movl(EDI, FieldAddress(EAX, Instance::class_offset()));
+  __ CompareObject(EDI,
+      Class::ZoneHandle(object_store->one_byte_string_class()));
+  __ j(NOT_EQUAL, &fall_through);
+  __ SmiUntag(EBX);
+  __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+static bool String_hashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
+  __ movl(EAX, FieldAddress(EAX, String::hash_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
+  return false;
+}
 
 #undef __
 

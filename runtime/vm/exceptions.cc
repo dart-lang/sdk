@@ -98,7 +98,6 @@ static void ThrowExceptionHelper(const Instance& exception,
 
 
 void Exceptions::Throw(const Instance& exception) {
-  ASSERT(!exception.IsNull());
   ThrowExceptionHelper(exception, Instance::Handle());
 }
 

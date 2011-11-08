@@ -103,6 +103,8 @@ class Double implements double {
   bool isNaN() native "Double_isNaN";
 
   double abs() {
+    // Handle negative 0.0.
+    if (this == 0.0) return 0.0;  
     return this < 0.0 ? -this : this;
   }
 
@@ -139,7 +141,7 @@ class Double implements double {
     String s = "";
 
     // Step 6.
-    if (x.isNegative()) {
+    if (x.isNegative() && x != 0.0) {
       s = "-";
       x = -x;
     }
@@ -192,9 +194,30 @@ class Double implements double {
   String toRadixString(int radix) {
     throw "Double.toRadixString unimplemented.";
   }
+
+  // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(Comparable other) {
-    if (this == other) return 0;
-    if (this < other) return -1;
-    return 1;
+    final int EQUAL = 0, LESS = -1, GREATER = 1;
+    if (this < other) {
+      return LESS;
+    } else if (this > other) {
+      return GREATER;
+    } else if (this == other) {
+      if (this == 0.0) {
+        bool thisIsNegative = isNegative();
+        bool otherIsNegative = other.isNegative();
+        if (thisIsNegative == otherIsNegative) {
+          return EQUAL;
+        }
+        return thisIsNegative ? LESS : GREATER;
+      } else {
+        return EQUAL;
+      }
+    } else if (isNaN()) {
+      return other.isNaN() ? EQUAL : GREATER;
+    } else {
+      // Other is NaN.
+      return LESS;
+    }
   }
 }

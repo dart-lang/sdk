@@ -221,11 +221,12 @@ class Parser : ValueObject {
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,
            GrowableArray<FieldInitExpression>* initializers);
-  void GenerateSuperInitializerCall(const Class& cls, LocalVariable* receiver);
+  void GenerateSuperConstructorCall(const Class& cls,
+                                    LocalVariable* receiver);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
   AstNode* ParseInitializer(const Class& cls, LocalVariable* receiver);
   void ParseConstructorRedirection(const Class& cls, LocalVariable* receiver);
-  void ParseInitializers(const Class& cls);
+  void ParseInitializers(const Class& cls, LocalVariable* receiver);
   String& ParseNativeDeclaration();
   RawArray* ParseInterfaceList();
   void AddInterfaces(intptr_t interfaces_pos,
@@ -244,6 +245,8 @@ class Parser : ValueObject {
   void AddFormalParamsToFunction(const ParamList* params, const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
+  SequenceNode* ParseConstructor(const Function& func,
+                                 Array& default_parameter_values);
   SequenceNode* ParseFunc(const Function& func,
                           Array& default_parameter_values);
 
@@ -259,6 +262,7 @@ class Parser : ValueObject {
   void OpenFunctionBlock(const Function& func);
   SequenceNode* CloseBlock();
 
+  LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
   void CaptureReceiver();
   AstNode* LoadReceiver(intptr_t token_index);
@@ -345,7 +349,7 @@ class Parser : ValueObject {
       GrowableArray<const String*>& named_argument_names,
       GrowableArray<const Smi*>& named_argument_positions);
   // An implicit argument, if non-null, is prepended to the returned list.
-  ArgumentListNode* ParseActualParameters(AstNode* implicit_argument,
+  ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
                                           bool require_const);
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,

@@ -121,7 +121,13 @@ void testReadLine1() {
       stage++;
     }
   }
+
+  void streamClosed() {
+    Expect.equals(2, stage);
+  }
+
   stream.dataHandler = stringData;
+  stream.closeHandler = streamClosed;
   s.write("Line".charCodes());
   Expect.equals(2, stage);
 }
@@ -172,7 +178,13 @@ void testReadLine2() {
       stage++;
     }
   }
+
+  void streamClosed() {
+    Expect.equals(4, stage);
+  }
+
   stream.dataHandler = stringData;
+  stream.closeHandler = streamClosed;
   s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
   Expect.equals(4, stage);
 }

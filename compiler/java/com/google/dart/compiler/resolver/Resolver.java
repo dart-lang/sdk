@@ -420,7 +420,11 @@ public class Resolver {
 
     private void resolveVariableStatement(DartVariableStatement node,
                                           boolean isImplicitlyInitialized) {
-       Type type = resolveType(node.getTypeNode(), inStaticContext(currentMethod));
+      Type type =
+          resolveType(
+              node.getTypeNode(),
+              inStaticContext(currentMethod),
+              TypeErrorCode.NO_SUCH_TYPE);
        for (DartVariable variable : node.getVariables()) {
          Elements.setType(resolveVariable(variable, node.getModifiers()), type);
          checkVariableStatement(node, variable, isImplicitlyInitialized);
@@ -702,7 +706,7 @@ public class Resolver {
 
     @Override
     public Element visitTypeNode(DartTypeNode x) {
-      return resolveType(x, inStaticContext(currentMethod)).getElement();
+      return resolveType(x, inStaticContext(currentMethod), ResolverErrorCode.NO_SUCH_TYPE).getElement();
     }
 
     @Override
@@ -883,7 +887,9 @@ public class Resolver {
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
         @Override public Element visitTypeNode(DartTypeNode type) {
-          return recordType(type, resolveType(type, inStaticContext(currentMethod)));
+          return recordType(
+              type,
+              resolveType(type, inStaticContext(currentMethod), ResolverErrorCode.NO_SUCH_TYPE));
         }
 
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
@@ -1194,8 +1200,13 @@ public class Resolver {
     @Override
     public Element visitMapLiteral(DartMapLiteral node) {
       List<DartTypeNode> typeArgs = node.getTypeArguments();
-      InterfaceType type = topLevelContext.instantiateParameterizedType(
-        defaultLiteralMapType.getElement(), node, typeArgs, inStaticContext(currentMethod));
+      InterfaceType type =
+          topLevelContext.instantiateParameterizedType(
+              defaultLiteralMapType.getElement(),
+              node,
+              typeArgs,
+              inStaticContext(currentMethod),
+              ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=2)
       recordType(node, type);
       visit(node.getEntries());
@@ -1205,8 +1216,13 @@ public class Resolver {
     @Override
     public Element visitArrayLiteral(DartArrayLiteral node) {
       List<DartTypeNode> typeArgs = node.getTypeArguments();
-      InterfaceType type = topLevelContext.instantiateParameterizedType(rawArrayType.getElement(),
-        node, typeArgs, inStaticContext(currentMethod));
+      InterfaceType type =
+          topLevelContext.instantiateParameterizedType(
+              rawArrayType.getElement(),
+              node,
+              typeArgs,
+              inStaticContext(currentMethod),
+              ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=1)
       recordType(node, type);
       visit(node.getExpressions());
@@ -1305,6 +1321,11 @@ public class Resolver {
         // Field parameters are not visible as parameters, so we do not declare them
         // in the context. Instead we record the resolved field element.
         Elements.setParameterInitializerElement(parameter.getSymbol(), element);
+
+        // The editor expects the referenced elements to be non-null
+        DartPropertyAccess prop = (DartPropertyAccess)parameter.getName();
+        prop.setReferencedElement(element);
+        prop.getName().setReferencedElement(element);
       } else {
         onError(parameter.getName(),
             ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
@@ -1312,13 +1333,15 @@ public class Resolver {
     }
 
     private void resolveInitializers(DartMethodDefinition node) {
-      assert null != node;
       Iterator<DartInitializer> initializers = node.getInitializers().iterator();
       ConstructorElement constructorElement = null;
       while (initializers.hasNext()) {
         DartInitializer initializer = initializers.next();
         Element element = resolve(initializer);
-        if (ElementKind.of(element) == ElementKind.CONSTRUCTOR) {
+        if ((ElementKind.of(element) == ElementKind.CONSTRUCTOR) && initializer.isInvocation()) {
+          if (constructorElement != null) {
+            onError(initializer, ResolverErrorCode.SUPER_INVOCATION_NOT_UNIQUE);
+          }
           constructorElement = (ConstructorElement) element;
         }
       }

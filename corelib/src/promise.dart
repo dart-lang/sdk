@@ -80,7 +80,7 @@ interface Promise<T> factory PromiseImpl<T> {
    * [joinDone]. When [joinDone] returns true, this instance is marked as
    * complete with the last value that was computed.
    */
-  void join(Collection<Promise<T>> arr, bool joinDone(Promise<T> completed));
+  void join(Collection<Promise> arr, bool joinDone(Promise completed));
 
   /**
    * Mark this promise as complete when [n] promises in [arr] complete, then
@@ -90,7 +90,7 @@ interface Promise<T> factory PromiseImpl<T> {
 }
 
 
-interface Proxy factory ProxyImpl {
+interface Proxy extends Promise<bool> factory ProxyImpl {
 
   Proxy.forPort(SendPort port);
   Proxy.forIsolate(Isolate isolate);
@@ -102,6 +102,7 @@ interface Proxy factory ProxyImpl {
   Proxy.forReply(Promise<SendPort> port);
 
   void send(List message);
+  Promise call(List message);
 
 }
 

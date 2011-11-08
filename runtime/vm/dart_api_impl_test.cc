@@ -13,21 +13,157 @@
 
 namespace dart {
 
+#if defined(TARGET_ARCH_IA32)
+UNIT_TEST_CASE(Dart_Error) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle error = Dart_Error("An %s", "error");
+  EXPECT(!Dart_IsValid(error));
+  EXPECT_STREQ("An error", Dart_GetError(error));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+#endif
+
+
+UNIT_TEST_CASE(Null) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  Dart_Handle null = Dart_Null();
+  EXPECT_VALID(null);
+  EXPECT(Dart_IsNull(null));
+
+  Dart_Handle str = Dart_NewString("test");
+  EXPECT_VALID(str);
+  EXPECT(!Dart_IsNull(str));
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(IsSame) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  bool same = false;
+  Dart_Handle five = Dart_NewString("5");
+  Dart_Handle five_again = Dart_NewString("5");
+  Dart_Handle seven = Dart_NewString("7");
+
+  // Same objects.
+  EXPECT_VALID(Dart_IsSame(five, five, &same));
+  EXPECT(same);
+
+  // Equal objects.
+  EXPECT_VALID(Dart_IsSame(five, five_again, &same));
+  EXPECT(!same);
+
+  // Different objects.
+  EXPECT_VALID(Dart_IsSame(five, seven, &same));
+  EXPECT(!same);
+
+  // Non-instance objects.
+  {
+    Zone zone;
+    HandleScope hs;
+    const Object& cls1 = Object::Handle(Object::null_class());
+    const Object& cls2 = Object::Handle(Object::class_class());
+    Dart_Handle class1 = Api::NewLocalHandle(cls1);
+    Dart_Handle class2 = Api::NewLocalHandle(cls2);
+
+    EXPECT_VALID(Dart_IsSame(class1, class1, &same));
+    EXPECT(same);
+
+    EXPECT_VALID(Dart_IsSame(class1, class2, &same));
+    EXPECT(!same);
+  }
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
+#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+
+UNIT_TEST_CASE(ObjectEquals) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  bool equal = false;
+  Dart_Handle five = Dart_NewString("5");
+  Dart_Handle five_again = Dart_NewString("5");
+  Dart_Handle seven = Dart_NewString("7");
+
+  // Same objects.
+  EXPECT_VALID(Dart_ObjectEquals(five, five, &equal));
+  EXPECT(equal);
+
+  // Equal objects.
+  EXPECT_VALID(Dart_ObjectEquals(five, five_again, &equal));
+  EXPECT(equal);
+
+  // Different objects.
+  EXPECT_VALID(Dart_ObjectEquals(five, seven, &equal));
+  EXPECT(!equal);
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+#endif
+
 UNIT_TEST_CASE(BooleanValues) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();  // Enter a Dart API scope for the unit test.
 
   Dart_Handle str = Dart_NewString("test");
   EXPECT(!Dart_IsBoolean(str));
+
+  bool value = false;
+  Dart_Handle result = Dart_BooleanValue(str, &value);
+  EXPECT(!Dart_IsValid(result));
+
   Dart_Handle val1 = Dart_NewBoolean(true);
   EXPECT(Dart_IsBoolean(val1));
-  Dart_Handle val2 = Dart_NewBoolean(false);
-  EXPECT(Dart_IsBoolean(val2));
-  bool value = false;
-  Dart_Handle result = Dart_BooleanValue(val1, &value);
+
+  result = Dart_BooleanValue(val1, &value);
   EXPECT_VALID(result);
   EXPECT(value);
+
+  Dart_Handle val2 = Dart_NewBoolean(false);
+  EXPECT(Dart_IsBoolean(val2));
+
   result = Dart_BooleanValue(val2, &value);
+  EXPECT_VALID(result);
+  EXPECT(!value);
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(BooleanConstants) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  Dart_Handle true_handle = Dart_True();
+  EXPECT_VALID(true_handle);
+  EXPECT(Dart_IsBoolean(true_handle));
+
+  bool value = false;
+  Dart_Handle result = Dart_BooleanValue(true_handle, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+
+  Dart_Handle false_handle = Dart_False();
+  EXPECT_VALID(false_handle);
+  EXPECT(Dart_IsBoolean(false_handle));
+
+  result = Dart_BooleanValue(false_handle, &value);
   EXPECT_VALID(result);
   EXPECT(!value);
 
@@ -180,30 +316,30 @@ UNIT_TEST_CASE(ArrayValues) {
 
   const int kArrayLength = 10;
   Dart_Handle str = Dart_NewString("test");
-  EXPECT(!Dart_IsArray(str));
-  Dart_Handle val = Dart_NewArray(kArrayLength);
-  EXPECT(Dart_IsArray(val));
+  EXPECT(!Dart_IsList(str));
+  Dart_Handle val = Dart_NewList(kArrayLength);
+  EXPECT(Dart_IsList(val));
   intptr_t len = 0;
-  Dart_Handle result = Dart_GetLength(val, &len);
+  Dart_Handle result = Dart_ListLength(val, &len);
   EXPECT_VALID(result);
   EXPECT_EQ(kArrayLength, len);
 
   // Check invalid array access.
-  result = Dart_ArraySetAt(val, (kArrayLength + 10), Dart_NewInteger(10));
+  result = Dart_ListSetAt(val, (kArrayLength + 10), Dart_NewInteger(10));
   EXPECT(!Dart_IsValid(result));
-  result = Dart_ArraySetAt(val, -10, Dart_NewInteger(10));
+  result = Dart_ListSetAt(val, -10, Dart_NewInteger(10));
   EXPECT(!Dart_IsValid(result));
-  result = Dart_ArrayGetAt(val, (kArrayLength + 10));
+  result = Dart_ListGetAt(val, (kArrayLength + 10));
   EXPECT(!Dart_IsValid(result));
-  result = Dart_ArrayGetAt(val, -10);
+  result = Dart_ListGetAt(val, -10);
   EXPECT(!Dart_IsValid(result));
 
   for (int i = 0; i < kArrayLength; i++) {
-    result = Dart_ArraySetAt(val, i, Dart_NewInteger(i));
+    result = Dart_ListSetAt(val, i, Dart_NewInteger(i));
     EXPECT_VALID(result);
   }
   for (int i = 0; i < kArrayLength; i++) {
-    result = Dart_ArrayGetAt(val, i);
+    result = Dart_ListGetAt(val, i);
     EXPECT_VALID(result);
     int64_t value;
     result = Dart_IntegerValue(result, &value);
@@ -251,69 +387,69 @@ UNIT_TEST_CASE(ListAccess) {
     // First ensure that the returned object is an array.
     Dart_Handle ListAccessTestObj = result;
 
-    EXPECT(Dart_IsArray(ListAccessTestObj));
+    EXPECT(Dart_IsList(ListAccessTestObj));
 
     // Get length of array object.
     intptr_t len = 0;
-    result = Dart_GetLength(ListAccessTestObj, &len);
+    result = Dart_ListLength(ListAccessTestObj, &len);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(3, len);
 
     // Access elements in the array.
     int64_t value;
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 0);
+    result = Dart_ListGetAt(ListAccessTestObj, 0);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(10, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 1);
+    result = Dart_ListGetAt(ListAccessTestObj, 1);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(20, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(30, value);
 
     // Set some elements in the array.
-    result = Dart_ArraySetAt(ListAccessTestObj, 0, Dart_NewInteger(0));
+    result = Dart_ListSetAt(ListAccessTestObj, 0, Dart_NewInteger(0));
     EXPECT(Dart_IsValid(result));
-    result = Dart_ArraySetAt(ListAccessTestObj, 1, Dart_NewInteger(1));
+    result = Dart_ListSetAt(ListAccessTestObj, 1, Dart_NewInteger(1));
     EXPECT(Dart_IsValid(result));
-    result = Dart_ArraySetAt(ListAccessTestObj, 2, Dart_NewInteger(2));
+    result = Dart_ListSetAt(ListAccessTestObj, 2, Dart_NewInteger(2));
     EXPECT(Dart_IsValid(result));
 
     // Get length of array object.
-    result = Dart_GetLength(ListAccessTestObj, &len);
+    result = Dart_ListLength(ListAccessTestObj, &len);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(3, len);
 
     // Now try and access these elements in the array.
-    result = Dart_ArrayGetAt(ListAccessTestObj, 0);
+    result = Dart_ListGetAt(ListAccessTestObj, 0);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(0, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 1);
+    result = Dart_ListGetAt(ListAccessTestObj, 1);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(1, value);
 
-    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(2, value);
 
     uint8_t native_array[3];
-    result = Dart_ArrayGet(ListAccessTestObj, 0, native_array, 3);
+    result = Dart_ListGetAsBytes(ListAccessTestObj, 0, native_array, 3);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(0, native_array[0]);
     EXPECT_EQ(1, native_array[1]);
@@ -322,21 +458,21 @@ UNIT_TEST_CASE(ListAccess) {
     native_array[0] = 10;
     native_array[1] = 20;
     native_array[2] = 30;
-    result = Dart_ArraySet(ListAccessTestObj, 0, native_array, 3);
+    result = Dart_ListSetAsBytes(ListAccessTestObj, 0, native_array, 3);
     EXPECT(Dart_IsValid(result));
-    result = Dart_ArrayGet(ListAccessTestObj, 0, native_array, 3);
+    result = Dart_ListGetAsBytes(ListAccessTestObj, 0, native_array, 3);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(10, native_array[0]);
     EXPECT_EQ(20, native_array[1]);
     EXPECT_EQ(30, native_array[2]);
-    result = Dart_ArrayGetAt(ListAccessTestObj, 2);
+    result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT(Dart_IsValid(result));
     result = Dart_IntegerValue(result, &value);
     EXPECT(Dart_IsValid(result));
     EXPECT_EQ(30, value);
 
     // Check if we get an exception when accessing beyond limit.
-    result = Dart_ArrayGetAt(ListAccessTestObj, 4);
+    result = Dart_ListGetAt(ListAccessTestObj, 4);
     EXPECT(!Dart_IsValid(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.
@@ -438,6 +574,35 @@ UNIT_TEST_CASE(PersistentHandles) {
   }
   EXPECT(scope == state->top_scope());
   EXPECT_EQ(2000, state->CountPersistentHandles());
+  Dart_ShutdownIsolate();
+}
+
+
+// Test that we are able to create a persistent handle from a
+// persistent handle.
+UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
+  Dart_CreateIsolate(NULL, NULL);
+
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  EXPECT(state != NULL);
+
+  // Start with a known persistent handle.
+  Dart_Handle obj1 = Dart_True();
+  EXPECT(state->IsValidPersistentHandle(obj1));
+
+  // And use it to allocate a second persistent handle.
+  Dart_Handle obj2 = Dart_NewPersistentHandle(obj1);
+  EXPECT(state->IsValidPersistentHandle(obj2));
+
+  // Make sure that the value transferred.
+  EXPECT(Dart_IsBoolean(obj2));
+  bool value = false;
+  Dart_Handle result = Dart_BooleanValue(obj2, &value);
+  EXPECT_VALID(result);
+  EXPECT(value);
+
   Dart_ShutdownIsolate();
 }
 
@@ -1472,6 +1637,30 @@ UNIT_TEST_CASE(GetNativeArgumentCount) {
 }
 
 
+UNIT_TEST_CASE(GetClass) {
+  const char* kScriptChars =
+      "class DoesExist {"
+      "}";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Lookup a class that does exist.
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("DoesExist"));
+  EXPECT_VALID(cls);
+
+  // Lookup a class that does not exist.
+  cls = Dart_GetClass(lib, Dart_NewString("DoesNotExist"));
+  EXPECT(!Dart_IsValid(cls));
+  EXPECT_STREQ("Class 'DoesNotExist' not found in library 'dart:test-lib'.",
+               Dart_GetError(cls));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
 UNIT_TEST_CASE(InstanceOf) {
   const char* kScriptChars =
       "class OtherClass {\n"
@@ -1510,7 +1699,7 @@ UNIT_TEST_CASE(InstanceOf) {
     // Now check instanceOfTestObj reported as an instance of
     // InstanceOfTest class.
     bool is_instance = false;
-    result = Dart_IsInstanceOf(instanceOfTestObj, cls, &is_instance);
+    result = Dart_ObjectIsType(instanceOfTestObj, cls, &is_instance);
     EXPECT_VALID(result);
     EXPECT(is_instance);
 
@@ -1519,21 +1708,21 @@ UNIT_TEST_CASE(InstanceOf) {
     EXPECT_VALID(otherClass);
     EXPECT(!Dart_ExceptionOccurred(otherClass));
 
-    result = Dart_IsInstanceOf(instanceOfTestObj, otherClass, &is_instance);
+    result = Dart_ObjectIsType(instanceOfTestObj, otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     // Check that primitives are not instances of InstanceOfTest class.
-    result = Dart_IsInstanceOf(Dart_NewString("a string"), otherClass,
+    result = Dart_ObjectIsType(Dart_NewString("a string"), otherClass,
                                &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
-    result = Dart_IsInstanceOf(Dart_NewInteger(42), otherClass, &is_instance);
+    result = Dart_ObjectIsType(Dart_NewInteger(42), otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
-    result = Dart_IsInstanceOf(Dart_NewBoolean(true), otherClass, &is_instance);
+    result = Dart_ObjectIsType(Dart_NewBoolean(true), otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
@@ -1546,12 +1735,12 @@ UNIT_TEST_CASE(InstanceOf) {
     EXPECT_VALID(null);
     EXPECT(!Dart_ExceptionOccurred(null));
 
-    result = Dart_IsInstanceOf(null, otherClass, &is_instance);
+    result = Dart_ObjectIsType(null, otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     // Check that error is returned if null is passed as a class argument.
-    result = Dart_IsInstanceOf(null, null, &is_instance);
+    result = Dart_ObjectIsType(null, null, &is_instance);
     EXPECT(!Dart_IsValid(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.

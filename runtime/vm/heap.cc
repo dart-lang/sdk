@@ -19,11 +19,21 @@ namespace dart {
 
 DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
 DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
+DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
+            "e.g: --new_gen_heap_size=64 allocates a 64MB new gen heap");
+DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
+            "old gen heap size in MB,"
+            "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
+DEFINE_FLAG(int, code_heap_size, Heap::kCodeHeapSizeInMB,
+            "code heap size in MB,"
+            "e.g: --code_heap_size=8 allocates a 8MB old gen heap");
 
 Heap::Heap() {
-  new_space_ = new Scavenger(this, 32 * MB, kNewObjectAlignmentOffset);
-  old_space_ = new PageSpace(this, kHeapSize);
-  code_space_ = new PageSpace(this, kCodeHeapSize, true);
+  new_space_ = new Scavenger(this,
+                             (FLAG_new_gen_heap_size * MB),
+                             kNewObjectAlignmentOffset);
+  old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MB));
+  code_space_ = new PageSpace(this, (FLAG_code_heap_size * MB), true);
 }
 
 

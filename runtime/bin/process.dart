@@ -35,7 +35,7 @@ interface Process factory _Process {
   /*
    * Sets an exit handler which gets invoked when the process terminates.
    */
-  void setExitHandler(void callback(int exitCode));
+  void set exitHandler(void callback(int exitCode));
 
   /*
    * Kills the process with [signal].

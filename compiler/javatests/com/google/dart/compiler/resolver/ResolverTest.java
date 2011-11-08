@@ -7,10 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.testing.TestCompilerContext;
-import com.google.dart.compiler.testing.TestCompilerContext.EventKind;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
@@ -30,7 +27,6 @@ public class ResolverTest extends ResolverTestCase {
   private final DartClass array = makeClass("Array", makeType("Object"), "E");
   private final DartClass growableArray = makeClass("GrowableArray", makeType("Array", "S"), "S");
   private final Types types = Types.getInstance(null);
-
 
   private ClassElement findElementOrFail(Scope libScope, String elementName) {
     Element element = libScope.findElement(libScope.getLibrary(), elementName);
@@ -306,50 +302,12 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testBadFactory() {
-
-    TestCompilerContext context1 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
-      @Override
-      public void onError(DartCompilationError event) {
-        recordError(event);
-      }
-      @Override
-      public boolean shouldWarnOnNoSuchType() {
-        return false;
-      }
-    };
-    resolve(parseUnit("class Object {}",
-                      "class Zebra {",
-                      "  factory foo() {}",
-                      "}"), context1);
-    {
-      ErrorCode[] expected = {
-          ResolverErrorCode.NO_SUCH_TYPE
-      };
-      checkExpectedErrors(expected);
-    }
-
-    resetExpectedErrors();
-    TestCompilerContext context2 =  new TestCompilerContext(EventKind.TYPE_ERROR) {
-      @Override
-      public void onError(DartCompilationError event) {
-        if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
-          recordError(event);
-        }
-      }
-      @Override
-      public boolean shouldWarnOnNoSuchType() {
-        return true;
-      }
-    };
-    resolve(parseUnit("class Object {}",
-                      "class Zebra {",
-                      "  factory foo() {}",
-                      "}"), context2);
-    {
-      ErrorCode[] expected = {
-      };
-      checkExpectedErrors(expected);
-    }
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Zebra {",
+        "  factory foo() {}",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR);
   }
 
   /**
@@ -515,6 +473,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var Bar;",
         "  create() { return new Bar();}",
         "}"),
+        TypeErrorCode.NOT_A_TYPE,
         ResolverErrorCode.NO_SUCH_TYPE,
         ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
 
@@ -539,20 +498,321 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.NO_SUCH_TYPE);
   }
 
+  public void test_noSuchType_field() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  Unknown field;",
+        "}"),
+        TypeErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_variableStatement_noSuchType() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  foo() {",
+        "    Unknown bar;",
+        "  }",
+        "}"),
+        TypeErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_variableStatement_noSuchType_typeArgument() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {}",
+        "class MyClass {",
+        "  foo() {",
+        "    Foo<Unknown> foo;",
+        "  }",
+        "}"),
+        TypeErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_variableStatement_wrongTypeArgumentsNumber() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {}",
+        "class MyClass {",
+        "  foo() {",
+        "    Foo<Object, Object> foo;",
+        "  }",
+        "}"),
+        TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+  }
+
+  public void test_variableStatement_typeArgumentsForNonGeneric() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo {}",
+        "class MyClass {",
+        "  foo() {",
+        "    Foo<Object> foo;",
+        "  }",
+        "}"),
+        TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+  }
+
+  public void test_noSuchType_classExtends() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass extends Unknown {",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_noSuchType_classExtendsTypeVariable() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass<E> extends E {",
+        "}"),
+        ResolverErrorCode.NOT_A_CLASS);
+  }
+
+  public void test_noSuchType_classImplements() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass implements Unknown {",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_noSuchType_classImplementsTypeVariable() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass<E> implements E {",
+        "}"),
+        ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE);
+  }
+
+  public void test_noSuchType_superClass_typeArgument() throws Exception {
+    String source =
+        Joiner.on("\n").join(
+            "class Object {}",
+            "class Base<T> {}",
+            "class MyClass extends Base<Unknown> {",
+            "}");
+    List<DartCompilationError> errors = resolveAndTest(source, ResolverErrorCode.NO_SUCH_TYPE);
+    assertEquals(1, errors.size());
+    {
+      DartCompilationError error = errors.get(0);
+      assertEquals(3, error.getLineNumber());
+      assertEquals(28, error.getColumnNumber());
+      assertEquals("Unknown".length(), error.getLength());
+      assertEquals(source.indexOf("Unknown"), error.getStartPosition());
+    }
+  }
+
+  public void test_noSuchType_superInterface_typeArgument() throws Exception {
+    String source =
+        Joiner.on("\n").join(
+            "class Object {}",
+            "interface Base<T> {}",
+            "class MyClass implements Base<Unknown> {",
+            "}");
+    List<DartCompilationError> errors = resolveAndTest(source, ResolverErrorCode.NO_SUCH_TYPE);
+    assertEquals(1, errors.size());
+    {
+      DartCompilationError error = errors.get(0);
+      assertEquals(3, error.getLineNumber());
+      assertEquals(31, error.getColumnNumber());
+      assertEquals("Unknown".length(), error.getLength());
+      assertEquals(source.indexOf("Unknown"), error.getStartPosition());
+    }
+  }
+
+  public void test_noSuchType_methodParameterType() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  Object foo(Unknown p) {",
+        "    return null;",
+        "  }",
+        "}"),
+        TypeErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_noSuchType_returnType() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  Unknown foo() {",
+        "    return null;",
+        "  }",
+        "}"),
+        TypeErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_noSuchType_inExpression() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  foo() {",
+        "    var bar;",
+        "    if (bar is Bar) {",
+        "    }",
+        "  }",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_noSuchType_inCatch() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  foo() {",
+        "    try {",
+        "    } catch (Unknown e) {",
+        "    }",
+        "  }",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_new_noSuchType() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  foo() {",
+        "    new Unknown();",
+        "  }",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE,
+        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+  }
+
+  public void test_new_noSuchType_typeArgument() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {}",
+        "class MyClass {",
+        "  foo() {",
+        "    new Foo<T>();",
+        "  }",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_new_wrongTypeArgumentsNumber() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {}",
+        "class MyClass {",
+        "  foo() {",
+        "    new Foo<Object, Object>();",
+        "  }",
+        "}"),
+        ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+  }
+
+  public void test_noSuchType_mapLiteral_typeArgument() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  foo() {",
+        "    var map = <T>{};",
+        "  }",
+        "}"),
+        ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_noSuchType_arrayLiteral_typeArgument() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  foo() {",
+        "    var map = <T>[null];",
+        "  }",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
   /**
    * When {@link SupertypeResolver} can not find "UnknownA", it uses {@link DynamicType}, which
    * returns {@link DynamicElement}. By itself, this is OK. However when we later try to resolve
    * second unknown type "UnknownB", we expect in {@link Elements#findElement()} specific
    * {@link ClassElement} implementation and {@link DynamicElement} is not valid.
    */
-  public void test_classDynamicElement_fieldDynamicElement() throws Exception {
+  public void test_classExtendsUnknown_fieldUnknownType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "class MyClass implements UnknownA {",
+        "class MyClass extends UnknownA {",
         "  UnknownB field;",
         "}"),
         ResolverErrorCode.NO_SUCH_TYPE,
-        ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE,
+        TypeErrorCode.NO_SUCH_TYPE);
+  }
+
+  /**
+   * When {@link SupertypeResolver} can not find "UnknownA", it uses {@link DynamicType}, which
+   * returns {@link DynamicElement}. By itself, this is OK. However when we later try to resolve
+   * super() constructor invocation, this should not cause exception.
+   */
+  public void test_classExtendsUnknown_callSuperConstructor() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass extends UnknownA {",
+        "  MyClass() : super() {",
+        "  }",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE,
+        ResolverErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR);
+  }
+
+  public void test_shadowType_withVariable() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Foo<T> {}",
+        "class Param {}",
+        "class MyClass {",
+        "  foo() {",
+        "    var Param;",
+        "    new Foo<Param>();",
+        "  }",
+        "}"),
+        TypeErrorCode.NOT_A_TYPE,
         ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  // TODO(scheglov) check for "extends/implements Dynamic"
+  public void _test_extendsDynamic() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass extends Dynamic {",
+        "}"),
+        ResolverErrorCode.DYNAMIC_EXTENDS);
+  }
+
+  // TODO(scheglov) check for "extends/implements Dynamic"
+  public void _test_implementsDynamic() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass implements Dynamic {",
+        "}"),
+        ResolverErrorCode.DYNAMIC_IMPLEMENTS);
+  }
+
+  public void test_explicitDynamicTypeArgument() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Map<K, V>{}",
+        "class MyClass implements Map<Object, Dynamic> {",
+        "}"));
+  }
+
+  public void test_operatorIs_withFunctionAlias() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class int {}",
+        "typedef Dynamic F1<T>(Dynamic x, T y);",
+        "class MyClass {",
+        "  main() {",
+        "    F1<int> f1 = (Object o, int i) => null;",
+        "    if (f1 is F1<int>) {",
+        "    }",
+        "  }",
+        "}"));
   }
 }

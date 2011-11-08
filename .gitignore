@@ -61,5 +61,3 @@ third_party/gsutil/*/gsutilc
 
 # Generated test files.
 /generated_tests/
-
-/frog/

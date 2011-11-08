@@ -263,8 +263,6 @@ interface Window extends EventTarget {
 
   void focus();
 
-  CSSStyleDeclaration getComputedStyle([Element element, String pseudoElement]);
-
   DOMSelection getSelection();
 
   MediaQueryList matchMedia(String query);
@@ -295,7 +293,7 @@ interface Window extends EventTarget {
 
   int setInterval(TimeoutHandler handler, int timeout);
 
-  int setTimeout([TimeoutHandler handler, int timeout]);
+  int setTimeout(TimeoutHandler handler, int timeout);
 
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
 
@@ -303,11 +301,19 @@ interface Window extends EventTarget {
 
   void webkitCancelRequestAnimationFrame(int id);
 
+  // TODO(jacobr): make these return Future<Point>.
   Point webkitConvertPointFromNodeToPage([Node node, Point p]);
 
   Point webkitConvertPointFromPageToNode([Node node, Point p]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element]);
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback);
 
   // Window open(String url, String target, WindowSpec features);
 

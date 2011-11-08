@@ -93,8 +93,8 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
       Double& dbl = Double::Handle();
       dbl ^= literal().raw();
       // Preserve negative zero.
-      const Instance& literal =
-          Instance::ZoneHandle(Double::New(0.0 - dbl.value()));
+      double new_value = (dbl.value() == 0.0) ? -0.0 : (0.0 - dbl.value());
+      const Instance& literal = Instance::ZoneHandle(Double::New(new_value));
       return new LiteralNode(this->token_index(), literal);
     }
   }

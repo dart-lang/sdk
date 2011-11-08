@@ -107,6 +107,19 @@ def ListDartArgCallback(option, opt_str, value, parser):
    setattr(parser.values, option.dest, value)
 
 
+# Returns the path to the Dart test runner (executes the .dart file).
+def GetDartRunner(mode, arch, component):
+  build_root = GetBuildRoot(GuessOS(), mode, arch)
+  if component == 'dartc':
+    return os.path.join(build_root, 'compiler', 'bin', 'dartc_test')
+  elif component == 'frog':
+    return os.path.join(build_root, 'frog', 'bin', 'frog')
+  elif component == 'frogsh':
+    return os.path.join(build_root, 'frog', 'bin', 'frogsh')
+  else:
+    return os.path.join(build_root, 'dart_bin')
+
+
 # Mapping table between build mode and build configuration.
 BUILD_MODES = {
   'debug': 'Debug',
@@ -136,9 +149,6 @@ BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 def GetBuildRoot(target_os, mode=None, arch=None):
   global BUILD_ROOT
   if mode:
-    # TODO(ngeoffray): Remove this test once the testing infrastructure does not
-    # treat 'dartc' as an arch.
-    if arch == 'dartc': arch = ARCH_GUESS
     return os.path.join(BUILD_ROOT[target_os], GetBuildConf(mode, arch))
   else:
     return BUILD_ROOT[target_os]

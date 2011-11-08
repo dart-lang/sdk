@@ -611,8 +611,8 @@ class Class : public Object {
   void set_constants(const Array& value) const;
   RawArray* constants() const;
 
-  void set_num_constants(intptr_t value) const;
-  intptr_t num_constants() const;
+  void set_canonical_types(const Array& value) const;
+  RawArray* canonical_types() const;
 
   void CalculateFieldOffsets() const;
 
@@ -628,6 +628,7 @@ class Class : public Object {
   HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class Object;
   friend class Instance;
+  friend class ParameterizedType;
 };
 
 
@@ -677,6 +678,7 @@ class Type : public Object {
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual bool IsInstantiated() const;
+  virtual bool Equals(const Type& other) const;
 
   // Instantiate this type using the given type argument vector starting at the
   // given offset.
@@ -684,6 +686,9 @@ class Type : public Object {
   virtual RawType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       intptr_t offset) const;
+
+  // Return the canonical version of this type.
+  virtual RawType* Canonicalize() const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const;
@@ -781,8 +786,8 @@ class Type : public Object {
   static RawType* FunctionInterface();
 
   // The least specific valid raw type of the given class.
-  // For example, type A<DynamicType> would be returned for class A<T>, and type
-  // B<DynamicType, A<DynamicType>> would be returned for B<U, V extends A>.
+  // For example, type A<Dynamic> would be returned for class A<T>, and type
+  // B<Dynamic, A<Dynamic>> would be returned for B<U, V extends A>.
   static RawType* NewRawType(const Class& type_class);
 
   // The finalized type of the given non-parameterized class.
@@ -827,9 +832,11 @@ class ParameterizedType : public Type {
   virtual RawTypeArguments* arguments() const;
   void set_arguments(const TypeArguments& value) const;
   virtual bool IsInstantiated() const;
+  virtual bool Equals(const Type& other) const;
   virtual RawType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       intptr_t offset) const;
+  virtual RawType* Canonicalize() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawParameterizedType));
@@ -862,9 +869,11 @@ class TypeParameter : public Type {
   virtual RawString* Name() const { return raw_ptr()->name_; }
   virtual intptr_t Index() const { return raw_ptr()->index_; }
   virtual bool IsInstantiated() const { return false; }
+  virtual bool Equals(const Type& other) const;
   virtual RawType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       intptr_t offset) const;
+  virtual RawType* Canonicalize() const { return raw(); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
@@ -936,6 +945,9 @@ class TypeArguments : public Object {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
+  virtual bool Equals(const TypeArguments& other) const;
+  static bool AreEqual(const TypeArguments& arguments,
+                       const TypeArguments& other_arguments);
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
@@ -974,6 +986,8 @@ class TypeArray : public TypeArguments {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
+  virtual bool Equals(const TypeArguments& other) const;
+
   virtual RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       intptr_t offset) const;
@@ -1268,6 +1282,10 @@ class Function : public Object {
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
                                          intptr_t token_index);
+
+  static const int kCtorPhaseInit = 1 << 0;
+  static const int kCtorPhaseBody = 1 << 1;
+  static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
 
  private:
   void set_name(const String& value) const;
@@ -2480,6 +2498,8 @@ class OneByteString : public String {
   virtual int32_t CharAt(intptr_t index) const {
     return *CharAddr(index);
   }
+
+  static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawOneByteString) == OFFSET_OF(RawOneByteString, data_));

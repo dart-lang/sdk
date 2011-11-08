@@ -165,7 +165,10 @@ static PortMessage* NextMessage() {
 
 
 void ThreadedPort_start(uword parameter) {
-  Dart::CreateIsolate(NULL, NULL);
+  // We only need an isolate here because the MutexLocker in
+  // PortMap::CreatePort expects it, we don't need to initialize
+  // the isolate as it does not run any dart code.
+  Dart::CreateIsolate();
 
   intptr_t remote = parameter;
   intptr_t local = PortMap::CreatePort();

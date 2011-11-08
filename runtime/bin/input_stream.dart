@@ -31,20 +31,19 @@ interface InputStream {
   int available();
 
   /**
-   * Returns whether the stream has been closed. There might still be
-   * more data to read.
+   * Returns whether the stream is closed. There will be no more data
+   * to read.
    */
-  bool closed();
+  bool get closed();
 
   /**
-   * Sets the data which handler gets called when data is available.
+   * Sets the data handler which gets called when data is available.
    */
   void set dataHandler(void callback());
 
   /**
-   * The close handler gets called when the underlying communication
-   * channel is closed and no more data will become available. Not all
-   * types of communication channels will emit close events.
+   * Sets the close handler which gets called when there will be no more
+   * data available in the stream.
    */
   void set closeHandler(void callback());
 

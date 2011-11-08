@@ -135,11 +135,11 @@ class SendPortImpl implements SendPort {
 
 
 class IsolateNatives {
-  static Promise<SendPort> spawn(Isolate isolate, bool isLight) {
-    Promise<SendPort> result = new Promise<SendPort>();
+  static Future<SendPort> spawn(Isolate isolate, bool isLight) {
+    Completer<SendPort> completer = new Completer<SendPort>();
     SendPort port = _start(isolate, isLight);
-    result.complete(port);
-    return result;
+    completer.complete(port);
+    return completer.future;
   }
 
   // Starts a new isolate calling the run method on a new instance of the

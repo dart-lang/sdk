@@ -81,7 +81,7 @@ static int ParseArguments(int argc,
 
 static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
   const bool kWritable = true;
-  File* file = File::OpenFile(snapshot_filename, kWritable);
+  File* file = File::Open(snapshot_filename, kWritable);
   ASSERT(file != NULL);
   for (intptr_t i = 0; i < size; i++) {
     file->WriteByte(buffer[i]);

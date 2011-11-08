@@ -51,7 +51,7 @@ main() {
     Expect.isTrue(years - years.floor() < 0.1, "7/7");
   });
 
-  test('HtmlUtils', () {
+  asyncTest('HtmlUtils', 1, () {
     Expect.equals("", HtmlUtils.quoteHtml(""));
     Expect.equals("&lt;", HtmlUtils.quoteHtml("<"));
     Expect.equals("&lt;&lt;&lt;&lt;", HtmlUtils.quoteHtml("<<<<"));
@@ -68,14 +68,16 @@ main() {
     body.nodes.add(div);
 
     HtmlUtils.setIntegerProperty(div, "left", 100, "px");
-    CSSStyleDeclaration computedStyle = window.getComputedStyle(div, "");
-    String valueAsString = computedStyle.getPropertyValue("left");
-    // FIXME: Test fails, with valueAsString == "auto". However, setIntegerProperty
-    // works when tested in practice, so there is something wrong with recovering
-    // the value.
-    // Expect.equals("100", valueAsString);
+    div.computedStyle.then((CSSStyleDeclaration computedStyle) { 
+      String valueAsString = computedStyle.getPropertyValue("left");
+      // FIXME: Test fails, with valueAsString == "auto". However,
+      // setIntegerProperty works when tested in practice, so there is
+      // something wrong with recovering the value.
+      // Expect.equals("100", valueAsString);
 
-    div.remove();
+      div.remove();
+      callbackDone();
+    });
   });
 
   test('StringUtils', () {

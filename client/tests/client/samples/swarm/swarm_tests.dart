@@ -20,7 +20,6 @@ void main() {
   UIStateProxy state = new UIStateProxy(swarm.sections);
   swarm.state = state;
   swarm.run();
-
   // TODO(jmesserly): should be adding the full stylesheet here
   Dom.addStyle('''
       .story-content {
@@ -45,26 +44,30 @@ void main() {
     };
   }
 
-  test('BackButton', () {
-    Expect.equals(null, swarm.frontView.storyView); // verify initial state
+  asyncTest('BackButton', 1, () {
+    serialInvokeAsync([() {
+      Expect.equals(null, swarm.frontView.storyView); // verify initial state
 
-    // Make sure we've transitioned to the section
-    // In the real app, this isn't needed because ConveyorView fires the
-    // transition end event before we can click a story.
-    SectionView section = getView(swarm.sections[0]);
-    section.showSources();
+      // Make sure we've transitioned to the section
+      // In the real app, this isn't needed because ConveyorView fires the
+      // transition end event before we can click a story.
+      SectionView section = getView(swarm.sections[0]);
+      section.showSources();
+    }, 
+    () {
+      final item = swarm.sections[0].feeds[2].articles[1];
+      state.loadFromHistory(getHistory(item));
 
-    final item = swarm.sections[0].feeds[2].articles[1];
-    state.loadFromHistory(getHistory(item));
+      Expect.equals(item, state.currentArticle.value);
 
-    Expect.equals(item, state.currentArticle.value);
+      Expect.isFalse(getStoryNode().classes.contains(CSS.HIDDEN_STORY));
 
-    Expect.isFalse(getStoryNode().classes.contains(CSS.HIDDEN_STORY));
+      state.loadFromHistory({});
 
-    state.loadFromHistory({});
-
-    Expect.equals(null, state.currentArticle.value);
-    Expect.isTrue(getStoryNode().classes.contains(CSS.HIDDEN_STORY));
+      Expect.equals(null, state.currentArticle.value);
+      Expect.isTrue(getStoryNode().classes.contains(CSS.HIDDEN_STORY));
+      callbackDone();
+    }]);
   });
 
   test('StoryView', () {

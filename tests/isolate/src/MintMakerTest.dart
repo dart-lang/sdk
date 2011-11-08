@@ -183,7 +183,7 @@ class MintMakerWrapper {
     });
   }
 
-  Promise<SendPort> port_;
+  Future<SendPort> port_;
 }
 
 

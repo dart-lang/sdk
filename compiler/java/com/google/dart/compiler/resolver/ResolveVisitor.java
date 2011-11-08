@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
@@ -41,7 +43,7 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
         DartTypeNode boundNode = typeParameterNode.getBound();
         Type bound;
         if (boundNode != null) {
-          bound = getContext().resolveType(boundNode, true);
+          bound = getContext().resolveType(boundNode, true, ResolverErrorCode.NO_SUCH_TYPE);
           boundNode.setType(bound);
         } else {
           bound = typeProvider.getObjectType();
@@ -52,7 +54,11 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
     for (DartParameter parameter : node.getParams()) {
       Elements.addParameter(element, (VariableElement) parameter.accept(this));
     }
-    Type returnType = resolveType(node.getReturnTypeNode(), element.getModifiers().isStatic());
+    Type returnType =
+        resolveType(
+            node.getReturnTypeNode(),
+            element.getModifiers().isStatic(),
+            TypeErrorCode.NO_SUCH_TYPE);
     ClassElement functionElement = typeProvider.getFunctionType().getElement();
     FunctionType type = Types.makeFunctionType(getContext(), functionElement,
                                                element.getParameters(), returnType,
@@ -65,7 +71,11 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
 
   @Override
   public Element visitParameter(DartParameter node) {
-    Type type = resolveType(node.getTypeNode(), isStaticContext());
+    ErrorCode typeErrorCode =
+        node.getParent() instanceof DartCatchBlock
+            ? ResolverErrorCode.NO_SUCH_TYPE
+            : TypeErrorCode.NO_SUCH_TYPE;
+    Type type = resolveType(node.getTypeNode(), isStaticContext(), typeErrorCode);
     VariableElement element = Elements.parameterElement(node, node.getParameterName(),
                                                         node.getModifiers());
     List<DartParameter> functionParameters = node.getFunctionParameters();
@@ -82,12 +92,12 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
     return recordElement(node, element);
   }
 
-  final Type resolveType(DartTypeNode node, boolean isStatic) {
+  final Type resolveType(DartTypeNode node, boolean isStatic, ErrorCode errorCode) {
     if (node == null) {
       return getTypeProvider().getDynamicType();
     }
     assert node.getType() == null || node.getType() instanceof DynamicType;
-    Type type = getContext().resolveType(node, isStatic);
+    Type type = getContext().resolveType(node, isStatic, errorCode);
     if (type == null) {
       type = getTypeProvider().getDynamicType();
     }

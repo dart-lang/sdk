@@ -69,6 +69,18 @@ interface ElementEvents extends Events {
   EventListenerList get fullscreenChange();
 }
 
+/**
+ * All your element measurement needs in one place
+ */
+interface ElementRect {
+  ClientRect get client();
+  ClientRect get offset();
+  ClientRect get scroll();
+  ClientRect get bounding();
+  List<ClientRect> get clientRects();
+}
+
+
 interface Element extends Node /*, common.NodeSelector, common.ElementTraversal */
     factory ElementWrappingImplementation {
 
@@ -90,14 +102,6 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   Map<String, String> get dataAttributes();
   void set dataAttributes(Map<String, String> value);
-
-  int get clientHeight();
-
-  int get clientLeft();
-
-  int get clientTop();
-
-  int get clientWidth();
 
   String get contentEditable();
 
@@ -135,31 +139,15 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   Element get nextElementSibling();
 
-  int get offsetHeight();
-
-  int get offsetLeft();
-
   Element get offsetParent();
-
-  int get offsetTop();
-
-  int get offsetWidth();
 
   String get outerHTML();
 
   Element get previousElementSibling();
 
-  int get scrollHeight();
-
-  int get scrollLeft();
-
   void set scrollLeft(int value);
 
-  int get scrollTop();
-
   void set scrollTop(int value);
-
-  int get scrollWidth();
 
   bool get spellcheck();
 
@@ -185,10 +173,6 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   void focus();
 
-  ClientRect getBoundingClientRect();
-
-  List<ClientRect> getClientRects();
-
   Element insertAdjacentElement([String where, Element element]);
 
   void insertAdjacentHTML([String position_OR_where, String text]);
@@ -208,6 +192,12 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   void scrollIntoView([bool centerIfNeeded]);
 
   bool matchesSelector([String selectors]);
+
+  Future<ElementRect> get rect();
+
+  Future<CSSStyleDeclaration> get computedStyle();
+
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   ElementEvents get on();
 }

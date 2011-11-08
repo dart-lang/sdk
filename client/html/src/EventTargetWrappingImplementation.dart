@@ -2,17 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _ListenerWrapper {
-  final EventListener raw;
-  final Function wrapped;
-  final String type;
-  final bool useCapture;
-
-  _ListenerWrapper(this.raw, this.wrapped, this.type, this.useCapture);
-}
-
 class EventsImplementation implements Events {
-  /* raw event target. */
+  /* Raw event target. */
   var _ptr;
 
   Map<String, EventListenerList> _listenerMap;
@@ -58,7 +49,8 @@ class EventListenerListImplementation implements EventListenerList {
   }
 
   bool dispatch(Event evt) {
-    // TODO(jacobr): what is the correct behavior here?
+    // TODO(jacobr): what is the correct behavior here. We could alternately
+    // force the event to have the expected type.
     assert(evt.type == _type);
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
@@ -82,8 +74,7 @@ class EventListenerListImplementation implements EventListenerList {
     }
     for (int i = 0; i < _wrappers.length; i++) {
       _EventListenerWrapper wrapper = _wrappers[i];
-      if (wrapper.raw === listener
-          && wrapper.useCapture == useCapture) {
+      if (wrapper.raw === listener && wrapper.useCapture == useCapture) {
         // Order doesn't matter so we swap with the last element instead of
         // performing a more expensive remove from the middle of the list.
         if (i + 1 != _wrappers.length) {
@@ -107,7 +98,7 @@ class EventListenerListImplementation implements EventListenerList {
         }
       }
     }
-    final wrapped = (e) => listener(LevelDom.wrapEvent(e));
+    final wrapped = (e) { listener(LevelDom.wrapEvent(e)); };
     _wrappers.add(new _EventListenerWrapper(listener, wrapped, useCapture));
     return wrapped;
   }

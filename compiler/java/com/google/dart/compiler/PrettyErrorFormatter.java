@@ -8,6 +8,7 @@ import com.google.common.io.Closeables;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Reader;
 
 /**
@@ -23,9 +24,14 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
   private static String NO_COLOR = "\033[0m";
 
   private final boolean useColor;
+  private final boolean printMachineProblems;
 
-  public PrettyErrorFormatter(boolean useColor) {
+  public PrettyErrorFormatter(PrintStream outputStream,
+      boolean useColor,
+      boolean printMachineProblems) {
+    super(outputStream);
     this.useColor = useColor;
+    this.printMachineProblems = printMachineProblems;
   }
 
   @Override
@@ -63,21 +69,38 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
 
       // get column/length and ensure they are within the line limits.
       int col = event.getColumnNumber() - 1;
-      // TODO(ngeoffray): if length is 0, we may want to expand it in order
-      // to highlight something.
       int length = event.getLength();
       col = between(col, 0, lineText.length());
       length = between(length, 0, lineText.length() - col);
+      length = length == 0 ? lineText.length() - col : length;
 
       // print the error message
       StringBuilder buf = new StringBuilder();
-      buf.append(String.format("%s%s:%d: %s%s\n",
-            useColor ? RED_BOLD_COLOR : "",
+      if (useColor) {
+        buf.append(RED_BOLD_COLOR);
+      }
+      if (printMachineProblems) {
+        buf.append(String.format(
+            "%s:%s:%s:%s:%d:%d:%d: %s",
+            event.getErrorCode().getErrorSeverity(),
+            event.getErrorCode().getSubSystem(),
+            event.getErrorCode(),
             sourceFile.getName(),
             event.getLineNumber(),
-            event.getMessage(),
-            useColor ? NO_COLOR : ""));
-
+            1 + col,
+            length,
+            event.getMessage()));
+      } else {
+        buf.append(String.format(
+            "%s:%d: %s",
+            sourceFile.getName(),
+            event.getLineNumber(),
+            event.getMessage()));
+      }
+      if (useColor) {
+        buf.append(NO_COLOR);
+      }
+      buf.append("\n");
       // show the previous line for context
       if (lineBefore != null) {
         buf.append(String.format("%6d: %s\n", line - 1, lineBefore));
@@ -111,7 +134,7 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
         buf.append('\n');
       }
 
-      outputStream.println(buf.toString());
+      outputStream.print(buf.toString());
     } catch (IOException ex) {
       super.format(event);
     } finally {

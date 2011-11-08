@@ -147,6 +147,7 @@ class DeoptimizationBlob : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DeoptimizationBlob);
 };
 
+// TODO(srdjan): Add String_get:length, String_charCodeAt, String_hashCode.
 
 #define RECOGNIZED_LIST(V)                                                     \
   V(ObjectArray, get:length, ObjectArrayLength)                                \
@@ -288,10 +289,16 @@ static const ZoneGrowableArray<const Class*>*
 
 
 // Debugging helper function.
-void OptimizingCodeGenerator::PrintCollectedClasses(AstNode* node) {
-  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
-  for (intptr_t i = 0; i < classes->length(); i++) {
-    OS::Print("- %s\n", (*classes)[i]->ToCString());
+void OptimizingCodeGenerator::PrintCollectedClassesAtId(AstNode* node,
+                                                        intptr_t id) {
+  const ICData& ic_data = node->ICDataAtId(id);
+  ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+  Function& target = Function::Handle();
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    OS::Print("- %s -> %s\n", cls.ToCString(),
+        target.ToFullyQualifiedCString());
   }
 }
 
@@ -555,14 +562,20 @@ static bool NodeHasBothClasses(AstNode* node,
 }
 
 
-static bool NodeHasOnlyClass(AstNode* node, const Class& cls) {
+static bool AtIdNodeHasOnlyClass(AstNode* node, intptr_t id, const Class& cls) {
   ASSERT(node != NULL);
   ASSERT(!cls.IsNull());
-  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
-  return (classes != NULL) &&
-         (classes->length() == 1) &&
-         ((*classes)[0]->raw() == cls.raw());
+  const ICData& ic_data = node->ICDataAtId(id);
+  if ((ic_data.NumberOfArgumentsChecked() != 1) ||
+      (ic_data.NumberOfChecks() != 1)) {
+    return false;
+  }
+  Class& target_cls = Class::Handle();
+  Function& target = Function::Handle();
+  ic_data.GetOneClassCheckAt(0, &target_cls, &target);
+  return target_cls.raw() == cls.raw();
 }
+
 
 
 // Implement with slow case so that it can work both with Smi and Mint types.
@@ -1029,17 +1042,19 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   }
 
   ObjectStore* object_store = Isolate::Current()->object_store();
-  if (NodeHasOnlyClass(node, smi_class_)) {
+  if (AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
     GenerateSmiBinaryOp(node);
     return;
   }
 
-  if (NodeHasOnlyClass(node, double_class_)) {
+  if (AtIdNodeHasOnlyClass(node, node->id(), double_class_)) {
     GenerateDoubleBinaryOp(node);
     return;
   }
 
-  if (NodeHasOnlyClass(node, Class::Handle(object_store->mint_class()))) {
+  if (AtIdNodeHasOnlyClass(node,
+                           node->id(),
+                           Class::Handle(object_store->mint_class()))) {
     GenerateMintBinaryOp(node, false);
     return;
   }
@@ -1065,7 +1080,7 @@ void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   }
   const char* kOptMessage = "Inlines IncrOpLocal";
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
-  if (!NodeHasOnlyClass(node, smi_class_)) {
+  if (!AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
     TraceNotOpt(node, kOptMessage);
     CodeGenerator::VisitIncrOpLocalNode(node);
     return;
@@ -1097,6 +1112,121 @@ void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
     }
   }
 }
+
+
+// Debugging helper method, used in assert only.
+static bool HaveSameClassesInICData(const ICData& a, const ICData& b) {
+  if (a.NumberOfChecks() != b.NumberOfChecks()) {
+    return false;
+  }
+  if (a.NumberOfChecks() == 0) {
+    return true;
+  }
+  if (a.NumberOfArgumentsChecked() != b.NumberOfArgumentsChecked()) {
+    return false;
+  }
+  // Only one-argument checks implemented.
+  ASSERT(a.NumberOfArgumentsChecked() == 1);
+  Function& a_target = Function::Handle();
+  Function& b_target = Function::Handle();
+  Class& a_class = Class::Handle();
+  Class& b_class = Class::Handle();
+  for (intptr_t i = 0; i < a.NumberOfChecks(); i++) {
+    a.GetOneClassCheckAt(i, &a_class, &a_target);
+    bool found = false;
+    for (intptr_t n = 0; n < b.NumberOfChecks(); n++) {
+      b.GetOneClassCheckAt(n, &b_class, &b_target);
+      if ((a_class.raw() == b_class.raw())) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+void OptimizingCodeGenerator::VisitIncrOpInstanceFieldNode(
+    IncrOpInstanceFieldNode* node) {
+  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
+  VisitLoadOne(node->receiver(), EBX);
+  __ pushl(EBX);  // Duplicate receiver (preserve for setter).
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  if (ic_data.NumberOfChecks() == 0) {
+    // Deoptimization point for this node is after receiver has been
+    // pushed twice on stack and before the getter (above) was executed.
+    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EBX);
+    __ jmp(deopt_blob->label());
+    return;
+  }
+  InlineInstanceGetter(node,
+                       node->getter_id(),
+                       node->receiver(),
+                       node->field_name(),
+                       EBX);
+  // result is in EAX.
+  __ popl(EDX);   // Get receiver.
+  const bool return_original_value = !node->prefix() && IsResultNeeded(node);
+  const Immediate one_value = Immediate(Smi::RawValue(1));
+  // EAX: Value.
+  // EDX: Receiver.
+  if (AtIdNodeHasOnlyClass(node, node->operator_id(), smi_class_)) {
+    // Deoptimization point for this node is after receiver has been
+    // pushed twice on stack and before the getter (above) was executed.
+    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EDX, EDX);
+    if (return_original_value) {
+      // Preserve pre increment result.
+      __ movl(ECX, EAX);
+    }
+    __ testl(EAX, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt_blob->label());
+    if (node->kind() == Token::kINCR) {
+      __ addl(EAX, one_value);
+    } else {
+      __ subl(EAX, one_value);
+    }
+    __ j(OVERFLOW, deopt_blob->label());
+    if (return_original_value) {
+      // Preserve as result.
+      __ pushl(ECX);  // Preserve pre-increment value as result.
+    }
+  } else {
+    if (return_original_value) {
+      // Preserve as result.
+      __ pushl(EAX);  // Preserve value as result.
+    }
+    __ pushl(EDX);  // Preserve receiver.
+    __ pushl(EAX);  // Left operand.
+    __ pushl(one_value);  // Right operand.
+    const char* operator_name = (node->kind() == Token::kINCR) ? "+" : "-";
+    GenerateBinaryOperatorCall(node->operator_id(),
+                               node->token_index(),
+                               operator_name);
+    __ popl(EDX);  // Restore receiver.
+  }
+  // EAX: Result of binary operation.
+  // EDX: receiver
+  if (IsResultNeeded(node) && node->prefix()) {
+    // Value stored into field is the result.
+    __ pushl(EAX);
+  }
+
+  // This can never deoptimize since the checks are the same as in getter.
+  ASSERT(HaveSameClassesInICData(node->ICDataAtId(node->getter_id()),
+                                 node->ICDataAtId(node->setter_id())));
+  InlineInstanceSetter(node,
+                       node->setter_id(),
+                       node->receiver(),
+                       node->field_name(),
+                       EDX,   // receiver
+                       EAX);  // value.
+}
+
+
+
 
 
 // Return offset of a field or -1 if field is not found.
@@ -1143,41 +1273,52 @@ bool OptimizingCodeGenerator::NodeMayBeSmi(AstNode* node) const {
 
 
 // Emits code for an instance getter that has one or more collected classes,
-// all with the same target.
+// all with the same target. Deoptimizes for Smi or unexpected class.
+//  EBX: loaded receiver.
+// Result is returned in EAX.
 void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
-    InstanceGetterNode* node, const Function& target) {
-  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
-  ASSERT(classes->length() > 0);
-  Label load_field;
-  VisitLoadOne(node->receiver(), EBX);
+    AstNode* node,
+    intptr_t id,
+    AstNode* receiver,
+    const String& field_name,
+    Register recv_reg) {
+  if (recv_reg != EBX) {
+    // TODO(srdjan): Do not hardwire register.
+    UNIMPLEMENTED();
+  }
   DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EBX);
-  if (NodeMayBeSmi(node->receiver())) {
+  if (NodeMayBeSmi(receiver)) {
     __ testl(EBX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
   }
+
   __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
-  const int num_classes = classes->length();
-  for (intptr_t i = 0; i < num_classes; i++) {
-    const Class& cls = *(*classes)[i];
+  const ICData& ic_data = node->ICDataAtId(id);
+  Function& target = Function::Handle();
+  Label load_field;
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    Class& cls = Class::ZoneHandle();
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
     __ CompareObject(EAX, cls);
-    if (i == (num_classes - 1)) {
+    if (i == (ic_data.NumberOfChecks() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
     } else {
       __ j(EQUAL, &load_field, Assembler::kNearJump);
     }
   }
-  __ Bind(&load_field);
+  Class& cls = Class::Handle();
+  ic_data.GetOneClassCheckAt(0, &cls, &target);
 
+  __ Bind(&load_field);
   // EBX: receiver.
   if (target.kind() == RawFunction::kImplicitGetter) {
     TraceOpt(node, "Inlines instance getter with same target");
-    // Inlineable load field.
-    intptr_t field_offset = GetFieldOffset(*(*classes)[0],
-                                           node->field_name());
+    intptr_t field_offset = GetFieldOffset(cls, field_name);
     ASSERT(field_offset >= 0);
     __ movl(EAX, FieldAddress(EBX, field_offset));
     return;
   }
+
   Recognizer::Kind recognized_kind = Recognizer::RecognizeKind(target);
   switch (recognized_kind) {
     case Recognizer::kObjectArrayLength: {
@@ -1188,7 +1329,7 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     case Recognizer::kGrowableArrayLength: {
       TraceOpt(node, "Inlines GrowableObjectArray.length");
       intptr_t field_offset = GetFieldOffset(
-          *(*classes)[0],
+          cls,
           String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName)));
       __ movl(EAX, FieldAddress(EBX, field_offset));
       return;
@@ -1196,11 +1337,11 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     default:
       UNIMPLEMENTED();
   }
+  UNREACHABLE();
 }
 
 
-bool OptimizingCodeGenerator::IsInlineableInstanceGetter(
-    const Function& function) {
+static bool IsInlineableInstanceGetter(const Function& function) {
   if (function.kind() == RawFunction::kImplicitGetter) {
     return true;
   }
@@ -1213,64 +1354,147 @@ bool OptimizingCodeGenerator::IsInlineableInstanceGetter(
 }
 
 
-// TODO(srdjan): Implement for multiple getter targets.
-// For every class inline its implicit getter, or call the instance getter.
-void OptimizingCodeGenerator::VisitInstanceGetterNode(
-    InstanceGetterNode* node) {
-  const char* kMessage = "Inline instance getter";
-  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
-  const String& getter_name =
-      String::Handle(Field::GetterName(node->field_name()));
-  if (FLAG_trace_optimization) {
-    OS::Print("Getter %s ", getter_name.ToCString());
-  }
-  if ((classes == NULL) || classes->is_empty()) {
-    TraceNotOpt(node, kMessage);
-    CodeGenerator::VisitInstanceGetterNode(node);
-    return;
-  }
-  // Collect all targets and identify if they are all inlineable and
-  // all same. Use 'targets' for case when not all targets are inlineable.
-  const intptr_t num_classes = classes->length();
-  GrowableArray<const Function*> targets(num_classes);
-  bool all_inlineable = true;
-  bool all_same_target = true;
-  for (intptr_t i = 0; i < num_classes; i++) {
-    const Class& cls = *(*classes)[i];
-    const int kNumArguments = 1;
-    const int kNumNamedArguments = 0;
-    const Function& target = Function::ZoneHandle(
-        Resolver::ResolveDynamicForReceiverClass(cls,
-                                                 getter_name,
-                                                 kNumArguments,
-                                                 kNumNamedArguments));
+// Return the unique target of all checks or null.
+static RawFunction* GetUniqueTarget(const ICData& ic_data) {
+  Function& prev_target = Function::Handle();
+  Function& target = Function::Handle();
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
     ASSERT(!target.IsNull());
-    targets.Add(&target);
-    if (targets[0]->raw() != target.raw()) {
-      all_same_target = false;
+    if (!prev_target.IsNull() && (prev_target.raw() != target.raw())) {
+      return Function::null();
     }
-    if (!IsInlineableInstanceGetter(target)) {
-      all_inlineable = false;
-    }
+    prev_target = target.raw();
   }
-  // TODO(srdjan): implement other variants.
-  if (all_inlineable && all_same_target) {
-    InlineInstanceGettersWithSameTarget(node, *targets[0]);
+  return target.raw();
+}
+
+
+// Return true if all targets in 'ic_data' point to same
+// inlineable getter target.
+static bool ICDataToSameInlineableInstanceGetter(const ICData& ic_data) {
+  const Function& target = Function::Handle(GetUniqueTarget(ic_data));
+  return !target.IsNull() && IsInlineableInstanceGetter(target);
+}
+
+
+// Return true if all targets in 'ic_data' point to same
+// inlineable getter target.
+static bool ICDataToSameInlineableInstanceSetter(const ICData& ic_data) {
+  const Function& target = Function::Handle(GetUniqueTarget(ic_data));
+  return !target.IsNull() && (target.kind() == RawFunction::kImplicitSetter);
+}
+
+
+void OptimizingCodeGenerator::InlineInstanceGetter(AstNode* node,
+                                                   intptr_t id,
+                                                   AstNode* receiver,
+                                                   const String& field_name,
+                                                   Register recv_reg) {
+  if (ICDataToSameInlineableInstanceGetter(node->ICDataAtId(id))) {
+    InlineInstanceGettersWithSameTarget(node,
+                                        id,
+                                        receiver,
+                                        field_name,
+                                        recv_reg);
   } else {
     // TODO(srdjan): Inline access.
-    TraceNotOpt(node, kMessage);
-    node->receiver()->Visit(this);
+    __ pushl(recv_reg);
     const int kNumberOfArguments = 1;
     const Array& kNoArgumentNames = Array::Handle();
     GenerateCheckedInstanceCalls(node,
-                                 node->receiver(),
-                                 node->id(),
+                                 receiver,
+                                 id,
                                  node->token_index(),
                                  kNumberOfArguments,
                                  kNoArgumentNames);
   }
+}
+
+
+// TODO(srdjan): Implement for multiple getter targets.
+// For every class inline its implicit getter, or call the instance getter.
+void OptimizingCodeGenerator::VisitInstanceGetterNode(
+    InstanceGetterNode* node) {
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  if (ic_data.NumberOfChecks() == 0) {
+    // No type feedback collected.
+    node->receiver()->Visit(this);
+    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node);
+    __ jmp(deopt_blob->label());
+    return;
+  }
+
+  VisitLoadOne(node->receiver(), EBX);
+  InlineInstanceGetter(node,
+                       node->id(),
+                       node->receiver(),
+                       node->field_name(),
+                       EBX);
+  // Result is in EAX.
   if (CodeGenerator::IsResultNeeded(node)) {
     __ pushl(EAX);
+  }
+}
+
+
+// Clobber EBX leave 'value_reg' untouched.
+void OptimizingCodeGenerator::InlineInstanceSettersWithSameTarget(
+    AstNode* node,
+    intptr_t id,
+    AstNode* receiver,
+    const String& field_name,
+    Register recv_reg,
+    Register value_reg) {
+  ASSERT((recv_reg != EBX) && (value_reg != EBX));
+  DeoptimizationBlob* deopt_blob =
+      AddDeoptimizationBlob(node, recv_reg, value_reg);
+  if (NodeMayBeSmi(receiver)) {
+    __ testl(recv_reg, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt_blob->label());
+  }
+  __ movl(EBX, FieldAddress(recv_reg, Object::class_offset()));
+  const ICData& ic_data = node->ICDataAtId(id);
+  Function& target = Function::Handle();
+  Label store_field;
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    Class& cls = Class::ZoneHandle();
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    __ CompareObject(EBX, cls);
+    if (i == (ic_data.NumberOfChecks() - 1)) {
+      __ j(NOT_EQUAL, deopt_blob->label());
+    } else {
+      __ j(EQUAL, &store_field, Assembler::kNearJump);
+    }
+  }
+  Class& cls = Class::Handle();
+  ic_data.GetOneClassCheckAt(0, &cls, &target);
+
+  __ Bind(&store_field);
+  ASSERT(target.kind() == RawFunction::kImplicitSetter);
+  intptr_t field_offset = GetFieldOffset(cls, field_name);
+  ASSERT(field_offset >= 0);
+  __ StoreIntoObject(recv_reg, FieldAddress(recv_reg, field_offset), value_reg);
+}
+
+
+// Returns value in 'value_reg'.
+void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
+                                                   intptr_t id,
+                                                   AstNode* receiver,
+                                                   const String& field_name,
+                                                   Register recv_reg,
+                                                   Register value_reg) {
+  if (ICDataToSameInlineableInstanceSetter(node->ICDataAtId(id))) {
+    InlineInstanceSettersWithSameTarget(node,
+                                        id,
+                                        receiver,
+                                        field_name,
+                                        recv_reg,
+                                        value_reg);
+  } else {
+    UNIMPLEMENTED();
   }
 }
 
@@ -1279,88 +1503,31 @@ void OptimizingCodeGenerator::VisitInstanceGetterNode(
 // The result of the assignment to a field is the value being stored.
 void OptimizingCodeGenerator::VisitInstanceSetterNode(
     InstanceSetterNode* node) {
-  if (FLAG_enable_type_checks) {
+  // TODO(srdjan): inline setters to different targets as well.
+  if (FLAG_enable_type_checks ||
+      !ICDataToSameInlineableInstanceSetter(node->ICDataAtId(node->id()))) {
     CodeGenerator::VisitInstanceSetterNode(node);
     return;
   }
-  const char* kMessage = "Inline instance setter";
-  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
-  if ((classes == NULL) || classes->is_empty()) {
-    // Type feedback not yet collected.
-    TraceNotOpt(node, kMessage);
-    CodeGenerator::VisitInstanceSetterNode(node);
+  VisitLoadTwo(node->receiver(), node->value(), EDX, EAX);
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  if (ic_data.NumberOfChecks() == 0) {
+    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EDX, EAX);
+    __ jmp(deopt_blob->label());
     return;
   }
-  const int num_classes = classes->length();
-  bool all_inlineable = true;
-  const String& setter_name =
-      String::Handle(Field::SetterName(node->field_name()));
-  if (FLAG_trace_optimization) {
-    OS::Print("Setter: %s ", setter_name.ToCString());
-  }
-  // TODO(srdjan): Replace simple heuristic expecting that all setters
-  // for a call-site must be inlineable or none will be inlined.
-  for (intptr_t i = 0; i < num_classes; i++) {
-    const Class& cls = *(*classes)[i];
-    const int kNumArguments = 2;
-    const int kNumNamedArguments = 0;
-    const Function& target = Function::ZoneHandle(
-        Resolver::ResolveDynamicForReceiverClass(cls,
-                                                 setter_name,
-                                                 kNumArguments,
-                                                 kNumNamedArguments));
-    ASSERT(!target.IsNull());
-    if (target.kind() != RawFunction::kImplicitSetter) {
-      all_inlineable = false;
-      break;
-    }
-  }
+  // Value in EAX survives and will be stored on stack if result is needed.
+  InlineInstanceSetter(node,
+                       node->id(),
+                       node->receiver(),
+                       node->field_name(),
+                       EDX,
+                       EAX);
 
-  // TODO(srdjan): Add an upper limit to number of class tests.
-  if ((classes == NULL) || (num_classes == 0) || !all_inlineable) {
-    TraceNotOpt(node, kMessage);
-    CodeGenerator::VisitInstanceSetterNode(node);
-    return;
-  }
-
-  TraceOpt(node, kMessage);
-  // Inline setter(s).
-  VisitLoadTwo(node->receiver(), node->value(), EAX, EDX);
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EDX);
-  // Smi causes deoptimization.
-  if (NodeMayBeSmi(node->receiver())) {
-    __ testl(EAX, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt_blob->label());
-  }
-  __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
-  // EAX: receiver, EBX: receiver's class, EDX: value.
-
-
-  Label done;
-  for (int i = 0; i < num_classes; i++) {
-    intptr_t field_offset = GetFieldOffset(*(*classes)[i],
-                                           node->field_name());
-    ASSERT(field_offset >= 0);
-    const Class& cls = *(*classes)[i];
-    __ CompareObject(EBX, cls);
-    if (i != (num_classes - 1)) {
-      Label next_test;
-      __ j(NOT_EQUAL, &next_test);
-      __ StoreIntoObject(EAX, FieldAddress(EAX, field_offset), EDX);
-      __ jmp(&done);
-      __ Bind(&next_test);
-    } else {
-      // If last check fails deoptimize, otherwise store and fall through.
-      __ j(NOT_EQUAL, deopt_blob->label());
-      __ StoreIntoObject(EAX, FieldAddress(EAX, field_offset), EDX);
-    }
-  }
-  __ Bind(&done);
   if (CodeGenerator::IsResultNeeded(node)) {
-    __ pushl(EDX);
+    __ pushl(EAX);
   }
 }
-
 
 
 // Return false if condition is not supported.
@@ -1432,6 +1599,8 @@ void OptimizingCodeGenerator::GenerateConditionalJumps(const CodeGenInfo& nInfo,
 // when compared with double).
 // This code will be more optimized once we collect types for two arguments.
 void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   ASSERT((node->kind() == Token::kEQ) || (node->kind() == Token::kNE));
   CodeGenInfo left_info(node->left());
   CodeGenInfo right_info(node->right());
@@ -1489,8 +1658,8 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
                                  node->token_index(),
                                  kNumberOfArguments,
                                  kNoArgumentNames);
-    __ pushl(EAX);
-    __ jmp(&done, Assembler::kNearJump);
+    __ CompareObject(EAX, bool_true);
+    // Fall through to evaluate result.
   }
   __ Bind(&evaluate_comparison);
   // Condition is set by a previous comparison operation.
@@ -1501,8 +1670,6 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
     GenerateConditionalJumps(*(node->info()), condition);
     node->info()->set_labels_used(true);
   } else {
-    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-    const Bool& bool_false = Bool::ZoneHandle(Bool::False());
     Label true_label;
     __ j(condition, &true_label, Assembler::kNearJump);
     __ PushObject(bool_false);
@@ -1770,12 +1937,12 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
-  if (NodeHasOnlyClass(node, smi_class_)) {
+  if (AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
     if (GenerateSmiComparison(node)) {
       return;
     }
     // Fall through if condition is not supported.
-  } else if (NodeHasOnlyClass(node, double_class_)) {
+  } else if (AtIdNodeHasOnlyClass(node, node->id(), double_class_)) {
     // Double comparison
     if (GenerateDoubleComparison(node)) {
       return;
@@ -1799,12 +1966,13 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
       Class::ZoneHandle(object_store->array_class());
   const Class& immutable_object_array_class =
       Class::ZoneHandle(object_store->immutable_array_class());
-  if (NodeHasOnlyClass(node, object_array_class) ||
-      NodeHasOnlyClass(node, immutable_object_array_class)) {
+  if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class) ||
+      AtIdNodeHasOnlyClass(node, node->id(), immutable_object_array_class)) {
     VisitLoadTwo(node->array(), node->index_expr(), EBX, EDX);
     DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EBX, EDX);
-    const Class& test_class = NodeHasOnlyClass(node, object_array_class) ?
-        object_array_class : immutable_object_array_class;
+    const Class& test_class =
+        AtIdNodeHasOnlyClass(node, node->id(), object_array_class) ?
+            object_array_class : immutable_object_array_class;
     // Type checks of array.
     __ testl(EBX, Immediate(kSmiTagMask));  // Deoptimize if Smi.
     __ j(ZERO, deopt_blob->label());
@@ -1833,7 +2001,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
   const Class& growable_array_class = Class::ZoneHandle(
       Library::Handle(Library::CoreImplLibrary()).
           LookupClass(growable_object_array_class_name));
-  if (NodeHasOnlyClass(node, growable_array_class)) {
+  if (AtIdNodeHasOnlyClass(node, node->id(), growable_array_class)) {
     const String& growable_array_length_field_name =
         String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName));
     const String& growable_array_array_field_name =
@@ -1882,7 +2050,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Class& object_array_class =
       Class::ZoneHandle(object_store->array_class());
-  if (NodeHasOnlyClass(node, object_array_class)) {
+  if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class)) {
     VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
     DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EBX, ECX);
     __ popl(EAX);  // array.
@@ -2198,7 +2366,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
           Recognizer::KindToCString(recognized));
     }
     if ((recognized == Recognizer::kIntegerToDouble) &&
-        NodeHasOnlyClass(node, smi_class_)) {
+        AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
       // TODO(srdjan): Check if we could use temporary double instead of
       // allocating a new object every time.
       const Code& stub =
@@ -2217,7 +2385,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
     }
 
     if ((recognized == Recognizer::kDoubleToDouble) &&
-        NodeHasOnlyClass(node, double_class_)) {
+        AtIdNodeHasOnlyClass(node, node->id(), double_class_)) {
       DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX);
       __ popl(EAX);
       CheckIfDoubleOrSmi(EAX, EBX, deopt_blob->label(), deopt_blob->label());

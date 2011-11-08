@@ -90,10 +90,54 @@ static int ParseArguments(int argc,
 }
 
 
+static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
+  int options_count = options->count();
+  Dart_Handle dart_arguments = Dart_NewList(options_count);
+  if (!Dart_IsValid(dart_arguments)) {
+    return dart_arguments;
+  }
+  for (int i = 0; i < options_count; i++) {
+    Dart_Handle argument_value = Dart_NewString(options->GetArgument(i));
+    if (!Dart_IsValid(argument_value)) {
+      return argument_value;
+    }
+    Dart_Handle result = Dart_ListSetAt(dart_arguments, i, argument_value);
+    if (!Dart_IsValid(result)) {
+      return result;
+    }
+  }
+  Dart_Handle core_lib_url = Dart_NewString("dart:coreimpl");
+  if (!Dart_IsValid(core_lib_url)) {
+    return core_lib_url;
+  }
+  Dart_Handle core_lib = Dart_LookupLibrary(core_lib_url);
+  if (!Dart_IsValid(core_lib)) {
+    return core_lib;
+  }
+  Dart_Handle runtime_options_class_name = Dart_NewString("RuntimeOptions");
+  if (!Dart_IsValid(runtime_options_class_name)) {
+    return runtime_options_class_name;
+  }
+  Dart_Handle runtime_options_class = Dart_GetClass(
+      core_lib, runtime_options_class_name);
+  if (!Dart_IsValid(runtime_options_class)) {
+    return runtime_options_class;
+  }
+  Dart_Handle native_name = Dart_NewString("_nativeArguments");
+  if (!Dart_IsValid(native_name)) {
+    return native_name;
+  }
+
+  return Dart_SetStaticField(runtime_options_class,
+                             native_name,
+                             dart_arguments);
+}
+
+
 static void DumpPprofSymbolInfo() {
   if (generate_pprof_symbols_filename != NULL) {
     Dart_EnterScope();
-    File* pprof_file = File::OpenFile(generate_pprof_symbols_filename, true);
+    File* pprof_file = File::Open(generate_pprof_symbols_filename, true);
     ASSERT(pprof_file != NULL);
     void* buffer;
     int buffer_size;
@@ -155,7 +199,7 @@ static bool HasCompileAll(const CommandLineOptions& options) {
 
 
 static void PrintObject(FILE* out, Dart_Handle object) {
-  Dart_Handle result = Dart_ObjectToString(object);
+  Dart_Handle result = Dart_ToString(object);
   if (Dart_IsValid(result)) {
     PrintString(out, result);
   } else {
@@ -199,8 +243,6 @@ int main(int argc, char** argv) {
   }
 
   Dart_EnterScope();
-  // TODO(asiva): Create a dart options object that can be accessed from
-  // dart code.
   if (HasCompileAll(vm_options)) {
     Dart_Handle result = Dart_CompileAll();
     if (!Dart_IsValid(result)) {
@@ -210,6 +252,16 @@ int main(int argc, char** argv) {
       free(canonical_script_name);
       return 255;  // Indicates we encountered an error.
     }
+  }
+
+  // Create a dart options object that can be accessed from dart code.
+  Dart_Handle options_result = SetupRuntimeOptions(&dart_options);
+  if (!Dart_IsValid(options_result)) {
+    fprintf(stderr, "%s\n", Dart_GetError(options_result));
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    free(canonical_script_name);
+    return 255;  // Indicates we encountered an error.
   }
 
   // Lookup and invoke the top level main function.

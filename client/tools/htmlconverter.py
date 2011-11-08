@@ -35,10 +35,15 @@ HTML_NO_PREFIX_IMPORT_MATCHER = re.compile(
 JSON_IMPORT_MATCHER = re.compile(
     r"^#import\(['\"]dart:json['\"].*\);", re.MULTILINE)
 
-COMPILER_NOT_FOUND_ERROR = (
+DARTC_NOT_FOUND_ERROR = (
 """Couldn't find compiler: please run the following commands:
    $ cd %s
    $ ./tools/build.py --arch=ia32""")
+
+FROG_NOT_FOUND_ERROR = (
+"""Couldn't find compiler: please run the following commands:
+   $ cd %s/frog
+   $ ./tools/build.py -m release""")
 
 ENTRY_POINT = """
 #library('entry');
@@ -80,10 +85,12 @@ def adjustImports(contents):
 class DartCompiler(object):
   """ Common code for compiling Dart script tags in an HTML file. """
 
-  def __init__(self, optimize=False, verbose=False, extra_flags=""):
+  def __init__(self, optimize=False, use_frog=False, verbose=False,
+      extra_flags=""):
     self.optimize = optimize
     self.verbose = verbose
     self.extra_flags = extra_flags
+    self.use_frog = use_frog
 
   def compileCode(self, src=None, body=None):
     """ Compile the given source code.
@@ -164,19 +171,29 @@ class DartCompiler(object):
     return CHROMIUM_SCRIPT_TEMPLATE % res
 
   def compileCommand(self, inputfile, outdir):
-    binary = abspath(join(DART_PATH,
-        # TODO(sigmund): support also mode = release
-        utils.GetBuildRoot(utils.GuessOS(), 'debug', 'ia32'),
-        'dartc'))
-    if not exists(binary):
-      raise ConverterException(COMPILER_NOT_FOUND_ERROR % DART_PATH)
-    cmd = [binary,
-           '-noincremental',
-           '--work', outdir,
-           '--out', self.outputFileName(inputfile, outdir)]
-    if self.optimize:
-      cmd.append('--optimize')
-    cmd.append(self.extra_flags);
+    if not self.use_frog:
+      binary = abspath(join(DART_PATH,
+          # TODO(sigmund): support also mode = release
+          utils.GetBuildRoot(utils.GuessOS(), 'debug', 'ia32'),
+          'dartc'))
+      if not exists(binary):
+        raise ConverterException(DARTC_NOT_FOUND_ERROR % DART_PATH)
+      cmd = [binary,
+             '-noincremental',
+             '--work', outdir,
+             '--out', self.outputFileName(inputfile, outdir)]
+      if self.optimize:
+        cmd.append('--optimize')
+    else:
+      binary = abspath(join(DART_PATH, 'frog',
+          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+          'frog', 'bin', 'frogsh'))
+      if not exists(binary):
+        raise ConverterException(FROG_NOT_FOUND_ERROR % DART_PATH)
+      cmd = [binary, '--compile-only',
+             '--out=' + self.outputFileName(inputfile, outdir)]
+    if self.extra_flags != "":
+      cmd.append(self.extra_flags);
     cmd.append(inputfile)
     return cmd
 
@@ -468,6 +485,10 @@ def Flags():
       help="Use optimizer in dartc",
       default=False,
       action="store_true")
+  result.add_option("--frog",
+      help="Use the frog compiler",
+      default=False,
+      action="store_true")
   result.add_option("--verbose",
       help="Print verbose output",
       default=False,
@@ -508,13 +529,14 @@ def convertForDartium(filename, outdirBase, outfile, verbose):
   converter.close()
   writeOut(converter.getResult(), outfile)
 
-def convertForChromium(filename, optimize, extra_flags, outfile, verbose):
+def convertForChromium(
+    filename, optimize, use_frog, extra_flags, outfile, verbose):
   """ Converts a file for a chromium target. """
   with open(filename, 'r') as f:
     contents = f.read()
   prefix_path = dirname(filename)
-  converter = DartHTMLConverter(DartCompiler(optimize, verbose, extra_flags),
-                                prefix_path)
+  converter = DartHTMLConverter(
+      DartCompiler(optimize, use_frog, verbose, extra_flags), prefix_path)
   converter.feed(contents)
   converter.close()
   writeOut(converter.getResult(), outfile)
@@ -554,7 +576,8 @@ def main():
       return 1
     outfile = join(options.out, filename)
     if 'chromium' in options.target or 'js' in options.target:
-      convertForChromium(filename, options.optimize, options.extra_flags,
+      convertForChromium(filename, options.optimize,
+          options.frog, options.extra_flags,
           outfile.replace(extension, '-js' + extension), options.verbose)
     if 'dartium' in options.target:
       convertForDartium(filename, options.out,

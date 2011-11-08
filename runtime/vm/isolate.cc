@@ -59,7 +59,7 @@ Isolate::Isolate()
       timer_list_(),
       stack_limit_(0),
       stack_limit_on_overflow_exception_(0),
-      ast_node_id_(AstNode::kInvalidId) {
+      ast_node_id_(AstNode::kNoId) {
 }
 
 

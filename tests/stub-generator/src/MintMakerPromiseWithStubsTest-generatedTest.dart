@@ -8,7 +8,7 @@
 
 /* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 9) */
 
-interface Mint$Proxy {
+interface Mint$Proxy extends Proxy {
   Purse$Proxy createPurse(int balance);
 }
 
@@ -61,7 +61,7 @@ class Mint$Dispatcher$Isolate extends Isolate {
 
 /* class = Purse (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 17) */
 
-interface Purse$Proxy {
+interface Purse$Proxy extends Proxy {
   Promise<int> queryBalance();
 
   Purse$Proxy sproutPurse();
@@ -89,7 +89,7 @@ class Purse$ProxyImpl extends ProxyImpl implements Purse$Proxy {
   }
 
   Promise<int> deposit(int amount, Purse$Proxy source) {
-    return this.call(["deposit", amount, source]);
+    return new PromiseProxy<int>(this.call(["deposit", amount, source]));
   }
 }
 
@@ -110,13 +110,9 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
       int amount = message[1];
       List<Promise<SendPort>> promises = new List<Promise<SendPort>>();
       promises.add(new PromiseProxy<SendPort>(new Promise<SendPort>.fromValue(message[2])));
-      Promise done = new Promise();
-      done.waitFor(promises, 1);
-      done.addCompleteHandler((_) {
-        Purse$Proxy source = new Purse$ProxyImpl(promises[0]);
-        int deposit = target.deposit(amount, source);
-        reply(deposit);
-      });
+      Purse$Proxy source = new Purse$ProxyImpl(promises[0]);
+      Promise<int> deposit = target.deposit(amount, source);
+      reply(deposit);
     } else {
       // TODO(kasperl,benl): Somehow throw an exception instead.
       reply("Exception: command '" + command + "' not understood by Purse.");
@@ -150,7 +146,7 @@ interface Purse factory PurseImpl {
 
   int queryBalance();
   Purse sproutPurse();
-  int deposit(int amount, Purse$Proxy source);
+  Promise<int> deposit(int amount, Purse$Proxy source);
 
 }
 
@@ -187,17 +183,21 @@ class PurseImpl implements Purse {
     return _mint.createPurse(0);
   }
 
-  int deposit(int amount, Purse$Proxy proxy) {
+  Promise<int> deposit(int amount, Purse$Proxy proxy) {
     if (amount < 0) throw "Ha ha";
     // Because we are in the same isolate as the other purse, we can
     // retrieve the proxy's local PurseImpl object and act on it
     // directly. Further, a forged purse will not be convertible, and
     // so an attempt to use it will fail.
-    PurseImpl source = proxy.dynamic.local;
-    if (source._balance < amount) throw "Not enough dough.";
-    _balance += amount;
-    source._balance -= amount;
-    return _balance;
+    Promise<int> balance = new Promise<int>();
+    proxy.addCompleteHandler((_) {
+      PurseImpl source = proxy.dynamic.local;
+      if (source._balance < amount) throw "Not enough dough.";
+      _balance += amount;
+      source._balance -= amount;
+      balance.complete(_balance);
+    });
+    return balance;
   }
 
   Mint _mint;
@@ -218,19 +218,33 @@ class MintMakerPromiseWithStubsTest {
     // FIXME(benl): We should not have to manually order the calls
     // like this.
     Promise<int> result = sprouted.deposit(5, purse);
-    expect.completesWithValue(result, 5);
+    Promise p1 = expect.completesWithValue(result, 5);
+    Promise<bool> p2 = new Promise<bool>();
+    Promise<bool> p3 = new Promise<bool>();
+    Promise<bool> p4 = new Promise<bool>();
+    Promise<bool> p5 = new Promise<bool>();
+    Promise<bool> p6 = new Promise<bool>();
     result.addCompleteHandler((_) {
-      expect.completesWithValue(sprouted.queryBalance(), 0 + 5);
-      expect.completesWithValue(purse.queryBalance(), 100 - 5);
+      expect.completesWithValue(sprouted.queryBalance(), 0 + 5)
+        .then((_) => p2.complete(true));
+      expect.completesWithValue(purse.queryBalance(), 100 - 5)
+        .then((_) => p3.complete(true));
 
       result = sprouted.deposit(42, purse);
-      expect.completesWithValue(result, 5 + 42);
+      expect.completesWithValue(result, 5 + 42).then((_) => p4.complete(true));
       result.addCompleteHandler((_) {
-        expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42);
-        expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42);
+        expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42)
+          .then((_) => p5.complete(true));
+        expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42)
+          .then((_) => p6.complete(true));
         });
     });
-    expect.succeeded();
+    Promise<bool> done = new Promise<bool>();
+    done.waitFor([p1, p2, p3, p4, p5, p6], 6);
+    done.then((_) {
+      expect.succeeded();
+      print("##DONE##");
+    });
   }
 
 }

@@ -64,9 +64,10 @@ class StandardTestCase(test.TestCase):
 class MultiTestCase(StandardTestCase):
   """Multiple test cases defined within a single *Test.dart file."""
 
-  def __init__(self, context, path, filename, kind, mode, arch, component):
+  def __init__(self, context, path, filename, kind, mode, arch, component,
+               vm_options = None):
     super(MultiTestCase, self).__init__(context, path, filename, mode, arch,
-                                        component)
+                                        component, vm_options)
     self.kind = kind
 
   def GetCommand(self):

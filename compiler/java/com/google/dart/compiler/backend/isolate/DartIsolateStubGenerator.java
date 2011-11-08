@@ -99,6 +99,23 @@ public class DartIsolateStubGenerator extends AbstractBackend {
     String name = ((DartIdentifier)x.getIdentifier()).getTargetName();
     return name.equals("Promise");
   }
+  
+  private String getPromiseType(DartTypeNode x) {
+    assert isPromise(x);
+    List<DartTypeNode> types = x.getTypeArguments();
+    assert types.size() == 1;
+    return ((DartIdentifier)types.get(0).getIdentifier()).getTargetName();
+  }
+  
+   private static boolean isPromiseForProxy(DartTypeNode x) {
+    if (!isPromise(x))
+      return false;
+    List<DartTypeNode> types = x.getTypeArguments();
+    if (types.size() != 1)
+      return false;
+    String name = ((DartIdentifier)types.get(0).getIdentifier()).getTargetName();
+    return name.endsWith("$Proxy");
+  }
 
   private static boolean isVoid(DartTypeNode x) {
     if (!isSimpleType(x))
@@ -271,7 +288,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
    */
   private void generateProxyClass(DartClass clazz) {
     String name = clazz.getClassName();
-    p("interface " + name + "$Proxy {");
+    p("interface " + name + "$Proxy extends Proxy {");
     printProxyInterfaceFunctions(clazz);
     p("}");
     nl();
@@ -318,26 +335,37 @@ public class DartIsolateStubGenerator extends AbstractBackend {
         final boolean isSimple = isSimpleType(returnTypeNode);
         final boolean isProxy = isProxyType(returnTypeNode);
         final boolean isPromise = isPromise(returnTypeNode);
-        if (!isVoid) {
-          p("return ");
-          if (!isSimple) {
-            p("new ");
-            accept(returnTypeNode);
-            if (!isProxy) {
-              p("$Proxy");
+        final boolean isPromiseForProxy = isPromiseForProxy(returnTypeNode);
+        if (isPromiseForProxy) {
+          String type = getPromiseType(returnTypeNode);
+          // This horrific unpacking is because a Proxy is, in effect, a Promise, but not quite, so
+          // a Promise<Proxy> ends up begin wrapped in two layers of SendPorts.
+          // FIXME(benl): unifying Promise and Proxy under Completable might well reduce the
+          // complexity here.
+          p("return new Promise<" + type + ">.fromValue(new " + type
+            + "Impl(new PromiseProxy<SendPort>(new PromiseProxy<SendPort>(");
+        } else {
+          if (!isVoid) {
+            p("return ");
+            if (!isSimple) {
+              p("new ");
+              accept(returnTypeNode);
+              if (!isProxy) {
+                p("$Proxy");
+              }
+              p("Impl(");
             }
-            p("Impl(");
           }
-        }
-        if (isProxy) {
-          // Note that Promises are Proxies.
-          p("new PromiseProxy");
-          if (isPromise) {
-            printTypeArguments(returnTypeNode);
-          } else {
-            p("<SendPort>");
+          if (isProxy) {
+            // Note that Promises are Proxies.
+            p("new PromiseProxy");
+            if (isPromise) {
+              printTypeArguments(returnTypeNode);
+            } else {
+              p("<SendPort>");
+            }
+            p("(");
           }
-          p("(");
         }
         p("this.");
         if (isVoid) {
@@ -364,11 +392,15 @@ public class DartIsolateStubGenerator extends AbstractBackend {
         };
         params.acceptList(func.getParams());
         p("])");
-        if (isProxy) {
-          p(")");
-        }
-        if (!isSimple) {
-          p(")");
+        if (isPromiseForProxy) {
+          p("))))");
+        } else {
+          if (isProxy) {
+            p(")");
+          }
+          if (!isSimple) {
+            p(")");
+          }
         }
         p(";");
         nl();
@@ -411,22 +443,12 @@ public class DartIsolateStubGenerator extends AbstractBackend {
       p("\") {");
       nl();
       int proxies = unpackParams(member);
-      String extra = "";
       if (proxies != 0) {
-        p("      Promise done = new Promise();");
-        nl();
-        p("      done.waitFor(promises, " + proxies + ");");
-        nl();
-        p("      done.addCompleteHandler((_) {");
-        nl();
+        // FIXME(benl): we don't need to gather them anymore, could just pass them directly. Too
+        // lazy right now.
         gatherProxies(member);
-        extra = "  ";
       }
-      callTarget((DartMethodDefinition)member, extra);
-      if (proxies != 0) {
-        p("      });");
-        nl();
-      }
+      callTarget((DartMethodDefinition)member, "");
       p("    }");
       first = false;
     }
@@ -648,7 +670,7 @@ public class DartIsolateStubGenerator extends AbstractBackend {
         boolean isSimpleType = isSimpleType(x.getTypeNode());
 
         if (!isSimpleType) {
-          p("        ");
+          p("      ");
           accept(x.getTypeNode());
           p(" ");
           accept(x.getName());

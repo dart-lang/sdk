@@ -449,9 +449,10 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
       }
     }
   }
-  const Type& super_type = Type::Handle(cls.super_type());
+  Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    FinalizeType(super_type);
+    super_type = FinalizeType(super_type);
+    cls.set_super_type(super_type);
     const Class& super_class = Class::Handle(super_type.type_class());
     const TypeArguments& super_type_args =
         TypeArguments::Handle(super_type.arguments());
@@ -465,6 +466,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
       if (!super_type_arg.IsInstantiated()) {
         super_type_arg = super_type_arg.InstantiateFrom(arguments, offset);
       }
+      super_type_arg = super_type_arg.Canonicalize();
       arguments.SetTypeAt(super_offset + i, super_type_arg);
     }
     FinalizeTypeArguments(super_class, arguments);
@@ -472,10 +474,10 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
 }
 
 
-void ClassFinalizer::FinalizeType(const Type& type) {
+RawType* ClassFinalizer::FinalizeType(const Type& type) {
   ASSERT(type.IsResolved());
   if (type.IsFinalized()) {
-    return;
+    return type.raw();
   }
 
   // At this point, we can only have a parameterized_type.
@@ -498,7 +500,8 @@ void ClassFinalizer::FinalizeType(const Type& type) {
     intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
       Type& type_argument = Type::Handle(arguments.TypeAt(i));
-      FinalizeType(type_argument);
+      type_argument = FinalizeType(type_argument);
+      arguments.SetTypeAt(i, type_argument);
     }
   }
 
@@ -550,26 +553,30 @@ void ClassFinalizer::FinalizeType(const Type& type) {
   }
 
   parameterized_type.set_is_finalized();
+  return parameterized_type.Canonicalize();
 }
 
 
-RawString* ClassFinalizer::FinalizeTypeWhileParsing(const Type& type) {
+RawType* ClassFinalizer::FinalizeAndCanonicalizeType(const Type& type,
+                                                     String* errmsg) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    FinalizeType(type);
+    const Type& canonical_type = Type::Handle(FinalizeType(type));
     isolate->set_long_jump_base(base);
-    return String::null();
+    *errmsg = String::null();
+    return canonical_type.raw();
   } else {
     // Error occured: Get the error message.
     isolate->set_long_jump_base(base);
-    return isolate->object_store()->sticky_error();
+    *errmsg = isolate->object_store()->sticky_error();
+    return type.raw();
   }
   UNREACHABLE();
-  return String::null();
+  return Type::null();
 }
 
 
@@ -584,14 +591,16 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   Type& type = Type::Handle(function.result_type());
   type = ResolveType(cls, type);
   function.set_result_type(type);
-  FinalizeType(type);
+  type = FinalizeType(type);
+  function.set_result_type(type);
   // Resolve formal parameter types.
   const intptr_t num_parameters = function.NumberOfParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     type = ResolveType(cls, type);
     function.SetParameterTypeAt(i, type);
-    FinalizeType(type);
+    type = FinalizeType(type);
+    function.SetParameterTypeAt(i, type);
   }
 }
 
@@ -659,7 +668,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     type = field.type();
     type = ResolveType(cls, type);
     field.set_type(type);
-    FinalizeType(type);
+    type = FinalizeType(type);
+    field.set_type(type);
     name = field.name();
     super_class = FindSuperOwnerOfInstanceMember(cls, name);
     if (!super_class.IsNull()) {
@@ -769,8 +779,10 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   }
   // Resolve the signature type if this class is a signature class.
   if (cls.IsSignatureClass()) {
-    const Type& signature_type = Type::Handle(cls.SignatureType());
-    FinalizeType(signature_type);
+    Type& signature_type = Type::Handle(cls.SignatureType());
+    signature_type = FinalizeType(signature_type);
+    // Signature types are canonicalized by default.
+    ASSERT(signature_type.raw() == cls.SignatureType());
   }
 }
 
@@ -789,15 +801,16 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   GrowableArray<const Class*> visited;
   ResolveInterfaces(cls, &visited);
-  const Type& super_type = Type::Handle(cls.super_type());
+  Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     const Class& super_class = Class::Handle(super_type.type_class());
     // Finalize super class and super type.
     FinalizeClass(super_class);
-    FinalizeType(super_type);
+    super_type = FinalizeType(super_type);
+    cls.set_super_type(super_type);
   }
   if (cls.is_interface()) {
-    const Type& factory_type = Type::Handle(cls.factory_type());
+    Type& factory_type = Type::Handle(cls.factory_type());
     if (!factory_type.IsNull()) {
       const Class& factory_class = Class::Handle(factory_type.type_class());
       // Finalize factory class and factory type.
@@ -808,7 +821,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
           return;
         }
       }
-      FinalizeType(factory_type);
+      factory_type = FinalizeType(factory_type);
+      cls.set_factory_type(factory_type);
     }
   }
   // Finalize interface types (but not necessarily interface classes).
@@ -816,7 +830,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   Type& interface_type = Type::Handle();
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
-    FinalizeType(interface_type);
+    interface_type = FinalizeType(interface_type);
+    interface_types.SetAt(i, interface_type);
   }
   // Mark as finalized before resolving member types in order to break cycles.
   cls.Finalize();

@@ -45,7 +45,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool writable = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
-  File* file = File::OpenFile(filename, writable);
+  File* file = File::Open(filename, writable);
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }
@@ -55,7 +55,7 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  bool exists = File::FileExists(filename);
+  bool exists = File::Exists(filename);
   Dart_SetReturnValue(args, Dart_NewBoolean(exists));
   Dart_ExitScope();
 }
@@ -141,13 +141,13 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
   File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-    ASSERT(Dart_IsArray(buffer_obj));
+    ASSERT(Dart_IsList(buffer_obj));
     int64_t offset =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     intptr_t array_len = 0;
-    Dart_Handle result = Dart_GetLength(buffer_obj, &array_len);
+    Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
     ASSERT(Dart_IsValid(result));
     ASSERT((offset + length) <= array_len);
     uint8_t* buffer = new uint8_t[length];
@@ -158,7 +158,7 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
      */
     if (total_bytes_read >= 0) {
       result =
-          Dart_ArraySet(buffer_obj, offset, buffer, total_bytes_read);
+          Dart_ListSetAsBytes(buffer_obj, offset, buffer, total_bytes_read);
       ASSERT(Dart_IsValid(result));
       return_value = total_bytes_read;
     }
@@ -177,17 +177,17 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   File* file = reinterpret_cast<File*>(value);
   if (file != NULL) {
     Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-    ASSERT(Dart_IsArray(buffer_obj));
+    ASSERT(Dart_IsList(buffer_obj));
     int64_t offset =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
     int64_t length =
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     intptr_t buffer_len = 0;
-    Dart_Handle result = Dart_GetLength(buffer_obj, &buffer_len);
+    Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
     ASSERT(Dart_IsValid(result));
     ASSERT((offset + length) <= buffer_len);
     uint8_t* buffer = new uint8_t[length];
-    result = Dart_ArrayGet(buffer_obj, offset, buffer, length);
+    result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
     ASSERT(Dart_IsValid(result));
     int total_bytes_written =
         file->Write(reinterpret_cast<void*>(buffer), length);
@@ -240,5 +240,28 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
     return_value = 0;
   }
   Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  bool result = File::Create(str);
+  Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  char* path = File::GetCanonicalPath(str);
+  if (path != NULL) {
+    Dart_SetReturnValue(args, Dart_NewString(path));
+    free(path);
+  }
   Dart_ExitScope();
 }

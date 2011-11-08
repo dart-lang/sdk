@@ -4,17 +4,19 @@
 //
 // Process test program to test process communication.
 
+#source("ProcessTestUtil.dart");
+
 class ProcessSegfaultTest {
 
   static void testExit() {
-    Process process = new Process("out/Debug_ia32/process_test",
+    Process process = new Process(getProcessTestFileName(),
                                   const ["0", "0", "1", "1"]);
 
     void exitHandler(int exitCode) {
       process.close();
     }
 
-    process.setExitHandler(exitHandler);
+    process.exitHandler = exitHandler;
     process.start();
   }
 

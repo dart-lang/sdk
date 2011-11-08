@@ -29,9 +29,9 @@ class _Process implements Process {
       _arguments[i] = arguments[i];
     }
 
-    _in = new _Socket._internal();
-    _out = new _Socket._internal();
-    _err = new _Socket._internal();
+    _in = new _Socket._internalOutputOnly();
+    _out = new _Socket._internalInputOnly();
+    _err = new _Socket._internalOutputOnly();
     _exitHandler = new _Socket._internal();
     _closed = false;
     _killed = false;
@@ -57,7 +57,7 @@ class _Process implements Process {
 
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
-    _exitHandler.setDataHandler(() {
+    _exitHandler.dataHandler = () {
         final int EXIT_DATA_SIZE = 8;
         List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
         InputStream input = _exitHandler.inputStream;
@@ -85,7 +85,7 @@ class _Process implements Process {
         }
 
         input.dataHandler = exitData;
-      });
+      };
   }
 
   bool _start(String path,
@@ -146,7 +146,7 @@ class _Process implements Process {
     _closed = true;
   }
 
-  void setExitHandler(void callback(int exitCode)) {
+  void set exitHandler(void callback(int exitCode)) {
     if (_closed) {
       throw new ProcessException("Process closed");
     }

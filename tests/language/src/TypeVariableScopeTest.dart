@@ -39,4 +39,5 @@ interface I<X> factory Foo<X> {
 
 main() {
   Foo.m(null);
+  new I(null);
 }

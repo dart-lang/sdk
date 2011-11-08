@@ -2,6 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# IF YOU ARE TEMPTED TO SKIP TESTS HERE, READ THIS FIRST:
+# So far, every time these have been marked skip it is because someone broke
+# the stub generator, usually by making "no such type" unconditionally fatal.
+# Please instead fix the stub generator. Or at least talk to benl before
+# committing your change.
+
 prefix stub-generator
 
 [ $component == vm ]

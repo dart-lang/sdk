@@ -156,7 +156,8 @@ static void ThrowTypeError(intptr_t location,
 // Arg0: index of the case clause token into which we fall through.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
-  intptr_t fallthrough_pos = Smi::CheckedHandle(arguments->At(0)).Value();
+  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->At(0));
+  intptr_t fallthrough_pos = smi_pos.Value();
 
   // Allocate a new instance of type FallThroughError.
   const Instance& fallthrough_error =

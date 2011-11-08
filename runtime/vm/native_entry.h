@@ -52,6 +52,21 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 #define DECLARE_NATIVE_ENTRY(name, argument_count)                             \
   extern void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments arguments);
 
+// Natives should throw an exception if an illegal argument is passed.
+// type name = value.
+#define GET_NATIVE_ARGUMENT(type, name, value)                                 \
+  type& name = type::Handle();                                                 \
+  {                                                                            \
+    const Instance& __instance__ = Instance::CheckedHandle(value);             \
+    if (!__instance__.Is##type()) {                                            \
+      GrowableArray<const Object*> __args__;                                   \
+      __args__.Add(&__instance__);                                             \
+      Exceptions::ThrowByType(Exceptions::kIllegalArgument, __args__);         \
+    }                                                                          \
+    name ^= __instance__.raw();                                                \
+  }
+
+
 
 // Helper class for resolving and handling native functions.
 class NativeEntry : public AllStatic {

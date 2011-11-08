@@ -120,15 +120,40 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle);
 /**
  * Produces an invalid handle with the provided error message.
  *
- * This function makes its own copy of the error message and does not
- * claim ownership of the 'error' parameter.
- *
  * Requires there to be a current isolate.
  *
  * \param error A C string containing an error message.
  */
-DART_EXPORT Dart_Handle Dart_Error(const char* error);
-// TODO(turnidge): Accept printf-style args here.
+DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
+
+/**
+ * Converts an object to a string.
+ *
+ * If an exception occurs during the conversion, this is treated as an
+ * error.
+ *
+ * \return A handle to the converted string if no errors occur during
+ * the conversion. If an error does occur, an invalid handle is
+ * returned.
+ */
+DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
+
+/**
+ * Checks if the two objects are the same object
+ *
+ * The result of the comparison is returned through the 'same'
+ * parameter. The return value itself is used to indicate success or
+ * failure, not identity.
+ *
+ * \param obj1 An object to be compared.
+ * \param obj2 An object to be compared.
+ * \param equal Returns whether the two objects are the same.
+ *
+ * \return A valid handle if no error occurs during the comparison.
+ */
+DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1,
+                                    Dart_Handle obj2,
+                                    bool* same);
 
 /**
  * Allocates a persistent handle for an object.
@@ -139,8 +164,6 @@ DART_EXPORT Dart_Handle Dart_Error(const char* error);
  * Requires there to be a current isolate.
  */
 DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object);
-// TODO(turnidge): This function currently only works when passes a
-// local handle.  Make it work for both local and persistent handles.
 
 /**
  * Deallocates a persistent handle.
@@ -440,25 +463,21 @@ DART_EXPORT void Dart_ExitScope();
 // --- Objects ----
 
 /**
+ * Returns the null object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the null object.
+ */
+DART_EXPORT Dart_Handle Dart_Null();
+
+/**
  * Is this object null?
  */
 DART_EXPORT bool Dart_IsNull(Dart_Handle object);
 
 /**
- * Converts an object to a string.
- *
- * If an exception occurs during the conversion, this is treated as an
- * error.
- *
- * \return A handle to the converted string if no errors occur during
- * the conversion. If an error does occur, an invalid handle is
- * returned.
- */
-DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object);
-// TODO(turnidge): Consider shortening name to Dart_ToString.
-
-/**
- * Returns true if the two objects are equal.
+ * Checks if the two objects are equal.
  *
  * The result of the comparison is returned through the 'equal'
  * parameter. The return value itself is used to indicate success or
@@ -470,12 +489,9 @@ DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object);
  *
  * \return A valid handle if no error occurs during the comparison.
  */
-DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1,
-                                           Dart_Handle obj2,
-                                           bool* equal);
-// TODO(turnidge): Consider renaming for consistency. Maybe just
-// Dart_Equals.
-// TODO(turnidge): Need to add identity equality function.
+DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
+                                          Dart_Handle obj2,
+                                          bool* equal);
 
 /**
  * Is this object an instance of some type?
@@ -489,7 +505,7 @@ DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_IsInstanceOf(Dart_Handle object,
+DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* instanceof);
 
@@ -565,6 +581,24 @@ DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
                                                     const char** value);
 
 // --- Booleans ----
+
+/**
+ * Returns the True object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object.
+ */
+DART_EXPORT Dart_Handle Dart_True();
+
+/**
+ * Returns the False object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the False object.
+ */
+DART_EXPORT Dart_Handle Dart_False();
 
 /**
  * Is this object a Boolean?
@@ -757,78 +791,71 @@ DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
                                              const char** utf8);
 
-// --- Arrays ---
+// --- Lists ---
 
 /**
- * Is this object an Array?
+ * Is this object a List?
  */
-DART_EXPORT bool Dart_IsArray(Dart_Handle object);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT bool Dart_IsList(Dart_Handle object);
 
 /**
- * Returns an Array of the desired length.
+ * Returns a List of the desired length.
  *
- * \param length The length of the array.
+ * \param length The length of the list.
  *
- * \return The Array object if no errors occurs. Otherwise returns
+ * \return The List object if no errors occurs. Otherwise returns
  *   an invalid handle.
  */
-DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_NewList(intptr_t length);
 
 /**
- * Gets the length of an Array.
+ * Gets the length of a List.
  *
- * \param array An Array.
- * \param length Returns the length of the Array.
+ * \param list A List.
+ * \param length Returns the length of the List.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* length);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* length);
 
 /**
- * Gets the Object at some index of an Array.
+ * Gets the Object at some index of a List.
  *
  * If the index is out of bounds, an error occurs.
  *
- * \param array An Array.
- * \param index A valid index into the Array.
+ * \param list A List.
+ * \param index A valid index into the List.
  *
- * \return The Object in the Array at the specified index if no errors
+ * \return The Object in the List at the specified index if no errors
  *   occurs. Otherwise returns an invalid handle.
  */
-DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array,
-                                        intptr_t index);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list,
+                                       intptr_t index);
 
 /**
- * Sets the Object at some index of an Array.
+ * Sets the Object at some index of a List.
  *
  * If the index is out of bounds, an error occurs.
  *
- * \param array An Array.
- * \param index A valid index into the Array.
- * \param value The Object to put in the Array.
+ * \param array A List.
+ * \param index A valid index into the List.
+ * \param value The Object to put in the List.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
-                                        intptr_t index,
-                                        Dart_Handle value);
-// TODO(turnidge): Rename Array -> List.
+DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
+                                       intptr_t index,
+                                       Dart_Handle value);
 
-// TODO(turnidge): Figure out what this is for.
-DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length);
+DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length);
 
-// TODO(turnidge): Figure out what this is for.
-DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length);
+DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length);
 
 // --- Closures ---
 
@@ -993,9 +1020,8 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
  * \return An invalid handle if the exception was not thrown.
  *   Otherwise the function does not return.
  */
-DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
+DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace);
-// TODO(turnidge): ReThrow -> Rethrow.
 
 // --- Native functions ---
 

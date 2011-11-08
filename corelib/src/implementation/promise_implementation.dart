@@ -262,31 +262,31 @@ class PromiseImpl<T> implements Promise<T> {
   }
 }
 
-class ProxyBase {
+// For now, extend Promise<bool> rather than either
+// a) create a new base, Completable, for Promise and Proxy, or
+// b) extend Promise<SendPort> which would expose the port.
+class ProxyBase extends PromiseImpl<bool> {
 
   ProxyBase.forPort(SendPort port) {
     _promise = new Promise<SendPort>();
     _promise.complete(port);
+    complete(true);
   }
 
   // Construct a proxy for a message reply; see the [Proxy.forReply]
   // documentation for more details.
   ProxyBase.forReply(Promise<SendPort> port) {
     _promise = port;
+    port.addCompleteHandler((_) => complete(true));
   }
 
-  // Note that comparing proxies or using them in maps is illegal
-  // until they complete.
+  // Note that comparing proxies or using them in maps or sets is
+  // illegal until they complete.
   bool operator ==(var other) {
     return (other is ProxyBase) && _promise.value == other._promise.value;
   }
 
   int hashCode() => _promise.value.hashCode();
-
-  // TODO: consider making this extend Promise<SendPort> instead?
-  void addCompleteHandler(void completeHandler()) {
-    _promise.addCompleteHandler((_) => completeHandler());
-  }
 
   static ReceivePort register(Dispatcher dispatcher) {
     if (_dispatchers === null) {
@@ -332,7 +332,7 @@ class ProxyBase {
   // function. Any promises are converted to a port which expects to
   // receive a port from the other side down which the remote promise
   // can be completed by sending the promise's completion value.
-   Promise _marshal(List message, process(List marshalled)) {
+  Promise _marshal(List message, process(List marshalled)) {
     return _promise.then((SendPort port) {
       List marshalled = new List(message.length);
 
@@ -358,7 +358,7 @@ class ProxyBase {
           });
           entry.addCompleteHandler((value) {
             completer.addCompleteHandler((SendPort port) {
-              port.send([value], null);
+              _marshal([value], (List message) => port.send(message, null));
             });
           });
         } else {

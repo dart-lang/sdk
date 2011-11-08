@@ -30,6 +30,22 @@
  * The behavior is intended to support vertical and horizontal scrolling, and
  * scrolling with momentum when a touch gesture flicks with enough velocity.
  */
+typedef void Callback();
+
+// Helper method to await the completion of 2 futures.
+void joinFutures(List<Future> futures, Callback callback) {
+  int count = 0;
+  int len = futures.length;
+  void helper(value) {
+    count++;
+    if (count == len) {
+      callback();
+    }
+  }
+  for (Future p in futures) {
+    p.then(helper);
+  }
+}
 
 class Scroller implements Draggable, MomentumDelegate {
 
@@ -112,7 +128,6 @@ class Scroller implements Draggable, MomentumDelegate {
   Size _scrollSize;
   Size _contentSize;
   Coordinate _minPoint;
-  bool _activeTransition = false;
   bool _isStopping = false;
   Coordinate _contentStartOffset;
   bool _started = false;
@@ -140,7 +155,6 @@ class Scroller implements Draggable, MomentumDelegate {
     Element parentElem = scrollableElem.parent;
     assert(parentElem != null);
     _setOffsetFunction = _getOffsetFunction(_scrollTechnique);
-    _element.on.transitionEnd.add((event) { onTransitionEnd(event); });
     _touchHandler.setDraggable(this);
     _touchHandler.enable(capture);
 
@@ -149,9 +163,8 @@ class Scroller implements Draggable, MomentumDelegate {
           e.wheelDeltaX != 0 && horizontalEnabled) {
         num x = horizontalEnabled ? e.wheelDeltaX : 0;
         num y = verticalEnabled ? e.wheelDeltaY : 0;
-        if (throwDelta(x, y, FAST_SNAP_DECELERATION_FACTOR)) {
-          e.preventDefault();
-        }
+        throwDelta(x, y, FAST_SNAP_DECELERATION_FACTOR);
+        e.preventDefault();
       }
     });
 
@@ -163,21 +176,25 @@ class Scroller implements Draggable, MomentumDelegate {
 
         switch(e.keyCode) {
           case 33: // page-up
-            handled = throwDelta(
+            throwDelta(
                 0,
                 _scrollSize.height * PAGE_KEY_SCROLL_FRACTION);
+            handled = true;
             break;
           case 34: // page-down
-            handled = throwDelta(
+            throwDelta(
                 0, -_scrollSize.height * PAGE_KEY_SCROLL_FRACTION);
+            handled = true;
             break;
           case 35: // End
-            handled = throwTo(_maxPoint.x, _minPoint.y,
+             throwTo(_maxPoint.x, _minPoint.y,
                 FAST_SNAP_DECELERATION_FACTOR);
+            handled = true;
             break;
           case 36: // Home
-            handled = throwTo(_maxPoint.x,_maxPoint.y,
+            throwTo(_maxPoint.x,_maxPoint.y,
                 FAST_SNAP_DECELERATION_FACTOR);
+            handled = true;
             break;
 /* TODO(jacobr): enable arrow keys when the don't conflict with other
    application keyboard shortcuts.
@@ -210,8 +227,13 @@ class Scroller implements Draggable, MomentumDelegate {
         }
       });
     // The scrollable element must be relatively positioned.
-    assert(_scrollTechnique != ScrollerScrollTechnique.RELATIVE_POSITIONING ||
-           window.getComputedStyle(_element, null).position != "static");
+    // TODO(jacobr): this assert fires asynchronously which could be confusing.
+    if (_scrollTechnique == ScrollerScrollTechnique.RELATIVE_POSITIONING) {
+      _element.computedStyle.then((CSSStyleDeclaration style) {
+        assert(style.position != "static");
+      });
+    }
+
     _initLayer();
   }
 
@@ -298,36 +320,31 @@ class Scroller implements Draggable, MomentumDelegate {
    * Animate the position of the scroller to the specified [x], [y] coordinates
    * by applying the throw gesture with the correct velocity to end at that
    * location.
-   * Return false if no delta needs to be applied.
    */
-  bool throwTo(num x, num y,
-               [num decelerationFactor = null]) {
-    reconfigure();
-    final snappedTarget = _snapToBounds(x, y);
-    // If a deceleration factor is not specified, use the existing
-    // deceleration factor specified by the momentum simulator.
-    if (decelerationFactor == null) {
-      decelerationFactor = _momentum.decelerationFactor;
-    }
+  void throwTo(num x, num y, [num decelerationFactor = null]) {
+    reconfigure(() {
+      final snappedTarget = _snapToBounds(x, y);
+      // If a deceleration factor is not specified, use the existing
+      // deceleration factor specified by the momentum simulator.
+      if (decelerationFactor == null) {
+        decelerationFactor = _momentum.decelerationFactor;
+      }
 
-    if (snappedTarget != currentTarget) {
-      _momentum.abort();
-      reconfigure();
+      if (snappedTarget != currentTarget) {
+        _momentum.abort();
 
-      _startDeceleration(
-          _momentum.calculateVelocity(
-              _contentOffset,
-              snappedTarget,
-              decelerationFactor),
-          decelerationFactor);
-      onDecelStart.dispatch(new Event(ScrollerEventType.DECEL_START));
-      return true;
-    } else {
-      return false;
-    }
+        _startDeceleration(
+            _momentum.calculateVelocity(
+                _contentOffset,
+                snappedTarget,
+                decelerationFactor),
+            decelerationFactor);
+        onDecelStart.dispatch(new Event(ScrollerEventType.DECEL_START));
+      }
+    });
   }
 
-  bool throwDelta(num deltaX, num deltaY, [num decelerationFactor = null]) {
+  void throwDelta(num deltaX, num deltaY, [num decelerationFactor = null]) {
     Coordinate start = _contentOffset;
     Coordinate end = currentTarget;
     int x = end.x.toInt();
@@ -342,17 +359,7 @@ class Scroller implements Draggable, MomentumDelegate {
     }
     x += deltaX.toInt();
     y += deltaY.toInt();
-    return throwTo(x, y, decelerationFactor);
-  }
-
-  void animateTo(num x, num y, [num duration = null,
-                 String timingFunction = null]) {
-    if (duration !== null && duration != 0
-        && _scrollTechnique == ScrollerScrollTechnique.TRANSFORM_3D) {
-      _setWebkitTransition(_element, duration, StyleUtil.TRANSFORM_STYLE,
-                           timingFunction);
-    }
-    _setContentOffset(x, y);
+    throwTo(x, y, decelerationFactor);
   }
 
   void setPosition(num x, num y) {
@@ -418,17 +425,11 @@ class Scroller implements Draggable, MomentumDelegate {
     _setContentOffset(_maxPoint.x, _maxPoint.y);
   }
 
-  void onDecelerate(num x, num y, [num duration = 0,
-                    String timingFunction = null]) {
-    // TODO(jacobr): remove once dartc fixes default args.
-    if (duration === null) {
-      duration = 0;
-    }
-    animateTo(x, y, duration, timingFunction);
+  void onDecelerate(num x, num y) {
+    _setContentOffset(x, y);
   }
 
   void onDecelerationEnd() {
-    _setWebkitTransition(_element, 0);
     onScrollerEnd.dispatch(new Event(ScrollerEventType.SCROLLER_END));
     _started = false;
   }
@@ -438,7 +439,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
     bool decelerating = false;
     if (_activeGesture) {
-      if (_momentumEnabled && !_activeTransition) {
+      if (_momentumEnabled) {
         decelerating = _startDeceleration(_touchHandler.getEndVelocity());
       }
     }
@@ -497,28 +498,17 @@ class Scroller implements Draggable, MomentumDelegate {
    * Prepare the scrollable area for possible movement.
    */
   bool onTouchStart(TouchEvent e) {
-    reconfigure();
-    final touch = e.touches[0];
-    if (_momentum.decelerating) {
-      e.preventDefault();
-      e.stopPropagation();
-      stop();
-    } else {
-      _setWebkitTransition(_element, 0);
-    }
-    _contentStartOffset = _contentOffset.clone();
-    _snapContentOffsetToBounds();
+    reconfigure(() {
+      final touch = e.touches[0];
+      if (_momentum.decelerating) {
+        e.preventDefault();
+        e.stopPropagation();
+        stop();
+      }
+      _contentStartOffset = _contentOffset.clone();
+      _snapContentOffsetToBounds();
+    });
     return true;
-  }
-
-  /**
-   * Transition end event handler.
-   */
-  void onTransitionEnd(Event e) {
-    if (e.target == _element) {
-      _activeTransition = false;
-      _momentum.onTransitionEnd();
-    }
   }
 
   /**
@@ -527,37 +517,55 @@ class Scroller implements Draggable, MomentumDelegate {
    * this method if you know the frame or content has been updated. Called
    * internally on every touchstart event the frame receives.
    */
-  void reconfigure() {
-    _resize();
-    _snapContentOffsetToBounds();
+  void reconfigure(Callback callback) {
+    _resize(() {
+      _snapContentOffsetToBounds();
+      callback();
+    });
   }
 
   void reset() {
     stop();
     _touchHandler.reset();
-    _setWebkitTransition(_element, 0);
-    setMinOffset(0, 0);
-    setMaxOffset(0, 0);
-    reconfigure();
-    _setContentOffset(_maxPoint.x, _maxPoint.y);
+    _maxOffset.x = 0;
+    _maxOffset.y = 0;
+    _minOffset.x = 0;
+    _minOffset.y = 0;
+    reconfigure(() => _setContentOffset(_maxPoint.x, _maxPoint.y));
   }
 
   /**
    * Recalculate dimensions of the frame and the content. Adjust the minPoint
    * and maxPoint allowed for scrolling.
    */
-  void _resize() {
-    _scrollSize = new Size(_frame.offsetWidth, _frame.offsetHeight);
-    _contentSize = _lookupContentSizeDelegate !== null ?
-        _lookupContentSizeDelegate() :
-        new Size(_element.scrollWidth, _element.scrollHeight);
-    Size adjusted = _getAdjustedContentSize();
-    _maxPoint = new Coordinate(-_maxOffset.x, -_maxOffset.y);
-    _minPoint = new Coordinate(
-        Math.min(
-            _scrollSize.width - adjusted.width + _minOffset.x, _maxPoint.x),
-        Math.min(
-            _scrollSize.height - adjusted.height + _minOffset.y, _maxPoint.y));
+  void _resize(Callback callback) {
+    final frameRect = _frame.rect;
+    Future contentSizeFuture;
+
+    if (_lookupContentSizeDelegate !== null) {
+      contentSizeFuture = _lookupContentSizeDelegate();
+      contentSizeFuture.then((Size size) {
+        _contentSize = size;
+      });
+    } else {
+      contentSizeFuture = _element.rect;
+      contentSizeFuture.then((ElementRect rect) {
+        _contentSize = new Size(rect.scroll.width, rect.scroll.height);
+      });
+    }
+
+    joinFutures(<Future>[frameRect, contentSizeFuture], () {
+      _scrollSize = new Size(frameRect.value.offset.width,
+                             frameRect.value.offset.height);
+      Size adjusted = _getAdjustedContentSize();
+      _maxPoint = new Coordinate(-_maxOffset.x, -_maxOffset.y);
+      _minPoint = new Coordinate(
+          Math.min(
+              _scrollSize.width - adjusted.width + _minOffset.x, _maxPoint.x),
+          Math.min(
+              _scrollSize.height - adjusted.height + _minOffset.y, _maxPoint.y));
+      callback();
+    });
   }
 
   Coordinate _snapToBounds(num x, num y) {
@@ -577,51 +585,10 @@ class Scroller implements Draggable, MomentumDelegate {
   }
 
   /**
-   * Sets the offset to subtract from the maximum coordinate that the left upper
-   * corner of the content can scroll to.
-   */
-  void setMaxOffset(num x, num y) {
-    _maxOffset.x = x;
-    _maxOffset.y = y;
-    _resize();
-  }
-
-  /**
-   * Sets the offset to add to the minimum coordinate that the left upper corner
-   * of the content can scroll to.
-   */
-  void setMinOffset(num x, num y) {
-    _minOffset.x = x;
-    _minOffset.y = y;
-    _resize();
-  }
-
-  /**
    * Enable or disable momentum.
    */
   void setMomentum(bool enable) {
     _momentumEnabled = enable;
-  }
-
-  /**
-   * Update the scroll technique used for animating the scrollable area.
-   */
-  void setScrollTechnique(int technique) {
-    _scrollTechnique = technique;
-    _setOffsetFunction = _getOffsetFunction(technique);
-
-    // The scrollable element must be relatively positioned.
-    assert(technique != ScrollerScrollTechnique.RELATIVE_POSITIONING ||
-        window.getComputedStyle(_element, null).position != "static");
-
-    if (technique != ScrollerScrollTechnique.TRANSFORM_3D) {
-      FxUtil.clearWebkitTransition(_element);
-      FxUtil.clearWebkitTransform(_element);
-    }
-    if (technique != ScrollerScrollTechnique.RELATIVE_POSITIONING) {
-      FxUtil.setLeftAndTop(_element, 0, 0);
-    }
-    _setOffsetFunction(_element, _contentOffset.x, _contentOffset.y);
   }
 
   /**
@@ -632,17 +599,7 @@ class Scroller implements Draggable, MomentumDelegate {
     _setContentOffset(_contentOffset.x, y);
   }
 
-  /**
-   * Applies a webkit transition on the element where the [duration] of the
-   * animation is specified in ms.
-   */
-  void _setWebkitTransition(Element el, num duration, [String property = null,
-                            String timingFunction = null]) {
-    _activeTransition = duration > 0;
-    FxUtil.setWebkitTransition(el, duration, property, timingFunction);
-  }
-
-  /**
+   /**
    * Whether the scrollable area should scroll horizontally. Only
    * returns true if the client has enabled horizontal scrolling, and the
    * content is wider than the frame.
@@ -696,33 +653,7 @@ class Scroller implements Draggable, MomentumDelegate {
   }
 
   Coordinate stop() {
-    Coordinate velocity = _momentum.stop();
-
-    if (_momentum.decelerating) {
-      CSSMatrix transform1 = StyleUtil.getCurrentTransformMatrix(
-          _element);
-      if (!_activeTransition) {
-        _stopDecelerating(transform1.m41, transform1.m42);
-        return velocity;
-      }
-      _contentOffset.x = transform1.m41;
-      _contentOffset.y = transform1.m42;
-      _isStopping = true;
-      window.setTimeout(() {
-        CSSMatrix transform2 = StyleUtil.getCurrentTransformMatrix(
-            _element);
-        _setWebkitTransition(_element, 0);
-        window.setTimeout(function() { _isStopping = false; }, 0);
-        num deltaX = transform2.m41 - transform1.m41;
-        num deltaY = transform2.m42 - transform1.m42;
-        num newX = transform2.m41 + 2 * deltaX;
-        num newY = transform2.m42 + 2 * deltaY;
-        newX = GoogleMath.clamp(newX, _minPoint.x, _maxPoint.x);
-        newY = GoogleMath.clamp(newY, _minPoint.y, _maxPoint.y);
-        _stopDecelerating(newX, newY);
-      }, 0);
-    }
-    return velocity;
+    return _momentum.stop();
   }
 
   /**

@@ -21,6 +21,12 @@ MintMakerTest: Fail           # Bug 5401734
 RequestReplyTest: Fail        # Bug 5401734
 StaticStateTest: Fail         # Bug 5401734
 
+[ $component == frog || $component == frogsh || $component == leg ]
+MessageTest: Fail
+StaticStateTest: Fail
+PromiseBasedTest: Fail
+MintMakerPromiseTest: Fail
+
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
 

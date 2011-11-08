@@ -2,8 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {
-  main() {
-    List<int, int> ints = [1];
-  }
+#include "bin/platform.h"
+
+#include <unistd.h>
+
+
+int Platform::NumberOfProcessors() {
+  return sysconf(_SC_NPROCESSORS_ONLN);
+}
+
+
+const char* Platform::OperatingSystem() {
+  return "linux";
 }

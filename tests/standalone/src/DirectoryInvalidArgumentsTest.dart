@@ -5,28 +5,28 @@
 class DirectoryInvalidArgumentsTest {
   static void testFailingList(Directory d, var recursive) {
     int errors = 0;
-    d.setErrorHandler((error) {
+    d.errorHandler = (error) {
       errors += 1;
-    });
-    d.setDoneHandler((completed) {
+    };
+    d.doneHandler = (completed) {
       Expect.equals(1, errors);
       Expect.isFalse(completed);
-    });
+    };
     Expect.equals(0, errors);
     d.list(recursive);
   }
 
   static void testInvalidArguments() {
     Directory d = new Directory(12);
-    Expect.isFalse(d.exists());
+    Expect.isFalse(d.existsSync());
     try {
-      d.delete();
+      d.deleteSync();
       Expect.fail("No exception thrown");
     } catch (var e) {
       Expect.isTrue(e is DirectoryException);
     }
     try {
-      d.create();
+      d.createSync();
       Expect.fail("No exception thrown");
     } catch (var e) {
       Expect.isTrue(e is DirectoryException);

@@ -27,12 +27,12 @@ interface Positionable {
 class LayoutParams {
   // TODO(jmesserly): should be const, but there's a bug in DartC preventing us
   // from calling "window." in an initializer. See b/5332777
-  CSSStyleDeclaration style;
+  Future<CSSStyleDeclaration> style;
 
   int get layer() => 0;
 
   LayoutParams(Element node) {
-    style = window.getComputedStyle(node, '');
+    style = node.computedStyle;
   }
 }
 
@@ -71,6 +71,7 @@ class ViewLayout {
    * to determine how this view should be laid out.
    */
   LayoutParams layoutParams;
+  Future<ElementRect> _cachedViewRect;
 
   /** The view that this layout belongs to. */
   final Positionable view;
@@ -82,7 +83,7 @@ class ViewLayout {
    */
   int _measuredLeft, _measuredTop, _measuredWidth, _measuredHeight;
 
-  ViewLayout(this.view) {}
+  ViewLayout(this.view);
 
   /**
    * Creates the appropriate view layout, depending on the properties.
@@ -101,10 +102,19 @@ class ViewLayout {
     return view.customStyle['display'] == "-dart-grid";
   }
 
-  CSSStyleDeclaration get _style() => layoutParams.style;
+  CSSStyleDeclaration get _style() => layoutParams.style.value;
 
-  int get currentWidth() => view.node.offsetWidth;
-  int get currentHeight() => view.node.offsetHeight;
+  void cacheExistingBrowserLayout() {
+    _cachedViewRect = view.node.rect;
+  }
+
+  int get currentWidth() {
+    return _cachedViewRect.value.offset.width;
+  }
+
+  int get currentHeight() {
+    return _cachedViewRect.value.offset.height;
+  }
 
   int get borderLeftWidth() => _toPixels(_style.borderLeftWidth);
   int get borderTopWidth() => _toPixels(_style.borderTopWidth);
@@ -114,7 +124,8 @@ class ViewLayout {
   int get borderHeight() => borderTopWidth + borderBottomWidth;
 
   /** Implements the custom layout computation. */
-  bool measureLayout(int width, int height) => false;
+  void measureLayout(Future<Size> size, Completer<bool> changed) {
+  }
 
   /**
    * Positions the view within its parent container.
@@ -129,8 +140,9 @@ class ViewLayout {
     // Note: we need to save the client height
     _measuredWidth = width - borderWidth;
     _measuredHeight = height - borderHeight;
-
-    measureLayout(_measuredWidth, _measuredHeight);
+    final completer = new Completer<Size>();
+    completer.complete(new Size(_measuredWidth, _measuredHeight));
+    measureLayout(completer.future, null);
   }
 
   /** Applies the layout to the node. */
@@ -176,7 +188,7 @@ class ViewLayout {
   }
 
   int measureWidth(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style;
+    final style = layoutParams.style.value;
     switch (mode) {
       case ContentSizeMode.MIN:
         return _styleToPixels(
@@ -189,7 +201,7 @@ class ViewLayout {
   }
 
   int measureHeight(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style;
+    final style = layoutParams.style.value;
     switch (mode) {
       case ContentSizeMode.MIN:
         return _styleToPixels(

@@ -13,6 +13,7 @@ class B extends A {
 
 class OverrideFieldMethod4NegativeTest {
   static testMain() {
+    print(new B().foo);
   }
 }
 

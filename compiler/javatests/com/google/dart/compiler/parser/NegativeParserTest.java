@@ -54,7 +54,7 @@ public class NegativeParserTest extends CompilerTestCase {
     DartUnit unit =
         parseSourceUnitErrors(
             sourceCode,
-            ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE.getMessage(), 3, 1);
+            ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE.getMessage(), 2, 1);
     // check structure of AST, top level Baz and Foo expected
     assertEquals(2, unit.getTopLevelNodes().size());
     assertEquals(

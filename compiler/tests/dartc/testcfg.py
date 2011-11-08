@@ -50,7 +50,7 @@ class JUnitTestCase(test.TestCase):
 
   def GetCommand(self):
     test_py = join(join(self.context.workspace, 'tools'), 'test.py')
-    d8 = self.context.GetExecutable(self.mode, self.arch, 'd8')
+    d8 = self.context.GetD8(self.mode, self.arch)
     # Note that it is important to run all the JUnit tests in the same process.
     # This way we have a chance of causing problems with static state early.
     return ['java', '-ea', '-classpath', self.GetClassPath(),

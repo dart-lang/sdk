@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('pegparser.dart');
+#import('../../../peg/pegparser.dart');
 
 testParens() {
   Grammar g = new Grammar();
@@ -318,7 +318,7 @@ void check(grammar, rule, input, expected) {
 }
 
 // Prints the list in [1,2,3] notation, including nested lists.
-void printList(item) {
+printList(item) {
   if (item is List) {
     StringBuffer sb = new StringBuffer();
     sb.add('[');

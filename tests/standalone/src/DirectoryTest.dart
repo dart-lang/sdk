@@ -9,22 +9,22 @@ class DirectoryTest {
     bool listedSomething = false;
     Directory directory = new Directory(".");
 
-    directory.setDirHandler((dir) {
+    directory.dirHandler = (dir) {
       listedSomething = true;
-    });
+    };
 
-    directory.setFileHandler((f) {
+    directory.fileHandler = (f) {
       listedSomething = true;
-    });
+    };
 
-    directory.setDoneHandler((completed) {
+    directory.doneHandler = (completed) {
       Expect.isTrue(completed, "directory listing did not complete");
       Expect.isTrue(listedSomething, "empty directory");
-    });
+    };
 
-    directory.setErrorHandler((error) {
+    directory.errorHandler = (error) {
       Expect.fail("error listing directory: $error");
-    });
+    };
 
     directory.list();
 
@@ -36,11 +36,11 @@ class DirectoryTest {
   static void testExistsCreateDelete() {
     // TODO(ager): This should be creating temporary directories.
     Directory d = new Directory("____DIRECTORY_TEST_DIRECTORY____");
-    Expect.isFalse(d.exists());
-    d.create();
-    Expect.isTrue(d.exists());
-    d.delete();
-    Expect.isFalse(d.exists());
+    Expect.isFalse(d.existsSync());
+    d.createSync();
+    Expect.isTrue(d.existsSync());
+    d.deleteSync();
+    Expect.isFalse(d.existsSync());
   }
 
   static void testMain() {

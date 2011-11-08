@@ -192,7 +192,12 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
   @Override
   public boolean shouldWarnOnNoSuchType() {
-    return compilerOptions.shouldWarnOnNoSuchType();
+    return false;
+  }
+
+  @Override
+  public boolean printMachineProblems() {
+    return compilerOptions.printMachineProblems();
   }
 
   @Override

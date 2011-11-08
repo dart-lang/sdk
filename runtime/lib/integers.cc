@@ -6,6 +6,7 @@
 
 #include "vm/bigint_operations.h"
 #include "vm/dart_entry.h"
+#include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 
@@ -483,8 +484,9 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Integer& value,
                                         const Smi& amount) {
   if (amount.Value() < 0) {
-    // TODO(srdjan): Throw exception maybe.
-    UNIMPLEMENTED();
+    GrowableArray<const Object*> args;
+    args.Add(&amount);
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
   if (value.IsSmi()) {
     Smi& smi_value = Smi::Handle();

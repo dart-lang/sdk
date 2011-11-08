@@ -22,12 +22,16 @@ interface File factory _File {
   /**
    * Create the file. The [createHandler] is called when the file has
    * been created. The errorHandler is called if the file cannot be
-   * created.
+   * created. Existing files are left untouched by create. Calling
+   * create on an existing file might fail if there are restrictive
+   * permissions on the file.
    */
   void create();
 
   /**
-   * Synchronously create the file.
+   * Synchronously create the file. Existing files are left untouched
+   * by create. Calling create on an existing file might fail if there
+   * are restrictive permissions on the file.
    */
   void createSync();
 
@@ -156,6 +160,18 @@ interface File factory _File {
   void flushSync();
 
   /**
+   * Get the canonical full path corresponding to the file name. The
+   * [fullPathHandler] is called when the fullPath operation
+   * completes.
+   */
+  String fullPath();
+
+  /**
+   * Synchronously get the canonical full path corresponding to the file name.
+   */
+  String fullPathSync();
+
+  /**
    * Create a new independent input stream for the file. The file
    * input stream must be closed when no longer used.
    */
@@ -183,6 +199,7 @@ interface File factory _File {
   void set positionHandler(void handler(int position));
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
+  void set fullPathHandler(void handler(String path));
   void set errorHandler(void handler(String error));
 }
 

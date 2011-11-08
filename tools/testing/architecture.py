@@ -351,7 +351,7 @@ class ChromiumArchitecture(BrowserArchitecture):
 
     # We need an absolute path because the compilation will run
     # in a temporary directory.
-    build_root = utils.GetBuildRoot(OS_GUESS, self.mode, 'dartc')
+    build_root = utils.GetBuildRoot(OS_GUESS, self.mode, 'ia32')
     dartc = os.path.abspath(os.path.join(build_root, 'compiler', 'bin',
                                          'dartc'))
     if utils.IsWindows(): dartc += '.exe'
@@ -401,29 +401,29 @@ class StandaloneArchitecture(Architecture):
     super(StandaloneArchitecture, self).__init__(root_path, arch, mode, component,
                                                  test)
 
+  def GetExecutable(self):
+    """Returns the path to the Dart test runner (executes the .dart file)."""
+    return utils.GetDartRunner(self.mode, self.arch, self.component)
+
+
   def GetCompileCommand(self, fatal_static_type_errors=False):
     fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
     return None
 
+  def GetOptions(self):
+    return []
+
   def GetRunCommand(self, fatal_static_type_errors=False):
     """Returns a command line to execute for the test."""
     dart = self.GetExecutable()
-    test_name = os.path.basename(self.test)
-    test_path = os.path.abspath(self.test)
-    command = [dart] + self.vm_options
-    if self.mode == 'release':
-      command += ['--optimize']
-    (classname, extension) = os.path.splitext(test_name)
+    command = [dart] + self.GetOptions() + self.vm_options
+    if fatal_static_type_errors:
+      command += self.GetFatalTypeErrorsFlags()
+
     if self.dart_options:
       command += self.dart_options
-    elif extension == '.dart':
-      if fatal_static_type_errors:
-        command += self.GetFatalTypeErrorsFlags()
-      if '_' in classname:
-        (classname, unused_sep, unused_tag) = classname.rpartition('_')
-      command += [test_path]
     else:
-      command += ['--', test_path]
+      command += [self.test]
 
     return command
 
@@ -438,6 +438,19 @@ class StandaloneArchitecture(Architecture):
     return
 
 
+class LegArchitecture(StandaloneArchitecture):
+
+  def __init__(self, root_path, arch, mode, component, test):
+    super(LegArchitecture, self).__init__(root_path, arch, mode, component,
+                                          test)
+  def GetOptions(self):
+    return ['--enable_leg']
+
+  def GetExecutable(self):
+    """Returns the path to the Dart test runner (executes the .dart file)."""
+    return utils.GetDartRunner(self.mode, self.arch, 'frog')
+
+
 # Long term, we should do the running machinery that is currently in
 # DartRunner.java
 class DartcArchitecture(StandaloneArchitecture):
@@ -446,36 +459,15 @@ class DartcArchitecture(StandaloneArchitecture):
   def __init__(self, root_path, arch, mode, component, test):
     super(DartcArchitecture, self).__init__(root_path, arch, mode, component, test)
 
-  def GetExecutable(self):
-    """Returns the name of the executable to run the test."""
-    return os.path.abspath(os.path.join(self.build_root,
-                                        'compiler',
-                                        'bin',
-                                        'dartc_test'))
+  def GetOptions(self):
+    if self.mode == 'release': return ['--optimize']
+    return []
 
   def GetFatalTypeErrorsFlags(self):
     return ['--fatal-type-errors']
 
   def HasFatalTypeErrors(self):
     return True
-
-  def GetRunCommand(self, fatal_static_type_errors=False):
-    """Returns a command line to execute for the test."""
-    cmd = super(DartcArchitecture, self).GetRunCommand(
-        fatal_static_type_errors)
-    return cmd
-
-
-class RuntimeArchitecture(StandaloneArchitecture):
-  """Executes tests on the standalone VM (runtime)."""
-
-  def __init__(self, root_path, arch, mode, component, test):
-    super(RuntimeArchitecture, self).__init__(root_path, arch, mode, component,
-                                              test)
-
-  def GetExecutable(self):
-    """Returns the name of the executable to run the test."""
-    return os.path.abspath(os.path.join(self.build_root, 'dart_bin'))
 
 
 def ExecutePipedCommand(cmd, verbose):
@@ -505,8 +497,11 @@ def GetArchitecture(arch, mode, component, test):
   elif component == 'dartium':
     return DartiumArchitecture(root_path, arch, mode, component, test)
 
-  elif component == 'vm':
-    return RuntimeArchitecture(root_path, arch, mode, component, test)
+  elif component in ['vm', 'frog', 'frogsh']:
+    return StandaloneArchitecture(root_path, arch, mode, component, test)
+
+  elif component == 'leg':
+    return LegArchitecture(root_path, arch, mode, component, test)
 
   elif component == 'dartc':
     return DartcArchitecture(root_path, arch, mode, component, test)

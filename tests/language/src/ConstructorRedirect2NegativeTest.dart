@@ -10,6 +10,7 @@ class A {
 
 class ConstructorRedirect2NegativeTest {
   static testMain() {
+    new A(10);
   }
 }
 

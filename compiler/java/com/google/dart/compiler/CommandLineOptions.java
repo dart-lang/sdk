@@ -41,9 +41,9 @@ public class CommandLineOptions {
     @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
     private boolean exposeCoreImpl = false;
 
-    @Option(name = "--warn_no_such_type",
-        usage = "Treat some type checks as warnings\n instead of fatal errors")
-    private boolean shouldWarnOnNoSuchType = false;
+    @Option(name = "--machine-problems",
+        usage = "Format errors for machine parsing")
+    private boolean printMachineProblems = false;
 
     @Option(name = "--enable_type_checks",
         usage = "Generate runtime type checks")
@@ -117,7 +117,7 @@ public class CommandLineOptions {
     }
 
     @Option(name = "--out",
-        usage = "Write generated JavaSccript  to a file")
+        usage = "Write generated JavaScript to a file")
     private File outputFilename = null;
 
     // TODO(zundel): -out is for backward compatibility until scripts are updated
@@ -277,11 +277,11 @@ public class CommandLineOptions {
     }
 
     /**
-     * Returns returns true if some resolver static errors should be reported as type
-     * warnings instead of fatal errors.
+     * Returns <code>true</code> if the compiler should print compilation problems in machine
+     * format, with all information - severity, subsystem, etc.
      */
-    public boolean shouldWarnOnNoSuchType() {
-      return shouldWarnOnNoSuchType;
+    public boolean printMachineProblems() {
+      return printMachineProblems;
     }
 
     /**

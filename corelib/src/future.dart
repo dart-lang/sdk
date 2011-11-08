@@ -111,3 +111,38 @@ interface Completer<T> factory CompleterImpl<T> {
    */
   void completeException(Object exception);
 }
+
+
+/**
+ * This class is for utility functions that operate on Futures (for
+ * example, waiting for a collectin of Futures to complete).
+ */
+class Futures {
+
+  /**
+   * Returns a future which will complete once all the futures in a
+   * list are complete.  (The value of the returned future will
+   * be a list of all the values that were produced.)
+   */
+  static Future<List> wait(List<Future> futures) {
+    Completer completer = new Completer<List>();
+    int remaining = futures.length;
+    List<Object> values = new List(futures.length);
+
+    // As each future completes, put its value into the corresponding
+    // position in the list of values.
+    for (int i = 0; i < futures.length; i++) {
+      // TODO(mattsh) - remove this after bug
+      // http://code.google.com/p/dart/issues/detail?id=333 is fixed.
+      int pos = i;
+      futures[pos].then((Object value) {
+        values[pos] = value;
+        if (--remaining == 0) {
+          completer.complete(values);
+        }
+      });
+    }
+    return completer.future;
+  }
+}
+

@@ -201,9 +201,9 @@ class RawClass : public RawObject {
   RawType* super_type_;
   RawType* factory_type_;
   RawFunction* signature_function_;  // Associated function for signature class.
-  RawType* signature_type_;  // Cached function type for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
+  RawArray* canonical_types_;  // Canonicalized types of this class.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
@@ -213,7 +213,6 @@ class RawClass : public RawObject {
   intptr_t instance_size_;
   ObjectKind instance_kind_;
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
-  intptr_t num_constants_;  // Number of objects in constants_ array.
   intptr_t next_field_offset_;  // Offset of then next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   int8_t class_state_;  // Of type ClassState.

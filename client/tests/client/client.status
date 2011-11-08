@@ -13,7 +13,9 @@ layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 
 [ $component == chromium && $mode == release ]
-html/html_tests: Skip # Timeout
+html/html_tests: Timeout
+samples/dartcombat/dartcombat_tests: Timeout
+samples/swarm/swarm_tests: Timeout
 
 
 # 'client' tests import the DOM library, so they only make sense in

@@ -682,6 +682,21 @@ public class Normalizer {
       public ClassElement getConstructorType() {
         return enclosingClass;
       }
+
+      @Override
+      public boolean isInterface() {
+        return false;
+      }
+
+      @Override
+      public Iterable<Element> getMembers() {
+        return Collections.emptyList();
+      }
+
+      @Override
+      public Element lookupLocalElement(String name) {
+        return null;
+      }
     }
 
     private DartMethodDefinition createImplicitDefaultConstructor(final ClassElement classElement) {

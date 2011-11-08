@@ -8,24 +8,18 @@ prefix standalone
 # These tests have type errors on purpose.
 ProcessInvalidArgumentsTest: Fail, OK
 DirectoryInvalidArgumentsTest: Fail, OK
+FileInvalidArgumentsTest: Fail, OK
 
 [ $component == vm]
 ManyEchoServerTest: Skip        # Bug 5103754
-
-[ $component == vm && $mode == release]
-# Currently process tests are bound to debug mode.
-Process*: Skip # Bug 172
+# These tests fail, crash, and timeout to test the testing infrastructure.
+FailTest: Fail
+TimeoutTest: Skip  # Uses too much time to test on many platforms, for no gain.
+TestRunnerTest: Skip # Hangs occasionally on many platforms.  Bug 383.
 
 [ $component == vm && $system == macos]
-Process*: Skip # Bug 172
 # This test fails with "Too many open files" on the Mac OS buildbot.
 SocketManyConnectionsTest: Skip
-
-[ $component == vm && $system == win32]
-Process*: Skip
-
-[ $component == vm && $system == win32 && $mode == release ]
-FileTest: Fail
 
 [ $component == dartium ]
 # Server specific tests OK to fail in the browser
@@ -48,7 +42,13 @@ FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory
 StringStreamTest: Skip # Uses InputStream
-
+StatusFileParserTest: Skip # Uses FileInputStream
+OptionsTest: Skip # Expects options being passed from command line.
+FailTest: Fail # Fails intentionally
+TimeoutTest: Skip # Uses Socket
+TestRunnerTest: Skip # Uses Process
+FileInvalidArgumentsTest: Skip # Uses File
+PlatformTest: Skip # Uses Platform
 
 [ $component == dartc || $component == chromium ]
 *: Skip

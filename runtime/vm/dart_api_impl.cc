@@ -67,8 +67,12 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_Error(const char* error) {
-  return Api::Error(error);
+DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  Dart_Handle error = Api::VError(format, args);
+  va_end(args);
+  return error;
 }
 
 
@@ -82,10 +86,28 @@ DART_EXPORT bool Dart_Initialize(int argc,
 
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
                                             void* data) {
-  ASSERT(Isolate::Current() == NULL);
-  Isolate* isolate = Dart::CreateIsolate(snapshot, data);
-  START_TIMER(time_total_runtime);
-  return reinterpret_cast<Dart_Isolate>(isolate);
+  Isolate* isolate = Dart::CreateIsolate();
+  ASSERT(isolate != NULL);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    Dart::InitializeIsolate(snapshot, data);
+    START_TIMER(time_total_runtime);
+    isolate->set_long_jump_base(base);
+    return reinterpret_cast<Dart_Isolate>(isolate);
+  } else {
+    {
+      Zone zone;  // Setup a VM zone as we are creating some handles.
+      HandleScope scope;  // Setup a VM handle scope.
+      const String& error =
+          String::Handle(Isolate::Current()->object_store()->sticky_error());
+      // TODO(asiva): Need to return this as a error.
+      OS::PrintErr(error.ToCString());
+    }
+    Dart::ShutdownIsolate();
+  }
+  return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
 
@@ -414,7 +436,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 }
 
 
-DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object) {
+DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
@@ -433,6 +455,11 @@ DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object) {
     result = String::New(obj.ToCString());
   }
   return Api::NewLocalHandle(result);
+}
+
+
+DART_EXPORT Dart_Handle Dart_Null() {
+  return Api::Null();
 }
 
 
@@ -470,8 +497,8 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1, Dart_Handle obj2,
-                                           bool* value) {
+DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
+                                          bool* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Instance& expected = Instance::CheckedHandle(Api::UnwrapHandle(obj1));
@@ -486,6 +513,17 @@ DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1, Dart_Handle obj2,
   } else {
     return Api::Error("An exception occured when calling '=='");
   }
+}
+
+
+DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
+                                    bool* value) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& expected = Object::Handle(Api::UnwrapHandle(obj1));
+  const Object& actual = Object::Handle(Api::UnwrapHandle(obj2));
+  *value = (expected.raw() == actual.raw());
+  return Api::Success();
 }
 
 
@@ -504,7 +542,9 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
   cls_name ^= param.raw();
   const Class& cls = Class::Handle(lib.LookupClass(cls_name));
   if (cls.IsNull()) {
-    return Api::Error("Specified class does not exist");
+    const String& lib_name = String::Handle(lib.name());
+    return Api::Error("Class '%s' not found in library '%s'.",
+                      cls_name.ToCString(), lib_name.ToCString());
   }
   return Api::NewLocalHandle(cls);
 }
@@ -513,7 +553,7 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
 // TODO(iposva): This call actually implements IsInstanceOfClass.
 // Do we also need a real Dart_IsInstanceOf, which should take an instance
 // rather than an object and a type rather than a class?
-DART_EXPORT Dart_Handle Dart_IsInstanceOf(Dart_Handle object,
+DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle clazz,
                                           bool* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -637,6 +677,16 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
 }
 
 
+DART_EXPORT Dart_Handle Dart_True() {
+  return Api::True();
+}
+
+
+DART_EXPORT Dart_Handle Dart_False() {
+  return Api::False();
+}
+
+
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
@@ -646,10 +696,7 @@ DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
 
 
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
-  const Bool& obj = Bool::Handle(Bool::Get(value));
-  return Api::NewLocalHandle(obj);
+  return value ? Api::True() : Api::False();
 }
 
 
@@ -750,7 +797,6 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  UNIMPLEMENTED();
   const String& obj = String::Handle(String::New(codepoints, length));
   return Api::NewLocalHandle(obj);
 }
@@ -871,17 +917,17 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 }
 
 
-DART_EXPORT bool Dart_IsArray(Dart_Handle object) {
+DART_EXPORT bool Dart_IsList(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
-  return (obj.IsArray() || (GetListInstance(Isolate::Current(), obj) !=
-                            Instance::null()));
+  return (obj.IsArray() ||
+          (GetListInstance(Isolate::Current(), obj) != Instance::null()));
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length) {
+DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Array& obj = Array::Handle(Array::New(length));
@@ -889,10 +935,10 @@ DART_EXPORT Dart_Handle Dart_NewArray(intptr_t length) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* len) {
+DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -949,11 +995,11 @@ DART_EXPORT Dart_Handle Dart_GetLength(Dart_Handle array, intptr_t* len) {
 }
 
 
-static RawObject* GetArrayAt(Isolate* isolate,
-                             const Instance& instance,
-                             const Integer& index,
-                             const Function& function,
-                             Dart_Handle* result) {
+static RawObject* GetListAt(Isolate* isolate,
+                            const Instance& instance,
+                            const Integer& index,
+                            const Function& function,
+                            Dart_Handle* result) {
   ASSERT(isolate != NULL);
   ASSERT(result != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -982,13 +1028,13 @@ static RawObject* GetArrayAt(Isolate* isolate,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length) {
+DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1021,7 +1067,7 @@ DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
       Dart_Handle result;
       for (int i = 0; i < length; i++) {
         intobj = Integer::New(offset + i);
-        element = GetArrayAt(isolate, instance, intobj, function, &result);
+        element = GetListAt(isolate, instance, intobj, function, &result);
         if (!Dart_IsValid(result)) {
           return result;  // Error condition.
         }
@@ -1038,10 +1084,10 @@ DART_EXPORT Dart_Handle Dart_ArrayGet(Dart_Handle array,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
+DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1064,7 +1110,7 @@ DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
       Integer& indexobj = Integer::Handle();
       Dart_Handle result;
       indexobj = Integer::New(index);
-      element = GetArrayAt(isolate, instance, indexobj, function, &result);
+      element = GetListAt(isolate, instance, indexobj, function, &result);
       if (!Dart_IsValid(result)) {
         return result;  // Error condition.
       }
@@ -1075,12 +1121,12 @@ DART_EXPORT Dart_Handle Dart_ArrayGetAt(Dart_Handle array, intptr_t index) {
 }
 
 
-static void SetArrayAt(Isolate* isolate,
-                       const Instance& instance,
-                       const Integer& index,
-                       const Object& value,
-                       const Function& function,
-                       Dart_Handle* result) {
+static void SetListAt(Isolate* isolate,
+                      const Instance& instance,
+                      const Integer& index,
+                      const Object& value,
+                      const Function& function,
+                      Dart_Handle* result) {
   ASSERT(isolate != NULL);
   ASSERT(result != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -1108,13 +1154,13 @@ static void SetArrayAt(Isolate* isolate,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
-                                      intptr_t offset,
-                                      uint8_t* native_array,
-                                      intptr_t length) {
+DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
+                                            intptr_t offset,
+                                            uint8_t* native_array,
+                                            intptr_t length) {
   Zone zone;
   HandleScope scope;
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1143,7 +1189,7 @@ DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
       for (int i = 0; i < length; i++) {
         indexobj = Integer::New(offset + i);
         valueobj ^= Integer::New(native_array[i]);
-        SetArrayAt(isolate, instance, indexobj, valueobj, function, &result);
+        SetListAt(isolate, instance, indexobj, valueobj, function, &result);
         if (!Dart_IsValid(result)) {
           return result;  // Error condition.
         }
@@ -1155,12 +1201,12 @@ DART_EXPORT Dart_Handle Dart_ArraySet(Dart_Handle array,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
-                                        intptr_t index,
-                                        Dart_Handle value) {
+DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
+                                       intptr_t index,
+                                       Dart_Handle value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const Object& obj = Object::Handle(Api::UnwrapHandle(array));
+  const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1183,7 +1229,7 @@ DART_EXPORT Dart_Handle Dart_ArraySetAt(Dart_Handle array,
       Dart_Handle result;
       const Integer& index_obj = Integer::Handle(Integer::New(index));
       const Object& value_obj = Object::Handle(Api::UnwrapHandle(value));
-      SetArrayAt(isolate, instance, index_obj, value_obj, function, &result);
+      SetListAt(isolate, instance, index_obj, value_obj, function, &result);
       return result;
     }
   }
@@ -1522,14 +1568,16 @@ DART_EXPORT void Dart_ExitScope() {
 
 
 DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  LocalHandle* local_ref = Api::UnwrapAsLocalHandle(*state, object);
-  PersistentHandle* ref = state->persistent_handles().AllocateHandle();
-  ref->set_raw(*local_ref);
-  return reinterpret_cast<Dart_Handle>(ref);
+  const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
+  PersistentHandle* new_ref = state->persistent_handles().AllocateHandle();
+  new_ref->set_raw(old_ref);
+  return reinterpret_cast<Dart_Handle>(new_ref);
 }
 
 
@@ -1551,7 +1599,10 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
-  state->persistent_handles().FreeHandle(ref);
+  ASSERT(!ref->IsProtected());
+  if (!ref->IsProtected()) {
+    state->persistent_handles().FreeHandle(ref);
+  }
 }
 
 
@@ -1974,12 +2025,56 @@ Dart_Handle Api::Success() {
 }
 
 
-Dart_Handle Api::Error(const char* text) {
+Dart_Handle Api::VError(const char* format, va_list args) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const String& message = String::Handle(String::New(text));
+
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
+  OS::VSNPrint(buffer, (len + 1), format, args);
+
+  const String& message = String::Handle(String::New(buffer));
   const Object& obj = Object::Handle(ApiFailure::New(message));
   return Api::NewLocalHandle(obj);
+}
+
+
+Dart_Handle Api::Error(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  Dart_Handle error = Api::VError(format, args);
+  va_end(args);
+  return error;
+}
+
+
+Dart_Handle Api::Null() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  PersistentHandle* null_handle = state->Null();
+  return reinterpret_cast<Dart_Handle>(null_handle);
+}
+
+
+Dart_Handle Api::True() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  PersistentHandle* true_handle = state->True();
+  return reinterpret_cast<Dart_Handle>(true_handle);
+}
+
+
+Dart_Handle Api::False() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  PersistentHandle* false_handle = state->False();
+  return reinterpret_cast<Dart_Handle>(false_handle);
 }
 
 

@@ -90,8 +90,6 @@ echo
 echo "--- Building debug ---"
 doBuild ia32 debug
 
-
-
 echo
 echo "=== Runtime tests === "
 echo " Debug (Ctrl-C to skip this set of tests)"
@@ -105,19 +103,29 @@ fi
 
 
 echo
-echo "=== Compiler tests ==="
+echo "=== dartc tests ==="
 echo " Debug mode (Ctrl-C to skip this set of tests)"
 doTest compiler dartc debug
-COMPILER_RESULT=$?
+DARTC_RESULT=$?
 
 if [ ${DO_OPTIMIZE} == 1 ] ; then
   echo " Release mode (--optimize)"
   doTest compiler dartc release
   RESULT=$?
   if [ ${RESULT} != 0 ] ; then
-    COMPILER_RESULT=${RESULT}
+    DARTC_RESULT=${RESULT}
   fi
 fi
+
+echo
+echo "=== frog tests ==="
+cd frog 
+./presubmit.py
+FROG_RESULT=$?
+if [ ${FROG_RESULT} != 0 ] ; then
+  TESTS_FAILED=1
+fi
+cd -
 
 echo
 echo "=== Client tests ==="
@@ -145,15 +153,19 @@ fi
 
 # Print summary of results
 if [ ${RUNTIME_RESULT}  != 0 ] ; then
-  echo "*** Runtime tests failed"
+  echo "*** vm tests failed"
 fi
 
-if [ ${COMPILER_RESULT}  != 0 ] ; then
-  echo "*** Compiler tests failed"
+if [ ${DARTC_RESULT}  != 0 ] ; then
+  echo "*** dartc tests failed"
+fi
+
+if [ ${FROG_RESULT}  != 0 ] ; then
+  echo "*** frog tests failed"
 fi
 
 if [ ${CLIENT_RESULT}  != 0 ] ; then
-  echo "*** Client tests failed"
+  echo "*** client tests failed"
 fi
 
 if [ ${TESTS_FAILED} == 0 ] ; then

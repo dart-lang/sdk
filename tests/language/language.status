@@ -7,11 +7,12 @@
 
 # In order to maintain maximum test coverage for all builds,
 # please use the following procedure to mark a test
-# failed on an architecture other than the one you are working on.
+# failed on architectures other than the one you are working on.
 #
 # 1) Copy the old version of the test to
-#    tests/language/src/TestName[Dartc|VM]Test.dart.
-# 2) File a bug for the failure due to the language change.
+#    tests/language/src/TestName[Dartc|VM|Frog]Test.dart.
+#    to maintain coverage.
+# 2) File a bug on each archtiecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
 prefix language
@@ -20,7 +21,6 @@ prefix language
 [ $component == vm || $component == dartium ]
 ClassTest: Fail             # Bug 4504458 (pseudo keyword)
 NamingTest: Fail            # Bug 4504458 (pseudo keyword)
-SuperTest: Fail             # Bug 4995181
 TypeVariableBoundsTest/none: Fail # Bug 5257789
 TypeVariableBoundsTest/02: Fail # Bug 5257789
 TypeVariableBoundsTest/03: Fail # Bug 5257789
@@ -31,24 +31,31 @@ TypeVariableScopeTest/04: Fail # Bug 5349550, was 5316513
 ImpliedInterfaceTest: Fail # Bug 5349944
 
 # These bugs refer currently ongoing language discussions.
-ExampleConstructorTest: Fail    # Bug 4995181
-Constructor2Test: Fail          # Bug 4995181 (evaluation order)
-Constructor3Test: Fail          # Bug 4995181 (evaluation order)
+Constructor5Test: Fail          # Bug 8440015
+Constructor6Test: Fail          # Bug 8440015
 
 # Regular bugs which should be fixed.
 SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
-CanonicalConstTest: Fail        # Bug 5271563
-
-ConstructorReturnNegativeTest: Fail                   # Issue 224
-ConstructorReturnWithInitNegativeTest: Fail           # Issue 224
-ConstructorReturnWithArrowNegativeTest: Fail          # Issue 224
-ConstructorReturnWithInitAndArrowNegativeTest: Fail   # Issue 224
 
 NonParameterizedFactory2Test: Fail # Bug 5257789
 
-# DartC specific tests that should not be run by the VM.
+WrongNumberTypeArgumentsTest: Fail # Bug 5532690
+Prefix18NegativeTest: Fail # Issue 307
+Prefix20NegativeTest: Fail # Issue 307
+
+ImplicitThisTest/01: Fail # Issue 374
+ImplicitThisTest/02: Fail # Issue 374
+ImplicitThisTest/03: Fail # Issue 374
+ImplicitThisTest/04: Fail # Issue 374
+ImplicitThisTest/none: Fail # Issue 374
+
+# DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
+*DartcNegativeTest: Skip
+*FrogTest: Skip
+*FrogNegativeTest: Skip
+
 
 [ $component == vm && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
@@ -75,6 +82,7 @@ Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
 Prefix14Test: Fail                       # Bug 5406175
 Prefix15Test: Skip                       # Bug 5406175
+Prefix16NegativeTest: Fail               # Bug 5532534
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
@@ -95,6 +103,7 @@ NullToStringTest: Fail       # Bug 5421978
 FunctionTypeAliasTest: Crash # Bug 4519208.
 
 # Other bugs (or unimplemented features) in dartc.
+For2Test: Fail               # Bug 4995208.
 SuperOperatorTest: Fail      # Bug 4995463.
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
 Throw7NegativeTest: Fail     # Bug 4208459.
@@ -110,7 +119,7 @@ NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 LocalFunction3Test: Fail     # Bug 4202974.
 MethodOverrideTest: Crash    # Bug 5516001.
-DynamicTest: Fail            # Bug 5527899.
+DynamicTest: Crash            # Bug 5527899.
 
 FieldNegativeTest: Fail      # Bug 4207626.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
@@ -120,6 +129,8 @@ Constructor2NegativeTest: Fail  # Bug 4208594.
 Constructor2Test: Fail       # Issue 255
 Constructor3Test: Fail       # Issue 257
 Constructor4Test: Fail       # Issue 286
+Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
 BitOperationsTest: Fail      # Uses bignums.
 ListLiteral3Test: Fail      # Bug 4510015.
@@ -143,7 +154,7 @@ GetterClosureExecutionOrderTest: Fail # Bug 5481595
 # The following tests use missing error classes. Bug 4385894.
 AssertTest: Fail             # Uses AssertError class.
 
-ThirdTest: Fail              # Bug 5339586
+ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 
 BlackListedTest/01: Fail # Bug 5469684
 BlackListedTest/02: Fail # Bug 5469684
@@ -157,9 +168,16 @@ BlackListedTest/09: Fail # Bug 5469684
 BlackListedTest/10: Fail # Bug 5469684
 BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
+BlackListedTest/13: Crash # Bug 5469684
+BlackListedTest/14: Crash # Bug 5469684
 
-# VM specific tests that should not be run by DartC.
+ImplicitThisTest/none: Fail # Issue 375
+
+# VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
+*VMNegativeTest: Skip
+*FrogTest: Skip
+*FrogNegativeTest: Skip
 
 
 [ $component == dartium ]
@@ -172,6 +190,153 @@ Private2Test: Fail
 Private3Test: Fail
 
 TypedMessageTest: Fail # Bug 5246195
+
+
+[ $component == frog || $component == leg ]
+ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
+
+
+[ $component == frogsh ||  $component == frog || $component == leg ]
+
+# VM or DartC specific tests not to be run by Frog. See language.status
+*VMTest: Skip
+*VMNegativeTest: Skip
+*DartcTest: Skip
+*DartcNegativeTest: Skip
+# Currently, these patterns skip three tests:
+# MathVMTest - correctly skipped as this relies on VM guarantees
+#    - should add a version of this with the --enable_type_checks flag
+# TypeVMTest - correctly skipped as this relies on detailed of TypeError
+# TypeDartcTest - should pass, need refactoring to get frog safe version
+
+BitOperationsTest: Fail  # relies on big integers not available in JS
+CallThroughGetterTest: Fail
+CanonicalConstTest: Fail # type in const array allocation is erased
+CharEscapeTest: Fail
+ClassOverrideNegativeTest: Fail
+ClosuresWithComplexParamsTest: Fail
+ConstFactoryNegativeTest: Fail
+ConstObjectsAreImmutableTest: Fail
+ConstructorDefaultTest: Fail
+ConstructorSetterNegativeTest: Fail
+CTConstTest: Fail # Not checking for generic type in const expression.
+DynamicTest: Fail
+ExampleConstructorTest: Fail
+Constructor2Test: Fail
+Constructor3Test: Fail
+Constructor4Test: Fail
+Constructor5Test: Fail    # Order of initializers.
+Constructor6Test: Fail    # Parse failure in initializers.
+ExecuteFinally6Test: Fail
+ExpectTest: Fail
+#FauxverrideTest/01: Fail  # see r607 (10/21) passes, but we should be issuing warnings
+#FauxverrideTest/02: Fail  # see r607 (10/21) passes, but we should be issuing warnings
+FauxverrideTest/03: Fail
+#FauxverrideTest/04: Fail  # see r607 (10/21) passes, but we should be issuing warnings
+FauxverrideTest/05: Fail
+FieldOverrideTest/01: Fail
+FieldOverrideTest/02: Fail
+Field3NegativeTest: Fail
+FieldNegativeTest: Fail
+FinalParamNegativeTest: Fail
+For2Test: Fail
+FunctionLiterals2Test: Fail
+FunctionSyntaxTest: Fail
+FunctionTest: Fail
+FunctionTypeAliasNegativeTest: Fail
+FunctionTypeAliasTest: Fail
+FunctionTypeParameter2Test: Fail
+FunctionTypeParameterTest: Fail
+GenericDeepTest: Fail
+GenericInstanceofTest: Fail
+GenericSyntaxTest: Fail
+GenericTest: Fail
+GenericsTest: Fail
+ImplicitScopeTest: Fail
+ImpliedInterfaceTest: Fail
+IncrOpTest: Fail
+InstanceFieldNegativeTest: Fail
+Instanceof2Test: Fail
+InstanceofTest: Fail
+InterfaceFactory3NegativeTest: Fail
+IsNotClass4NegativeTest: Fail
+LabelTest: Fail
+LibraryPrefixesTest: Fail
+Library1NegativeTest: Fail # issue with test see #354
+Library4NegativeTest: Fail # issue with test see #354
+Library5NegativeTest: Fail # issue with test see #354
+Library6NegativeTest: Fail # issue with test see #354
+ListLiteral3Test: Fail
+ListTest: Fail         # array bound checks not implemented
+LocalFunction3Test: Fail
+LocalFunctionTest: Fail
+ManyGenericInstanceofTest: Fail
+MathTest: Fail
+MethodOverrideTest: Fail
+NamedParametersPassingFalsyTest: Fail
+NamedParametersTypeTest: Fail
+NamedParametersWithConversionsTest: Fail
+NamingTest: Fail
+NonConstSuperNegativeTest: Fail
+NullPointerExceptionTest: Fail
+NullTest: Fail
+NullToStringTest: Fail
+NumberSyntaxTest: Fail
+NumbersTest: Fail
+OverrideMethodWithFieldTest/01: Fail
+OverrideFieldTest/01: Fail
+OverrideFieldTest/04: Fail
+Prefix3NegativeTest: Fail
+Prefix7NegativeTest: Fail
+Prefix8NegativeTest: Fail
+Prefix9NegativeTest: Fail
+Prefix11NegativeTest: Fail
+Prefix14NegativeTest: Fail
+Prefix16NegativeTest: Fail
+Prefix20NegativeTest: Fail
+Prefix15Test: Fail
+PrivateMemberTest/01: Fail # test seems bad - see issue #353
+PrivateMemberTest/02: Fail # test seems bad - see issue #353
+PrivateMemberTest/03: Fail # test seems bad - see issue #353
+PrivateMemberTest/04: Fail # test seems bad - see issue #353
+Private3Test: Fail
+PrivateTest: Fail
+PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
+RegExp3Test: Fail
+SavannahTest: Fail
+ScopeNegativeTest: Fail
+ScriptNegativeTest: Fail
+StringConcatTest: Fail
+StringEscapesTest: Fail
+StringInterpolate1NegativeTest: Fail
+StringInterpolate2Test: Fail
+StringInterpolateTest: Fail
+StringTest: Fail
+SuperImplicitClosureTest: Fail
+SuperNegativeTest: Fail  # test seems clearly broken - see issue #358
+SuperTest: Fail  # this is testing precise ordering of super constructor call
+SwitchLabelTest: Fail
+TryCatch9NegativeTest: Fail
+TypeVariableBoundsTest/00: Fail # Is the test syntax valid? VM gives an error.
+TypeVariableBoundsTest/05: Fail # issue with test filed as #354
+UnboundGetterTest: Fail
+VarInitTest: Fail
+WrongNumberTypeArgumentsTest: Fail
+GetterClosureExecutionOrderTest: Fail
+ImplicitThisTest/01: Fail # Issue 376
+ImplicitThisTest/02: Fail # Issue 376
+ImplicitThisTest/03: Fail # Issue 376
+ImplicitThisTest/04: Fail # Issue 376
+ImplicitThisTest/none: Fail # Issue 376
+
+
+[ $component == leg]
+StaticTopLevelTest/00: Fail
+StaticTopLevelTest/03: Fail
+DoubleComparisonTest: Fail
+
+[ $component == frogsh ||  $component == frog ]
+FinalVarNegativeTest: Fail
 
 [ $arch == x64 ]
 *: Skip
