@@ -11,7 +11,6 @@ touch/touch_tests: Skip  # Issue 157.
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
-samples/dartcombat/dartcombat_tests: Fail
 
 [ $component == chromium && $mode == release ]
 html/html_tests: Timeout
