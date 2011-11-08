@@ -82,7 +82,7 @@ Thread::Thread(ThreadStartFunction function, uword parameter) {
   result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_attr_setstacksize(&attr, 32 * KB);
+  result = pthread_attr_setstacksize(&attr, 1024 * KB);
   VALIDATE_PTHREAD_RESULT(result);
 
   ThreadStartData* data = new ThreadStartData(function, parameter, this);
