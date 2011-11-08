@@ -17,24 +17,28 @@
  */
 interface OutputStream {
   /**
-   * Writes the content of [buffer] to the stream. This will pass
-   * ownership of the specified buffer to the system and the caller
-   * should not change it. Returns true if the data could be written
-   * to the underlying communication channel immediately. Otherwise
-   * the data is buffered by the output stream and will be sent as
-   * soon as possible.
+   * Writes the content of [buffer] to the stream. If [copyBuffer] is
+   * true ownership of the specified buffer is passed to the system
+   * and the caller should not change it afterwards. The default value
+   * for [copyBuffer] is true.
+   *
+   * Returns true if the data could be written to the underlying
+   * communication channel immediately. Otherwise the data is buffered
+   * by the output stream and will be sent as soon as possible.
    */
-  bool write(List<int> buffer);
+  bool write(List<int> buffer, [bool copyBuffer]);
 
   /**
    * Writes [len] bytes from buffer [buffer] starting at offset
    * [offset] to the output stream. If [offset] is not specified the
    * default is 0. If [len] is not specified the default is the length
-   * of the buffer passed. The system will copy the data to be written
-   * so the caller can safely change [buffer] afterwards. Returns true
-   * if the data could be written to the underlying communication
-   * channel immediately. Otherwise the data is buffered by the output
-   * stream and will be sent as soon as possible.
+   * of the buffer minus [offset] (i.e. writing from offset to the end
+   * of the buffer). The system will copy the data to be written so
+   * the caller can safely change [buffer] afterwards.
+   *
+   * Returns true if the data could be written to the underlying
+   * communication channel immediately. Otherwise the data is buffered
+   * by the output stream and will be sent as soon as possible.
    */
   bool writeFrom(List<int> buffer, [int offset, int len]);
 

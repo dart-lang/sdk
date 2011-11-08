@@ -73,12 +73,13 @@ class _FileOutputStream implements FileOutputStream {
     _file.openSync(true);
   }
 
-  bool write(List<int> buffer) {
+  bool write(List<int> buffer, [bool copyBuffer = false]) {
     return _write(buffer, 0, buffer.length);
   }
 
   bool writeFrom(List<int> buffer, [int offset, int len]) {
-    return _write(buffer, offset, (len == null) ? buffer.length : len);
+    return _write(
+        buffer, offset, (len == null) ? buffer.length - offset : len);
   }
 
   void end() {

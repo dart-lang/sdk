@@ -91,7 +91,23 @@ class EchoServerGame {
 
       _socket.closeHandler = closeHandler;
       _socket.errorHandler = errorHandler;
-      stream.write(_buffer);
+
+      // Test both write and writeFrom in different forms.
+      switch (_messages % 2) {
+        case 0:
+          stream.write(_buffer);
+          break;
+        case 1:
+          stream.write(_buffer, false);
+          break;
+        case 2:
+          stream.writeFrom(_buffer);
+          break;
+        case 3:
+          stream.writeFrom(_buffer, len: _buffer.length ~/ 2);
+          stream.writeFrom(_buffer, _buffer.length ~/ 2);
+          break;
+      }
       stream.close();
       dataSent();
     }

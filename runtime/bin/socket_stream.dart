@@ -107,12 +107,13 @@ class SocketOutputStream implements OutputStream {
     _socket.errorHandler = _errorHandler;
   }
 
-  bool write(List<int> buffer) {
-    return _write(buffer, 0, buffer.length, false);
+    bool write(List<int> buffer, [bool copyBuffer = true]) {
+    return _write(buffer, 0, buffer.length, copyBuffer);
   }
 
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
-    return _write(buffer, offset, (len == null) ? buffer.length : len, true);
+    return _write(
+        buffer, offset, (len == null) ? buffer.length - offset : len, true);
   }
 
   void close() {
@@ -149,7 +150,6 @@ class SocketOutputStream implements OutputStream {
 
   bool _write(List<int> buffer, int offset, int len, bool copyBuffer) {
     if (_closing || _closed) throw new StreamException("Stream closed");
-    if (len == null) len = buffer.length;
     int bytesWritten = 0;
     if (_pendingWrites.isEmpty()) {
       // If nothing is buffered write as much as possible and buffer
@@ -159,12 +159,14 @@ class SocketOutputStream implements OutputStream {
     }
 
     // Place remaining data on the pending writes queue.
+    int notWrittenOffset = offset + bytesWritten;
     if (copyBuffer) {
       List<int> newBuffer =
-          buffer.getRange(offset + bytesWritten, buffer.length);
+          buffer.getRange(notWrittenOffset, len - bytesWritten);
       _pendingWrites.add(newBuffer);
     } else {
-      _pendingWrites.add(buffer, bytesWritten);
+      assert(offset + len = buffer.length);
+      _pendingWrites.add(buffer, notWrittenOffset);
     }
   }
 
