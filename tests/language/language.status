@@ -239,7 +239,6 @@ FieldOverrideTest/02: Fail
 Field3NegativeTest: Fail
 FieldNegativeTest: Fail
 FinalParamNegativeTest: Fail
-FinalVarNegativeTest: Fail
 For2Test: Fail
 FunctionLiterals2Test: Fail
 FunctionSyntaxTest: Fail
@@ -335,6 +334,9 @@ ImplicitThisTest/none: Fail # Issue 376
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
 DoubleComparisonTest: Fail
+
+[ $component == frogsh ||  $component == frog ]
+FinalVarNegativeTest: Fail
 
 [ $arch == x64 ]
 *: Skip
