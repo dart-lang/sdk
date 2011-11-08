@@ -436,7 +436,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 }
 
 
-DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object) {
+DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
@@ -497,8 +497,8 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1, Dart_Handle obj2,
-                                           bool* value) {
+DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
+                                          bool* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Instance& expected = Instance::CheckedHandle(Api::UnwrapHandle(obj1));
@@ -513,6 +513,17 @@ DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1, Dart_Handle obj2,
   } else {
     return Api::Error("An exception occured when calling '=='");
   }
+}
+
+
+DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
+                                    bool* value) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& expected = Object::Handle(Api::UnwrapHandle(obj1));
+  const Object& actual = Object::Handle(Api::UnwrapHandle(obj2));
+  *value = (expected.raw() == actual.raw());
+  return Api::Success();
 }
 
 
@@ -542,7 +553,7 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
 // TODO(iposva): This call actually implements IsInstanceOfClass.
 // Do we also need a real Dart_IsInstanceOf, which should take an instance
 // rather than an object and a type rather than a class?
-DART_EXPORT Dart_Handle Dart_IsInstanceOf(Dart_Handle object,
+DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle clazz,
                                           bool* value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -2019,8 +2030,8 @@ Dart_Handle Api::VError(const char* format, va_list args) {
   HandleScope scope;  // Setup a VM handle scope.
 
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
-  char* buffer = reinterpret_cast<char*>(zone.Allocate(len+1));
-  OS::VSNPrint(buffer, len+1, format, args);
+  char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
+  OS::VSNPrint(buffer, (len + 1), format, args);
 
   const String& message = String::Handle(String::New(buffer));
   const Object& obj = Object::Handle(ApiFailure::New(message));

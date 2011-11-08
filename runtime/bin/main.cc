@@ -199,7 +199,7 @@ static bool HasCompileAll(const CommandLineOptions& options) {
 
 
 static void PrintObject(FILE* out, Dart_Handle object) {
-  Dart_Handle result = Dart_ObjectToString(object);
+  Dart_Handle result = Dart_ToString(object);
   if (Dart_IsValid(result)) {
     PrintString(out, result);
   } else {

@@ -127,6 +127,35 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle);
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
 
 /**
+ * Converts an object to a string.
+ *
+ * If an exception occurs during the conversion, this is treated as an
+ * error.
+ *
+ * \return A handle to the converted string if no errors occur during
+ * the conversion. If an error does occur, an invalid handle is
+ * returned.
+ */
+DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
+
+/**
+ * Checks if the two objects are the same object
+ *
+ * The result of the comparison is returned through the 'same'
+ * parameter. The return value itself is used to indicate success or
+ * failure, not identity.
+ *
+ * \param obj1 An object to be compared.
+ * \param obj2 An object to be compared.
+ * \param equal Returns whether the two objects are the same.
+ *
+ * \return A valid handle if no error occurs during the comparison.
+ */
+DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1,
+                                    Dart_Handle obj2,
+                                    bool* same);
+
+/**
  * Allocates a persistent handle for an object.
  *
  * This handle has the lifetime of the current isolate unless it is
@@ -448,20 +477,7 @@ DART_EXPORT Dart_Handle Dart_Null();
 DART_EXPORT bool Dart_IsNull(Dart_Handle object);
 
 /**
- * Converts an object to a string.
- *
- * If an exception occurs during the conversion, this is treated as an
- * error.
- *
- * \return A handle to the converted string if no errors occur during
- * the conversion. If an error does occur, an invalid handle is
- * returned.
- */
-DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object);
-// TODO(turnidge): Consider shortening name to Dart_ToString.
-
-/**
- * Returns true if the two objects are equal.
+ * Checks if the two objects are equal.
  *
  * The result of the comparison is returned through the 'equal'
  * parameter. The return value itself is used to indicate success or
@@ -473,12 +489,9 @@ DART_EXPORT Dart_Handle Dart_ObjectToString(Dart_Handle object);
  *
  * \return A valid handle if no error occurs during the comparison.
  */
-DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1,
-                                           Dart_Handle obj2,
-                                           bool* equal);
-// TODO(turnidge): Consider renaming for consistency. Maybe just
-// Dart_Equals.
-// TODO(turnidge): Need to add identity equality function.
+DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
+                                          Dart_Handle obj2,
+                                          bool* equal);
 
 /**
  * Is this object an instance of some type?
@@ -492,7 +505,7 @@ DART_EXPORT Dart_Handle Dart_Objects_Equal(Dart_Handle obj1,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_IsInstanceOf(Dart_Handle object,
+DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* instanceof);
 
@@ -1007,9 +1020,8 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
  * \return An invalid handle if the exception was not thrown.
  *   Otherwise the function does not return.
  */
-DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
+DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace);
-// TODO(turnidge): ReThrow -> Rethrow.
 
 // --- Native functions ---
 

@@ -45,6 +45,74 @@ UNIT_TEST_CASE(Null) {
 }
 
 
+UNIT_TEST_CASE(IsSame) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  bool same = false;
+  Dart_Handle five = Dart_NewString("5");
+  Dart_Handle five_again = Dart_NewString("5");
+  Dart_Handle seven = Dart_NewString("7");
+
+  // Same objects.
+  EXPECT_VALID(Dart_IsSame(five, five, &same));
+  EXPECT(same);
+
+  // Equal objects.
+  EXPECT_VALID(Dart_IsSame(five, five_again, &same));
+  EXPECT(!same);
+
+  // Different objects.
+  EXPECT_VALID(Dart_IsSame(five, seven, &same));
+  EXPECT(!same);
+
+  // Non-instance objects.
+  {
+    Zone zone;
+    HandleScope hs;
+    const Object& cls1 = Object::Handle(Object::null_class());
+    const Object& cls2 = Object::Handle(Object::class_class());
+    Dart_Handle class1 = Api::NewLocalHandle(cls1);
+    Dart_Handle class2 = Api::NewLocalHandle(cls2);
+
+    EXPECT_VALID(Dart_IsSame(class1, class1, &same));
+    EXPECT(same);
+
+    EXPECT_VALID(Dart_IsSame(class1, class2, &same));
+    EXPECT(!same);
+  }
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(ObjectEquals) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  bool equal = false;
+  Dart_Handle five = Dart_NewString("5");
+  Dart_Handle five_again = Dart_NewString("5");
+  Dart_Handle seven = Dart_NewString("7");
+
+  // Same objects.
+  EXPECT_VALID(Dart_ObjectEquals(five, five, &equal));
+  EXPECT(equal);
+
+  // Equal objects.
+  EXPECT_VALID(Dart_ObjectEquals(five, five_again, &equal));
+  EXPECT(equal);
+
+  // Different objects.
+  EXPECT_VALID(Dart_ObjectEquals(five, seven, &equal));
+  EXPECT(!equal);
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
 UNIT_TEST_CASE(BooleanValues) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();  // Enter a Dart API scope for the unit test.
@@ -1628,7 +1696,7 @@ UNIT_TEST_CASE(InstanceOf) {
     // Now check instanceOfTestObj reported as an instance of
     // InstanceOfTest class.
     bool is_instance = false;
-    result = Dart_IsInstanceOf(instanceOfTestObj, cls, &is_instance);
+    result = Dart_ObjectIsType(instanceOfTestObj, cls, &is_instance);
     EXPECT_VALID(result);
     EXPECT(is_instance);
 
@@ -1637,21 +1705,21 @@ UNIT_TEST_CASE(InstanceOf) {
     EXPECT_VALID(otherClass);
     EXPECT(!Dart_ExceptionOccurred(otherClass));
 
-    result = Dart_IsInstanceOf(instanceOfTestObj, otherClass, &is_instance);
+    result = Dart_ObjectIsType(instanceOfTestObj, otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     // Check that primitives are not instances of InstanceOfTest class.
-    result = Dart_IsInstanceOf(Dart_NewString("a string"), otherClass,
+    result = Dart_ObjectIsType(Dart_NewString("a string"), otherClass,
                                &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
-    result = Dart_IsInstanceOf(Dart_NewInteger(42), otherClass, &is_instance);
+    result = Dart_ObjectIsType(Dart_NewInteger(42), otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
-    result = Dart_IsInstanceOf(Dart_NewBoolean(true), otherClass, &is_instance);
+    result = Dart_ObjectIsType(Dart_NewBoolean(true), otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
@@ -1664,12 +1732,12 @@ UNIT_TEST_CASE(InstanceOf) {
     EXPECT_VALID(null);
     EXPECT(!Dart_ExceptionOccurred(null));
 
-    result = Dart_IsInstanceOf(null, otherClass, &is_instance);
+    result = Dart_ObjectIsType(null, otherClass, &is_instance);
     EXPECT_VALID(result);
     EXPECT(!is_instance);
 
     // Check that error is returned if null is passed as a class argument.
-    result = Dart_IsInstanceOf(null, null, &is_instance);
+    result = Dart_ObjectIsType(null, null, &is_instance);
     EXPECT(!Dart_IsValid(result));
 
     Dart_ExitScope();  // Exit the Dart API scope.
