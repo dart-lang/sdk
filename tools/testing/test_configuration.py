@@ -80,7 +80,7 @@ class StandardTestConfiguration(test.TestConfiguration):
         else:
           return [test_case.BrowserTestCase(
               self.context, test_path, filename, False, mode, arch, component,
-              options)]
+              self.flags)]
     else:
       tests = []
       if tags:
