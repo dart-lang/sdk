@@ -130,6 +130,9 @@ class Co19TestConfiguration(test.TestConfiguration):
     status = join(self.root, "co19-compiler.status")
     if exists(status):
       test.ReadConfigurationInto(status, sections, defs)
+    status = join(self.root, "co19-frog.status")
+    if exists(status):
+      test.ReadConfigurationInto(status, sections, defs)
 
   def Contains(self, path, file):
     """ reimplemented for support '**' glob pattern """
