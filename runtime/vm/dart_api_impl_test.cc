@@ -13,6 +13,7 @@
 
 namespace dart {
 
+#if defined(TARGET_ARCH_IA32)
 UNIT_TEST_CASE(Dart_Error) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();
@@ -24,6 +25,7 @@ UNIT_TEST_CASE(Dart_Error) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 }
+#endif
 
 
 UNIT_TEST_CASE(Null) {
