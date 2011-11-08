@@ -715,6 +715,11 @@ class Type : public Object {
     return HasResolvedTypeClass() && (type_class() == Object::void_class());
   }
 
+  bool IsObjectType() const {
+    return HasResolvedTypeClass() &&
+        Class::Handle(type_class()).IsObjectClass();
+  }
+
   // Check if this type represents the 'bool' interface.
   bool IsBoolInterface() const;
 

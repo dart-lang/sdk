@@ -25,7 +25,7 @@ DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
-    "number of invocations before a fucntion is optimized, -1 means never.");
+    "number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_invocation_count);
 DECLARE_FLAG(bool, trace_compiler);
@@ -1508,8 +1508,9 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
 
-  // Any expression is assignable to the DynamicType. Skip the test.
-  if (dst_type.IsDynamicType()) {
+  // Any expression is assignable to the Dynamic type and to the Object type.
+  // Skip the test.
+  if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
     return;
   }
 
