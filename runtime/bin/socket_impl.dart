@@ -201,6 +201,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   factory _ServerSocket(String bindAddress, int port, int backlog) {
     ServerSocket socket = new _ServerSocket._internal();
     if (!socket._createBindListen(bindAddress, port, backlog)) {
+      socket.close();
       return null;
     }
     if (port != 0) {
@@ -247,6 +248,7 @@ class _Socket extends _SocketBase implements Socket {
   factory _Socket(String host, int port) {
     Socket socket = new _Socket._internal();
     if (!socket._createConnect(host, port)) {
+      socket.close();
       return null;
     }
     return socket;

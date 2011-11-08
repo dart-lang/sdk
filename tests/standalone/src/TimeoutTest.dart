@@ -6,6 +6,7 @@
 // A test that runs forever.
 void main() {
   final HOST = "127.0.0.1";
-  ServerSocket listenForever = new ServerSocket(HOST, 8001, 10);
+  // Use port 0 to chose free port.
+  ServerSocket listenForever = new ServerSocket(HOST, 0, 10);
   // Does not call listenForever.close();
 }
