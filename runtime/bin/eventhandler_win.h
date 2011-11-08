@@ -152,6 +152,13 @@ class Handle {
   void ReadComplete(IOBuffer* buffer);
   void WriteComplete(IOBuffer* buffer);
 
+  bool IsClosing() { return (flags_ & (1 << kClosing)) != 0; }
+  bool IsClosedRead() { return (flags_ & (1 << kCloseRead)) != 0; }
+  bool IsClosedWrite() { return (flags_ & (1 << kCloseWrite)) != 0; }
+  void MarkClosing() { flags_ |= (1 << kClosing); }
+  void MarkClosedRead() { flags_ |= (1 << kCloseRead); }
+  void MarkClosedWrite() { flags_ |= (1 << kCloseWrite); }
+
   virtual void EnsureInitialized(
     EventHandlerImplementation* event_handler) = 0;
 
@@ -178,9 +185,13 @@ class Handle {
   bool is_client_socket() { return type_ == kClientSocket; }
   intptr_t mask() { return mask_; }
 
-  bool is_closing() { return closing_; }
-
  protected:
+  enum Flags {
+    kClosing = 0,
+    kCloseRead = 1,
+    kCloseWrite = 2
+  };
+
   explicit Handle(HANDLE handle);
   Handle(HANDLE handle, Dart_Port port);
 
@@ -188,16 +199,18 @@ class Handle {
 
   Type type_;
   HANDLE handle_;
-  bool closing_;  // Is this handle in the process of closing?
   Dart_Port port_;  // Dart port to communicate events for this socket.
   intptr_t mask_;  // Mask of events to report through the port.
   HANDLE completion_port_;
-  CRITICAL_SECTION cs_;  // Critical section protecting this object.
   EventHandlerImplementation* event_handler_;
 
   IOBuffer* data_ready_;  // IO buffer for data ready to be read.
   IOBuffer* pending_read_;  // IO buffer for pending read.
   IOBuffer* pending_write_;  // IO buffer for pending write
+
+ private:
+  int flags_;
+  CRITICAL_SECTION cs_;  // Critical section protecting this object.
 };
 
 
@@ -273,15 +286,13 @@ class ListenSocket : public SocketHandle {
 // Information on connected sockets.
 class ClientSocket : public SocketHandle {
  public:
-  explicit ClientSocket(SOCKET s)
-      : SocketHandle(s),
-        next_(NULL),
-        flags_(0) { type_ = kClientSocket; }
+  explicit ClientSocket(SOCKET s) : SocketHandle(s), next_(NULL) {
+    type_ = kClientSocket;
+  }
 
-  ClientSocket(SOCKET s, Dart_Port port)
-      : SocketHandle(s, port),
-        next_(NULL),
-        flags_(0) { type_ = kClientSocket; }
+  ClientSocket(SOCKET s, Dart_Port port) : SocketHandle(s, port), next_(NULL) {
+    type_ = kClientSocket;
+  }
 
   virtual ~ClientSocket() {
     // Don't delete this object until all pending requests have been handled.
@@ -291,11 +302,6 @@ class ClientSocket : public SocketHandle {
   };
 
   void Shutdown(int how);
-  bool IsClosedRead() { return (flags_ & (1 << kCloseRead)) != 0; }
-  bool IsClosedWrite() { return (flags_ & (1 << kCloseWrite)) != 0; }
-
-  void MarkClosedRead() { flags_ |= (1 << kCloseRead); }
-  void MarkClosedWrite() { flags_ |= (1 << kCloseWrite); }
 
   // Internal interface used by the event handler.
   virtual bool IssueRead();
@@ -309,15 +315,9 @@ class ClientSocket : public SocketHandle {
   void set_next(ClientSocket* next) { next_ = next; }
 
  private:
-  enum Flags {
-    kCloseRead = 0,
-    kCloseWrite = 1
-  };
-
   virtual void AfterClose();
 
   ClientSocket* next_;
-  int flags_;
 };
 
 
@@ -335,8 +335,8 @@ class EventHandlerImplementation {
   void HandleTimeout();
   void HandleAccept(ListenSocket* listen_socket, IOBuffer* buffer);
   void HandleClosed(Handle* handle);
-  void HandleRead(ClientSocket* client_socket, int bytes, IOBuffer* buffer);
-  void HandleWrite(ClientSocket* client_socket, int bytes, IOBuffer* buffer);
+  void HandleRead(Handle* handle, int bytes, IOBuffer* buffer);
+  void HandleWrite(Handle* handle, int bytes, IOBuffer* buffer);
   void HandleClose(ClientSocket* client_socket);
   void HandleIOCompletion(DWORD bytes, ULONG_PTR key, OVERLAPPED* overlapped);
 

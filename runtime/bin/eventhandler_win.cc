@@ -91,7 +91,7 @@ int IOBuffer::GetRemainingLength() {
 
 Handle::Handle(HANDLE handle)
     : handle_(reinterpret_cast<HANDLE>(handle)),
-      closing_(false),
+      flags_(0),
       port_(0),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(NULL),
@@ -104,7 +104,7 @@ Handle::Handle(HANDLE handle)
 
 Handle::Handle(HANDLE handle, Dart_Port port)
     : handle_(reinterpret_cast<HANDLE>(handle)),
-      closing_(false),
+      flags_(0),
       port_(port),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(NULL),
@@ -145,11 +145,11 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
 
 void Handle::close() {
   ScopedLock lock(this);
-  if (!closing_) {
+  if (!IsClosing()) {
     // Close the socket and set the closing state. This close method can be
     // called again if this socket has pending IO operations in flight.
     ASSERT(handle_ != INVALID_HANDLE_VALUE);
-    closing_ = true;
+    MarkClosing();
     // According to the documentation from Microsoft socket handles should
     // not be closed using CloseHandle but using closesocket.
     if (is_socket()) {
@@ -182,7 +182,7 @@ void Handle::ReadComplete(IOBuffer* buffer) {
   // Currently only one outstanding read at the time.
   ASSERT(pending_read_ == buffer);
   ASSERT(data_ready_ == NULL);
-  if (!closing_ && !buffer->IsEmpty()) {
+  if (!IsClosing() && !buffer->IsEmpty()) {
     data_ready_ = pending_read_;
   } else {
     IOBuffer::DisposeBuffer(buffer);
@@ -341,7 +341,7 @@ bool ListenSocket::IssueAccept() {
 
 void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
   ScopedLock lock(this);
-  if (!closing_) {
+  if (!IsClosing()) {
     // Update the accepted socket to support the full range of API calls.
     SOCKET s = socket();
     int rc = setsockopt(buffer->client(),
@@ -410,7 +410,7 @@ void ListenSocket::AfterClose() {
 
 
 bool ListenSocket::IsClosed() {
-  return closing_ && !HasPendingAccept();
+  return IsClosing() && !HasPendingAccept();
 }
 
 
@@ -534,7 +534,7 @@ void ClientSocket::AfterClose() {
 
 
 bool ClientSocket::IsClosed() {
-  return closing_ && !HasPendingRead() && !HasPendingWrite();
+  return IsClosing() && !HasPendingRead() && !HasPendingWrite();
 }
 
 
@@ -545,13 +545,12 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
     timeout_ = msg->data;
     timeout_port_ = msg->dart_port;
   } else {
-    bool delete_socket = false;
-    Handle* socket_desc =
-        reinterpret_cast<Handle*>(msg->id);
-    ASSERT(socket_desc != NULL);
-    if (socket_desc->is_listen_socket()) {
+    bool delete_handle = false;
+    Handle* handle = reinterpret_cast<Handle*>(msg->id);
+    ASSERT(handle != NULL);
+    if (handle->is_listen_socket()) {
       ListenSocket* listen_socket =
-          reinterpret_cast<ListenSocket*>(socket_desc);
+          reinterpret_cast<ListenSocket*>(handle);
       listen_socket->EnsureInitialized(this);
       listen_socket->SetPortAndMask(msg->dart_port, msg->data);
 
@@ -568,56 +567,57 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       if ((msg->data & (1 << kCloseCommand)) != 0) {
         listen_socket->close();
         if (listen_socket->IsClosed()) {
-          delete_socket = true;
+          delete_handle = true;
         }
       }
     } else {
-      ClientSocket* client_socket =
-          reinterpret_cast<ClientSocket*>(socket_desc);
-      client_socket->SetPortAndMask(msg->dart_port, msg->data);
-      client_socket->EnsureInitialized(this);
+      handle->SetPortAndMask(msg->dart_port, msg->data);
+      handle->EnsureInitialized(this);
 
-      Handle::ScopedLock lock(client_socket);
+      Handle::ScopedLock lock(handle);
 
       // If the data available callback has been requested and data are
       // available post it immediately. Otherwise make sure that a pending
       // read is issued unless the socket is already closed for read.
       if ((msg->data & (1 << kInEvent)) != 0) {
-        if (client_socket->Available() > 0) {
+        if (handle->Available() > 0) {
           int event_mask = (1 << kInEvent);
-          Dart_PostIntArray(client_socket->port(), 1, &event_mask);
-        } else if (!client_socket->HasPendingRead() &&
-                   !client_socket->IsClosedRead()) {
-          client_socket->IssueRead();
+          Dart_PostIntArray(handle->port(), 1, &event_mask);
+        } else if (!handle->HasPendingRead() &&
+                   !handle->IsClosedRead()) {
+          handle->IssueRead();
         }
       }
 
       // If can send callback had been requested and there is no pending
       // send post it immediately.
       if ((msg->data & (1 << kOutEvent)) != 0) {
-        if (!client_socket->HasPendingWrite()) {
+        if (!handle->HasPendingWrite()) {
           int event_mask = (1 << kOutEvent);
-          Dart_PostIntArray(client_socket->port(), 1, &event_mask);
+          Dart_PostIntArray(handle->port(), 1, &event_mask);
         }
       }
 
-      if ((msg->data & (1 << kShutdownReadCommand)) != 0) {
-        client_socket->Shutdown(SD_RECEIVE);
-      }
+      if (handle->is_client_socket()) {
+        ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
+        if ((msg->data & (1 << kShutdownReadCommand)) != 0) {
+          client_socket->Shutdown(SD_RECEIVE);
+        }
 
-      if ((msg->data & (1 << kShutdownWriteCommand)) != 0) {
-        client_socket->Shutdown(SD_SEND);
+        if ((msg->data & (1 << kShutdownWriteCommand)) != 0) {
+          client_socket->Shutdown(SD_SEND);
+        }
       }
 
       if ((msg->data & (1 << kCloseCommand)) != 0) {
-        client_socket->close();
-        if (client_socket->IsClosed()) {
-          delete_socket = true;
+        handle->close();
+        if (handle->IsClosed()) {
+          delete_handle = true;
         }
       }
     }
-    if (delete_socket) {
-      delete socket_desc;
+    if (delete_handle) {
+      delete handle;
     }
   }
 }
@@ -627,7 +627,7 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
                                               IOBuffer* buffer) {
   listen_socket->AcceptComplete(buffer, completion_port_);
 
-  if (!listen_socket->is_closing()) {
+  if (!listen_socket->IsClosing()) {
     int event_mask = 1 << kInEvent;
     if ((listen_socket->mask() & event_mask) != 0) {
       Dart_PostIntArray(listen_socket->port(), 1, &event_mask);
@@ -641,7 +641,7 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
 
 
 void EventHandlerImplementation::HandleClosed(Handle* handle) {
-  if (!handle->is_closing()) {
+  if (!handle->IsClosing()) {
     int event_mask = 1 << kCloseEvent;
     if ((handle->mask() & event_mask) != 0) {
       Dart_PostIntArray(handle->port(), 1, &event_mask);
@@ -650,49 +650,49 @@ void EventHandlerImplementation::HandleClosed(Handle* handle) {
 }
 
 
-void EventHandlerImplementation::HandleRead(ClientSocket* client_socket,
+void EventHandlerImplementation::HandleRead(Handle* handle,
                                             int bytes,
                                             IOBuffer* buffer) {
   buffer->set_data_length(bytes);
-  client_socket->ReadComplete(buffer);
+  handle->ReadComplete(buffer);
   if (bytes > 0) {
-    if (!client_socket->is_closing()) {
+    if (!handle->IsClosing()) {
       int event_mask = 1 << kInEvent;
-      if ((client_socket->mask() & event_mask) != 0) {
-        Dart_PostIntArray(client_socket->port(), 1, &event_mask);
+      if ((handle->mask() & event_mask) != 0) {
+        Dart_PostIntArray(handle->port(), 1, &event_mask);
       }
     }
   } else {
     ASSERT(bytes == 0);
-    client_socket->MarkClosedRead();
-    HandleClosed(client_socket);
+    handle->MarkClosedRead();
+    HandleClosed(handle);
   }
 
-  if (client_socket->IsClosed()) {
-    delete client_socket;
+  if (handle->IsClosed()) {
+    delete handle;
   }
 }
 
 
-void EventHandlerImplementation::HandleWrite(ClientSocket* client_socket,
+void EventHandlerImplementation::HandleWrite(Handle* handle,
                                              int bytes,
                                              IOBuffer* buffer) {
-  client_socket->WriteComplete(buffer);
+  handle->WriteComplete(buffer);
 
   if (bytes > 0) {
-    if (!client_socket->is_closing()) {
+    if (!handle->IsClosing()) {
       int event_mask = 1 << kOutEvent;
-      if ((client_socket->mask() & event_mask) != 0) {
-        Dart_PostIntArray(client_socket->port(), 1, &event_mask);
+      if ((handle->mask() & event_mask) != 0) {
+        Dart_PostIntArray(handle->port(), 1, &event_mask);
       }
     }
   } else {
     ASSERT(bytes == 0);
-    HandleClosed(client_socket);
+    HandleClosed(handle);
   }
 
-  if (client_socket->IsClosed()) {
-    delete client_socket;
+  if (handle->IsClosed()) {
+    delete handle;
   }
 }
 
@@ -716,13 +716,13 @@ void EventHandlerImplementation::HandleIOCompletion(DWORD bytes,
       break;
     }
     case IOBuffer::kRead: {
-      ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(key);
-      HandleRead(client_socket, bytes, buffer);
+      Handle* handle = reinterpret_cast<Handle*>(key);
+      HandleRead(handle, bytes, buffer);
       break;
     }
     case IOBuffer::kWrite: {
-      ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(key);
-      HandleWrite(client_socket, bytes, buffer);
+      Handle* handle = reinterpret_cast<Handle*>(key);
+      HandleWrite(handle, bytes, buffer);
       break;
     }
     default:

@@ -46,7 +46,6 @@ class ProcessStderrTest {
           buffer.removeLast();
           process.close();
         } else if (received == BUFFERSIZE) {
-          Expect.equals(10, buffer[BUFFERSIZE - 1]);
           process.close();
         }
       }

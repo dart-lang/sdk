@@ -20,9 +20,6 @@ TimeoutTest: Timeout
 # This test fails with "Too many open files" on the Mac OS buildbot.
 SocketManyConnectionsTest: Skip
 
-[ $component == vm && $system == win32]
-TestRunnerTest: Skip # Uses Process.  Dart issue 363.
-
 [ $component == dartium ]
 # Server specific tests OK to fail in the browser
 EchoServerTest: Skip  # Uses Socket

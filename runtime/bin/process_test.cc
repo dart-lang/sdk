@@ -38,11 +38,15 @@ int main(int argc, char* argv[]) {
          (fgets(line, kLineSize, stdin) != NULL)) {
     if (outstream == 0) {
       fprintf(stdout, "%s", line);
+      fflush(stdout);
     } else if (outstream == 1) {
       fprintf(stderr, "%s", line);
+      fflush(stderr);
     } else if (outstream == 2) {
       fprintf(stdout, "%s", line);
       fprintf(stderr, "%s", line);
+      fflush(stdout);
+      fflush(stderr);
     }
     echo_counter++;
   }
@@ -51,7 +55,6 @@ int main(int argc, char* argv[]) {
     int* segfault = NULL;
     *segfault = 1;
   }
-
 
   return exit_code;
 }
