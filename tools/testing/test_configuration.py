@@ -34,8 +34,8 @@ class StandardTestConfiguration(test.TestConfiguration):
                      'static type error',
                      'dynamic type error'])
 
-  def __init__(self, context, root):
-    super(StandardTestConfiguration, self).__init__(context, root)
+  def __init__(self, context, root, flags = []):
+    super(StandardTestConfiguration, self).__init__(context, root, flags)
 
   def _Cleanup(self, tests):
     """Remove any temporary files created by running the test."""
@@ -75,11 +75,12 @@ class StandardTestConfiguration(test.TestConfiguration):
           for options in vm_options_list:
             tests.append(test_case.BrowserTestCase(
                 self.context, test_path, filename, False, mode, arch, component,
-                options))
+                options + self.flags))
           return tests
         else:
           return [test_case.BrowserTestCase(
-              self.context, test_path, filename, False, mode, arch, component)]
+              self.context, test_path, filename, False, mode, arch, component,
+              options)]
     else:
       tests = []
       if tags:
@@ -96,10 +97,11 @@ class StandardTestConfiguration(test.TestConfiguration):
         if vm_options_list:
           for options in vm_options_list:
             tests.append(test_case.StandardTestCase(self.context,
-                test_path, filename, mode, arch, component, options))
+                test_path, filename, mode, arch, component,
+                options + self.flags))
         else:
           tests.append(test_case.StandardTestCase(self.context,
-              test_path, filename, mode, arch, component))
+              test_path, filename, mode, arch, component, self.flags))
       return tests
 
   def ListTests(self, current_path, path, mode, arch, component):

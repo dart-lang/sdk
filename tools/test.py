@@ -493,9 +493,10 @@ class TestCase(object):
 class TestConfiguration(object):
   """Test configurations give test.py the list of tests, e.g. listing a dir."""
 
-  def __init__(self, context, root):
+  def __init__(self, context, root, flags=[]):
     self.context = context
     self.root = root
+    self.flags = flags
 
   def Contains(self, path, filename):
     """Returns True if the given path regexp matches the passed filename."""
