@@ -1023,83 +1023,73 @@ public class DartParser extends CompletionHooksParserBase {
 
   /**
    * <pre>
-   * fieldInitializer
-   *     : (THIS '.')? identifier '=' conditionalExpression
-   *     | THIS ('.' identifier)? arguments
-   *     ;
-   * </pre>
+   * initializers
+   *            : ':' superCallOrFirstFieldInitializer (',' fieldInitializer)*
+   *            | THIS ('.' identifier) formalParameterList
+   *            ;
    *
+   * fieldInitializer
+   *            : (THIS '.')? identifier '=' conditionalExpression
+   *            ;
+   *
+   * superCallOrFirstFieldInitializer
+   *            : SUPER arguments | SUPER '.' identifier arguments
+   *            | fieldInitializer
+   *            ;
+   *
+   * fieldInitializer
+   *            : (THIS '.')? identifier '=' conditionalExpression
+   *            | THIS ('.' identifier)? arguments
+   *            ;
+   * </pre>
    * @return true if initializer is a redirected constructor, false otherwise.
    */
-  private boolean parseFieldInitializersOrRedirectedConstructor(List<DartInitializer> inits) {
+  private boolean parseInitializers(List<DartInitializer> initializers) {
+    expect(Token.COLON);
     do {
-      beginFieldInitializerOrRedirectedConstructor();
-      boolean hasThisPrefix = optional(Token.THIS);
-      if (hasThisPrefix) {
-        if (match(Token.LPAREN)) {
-          return parseRedirectedConstructorInvocation(null, inits);
+      beginInitializer();
+      if (match(Token.SUPER)) {
+        beginSuperInitializer();
+        expect(Token.SUPER);
+        DartIdentifier constructor = null;
+        if (optional(Token.PERIOD)) {
+          constructor = parseIdentifier();
         }
-        expect(Token.PERIOD);
-      }
-      DartIdentifier name = parseIdentifier();
-      if (hasThisPrefix && match(Token.LPAREN)) {
-        return parseRedirectedConstructorInvocation(name, inits);
+        DartSuperConstructorInvocation superInvocation =
+          new DartSuperConstructorInvocation(constructor, parseArguments());
+        initializers.add(done(new DartInitializer(null, done(superInvocation))));
       } else {
-        expect(Token.ASSIGN);
-        boolean save = setAllowFunctionExpression(false);
-        DartExpression initExpr = parseExpression();
-        setAllowFunctionExpression(save);
-        inits.add(done(new DartInitializer(name, initExpr)));
+        boolean hasThisPrefix = optional(Token.THIS);
+        if (hasThisPrefix) {
+          if (match(Token.LPAREN)) {
+            return parseRedirectedConstructorInvocation(null, initializers);
+          }
+          expect(Token.PERIOD);
+        }
+        DartIdentifier name = parseIdentifier();
+        if (hasThisPrefix && match(Token.LPAREN)) {
+          return parseRedirectedConstructorInvocation(name, initializers);
+        } else {
+          expect(Token.ASSIGN);
+          boolean save = setAllowFunctionExpression(false);
+          DartExpression initExpr = parseExpression();
+          setAllowFunctionExpression(save);
+          initializers.add(done(new DartInitializer(name, initExpr)));
+        }
       }
     } while (optional(Token.COMMA));
     return false;
   }
 
   private boolean parseRedirectedConstructorInvocation(DartIdentifier name,
-                                                       List<DartInitializer> inits) {
-    if (inits.isEmpty()) {
-      DartInvocation call =
-        doneWithoutConsuming(new DartRedirectConstructorInvocation(name, parseArguments()));
-      inits.add(done(new DartInitializer(null, call)));
+                                                       List<DartInitializer> initializers) {
+    if (initializers.isEmpty()) {
+      DartRedirectConstructorInvocation redirConstructor =
+        new DartRedirectConstructorInvocation(name, parseArguments());
+      initializers.add(done(new DartInitializer(null, doneWithoutConsuming(redirConstructor))));
       return true;
     } else {
       reportUnexpectedToken(position(), Token.ASSIGN, Token.LPAREN);
-    }
-    return false;
-  }
-
-  /**
-   * <pre>
-   * initializers : ':' superCallOrFirstFieldInitializer (',' fieldInitializer)*
-   *              | THIS ('.' identifier) formalParameterList ;
-   *
-   * fieldInitializer : (THIS '.')? identifier '=' conditionalExpression ;
-   *
-   * superCallOrFirstFieldInitializer : SUPER arguments | SUPER '.' identifier
-   * arguments | fieldInitializer ;
-   * <pre>
-   *
-   * @return true if initializer is a redirect constructor, false otherwise.
-   */
-  private boolean parseInitializers(List<DartInitializer> initializers) {
-    expect(Token.COLON);
-    boolean callSuper = false;
-    if (match(Token.SUPER)) {
-      beginInitializer();
-      beginSuperInitializer();
-      expect(Token.SUPER);
-      callSuper = true;
-      DartIdentifier constructor = null;
-      if (optional(Token.PERIOD)) {
-        // Calling a super named constructor.
-        constructor = parseIdentifier();
-      }
-      DartSuperConstructorInvocation call =
-          done(new DartSuperConstructorInvocation(constructor, parseArguments()));
-      initializers.add(done(new DartInitializer(null, call)));
-    }
-    if (!callSuper || optional(Token.COMMA)) {
-      return parseFieldInitializersOrRedirectedConstructor(initializers);
     }
     return false;
   }

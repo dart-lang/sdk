@@ -10,6 +10,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,29 +23,50 @@ public class NegativeResolverTest extends CompilerTestCase {
     final ErrorCode errorCode;
     final int line;
     final int column;
+
     public ErrorExpectation(ErrorCode errorCode, int line, int column) {
       this.errorCode = errorCode;
       this.line = line;
       this.column = column;
     }
-    
   }
-  
+
   private static ErrorExpectation errEx(ErrorCode errorCode, int line, int column) {
     return new ErrorExpectation(errorCode, line, column);
-    
   }
-  
+
   public void checkNumErrors(String fileName, int expectedErrorCount) {
     DartUnit unit = parseUnit(fileName);
     resolve(unit);
     assertEquals(new ArrayList<DartCompilationError>(), typeErrors);
     if (errors.size() != expectedErrorCount) {
-      fail(String.format("Expected %s errors, but got %s: %s",
-                         expectedErrorCount, errors.size(), errors));
+      fail(String.format("Expected %s errors, but got %s: %s", expectedErrorCount, errors.size(),
+                         errors));
     }
   }
-  
+
+  public void checkNumErrors(String fileName,  ErrorExpectation ...expectedErrors) {
+    DartUnit unit = parseUnit(fileName);
+    resolve(unit);
+    assertEquals(expectedErrors.length, errors.size());
+    for (int i = 0; i < expectedErrors.length; i++) {
+      ErrorExpectation expectedError = expectedErrors[i];
+      DartCompilationError actualError = errors.get(i);
+      if (actualError.getErrorCode() != expectedError.errorCode
+          || actualError.getLineNumber() != expectedError.line
+          || actualError.getColumnNumber() != expectedError.column) {
+        fail(String.format(
+            "Expected %s:%s:%s, but got %s:%s:%s",
+            expectedError.errorCode,
+            expectedError.line,
+            expectedError.column,
+            actualError.getErrorCode(),
+            actualError.getLineNumber(),
+            actualError.getColumnNumber()));
+      }
+    }
+  }
+
   private void resolve(DartUnit unit) {
     unit.addTopLevelNode(ResolverTestCase.makeClass("int", null));
     unit.addTopLevelNode(ResolverTestCase.makeClass("Object", null));
@@ -54,7 +76,7 @@ public class NegativeResolverTest extends CompilerTestCase {
     unit.addTopLevelNode(ResolverTestCase.makeClass("Map", null, "K", "V"));
     ResolverTestCase.resolve(unit, getContext());
   }
-  
+
   /**
    * Parses given Dart source, runs {@link Resolver} and checks that expected errors were generated.
    */
@@ -86,7 +108,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             actualError.getColumnNumber()));
       }
     }
-  }  
+  }
 
   public void testInitializer1() {
     checkNumErrors("Initializer1NegativeTest.dart", 1);
@@ -253,7 +275,12 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void testRawTypesNegativeTest() {
     checkNumErrors("RawTypesNegativeTest.dart", 4);
   }
-  
+
+  public void testSuperMultipleInvocationsTest() {
+    checkNumErrors("SuperMultipleInvocationsTest.dart",
+                   errEx(ResolverErrorCode.SUPER_INVOCATION_NOT_UNIQUE, 14, 52));
+  }
+
   private TestCompilerContext getContext() {
     return new TestCompilerContext() {
       @Override

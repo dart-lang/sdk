@@ -47,7 +47,6 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/A04/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A02/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A03/t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A06/t04: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A13/t01: Fail # Bug 5371670.

@@ -1333,13 +1333,15 @@ public class Resolver {
     }
 
     private void resolveInitializers(DartMethodDefinition node) {
-      assert null != node;
       Iterator<DartInitializer> initializers = node.getInitializers().iterator();
       ConstructorElement constructorElement = null;
       while (initializers.hasNext()) {
         DartInitializer initializer = initializers.next();
         Element element = resolve(initializer);
-        if (ElementKind.of(element) == ElementKind.CONSTRUCTOR) {
+        if ((ElementKind.of(element) == ElementKind.CONSTRUCTOR) && initializer.isInvocation()) {
+          if (constructorElement != null) {
+            onError(initializer, ResolverErrorCode.SUPER_INVOCATION_NOT_UNIQUE);
+          }
           constructorElement = (ConstructorElement) element;
         }
       }

@@ -869,21 +869,16 @@ public class GenerateJavascriptAST {
         functionStack.push(constructor.getFunction());
         jsNewDeclarationsStack.push(new HashSet<JsName>());
 
-        JsInvocation constructorInvocation = maybeGenerateSuperOrRedirectCall(constructor);
-        boolean hasConstructorInvocation = constructorInvocation != null;
-        Iterator<DartInitializer> iterator = initializers.iterator();
-        Iterator<DartField> fieldIterator = fieldInitializers.iterator();
-
-        List<JsStatement> jsInitializers = initFunction.getBody().getStatements();
-
         // Do the field inline initializers first. If there are any assignments in the initializer
         // list, they will be the last assignments.
+        List<JsStatement> jsInitializers = initFunction.getBody().getStatements();
+        Iterator<DartField> fieldIterator = fieldInitializers.iterator();
         while (fieldIterator.hasNext()) {
-          JsExpression initializer = generateInlineFieldInitializer(fieldIterator.next());
-          jsInitializers.add(initializer.makeStmt());
+          jsInitializers.add(generateInlineFieldInitializer(fieldIterator.next()).makeStmt());
         }
 
         DartInvocation initInvocation = null;
+        Iterator<DartInitializer> iterator = initializers.iterator();
         while (iterator.hasNext()) {
           DartInitializer initializer = iterator.next();
           if (!initializer.isInvocation()) {
@@ -893,7 +888,8 @@ public class GenerateJavascriptAST {
           }
         }
 
-        if (hasConstructorInvocation) {
+        JsInvocation constructorInvocation = maybeGenerateSuperOrRedirectCall(constructor);
+        if (constructorInvocation != null) {
           // Call the super initializer function in the initializer.
           // Compute the super constructor initializer to call.
           ConstructorElement superElement = (ConstructorElement) initInvocation.getSymbol();
