@@ -44,10 +44,10 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
     test_path = "../tests/standalone/src/${testName}.dart";
   }
 
-  return new TestCase(getDartShellFileName(), <String>[
-                      "--ignore-unrecognized-flags",
-                      "--enable_type_checks",
-                      "tests/standalone/src/${testName}.dart"],
+  return new TestCase(getDartShellFileName(),
+                      <String>["--ignore-unrecognized-flags",
+                               "--enable_type_checks",
+                               test_path],
                       TestController.processCompletedTest,
                       new Set<String>.from(expectations));
 }
@@ -68,18 +68,19 @@ String getProcessTestFileName() {
 }
 
 void main() {
-  new RunningProcess(MakeTestCase("PassTest", [PASS]), 10).start();
-  new RunningProcess(MakeTestCase("FailTest", [FAIL]), 10).start();
-  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), 10).start();
+  int timeout = 1;
+  new RunningProcess(MakeTestCase("PassTest", [PASS]), timeout).start();
+  new RunningProcess(MakeTestCase("FailTest", [FAIL]), timeout).start();
+  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), timeout).start();
 
   new RunningProcess(new TestCase(getProcessTestFileName(),
                                   const ["0", "0", "1", "1"],
                                   TestController.processCompletedTest,
                                   new Set<String>.from([CRASH])),
-                     10).start();
+                     timeout).start();
   Expect.equals(4, TestController.numTests);
   // Throw must be from body of start() function for this test to work.
   Expect.throws(
-      new RunningProcess(MakeTestCase("PassTest", [SKIP]), 10).start);
+      new RunningProcess(MakeTestCase("PassTest", [SKIP]), timeout).start);
 }
 
