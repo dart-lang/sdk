@@ -19,7 +19,7 @@ class TestController {
     TestOutput output = testCase.output;
     print("Test: ${testCase.commandLine}");
     if (output.unexpectedOutput) {
-      print("Unexpected output: ${output.result}");
+      throw "Unexpected output: ${output.result}";
     }
     print("stdout: ");
     for (var line in output.stdout) print(line);
