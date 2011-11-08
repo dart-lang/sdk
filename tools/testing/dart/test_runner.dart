@@ -23,6 +23,8 @@ final PASS = "Pass";
 // An indication to skip the test.  The caller is responsible for skipping it.
 final SKIP = "Skip";
 
+final int NO_TIMEOUT = 0;
+
 String getDartShellFileName() {
   var names = ["out/Debug_ia32/dart_bin",
                "out/Release_ia32/dart_bin",
@@ -43,11 +45,12 @@ class TestCase {
   String executablePath;
   List<String> arguments;
   String commandLine;
+  String displayName;
   TestOutput output;
   Set<String> expectedOutcomes;
   Function completedHandler;
 
-  TestCase(this.executablePath, this.arguments,
+  TestCase(this.displayName, this.executablePath, this.arguments,
            this.completedHandler, this.expectedOutcomes) {
     commandLine = executablePath;
     for (var arg in arguments) {
@@ -103,7 +106,6 @@ class RunningProcess {
   List<String> stderr;
   List<Function> handlers;
 
-  static final int NO_TIMEOUT = 0;
 
   RunningProcess(this.testCase, [this.timeout = NO_TIMEOUT]);
 
@@ -154,3 +156,36 @@ class RunningProcess {
   }
 }
 
+
+class ProcessQueue {
+  int numProcesses = 0;
+  final int maxProcesses;
+  Queue<TestCase> tests;
+
+  ProcessQueue(this.maxProcesses) : tests = new Queue<TestCase>();
+
+  tryRunTest() {
+    if (numProcesses < maxProcesses && !tests.isEmpty()) {
+      TestCase test = tests.removeFirst();
+      print("running ${test.displayName}");
+      // TODO(whesse): Refactor into various test output methods.
+      Function old_callback = test.completedHandler;
+      Function wrapper = (TestCase test_arg) {
+        numProcesses--;
+        print("finished ${test_arg.displayName}");
+        tryRunTest();
+        old_callback(test_arg);
+      };
+      test.completedHandler = wrapper;
+        
+      // TODO(whesse): Add timeout information to TestCase, use it here.
+      new RunningProcess(test, 60).start();
+      numProcesses++;
+    }
+  }
+
+  runTest(TestCase test) {
+    tests.add(test);
+    tryRunTest();
+  }
+}

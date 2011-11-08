@@ -44,7 +44,8 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
     test_path = "../tests/standalone/src/${testName}.dart";
   }
 
-  return new TestCase(getDartShellFileName(),
+  return new TestCase(testName,
+                      getDartShellFileName(),
                       <String>["--ignore-unrecognized-flags",
                                "--enable_type_checks",
                                test_path],
@@ -73,7 +74,8 @@ void main() {
   new RunningProcess(MakeTestCase("FailTest", [FAIL]), timeout).start();
   new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), timeout).start();
 
-  new RunningProcess(new TestCase(getProcessTestFileName(),
+  new RunningProcess(new TestCase("CrashTest",
+                                  getProcessTestFileName(),
                                   const ["0", "0", "1", "1"],
                                   TestController.processCompletedTest,
                                   new Set<String>.from([CRASH])),
