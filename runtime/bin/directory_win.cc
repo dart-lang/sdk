@@ -106,6 +106,30 @@ static void ComputeFullSearchPath(const char* dir_name,
   *path_length += written;
 }
 
+static void PostError(Dart_Port error_port,
+                      const char* prefix,
+                      const char* suffix) {
+  if (error_port != 0) {
+    static const int kBufferSize = 10;
+    char error_str[kBufferSize];
+    int written = snprintf(error_str, kBufferSize, "%d", GetLastError());
+    ASSERT(written < kBufferSize);
+    int error_message_size =
+        strlen(prefix) + strlen(suffix) + strlen(error_str) + 3;
+    char* message = static_cast<char*>(malloc(error_message_size + 1));
+    written = snprintf(message,
+                       error_message_size + 1,
+                       "%s%s (%s)",
+                       prefix,
+                       suffix,
+                       error_str);
+    ASSERT(written == error_message_size);
+    Dart_Post(error_port, Dart_NewString(message));
+    free(message);
+  }
+}
+
+
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
                             Dart_Port dir_port,
@@ -124,38 +148,42 @@ static bool ListRecursively(const char* dir_name,
   path[path_length] = '\0';
 
   if (find_handle == INVALID_HANDLE_VALUE) {
-    // TODO(ager): Post on error port.
+    PostError(error_port, "Directory listing failed for: ", path);
     free(path);
     return false;
   }
 
-  bool completed = HandleEntry(&find_file_data,
-                               path,
-                               path_length,
-                               recursive,
-                               dir_port,
-                               file_port,
-                               done_port,
-                               error_port);
+  bool listing_error = !HandleEntry(&find_file_data,
+                                    path,
+                                    path_length,
+                                    recursive,
+                                    dir_port,
+                                    file_port,
+                                    done_port,
+                                    error_port);
 
-  while (FindNextFile(find_handle, &find_file_data) != 0) {
-    completed = completed && HandleEntry(&find_file_data,
-                                         path,
-                                         path_length,
-                                         recursive,
-                                         dir_port,
-                                         file_port,
-                                         done_port,
-                                         error_port);
+  while ((FindNextFile(find_handle, &find_file_data) != 0) && !listing_error) {
+    listing_error = listing_error || !HandleEntry(&find_file_data,
+                                                  path,
+                                                  path_length,
+                                                  recursive,
+                                                  dir_port,
+                                                  file_port,
+                                                  done_port,
+                                                  error_port);
   }
 
-  completed = completed && (GetLastError() == ERROR_NO_MORE_FILES);
+  if (GetLastError() != ERROR_NO_MORE_FILES) {
+    listing_error = true;
+    PostError(error_port, "Directory listing failed", "");
+  }
 
-  // TODO(ager): Post on error port if close fails.
-  FindClose(find_handle);
+  if (FindClose(find_handle) == 0) {
+    PostError(error_port, "Failed to close directory", "");
+  }
   free(path);
 
-  return completed;
+  return !listing_error;
 }
 
 
