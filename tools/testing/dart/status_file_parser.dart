@@ -16,6 +16,7 @@ final RegExp PrefixPattern = const RegExp(@"^\s*prefix\s+([\w\_\.\-\/]+)\s*$");
 // structures for test configuration, including Section.
 class Section {
   BooleanExpression condition;
+  Collection testSettings = const [];
 
   Section.always() : condition = null;
   Section(this.condition);
@@ -26,6 +27,9 @@ class Section {
 // directory, or the top directory.
 String getFilename(String path) =>
     new File(path).existsSync() ? path : '../$path';
+
+String getDirname(String path) =>
+    new Directory(path).existsSync() ? path : '../$path';
 
  
 void ReadConfigurationInto(path, sections) {
