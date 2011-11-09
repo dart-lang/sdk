@@ -9,8 +9,17 @@
 
 class Platform {
  public:
+  // Returns the number of processors on the machine.
   static int NumberOfProcessors();
+
+  // Returns a string representing the operating system ("linux",
+  // "macos" or "windows"). The returned string should not be
+  // deallocated by the caller.
   static const char* OperatingSystem();
+
+  // Returns a string representation of an error code. The returned
+  // string must be deallocated by the caller.
+  static char* StrError(int error_code);
 
  private:
   DISALLOW_ALLOCATION();

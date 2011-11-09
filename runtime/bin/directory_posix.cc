@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/directory.h"
+
 #include <dirent.h>
 #include <errno.h>
-#include <libgen.h>
-#include <string.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
-#include "bin/dartutils.h"
-#include "bin/directory.h"
 #include "bin/file.h"
+#include "bin/platform.h"
 
 // Forward declaration.
 static bool ListRecursively(const char* dir_name,
@@ -87,6 +85,29 @@ static void HandleFile(char* file_name,
 }
 
 
+static void PostError(Dart_Port error_port,
+                      const char* prefix,
+                      const char* suffix,
+                      int error_code) {
+  if (error_port != 0) {
+    char* error_str = Platform::StrError(error_code);
+    int error_message_size =
+        strlen(prefix) + strlen(suffix) + strlen(error_str) + 3;
+    char* message = static_cast<char*>(malloc(error_message_size + 1));
+    int written = snprintf(message,
+                           error_message_size + 1,
+                           "%s%s (%s)",
+                           prefix,
+                           suffix,
+                           error_str);
+    ASSERT(written == error_message_size);
+    free(error_str);
+    Dart_Post(error_port, Dart_NewString(message));
+    free(message);
+  }
+}
+
+
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
                             Dart_Port dir_port,
@@ -95,7 +116,7 @@ static bool ListRecursively(const char* dir_name,
                             Dart_Port error_port) {
   DIR* dir_pointer = opendir(dir_name);
   if (dir_pointer == NULL) {
-    // TODO(ager): post something on the error port.
+    PostError(error_port, "Directory listing failed for: ", dir_name, errno);
     return false;
   }
 
@@ -108,21 +129,22 @@ static bool ListRecursively(const char* dir_name,
   // Iterated the directory and post the directories and files to the
   // ports.
   int success = 0;
-  bool completed = true;
+  bool listing_error = false;
   dirent entry;
   dirent* result;
   while ((success = readdir_r(dir_pointer, &entry, &result)) == 0 &&
-         result != NULL) {
+         result != NULL &&
+         !listing_error) {
     switch (entry.d_type) {
       case DT_DIR:
-        completed = completed && HandleDir(entry.d_name,
-                                           path,
-                                           path_length,
-                                           recursive,
-                                           dir_port,
-                                           file_port,
-                                           done_port,
-                                           error_port);
+        listing_error = listing_error || !HandleDir(entry.d_name,
+                                                    path,
+                                                    path_length,
+                                                    recursive,
+                                                    dir_port,
+                                                    file_port,
+                                                    done_port,
+                                                    error_port);
         break;
       case DT_REG:
         HandleFile(entry.d_name, path, path_length, file_port);
@@ -138,19 +160,20 @@ static bool ListRecursively(const char* dir_name,
                                   entry.d_name);
         ASSERT(written == strlen(entry.d_name));
         int lstat_success = lstat(path, &entry_info);
-        if (lstat_success != 0) {
-          completed = false;
+        if (lstat_success == -1) {
+          listing_error = true;
+          PostError(error_port, "Directory listing failed for: ", path, errno);
           break;
         }
         if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
-          HandleDir(entry.d_name,
-                    path,
-                    path_length,
-                    recursive,
-                    dir_port,
-                    file_port,
-                    done_port,
-                    error_port);
+          listing_error = listing_error || !HandleDir(entry.d_name,
+                                                      path,
+                                                      path_length,
+                                                      recursive,
+                                                      dir_port,
+                                                      file_port,
+                                                      done_port,
+                                                      error_port);
         } else if ((entry_info.st_mode & S_IFMT) == S_IFREG) {
           HandleFile(entry.d_name, path, path_length, file_port);
         }
@@ -160,13 +183,18 @@ static bool ListRecursively(const char* dir_name,
         break;
     }
   }
-  completed = completed && (success == 0);
 
-  // TODO(ager): Post on error port if closing fails.
-  closedir(dir_pointer);
+  if (success != 0) {
+    listing_error = true;
+    PostError(error_port, "Directory listing failed", "", success);
+  }
+
+  if (closedir(dir_pointer) == -1) {
+    PostError(error_port, "Failed to close directory", "", errno);
+  }
   free(path);
 
-  return completed;
+  return !listing_error;
 }
 
 

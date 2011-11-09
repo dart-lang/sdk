@@ -4,6 +4,7 @@
 
 #include "bin/platform.h"
 
+#include <string.h>
 #include <unistd.h>
 
 
@@ -14,4 +15,13 @@ int Platform::NumberOfProcessors() {
 
 const char* Platform::OperatingSystem() {
   return "macos";
+}
+
+
+char* Platform::StrError(int error_code) {
+  static const int kBufferSize = 1024;
+  char* error = static_cast<char*>(malloc(kBufferSize));
+  error[0] = '\0';
+  strerror_r(error_code, error, kBufferSize);
+  return error;
 }
