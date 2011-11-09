@@ -78,16 +78,16 @@ interface ReceivePort factory ReceivePortFactory {
 
   /**
    * Closes this receive port immediately. Pending messages will not
-   * be processed and it is impossible to re-open the port. Reply
-   * ports possibly created through [SendPort.call] are automatically
-   * closed when the reply has been received. Multiple invocations of
-   * [close] are allowed but ignored.
+   * be processed and it is impossible to re-open the port. Single-shot
+   * reply ports, such as those created through [SendPort.call], are
+   * automatically closed when the reply has been received. Multiple
+   * invocations of [close] are allowed but ignored.
    */
   void close();
 
   /**
-   * Converts this receive port to a send port. It is legal to create several
-   * [SendPort]s from the same [ReceivePort].
+   * Creates a new send port that sends to this receive port. It is legal to
+   * create several [SendPort]s from the same [ReceivePort].
    */
   SendPort toSendPort();
 
@@ -135,13 +135,13 @@ class Isolate {
    * possible.
    *
    * During the initialization of the new isolate a [ReceivePort] is created
-   * inside the new isolate and stored in [port]. A corresponding
-   * [SendPort] is sent to the isolate that invoked [spawn]. Since spawning an
-   * isolate is an asynchronous operation this method returns a [Future] of
-   * this [SendPort].
+   * inside the new isolate and stored in the read-only field [port].
+   *  A corresponding [SendPort] is sent to the isolate that invoked [spawn].
+   * Since spawning an isolate is an asynchronous operation this method returns
+   * a [Future] of this [SendPort].
    *
    * A common pattern to instantiate new isolates is to enqueue the instructions
-   * in [Future.then].
+   * using [Future.then].
    * [:myIsolate.spawn().then((SendPort port) { port.send('hi there'); });:]
    */
   Future<SendPort> spawn() {
