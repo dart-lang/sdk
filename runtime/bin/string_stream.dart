@@ -2,38 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Utility class which can deliver bytes one by one from a number of
-// buffers added.
-class _BufferList {
-  _BufferList() : _index = 0, _length = 0, _buffers = new Queue();
-
-  void add(List<int> buffer) {
-    _buffers.addLast(buffer);
-    _length += buffer.length;
-  }
-
-  int peek() {
-    return _buffers.first()[_index];
-  }
-
-  int next() {
-    int value = _buffers.first()[_index++];
-    _length--;
-    if (_index == _buffers.first().length) {
-      _buffers.removeFirst();
-      _index = 0;
-    }
-    return value;
-  }
-
-  int get length() => _length;
-
-  int _length;
-  Queue<List<int>> _buffers;
-  int _index;
-}
-
-
 // Interface for decoders decoding binary data into objects of type T.
 interface _Decoder<T> {
   // Add more binary data to be decoded. The ownership of the buffer

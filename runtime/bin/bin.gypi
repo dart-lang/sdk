@@ -21,6 +21,7 @@
       ],
       'sources': [
         'builtin.dart',
+        'buffer_list.dart',
         'directory.dart',
         'directory_impl.dart',
         'eventhandler.dart',
