@@ -173,7 +173,10 @@ void Isolate::PrintInvokedFunctions() {
     while (iter.HasNext()) {
       cls = iter.GetNextClass();
       const Array& functions = Array::Handle(cls.functions());
-      for (int j = 0; j < functions.Length(); j++) {
+      // Class 'Dynamic' is allocated/initialized in a special way, leaving
+      // the functions field NULL instead of empty.
+      const int func_len = functions.IsNull() ? 0 : functions.Length();
+      for (int j = 0; j < func_len; j++) {
         Function& function = Function::Handle();
         function ^= functions.At(j);
         if (function.invocation_counter() > 0) {
