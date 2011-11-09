@@ -174,6 +174,8 @@ Parser::Parser(const Script& script, const Library& library)
       current_class_(Class::Handle()),
       library_(library),
       try_blocks_list_(NULL) {
+  ASSERT(!tokens_.IsNull());
+  ASSERT(!library.IsNull());
   SetPosition(0);
 }
 
@@ -192,6 +194,8 @@ Parser::Parser(const Script& script,
       current_class_(Class::Handle(current_function_.owner())),
       library_(Library::Handle(current_class_.library())),
       try_blocks_list_(NULL) {
+  ASSERT(!tokens_.IsNull());
+  ASSERT(!function.IsNull());
   SetPosition(token_index);
 }
 
@@ -2612,7 +2616,8 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   // Allocate an interface to hold the type parameters and their 'extends'
   // constraints. Make it the owner of the function type descriptor.
   const Class& alias_owner = Class::Handle(
-      Class::New(String::Handle(String::NewSymbol("")), Script::Handle()));
+      Class::New(String::Handle(String::NewSymbol(":alias_owner")),
+                 Script::Handle()));
   alias_owner.set_is_interface();
   set_current_class(alias_owner);
   ParseTypeParameters(alias_owner);
@@ -3207,8 +3212,13 @@ void Parser::ParseTopLevel() {
   is_top_level_ = true;
   TopLevel top_level;
   Class& toplevel_class = Class::ZoneHandle(
-      Class::New(String::ZoneHandle(String::NewSymbol("")), script_));
+      Class::New(String::ZoneHandle(String::NewSymbol("::")), script_));
   toplevel_class.set_library(library_);
+
+  // We notify the class finalizer to expect classes to finalize.
+  // This allows signature classes generated at runtime to be properly
+  // finalized, without finalizing them prematurely at compile time.
+  ClassFinalizer::ExpectClassesToFinalize();
 
   if (is_library_source()) {
     ParseLibraryDefinition();
@@ -3245,7 +3255,7 @@ void Parser::ParseTopLevel() {
     library_.AddAnonymousClass(toplevel_class);
     classes.Add(&toplevel_class);
   }
-  ClassFinalizer::AddPendingClasses(classes);
+  ClassFinalizer::AddClassesToFinalize(classes);
 }
 
 
@@ -3679,8 +3689,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       if (!errmsg.IsNull()) {
         ErrorMsg(errmsg.ToCString());
       }
-      // The call to ClassFinalizer::FinalizeTypeWhileParsing may have extended
-      // the vector of type arguments.
+      // The call to ClassFinalizer::FinalizeAndCanonicalizeType may have
+      // extended the vector of type arguments.
       ASSERT(signature_type_arguments.IsNull() ||
              (signature_type_arguments.Length() ==
               signature_class.NumTypeArguments()));

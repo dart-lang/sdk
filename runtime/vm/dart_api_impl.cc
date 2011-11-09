@@ -313,7 +313,7 @@ static void CompileAll(Dart_Handle* result) {
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
 static const char* CheckIsolateState() {
-  if (!ClassFinalizer::FinalizePendingClasses()) {
+  if (!ClassFinalizer::FinalizeAllClasses()) {
     // Make a copy of the error message as the original message string
     // may get deallocated when we return back from the Dart API call.
     const String& err =

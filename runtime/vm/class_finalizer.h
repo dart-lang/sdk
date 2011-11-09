@@ -12,11 +12,13 @@ namespace dart {
 
 class Class;
 class Function;
+class RawClass;
 class RawType;
 class Script;
 class String;
 class Type;
 class TypeArguments;
+class UnresolvedClass;
 
 // Traverses all pending, unfinalized classes, validates and marks them as
 // finalized.
@@ -36,17 +38,26 @@ class ClassFinalizer : public AllStatic {
   // Set the error message on failure (to String::null() if no error).
   static RawType* FinalizeAndCanonicalizeType(const Type& type, String* errmsg);
 
-  // Pending classes are classes that need to be finalized.
-  static void AddPendingClasses(const GrowableArray<const Class*>& classes);
+  // Notify finalizer to expect classes to be finalized.
+  static void ExpectClassesToFinalize();
 
-  // Return false if we still have classes pending to be finalized.
-  static bool AllClassesFinalized();
+  // Return true after a call to ExpectClassesToFinalize() and before a call to
+  // FinalizeAllClasses().
+  static bool IsExpectingClassesToFinalize();
+
+  // Add given classes to the list of pending classes to be finalized.
+  // ExpectClassesToFinalize() must be called prior to AddClassesToFinalize().
+  static void AddClassesToFinalize(const GrowableArray<const Class*>& classes);
+
+  // Return false if we still have classes pending to be finalized or expecting
+  // more classes to be finalized.
+  static bool AllClassesFinalized() { return !IsExpectingClassesToFinalize(); }
 
   // Return whether class finalization failed.
   // The function returns true if the finalization was successful.
   // If finalization fails, an error message is set in the sticky error field
   // in the object store.
-  static bool FinalizePendingClasses();
+  static bool FinalizeAllClasses();
 
   // Verify that the pending classes have been properly prefinalized. This is
   // needed during bootstrapping where the classes have been preloaded.
@@ -56,6 +67,8 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeClass(const Class& cls);
   static bool IsSuperCycleFree(const Class& cls);
   static void CheckForLegalConstClass(const Class& cls);
+  static RawClass* ResolveClass(const Class& cls,
+                                const UnresolvedClass& unresolved_class);
   static void ResolveSuperClass(const Class& cls);
   static void ResolveDefaultClass(const Class& cls);
   static void ResolveInterfaces(const Class& cls,
@@ -64,6 +77,7 @@ class ClassFinalizer : public AllStatic {
                                     const TypeArguments& arguments);
   static RawType* ResolveType(const Class& cls, const Type& type);
   static RawType* FinalizeType(const Type& type);
+  static void ResolveAndFinalizeUpperBounds(const Class& cls);
   static void ResolveAndFinalizeSignature(const Class& cls,
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);

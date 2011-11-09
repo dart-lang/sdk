@@ -22,27 +22,29 @@ static RawClass* CreateTestClass(const char* name) {
 
 
 TEST_CASE(ClassFinalizer) {
+  ClassFinalizer::ExpectClassesToFinalize();
   GrowableArray<const Class*> classes_1;
   classes_1.Add(&Class::ZoneHandle(CreateTestClass("BMW")));
   classes_1.Add(&Class::ZoneHandle(CreateTestClass("Porsche")));
-  ClassFinalizer::AddPendingClasses(classes_1);
+  ClassFinalizer::AddClassesToFinalize(classes_1);
   GrowableArray<const Class*> classes_2;
   classes_2.Add(&Class::ZoneHandle(CreateTestClass("Ferrari")));
   classes_2.Add(&Class::ZoneHandle(CreateTestClass("Fiat")));
   classes_2.Add(&Class::ZoneHandle(CreateTestClass("Alfa")));
-  ClassFinalizer::AddPendingClasses(classes_2);
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  ClassFinalizer::AddClassesToFinalize(classes_2);
+  EXPECT(ClassFinalizer::FinalizeAllClasses());
   for (int i = 0; i < classes_1.length(); i++) {
     EXPECT(classes_1[i]->is_finalized());
   }
   for (int i = 0; i < classes_2.length(); i++) {
     EXPECT(classes_2[i]->is_finalized());
   }
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeAllClasses());
 }
 
 
 TEST_CASE(ClassFinalize_Cycles) {
+  ClassFinalizer::ExpectClassesToFinalize();
   GrowableArray<const Class*> classes;
   classes.Add(&Class::ZoneHandle(CreateTestClass("Jungfrau")));
   classes.Add(&Class::ZoneHandle(CreateTestClass("Eiger")));
@@ -51,8 +53,8 @@ TEST_CASE(ClassFinalize_Cycles) {
       Type::Handle(Type::NewNonParameterizedType(*classes[1])));
   classes[1]->set_super_type(
       Type::Handle(Type::NewNonParameterizedType(*classes[0])));
-  ClassFinalizer::AddPendingClasses(classes);
-  EXPECT(!ClassFinalizer::FinalizePendingClasses());
+  ClassFinalizer::AddClassesToFinalize(classes);
+  EXPECT(!ClassFinalizer::FinalizeAllClasses());
 }
 
 
@@ -63,6 +65,7 @@ static RawLibrary* NewLib(const char* url_chars) {
 
 
 TEST_CASE(ClassFinalize_Resolve) {
+  ClassFinalizer::ExpectClassesToFinalize();
   GrowableArray<const Class*> classes;
   Class& rhb = Class::ZoneHandle(CreateTestClass("RhB"));
   Class& sbb = Class::ZoneHandle(CreateTestClass("SBB"));
@@ -77,8 +80,8 @@ TEST_CASE(ClassFinalize_Resolve) {
   TypeArguments& type_arguments = TypeArguments::Handle();
   rhb.set_super_type(Type::Handle(Type::NewParameterizedType(
       Object::Handle(unresolved.raw()), type_arguments)));
-  ClassFinalizer::AddPendingClasses(classes);
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  ClassFinalizer::AddClassesToFinalize(classes);
+  EXPECT(ClassFinalizer::FinalizeAllClasses());
 }
 
 }  // namespace dart

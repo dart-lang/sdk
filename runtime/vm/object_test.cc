@@ -5,6 +5,7 @@
 #include "vm/assert.h"
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
+#include "vm/class_finalizer.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -1744,6 +1745,8 @@ TEST_CASE(Closure) {
   Function& function = Function::Handle();
   const String& function_name = String::Handle(String::NewSymbol("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
+  // Postpone signature class finalization.
+  ClassFinalizer::ExpectClassesToFinalize();
   const Class& signature_class = Class::Handle(
       Class::NewSignatureClass(function_name, function, script));
   const Closure& closure = Closure::Handle(Closure::New(function, context));

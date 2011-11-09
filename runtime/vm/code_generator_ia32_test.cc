@@ -331,7 +331,7 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeAllClasses());
   Class& cls = Class::ZoneHandle(LookupClass(lib, "A"));
   EXPECT(!cls.IsNull());
 
@@ -467,7 +467,7 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
   Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeAllClasses());
   Class& cls = Class::ZoneHandle(LookupClass(lib, "A"));
   EXPECT(!cls.IsNull());
 

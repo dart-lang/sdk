@@ -204,7 +204,6 @@ class ObjectStore {
 
   RawArray* pending_classes() const { return pending_classes_; }
   void set_pending_classes(const Array& value) {
-    ASSERT(!value.IsNull());
     pending_classes_ = value.raw();
   }
 

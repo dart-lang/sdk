@@ -239,6 +239,7 @@ void Object::InitOnce() {
 
   // Allocate and initialize the null class.
   cls = Class::New<Instance>();
+  cls.set_is_finalized();
   null_class_ = cls.raw();
 
   // Complete initialization of null_ instance, i.e. initialize its class_
@@ -264,6 +265,7 @@ void Object::InitOnce() {
   // see GetSingletonClassIndex) and its array fields cannot be set to the empty
   // array, but remain null.
   cls = Class::New<Instance>();
+  cls.set_is_finalized();
   cls.set_is_interface();
   dynamic_class_ = cls.raw();
 
@@ -272,6 +274,7 @@ void Object::InitOnce() {
   unresolved_class_class_ = cls.raw();
 
   cls = Class::New<Instance>();
+  cls.set_is_finalized();
   void_class_ = cls.raw();
 
   cls = Class::New<ParameterizedType>();
@@ -335,13 +338,33 @@ void Object::InitOnce() {
 }
 
 
+RawClass* Object::CreateAndRegisterCoreInterface(const char* cname,
+                                                 const Script& script,
+                                                 const Library& core_lib) {
+  const String& name = String::Handle(String::NewSymbol(cname));
+  const Class& cls = Class::Handle(Class::NewInterface(name, script));
+  core_lib.AddClass(cls);
+  return cls.raw();
+}
+
+
+void Object::RegisterCoreImplClass(const Class& cls,
+                                   const char* cname,
+                                   const Script& impl_script,
+                                   const Library& core_impl_lib) {
+  const String& name = String::Handle(String::NewSymbol(cname));
+  cls.set_name(name);
+  cls.set_script(impl_script);
+  core_impl_lib.AddClass(cls);
+}
+
+
 void Object::Init(Isolate* isolate) {
   TIMERSCOPE(time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
   Type& type = Type::Handle();
-  String& name = String::Handle();
   Array& array = Array::Handle();
 
   // All RawArray fields will be initialized to an empty array, therefore
@@ -363,52 +386,6 @@ void Object::Init(Isolate* isolate) {
   // has been created.
   cls.InitEmptyFields();
 
-  cls = Class::New<ImmutableArray>();
-  object_store->set_immutable_array_class(cls);
-  cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
-
-  // Allocate and initialize the object class and type.
-  cls = Class::New<Instance>();
-  object_store->set_object_class(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_object_type(type);
-
-  cls = Class::New<Smi>();
-  object_store->set_smi_class(cls);
-
-  cls = Class::New<Mint>();
-  object_store->set_mint_class(cls);
-
-  cls = Class::New<Bigint>();
-  object_store->set_bigint_class(cls);
-
-  cls = Class::New<Double>();
-  object_store->set_double_class(cls);
-
-  cls = Class::New<OneByteString>();
-  object_store->set_one_byte_string_class(cls);
-
-  cls = Class::New<TwoByteString>();
-  object_store->set_two_byte_string_class(cls);
-
-  cls = Class::New<FourByteString>();
-  object_store->set_four_byte_string_class(cls);
-
-  cls = Class::New<Bool>();
-  object_store->set_bool_class(cls);
-
-  cls = Class::New<UnhandledException>();
-  object_store->set_unhandled_exception_class(cls);
-
-  cls = Class::New<Stacktrace>();
-  object_store->set_stacktrace_class(cls);
-  // Set the super type so that the 'toString' method is implemented.
-  type = object_store->object_type();
-  cls.set_super_type(type);
-
-  cls = Class::New<JSRegExp>();
-  object_store->set_jsregexp_class(cls);
-
   // Setup the symbol table used within the String class.
   const int kInitialSymbolTableSize = 16;
   array = Array::New(kInitialSymbolTableSize + 1);
@@ -416,156 +393,145 @@ void Object::Init(Isolate* isolate) {
   array.SetAt(kInitialSymbolTableSize, Smi::Handle(Smi::New(0)));
   object_store->set_symbol_table(array);
 
+  // Pre-allocate the OneByteString class needed by the symbol table.
+  cls = Class::New<OneByteString>();
+  object_store->set_one_byte_string_class(cls);
+
   // Basic infrastructure has been setup, initialize the class dictionary.
   Library::InitCoreLibrary(isolate);
-  Library& core_lib = Library::Handle(isolate->object_store()->core_library());
+  Library& core_lib = Library::Handle(Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
   Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   ASSERT(!core_impl_lib.IsNull());
 
-  // Allocate pre-initialized values.
-  Bool& bool_value = Bool::Handle();
-  bool_value = Bool::New(true);
-  object_store->set_true_value(bool_value);
-  bool_value = Bool::New(false);
-  object_store->set_false_value(bool_value);
-
-  object_store->set_pending_classes(Array::Handle(Array::Empty()));
+  object_store->set_pending_classes(Array::Handle());
 
   Context& context = Context::Handle(Context::New(0));
   object_store->set_empty_context(context);
 
-  // Now that the String class is initialized and the dictionary has been setup,
-  // add the names to preallocated classes and register them in the dictionary.
+  // Now that the symbol table is initialized and that the core dictionary as
+  // well as the core implementation dictionary have been setup, preallocate
+  // remaining classes and register them by name in the dictionaries.
   const Script& impl_script = Script::Handle(Bootstrap::LoadImplScript());
+  GrowableArray<const Class*> pending_classes;
 
-  name = String::NewSymbol("Smi");
-  cls = object_store->smi_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = Class::New<Smi>();
+  object_store->set_smi_class(cls);
+  RegisterCoreImplClass(cls, "Smi", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("OneByteString");
-  cls = object_store->one_byte_string_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = Class::New<Mint>();
+  object_store->set_mint_class(cls);
+  RegisterCoreImplClass(cls, "Mint", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("TwoByteString");
-  cls = object_store->two_byte_string_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = Class::New<Bigint>();
+  object_store->set_bigint_class(cls);
+  RegisterCoreImplClass(cls, "Bigint", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("FourByteString");
-  cls = object_store->four_byte_string_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = Class::New<Double>();
+  object_store->set_double_class(cls);
+  RegisterCoreImplClass(cls, "Double", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("Mint");
-  cls = object_store->mint_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = Class::New<Bool>();
+  object_store->set_bool_class(cls);
+  RegisterCoreImplClass(cls, "Bool", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("Bigint");
-  cls = object_store->bigint_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = object_store->array_class();  // Was allocated above.
+  RegisterCoreImplClass(cls, "ObjectArray", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("Double");
-  cls = object_store->double_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
-
-  name = String::NewSymbol("Bool");
-  cls = object_store->bool_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
-
-  name = String::NewSymbol("ObjectArray");
-  cls = object_store->array_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
-
-  name = String::NewSymbol("ImmutableArray");
-  cls = object_store->immutable_array_class();
+  cls = Class::New<ImmutableArray>();
+  object_store->set_immutable_array_class(cls);
+  cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  RegisterCoreImplClass(cls, "ImmutableArray", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("UnhandledException");
-  cls = object_store->unhandled_exception_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = object_store->one_byte_string_class();  // Was allocated above.
+  RegisterCoreImplClass(cls, "OneByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("Stacktrace");
-  cls = object_store->stacktrace_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = Class::New<TwoByteString>();
+  object_store->set_two_byte_string_class(cls);
+  RegisterCoreImplClass(cls, "TwoByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
-  name = String::NewSymbol("JSSyntaxRegExp");
-  cls = object_store->jsregexp_class();
-  cls.set_name(name);
-  cls.set_script(impl_script);
-  core_impl_lib.AddClass(cls);
+  cls = Class::New<FourByteString>();
+  object_store->set_four_byte_string_class(cls);
+  RegisterCoreImplClass(cls, "FourByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
+  cls = Class::New<UnhandledException>();
+  object_store->set_unhandled_exception_class(cls);
+  RegisterCoreImplClass(cls, "UnhandledException", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
+  cls = Class::New<Stacktrace>();
+  object_store->set_stacktrace_class(cls);
+  RegisterCoreImplClass(cls, "Stacktrace", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  // Super type set below, after Object is allocated.
+
+  cls = Class::New<JSRegExp>();
+  object_store->set_jsregexp_class(cls);
+  RegisterCoreImplClass(cls, "JSSyntaxRegExp", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
   // Initialize the base interfaces used by the core VM classes.
   const Script& script = Script::Handle(Bootstrap::LoadScript());
 
-  name = String::NewSymbol("Object");
-  cls = object_store->object_class();
-  cls.set_name(name);
+  // Allocate and initialize the Object class and type.
+  // Object class is the only pre-allocated non-interface in the core library.
+  cls = Class::New<Instance>();
+  object_store->set_object_class(cls);
+  cls.set_name(String::Handle(String::NewSymbol("Object")));
   cls.set_script(script);
   core_lib.AddClass(cls);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_object_type(type);
 
-  name = String::NewSymbol("Function");
-  cls = Class::NewInterface(name, script);
-  core_lib.AddClass(cls);
+  // Set the super type of class Stacktrace to Object type so that the
+  // 'toString' method is implemented.
+  cls = object_store->stacktrace_class();
+  cls.set_super_type(type);
+
+  cls = CreateAndRegisterCoreInterface("Function", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_function_interface(type);
 
-  name = String::NewSymbol("num");
-  cls = Class::NewInterface(name, script);
-  core_lib.AddClass(cls);
+  cls = CreateAndRegisterCoreInterface("num", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_interface(type);
 
-  name = String::NewSymbol("int");
-  cls = Class::NewInterface(name, script);
-  core_lib.AddClass(cls);
+  cls = CreateAndRegisterCoreInterface("int", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_interface(type);
 
-  name = String::NewSymbol("double");
-  cls = Class::NewInterface(name, script);
-  core_lib.AddClass(cls);
+  cls = CreateAndRegisterCoreInterface("double", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_interface(type);
 
-  name = String::NewSymbol("String");
-  cls = Class::NewInterface(name, script);
-  core_lib.AddClass(cls);
+  cls = CreateAndRegisterCoreInterface("String", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_interface(type);
 
-  name = String::NewSymbol("bool");
-  cls = Class::NewInterface(name, script);
-  core_lib.AddClass(cls);
+  cls = CreateAndRegisterCoreInterface("bool", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
-  name = String::NewSymbol("List");
-  cls = Class::NewInterface(name, script);
-  core_lib.AddClass(cls);
+  cls = CreateAndRegisterCoreInterface("List", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_list_interface(type);
 
@@ -590,10 +556,21 @@ void Object::Init(Isolate* isolate) {
   object_store->set_dynamic_type(type);
   core_lib.AddClass(cls);
 
-  // Finish the initialization by compiling the bootstrap script containing the
-  // implementation of the internal classes.
-  Bootstrap::Compile(Library::Handle(Library::CoreLibrary()), script);
-  Bootstrap::Compile(Library::Handle(Library::CoreImplLibrary()), impl_script);
+  // Add the preallocated classes to the list of classes to be finalized.
+  ClassFinalizer::ExpectClassesToFinalize();
+  ClassFinalizer::AddClassesToFinalize(pending_classes);
+
+  // Allocate pre-initialized values.
+  Bool& bool_value = Bool::Handle();
+  bool_value = Bool::New(true);
+  object_store->set_true_value(bool_value);
+  bool_value = Bool::New(false);
+  object_store->set_false_value(bool_value);
+
+  // Finish the initialization by compiling the bootstrap scripts containing the
+  // base interfaces and the implementation of the internal classes.
+  Bootstrap::Compile(core_lib, script);
+  Bootstrap::Compile(core_impl_lib, impl_script);
 
   Bootstrap::SetupNativeResolver();
 
@@ -1058,17 +1035,25 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_type_parameter_extends(type_parameter_extends);
   result.SetFields(Array::Handle(Array::Empty()));
   result.SetFunctions(Array::Handle(Array::Empty()));
-  // Implements interface Function.
+  // Implements interface "Function".
   const Type& function_interface = Type::Handle(Type::FunctionInterface());
   const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
   interfaces.SetAt(0, function_interface);
   result.set_interfaces(interfaces);
   // Unless the signature function already has a signature class, create a
-  // canonical signature class by having the signature function pointing back to
+  // canonical signature class by having the signature function point back to
   // the signature class.
   if (signature_function.signature_class() == Object::null()) {
     signature_function.set_signature_class(result);
   }
+  // If the class finalizer is expecting more pending classes to finalize, it
+  // will add the signature class to the pending list in order to postpone
+  // finalization of the signature type.
+  const Type& signature_type = Type::Handle(result.SignatureType());
+  ASSERT(!signature_type.IsFinalized());
+  String& errmsg = String::Handle();
+  ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
+  ASSERT(errmsg.IsNull());
   return result.raw();
 }
 
@@ -1336,6 +1321,8 @@ bool Class::TestType(TypeTestKind test,
                      const TypeArguments& type_arguments,
                      const Class& other,
                      const TypeArguments& other_type_arguments) const {
+  ASSERT(is_finalized());
+  ASSERT(other.is_finalized());
   if (test == kIsAssignableTo) {
     // The spec states that "a type T is assignable to a type S if T is a
     // subtype of S or S is a subtype of T". This is from the perspective of a
@@ -1810,6 +1797,12 @@ bool Type::IsListInterface() const {
 }
 
 
+bool Type::IsSignatureType() const {
+  return HasResolvedTypeClass() &&
+      Class::Handle(type_class()).IsSignatureClass();
+}
+
+
 bool Type::IsMoreSpecificThan(const Type& other) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
@@ -2014,6 +2007,7 @@ RawType* ParameterizedType::InstantiateFrom(
                                                     offset);
   }
   const Class& cls = Class::Handle(type_class());
+  ASSERT(cls.is_finalized());
   ParameterizedType& instantiated_type = ParameterizedType::Handle(
       ParameterizedType::New(cls, type_arguments));
   ASSERT(type_arguments.IsNull() ||
