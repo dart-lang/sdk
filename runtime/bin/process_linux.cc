@@ -85,33 +85,25 @@ static void SetChildOsErrorMessage(char* os_error_message,
 
 
 void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
-  ASSERT(process_signal == SIGCHLD);
-  struct sigaction act;
-  bzero(&act, sizeof(act));
-  act.sa_handler = SIG_IGN;
-  act.sa_flags = SA_NOCLDSTOP | SA_SIGINFO;
-  if (sigaction(SIGCHLD, &act, 0) != 0) {
-    perror("Process start: disabling signal handler failed");
-  }
-  ProcessInfo* process = LookupProcess(siginfo->si_pid);
-  if (process != NULL) {
-    int status = 0;
-    int wait_result = waitpid(siginfo->si_pid, &status, WNOHANG);
-    if (wait_result == -1 || wait_result == 0) {
-      perror("ExitHandler waitpid failed");
+  int pid = 0;
+  int status = 0;
+  while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+    int exit_code = 0;
+    // TODO(ager): Transform exit_code 255 to -1.
+    if (WIFEXITED(status)) exit_code = WEXITSTATUS(status);
+    // TODO(ager): Transform termsig to -termsig to destinguish from
+    // exit codes.
+    if (WIFSIGNALED(status)) exit_code = WTERMSIG(status);
+    ProcessInfo* process = LookupProcess(pid);
+    if (process != NULL) {
+      intptr_t message[2] = { pid, exit_code };
+      intptr_t result =
+          FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
+      if (result != sizeof(message)) {
+        perror("ExitHandler notification failed");
+      }
+      close(process->fd());
     }
-    intptr_t message[2] = { siginfo->si_pid, siginfo->si_status };
-    intptr_t result =
-        FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
-    if (result != sizeof(message)) {
-      perror("ExitHandler notification failed");
-    }
-    close(process->fd());
-  }
-  act.sa_handler = 0;
-  act.sa_sigaction = ExitHandler;
-  if (sigaction(SIGCHLD, &act, 0) != 0) {
-    perror("Process start: enabling signal handler failed");
   }
 }
 
