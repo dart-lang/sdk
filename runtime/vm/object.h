@@ -738,6 +738,9 @@ class Type : public Object {
   // Check if this type represents the 'Function' interface.
   bool IsFunctionInterface() const;
 
+  // Check if this type represents the 'List' interface.
+  bool IsListInterface() const;
+
   // Check if this type is an interface type.
   bool IsInterfaceType() const {
     if (!HasResolvedTypeClass()) {
@@ -789,6 +792,9 @@ class Type : public Object {
 
   // The 'Function' interface type.
   static RawType* FunctionInterface();
+
+  // The 'List' interface type.
+  static RawType* ListInterface();
 
   // The least specific valid raw type of the given class.
   // For example, type A<Dynamic> would be returned for class A<T>, and type

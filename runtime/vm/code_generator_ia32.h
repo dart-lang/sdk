@@ -126,6 +126,8 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateTypeArguments(ConstructorCallNode* node,
                              bool is_cls_parameterized);
 
+  void TestClassAndJump(const Class& cls, Label *label);
+
   intptr_t locals_space_size() const { return locals_space_size_; }
   void set_locals_space_size(intptr_t value) { locals_space_size_ = value; }
 

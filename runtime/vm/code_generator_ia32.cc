@@ -1480,13 +1480,18 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 // Jumps to label if ECX equals the given class.
 // Inputs:
 // - ECX: tested class.
-// Destroys EDX.
-static void TestClassAndJump(Assembler* assembler,
-                             const Class& cls,
-                             Label *label) {
-  assembler->LoadObject(EDX, cls);
-  assembler->cmpl(EDX, ECX);
-  assembler->j(EQUAL, label, Assembler::kNearJump);
+void CodeGenerator::TestClassAndJump(const Class& cls, Label *label) {
+  __ CompareObject(ECX, cls);
+  __ j(EQUAL, label, Assembler::kNearJump);
+}
+
+
+static const Class* CoreClass(const char* c_name) {
+  const String& class_name = String::Handle(String::NewSymbol(c_name));
+  const Class& cls = Class::ZoneHandle(Library::Handle(
+      Library::CoreImplLibrary()).LookupClass(class_name));
+  ASSERT(!cls.IsNull());
+  return &cls;
 }
 
 
@@ -1534,10 +1539,33 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   // checking whether the assigned instance is a Smi.
   if (dst_type.IsInstantiated()) {
     const Class& dst_type_class = Class::ZoneHandle(dst_type.type_class());
-    const bool dst_has_type_arguments = dst_type_class.HasTypeArguments();
+    const bool dst_class_has_type_arguments = dst_type_class.HasTypeArguments();
     // A Smi object cannot be the instance of a parameterized class.
-    // A class equality check is only applicable to a non-parameterized class.
-    if (!dst_has_type_arguments) {
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (dst_class_has_type_arguments) {
+      const TypeArguments& dst_type_arguments =
+          TypeArguments::Handle(dst_type.arguments());
+      const bool is_raw_dst_type = dst_type_arguments.IsNull() ||
+          dst_type_arguments.IsDynamicTypes(dst_type_arguments.Length());
+      if (is_raw_dst_type) {
+        // Dynamic type argument, check only classes.
+        if (dst_type.IsListInterface()) {
+          // TODO(srdjan) also accept List<Object>.
+          __ testl(EAX, Immediate(kSmiTagMask));
+          __ j(ZERO, &runtime_call, Assembler::kNearJump);
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          TestClassAndJump(*CoreClass("ObjectArray"), &done);
+          TestClassAndJump(*CoreClass("GrowableObjectArray"), &done);
+        } else if (!dst_type_class.is_interface()) {
+          __ testl(EAX, Immediate(kSmiTagMask));
+          __ j(ZERO, &runtime_call, Assembler::kNearJump);
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          TestClassAndJump(dst_type_class, &done);
+        }
+        // Fall through to runtime class.
+      }
+    } else {
       Label compare_classes;
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
@@ -1559,7 +1587,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       // because instances cannot be of an interface type.
       if (!dst_type_class.is_interface()) {
         __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        TestClassAndJump(assembler_, dst_type_class, &done);
+        TestClassAndJump(dst_type_class, &done);
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
@@ -1567,7 +1595,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
           __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
           const Class& bool_class = Class::ZoneHandle(
               Isolate::Current()->object_store()->bool_class());
-          TestClassAndJump(assembler_, bool_class, &done);
+          TestClassAndJump(bool_class, &done);
         } else if (dst_type.IsSubtypeOf(
               Type::Handle(Type::NumberInterface()))) {
           __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
@@ -1575,27 +1603,27 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
             // We already checked for Smi above.
             const Class& mint_class = Class::ZoneHandle(
                 Isolate::Current()->object_store()->mint_class());
-            TestClassAndJump(assembler_, mint_class, &done);
+            TestClassAndJump(mint_class, &done);
             const Class& bigint_class = Class::ZoneHandle(
                 Isolate::Current()->object_store()->bigint_class());
-            TestClassAndJump(assembler_, bigint_class, &done);
+            TestClassAndJump(bigint_class, &done);
           }
           if (dst_type.IsDoubleInterface() || dst_type.IsNumberInterface()) {
             const Class& double_class = Class::ZoneHandle(
                 Isolate::Current()->object_store()->double_class());
-            TestClassAndJump(assembler_, double_class, &done);
+            TestClassAndJump(double_class, &done);
           }
         } else if (dst_type.IsStringInterface()) {
           __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
           const Class& one_byte_string_class = Class::ZoneHandle(
               Isolate::Current()->object_store()->one_byte_string_class());
-          TestClassAndJump(assembler_, one_byte_string_class, &done);
+          TestClassAndJump(one_byte_string_class, &done);
           const Class& two_byte_string_class = Class::ZoneHandle(
               Isolate::Current()->object_store()->two_byte_string_class());
-          TestClassAndJump(assembler_, two_byte_string_class, &done);
+          TestClassAndJump(two_byte_string_class, &done);
           const Class& four_byte_string_class = Class::ZoneHandle(
               Isolate::Current()->object_store()->four_byte_string_class());
-          TestClassAndJump(assembler_, four_byte_string_class, &done);
+          TestClassAndJump(four_byte_string_class, &done);
         } else if (dst_type.IsFunctionInterface()) {
           __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
           __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));

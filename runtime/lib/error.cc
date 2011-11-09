@@ -12,6 +12,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 DECLARE_FLAG(bool, print_stack_trace_at_throw);
 
 
@@ -212,6 +213,17 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     }
     ThrowTypeError(location, src_type_name, dst_type_name, dst_name);
     UNREACHABLE();
+  }
+
+  if (FLAG_trace_type_checks) {
+    Class& cls = Class::Handle(src_instance.clazz());
+    // TODO(regis): Remove once all classes finalized.
+    if (cls.is_finalized())  {
+      OS::Print("TypeCheck '%s' vs '%s'\n",
+          String::Handle(Type::Handle(src_instance.GetType()).Name()).
+              ToCString(),
+          String::Handle(dst_type.Name()).ToCString());
+    }
   }
   arguments.SetReturn(src_instance);
 }

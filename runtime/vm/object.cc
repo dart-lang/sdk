@@ -1804,6 +1804,12 @@ bool Type::IsFunctionInterface() const {
 }
 
 
+bool Type::IsListInterface() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::ListInterface()).type_class());
+}
+
+
 bool Type::IsMoreSpecificThan(const Type& other) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
@@ -1888,6 +1894,11 @@ RawType* Type::StringInterface() {
 
 RawType* Type::FunctionInterface() {
   return Isolate::Current()->object_store()->function_interface();
+}
+
+
+RawType* Type::ListInterface() {
+  return Isolate::Current()->object_store()->list_interface();
 }
 
 
