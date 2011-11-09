@@ -98,6 +98,10 @@ public abstract class CompilerTestCase extends TestCase {
       }
     }
 
+    public List<DartCompilationError> getCompilationErrors() {
+      return compilationErrors;
+    }
+
     /**
      * @param lib
      */

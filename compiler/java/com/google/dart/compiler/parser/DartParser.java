@@ -45,7 +45,6 @@ import com.google.dart.compiler.ast.DartIfStatement;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
-import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMapLiteral;
@@ -775,7 +774,21 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if (modifiers.isFactory()) {
-      return done(parseFactory(modifiers));
+      // Factory is not allowed on top level.
+      if (!allowStatic) {
+        reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
+        modifiers = modifiers.removeFactory();
+      }
+      // Do parse factory.
+      DartMethodDefinition factoryNode = parseFactory(modifiers);
+      // If factory is not allowed, ensure that it is valid as method.
+      DartExpression actualName = factoryNode.getName();
+      if (!allowStatic && !(actualName instanceof DartIdentifier)) {
+        DartExpression replacementName = new DartIdentifier(actualName.toString());
+        factoryNode.setName(replacementName);
+      }
+      // Done.
+      return done(factoryNode);
     }
 
     final DartNode member;

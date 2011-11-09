@@ -6,16 +6,22 @@ package com.google.dart.compiler.type;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartFunctionExpression;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.MethodElement;
+
+import java.util.List;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
@@ -91,6 +97,56 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertEquals(false, enclosingMethodElement.isInterface());
     assertEquals(true, Iterables.isEmpty(enclosingMethodElement.getMembers()));
     assertEquals(null, enclosingMethodElement.lookupLocalElement("f"));
+  }
+
+  /**
+   * Language specification requires that factory should be declared in class. However declaring
+   * factory on top level should not cause exceptions in compiler.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=345
+   */
+  public void test_badTopLevelFactory() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary("Test.dart", "factory foo() {}");
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    DartMethodDefinition factory = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertNotNull(factory);
+    // this factory has name, which is allowed for normal method
+    assertEquals(true, factory.getName() instanceof DartIdentifier);
+    assertEquals("foo", ((DartIdentifier) factory.getName()).getTargetName());
+    // compilation error expected
+    assertBadTopLevelFactoryError(libraryResult);
+  }
+
+  /**
+   * Language specification requires that factory should be declared in class. However declaring
+   * factory on top level should not cause exceptions in compiler. Even if type parameters are used.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=345
+   */
+  public void test_badTopLevelFactory_withTypeParameters() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary("Test.dart", "factory foo<T>() {}");
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    DartMethodDefinition factory = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertNotNull(factory);
+    // normal method requires name, so we provide some name
+    assertEquals(true, factory.getName() instanceof DartIdentifier);
+    assertEquals("foo<T>", ((DartIdentifier) factory.getName()).getTargetName());
+    // compilation error expected
+    assertBadTopLevelFactoryError(libraryResult);
+  }
+
+  /**
+   * Asserts that given {@link AnalyzeLibraryResult} contains {@link DartCompilationError} for
+   * invalid factory on top level.
+   */
+  private void assertBadTopLevelFactoryError(AnalyzeLibraryResult libraryResult) {
+    List<DartCompilationError> compilationErrors = libraryResult.getCompilationErrors();
+    assertEquals(1, compilationErrors.size());
+    DartCompilationError compilationError = compilationErrors.get(0);
+    assertEquals(ParserErrorCode.DISALLOWED_FACTORY_KEYWORD, compilationError.getErrorCode());
+    assertEquals(1, compilationError.getLineNumber());
+    assertEquals(1, compilationError.getColumnNumber());
+    assertEquals("factory".length(), compilationError.getLength());
   }
 
   /**

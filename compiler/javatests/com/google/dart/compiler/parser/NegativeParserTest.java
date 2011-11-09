@@ -5,6 +5,8 @@
 package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartUnit;
 
 /**
@@ -69,5 +71,43 @@ public class NegativeParserTest extends CompilerTestCase {
             "}",
             ""),
         unit.toSource());
+  }
+
+  /**
+   * Language specification requires that factory should be declared in class. However declaring
+   * factory on top level should not cause exceptions in compiler. To ensure this we parse top level
+   * factory into normal {@link DartMethodDefinition}.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=345
+   */
+  public void test_badTopLevelFactory() {
+    DartUnit unit =
+        parseSourceUnitErrors(
+            "factory foo() {}",
+            ParserErrorCode.DISALLOWED_FACTORY_KEYWORD.getMessage(), 1, 1);
+    DartMethodDefinition factory = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertNotNull(factory);
+    // this factory has name, which is allowed for normal method
+    assertEquals(true, factory.getName() instanceof DartIdentifier);
+    assertEquals("foo", ((DartIdentifier) factory.getName()).getTargetName());
+  }
+  
+  /**
+   * Language specification requires that factory should be declared in class. However declaring
+   * factory on top level should not cause exceptions in compiler. To ensure this we parse top level
+   * factory into normal {@link DartMethodDefinition}.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=345
+   */
+  public void test_badTopLevelFactory_withTypeParameters() {
+    DartUnit unit =
+        parseSourceUnitErrors(
+            "factory foo<T>() {}",
+            ParserErrorCode.DISALLOWED_FACTORY_KEYWORD.getMessage(), 1, 1);
+    DartMethodDefinition factory = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertNotNull(factory);
+    // normal method requires name, so we provide some name
+    assertEquals(true, factory.getName() instanceof DartIdentifier);
+    assertEquals("foo<T>", ((DartIdentifier) factory.getName()).getTargetName());
   }
 }
