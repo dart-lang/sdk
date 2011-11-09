@@ -43,8 +43,11 @@ static const char* ProcessOption(const char* option, const char* name) {
 
 static bool ProcessPprofOption(const char* option) {
   const char* kProfOption = "--generate_pprof_symbols=";
-  generate_pprof_symbols_filename = ProcessOption(option, kProfOption);
-  return generate_pprof_symbols_filename != NULL;
+  const char* filename = ProcessOption(option, kProfOption);
+  if (filename != NULL) {
+    generate_pprof_symbols_filename = filename;
+  }
+  return filename != NULL;
 }
 
 
@@ -65,11 +68,13 @@ static int ParseArguments(int argc,
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessPprofOption(argv[i])) {
       i += 1;
-      Dart_InitPprofSupport();
       continue;
     }
     vm_options->AddArgument(argv[i]);
     i += 1;
+  }
+  if (generate_pprof_symbols_filename != NULL) {
+    Dart_InitPprofSupport();
   }
 
   // Get the script name.
