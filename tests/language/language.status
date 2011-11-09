@@ -327,12 +327,11 @@ ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
 
-[ $component == leg]
+[ $component == leg ]
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
-DoubleComparisonTest: Fail
 
-[ $component == frogsh ||  $component == frog ]
+[ $component == frogsh ||  $component == frog || $component == leg ]
 FinalVarNegativeTest: Fail
 
 [ $arch == x64 ]
