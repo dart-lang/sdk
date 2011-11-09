@@ -35,7 +35,6 @@ Constructor5Test: Fail          # Bug 8440015
 Constructor6Test: Fail          # Bug 8440015
 
 # Regular bugs which should be fixed.
-SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
 
 NonParameterizedFactory2Test: Fail # Bug 5257789
@@ -98,7 +97,6 @@ RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
-SuperNegativeTest: Fail # Now that super calls are automatically injected this test doesn't make sense
 NullToStringTest: Fail       # Bug 5421978
 FunctionTypeAliasTest: Crash # Bug 4519208.
 
@@ -313,7 +311,6 @@ StringInterpolate2Test: Fail
 StringInterpolateTest: Fail
 StringTest: Fail
 SuperImplicitClosureTest: Fail
-SuperNegativeTest: Fail  # test seems clearly broken - see issue #358
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
