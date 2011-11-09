@@ -36,6 +36,7 @@ class _Directory implements Directory {
   bool existsSync() {
     int exists = _exists(_path);
     if (exists < 0) {
+      // TODO(ager): Supply a better error message.
       throw new DirectoryException("Diretory exists test failed: $_path");
     }
     return (exists == 1);
@@ -43,12 +44,14 @@ class _Directory implements Directory {
 
   void createSync() {
     if (!_create(_path)) {
+      // TODO(ager): Supply a better error message.
       throw new DirectoryException("Directory creation failed: $_path");
     }
   }
 
   void deleteSync() {
     if (!_delete(_path)) {
+      // TODO(ager): Supply a better error message.
       throw new DirectoryException("Directory deletion failed: $_path");
     }
   }
