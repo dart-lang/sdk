@@ -193,7 +193,6 @@ TypedMessageTest: Fail # Bug 5246195
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-
 [ $component == frogsh ||  $component == frog || $component == leg ]
 
 # VM or DartC specific tests not to be run by Frog. See language.status
@@ -293,10 +292,6 @@ Prefix14NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
 Prefix15Test: Fail
-PrivateMemberTest/01: Fail # test seems bad - see issue #353
-PrivateMemberTest/02: Fail # test seems bad - see issue #353
-PrivateMemberTest/03: Fail # test seems bad - see issue #353
-PrivateMemberTest/04: Fail # test seems bad - see issue #353
 Private3Test: Fail
 PrivateTest: Fail
 PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
@@ -326,6 +321,14 @@ ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
+[ ($component == frogsh ||  $component == frog || $component == leg) && $unchecked ]
+PrivateMemberTest/01: Fail # test seems bad - see issue #353
+PrivateMemberTest/02: Fail # test seems bad - see issue #353
+PrivateMemberTest/03: Fail # test seems bad - see issue #353
+PrivateMemberTest/04: Fail # test seems bad - see issue #353
+
+[ ($component == frogsh ||  $component == frog || $component == leg) && $checked ]
+PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == leg ]
 StaticTopLevelTest/00: Fail
