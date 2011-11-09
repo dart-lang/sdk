@@ -23,20 +23,19 @@ LibTest/core/Proxy/Proxy.forIsolateWithPromise/Proxy/Proxy.forIsolateWithPromise
 
 [ $component == vm ]
 
-LibTest/core/double/isNegative/double/isNegative/A01/t01: Fail  # Issue 6
-LibTest/core/double/operatorDivision/double/operatorDivision/A01/t05: Fail  # Issue 7
-LibTest/core/double/operator~div/double/operator~div/A01/t05: Fail  # Issue 7
-LibTest/core/Math/atan2/Math/atan2/A01/t03: Fail  # Issue 8
-LibTest/core/String/charCodeAt/String/charCodeAt/A03/t01: Fail  # Issue 9
+LibTest/core/double/isNegative/double/isNegative/A01/t01: Fail  # Issue co19 - 6 (fixed at rev 25)
+LibTest/core/double/operatorDivision/double/operatorDivision/A01/t05: Fail  # co19 issue 7 (fixed at rev 25)
+LibTest/core/double/operator~div/double/operator~div/A01/t05: Fail  # Issue co19 - 7 (fixed at rev 25)
+LibTest/core/Math/atan2/Math/atan2/A01/t03: Fail  # Issue co19 - 8 (Fixed at rev 22)
+LibTest/core/String/charCodeAt/String/charCodeAt/A03/t01: Fail  # Issue co19 - 9(Fixed at rev 20)
 
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t02: Fail # Bug 5371433
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A02/t01: Fail # Bug 5371433
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail # Issue 392
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Issue co19 - 17
+LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fail # Issue 393
+LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t02: Fail # Issue co19 - 18
+LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A02/t01: Fail # Issue co19 - 19
 
-LangGuideTest/03_Values/03_4_String_Interpolation/A01/t02: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A01/t01: Fail
+LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A01/t01: Fail # Issue 394
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t11: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A01/t01: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A02/t11: Fail
@@ -63,6 +62,7 @@ LibTest/core/String/replaceAll/String/replaceAll/A01/t01: Fail
 LibTest/core/String/split/String/split/A01/t01: Fail
 LibTest/core/String/split/String/split/A01/t02: Fail
 LibTest/core/String/trim/String/trim/A01/t02: Fail
+LibTest/core/String/operator+/String_operator+/A01/t03: Fail  # Issue co19 - 20
 
 
 # New failures
