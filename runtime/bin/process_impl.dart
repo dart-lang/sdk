@@ -39,6 +39,13 @@ class _Process implements Process {
     _exitHandlerCallback = null;
   }
 
+  int _intFromBytes(List<int> bytes, int offset) {
+    return (bytes[offset] +
+            (bytes[offset + 1] << 8) +
+            (bytes[offset + 2] << 16) +
+            (bytes[offset + 3] << 24));
+  }
+
   void start() {
     var status = new _ProcessStartStatus();
     bool success = _start(
@@ -58,17 +65,20 @@ class _Process implements Process {
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
     _exitHandler.dataHandler = () {
-        final int EXIT_DATA_SIZE = 8;
+        final int EXIT_DATA_SIZE = 12;
         List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
         InputStream input = _exitHandler.inputStream;
         int exitDataRead = 0;
 
         int exitCode(List<int> ints) {
-          return ints[4] + (ints[5] << 8) + (ints[6] << 16) + (ints[7] << 24);
+          var code = _intFromBytes(ints, 4);
+          var negative = _intFromBytes(ints, 8);
+          assert(negative == 0 || negative == 1);
+          return (negative == 0) ? code : -code;
         }
 
         int exitPid(List<int> ints) {
-          return ints[0] + (ints[1] << 8) + (ints[2] << 16) + (ints[3] << 24);
+          return _intFromBytes(ints, 0);
         }
 
         void handleExit() {

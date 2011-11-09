@@ -84,7 +84,7 @@ class TestOutput {
 
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
   
-  bool get hasCrashed() => !timedOut && exitCode != 255 && exitCode != 0;
+  bool get hasCrashed() => !timedOut && exitCode != -1 && exitCode != 0;
 
   bool get hasTimedOut() => timedOut;
 

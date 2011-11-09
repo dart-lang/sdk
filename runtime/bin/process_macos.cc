@@ -89,14 +89,21 @@ void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
   int status = 0;
   while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
     int exit_code = 0;
-    // TODO(ager): Transform exit_code 255 to -1.
-    if (WIFEXITED(status)) exit_code = WEXITSTATUS(status);
-    // TODO(ager): Transform termsig to -termsig to destinguish from
-    // exit codes.
-    if (WIFSIGNALED(status)) exit_code = WTERMSIG(status);
+    int negative = 0;
+    if (WIFEXITED(status)) {
+      exit_code = WEXITSTATUS(status);
+      if (exit_code == 255) {
+        exit_code = 1;
+        negative = 1;
+      }
+    }
+    if (WIFSIGNALED(status)) {
+      exit_code = WTERMSIG(status);
+      negative = 1;
+    }
     ProcessInfo* process = LookupProcess(pid);
     if (process != NULL) {
-      intptr_t message[2] = { pid, exit_code };
+      int message[3] = { pid, exit_code, negative };
       intptr_t result =
           FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
       if (result != sizeof(message)) {

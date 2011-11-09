@@ -204,16 +204,26 @@ static int SetOsErrorMessage(char* os_error_message,
 static unsigned int __stdcall TerminationWaitThread(void* args) {
   ProcessInfo* process = reinterpret_cast<ProcessInfo*>(args);
   WaitForSingleObject(process->process_handle(), INFINITE);
-  DWORD exit_code;
-  BOOL ok = GetExitCodeProcess(process->process_handle(), &exit_code);
+  int exit_code;
+  BOOL ok = GetExitCodeProcess(process->process_handle(),
+                               reinterpret_cast<DWORD*>(&exit_code));
   if (!ok) {
     fprintf(stderr, "GetExitCodeProcess failed %d\n", GetLastError());
   }
-  intptr_t message[2] = { process->pid(), static_cast<intptr_t>(exit_code) };
+  int negative = 0;
+  if (exit_code == 255) {
+    exit_code = 1;
+    negative = 1;
+  }
+  if (exit_code < 0) {
+    exit_code = abs(exit_code);
+    negative = 1;
+  }
+  int message[3] = { process->pid(), exit_code, negative };
   DWORD written;
   ok = WriteFile(
       process->exit_pipe(), message, sizeof(message), &written, NULL);
-  if (!ok || written != 8) {
+  if (!ok || written != sizeof(message)) {
     fprintf(stderr, "FileWrite failed %d\n", GetLastError());
   }
   return 0;
