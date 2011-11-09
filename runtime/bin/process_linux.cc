@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/process.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "bin/fdutils.h"
-#include "bin/process.h"
-
 
 class ProcessInfo {
  public:
@@ -94,6 +95,11 @@ void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
   }
   ProcessInfo* process = LookupProcess(siginfo->si_pid);
   if (process != NULL) {
+    int status = 0;
+    int wait_result = waitpid(siginfo->si_pid, &status, WNOHANG);
+    if (wait_result == -1 || wait_result == 0) {
+      perror("ExitHandler waitpid failed");
+    }
     intptr_t message[2] = { siginfo->si_pid, siginfo->si_status };
     intptr_t result =
         FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
