@@ -226,7 +226,6 @@ LibTest/core/Proxy/Proxy.forReply/Proxy/Proxy.forReply/A01/t01: Fail
 LibTest/core/Proxy/Proxy.forPort/Proxy/Proxy.forPort/A01/t01: Fail
 LibTest/core/Proxy/call/Proxy/call/A01/t01: Fail
 LibTest/core/Duration/Duration/Duration/A03/t01: Fail
-LibTest/core/Map/A01/t03: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t09: Fail
 LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail
 LibTest/core/double/operatorLT/double/operatorLT/A01/t03: Fail
@@ -301,6 +300,10 @@ LibTest/core/SendPort/send/SendPort/send/A03/t01: Fail
 LibTest/core/SendPort/send/SendPort/send/A03/t02: Fail
 LibTest/core/Set/filter/Set/filter/A01/t03: Fail
 LibTest/core/Set/addAll/Set/addAll/A01/t03: Fail
+LibTest/core/Set/add/Set/add/A01/t05: Fail # was passing for wrong reason, would pass for right reason if --enable_type_checks was on
+LibTest/core/Set/addAll/Set/addAll/A01/t05: Fail # was passing for wrong reason, would pass for right reason if --enable_type_checks was on
+LibTest/core/Set/contains/Set/contains/A01/t04: Fail # was passing for wrong reason, would pass for right reason if --enable_type_checks was on
+LibTest/core/Set/containsAll/Set/containsAll/A01/t04: Fail # was passing for wrong reason, would pass for right reason if --enable_type_checks was on
 LibTest/core/Set/forEach/Set/forEach/A01/t03: Fail
 LibTest/core/Set/remove/Set/remove/A01/t03: Fail
 LibTest/core/Set/add/Set/add/A01/t03: Fail
