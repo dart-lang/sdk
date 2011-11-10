@@ -4,78 +4,21 @@
 
 package com.google.dart.compiler.type;
 
-import com.google.common.base.Joiner;
-import com.google.common.io.CharStreams;
-import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartExprStmt;
-import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartFunctionExpression;
-import com.google.dart.compiler.ast.DartFunctionTypeAlias;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartStatement;
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
 import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
-import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.Elements;
-import com.google.dart.compiler.resolver.FunctionAliasElement;
-import com.google.dart.compiler.resolver.MemberBuilder;
-import com.google.dart.compiler.resolver.ResolutionContext;
-import com.google.dart.compiler.resolver.Resolver;
-import com.google.dart.compiler.resolver.Resolver.ResolveElementsVisitor;
-import com.google.dart.compiler.resolver.Scope;
-import com.google.dart.compiler.resolver.SupertypeResolver;
-import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-import com.google.dart.compiler.util.DartSourceString;
 
-import java.io.IOError;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Test of static type analysis. This is mostly a test of {@link TypeAnalyzer}, but this test also
  * exercises code in com.google.dart.compiler.resolver.
  */
-public class TypeAnalyzerTest extends TypeTestCase {
-  private final CoreTypeProvider typeProvider = new MockCoreTypeProvider();
-  private Resolver resolver = new Resolver(context, getMockScope("<test toplevel>"), typeProvider);
-  private final Types types = Types.getInstance(typeProvider);
-  private HashSet<ClassElement> diagnosedAbstractClasses = new HashSet<ClassElement>();
+public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
-  @Override
-  protected void tearDown() {
-    resolver = null;
-    diagnosedAbstractClasses = null;
-  }
-
-  @Override
-  Types getTypes() {
-    return types;
-  }
-
-  private TypeAnalyzer.Analyzer makeTypeAnalyzer(ClassElement element) {
-    TypeAnalyzer.Analyzer analyzer =
-        new TypeAnalyzer.Analyzer(context, typeProvider,
-                                  new ConcurrentHashMap<ClassElement, List<Element>>(),
-                                  diagnosedAbstractClasses);
-    analyzer.setCurrentClass(element.getType());
-    return analyzer;
-  }
 
   public void testLabels() {
     // Labels should be inside a function or method to be used
@@ -146,14 +89,6 @@ public class TypeAnalyzerTest extends TypeTestCase {
     checkFunctionStatement("String foo() {};", "() -> String");
     checkFunctionStatement("Object foo() {};", "() -> Object");
     checkFunctionStatement("String foo(int i, bool b) {};", "(int, bool) -> String");
-  }
-
-  private void checkFunctionStatement(String statement, String printString) {
-    DartExprStmt node = (DartExprStmt) analyze(statement);
-    DartFunctionExpression expression = (DartFunctionExpression) node.getExpression();
-    Element element = expression.getSymbol();
-    FunctionType type = (FunctionType) element.getType();
-    assertEquals(printString, type.toString());
   }
 
   public void testIdentifiers() {
@@ -254,6 +189,7 @@ public class TypeAnalyzerTest extends TypeTestCase {
     assertEquals(superElement, sub.getInterfaces().get(0).getElement());
     InterfaceType superString = itype(superElement, itype(string));
     InterfaceType subString = itype(sub, itype(string));
+    Types types = getTypes();
     assertEquals("Super<String>", String.valueOf(types.asInstanceOf(superString, superElement)));
     assertEquals("Super<String>", String.valueOf(types.asInstanceOf(subString, superElement)));
     assertEquals("Sub<String>", String.valueOf(types.asInstanceOf(subString, sub)));
@@ -1392,291 +1328,5 @@ public class TypeAnalyzerTest extends TypeTestCase {
     ClassElement classBar = source.get("Bar");
     assertEquals(classFoo, classBar.getSupertype().getElement());
     assertEquals(classBar, classFoo.getSupertype().getElement());
-  }
-
-  private Map<String, ClassElement> analyzeClasses(Map<String, ClassElement> classes,
-                                                   ErrorCode... codes) {
-    setExpectedTypeErrorCount(codes.length);
-    for (ClassElement cls : classes.values()) {
-      analyzeToplevel(cls.getNode());
-    }
-    List<ErrorCode> errorCodes = context.getErrorCodes();
-    assertEquals(Arrays.toString(codes), errorCodes.toString());
-    errorCodes.clear();
-    checkExpectedTypeErrorCount();
-    return classes;
-  }
-
-  private Type checkAssignIn(ClassElement element, String type, String expression, int errorCount) {
-    return analyzeIn(element, assign(type, expression), errorCount);
-  }
-
-  private String assign(String type, String expression) {
-    return String.format("void foo() { %s x = %s; }", type, expression);
-  }
-
-  private ClassElement loadClass(String file, String name) {
-    ClassElement cls = loadFile(file).get(name);
-    assertNotNull("unable to locate " + name, cls);
-    return cls;
-  }
-
-  private String returnWithType(String type, Object expression) {
-    return String.format("%s foo() { return %s; }", type, String.valueOf(expression));
-  }
-
-  private Map<String, ClassElement> loadFile(final String name) {
-    String source = getResource(name);
-    return loadSource(source);
-  }
-
-  private Map<String, ClassElement> loadSource(String firstLine, String secondLine,
-                                               String... rest) {
-    return loadSource(Joiner.on('\n').join(firstLine, secondLine, (Object[]) rest).toString());
-  }
-
-  private Map<String, ClassElement> loadSource(String source) {
-    Map<String, ClassElement> classes = new LinkedHashMap<String, ClassElement>();
-    DartUnit unit = parseUnit(source);
-    TopLevelElementBuilder elementBuilder = new TopLevelElementBuilder();
-    elementBuilder.exec(unit, context);
-    for (DartNode node : unit.getTopLevelNodes()) {
-      if (node instanceof DartClass) {
-        DartClass classNode = (DartClass) node;
-        final ClassElement classElement = classNode.getSymbol();
-        String className = classElement.getName();
-        coreElements.put(className, classElement);
-        classes.put(className, classElement);
-      } else {
-        DartFunctionTypeAlias alias = (DartFunctionTypeAlias) node;
-        FunctionAliasElement element = alias.getSymbol();
-        coreElements.put(element.getName(), element);
-      }
-    }
-    Scope scope = getMockScope("<test toplevel>");
-    SupertypeResolver supertypeResolver = new SupertypeResolver();
-    supertypeResolver.exec(unit, context, scope, typeProvider);
-    MemberBuilder memberBuilder = new MemberBuilder();
-    memberBuilder.exec(unit, context, scope, typeProvider);
-    resolver.exec(unit);
-    return classes;
-  }
-
-  private String getResource(String name) {
-    String packageName = getClass().getPackage().getName().replace('.', '/');
-    String resouceName = packageName + "/" + name;
-    InputStream stream = getClass().getClassLoader().getResourceAsStream(resouceName);
-    if (stream == null) {
-      throw new AssertionError("Missing resource: " + resouceName);
-    }
-    InputStreamReader reader = new InputStreamReader(stream);
-    try {
-      return CharStreams.toString(reader); // Also closes the reader.
-    } catch (IOException e) {
-      throw new IOError(e);
-    }
-  }
-
-  private void analyzeFail(String statement, ErrorCode errorCode) {
-    try {
-      analyze(statement);
-      fail("Test unexpectedly passed.  Expected ErrorCode: " + errorCode);
-    } catch (TestTypeError error) {
-      assertEquals(errorCode, error.getErrorCode());
-    }
-  }
-
-  private void checkSimpleType(Type type, String expression) {
-    assertSame(type, typeOf(expression));
-    setExpectedTypeErrorCount(1); // x is unresolved.
-    assertSame(type, typeOf("x = " + expression));
-    checkExpectedTypeErrorCount();
-  }
-
-  private void checkType(Type type, String expression) {
-    assertEquals(type, typeOf(expression));
-    assertEquals(type, typeOf("x = " + expression));
-  }
-
-  private Type typeOf(String expression) {
-    return analyzeNode(parseExpression(expression));
-  }
-
-  private DartStatement analyze(String statement) {
-    DartStatement node = parseStatement(statement);
-    analyzeNode(node);
-    return node;
-  }
-
-  private Type analyzeIn(ClassElement element, String expression, int expectedErrorCount) {
-    DartExpression node = parseExpression(expression);
-    ResolutionContext resolutionContext =
-        new ResolutionContext(getMockScope("<test expression>"), context,
-                              typeProvider).extend(element);
-    ResolveElementsVisitor visitor =
-        resolver.new ResolveElementsVisitor(resolutionContext, element,
-                                            Elements.methodElement(null, null));
-    setExpectedTypeErrorCount(expectedErrorCount);
-    node.accept(visitor);
-    Type type = node.accept(makeTypeAnalyzer(element));
-    checkExpectedTypeErrorCount(expression);
-    return type;
-  }
-
-  private Type analyzeNode(DartNode node) {
-    ResolutionContext resolutionContext =
-        new ResolutionContext(getMockScope("<test node>"), context, typeProvider);
-    ResolveElementsVisitor visitor =
-        resolver.new ResolveElementsVisitor(resolutionContext, null,
-                                            Elements.methodElement(null, null));
-    node.accept(visitor);
-    return node.accept(makeTypeAnalyzer(Elements.dynamicElement()));
-  }
-
-  private Type analyzeToplevel(DartNode node) {
-    return node.accept(makeTypeAnalyzer(Elements.dynamicElement()));
-  }
-
-  private ClassElement analyzeClass(ClassElement cls, int count) {
-    setExpectedTypeErrorCount(count);
-    analyzeToplevel(cls.getNode());
-    checkExpectedTypeErrorCount(cls.getName());
-    return cls;
-  }
-
-  private DartParser getParser(String string) {
-    return new DartParser(new DartScannerParserContext(null, string, listener));
-  }
-
-  private DartExpression parseExpression(String source) {
-    return getParser(source).parseExpression();
-  }
-
-  private DartStatement parseStatement(String source) {
-    return getParser(source).parseStatement();
-  }
-
-  private DartUnit parseUnit(String string) {
-    DartSourceString source = new DartSourceString("<source string>", string);
-    return getParser(string).parseUnit(source);
-  }
-
-  private class MockScope extends Scope {
-    private MockScope() {
-      super("test mock scope", null);
-    }
-
-    @Override
-    public Element findLocalElement(String name) {
-      return coreElements.get(name);
-    }
-
-  }
-
-  private Scope getMockScope(String name) {
-    return new Scope(name, null, new MockScope());
-  }
-
-  private class MockCoreTypeProvider implements CoreTypeProvider {
-    private final Type voidType = Types.newVoidType();
-    private final DynamicType dynamicType = Types.newDynamicType();
-
-    @Override
-    public InterfaceType getIntType() {
-      return intElement.getType();
-    }
-
-    @Override
-    public InterfaceType getDoubleType() {
-      return doubleElement.getType();
-    }
-
-    @Override
-    public InterfaceType getBoolType() {
-      return bool.getType();
-    }
-
-    @Override
-    public InterfaceType getStringType() {
-      return string.getType();
-    }
-
-    @Override
-    public InterfaceType getFunctionType() {
-      return function.getType();
-    }
-
-    @Override
-    public InterfaceType getArrayType(Type elementType) {
-      return list.getType().subst(Arrays.asList(elementType), list.getTypeParameters());
-    }
-
-    @Override
-    public Type getNullType() {
-      return getDynamicType();
-    }
-
-    @Override
-    public Type getVoidType() {
-      return voidType;
-    }
-
-    @Override
-    public DynamicType getDynamicType() {
-      return dynamicType;
-    }
-
-    @Override
-    public InterfaceType getFallThroughError() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public InterfaceType getMapType(Type key, Type value) {
-      InterfaceType mapType = map.getType();
-      return mapType.subst(Arrays.asList(key, value),
-                           mapType.getElement().getTypeParameters());
-    }
-
-    @Override
-    public InterfaceType getObjectArrayType() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public InterfaceType getObjectType() {
-      return object.getType();
-    }
-
-    @Override
-    public InterfaceType getNumType() {
-      return number.getType();
-    }
-
-    @Override
-    public InterfaceType getArrayLiteralType(Type value) {
-      throw new AssertionError();
-    }
-
-    @Override
-    public InterfaceType getMapLiteralType(Type key, Type value) {
-      throw new AssertionError();
-    }
-
-    @Override
-    public InterfaceType getStringImplementationType() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public InterfaceType getIsolateType() {
-      throw new AssertionError();
-    }
-
-    @Override
-    public InterfaceType getIteratorType(Type elementType) {
-      InterfaceType iteratorType = iterElement.getType();
-      return iteratorType.subst(Arrays.asList(elementType), iterElement.getTypeParameters());
-    }
   }
 }
