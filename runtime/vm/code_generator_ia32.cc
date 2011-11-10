@@ -1415,11 +1415,29 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     const Class& type_class = Class::ZoneHandle(type.type_class());
     const bool requires_type_arguments = type_class.HasTypeArguments();
     // A Smi object cannot be the instance of a parameterized class.
-    // A class equality check is only applicable to a non-parameterized class.
-    // TODO(regis): Should we still inline a Smi type check when checking for a
-    // parameterized type and return false for a Smi's without calling the
-    // runtime?
-    if (!requires_type_arguments) {
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (requires_type_arguments) {
+      const TypeArguments& type_arguments =
+          TypeArguments::Handle(type.arguments());
+      const bool is_raw_type = type_arguments.IsNull() ||
+          type_arguments.IsDynamicTypes(type_arguments.Length());
+      Label runtime_call;
+      __ testl(EAX, Immediate(kSmiTagMask));
+      __ j(ZERO, &runtime_call, Assembler::kNearJump);
+      // Object not Smi.
+      if (is_raw_type) {
+        if (!type_class.is_interface()) {
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          __ CompareObject(ECX, type_class);
+          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+          __ PushObject(negate_result ? bool_false : bool_true);
+          __ jmp(&done, Assembler::kNearJump);
+        }
+      }
+      __ Bind(&runtime_call);
+      // Fall through to runtime call.
+    } else {
       Label compare_classes;
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
@@ -1437,9 +1455,19 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 
       // Compare if the classes are equal.
       __ Bind(&compare_classes);
-      // If type is an interface, we can skip the class equality check,
-      // because instances cannot be of an interface type.
-      if (!type_class.is_interface()) {
+      if (type_class.is_interface()) {
+        if (type.IsStringInterface()) {
+          Label runtime_call;
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          const Class& one_byte_string_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->one_byte_string_class());
+          __ CompareObject(ECX, one_byte_string_class);
+          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+          __ PushObject(negate_result ? bool_false : bool_true);
+          __ jmp(&done, Assembler::kNearJump);
+          __ Bind(&runtime_call);
+        }
+      } else {  // type_class is not an interface.
         Label runtime_call;
         __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
         __ CompareObject(ECX, type_class);
@@ -1565,7 +1593,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
         }
         // Fall through to runtime class.
       }
-    } else {
+    } else {  // dst_type has NO type arguments.
       Label compare_classes;
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);

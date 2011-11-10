@@ -25,6 +25,7 @@ DEFINE_FLAG(bool, trace_ic, false, "trace IC handling");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls.");
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, trace_type_checks);
 
 
 const Array& CodeGenerator::ArgumentsDescriptor(
@@ -325,6 +326,17 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
   const Bool& result = Bool::Handle(
       instance.IsInstanceOf(type, type_instantiator) ?
       Bool::True() : Bool::False());
+  if (FLAG_trace_type_checks) {
+    Class& cls = Class::Handle(instance.clazz());
+    // TODO(regis): Remove once all classes finalized.
+    if (cls.is_finalized())  {
+      OS::Print("InstanceOf '%s' %s '%s'\n",
+          String::Handle(Type::Handle(instance.GetType()).Name()).
+              ToCString(),
+          (result.raw() == Bool::True()) ? "is" : "is !",
+          String::Handle(type.Name()).ToCString());
+    }
+  }
   arguments.SetReturn(result);
 }
 
