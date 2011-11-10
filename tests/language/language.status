@@ -58,6 +58,7 @@ ImplicitThisTest/none: Fail # Issue 374
 
 [ $component == vm && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
+FactoryNegativeTest: Crash # Issue 417
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]
@@ -69,6 +70,7 @@ Private3Test: Fail                       # Bug 5391976
 Switch3NegativeTest: Crash               # Bug 5318228
 BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not throwing NSME
 CTConst2Test: Fail                       # Codesite issue 124
+FactoryNegativeTest: Fail                # Issue 417
 
 # Problems specific to dartc debug mode
 [ ($component == dartc || $component == chromium) && $mode == debug ]
@@ -85,6 +87,8 @@ Prefix16NegativeTest: Fail               # Bug 5532534
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
+FactoryNegativeTest: Fail                # Issue 417
+
 
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.
