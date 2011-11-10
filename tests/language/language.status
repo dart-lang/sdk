@@ -56,9 +56,12 @@ ImplicitThisTest/none: Fail # Issue 374
 *FrogNegativeTest: Skip
 
 
-[ $component == vm && $mode == debug ]
+[ ($component == vm || $component == dartium) && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
 FactoryNegativeTest: Crash # Issue 417
+
+[ ($component == vm || $component == dartium) && $mode == release ]
+FactoryNegativeTest: Fail # Issue 417
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]
@@ -70,7 +73,6 @@ Private3Test: Fail                       # Bug 5391976
 Switch3NegativeTest: Crash               # Bug 5318228
 BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not throwing NSME
 CTConst2Test: Fail                       # Codesite issue 124
-FactoryNegativeTest: Fail                # Issue 417
 
 # Problems specific to dartc debug mode
 [ ($component == dartc || $component == chromium) && $mode == debug ]
@@ -196,6 +198,7 @@ TypedMessageTest: Fail # Bug 5246195
 
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
+FactoryNegativeTest: Fail # Issue 417
 
 [ $component == frogsh ||  $component == frog || $component == leg ]
 
