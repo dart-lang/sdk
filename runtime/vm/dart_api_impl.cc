@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <stdarg.h>
-
 #include "include/dart_api.h"
 
 #include "vm/bigint_operations.h"
@@ -86,12 +84,26 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
 }
 
 
+// TODO(turnidge): This clonse Api::Error.  I need to use va_copy to
+// fix this but not sure if it available on all of our builds.
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+
   va_list args;
   va_start(args, format);
-  Dart_Handle error = Api::VError(format, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
-  return error;
+
+  char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  const String& message = String::Handle(String::New(buffer));
+  const Object& obj = Object::Handle(ApiFailure::New(message));
+  return Api::NewLocalHandle(obj);
 }
 
 
@@ -2046,29 +2058,24 @@ Dart_Handle Api::Success() {
 }
 
 
-Dart_Handle Api::VError(const char* format, va_list args) {
+Dart_Handle Api::Error(const char* format, ...) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
 
-  va_list args_copy;
-  va_copy(args_copy, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
-  va_end(args_copy);
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
 
   char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
-  OS::VSNPrint(buffer, (len + 1), format, args);
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
 
   const String& message = String::Handle(String::New(buffer));
   const Object& obj = Object::Handle(ApiFailure::New(message));
   return Api::NewLocalHandle(obj);
-}
-
-Dart_Handle Api::Error(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  Dart_Handle error = Api::VError(format, args);
-  va_end(args);
-  return error;
 }
 
 
