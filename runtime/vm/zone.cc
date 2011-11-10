@@ -223,16 +223,14 @@ Zone::Zone()
   // Assert that there is no current zone as we only want to scope
   // zones when transitioning from generated dart code to dart VM
   // runtime code.
-  Isolate* isolate = Isolate::Current();
-  previous_ = isolate->current_zone();
-  Isolate::Current()->set_current_zone(this);
+  previous_ = isolate()->current_zone();
+  isolate()->set_current_zone(this);
 }
 
 
 Zone::~Zone() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->current_zone() == this);
-  isolate->set_current_zone(previous_);
+  ASSERT(isolate()->current_zone() == this);
+  isolate()->set_current_zone(previous_);
 }
 
 
