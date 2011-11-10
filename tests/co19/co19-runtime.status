@@ -326,8 +326,8 @@ LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail
 LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t02: Fail
 LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t03: Fail
 LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
-LibTest/core/Map/operator\[\]/Map/operator\[\]/A01/t03: Fail
-LibTest/core/Map/operator\[\]=/Map/operator\[\]=/A01/t03: Fail
+LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail
+LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
 LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Fail
 LibTest/core/Strings/join/Strings/join/A01/t02: Fail

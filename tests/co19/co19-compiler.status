@@ -412,8 +412,8 @@ LibTest/core/int/toStringAsPrecision/int/toStringAsPrecision/A01/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A11/t01: Crash
 LangSpecTest/13_Types/13_4_Interface_Types/A11/t02: Crash
 LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
-LibTest/core/Map/operator\[\]/Map/operator\[\]/A01/t03: Fail
-LibTest/core/Map/operator\[\]=/Map/operator\[\]=/A01/t03: Fail
+LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail
+LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
 LibTest/core/String/toLowerCase/String/toLowerCase/A01/t04: Fail
 LibTest/core/String/toUpperCase/String/toUpperCase/A01/t04: Fail
