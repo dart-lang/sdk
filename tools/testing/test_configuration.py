@@ -92,7 +92,8 @@ class StandardTestConfiguration(test.TestConfiguration):
                                                test_path + [tag],
                                                test_source,
                                                kind,
-                                               mode, arch, component))
+                                               mode, arch, component,
+                                               self.flags))
       else:
         if vm_options_list:
           for options in vm_options_list:
