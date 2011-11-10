@@ -13,7 +13,6 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)
 UNIT_TEST_CASE(Dart_Error) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();
@@ -25,7 +24,6 @@ UNIT_TEST_CASE(Dart_Error) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 }
-#endif
 
 
 UNIT_TEST_CASE(Null) {
@@ -1788,6 +1786,57 @@ static Dart_Handle library_handler(Dart_LibraryTag tag,
     return url;
   }
   return Api::Success();
+}
+
+
+UNIT_TEST_CASE(LookupLibrary) {
+  const char* kScriptChars =
+      "#import('library1.dart');"
+      "main() {}";
+  const char* kLibrary1Chars =
+      "#library('library1.dart');"
+      "#import('library2.dart');";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle result = Dart_LoadScript(url, source, library_handler);
+  EXPECT_VALID(result);
+
+  url = Dart_NewString("library1.dart");
+  source = Dart_NewString(kLibrary1Chars);
+  result = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(result);
+
+  result = Dart_LookupLibrary(url);
+  EXPECT_VALID(result);
+
+  result = Dart_LookupLibrary(Dart_Null());
+  EXPECT(!Dart_IsValid(result));
+  EXPECT_STREQ("Dart_LookupLibrary expects argument 'url' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LookupLibrary(Dart_True());
+  EXPECT(!Dart_IsValid(result));
+  EXPECT_STREQ(
+      "Dart_LookupLibrary expects argument 'url' to be of type String.",
+      Dart_GetError(result));
+
+  result = Dart_LookupLibrary(Dart_Error("incoming error pass-thru"));
+  EXPECT(!Dart_IsValid(result));
+  EXPECT_STREQ("incoming error pass-thru", Dart_GetError(result));
+
+  url = Dart_NewString("noodles.dart");
+  result = Dart_LookupLibrary(url);
+  EXPECT(!Dart_IsValid(result));
+  EXPECT_STREQ("Dart_LookupLibrary: library 'noodles.dart' not found.",
+               Dart_GetError(result));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
 }
 
 

@@ -27,6 +27,23 @@
 
 namespace dart {
 
+#define UNWRAP_NONNULL(dart_handle, vm_handle, Type)                          \
+  do {                                                                        \
+    const Object& tmp = Object::Handle(Api::UnwrapHandle((dart_handle)));     \
+    if (tmp.Is##Type()) {                                                     \
+      (vm_handle) ^= tmp.raw();                                               \
+    } else if (tmp.IsNull()) {                                                \
+      return Api::Error("%s expects argument '%s' to be non-null.",           \
+                        __func__, #dart_handle);                              \
+    } else if (tmp.IsApiFailure()) {                                          \
+      return dart_handle;                                                     \
+    } else {                                                                  \
+      return Api::Error("%s expects argument '%s' to be of type %s.",         \
+                        __func__, #dart_handle, #Type);                       \
+    }                                                                         \
+  } while (0)
+
+
 DART_EXPORT bool Dart_IsValid(const Dart_Handle& handle) {
   ASSERT(Isolate::Current() != NULL);
   Zone zone;  // Setup a VM zone as we are creating some handles.
@@ -381,10 +398,12 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library_in,
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-  const String& url_str = String::CheckedHandle(Api::UnwrapHandle(url));
+  String& url_str = String::Handle();
+  UNWRAP_NONNULL(url, url_str, String);
   const Library& library = Library::Handle(Library::LookupLibrary(url_str));
   if (library.IsNull()) {
-    return Api::Error("Unknown library");
+    return Api::Error("%s: library '%s' not found.",
+                      __func__, url_str.ToCString());
   } else {
     return Api::NewLocalHandle(library);
   }
@@ -2029,7 +2048,11 @@ Dart_Handle Api::VError(const char* format, va_list args) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
 
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_list args_copy;
+  va_copy(args_copy, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  va_end(args_copy);
+
   char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
   OS::VSNPrint(buffer, (len + 1), format, args);
 
@@ -2037,7 +2060,6 @@ Dart_Handle Api::VError(const char* format, va_list args) {
   const Object& obj = Object::Handle(ApiFailure::New(message));
   return Api::NewLocalHandle(obj);
 }
-
 
 Dart_Handle Api::Error(const char* format, ...) {
   va_list args;
