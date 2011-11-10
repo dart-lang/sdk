@@ -34,12 +34,12 @@ namespace dart {
       (vm_handle) ^= tmp.raw();                                               \
     } else if (tmp.IsNull()) {                                                \
       return Api::Error("%s expects argument '%s' to be non-null.",           \
-                        __func__, #dart_handle);                              \
+                        __FUNCTION__, #dart_handle);                          \
     } else if (tmp.IsApiFailure()) {                                          \
       return dart_handle;                                                     \
     } else {                                                                  \
       return Api::Error("%s expects argument '%s' to be of type %s.",         \
-                        __func__, #dart_handle, #Type);                       \
+                        __FUNCTION__, #dart_handle, #Type);                   \
     }                                                                         \
   } while (0)
 
@@ -417,7 +417,7 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
   const Library& library = Library::Handle(Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     return Api::Error("%s: library '%s' not found.",
-                      __func__, url_str.ToCString());
+                      __FUNCTION__, url_str.ToCString());
   } else {
     return Api::NewLocalHandle(library);
   }
