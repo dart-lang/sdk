@@ -78,6 +78,7 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(StringBase, get:length, String_getLength)                                  \
   V(StringBase, charCodeAt, String_charCodeAt)                                 \
   V(StringBase, hashCode, String_hashCode)                                     \
+  V(StringBase, isEmpty, String_isEmpty)                                       \
 
 #define __ assembler->
 
@@ -943,6 +944,24 @@ static bool String_hashCode(Assembler* assembler) {
   __ Bind(&fall_through);
   // Hash not yet computed.
   return false;
+}
+
+
+static bool String_isEmpty(Assembler* assembler) {
+  Label is_true;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  // Get length.
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
+  __ movl(EAX, FieldAddress(EAX, String::length_offset()));
+  __ cmpl(EAX, Immediate(Smi::RawValue(0)));
+  __ j(EQUAL, &is_true, Assembler::kNearJump);
+  __ LoadObject(EAX, bool_false);
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(EAX, bool_true);
+  __ ret();
+  return true;
 }
 
 #undef __
