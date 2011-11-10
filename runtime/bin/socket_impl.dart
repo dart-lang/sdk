@@ -54,6 +54,7 @@ class _SocketBase {
     for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
       if (((event_mask & (1 << i)) != 0)) {
         if ((i == _CLOSE_EVENT) && this is _Socket && _id >= 0) {
+          _closedRead = true;
           if (_closedWrite) _close();
         }
 
