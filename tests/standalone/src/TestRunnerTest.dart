@@ -1,10 +1,8 @@
-
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library("TestRunnerTest");
-
 
 #import("../../../tools/testing/dart/test_runner.dart");
 
@@ -69,7 +67,7 @@ String getProcessTestFileName() {
 }
 
 void main() {
-  int timeout = 1;
+  int timeout = 2;
   new RunningProcess(MakeTestCase("PassTest", [PASS]), timeout).start();
   new RunningProcess(MakeTestCase("FailTest", [FAIL]), timeout).start();
   new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), timeout).start();
