@@ -27,15 +27,12 @@ class Co19TestCase(test.TestCase):
   def IsNegative(self):
     if self._is_negative is None :
       contents = self.GetSource()
-      for tag in ('@compile-error',
-                  # '@static-type-error',
-                  '@dynamic-type-error', '@runtime-error'):
-        if tag in contents:
-          self._is_negative = True
-          break
-      else :
+      if '@compile-error' in contents or '@runtime-error' in contents:
+        self._is_negative = True
+      elif '@dynamic-type-error' in contents:
+        self._is_negative = self.context.checked
+      else:
         self._is_negative = False
-
     return self._is_negative
 
   def GetLabel(self):

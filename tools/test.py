@@ -591,7 +591,7 @@ class Context(object):
 
   def __init__(self, workspace, verbose, os_name, timeout,
                processor, suppress_dialogs, executable, flags,
-               keep_temporary_files, use_batch):
+               keep_temporary_files, use_batch, checked):
     self.workspace = workspace
     self.verbose = verbose
     self.os = os_name
@@ -602,6 +602,7 @@ class Context(object):
     self.flags = flags
     self.keep_temporary_files = keep_temporary_files
     self.use_batch = use_batch == 'true'
+    self.checked = checked
 
   def GetBuildRoot(self, mode, arch):
     """The top level directory containing compiler, runtime, tools..."""
@@ -1442,7 +1443,8 @@ def Main():
                     options.executable,
                     options.flags,
                     options.keep_temporary_files,
-                    options.batch)
+                    options.batch,
+                    options.checked)
 
   # Get status for tests
   sections = []

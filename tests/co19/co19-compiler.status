@@ -50,7 +50,6 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A03/t01:
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A06/t04: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A10/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A13/t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_2_Interface/A02/t03: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fail # Bug 5371670.
@@ -67,17 +66,13 @@ LangGuideTest/07_Overriding/A02/t02: Fail # Bug 5371670.
 LangGuideTest/07_Overriding/A04/t01: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A02/t01: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A02/t02: Fail # Bug 5371670.
-LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A03/t01: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A04/t01: Fail
-LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A01/t01: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t06: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A01/t01: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A02/t06: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A01/t01: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A02/t06: Fail
-LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
-LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t02: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t01: Crash
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t02: Crash
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t03: Crash
@@ -181,13 +176,8 @@ LibTest/core/List/List.fromList/*: Fail # List.fromList has been removed.
 LibTest/core/List/List/List/A01/t03: Fail
 LibTest/core/List/copyFrom/List/copyFrom/A01/t06: Fail
 LibTest/core/List/every/List/every/A01/t04: Fail
-LibTest/core/List/every/List/every/A01/t05: Fail
-LibTest/core/List/every/List/every/A01/t06: Fail
-LibTest/core/List/every/List/every/A01/t07: Fail
 LibTest/core/List/filter/List/filter/A01/t04: Fail
-LibTest/core/List/filter/List/filter/A01/t07: Fail
 LibTest/core/List/forEach/List/forEach/A01/t05: Fail
-LibTest/core/List/forEach/List/forEach/A01/t07: Fail
 LibTest/core/List/getRange/List/getRange/A01/t01: Fail
 LibTest/core/List/insertRange/List/insertRange/A01/t01: Fail
 LibTest/core/List/length/List/length/A02/t03: Fail
@@ -205,9 +195,6 @@ LibTest/core/List/operator\[]=/List/operator\[]=/A03/t01: Fail
 LibTest/core/List/removeRange/List/removeRange/A01/t01: Fail
 LibTest/core/List/setRange/List/setRange/A01/t01: Fail
 LibTest/core/List/some/List/some/A01/t03: Fail
-LibTest/core/List/some/List/some/A01/t04: Fail
-LibTest/core/List/some/List/some/A01/t05: Fail
-LibTest/core/List/some/List/some/A01/t06: Fail
 LibTest/core/List/sort/List/sort/A01/t02: Fail
 LibTest/core/List/sort/List/sort/A01/t04: Fail
 LibTest/core/List/sort/List/sort/A01/t05: Fail

@@ -20,6 +20,19 @@ LibTest/core/Isolate/spawn/Isolate/spawn/A01/t12: Skip # issue co19 - 15
 LibTest/core/Proxy/Proxy.forIsolate/Proxy/Proxy.forIsolate/A01/t01: Skip # issue co19 - 16
 LibTest/core/Proxy/Proxy.forIsolateWithPromise/Proxy/Proxy.forIsolateWithPromise/A01/t01: Skip # issue co19 - 16
 
+# Incorrect tests, see http://code.google.com/p/co19/issues/detail?id=21
+LibTest/core/List/filter/List/filter/A01/t05: Skip
+LibTest/core/List/filter/List/filter/A01/t06: Skip
+LibTest/core/List/forEach/List/forEach/A01/t03: Skip
+LibTest/core/Map/containsKey/Map/containsKey/A01/t03: Skip
+LibTest/core/Map/operator\[]/Map/operator\[]/A01/t04: Skip
+LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t04: Skip
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t05: Skip
+LibTest/core/Map/remove/Map/remove/A01/t03: Skip
+LibTest/core/Set/add/Set/add/A01/t05: Skip
+LibTest/core/Set/addAll/Set/addAll/A01/t05: Skip
+LibTest/core/Set/contains/Set/contains/A01/t04: Skip
+LibTest/core/Set/containsAll/Set/containsAll/A01/t04: Skip
 
 [ $component == vm ]
 
@@ -87,16 +100,6 @@ LibTest/core/List/List.fromList/*: Fail
 
 
 [ $component == vm && $unchecked ]
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Fail
-LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A03/t01: Fail
-LibTest/core/List/every/List/every/A01/t05: Fail
-LibTest/core/List/every/List/every/A01/t06: Fail
-LibTest/core/List/every/List/every/A01/t07: Fail
-LibTest/core/List/filter/List/filter/A01/t07: Fail
-LibTest/core/List/forEach/List/forEach/A01/t07: Fail
-LibTest/core/List/some/List/some/A01/t04: Fail
-LibTest/core/List/some/List/some/A01/t05: Fail
-LibTest/core/List/some/List/some/A01/t06: Fail
 
 
 # New problems on 2011-11-01.
@@ -107,7 +110,6 @@ LibTest/core/List/some/List/some/A01/t06: Fail
 [ $component == vm && $mode == release ]
 
 [ $component == vm ]
-LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A07/t02: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t06: Fail
@@ -259,8 +261,6 @@ LibTest/core/Math/pow/Math/pow/A18/t01: Fail
 LibTest/core/Math/sin/Math/sin/A01/t01: Fail
 LibTest/core/Math/tan/Math/tan/A01/t01: Fail
 [ $component == vm && $unchecked ]
-LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Fail
-LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t02: Fail
 LibTest/core/TypeError/column/TypeError/column/A01/t01: Fail
 LibTest/core/TypeError/dstName/TypeError/dstName/A01/t01: Fail
 LibTest/core/TypeError/dstType/TypeError/dstType/A01/t01: Fail
@@ -347,6 +347,9 @@ LangSpecTest/13_Types/13_4_Interface_Types/A12/t17: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t15: Fail
 LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t01: Fail
 
+# Started failing after changing how @dynamic-type-error is handled.
+[ $component == vm && $checked ]
+LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
 
 [ $arch == x64 ]
 *: Skip
