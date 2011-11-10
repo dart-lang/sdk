@@ -8,29 +8,18 @@ prefix co19
 
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t10: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t06: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t02: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t02: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t17: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t09: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A01/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t15: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t11: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A05/t04: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t04: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A02/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t08: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t16: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t07: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t02: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t07: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A07/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t05: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t03: Fail
-LangSpecTest/13_Types/13_1_Static_Types/A04/t01: Fail
 LangSpecTest/13_Types/13_7_Type_Void/A01/t02: Fail
 LangSpecTest/13_Types/13_7_Type_Void/A01/t04: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t01: Fail
@@ -52,18 +41,13 @@ LangSpecTest/13_Types/13_5_Function_Types/A01/t10: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t13: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t02: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A02/t01: Fail
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t02: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t06: Fail
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t01: Fail
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t03: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t01: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A04/t01: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A03/t01: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t02: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A04/t02: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t03: Fail
-LangGuideTest/08_Expressions/A02/t02: Fail
-LangGuideTest/08_Expressions/A01/t02: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/A03/t04: Fail
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A03/t01: Fail
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fail
@@ -105,7 +89,6 @@ LangGuideTest/07_Overriding/A03/t01: Fail
 LangGuideTest/07_Overriding/A02/t02: Fail
 LangGuideTest/07_Overriding/A02/t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t02: Fail
-LangGuideTest/07_Overriding/A05/t01: Fail
 LibTest/core/AssertError/column/AssertError/column/A01/t02: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t03: Fail
 LibTest/core/AssertError/throwNew/AssertError/throwNew/A01/t01: Fail
@@ -371,9 +354,7 @@ LibTest/core/Match/pattern/Match/pattern/A01/t01: Fail
 LibTest/core/Match/group/Match/group/A01/t01: Fail
 LibTest/core/Match/end/Match/end/A01/t01: Fail
 LibTest/core/Match/group/Match/group/A02/t01: Fail
-LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Fail
 LibTest/core/Strings/concatAll/Strings/concatAll/A03/t01: Fail
-LibTest/core/Strings/join/Strings/join/A01/t02: Fail
 LibTest/core/Strings/join/Strings/join/A03/t01: Fail
 LibTest/core/Strings/join/Strings/join/A02/t01: Fail
 LibTest/core/List/lastIndexOf/List/lastIndexOf/A01/t02: Fail
@@ -562,3 +543,12 @@ LibTest/core/Math/tan/Math/tan/A01/t01: Fail
 LibTest/core/Math/acos/Math/acos/A01/t03: Fail
 LibTest/core/Math/acos/Math/acos/A01/t01: Fail
 LibTest/core/Math/cos/Math/cos/A01/t01: Fail
+
+# Started failing after making @static-type-error non-negative.
+[ $component == frog || $component == frogsh || $component == leg ]
+LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail
+LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail
+LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
+LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail
+LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
