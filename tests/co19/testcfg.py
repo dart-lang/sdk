@@ -27,7 +27,8 @@ class Co19TestCase(test.TestCase):
   def IsNegative(self):
     if self._is_negative is None :
       contents = self.GetSource()
-      for tag in ('@compile-error','@static-type-error',
+      for tag in ('@compile-error',
+                  # '@static-type-error',
                   '@dynamic-type-error', '@runtime-error'):
         if tag in contents:
           self._is_negative = True
@@ -38,7 +39,8 @@ class Co19TestCase(test.TestCase):
     return self._is_negative
 
   def GetLabel(self):
-    return "%s%s %s %s" % (self.mode, self.arch, self.component, "/".join(self.path))
+    return "%s%s %s %s" % (self.mode, self.arch, self.component,
+                           "/".join(self.path))
 
   def GetCommand(self):
     # Parse the options by reading the .dart source file.
