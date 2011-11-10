@@ -48,19 +48,15 @@ LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fai
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t02: Fail # Issue co19 - 18
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A02/t01: Fail # Issue co19 - 19
 
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A01/t01: Fail # Issue 394
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t11: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A01/t01: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A02/t11: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A01/t01: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A02/t11: Fail
+LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A01/t01: Fail # Issue co19 - 22
+LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A01/t01: Fail # Issue co19 - 22
+LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A01/t01: Fail # Issue co19 - 22
 
-
-LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t01: Fail
-LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t02: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t06: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A02/t06: Fail
-LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A02/t06: Fail
+LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t01: Fail # Issue 407
+LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t02: Fail # Issue 407
+LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t06: Fail # Issue co19 - 22
+LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A02/t06: Fail # Issue co19 - 22
+LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A02/t06: Fail # Issue co19 - 22
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.05_Term/RegExp/firstMatch/Term/A03/t01: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.08_Atom/RegExp/firstMatch/Atom/A02/t01: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.11_DecimalEscape/RegExp/firstMatch/DecimalEscape/A01/t02: Fail

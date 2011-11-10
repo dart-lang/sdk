@@ -5318,10 +5318,14 @@ AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
       return new BinaryOpNode(op_pos, Token::kTRUNCDIV, lhs, rhs);
     case Token::kASSIGN_DIV:
       return new BinaryOpNode(op_pos, Token::kDIV, lhs, rhs);
+    case Token::kASSIGN_MOD:
+      return new BinaryOpNode(op_pos, Token::kMOD, lhs, rhs);
     case Token::kASSIGN_SAR:
       return new BinaryOpNode(op_pos, Token::kSAR, lhs, rhs);
     case Token::kASSIGN_SHL:
       return new BinaryOpNode(op_pos, Token::kSHL, lhs, rhs);
+    case Token::kASSIGN_SHR:
+      return new BinaryOpNode(op_pos, Token::kSHR, lhs, rhs);
     case Token::kASSIGN_OR:
       return new BinaryOpNode(op_pos, Token::kBIT_OR, lhs, rhs);
     case Token::kASSIGN_AND:
