@@ -7,8 +7,16 @@
 
 #import("status_expression.dart");
 
+// Possible outcomes of running a test.
+final CRASH = "Crash";
+final TIMEOUT = "Timeout";
+final FAIL = "Fail";
+final PASS = "Pass";
+// An indication to skip the test.  The caller is responsible for skipping it.
+final SKIP = "Skip";
+
 final RegExp StripComment = const RegExp("^[^#]*");
-final RegExp HeaderPattern = const RegExp(@"\[([^\]]+)\]");
+final RegExp HeaderPattern = const RegExp(@"^\[([^\]]+)\]");
 final RegExp RulePattern = const RegExp(@"\s*([^: ]*)\s*:(.*)");
 final RegExp PrefixPattern = const RegExp(@"^\s*prefix\s+([\w\_\.\-\/]+)\s*$");
 
@@ -16,10 +24,13 @@ final RegExp PrefixPattern = const RegExp(@"^\s*prefix\s+([\w\_\.\-\/]+)\s*$");
 // structures for test configuration, including Section.
 class Section {
   BooleanExpression condition;
-  Collection testSettings = const [];
+  List<TestRule> testRules;
 
-  Section.always() : condition = null;
-  Section(this.condition);
+  Section.always() : condition = null, testRules = new List<TestRule>();
+  Section(this.condition) : testRules = new List<TestRule>();
+
+  bool isEnabled(environment) =>
+      condition == null || condition.evaluate(environment);
 }
 
 
@@ -30,8 +41,22 @@ String getFilename(String path) =>
 
 String getDirname(String path) =>
     new Directory(path).existsSync() ? path : '../$path';
-
  
+TestExpectationsMap ReadTestExpectations(String statusFilePath, environment) {
+  List<Section> sections = new List<Section>();
+  ReadConfigurationInto(statusFilePath, sections);
+
+  TestExpectationsMap map = new TestExpectationsMap();
+  for (Section section in sections) {
+    if (section.isEnabled(environment)) {
+      for (var rule in section.testRules) {
+        map.addTest(rule, environment);
+      }
+    }
+  }
+  return map;
+}
+
 void ReadConfigurationInto(path, sections) {
   File file = new File(getFilename(path));
   if (!file.existsSync()) return;  // TODO(whesse): Handle missing file.
@@ -61,12 +86,13 @@ void ReadConfigurationInto(path, sections) {
 
     match = RulePattern.firstMatch(line);
     if (match != null) {
-      String path = prefix + match[1].trim();
+      String name = match[1].trim();
+      // TODO(whesse): Handle test names ending in a wildcard (*).
       String expression_string = match[2].trim();
       List<String> tokens = new Tokenizer(expression_string).tokenize();
       SetExpression expression =
           new ExpressionParser(new Scanner(tokens)).parseSetExpression();
-      // TODO(whesse): Save rule in configuration data structure.
+      current.testRules.add(new TestRule(name, expression));
       continue;
     }
 
@@ -82,3 +108,26 @@ void ReadConfigurationInto(path, sections) {
   file_stream.close();
 }
 
+
+class TestRule {
+  String name;
+  SetExpression expression;
+
+  TestRule(this.name, this.expression);
+}
+
+
+class TestExpectationsMap {
+  Map<String, Set<String>> map;
+
+  TestExpectationsMap() : map = new Map<String, Set<String>>();
+
+  void addTest(testRule, environment) {
+    map[testRule.name] = testRule.expression.evaluate(environment);
+  }
+
+  Set<String> expectations(String filename) {
+    var result = map[filename];
+    return result != null ? result : new Set.from([PASS]);
+  }
+}

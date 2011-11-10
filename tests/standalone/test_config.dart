@@ -14,19 +14,25 @@ class StandaloneTestSuite {
   Function doDone;
   String shellPath;
   String pathSeparator;
+  Map<String, String> configuration;
+  TestExpectationsMap testExpectationsMap;
 
   StandaloneTestSuite() {
     shellPath = getDartShellFileName() ;
     pathSeparator = new Platform().pathSeparator();
+    configuration = {"mode": "debug",
+                     "arch": "ia32",
+                     "checked": "true",
+                     "component": "vm",
+                     "system": new Platform().operatingSystem()};
   }
 
   void forEachTest(Function onTest, [Function onDone = null]) {
     doTest = onTest;
     doDone = onDone;
 
-    // Read configuration from status file.
-    List<Section> sections = new List<Section>();
-    ReadConfigurationInto(statusFilePath, sections);
+    // Read test expectations from status file.
+    testExpectationsMap = ReadTestExpectations(statusFilePath, configuration);
 
     processDirectory();
   }
@@ -44,20 +50,33 @@ class StandaloneTestSuite {
 
   void processFile(String filename) {
     if (!filename.endsWith("Test.dart")) return;
+
+    Expect.isTrue(filename.contains(directoryPath));
     int start = filename.lastIndexOf(pathSeparator);
     String testName = filename.substring(start + 1, filename.length - 5);
-    // TODO(whesse): Gather test case info from status file and test file.
+    Set<String> expectations = testExpectationsMap.expectations(testName);
+
+    // TODO(whesse): Skip files with internal directives, and multipart files,
+    //               until they are handled correctly.
+    if (expectations.contains(SKIP)) return;
+
+
     doTest(new TestCase(testName,
                         shellPath,
                         <String>["--enable_type_checks",
                                  "--ignore-unrecognized-flags",
                                  filename ],
                         completeHandler,
-                        new Set.from([PASS, FAIL, CRASH, TIMEOUT])));
+                        expectations));
   }
   
   void completeHandler(TestCase testCase) {
     TestOutput output = testCase.output;
-    print("Exit code: ${output.exitCode} Time: ${output.time}");
+    String expected = "";
+    testCase.expectedOutcomes.forEach((value) { expected += value + " "; });
+    print("");
+    print(testCase.displayName);
+    print("  Result:${output.result}  Expected:$expected");
+    print("  Exit code: ${output.exitCode} Time: ${output.time}");
   }
 }

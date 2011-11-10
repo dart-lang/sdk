@@ -15,14 +15,6 @@
  * - Evaluating the output of each test as pass/fail/crash/timeout.
  */
 
-// Possible outcomes of running a test.
-final CRASH = "Crash";
-final TIMEOUT = "Timeout";
-final FAIL = "Fail";
-final PASS = "Pass";
-// An indication to skip the test.  The caller is responsible for skipping it.
-final SKIP = "Skip";
-
 final int NO_TIMEOUT = 0;
 
 String getDartShellFileName() {
@@ -58,7 +50,7 @@ class TestCase {
     }
   }
 
-  bool get isNegative() => false;
+  bool get isNegative() => displayName.contains("NegativeTest");
 
   void completed() { completedHandler(this); }    
 }

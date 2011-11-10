@@ -5,6 +5,7 @@
 #library("TestRunnerTest");
 
 #import("../../../tools/testing/dart/test_runner.dart");
+#import("../../../tools/testing/dart/status_file_parser.dart");
 
 // TODO(whesse) source("ProcessTestUtil.dart"); when it is committed.
 
