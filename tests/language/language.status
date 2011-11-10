@@ -231,10 +231,10 @@ ExpectTest: Fail
 FauxverrideTest/03: Fail
 #FauxverrideTest/04: Fail  # see r607 (10/21) passes, but we should be issuing warnings
 FauxverrideTest/05: Fail
-FieldOverrideTest/01: Fail
-FieldOverrideTest/02: Fail
-Field3NegativeTest: Fail
-FieldNegativeTest: Fail
+FieldOverrideTest/01: Fail  # issue with test see #354
+FieldOverrideTest/02: Fail  # issue with test see #354
+Field3NegativeTest: Fail  # issue with test see #354
+FieldNegativeTest: Fail  # issue with test see #354
 FinalParamNegativeTest: Fail
 For2Test: Fail
 FunctionLiterals2Test: Fail
@@ -252,7 +252,6 @@ GenericsTest: Fail
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 IncrOpTest: Fail
-InstanceFieldNegativeTest: Fail
 Instanceof2Test: Fail
 InstanceofTest: Fail
 InterfaceFactory3NegativeTest: Fail
