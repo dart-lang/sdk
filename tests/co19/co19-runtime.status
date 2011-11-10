@@ -34,6 +34,10 @@ LibTest/core/Set/addAll/Set/addAll/A01/t05: Skip
 LibTest/core/Set/contains/Set/contains/A01/t04: Skip
 LibTest/core/Set/containsAll/Set/containsAll/A01/t04: Skip
 
+LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t01: Skip # Issue co19 - 23
+LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t02: Skip # Issue co19 - 23
+
+
 [ $component == vm ]
 
 LibTest/core/double/isNegative/double/isNegative/A01/t01: Fail  # Issue co19 - 6 (fixed at rev 25)
@@ -52,8 +56,6 @@ LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Co
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A01/t01: Fail # Issue co19 - 22
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A01/t01: Fail # Issue co19 - 22
 
-LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t01: Fail # Issue 407
-LangGuideTest/02_Language_Constructs/02_13_Comments_and_Documentation/A02/t02: Fail # Issue 407
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t06: Fail # Issue co19 - 22
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A02/t06: Fail # Issue co19 - 22
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A02/t06: Fail # Issue co19 - 22
