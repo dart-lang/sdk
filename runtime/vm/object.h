@@ -245,14 +245,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* GetSingletonClass(int index);
   static const char* GetSingletonClassName(int index);
 
-  static RawClass* CreateAndRegisterCoreInterface(const char* cname,
-                                                  const Script& script,
-                                                  const Library& core_lib);
-  static void RegisterCoreImplClass(const Class& cls,
-                                    const char* cname,
-                                    const Script& impl_script,
-                                    const Library& core_impl_lib);
-
   static void Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
@@ -748,9 +740,6 @@ class Type : public Object {
 
   // Check if this type represents the 'List' interface.
   bool IsListInterface() const;
-
-  // Check if this type represents a signature type.
-  bool IsSignatureType() const;
 
   // Check if this type is an interface type.
   bool IsInterfaceType() const {

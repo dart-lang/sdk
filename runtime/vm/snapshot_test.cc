@@ -400,7 +400,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-    ClassFinalizer::FinalizeAllClasses();
+    ClassFinalizer::FinalizePendingClasses();
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %dus\n", timer1.TotalElapsedTime());
 

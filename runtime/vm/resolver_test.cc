@@ -45,7 +45,7 @@ static void SetupFunction(const char* test_library_name,
   Library& lib = Library::Handle(Library::New(lib_name));
   lib.Register();
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizeAllClasses());
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
 }
 
 

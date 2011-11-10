@@ -120,7 +120,7 @@ TEST_CASE(ParseClassDefinition) {
   script.Tokenize(String::Handle(String::New("")));
 
   Parser::ParseCompilationUnit(lib, script);
-  EXPECT(ClassFinalizer::FinalizeAllClasses());
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
   CheckField(lib, "A", "f1", false, false);
   CheckField(lib, "A", "f2", false, true);
   CheckField(lib, "A", "f3", false, true);
@@ -164,7 +164,7 @@ TEST_CASE(Parser_TopLevel) {
   script.Tokenize(String::Handle(String::New("")));
 
   Parser::ParseCompilationUnit(lib, script);
-  EXPECT(ClassFinalizer::FinalizeAllClasses());
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
 
   DumpFunction(lib, "A", "foo");
   DumpFunction(lib, "A", "bar");

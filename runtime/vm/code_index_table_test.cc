@@ -52,7 +52,7 @@ TEST_CASE(CodeIndexTable) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsA = lib.LookupClass(String::Handle(String::NewSymbol("A")));
   EXPECT(!clsA.IsNull());
-  ClassFinalizer::FinalizeAllClasses();
+  ClassFinalizer::FinalizePendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
     OS::SNPrint(buffer, 256, "foo%d", i);
     function_name = String::New(buffer);
@@ -103,7 +103,7 @@ TEST_CASE(CodeIndexTable) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsB = lib.LookupClass(String::Handle(String::NewSymbol("B")));
   EXPECT(!clsB.IsNull());
-  ClassFinalizer::FinalizeAllClasses();
+  ClassFinalizer::FinalizePendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
     OS::SNPrint(buffer, 256, "moo%d", i);
     function_name = String::New(buffer);

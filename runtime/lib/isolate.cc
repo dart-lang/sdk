@@ -148,7 +148,7 @@ static void RunIsolate(uword parameter) {
   if (setjmp(*jump.Set()) == 0) {
     Zone zone;
     HandleScope handle_scope;
-    ASSERT(ClassFinalizer::AllClassesFinalized());
+    ASSERT(ClassFinalizer::FinalizePendingClasses());
     // Lookup the target class by name, create an instance and call the run
     // method.
     const String& lib_name = String::Handle(String::NewSymbol(library_url));
@@ -223,7 +223,7 @@ static bool CheckArguments(const char* library_url, const char* class_name) {
   Zone zone;
   HandleScope handle_scope;
   String& name = String::Handle();
-  if (!ClassFinalizer::FinalizeAllClasses()) {
+  if (!ClassFinalizer::FinalizePendingClasses()) {
     return false;
   }
   // Lookup the target class by name, create an instance and call the run

@@ -18,27 +18,8 @@ DEFINE_FLAG(bool, verify_implements, false,
     "Verify that all classes implement their interface.");
 DECLARE_FLAG(bool, enable_type_checks);
 
-void ClassFinalizer::ExpectClassesToFinalize() {
-  if (!IsExpectingClassesToFinalize()) {
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    object_store->set_pending_classes(Array::Handle(Array::Empty()));
-    ASSERT(IsExpectingClassesToFinalize());
-  }
-}
-
-
-bool ClassFinalizer::IsExpectingClassesToFinalize() {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  const Array& classes = Array::Handle(object_store->pending_classes());
-  return !classes.IsNull();
-}
-
-
-void ClassFinalizer::AddClassesToFinalize(
+void ClassFinalizer::AddPendingClasses(
     const GrowableArray<const Class*>& classes) {
-  // ExpectClassesToFinalize() must be called prior to calling
-  // AddClassesToFinalize().
-  ASSERT(IsExpectingClassesToFinalize());
   if (!classes.is_empty()) {
     ObjectStore* object_store = Isolate::Current()->object_store();
     const Array& old_array = Array::Handle(object_store->pending_classes());
@@ -50,15 +31,21 @@ void ClassFinalizer::AddClassesToFinalize(
       new_array.SetAt(i + old_length, *classes[i]);
     }
     object_store->set_pending_classes(new_array);
-    ASSERT(IsExpectingClassesToFinalize());
   }
+}
+
+
+bool ClassFinalizer::AllClassesFinalized() {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  const Array& classes = Array::Handle(object_store->pending_classes());
+  return classes.Length() == 0;
 }
 
 
 // Class finalization occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
-bool ClassFinalizer::FinalizeAllClasses() {
+bool ClassFinalizer::FinalizePendingClasses() {
   bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -72,11 +59,10 @@ bool ClassFinalizer::FinalizeAllClasses() {
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     const Array& class_array = Array::Handle(object_store->pending_classes());
-    const intptr_t num_pending_classes =
-        class_array.IsNull() ? 0 : class_array.Length();
+    ASSERT(!class_array.IsNull());
     Class& cls = Class::Handle();
     // First resolve all superclasses.
-    for (intptr_t i = 0; i < num_pending_classes; i++) {
+    for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       if (FLAG_trace_class_finalization) {
         OS::Print("Resolving super and default: %s\n", cls.ToCString());
@@ -87,18 +73,18 @@ bool ClassFinalizer::FinalizeAllClasses() {
       }
     }
     // Finalize all classes.
-    for (intptr_t i = 0; i < num_pending_classes; i++) {
+    for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeClass(cls);
     }
     if (FLAG_print_classes) {
-      for (intptr_t i = 0; i < num_pending_classes; i++) {
+      for (intptr_t i = 0; i < class_array.Length(); i++) {
         cls ^= class_array.At(i);
         PrintClassInformation(cls);
       }
     }
     if (FLAG_verify_implements) {
-      for (intptr_t i = 0; i < num_pending_classes; i++) {
+      for (intptr_t i = 0; i < class_array.Length(); i++) {
         cls ^= class_array.At(i);
         if (!cls.is_interface()) {
           VerifyClassImplements(cls);
@@ -106,8 +92,7 @@ bool ClassFinalizer::FinalizeAllClasses() {
       }
     }
     // Clear pending classes array.
-    object_store->set_pending_classes(Array::Handle());
-    ASSERT(!IsExpectingClassesToFinalize());
+    object_store->set_pending_classes(Array::Handle(Array::Empty()));
 
     // Check to ensure there are no duplicate definitions in the library
     // hierarchy.
@@ -244,7 +229,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   }
 
   // Finalize classes that aren't pre-finalized by Object::Init().
-  if (!FinalizeAllClasses()) {
+  if (!FinalizePendingClasses()) {
     // TODO(srdjan): Exit like a real VM instead.
     const String& err = String::Handle(object_store->sticky_error());
     OS::PrintErr("Could not verify bootstrap classes : %s\n", err.ToCString());
@@ -254,39 +239,6 @@ void ClassFinalizer::VerifyBootstrapClasses() {
     OS::Print("VerifyBootstrapClasses END.\n");
   }
   Isolate::Current()->heap()->Verify();
-}
-
-
-// Resolve unresolved_class in the library of cls.
-RawClass* ClassFinalizer::ResolveClass(
-    const Class& cls, const UnresolvedClass& unresolved_class) {
-  Library& lib = Library::Handle();
-  if (unresolved_class.qualifier() == String::null()) {
-    lib = cls.library();
-  } else {
-    const String& qualifier = String::Handle(unresolved_class.qualifier());
-    LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
-    lib_prefix = cls.LookupLibraryPrefix(qualifier);
-    if (lib_prefix.IsNull()) {
-      const Script& script = Script::Handle(cls.script());
-      ReportError(script, unresolved_class.token_index(),
-                  "cannot resolve library prefix '%s' from '%s'.\n",
-                  String::Handle(unresolved_class.Name()).ToCString(),
-                  String::Handle(cls.Name()).ToCString());
-    }
-    lib = lib_prefix.library();
-  }
-  ASSERT(!lib.IsNull());
-  const String& class_name = String::Handle(unresolved_class.ident());
-  const Class& resolved_class = Class::Handle(lib.LookupClass(class_name));
-  if (resolved_class.IsNull()) {
-    const Script& script = Script::Handle(cls.script());
-    ReportError(script, unresolved_class.token_index(),
-                "cannot resolve class name '%s' from '%s'.\n",
-                String::Handle(unresolved_class.Name()).ToCString(),
-                String::Handle(cls.Name()).ToCString());
-  }
-  return resolved_class.raw();
 }
 
 
@@ -301,13 +253,6 @@ void ClassFinalizer::ResolveSuperClass(const Class& cls) {
   }
   // Resolve failures lead to a longjmp.
   super_type = ResolveType(cls, super_type);
-  if (super_type.IsTypeParameter()) {
-    String& class_name = String::Handle(cls.Name());
-    String& type_parameter_name = String::Handle(super_type.Name());
-    ReportError("'%s' cannot extend or implement type parameter '%s'.\n",
-                class_name.ToCString(),
-                type_parameter_name.ToCString());
-  }
   cls.set_super_type(super_type);
   const Class& super_class = Class::Handle(super_type.type_class());
   if (cls.is_interface() != super_class.is_interface()) {
@@ -409,9 +354,31 @@ RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
     }
 
     // Lookup the type class.
-    const Class& type_class =
-        Class::Handle(ResolveClass(cls, unresolved_class));
-
+    Class& type_class = Class::Handle();
+    Library& lib = Library::Handle();
+    if (unresolved_class.qualifier() == String::null()) {
+      lib = cls.library();
+    } else {
+      const String& qualifier = String::Handle(unresolved_class.qualifier());
+      LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+      lib_prefix = cls.LookupLibraryPrefix(qualifier);
+      if (lib_prefix.IsNull()) {
+        const Script& script = Script::Handle(cls.script());
+        ReportError(script, unresolved_class.token_index(),
+                    "cannot resolve name '%s'\n",
+                    String::Handle(unresolved_class.Name()).ToCString());
+      }
+      lib = lib_prefix.library();
+    }
+    ASSERT(!lib.IsNull());
+    type_class = lib.LookupClass(type_class_name);
+    if (type_class.IsNull()) {
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, unresolved_class.token_index(),
+                  "cannot resolve class name '%s' from '%s'\n",
+                  String::Handle(unresolved_class.Name()).ToCString(),
+                  String::Handle(cls.Name()).ToCString());
+    }
     // Replace unresolved class with resolved type class.
     ASSERT(type.IsParameterizedType());
     ParameterizedType& parameterized_type = ParameterizedType::Handle();
@@ -539,17 +506,9 @@ RawType* ClassFinalizer::FinalizeType(const Type& type) {
   }
 
   // The type class does not need to be finalized in order to finalize the type,
-  // however, it must at least be resolved (this was done as part of resolving
-  // the type itself, a precondition to calling FinalizeType) and the upper
-  // bounds of its type parameters must be finalized (done here).
+  // however, it must at least be resolved. This was done as part of resolving
+  // the type itself.
   Class& type_class = Class::Handle(parameterized_type.type_class());
-
-  // If the type class is a signature class, finalize it, thereby finalizing the
-  // result and parameter types of its signature function.
-  // Do this before marking this type as finalized in order to detect cycles.
-  if (type_class.IsSignatureClass()) {
-    FinalizeClass(type_class);
-  }
 
   // The finalized type argument vector needs num_type_arguments types.
   const intptr_t num_type_arguments = type_class.NumTypeArguments();
@@ -586,11 +545,14 @@ RawType* ClassFinalizer::FinalizeType(const Type& type) {
     FinalizeTypeArguments(type_class, full_arguments);
     parameterized_type.set_arguments(full_arguments);
   }
-  // Mark the type as finalized before finalizing the upper bounds, because
-  // cycles via upper bounds are legal at compile time.
-  parameterized_type.set_is_finalized();
-  ResolveAndFinalizeUpperBounds(type_class);
 
+  // If the type is a function type, finalize the result and parameter types.
+  if (type_class.IsSignatureClass()) {
+    ResolveAndFinalizeSignature(
+        type_class, Function::Handle(type_class.signature_function()));
+  }
+
+  parameterized_type.set_is_finalized();
   return parameterized_type.Canonicalize();
 }
 
@@ -603,15 +565,7 @@ RawType* ClassFinalizer::FinalizeAndCanonicalizeType(const Type& type,
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    Type& canonical_type = Type::Handle();
-    if (type.IsSignatureType() && !AllClassesFinalized()) {
-      // Postpone the finalization of this signature type and class.
-      GrowableArray<const Class*> classes;
-      classes.Add(&Class::ZoneHandle(type.type_class()));
-      ClassFinalizer::AddClassesToFinalize(classes);
-    } else {
-      canonical_type = FinalizeType(type);
-    }
+    const Type& canonical_type = Type::Handle(FinalizeType(type));
     isolate->set_long_jump_base(base);
     *errmsg = String::null();
     return canonical_type.raw();
@@ -626,6 +580,11 @@ RawType* ClassFinalizer::FinalizeAndCanonicalizeType(const Type& type,
 }
 
 
+// Top level function signatures are canonicalized, added to the library class
+// dictionary, and finalized with other library classes and interfaces.
+// Function signatures used as type of a local variable or of a local function
+// are canonicalized and finalized upon creation, since all the types they
+// reference are already resolved.
 void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
@@ -682,23 +641,6 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
     super_class = super_class.SuperClass();
   }
   return Class::null();
-}
-
-
-void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
-  const intptr_t num_type_params = cls.NumTypeParameters();
-  Type& type_extends = Type::Handle();
-  const TypeArguments& extends_array =
-      TypeArguments::Handle(cls.type_parameter_extends());
-  ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
-         (extends_array.Length() == num_type_params));
-  for (intptr_t i = 0; i < num_type_params; i++) {
-    type_extends = extends_array.TypeAt(i);
-    type_extends = ResolveType(cls, type_extends);
-    extends_array.SetTypeAt(i, type_extends);
-    type_extends = FinalizeType(type_extends);
-    extends_array.SetTypeAt(i, type_extends);
-  }
 }
 
 
@@ -835,6 +777,13 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       }
     }
   }
+  // Resolve the signature type if this class is a signature class.
+  if (cls.IsSignatureClass()) {
+    Type& signature_type = Type::Handle(cls.SignatureType());
+    signature_type = FinalizeType(signature_type);
+    // Signature types are canonicalized by default.
+    ASSERT(signature_type.raw() == cls.SignatureType());
+  }
 }
 
 
@@ -884,25 +833,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     interface_type = FinalizeType(interface_type);
     interface_types.SetAt(i, interface_type);
   }
-  // Mark as finalized before resolving type parameter upper bounds and member
-  // types in order to break cycles.
+  // Mark as finalized before resolving member types in order to break cycles.
   cls.Finalize();
-  ResolveAndFinalizeUpperBounds(cls);
   ResolveAndFinalizeMemberTypes(cls);
-
-  if (cls.IsSignatureClass()) {
-    // Finalize the signature type of this signature class.
-    Type& signature_type = Type::Handle(cls.SignatureType());
-    signature_type = FinalizeType(signature_type);
-    // Signature types are canonicalized by default.
-    ASSERT(signature_type.raw() == cls.SignatureType());
-
-    // Resolve and finalize the result and parameter types of the signature
-    // function of this signature class.
-    ResolveAndFinalizeSignature(cls,
-                                Function::Handle(cls.signature_function()));
-  }
-
   // Run additional checks after all types are finalized.
   if (cls.is_const()) {
     CheckForLegalConstClass(cls);
@@ -1031,6 +964,8 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
                     String::Handle(cls.Name()).ToCString(),
                     String::Handle(interface_class.Name()).ToCString());
       }
+      // TODO(regis): We also need to prevent extending classes Smi, Mint,
+      // BigInt, Double, OneByteString, TwoByteString, FourByteString.
     }
     // Now resolve the super interfaces.
     ResolveInterfaces(interface_class, visited);
