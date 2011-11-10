@@ -7,6 +7,8 @@ prefix client
 [ $component == dartium ]
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
+layout/layout_tests: Fail  # Issue 152.
+samples/total/total_tests: Fail # FIXME in DateTimeUtils.dart
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
