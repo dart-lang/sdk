@@ -5,9 +5,10 @@
 #library("corelib_test_config");
 
 #import("../../tools/testing/dart/test_runner.dart");
+#import("../../tools/testing/dart/status_file_parser.dart");
 
 class CorelibTestSuite {
-  final String directoryPath = "tests/corelib/src";
+  String directoryPath = "tests/corelib/src";
   Function doTest;
   Function doDone;
   String shellPath;
@@ -25,13 +26,11 @@ class CorelibTestSuite {
   }
 
   void processDirectory() {
+    directoryPath = getDirname(directoryPath);
     Directory dir = new Directory(directoryPath);
-    if (!dir.existsSync()) {
-      dir = new Directory(".." + pathSeparator + directoryPath);
-      Expect.isTrue(dir.existsSync(),
-                    "Cannot find tests/corelib/src or ../tests/corelib/src");
-      // TODO(ager): Use dir.errorHandler instead when it is implemented.
-    }
+    dir.errorHandler = (s) {
+      throw s;
+    };
     dir.fileHandler = processFile;
     dir.doneHandler = doDone;
     dir.list(false);

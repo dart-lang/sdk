@@ -34,9 +34,9 @@ class StandaloneTestSuite {
   void processDirectory() {
     directoryPath = getDirname(directoryPath);
     Directory dir = new Directory(directoryPath);
-    Expect.isTrue(dir.existsSync(),
-        "Cannot find tests/standalone/src or ../tests/standalone/src");
-      // TODO(ager): Use dir.errorHandler instead when it is implemented.
+    dir.errorHandler = (s) {
+      throw s;
+    };
     dir.fileHandler = processFile;
     dir.doneHandler = doDone;
     dir.list(false);

@@ -6,12 +6,16 @@
 #library("test");
 
 #import("testing/dart/test_runner.dart");
+#import("testing/dart/test_options.dart");
+
 #import("../tests/standalone/test_config.dart");
 #import("../tests/corelib/test_config.dart");
 
 main() {
-  int numProcessors = new Platform().numberOfProcessors();
-  var queue = new ProcessQueue(numProcessors);
+  var optionsParser = new TestOptionsParser();
+  var configuration = optionsParser.parse(new Options().arguments);
+  if (configuration == null) return;
+  var queue = new ProcessQueue(configuration['tasks']);
   new StandaloneTestSuite().forEachTest(queue.runTest);
   new CorelibTestSuite().forEachTest(queue.runTest);
 }
