@@ -86,7 +86,7 @@ class MultiTestCase(StandardTestCase):
     if self.kind == 'compile-time error':
       return True
     if self.kind == 'runtime error':
-      return False
+      return True
     if self.kind == 'static type error':
       return self.run_arch.HasFatalTypeErrors()
     return False
