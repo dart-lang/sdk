@@ -198,9 +198,9 @@ TypedMessageTest: Fail # Bug 5246195
 
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
-FactoryNegativeTest: Fail # Issue 417
 
 [ $component == frogsh ||  $component == frog || $component == leg ]
+FactoryNegativeTest: Fail # Issue 417
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
