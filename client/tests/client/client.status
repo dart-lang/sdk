@@ -34,3 +34,9 @@ samples/swarm/swarm_tests: Timeout
 
 [ $component == vm ]
 *: Skip
+
+[ $component == leg ]
+*: Skip
+
+[ $component == frog ]
+*: Skip
