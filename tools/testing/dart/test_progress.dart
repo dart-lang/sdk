@@ -54,7 +54,14 @@ class ProgressIndicator {
   }
 
   void _printFailureOutput(TestCase test) {
-    print('FAILED: ${test.displayName}');
+    print('\nFAILED: ${test.displayName}');
+    StringBuffer expected = new StringBuffer();
+    expected.add('Expected: ');
+    for (var expectation in test.expectedOutcomes) {
+      expected.add('$expectation ');
+    }
+    print(expected.toString());
+    print('Actual: ${test.output.result}');
     if (!test.output.stdout.isEmpty()) {
       print('\nstdout:');
       test.output.stdout.forEach((s) => print(s));
@@ -82,10 +89,9 @@ class CompactProgressIndicator extends ProgressIndicator {
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
     var progressLine =
-      '[${_timeString()} | $percentPadded% | +$passedPadded | -$failedPadded]';
-    // TODO(ager): Instead of using print we should write this to
-    // stdout and use \r to reuse the same line.
-    print(progressLine);
+        '\r[${_timeString()} | $percentPadded% | ' +
+        '+$passedPadded | -$failedPadded]';
+    stdout.write(progressLine.charCodes());
   }
 }
 

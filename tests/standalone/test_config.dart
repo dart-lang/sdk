@@ -24,7 +24,7 @@ class StandaloneTestSuite {
 
   void forEachTest(Function onTest, [Function onDone = null]) {
     doTest = onTest;
-    doDone = onDone;
+    doDone = (ignore) => onDone();
 
     // Read test expectations from status file.
     testExpectationsMap = ReadTestExpectations(statusFilePath, configuration);
@@ -56,13 +56,17 @@ class StandaloneTestSuite {
 
     List args = ["--ignore-unrecognized-flags"];
     if (configuration["checked"]) {
-      args.add("--enable-type-checks");
+      args.add("--enable_type_checks");
+    }
+    if (configuration["component"] == "leg") {
+      args.add("--enable_leg");
     }
     args.add(filename);
 
     doTest(new TestCase(testName,
                         shellPath,
                         args,
+                        configuration["timeout"],
                         completeHandler,
                         expectations));
   }

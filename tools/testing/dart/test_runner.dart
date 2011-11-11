@@ -33,12 +33,18 @@ String getBuildDir(Map configuration) {
 
 
 String getExecutableName(Map configuration) {
-  if (configuration['component'] == 'vm') {
-    return 'dart_bin';
-  } else if (configuration['component'] == 'dartc') {
-    return 'dartc';
-  } else {
-    throw "Unknown executable for: ${configuration['component']}";
+  switch (configuration['component']) {
+    case 'vm':
+      return 'dart_bin';
+    case 'dartc':
+      return 'dartc';
+    case 'frog':
+    case 'leg':
+      return 'frog/bin/frog';
+    case 'frogsh':
+      return 'frog/bin/frogsh';
+    default:
+      throw "Unknown executable for: ${configuration['component']}";
   }
 }
 
@@ -55,6 +61,7 @@ String getDartShellFileName(Map configuration) {
 class TestCase {
   String executablePath;
   List<String> arguments;
+  int timeout;
   String commandLine;
   String displayName;
   TestOutput output;
@@ -62,7 +69,7 @@ class TestCase {
   Function completedHandler;
 
   TestCase(this.displayName, this.executablePath, this.arguments,
-           this.completedHandler, this.expectedOutcomes) {
+           this.timeout, this.completedHandler, this.expectedOutcomes) {
     commandLine = executablePath;
     for (var arg in arguments) {
       commandLine += " " + arg;
@@ -95,7 +102,7 @@ class TestOutput {
 
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
   
-  bool get hasCrashed() => !timedOut && exitCode != -1 && exitCode != 0;
+  bool get hasCrashed() => !timedOut && exitCode != -1 && exitCode < 0;
 
   bool get hasTimedOut() => timedOut;
 
@@ -172,26 +179,29 @@ class ProcessQueue {
   final int maxProcesses;
   Queue<TestCase> tests;
   ProgressIndicator progress;
+  var onDone;
 
-  ProcessQueue(this.maxProcesses, this.progress)
-      : tests = new Queue<TestCase>();
+  ProcessQueue(Map configuration, this.onDone)
+      : tests = new Queue<TestCase>(),
+        maxProcesses = configuration['tasks'],
+        progress = new CompactProgressIndicator();
 
   tryRunTest() {
+    if (tests.isEmpty() && numProcesses == 0) {
+      onDone();
+    }
     if (numProcesses < maxProcesses && !tests.isEmpty()) {
       TestCase test = tests.removeFirst();
       progress.start(test);
-      // TODO(whesse): Refactor into various test output methods.
-      Function old_callback = test.completedHandler;
+      Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {
         numProcesses--;
         progress.done(test_arg);
         tryRunTest();
-        old_callback(test_arg);
+        oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-        
-      // TODO(whesse): Add timeout information to TestCase, use it here.
-      new RunningProcess(test, 60).start();
+      new RunningProcess(test, test.timeout).start();
       numProcesses++;
     }
   }

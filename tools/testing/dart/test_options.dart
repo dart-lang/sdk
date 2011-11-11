@@ -141,7 +141,7 @@ class TestOptionsParser {
         // assume that the rest of the arguments specify tests or test
         // suites to run.
         configuration['rest'] = arguments.getRange(i, numArguments - i);
-        return configuration;
+        return _expandConfigurations(configuration);
       }
       // Find the option specification for the name.
       var spec = _getSpecification(name);
