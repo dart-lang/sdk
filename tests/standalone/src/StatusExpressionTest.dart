@@ -31,7 +31,7 @@ class StatusExpressionTest {
         @"(($mode == debug) && (($arch == chromium) || ($arch == dartc)))",
         ast.toString());
     // Test BooleanExpression.evaluate().
-    Map<String, String> environment = new Map<String, String>();
+    Map environment = new Map();
     environment["arch"] = "dartc";
     environment["mode"] = "debug";
     Expect.isTrue(ast.evaluate(environment));
@@ -94,7 +94,7 @@ class StatusExpressionTest {
         ast.toString());
 
     // Test SetExpression.evaluate().
-    Map<String, String> environment = new Map<String, String>();
+    Map environment = new Map();
     environment["arch"] = "ia32";
     environment["checked"] = true;
     environment["mode"] = "debug";
@@ -126,7 +126,7 @@ class StatusExpressionTest {
         ast.toString());
 
     // Test BooleanExpression.evaluate().
-    Map<String, String> environment = new Map<String, String>();
+    Map environment = new Map();
     environment["arch"] = "ia32";
     environment["checked"] = true;
     environment["mode"] = "debug";

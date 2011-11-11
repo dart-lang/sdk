@@ -92,7 +92,7 @@ class TermVariable {
 
   TermVariable(this.name);
 
-  String termValue(environment) => environment[name];
+  termValue(environment) => environment[name];
 }
 
 
