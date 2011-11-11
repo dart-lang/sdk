@@ -14,10 +14,13 @@
 
 main() {
   var optionsParser = new TestOptionsParser();
-  var configuration = optionsParser.parse(new Options().arguments);
-  if (configuration == null) return;
-  var queue = new ProcessQueue(configuration['tasks'],
+  var configurations = optionsParser.parse(new Options().arguments);
+  if (configurations == null) return;
+  print(configurations.length);
+  var queue = new ProcessQueue(configurations[0]['tasks'],
                                new CompactProgressIndicator());
-  new StandaloneTestSuite(configuration).forEachTest(queue.runTest);
-  new CorelibTestSuite(configuration).forEachTest(queue.runTest);
+  for (var conf in configurations) {
+    new StandaloneTestSuite(conf).forEachTest(queue.runTest);
+    new CorelibTestSuite(conf).forEachTest(queue.runTest);
+  }
 }

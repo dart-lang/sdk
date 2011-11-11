@@ -44,7 +44,11 @@ String getExecutableName(Map configuration) {
 
 
 String getDartShellFileName(Map configuration) {
-  return getBuildDir(configuration) + getExecutableName(configuration);
+  var name = getBuildDir(configuration) + getExecutableName(configuration);
+  if (!(new File(name)).existsSync()) {
+    throw "Executable '$name' does not exist";
+  }
+  return name;
 }
 
 

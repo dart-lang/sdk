@@ -45,13 +45,14 @@ class TestOptionsParser {
               'component',
               'The component to test against',
               ['-c', '--component'],
-              ['most', 'vm', 'dartc', 'chromium', 'dartium'],
+              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
+               'chromium', 'dartium', 'frogium', 'webdriver'],
               'vm'),
           new _TestOptionSpecification(
               'architecture',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'simarm', 'arm'],
+              ['all', 'ia32', 'x64', 'simarm'],
               'ia32'),
           new _TestOptionSpecification(
               'os',
@@ -66,6 +67,13 @@ class TestOptionsParser {
               [],
               false,
               'bool'),
+          new _TestOptionSpecification(
+              'timeout',
+              'Timeout in seconds',
+              ['-t', '--timeout'],
+              [],
+              -1,
+              'int'),
           new _TestOptionSpecification(
               'tasks',
               'The number of parallel tasks to run',
@@ -86,11 +94,13 @@ class TestOptionsParser {
   /**
    * Parse a list of strings as test options.
    *
-   * Returns a Map mapping from option keys to values. When
-   * encountering the first non-option string, the rest of the
-   * arguments are stored in the returned Map under the 'rest' key.
+   * Returns a list of configurations in which to run the
+   * tests. Configurations are maps mapping from option keys to
+   * values. When encountering the first non-option string, the rest
+   * of the arguments are stored in the returned Map under the 'rest'
+   * key.
    */
-  Map parse(List<String> arguments) {
+  List<Map> parse(List<String> arguments) {
     var configuration = new Map();
     // Build configuration of default values.
     for (var option in _options) {
@@ -155,15 +165,92 @@ class TestOptionsParser {
         }
       } else {
         assert(spec.type == 'string');
-        if (spec.values.lastIndexOf(value) == -1) {
-          print('Unknown value ($value) for option $name');
-          return null;
+        for (var v in value.split(',')) {
+          if (spec.values.lastIndexOf(v) == -1) {
+            print('Unknown value ($v) for option $name');
+            return null;
+          }
         }
         configuration[spec.name] = value;
       }
     }
+    
+    return _expandConfigurations(configuration);
+  }
 
-    return configuration;
+
+  /**
+   * Recursively expand a configuration with multiple values per key
+   * into a list of configurations with exactly one value per key.
+   */
+  List<Map> _expandConfigurations(Map configuration) {
+    // Expand the pseudo-values such as 'all'.
+    if (configuration['architecture'] == 'all') {
+      configuration['architecture'] = 'ia32,x64,simarm';
+    }
+    if (configuration['mode'] == 'all') {
+      configuration['mode'] = 'debug,release';
+    }
+    if (configuration['component'] == 'most') {
+      configuration['component'] = 'vm,dartc';
+    }
+
+    // Expand the architectures.
+    var archs = configuration['architecture'];
+    if (archs.contains(',')) {
+      var result = new List<Map>();
+      for (var arch in archs.split(',')) {
+        var newConfiguration = new Map.from(configuration);
+        newConfiguration['architecture'] = arch;
+        result.addAll(_expandConfigurations(newConfiguration));
+      }
+      return result;
+    }
+
+    // Expand modes.
+    var modes = configuration['mode'];
+    if (modes.contains(',')) {
+      var result = new List<Map>();
+      for (var mode in modes.split(',')) {
+        var newConfiguration = new Map.from(configuration);
+        newConfiguration['mode'] = mode;
+        result.addAll(_expandConfigurations(newConfiguration));
+      }
+      return result;
+    }
+
+    // Expand components.
+    var components = configuration['component'];
+    if (components.contains(',')) {
+      var result = new List<Map>();
+      for (var component in components.split(',')) {
+        var newConfiguration = new Map.from(configuration);
+        newConfiguration['component'] = component;
+        result.addAll(_expandConfigurations(newConfiguration));
+      }
+      return result;
+    }
+
+    // Adjust default timeout based on mode and component.
+    if (configuration['timeout'] == -1) {
+      var timeout = 60;
+      switch (configuration['component']) {
+        case 'dartc':
+        case 'chromium':
+        case 'dartium':
+        case 'frogium':
+          timeout *= 4;
+          break;
+        default:
+          if (configuration['mode'] == 'debug') {
+            timeout *= 2;
+          }
+          break;
+      }
+      configuration['timeout'] = timeout;
+    }
+
+    return [configuration];
   }
 
 
@@ -220,4 +307,3 @@ class TestOptionsParser {
 
   List<_TestOptionSpecification> _options;
 }
-
