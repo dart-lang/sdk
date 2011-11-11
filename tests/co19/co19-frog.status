@@ -489,6 +489,10 @@ LibTest/core/int/operator\^/int/operator\^/A01/t01: Fail
 LibTest/core/int/operator_l_shift/int/operator/l/shift/A01/t01: Fail
 LibTest/core/int/operator_l_shift/int/operator/l/shift/A01/t02: Fail
 LibTest/core/int/operator_l_shift/int/operator/l/shift/A01/t03: Fail
+LibTest/core/Math/asin/Math/asin/A01/t01: Fail, Pass # different results on Mac
+LibTest/core/Math/acos/Math/acos/A01/t01: Fail, Pass # different results on Mac
+LibTest/core/Math/atan/Math/atan/A01/t01: Fail, Pass # different results on Mac
+LibTest/core/Math/tan/Math/tan/A01/t01: Fail, Pass # different results on Mac
 
 [ $component == frog || $component == leg ]
 LibTest/core/List/sort/List/sort/A01/t06: Skip # Timeout
