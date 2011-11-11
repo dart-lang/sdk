@@ -35,8 +35,8 @@ void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
                                          Dart_NewString("method2"),
                                          0,
                                          NULL);
-  ASSERT(Dart_IsValid(result));
-  ASSERT(Dart_ExceptionOccurred(result));
+  ASSERT(Dart_IsError(result));
+  ASSERT(Dart_ErrorHasException(result));
   return;
 }
 
@@ -48,10 +48,10 @@ void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
                                          Dart_NewString("method2"),
                                          0,
                                          NULL);
-  ASSERT(Dart_IsValid(result));
-  ASSERT(Dart_ExceptionOccurred(result));
-  Dart_Handle exception = Dart_GetException(result);
-  ASSERT(Dart_IsValid(exception));
+  ASSERT(Dart_IsError(result));
+  ASSERT(Dart_ErrorHasException(result));
+  Dart_Handle exception = Dart_ErrorGetException(result);
+  ASSERT(!Dart_IsError(exception));
   Dart_ThrowException(exception);
   UNREACHABLE();
   return;

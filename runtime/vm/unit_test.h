@@ -252,7 +252,7 @@ class CompilerTest : public AllStatic {
 };
 
 #define EXPECT_VALID(handle)                                                  \
-  if (!Dart_IsValid((handle))) {                                              \
+  if (Dart_IsError((handle))) {                                               \
     dart::Expect(__FILE__, __LINE__).Fail("invalid handle '%s':\n    '%s'\n", \
                                           #handle, Dart_GetError(handle));    \
   }

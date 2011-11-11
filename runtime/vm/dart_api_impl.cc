@@ -45,7 +45,7 @@ static const char* CanonicalFunction(const char* func) {
     } else if (tmp.IsNull()) {                                                \
       return Api::Error("%s expects argument '%s' to be non-null.",           \
                         CURRENT_FUNC, #dart_handle);                          \
-    } else if (tmp.IsApiFailure()) {                                          \
+    } else if (tmp.IsApiError()) {                                            \
       return dart_handle;                                                     \
     } else {                                                                  \
       return Api::Error("%s expects argument '%s' to be of type %s.",         \
@@ -54,24 +54,106 @@ static const char* CanonicalFunction(const char* func) {
   } while (0)
 
 
-DART_EXPORT bool Dart_IsValid(const Dart_Handle& handle) {
+DART_EXPORT bool Dart_IsError(const Dart_Handle& handle) {
   ASSERT(Isolate::Current() != NULL);
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
-
-  // Make sure that the object isn't an ApiFailure.
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
-  return !obj.IsApiFailure();
+  return obj.IsApiError();
 }
 
 
-DART_EXPORT void _Dart_ReportInvalidHandle(const char* file,
+DART_EXPORT bool Dart_ErrorHasException(Dart_Handle handle) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+  if (obj.IsApiError()) {
+    const ApiError& error = ApiError::CheckedHandle(obj.raw());
+    const Object& data = Object::Handle(error.data());
+    return data.IsUnhandledException();
+  }
+  return false;
+}
+
+
+DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+  if (obj.IsApiError()) {
+    const ApiError& error = ApiError::CheckedHandle(obj.raw());
+    const Object& data = Object::Handle(error.data());
+    if (data.IsUnhandledException()) {
+      const UnhandledException& unhandled = UnhandledException::Handle(
+          reinterpret_cast<RawUnhandledException*>(data.raw()));
+      const Object& exception = Object::Handle(unhandled.exception());
+      return Api::NewLocalHandle(exception);
+    } else {
+      return Api::Error("This error is not an unhandled exception error.");
+    }
+  } else {
+    return Api::Error("Can only get exceptions from error handles.");
+  }
+}
+
+
+DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+  const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+  if (obj.IsApiError()) {
+    ApiError& failure = ApiError::Handle();
+    failure ^= obj.raw();
+    const Object& data = Object::Handle(failure.data());
+    if (data.IsUnhandledException()) {
+      const UnhandledException& unhandled = UnhandledException::Handle(
+          reinterpret_cast<RawUnhandledException*>(data.raw()));
+      const Object& stacktrace = Object::Handle(unhandled.stacktrace());
+      return Api::NewLocalHandle(stacktrace);
+    } else {
+      return Api::Error("This error is not an unhandled exception error.");
+    }
+  } else {
+    return Api::Error("Can only get stacktraces from error handles.");
+  }
+}
+
+
+DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
                                            int line,
                                            const char* handle,
                                            const char* message) {
-  fprintf(stderr, "%s:%d: invalid handle: '%s':\n    '%s'\n",
+  fprintf(stderr, "%s:%d: error handle: '%s':\n    '%s'\n",
           file, line, handle, message);
   OS::Abort();
+}
+
+
+static const char* MakeUnhandledExceptionCString(
+    const UnhandledException& uhe) {
+  const Instance& exception = Instance::Handle(uhe.exception());
+  Object& strtmp = Object::Handle(DartLibraryCalls::ToString(exception));
+  const char* exc_str =
+      "<Received exception while converting exception to string>";
+  if (!strtmp.IsUnhandledException()) {
+    exc_str = strtmp.ToCString();
+  }
+
+  const Instance& stack = Instance::Handle(uhe.stacktrace());
+  strtmp = DartLibraryCalls::ToString(stack);
+  const char* stack_str =
+      "<Received exception while converting stack trace to string>";
+  if (!strtmp.IsUnhandledException()) {
+    stack_str = strtmp.ToCString();
+  }
+
+  const char* format = "Unhandled exception:\n%s\n%s";
+  int len = (strlen(exc_str) + strlen(stack_str) + strlen(format)
+             - 4    // Two '%s'
+             + 1);  // '\0'
+  char* buffer = reinterpret_cast<char*>(Api::Allocate(len));
+  OS::SNPrint(buffer, len, format, exc_str, stack_str);
+  return buffer;
 }
 
 
@@ -80,17 +162,30 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
-  if (!obj.IsApiFailure()) {
+  if (!obj.IsApiError()) {
     return "";
   }
-  ApiFailure& failure = ApiFailure::Handle();
+  ApiError& failure = ApiError::Handle();
   failure ^= obj.raw();
-  const String& message = String::Handle(failure.message());
-  const char* msg = message.ToCString();
-  intptr_t len = strlen(msg) + 1;
-  char* msg_copy = reinterpret_cast<char*>(Api::Allocate(len));
-  OS::SNPrint(msg_copy, len, "%s", msg);
-  return msg_copy;
+  const Object& data = Object::Handle(failure.data());
+  if (data.IsString()) {
+    // Simple error message.
+    String& message = String::Handle();
+    message ^= failure.data();
+    const char* msg = message.ToCString();
+    intptr_t len = strlen(msg) + 1;
+    char* msg_copy = reinterpret_cast<char*>(Api::Allocate(len));
+    strncpy(msg_copy, msg, len);
+    return msg_copy;
+
+  } else if (data.IsUnhandledException()) {
+    UnhandledException& uhe = UnhandledException::Handle();
+    uhe ^= data.raw();
+    return MakeUnhandledExceptionCString(uhe);
+
+  } else {
+    return "<Internal error in Dart_GetError: malformed error handle>";
+  }
 }
 
 
@@ -112,7 +207,7 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
   va_end(args2);
 
   const String& message = String::Handle(String::New(buffer));
-  const Object& obj = Object::Handle(ApiFailure::New(message));
+  const Object& obj = Object::Handle(ApiError::New(message));
   return Api::NewLocalHandle(obj);
 }
 
@@ -182,7 +277,7 @@ static void SetupErrorResult(Dart_Handle* handle) {
   // may get deallocated when we return back from the Dart API call.
   const String& error = String::Handle(
       Isolate::Current()->object_store()->sticky_error());
-  const Object& obj = Object::Handle(ApiFailure::New(error));
+  const Object& obj = Object::Handle(ApiError::New(error));
   *handle = Api::NewLocalHandle(obj);
 }
 
@@ -213,22 +308,9 @@ static RawInstance* DeserializeMessage(void* data) {
 }
 
 
-static void ProcessUnhandledException(const UnhandledException& uhe) {
-  const Instance& exception = Instance::Handle(uhe.exception());
-  Instance& strtmp = Instance::Handle(DartLibraryCalls::ToString(exception));
-  const char* str = strtmp.ToCString();
-  fprintf(stderr, "%s\n", str);
-  const Instance& stack = Instance::Handle(uhe.stacktrace());
-  strtmp = DartLibraryCalls::ToString(stack);
-  str = strtmp.ToCString();
-  fprintf(stderr, "%s\n", str);
-  exit(255);
-}
-
-
-DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
-                                    Dart_Port reply_port,
-                                    Dart_Message dart_message) {
+DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port,
+                                           Dart_Port reply_port,
+                                           Dart_Message dart_message) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
@@ -252,14 +334,10 @@ DART_EXPORT void Dart_HandleMessage(Dart_Port dest_port,
   const Object& result = Object::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
   if (result.IsUnhandledException()) {
-    UnhandledException& uhe = UnhandledException::Handle();
-    uhe ^= result.raw();
-    // TODO(turnidge): Instead of exiting here, just return the
-    // exception so that the embedder can choose how to handle this
-    // case.
-    ProcessUnhandledException(uhe);
+    return Api::ErrorFromException(result);
   }
   ASSERT(result.IsNull());
+  return Api::Success();
 }
 
 
@@ -491,7 +569,7 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
     receiver ^= obj.raw();
     result = DartLibraryCalls::ToString(receiver);
     if (result.IsUnhandledException()) {
-      return Api::Error("An exception occurred when converting to string");
+      return Api::ErrorFromException(result);
     }
   } else {
     // This is a VM internal object. Call the C++ method of printing.
@@ -553,8 +631,10 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
     b ^= result.raw();
     *value = b.value();
     return Api::Success();
+  } else if (result.IsUnhandledException()) {
+    return Api::ErrorFromException(result);
   } else {
-    return Api::Error("An exception occured when calling '=='");
+    return Api::Error("Expected boolean result from ==");
   }
 }
 
@@ -1024,6 +1104,8 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
             result = Api::Error("Length of List object is greater than the "
                                 "maximum value that 'len' parameter can hold");
           }
+        } else if (retval.IsUnhandledException()) {
+          result = Api::ErrorFromException(retval);
         } else {
           result = Api::Error("Length of List object is not an integer");
         }
@@ -1058,7 +1140,7 @@ static RawObject* GetListAt(Isolate* isolate,
                                       args,
                                       kNoArgumentNames);
     if (retval.IsUnhandledException()) {
-      *result = Api::Error("Unexpected exception in '[]'");
+      *result = Api::ErrorFromException(retval);
     } else {
       *result = Api::Success();
     }
@@ -1111,7 +1193,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       for (int i = 0; i < length; i++) {
         intobj = Integer::New(offset + i);
         element = GetListAt(isolate, instance, intobj, function, &result);
-        if (!Dart_IsValid(result)) {
+        if (Dart_IsError(result)) {
           return result;  // Error condition.
         }
         intobj ^= element.raw();
@@ -1154,7 +1236,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
       Dart_Handle result;
       indexobj = Integer::New(index);
       element = GetListAt(isolate, instance, indexobj, function, &result);
-      if (!Dart_IsValid(result)) {
+      if (Dart_IsError(result)) {
         return result;  // Error condition.
       }
       return Api::NewLocalHandle(element);
@@ -1186,7 +1268,7 @@ static void SetListAt(Isolate* isolate,
                                       args,
                                       kNoArgumentNames);
     if (retval.IsUnhandledException()) {
-      *result = Api::Error("Unexpected exception in '[]='");
+      *result = Api::ErrorFromException(retval);
     } else {
       *result = Api::Success();
     }
@@ -1233,7 +1315,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
         indexobj = Integer::New(offset + i);
         valueobj ^= Integer::New(native_array[i]);
         SetListAt(isolate, instance, indexobj, valueobj, function, &result);
-        if (!Dart_IsValid(result)) {
+        if (Dart_IsError(result)) {
           return result;  // Error condition.
         }
       }
@@ -1295,7 +1377,11 @@ static void InvokeStatic(const Function& function,
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeStatic(function, args, kNoArgumentNames));
-    *result = Api::NewLocalHandle(retval);
+    if (retval.IsUnhandledException()) {
+      *result = Api::ErrorFromException(retval);
+    } else {
+      *result = Api::NewLocalHandle(retval);
+    }
   } else {
     SetupErrorResult(result);
   }
@@ -1319,7 +1405,11 @@ static void InvokeDynamic(const Instance& receiver,
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeDynamic(receiver, function, args, kNoArgumentNames));
-    *result = Api::NewLocalHandle(retval);
+    if (retval.IsUnhandledException()) {
+      *result = Api::ErrorFromException(retval);
+    } else {
+      *result = Api::NewLocalHandle(retval);
+    }
   } else {
     SetupErrorResult(result);
   }
@@ -1342,7 +1432,11 @@ static void InvokeClosure(const Closure& closure,
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeClosure(closure, args, kNoArgumentNames));
-    *result = Api::NewLocalHandle(retval);
+    if (retval.IsUnhandledException()) {
+      *result = Api::ErrorFromException(retval);
+    } else {
+      *result = Api::NewLocalHandle(retval);
+    }
   } else {
     SetupErrorResult(result);
   }
@@ -1503,42 +1597,6 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
   HandleScope scope;  // Setup a VM handle scope.
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Api::UnwrapHandle(retval)));
-}
-
-
-DART_EXPORT bool Dart_ExceptionOccurred(Dart_Handle result) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
-  const Object& retval  = Object::Handle(Api::UnwrapHandle(result));
-  return retval.IsUnhandledException();
-}
-
-
-DART_EXPORT Dart_Handle Dart_GetException(Dart_Handle result) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
-  const Object& retval = Object::Handle(Api::UnwrapHandle(result));
-  if (retval.IsUnhandledException()) {
-    const UnhandledException& unhandled = UnhandledException::Handle(
-        reinterpret_cast<RawUnhandledException*>(retval.raw()));
-    const Object& exception = Object::Handle(unhandled.exception());
-    return Api::NewLocalHandle(exception);
-  }
-  return Api::Error("Object is not an unhandled exception object");
-}
-
-
-DART_EXPORT Dart_Handle Dart_GetStacktrace(Dart_Handle unhandled_excp) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
-  const Object& retval = Object::Handle(Api::UnwrapHandle(unhandled_excp));
-  if (retval.IsUnhandledException()) {
-    const UnhandledException& unhandled = UnhandledException::Handle(
-        reinterpret_cast<RawUnhandledException*>(retval.raw()));
-    const Object& stacktrace = Object::Handle(unhandled.stacktrace());
-    return Api::NewLocalHandle(stacktrace);
-  }
-  return Api::Error("Object is not an unhandled exception object");
 }
 
 
@@ -1738,7 +1796,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   Dart_Handle result = LookupStaticField(cls, name, kGetter);
-  if (!::Dart_IsValid(result)) {
+  if (::Dart_IsError(result)) {
     return result;
   }
   Object& retval = Object::Handle();
@@ -1753,25 +1811,20 @@ DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
     func ^= obj.raw();
     GrowableArray<const Object*> args;
     InvokeStatic(func, args, &result);
-    if (::Dart_IsValid(result)) {
-      if (Dart_ExceptionOccurred(result)) {
-        return Api::Error(
-            "An exception occurred when getting the static field");
-      }
-    }
     return result;
   }
 }
 
 
 // TODO(iposva): The value parameter should be documented as being an instance.
+// TODO(turnidge): Is this skipping the setter?
 DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
                                             Dart_Handle name,
                                             Dart_Handle value) {
   Zone zone;  // Setup a VM zone as we are creating some handles.
   HandleScope scope;  // Setup a VM handle scope.
   Dart_Handle result = LookupStaticField(cls, name, kSetter);
-  if (!::Dart_IsValid(result)) {
+  if (::Dart_IsError(result)) {
     return result;
   }
   Field& fld = Field::Handle();
@@ -1798,19 +1851,13 @@ DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
   Instance& object = Instance::Handle();
   object ^= param.raw();
   Dart_Handle result = LookupInstanceField(object, name, kGetter);
-  if (!::Dart_IsValid(result)) {
+  if (::Dart_IsError(result)) {
     return result;
   }
   Function& func = Function::Handle();
   func ^= Api::UnwrapHandle(result);
   GrowableArray<const Object*> arguments;
   InvokeDynamic(object, func, arguments, &result);
-  if (::Dart_IsValid(result)) {
-    if (Dart_ExceptionOccurred(result)) {
-      return Api::Error(
-          "An exception occurred when accessing the instance field");
-    }
-  }
   return result;
 }
 
@@ -1827,7 +1874,7 @@ DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
   Instance& object = Instance::Handle();
   object ^= param.raw();
   Dart_Handle result = LookupInstanceField(object, name, kSetter);
-  if (!::Dart_IsValid(result)) {
+  if (::Dart_IsError(result)) {
     return result;
   }
   Function& func = Function::Handle();
@@ -1836,12 +1883,6 @@ DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
   const Object& arg = Object::Handle(Api::UnwrapHandle(value));
   arguments.Add(&arg);
   InvokeDynamic(object, func, arguments, &result);
-  if (::Dart_IsValid(result)) {
-    if (Dart_ExceptionOccurred(result)) {
-      return Api::Error(
-          "An exception occurred when setting the instance field");
-    }
-  }
   return result;
 }
 
@@ -2084,8 +2125,24 @@ Dart_Handle Api::Error(const char* format, ...) {
   va_end(args2);
 
   const String& message = String::Handle(String::New(buffer));
-  const Object& obj = Object::Handle(ApiFailure::New(message));
+  const Object& obj = Object::Handle(ApiError::New(message));
   return Api::NewLocalHandle(obj);
+}
+
+
+Dart_Handle Api::ErrorFromException(const Object& obj) {
+  Zone zone;  // Setup a VM zone as we are creating some handles.
+  HandleScope scope;  // Setup a VM handle scope.
+
+  ASSERT(obj.IsUnhandledException());
+  if (obj.IsUnhandledException()) {
+    UnhandledException& uhe = UnhandledException::Handle();
+    uhe ^= obj.raw();
+    const Object& error = Object::Handle(ApiError::New(uhe));
+    return Api::NewLocalHandle(error);
+  } else {
+    return Api::Error("Internal error: expected obj.IsUnhandledException().");
+  }
 }
 
 

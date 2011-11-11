@@ -348,10 +348,10 @@ intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
 }
 
 
-intptr_t RawApiFailure::VisitApiFailurePointers(
-    RawApiFailure* raw_obj, ObjectPointerVisitor* visitor) {
+intptr_t RawApiError::VisitApiErrorPointers(
+    RawApiError* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return ApiFailure::InstanceSize();
+  return ApiError::InstanceSize();
 }
 
 

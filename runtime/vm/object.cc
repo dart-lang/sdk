@@ -74,7 +74,7 @@ RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::api_failure_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::api_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
@@ -125,8 +125,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kContextClass;
   } else if (raw_class == context_scope_class()) {
     return kContextScopeClass;
-  } else if (raw_class == api_failure_class()) {
-    return kApiFailureClass;
+  } else if (raw_class == api_error_class()) {
+    return kApiErrorClass;
   }
   return kInvalidIndex;
 }
@@ -158,7 +158,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kExceptionHandlersClass: return exception_handlers_class();
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
-    case kApiFailureClass: return api_failure_class();
+    case kApiErrorClass: return api_error_class();
     default: break;
   }
   UNREACHABLE();
@@ -191,7 +191,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kExceptionHandlersClass: return "ExceptionHandlers";
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
-    case kApiFailureClass: return "ApiFailure";
+    case kApiErrorClass: return "ApiError";
     default: break;
   }
   UNREACHABLE();
@@ -328,8 +328,8 @@ void Object::InitOnce() {
   cls = Class::New<ContextScope>();
   context_scope_class_ = cls.raw();
 
-  cls = Class::New<ApiFailure>();
-  api_failure_class_ = cls.raw();
+  cls = Class::New<ApiError>();
+  api_error_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 }
@@ -4748,28 +4748,44 @@ const char* UnhandledException::ToCString() const {
 }
 
 
-RawApiFailure* ApiFailure::New(const String& message, Heap::Space space) {
-  const Class& cls = Class::Handle(Object::api_failure_class());
-  ApiFailure& result = ApiFailure::Handle();
+RawApiError* ApiError::New(const String& message, Heap::Space space) {
+  const Class& cls = Class::Handle(Object::api_error_class());
+  ApiError& result = ApiError::Handle();
   {
     RawObject* raw = Object::Allocate(cls,
-                                      ApiFailure::InstanceSize(),
+                                      ApiError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
     result ^= raw;
   }
-  result.set_message(message);
+  result.set_data(message);
   return result.raw();
 }
 
 
-void ApiFailure::set_message(const String& message) const {
-  StorePointer(&raw_ptr()->message_, message.raw());
+RawApiError* ApiError::New(const UnhandledException& exception,
+                           Heap::Space space) {
+  const Class& cls = Class::Handle(Object::api_error_class());
+  ApiError& result = ApiError::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls,
+                                      ApiError::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_data(exception);
+  return result.raw();
 }
 
 
-const char* ApiFailure::ToCString() const {
-  return "ApiFailure";
+void ApiError::set_data(const Object& data) const {
+  StorePointer(&raw_ptr()->data_, data.raw());
+}
+
+
+const char* ApiError::ToCString() const {
+  return "ApiError";
 }
 
 

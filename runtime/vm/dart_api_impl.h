@@ -37,6 +37,9 @@ class Api : AllStatic {
   // Generates a handle used to designate an error return.
   static Dart_Handle Error(const char* format, ...);
 
+  // Generates an error handle from an unhandled exception.
+  static Dart_Handle ErrorFromException(const Object& obj);
+
   // Gets a handle to Null.
   static Dart_Handle Null();
 

@@ -3100,7 +3100,7 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   Dart_Handle result = handler(tag,
                                Api::NewLocalHandle(library_),
                                Api::NewLocalHandle(url));
-  if (!Dart_IsValid(result)) {
+  if (Dart_IsError(result)) {
     ErrorMsg(token_pos, "library handler failed: %s", Dart_GetError(result));
   }
   return result;

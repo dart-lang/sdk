@@ -15,7 +15,7 @@
 void PrintString(FILE* out, Dart_Handle str) {
   const char* cstring = NULL;
   Dart_Handle result = Dart_StringToCString(str, &cstring);
-  if (!Dart_IsValid(result)) {
+  if (Dart_IsError(result)) {
       cstring = Dart_GetError(result);
   }
   fprintf(out, "%s\n", cstring);

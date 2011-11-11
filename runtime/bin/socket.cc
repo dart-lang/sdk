@@ -46,7 +46,7 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   intptr_t buffer_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-  ASSERT(Dart_IsValid(result));
+  ASSERT(!Dart_IsError(result));
   ASSERT((offset + length) <= buffer_len);
 
   if (Dart_IsVMFlagSet("short_socket_read")) {
@@ -58,7 +58,7 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
   if (bytes_read > 0) {
     Dart_Handle result =
         Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
-    ASSERT(Dart_IsValid(result));
+    ASSERT(!Dart_IsError(result));
   } else if (bytes_read < 0) {
     bytes_read = 0;
   }
@@ -81,7 +81,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   intptr_t buffer_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-  ASSERT(Dart_IsValid(result));
+  ASSERT(!Dart_IsError(result));
   ASSERT((offset + length) <= buffer_len);
 
   if (Dart_IsVMFlagSet("short_socket_write")) {
@@ -90,7 +90,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
 
   uint8_t* buffer = new uint8_t[length];
   result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
-  ASSERT(Dart_IsValid(result));
+  ASSERT(!Dart_IsError(result));
   intptr_t total_bytes_written =
       Socket::Write(socket, reinterpret_cast<void*>(buffer), length);
   delete[] buffer;

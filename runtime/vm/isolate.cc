@@ -246,8 +246,12 @@ void Isolate::StandardRunLoop() {
 
     PortMessage* message = message_queue()->Dequeue(0);
     if (message != NULL) {
-      Dart_HandleMessage(
+      Dart_Handle result = Dart_HandleMessage(
           message->dest_port(), message->reply_port(), message->data());
+      if (Dart_IsError(result)) {
+        fprintf(stderr, "%s\n", Dart_GetError(result));
+        exit(255);
+      }
       delete message;
     }
   }

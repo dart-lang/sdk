@@ -98,7 +98,7 @@ static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
   }
   const char* url_chars = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_chars);
-  if (!Dart_IsValid(result)) {
+  if (Dart_IsError(result)) {
     return Dart_Error("accessing url characters failed");
   }
 
@@ -107,7 +107,7 @@ static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
 
     // Get the url of the calling library.
     Dart_Handle library_url = Dart_LibraryUrl(library);
-    if (!Dart_IsValid(library_url)) {
+    if (Dart_IsError(library_url)) {
       return Dart_Error("accessing library url failed");
     }
     if (!Dart_IsString8(library_url)) {
@@ -115,7 +115,7 @@ static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
     }
     const char* library_url_chars = NULL;
     result = Dart_StringToCString(library_url, &library_url_chars);
-    if (!Dart_IsValid(result)) {
+    if (Dart_IsError(result)) {
       return Dart_Error("accessing library url characters failed");
     }
 
@@ -130,12 +130,12 @@ static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
   // The tag is either an import or a source tag. Read the file based on the
   // url chars.
   Dart_Handle source = ReadStringFromFile(url_chars);
-  if (!Dart_IsValid(source)) {
+  if (Dart_IsError(source)) {
     return source;  // source contains the error string.
   }
   if (tag == kImportTag) {
     Dart_Handle new_lib = Dart_LoadLibrary(url, source);
-    if (import_builtin_lib && Dart_IsValid(new_lib)) {
+    if (import_builtin_lib && !Dart_IsError(new_lib)) {
       Builtin_ImportLibrary(new_lib);
     }
     return new_lib;  // Return library object or an error string.
@@ -163,7 +163,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
 
 Dart_Handle LoadScript(const char* script_name) {
   Dart_Handle source = ReadStringFromFile(script_name);
-  if (!Dart_IsValid(source)) {
+  if (Dart_IsError(source)) {
     return source;
   }
   Dart_Handle url = Dart_NewString(script_name);
@@ -174,7 +174,7 @@ Dart_Handle LoadScript(const char* script_name) {
 
 Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   Dart_Handle source = ReadStringFromFile(script_name);
-  if (!Dart_IsValid(source)) {
+  if (Dart_IsError(source)) {
     return source;
   }
   Dart_Handle url = Dart_NewString(script_name);

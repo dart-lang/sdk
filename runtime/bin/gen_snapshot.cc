@@ -102,7 +102,7 @@ static void* SnapshotCreateCallback(void* data) {
   if (script_name != NULL) {
     // Load the specified script.
     Dart_Handle library = LoadSnapshotCreationScript(script_name);
-    if (!Dart_IsValid(library)) {
+    if (Dart_IsError(library)) {
       const char* err_msg = Dart_GetError(library);
       fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
       Dart_ExitScope();
@@ -127,7 +127,7 @@ static void* SnapshotCreateCallback(void* data) {
   intptr_t size = 0;
   // First create the snapshot.
   result = Dart_CreateSnapshot(&buffer, &size);
-  if (!Dart_IsValid(result)) {
+  if (Dart_IsError(result)) {
     const char* err_msg = Dart_GetError(result);
     fprintf(stderr, "Error while creating snapshot: %s\n", err_msg);
     Dart_ExitScope();
