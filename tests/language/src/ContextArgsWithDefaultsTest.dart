@@ -7,7 +7,7 @@ class ContextArgsWithDefaultsTest {
     crasher(1, 'foo')();
   }
 
-  static void crasher(int fixed, [String optional = '']) {
+  static crasher(int fixed, [String optional = '']) {
     return () {
       Expect.equals(1, fixed);
       Expect.equals('foo', optional);

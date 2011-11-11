@@ -20,7 +20,7 @@ class SortHelper {
     print("[$buffer]");
   }
 
-  void isSorted(List a) {
+  bool isSorted(List a) {
     for (int i = 1; i < a.length; i++) {
       if (compareFunction(a[i - 1], a[i]) > 0) {
         return false;
