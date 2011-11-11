@@ -14,7 +14,7 @@ class StandaloneTestSuite {
   Function doDone;
   String shellPath;
   String pathSeparator;
-  Map<String, String> configuration;
+  Map configuration;
   TestExpectationsMap testExpectationsMap;
 
   StandaloneTestSuite(Map this.configuration) {
@@ -54,12 +54,15 @@ class StandaloneTestSuite {
     //               until they are handled correctly.
     if (expectations.contains(SKIP)) return;
 
+    List args = ["--ignore-unrecognized-flags"];
+    if (configuration["checked"]) {
+      args.add("--enable-type-checks");
+    }
+    args.add(filename);
 
     doTest(new TestCase(testName,
                         shellPath,
-                        <String>["--enable_type_checks",
-                                 "--ignore-unrecognized-flags",
-                                 filename ],
+                        args,
                         completeHandler,
                         expectations));
   }

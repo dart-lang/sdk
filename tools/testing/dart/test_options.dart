@@ -21,7 +21,7 @@ class _TestOptionSpecification {
   String description;
   List<String> keys;
   List<String> values;
-  String defaultValue;
+  var defaultValue;
   String type;
 }
 
