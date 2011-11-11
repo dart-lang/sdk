@@ -46,7 +46,6 @@ class StandaloneTestSuite {
   void processFile(String filename) {
     if (!filename.endsWith("Test.dart")) return;
 
-    Expect.isTrue(filename.contains(directoryPath));
     int start = filename.lastIndexOf(pathSeparator);
     String testName = filename.substring(start + 1, filename.length - 5);
     Set<String> expectations = testExpectationsMap.expectations(testName);
@@ -66,12 +65,5 @@ class StandaloneTestSuite {
   }
   
   void completeHandler(TestCase testCase) {
-    TestOutput output = testCase.output;
-    String expected = "";
-    testCase.expectedOutcomes.forEach((value) { expected += value + " "; });
-    print("");
-    print(testCase.displayName);
-    print("  Result:${output.result}  Expected:$expected");
-    print("  Exit code: ${output.exitCode} Time: ${output.time}");
   }
 }

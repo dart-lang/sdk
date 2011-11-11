@@ -7,6 +7,7 @@
 
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
+#import("testing/dart/test_progress.dart");
 
 #import("../tests/standalone/test_config.dart");
 #import("../tests/corelib/test_config.dart");
@@ -15,7 +16,8 @@ main() {
   var optionsParser = new TestOptionsParser();
   var configuration = optionsParser.parse(new Options().arguments);
   if (configuration == null) return;
-  var queue = new ProcessQueue(configuration['tasks']);
+  var queue = new ProcessQueue(configuration['tasks'],
+                               new CompactProgressIndicator());
   new StandaloneTestSuite(configuration).forEachTest(queue.runTest);
   new CorelibTestSuite(configuration).forEachTest(queue.runTest);
 }

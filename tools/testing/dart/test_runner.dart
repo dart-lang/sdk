@@ -4,8 +4,8 @@
 
 #library("test_runner");
 
-
 #import("status_file_parser.dart");
+#import("test_progress.dart");
 
 /**
  * Classes and methods for executing tests.
@@ -113,7 +113,6 @@ class RunningProcess {
   List<String> stderr;
   List<Function> handlers;
 
-
   RunningProcess(this.testCase, [this.timeout = NO_TIMEOUT]);
 
   void exitHandler(int exitCode) {
@@ -168,18 +167,20 @@ class ProcessQueue {
   int numProcesses = 0;
   final int maxProcesses;
   Queue<TestCase> tests;
+  ProgressIndicator progress;
 
-  ProcessQueue(this.maxProcesses) : tests = new Queue<TestCase>();
+  ProcessQueue(this.maxProcesses, this.progress)
+      : tests = new Queue<TestCase>();
 
   tryRunTest() {
     if (numProcesses < maxProcesses && !tests.isEmpty()) {
       TestCase test = tests.removeFirst();
-      print("running ${test.displayName}");
+      progress.start(test);
       // TODO(whesse): Refactor into various test output methods.
       Function old_callback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {
         numProcesses--;
-        print("finished ${test_arg.displayName}");
+        progress.done(test_arg);
         tryRunTest();
         old_callback(test_arg);
       };
@@ -192,6 +193,7 @@ class ProcessQueue {
   }
 
   runTest(TestCase test) {
+    progress.testAdded();
     tests.add(test);
     tryRunTest();
   }
