@@ -16,6 +16,6 @@ main() {
   var configuration = optionsParser.parse(new Options().arguments);
   if (configuration == null) return;
   var queue = new ProcessQueue(configuration['tasks']);
-  new StandaloneTestSuite().forEachTest(queue.runTest);
-  new CorelibTestSuite().forEachTest(queue.runTest);
+  new StandaloneTestSuite(configuration).forEachTest(queue.runTest);
+  new CorelibTestSuite(configuration).forEachTest(queue.runTest);
 }

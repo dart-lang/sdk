@@ -14,17 +14,12 @@ class CorelibTestSuite {
   Function doDone;
   String shellPath;
   String pathSeparator;
-  Map<String, String> configuration;
+  Map configuration;
   TestExpectationsMap testExpectationsMap;
 
-  CorelibTestSuite() {
-    shellPath = getDartShellFileName() ;
+  CorelibTestSuite(Map this.configuration) {
+    shellPath = getDartShellFileName(configuration) ;
     pathSeparator = new Platform().pathSeparator();
-    configuration = {"mode": "debug",
-                     "arch": "ia32",
-                     "checked": "true",
-                     "component": "vm",
-                     "system": new Platform().operatingSystem()};
   }
 
   void forEachTest(Function onTest, [Function onDone = null]) {

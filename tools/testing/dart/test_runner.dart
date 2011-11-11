@@ -17,19 +17,34 @@
 
 final int NO_TIMEOUT = 0;
 
-String getDartShellFileName() {
-  var names = ["out/Debug_ia32/dart_bin",
-               "out/Release_ia32/dart_bin",
-               "xcodebuild/Debug_ia32/dart_bin",
-               "xcodebuild/Release_ia32/dart_bin",
-               "Debug_ia32/dart_bin.exe",
-               "Release_ia32/dart_bin.exe"];
-  for (var name in names) {
-    if (new File(name).existsSync()) {
-      return name;
-    }
+
+String getBuildDir(Map configuration) {
+  var buildDir = '';
+  var os = configuration['os'];
+  if (os == 'linux') {
+    buildDir = 'out/';
+  } else if (os == 'macos') {
+    buildDir = 'xcodebuild/';
   }
-  Expect.fail("Cound not find the Dart shell executable.");
+  buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+  buildDir += configuration['architecture'] + '/';
+  return buildDir;
+}
+
+
+String getExecutableName(Map configuration) {
+  if (configuration['component'] == 'vm') {
+    return 'dart_bin';
+  } else if (configuration['component'] == 'dartc') {
+    return 'dartc';
+  } else {
+    throw "Unknown executable for: ${configuration['component']}";
+  }
+}
+
+
+String getDartShellFileName(Map configuration) {
+  return getBuildDir(configuration) + getExecutableName(configuration);
 }
 
 

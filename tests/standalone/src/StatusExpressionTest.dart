@@ -96,7 +96,7 @@ class StatusExpressionTest {
     // Test SetExpression.evaluate().
     Map<String, String> environment = new Map<String, String>();
     environment["arch"] = "ia32";
-    environment["checked"] = "true";
+    environment["checked"] = true;
     environment["mode"] = "debug";
     Set<String> result = ast.evaluate(environment);
     Expect.setEquals(["Skip"], result);
@@ -128,18 +128,18 @@ class StatusExpressionTest {
     // Test BooleanExpression.evaluate().
     Map<String, String> environment = new Map<String, String>();
     environment["arch"] = "ia32";
-    environment["checked"] = "true";
+    environment["checked"] = true;
     environment["mode"] = "debug";
     Expect.isTrue(ast.evaluate(environment));
     environment["mode"] = "release";
     Expect.isTrue(ast.evaluate(environment));
-    environment["checked"] = "false";
+    environment["checked"] = false;
     Expect.isTrue(ast.evaluate(environment));
     environment["mode"] = "debug";
     Expect.isFalse(ast.evaluate(environment));
     environment["arch"] = "arm";
     Expect.isFalse(ast.evaluate(environment));
-    environment["checked"] = "true";
+    environment["checked"] = true;
     Expect.isFalse(ast.evaluate(environment));    
   }
 }  

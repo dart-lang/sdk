@@ -44,13 +44,29 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
   }
 
   return new TestCase(testName,
-                      getDartShellFileName(),
+                      getDartBinName(),
                       <String>["--ignore-unrecognized-flags",
                                "--enable_type_checks",
                                test_path],
                       TestController.processCompletedTest,
                       new Set<String>.from(expectations));
 }
+
+
+String getDartBinName() {
+  var names = ["out/Debug_ia32/dart_bin",
+               "out/Release_ia32/dart_bin",
+               "xcodebuild/Debug_ia32/dart_bin",
+               "xcodebuild/Release_ia32/dart_bin",
+               "Debug_ia32/dart_bin.exe",
+               "Release_ia32/dart_bin.exe"];
+  for (var name in names) {
+    if (new File(name).existsSync()) {
+      return name;
+    }
+  }
+}
+
 
 String getProcessTestFileName() {
   var names = ['out/Release_ia32/process_test',

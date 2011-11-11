@@ -17,14 +17,9 @@ class StandaloneTestSuite {
   Map<String, String> configuration;
   TestExpectationsMap testExpectationsMap;
 
-  StandaloneTestSuite() {
-    shellPath = getDartShellFileName() ;
+  StandaloneTestSuite(Map this.configuration) {
+    shellPath = getDartShellFileName(configuration) ;
     pathSeparator = new Platform().pathSeparator();
-    configuration = {"mode": "debug",
-                     "arch": "ia32",
-                     "checked": "true",
-                     "component": "vm",
-                     "system": new Platform().operatingSystem()};
   }
 
   void forEachTest(Function onTest, [Function onDone = null]) {
