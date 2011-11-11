@@ -63,12 +63,42 @@ class CorelibTestSuite {
     }
     args.add(filename);
 
-    doTest(new TestCase(testName,
-                        shellPath,
-                        args,
-                        configuration["timeout"],
-                        completeHandler,
-                        expectations));
+    List<List> optionsList = testOptions(filename);
+    if (optionsList.isEmpty()) {
+      doTest(new TestCase(testName,
+                          shellPath,
+                          args,
+                          configuration["timeout"],
+                          completeHandler,
+                          expectations));
+    } else {
+      for (var options in optionsList) {
+        options.addAll(args);
+        doTest(new TestCase(testName,
+                            shellPath,
+                            options,
+                            configuration["timeout"],
+                            completeHandler,
+                            expectations));
+      }        
+    }
+  }
+
+  List<List> testOptions(String filename) {
+    RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
+    File file = new File(filename);
+    FileInputStream fileStream = file.openInputStream();
+    StringInputStream lines = new StringInputStream(fileStream);
+
+    List<List> result = new List<List>();
+    String line;
+    while ((line = lines.readLine()) != null) {
+      Match match = testOptionsRegExp.firstMatch(line);
+      if (match != null) {
+        result.add(match[1].split(' ').filter((e) => e != ''));
+      }
+    }
+    return result;
   }
   
   void completeHandler(TestCase testCase) {
