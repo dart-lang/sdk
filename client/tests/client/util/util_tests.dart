@@ -4,7 +4,7 @@
 
 #library('util_tests');
 
-#import('../../../html/html.dart');
+#import('dart:html');
 #import('../../../testing/unittest/unittest.dart');
 #import('../../../util/utilslib.dart');
 

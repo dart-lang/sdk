@@ -4,8 +4,8 @@
 
 #library('layout_tests');
 
+#import('dart:html');
 #import('../../../base/base.dart');
-#import('../../../html/html.dart');
 #import('../../../layout/layout.dart');
 #import('../../../view/view.dart');
 #import('../../../testing/unittest/unittest.dart');

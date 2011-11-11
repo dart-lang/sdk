@@ -4,12 +4,12 @@
 
 #library('grid_layout_demo');
 
+#import('dart:html');
 #import('../../../observable/observable.dart');
 #import('../../../base/base.dart');
 #import('../../../touch/touch.dart');
 #import('../../../util/utilslib.dart');
 #import('../../../view/view.dart');
-#import('../../../html/html.dart');
 
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');
