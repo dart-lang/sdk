@@ -245,6 +245,14 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* GetSingletonClass(int index);
   static const char* GetSingletonClassName(int index);
 
+  static RawClass* CreateAndRegisterInterface(const char* cname,
+                                              const Script& script,
+                                              const Library& lib);
+  static void RegisterClass(const Class& cls,
+                            const char* cname,
+                            const Script& script,
+                            const Library& lib);
+
   static void Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
@@ -410,7 +418,8 @@ class Class : public Object {
   void set_type_parameters(const Array& value) const;
   intptr_t NumTypeParameters() const;
 
-  // Type parameters may optionally extend a Type (DynamicType if no extends).
+  // Type parameters may optionally extend a Type (Dynamic if no extends).
+  // TODO(regis): Should it be Object instead of Dynamic?
   RawTypeArray* type_parameter_extends() const {
     return raw_ptr()->type_parameter_extends_;
   }
@@ -420,8 +429,12 @@ class Class : public Object {
   // Return null otherwise.
   RawTypeParameter* LookupTypeParameter(const String& type_name) const;
 
-  // If this class is parameterized, each instance has a type_arguments field.
+  // The type argument vector is flattened and includes the type arguments of
+  // the super class.
+  bool HasTypeArguments() const;
   intptr_t NumTypeArguments() const;
+
+  // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t type_arguments_instance_field_offset() const {
     ASSERT(is_finalized() || is_prefinalized());
@@ -429,15 +442,6 @@ class Class : public Object {
   }
   void set_type_arguments_instance_field_offset(intptr_t value) const {
     raw_ptr()->type_arguments_instance_field_offset_ = value;
-  }
-  bool HasTypeArguments() const {
-    if (is_finalized() || is_prefinalized()) {
-      // More efficient than calling NumTypeArguments().
-      return type_arguments_instance_field_offset() != kNoTypeArguments;
-    } else {
-      // No need to check NumTypeArguments() if class has type parameters.
-      return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
-    }
   }
 
   // The super type of this class, Object type if not explicitly specified.

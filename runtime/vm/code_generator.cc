@@ -327,15 +327,16 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
       instance.IsInstanceOf(type, type_instantiator) ?
       Bool::True() : Bool::False());
   if (FLAG_trace_type_checks) {
-    Class& cls = Class::Handle(instance.clazz());
-    // TODO(regis): Remove once all classes finalized.
-    if (cls.is_finalized())  {
-      OS::Print("InstanceOf '%s' %s '%s'\n",
-          String::Handle(Type::Handle(instance.GetType()).Name()).
-              ToCString(),
-          (result.raw() == Bool::True()) ? "is" : "is !",
-          String::Handle(type.Name()).ToCString());
+    const Type& instance_type = Type::Handle(instance.GetType());
+    Type& instantiated_type = Type::Handle(type.raw());
+    if (!type.IsInstantiated()) {
+      // Instantiate type before printing.
+      instantiated_type = type.InstantiateFrom(type_instantiator, 0);
     }
+    OS::Print("InstanceOf: '%s' %s '%s'\n",
+              String::Handle(instance_type.Name()).ToCString(),
+              (result.raw() == Bool::True()) ? "is" : "is !",
+              String::Handle(instantiated_type.Name()).ToCString());
   }
   arguments.SetReturn(result);
 }

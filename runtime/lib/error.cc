@@ -199,7 +199,23 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
-  if (!src_instance.IsAssignableTo(dst_type, dst_type_instantiator)) {
+  const bool is_assignable =
+      src_instance.IsAssignableTo(dst_type, dst_type_instantiator);
+
+  if (FLAG_trace_type_checks) {
+    const Type& src_type = Type::Handle(src_instance.GetType());
+    Type& instantiated_dst_type = Type::Handle(dst_type.raw());
+    if (!dst_type.IsInstantiated()) {
+      // Instantiate dst_type before printing.
+      instantiated_dst_type =
+          dst_type.InstantiateFrom(dst_type_instantiator, 0);
+    }
+    OS::Print("TypeCheck: '%s' %s assignable to '%s'.\n",
+              String::Handle(src_type.Name()).ToCString(),
+              is_assignable ? "is" : "is not",
+              String::Handle(dst_type.Name()).ToCString());
+  }
+  if (!is_assignable) {
     const Type& src_type = Type::Handle(src_instance.GetType());
     const String& src_type_name = String::Handle(src_type.Name());
     String& dst_type_name = String::Handle();
@@ -213,17 +229,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     }
     ThrowTypeError(location, src_type_name, dst_type_name, dst_name);
     UNREACHABLE();
-  }
-
-  if (FLAG_trace_type_checks) {
-    Class& cls = Class::Handle(src_instance.clazz());
-    // TODO(regis): Remove once all classes finalized.
-    if (cls.is_finalized())  {
-      OS::Print("TypeCheck '%s' vs '%s'\n",
-          String::Handle(Type::Handle(src_instance.GetType()).Name()).
-              ToCString(),
-          String::Handle(dst_type.Name()).ToCString());
-    }
   }
   arguments.SetReturn(src_instance);
 }

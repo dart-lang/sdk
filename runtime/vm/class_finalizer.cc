@@ -14,6 +14,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
+DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 DEFINE_FLAG(bool, verify_implements, false,
     "Verify that all classes implement their interface.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -242,6 +243,39 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 }
 
 
+// Resolve unresolved_class in the library of cls.
+RawClass* ClassFinalizer::ResolveClass(
+    const Class& cls, const UnresolvedClass& unresolved_class) {
+  Library& lib = Library::Handle();
+  if (unresolved_class.qualifier() == String::null()) {
+    lib = cls.library();
+  } else {
+    const String& qualifier = String::Handle(unresolved_class.qualifier());
+    LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+    lib_prefix = cls.LookupLibraryPrefix(qualifier);
+    if (lib_prefix.IsNull()) {
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, unresolved_class.token_index(),
+                  "cannot resolve library prefix '%s' from '%s'.\n",
+                  String::Handle(unresolved_class.Name()).ToCString(),
+                  String::Handle(cls.Name()).ToCString());
+    }
+    lib = lib_prefix.library();
+  }
+  ASSERT(!lib.IsNull());
+  const String& class_name = String::Handle(unresolved_class.ident());
+  const Class& resolved_class = Class::Handle(lib.LookupClass(class_name));
+  if (resolved_class.IsNull()) {
+    const Script& script = Script::Handle(cls.script());
+    ReportError(script, unresolved_class.token_index(),
+                "cannot resolve class name '%s' from '%s'.\n",
+                String::Handle(unresolved_class.Name()).ToCString(),
+                String::Handle(cls.Name()).ToCString());
+  }
+  return resolved_class.raw();
+}
+
+
 // Resolve unresolved superclasses (String -> Class).
 void ClassFinalizer::ResolveSuperClass(const Class& cls) {
   if (cls.is_finalized()) {
@@ -253,6 +287,13 @@ void ClassFinalizer::ResolveSuperClass(const Class& cls) {
   }
   // Resolve failures lead to a longjmp.
   super_type = ResolveType(cls, super_type);
+  if (super_type.IsTypeParameter()) {
+    String& class_name = String::Handle(cls.Name());
+    String& type_parameter_name = String::Handle(super_type.Name());
+    ReportError("'%s' cannot extend or implement type parameter '%s'.\n",
+                class_name.ToCString(),
+                type_parameter_name.ToCString());
+  }
   cls.set_super_type(super_type);
   const Class& super_class = Class::Handle(super_type.type_class());
   if (cls.is_interface() != super_class.is_interface()) {
@@ -326,6 +367,9 @@ RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
   if (type.IsResolved()) {
     return type.raw();
   }
+  if (FLAG_trace_type_finalization) {
+    OS::Print("Resolve type '%s'\n", String::Handle(type.Name()).ToCString());
+  }
 
   // Resolve the type class.
   if (!type.HasResolvedTypeClass()) {
@@ -354,31 +398,9 @@ RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
     }
 
     // Lookup the type class.
-    Class& type_class = Class::Handle();
-    Library& lib = Library::Handle();
-    if (unresolved_class.qualifier() == String::null()) {
-      lib = cls.library();
-    } else {
-      const String& qualifier = String::Handle(unresolved_class.qualifier());
-      LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
-      lib_prefix = cls.LookupLibraryPrefix(qualifier);
-      if (lib_prefix.IsNull()) {
-        const Script& script = Script::Handle(cls.script());
-        ReportError(script, unresolved_class.token_index(),
-                    "cannot resolve name '%s'\n",
-                    String::Handle(unresolved_class.Name()).ToCString());
-      }
-      lib = lib_prefix.library();
-    }
-    ASSERT(!lib.IsNull());
-    type_class = lib.LookupClass(type_class_name);
-    if (type_class.IsNull()) {
-      const Script& script = Script::Handle(cls.script());
-      ReportError(script, unresolved_class.token_index(),
-                  "cannot resolve class name '%s' from '%s'\n",
-                  String::Handle(unresolved_class.Name()).ToCString(),
-                  String::Handle(cls.Name()).ToCString());
-    }
+    const Class& type_class =
+        Class::Handle(ResolveClass(cls, unresolved_class));
+
     // Replace unresolved class with resolved type class.
     ASSERT(type.IsParameterizedType());
     ParameterizedType& parameterized_type = ParameterizedType::Handle();
@@ -418,37 +440,6 @@ RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
 void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                                            const TypeArguments& arguments) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
-  // If type checks are enabled, verify the subtyping constraints.
-  if (FLAG_enable_type_checks) {
-    const intptr_t num_type_params = cls.NumTypeParameters();
-    const intptr_t offset = cls.NumTypeArguments() - num_type_params;
-    Type& type = Type::Handle();
-    Type& type_extends = Type::Handle();
-    const TypeArguments& extends_array =
-        TypeArguments::Handle(cls.type_parameter_extends());
-    ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
-           (extends_array.Length() == num_type_params));
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type_extends = extends_array.TypeAt(i);
-      if (!type_extends.IsDynamicType()) {
-        type = arguments.TypeAt(offset + i);
-        if (type.IsInstantiated()) {
-          if (!type_extends.IsInstantiated()) {
-            type_extends = type_extends.InstantiateFrom(arguments, offset);
-          }
-          // TODO(regis): Where do we check the constraints when the type is
-          // generic?
-          if (!type.IsSubtypeOf(type_extends)) {
-            const String& type_name = String::Handle(type.Name());
-            const String& extends_name = String::Handle(type_extends.Name());
-            ReportError("type argument '%s' does not extend type '%s'\n",
-                        type_name.ToCString(),
-                        extends_name.ToCString());
-          }
-        }
-      }
-    }
-  }
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     super_type = FinalizeType(super_type);
@@ -474,10 +465,56 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
 }
 
 
+// Verify the upper bounds of the type arguments of class cls.
+void ClassFinalizer::VerifyUpperBounds(const Class& cls,
+                                       const TypeArguments& arguments) {
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(arguments.Length() >= cls.NumTypeArguments());
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const intptr_t offset = cls.NumTypeArguments() - num_type_params;
+  Type& type = Type::Handle();
+  Type& type_extends = Type::Handle();
+  const TypeArguments& extends_array =
+      TypeArguments::Handle(cls.type_parameter_extends());
+  ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
+         (extends_array.Length() == num_type_params));
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_extends = extends_array.TypeAt(i);
+    if (!type_extends.IsDynamicType()) {
+      type = arguments.TypeAt(offset + i);
+      if (type.IsInstantiated()) {
+        if (!type_extends.IsInstantiated()) {
+          type_extends = type_extends.InstantiateFrom(arguments, offset);
+        }
+        // TODO(regis): Where do we check the constraints when the type is
+        // generic?
+        if (!type.IsSubtypeOf(type_extends)) {
+          const String& type_name = String::Handle(type.Name());
+          const String& extends_name = String::Handle(type_extends.Name());
+          ReportError("type argument '%s' of class '%s' "
+                      "does not extend type '%s'\n",
+                      type_name.ToCString(),
+                      extends_name.ToCString());
+        }
+      }
+    }
+  }
+  Type& super_type = Type::Handle(cls.super_type());
+  if (!super_type.IsNull()) {
+    ASSERT(super_type.IsFinalized());
+    const Class& super_class = Class::Handle(super_type.type_class());
+    VerifyUpperBounds(super_class, arguments);
+  }
+}
+
+
 RawType* ClassFinalizer::FinalizeType(const Type& type) {
   ASSERT(type.IsResolved());
   if (type.IsFinalized()) {
     return type.raw();
+  }
+  if (FLAG_trace_type_finalization) {
+    OS::Print("Finalize type '%s'\n", String::Handle(type.Name()).ToCString());
   }
 
   // At this point, we can only have a parameterized_type.
@@ -506,9 +543,23 @@ RawType* ClassFinalizer::FinalizeType(const Type& type) {
   }
 
   // The type class does not need to be finalized in order to finalize the type,
-  // however, it must at least be resolved. This was done as part of resolving
-  // the type itself.
+  // however, it must at least be resolved (this was done as part of resolving
+  // the type itself, a precondition to calling FinalizeType) and the upper
+  // bounds of its type parameters must be finalized (done here).
   Class& type_class = Class::Handle(parameterized_type.type_class());
+
+  // If the type class is a signature class, we are finalizing its signature
+  // type, thereby finalizing the result type and parameter types of its
+  // signature function.
+  // Do this before marking this type as finalized in order to detect cycles.
+  if (type_class.IsSignatureClass()) {
+    // Signature classes are finalized upon creation.
+    ASSERT(type_class.is_finalized());
+    // Resolve and finalize the result and parameter types of the signature
+    // function of this signature class.
+    ResolveAndFinalizeSignature(
+        type_class, Function::Handle(type_class.signature_function()));
+  }
 
   // The finalized type argument vector needs num_type_arguments types.
   const intptr_t num_type_arguments = type_class.NumTypeArguments();
@@ -542,17 +593,28 @@ RawType* ClassFinalizer::FinalizeType(const Type& type) {
       }
       full_arguments.SetTypeAt(offset + i, type);
     }
-    FinalizeTypeArguments(type_class, full_arguments);
+    if (type_class.IsSignatureClass()) {
+      const Function& signature_fun =
+          Function::Handle(type_class.signature_function());
+      ASSERT(!signature_fun.is_static());
+      const Class& signature_fun_owner = Class::Handle(signature_fun.owner());
+      FinalizeTypeArguments(signature_fun_owner, full_arguments);
+    } else {
+      FinalizeTypeArguments(type_class, full_arguments);
+    }
     parameterized_type.set_arguments(full_arguments);
-  }
 
-  // If the type is a function type, finalize the result and parameter types.
-  if (type_class.IsSignatureClass()) {
-    ResolveAndFinalizeSignature(
-        type_class, Function::Handle(type_class.signature_function()));
-  }
+    // Mark the type as finalized before finalizing the upper bounds, because
+    // cycles via upper bounds are legal at compile time.
+    parameterized_type.set_is_finalized();
 
-  parameterized_type.set_is_finalized();
+    ResolveAndFinalizeUpperBounds(type_class);
+    if (FLAG_enable_type_checks) {
+      VerifyUpperBounds(type_class, full_arguments);
+    }
+  } else {
+    parameterized_type.set_is_finalized();
+  }
   return parameterized_type.Canonicalize();
 }
 
@@ -580,11 +642,6 @@ RawType* ClassFinalizer::FinalizeAndCanonicalizeType(const Type& type,
 }
 
 
-// Top level function signatures are canonicalized, added to the library class
-// dictionary, and finalized with other library classes and interfaces.
-// Function signatures used as type of a local variable or of a local function
-// are canonicalized and finalized upon creation, since all the types they
-// reference are already resolved.
 void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
@@ -641,6 +698,24 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
     super_class = super_class.SuperClass();
   }
   return Class::null();
+}
+
+
+// Resolve and finalize the upper bounds of the type parameters of class cls.
+void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  Type& type_extends = Type::Handle();
+  const TypeArguments& extends_array =
+      TypeArguments::Handle(cls.type_parameter_extends());
+  ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
+         (extends_array.Length() == num_type_params));
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_extends = extends_array.TypeAt(i);
+    type_extends = ResolveType(cls, type_extends);
+    extends_array.SetTypeAt(i, type_extends);
+    type_extends = FinalizeType(type_extends);
+    extends_array.SetTypeAt(i, type_extends);
+  }
 }
 
 
@@ -777,13 +852,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       }
     }
   }
-  // Resolve the signature type if this class is a signature class.
-  if (cls.IsSignatureClass()) {
-    Type& signature_type = Type::Handle(cls.SignatureType());
-    signature_type = FinalizeType(signature_type);
-    // Signature types are canonicalized by default.
-    ASSERT(signature_type.raw() == cls.SignatureType());
-  }
 }
 
 
@@ -794,6 +862,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     OS::Print("Finalize %s\n", cls.ToCString());
   }
+  // Signature classes are finalized upon creation.
+  ASSERT(!cls.IsSignatureClass());
   if (!IsSuperCycleFree(cls)) {
     const String& name = String::Handle(cls.Name());
     ReportError("class '%s' has a cycle in its superclass relationship.\n",
@@ -833,8 +903,10 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     interface_type = FinalizeType(interface_type);
     interface_types.SetAt(i, interface_type);
   }
-  // Mark as finalized before resolving member types in order to break cycles.
+  // Mark as finalized before resolving type parameter upper bounds and member
+  // types in order to break cycles.
   cls.Finalize();
+  ResolveAndFinalizeUpperBounds(cls);
   ResolveAndFinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
   if (cls.is_const()) {
@@ -964,8 +1036,6 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
                     String::Handle(cls.Name()).ToCString(),
                     String::Handle(interface_class.Name()).ToCString());
       }
-      // TODO(regis): We also need to prevent extending classes Smi, Mint,
-      // BigInt, Double, OneByteString, TwoByteString, FourByteString.
     }
     // Now resolve the super interfaces.
     ResolveInterfaces(interface_class, visited);

@@ -1389,11 +1389,10 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
-  // All instances are of type Object.
+  // All instances are of a subtype of the Object type.
   const Type& object_type =
       Type::Handle(Isolate::Current()->object_store()->object_type());
   if (type.IsInstantiated() && object_type.IsSubtypeOf(type)) {
-    // All objects are an instance of the Object class.
     __ PushObject(negate_result ? bool_false : bool_true);
     return;
   }
