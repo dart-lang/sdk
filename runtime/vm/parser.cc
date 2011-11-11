@@ -6394,9 +6394,10 @@ void Parser::CheckConstructorCallTypeArguments(
   if (!type_arguments.IsNull() &&
       (type_arguments.Length() !=
           Class::Handle(constructor.owner()).NumTypeArguments())) {
-    ErrorMsg(pos, "Incorrect number of type arguments, expected %d got %d",
-        Class::Handle(constructor.owner()).NumTypeArguments(),
-        type_arguments.Length());
+    // TODO(regis): report proper error once we can.
+    // ErrorMsg(pos, "Incorrect number of type arguments, expected %d got %d",
+    //     Class::Handle(constructor.owner()).NumTypeArguments(),
+    //     type_arguments.Length());
   }
 }
 

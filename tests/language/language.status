@@ -51,6 +51,8 @@ ImplicitThisTest/none: Fail # Issue 374
 
 NonParameterizedFactoryTest: Fail # Bug 5257789
 
+FactoryNegativeTest: Skip  # Srdjan & Regis working on it
+
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
 *DartcNegativeTest: Skip
