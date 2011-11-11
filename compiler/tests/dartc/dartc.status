@@ -19,6 +19,10 @@ corelib/SharedTests: Skip
 *: Skip
 
 
+[ $component == leg ]
+*: Skip
+
+
 [ $component == frogsh ]
 *: Skip
 
@@ -29,6 +33,7 @@ corelib/SharedTests: Skip
 
 [ $component == chromium ]
 *: Skip
+
 
 [ $component == frogium ]
 *: Skip
