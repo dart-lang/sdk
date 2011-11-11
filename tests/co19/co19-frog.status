@@ -21,7 +21,6 @@ LangSpecTest/13_Types/13_4_Interface_Types/A07/t01: Fail
 LangSpecTest/13_Types/13_7_Type_Void/A01/t02: Fail
 LangSpecTest/13_Types/13_7_Type_Void/A01/t04: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t01: Fail
-LangSpecTest/13_Types/13_7_Type_Void/A01/t05: Fail
 LangSpecTest/13_Types/13_7_Type_Void/A01/t08: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t12: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t08: Fail
@@ -84,18 +83,14 @@ LangGuideTest/07_Overriding/A03/t01: Fail
 LangGuideTest/07_Overriding/A02/t02: Fail
 LangGuideTest/07_Overriding/A02/t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t02: Fail
-LibTest/core/AssertError/column/AssertError/column/A01/t02: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t03: Fail
 LibTest/core/AssertError/throwNew/AssertError/throwNew/A01/t01: Fail
 LibTest/core/AssertError/column/AssertError/column/A01/t01: Fail
-LibTest/core/AssertError/failedAssertion/AssertError/failedAssertion/A01/t01: Fail
 LibTest/core/AssertError/toString/AssertError/toString/A01/t01: Fail
 LibTest/core/AssertError/throwNew/AssertError/throwNew/A01/t02: Fail
-LibTest/core/AssertError/toString/AssertError/toString/A01/t02: Fail
 LibTest/core/AssertError/url/AssertError/url/A01/t01: Fail
 LibTest/core/AssertError/url/AssertError/url/A01/t02: Fail
 LibTest/core/String/A02/t01: Fail
-LibTest/core/AssertError/line/AssertError/line/A01/t02: Fail
 LibTest/core/AssertError/line/AssertError/line/A01/t01: Fail
 LibTest/core/String/replaceAll/String/replaceAll/A02/t01: Fail
 LibTest/core/String/replaceAll/String/replaceAll/A01/t01: Fail
@@ -475,7 +470,6 @@ LibTest/core/TypeError/url/TypeError/url/A01/t01: Fail
 LibTest/core/TypeError/column/TypeError/column/A01/t01: Fail
 LibTest/core/TypeError/line/TypeError/line/A01/t01: Fail
 LibTest/core/TypeError/dstType/TypeError/dstType/A01/t01: Fail
-LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail
 LibTest/core/TypeError/srcType/TypeError/srcType/A01/t01: Fail
 LibTest/core/TypeError/failedAssertion/TypeError/failedAssertion/A01/t01: Fail
 LibTest/core/Promise/fail/Promise/fail/A01/t02: Fail
@@ -495,7 +489,6 @@ LibTest/core/int/operator\^/int/operator\^/A01/t01: Fail
 LibTest/core/int/operator_l_shift/int/operator/l/shift/A01/t01: Fail
 LibTest/core/int/operator_l_shift/int/operator/l/shift/A01/t02: Fail
 LibTest/core/int/operator_l_shift/int/operator/l/shift/A01/t03: Fail
-
 
 [ $component == frog || $component == leg ]
 LibTest/core/List/sort/List/sort/A01/t06: Skip # Timeout
@@ -535,10 +528,49 @@ LibTest/core/Math/acos/Math/acos/A01/t01: Fail
 LibTest/core/Math/cos/Math/cos/A01/t01: Fail
 
 # Started failing after making @static-type-error non-negative.
-[ $component == frog || $component == frogsh || $component == leg ]
+[ ($component == frog || $component == frogsh || $component == leg) && $unchecked ]
 LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail
 LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail
 LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
 LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail
 LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
+LangSpecTest/13_Types/13_7_Type_Void/A01/t05: Fail
+LibTest/core/AssertError/line/AssertError/line/A01/t02: Fail
+LibTest/core/AssertError/toString/AssertError/toString/A01/t02: Fail
+LibTest/core/AssertError/column/AssertError/column/A01/t02: Fail
+LibTest/core/AssertError/failedAssertion/AssertError/failedAssertion/A01/t01: Fail
+LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail
+
+[ ($component == frog || $component == frogsh || $component == leg) && $checked ]
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Fail
+LangGuideTest/08_Expressions/A02/t02: Fail
+LangGuideTest/08_Expressions/A01/t02: Fail
+LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A01/t01: Fail
+LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
+LangSpecTest/13_Types/13_1_Static_Types/A01/t01: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t08: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t01: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A08/t03: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t03: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A09/t01: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t15: Fail
+LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Fail
+LibTest/core/List/some/List/some/A01/t05: Fail
+LibTest/core/List/some/List/some/A01/t04: Fail
+LibTest/core/List/some/List/some/A01/t06: Fail
+LibTest/core/List/forEach/List/forEach/A01/t07: Fail
+LibTest/core/List/every/List/every/A01/t07: Fail
+LibTest/core/List/every/List/every/A01/t05: Fail
+LibTest/core/List/every/List/every/A01/t06: Fail
+LibTest/core/List/filter/List/filter/A01/t07: Fail
+LibTest/core/Queue/Queue.from/Queue/Queue.from/A01/t02: Fail
+LibTest/core/BadNumberFormatException/BadNumberFormatException/BadNumberFormatException/A01/t01: Fail
+LibTest/core/UnsupportedOperationException/UnsupportedOperationException/UnsupportedOperationException/A01/t01: Fail
+LibTest/core/RegExp/RegExp/RegExp/A01/t02: Fail
+LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
+LibTest/core/Map/operator\[\]/Map/operator\[\]/A01/t03: Fail
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
+LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail
+LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail
+LibTest/core/Map/operator\[\]=/Map/operator\[\]=/A01/t03: Fail
