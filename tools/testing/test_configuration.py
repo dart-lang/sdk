@@ -66,7 +66,7 @@ class StandardTestConfiguration(test.TestConfiguration):
     tags = {}
     if filename.endswith('.dart'):
       tags = self.SplitMultiTest(test_path, filename)
-    if component in ['dartium', 'chromium']:
+    if component in ['dartium', 'chromium', 'webdriver']:
       if tags:
         return []
       else:

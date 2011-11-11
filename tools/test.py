@@ -1219,7 +1219,8 @@ def BuildOptions():
   result.add_option(
       '-c', '--component',
       help='The component to test against '
-           '(most, vm, dartc, frog, frogsh, leg, chromium, dartium)',
+           '(most, vm, dartc, frog, frogsh, leg, chromium, dartium, '
+           'webdriver)',
       metavar='[most,vm,dartc,chromium,dartium]',
       default='vm')
   return result
@@ -1259,7 +1260,7 @@ def ProcessOptions(options):
       return False
   for component in options.component:
     if not component in ['vm', 'dartc', 'frog', 'frogsh', 'leg',
-                         'chromium', 'dartium']:
+                         'chromium', 'dartium', 'webdriver']:
       print 'Unknown component %s' % component
       return False
   options.flags = []

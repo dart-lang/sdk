@@ -199,7 +199,7 @@ TypedMessageTest: Fail # Bug 5246195
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-[ $component == frogsh ||  $component == frog || $component == leg ]
+[ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver ]
 FactoryNegativeTest: Fail # Issue 417
 
 # VM or DartC specific tests not to be run by Frog. See language.status
@@ -340,7 +340,7 @@ PrivateMemberTest/none: Fail # test seems bad - see issue #353
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
 
-[ $component == frogsh ||  $component == frog || $component == leg ]
+[ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver ]
 FinalVarNegativeTest: Fail
 
 [ $arch == x64 ]

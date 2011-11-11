@@ -394,6 +394,38 @@ class DartiumArchitecture(BrowserArchitecture):
     return 0
 
 
+class WebDriverArchiecture(ChromiumArchitecture):
+  """Architecture that runs compiled dart->JS (via frog) through a variety of
+  real browsers using WebDriver."""
+
+  def __init__(self, root_path, arch, mode, component, test):
+    super(WebDriverArchiecture, self).__init__(root_path, arch, mode,
+        component, test)
+
+  def GetCompileCommand(self, fatal_static_type_errors=False):
+    """Returns cmdline as an array to invoke the compiler on this test."""
+    # We need an absolute path because the compilation will run
+    # in a temporary directory.
+    frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
+    build_root = utils.GetBuildRoot(OS_GUESS, self.mode, 'ia32')
+    cmd = [frog, '--libdir=%s' % os.path.abspath(os.path.join(self.root_path, 
+        'frog', 'lib')), '--compile-only',
+        '--out=%s' % self.GetScriptPath()]
+    cmd.append(self.GetTestScriptFile())
+    return cmd
+
+  def GetRunCommand(self, fatal_static_type_errors=False):
+    """Returns a command line to execute for the test."""
+    selenium_location = os.path.join(self.root_path, 'tools', 'testing',
+                                'run_selenium.py')
+    
+    html_output_file = os.path.join(self.GetHtmlPath(), self.GetHtmlName())
+    f = open(html_output_file, 'w')
+    f.write(self.GetHtmlContents())
+    f.close()
+    return [selenium_location, html_output_file]
+
+
 class StandaloneArchitecture(Architecture):
   """Base class for architectures that run tests without a browser."""
 
@@ -496,6 +528,9 @@ def GetArchitecture(arch, mode, component, test):
 
   elif component == 'dartium':
     return DartiumArchitecture(root_path, arch, mode, component, test)
+
+  elif component == 'webdriver':
+    return WebDriverArchiecture(root_path, arch, mode, component, test)
 
   elif component in ['vm', 'frog', 'frogsh']:
     return StandaloneArchitecture(root_path, arch, mode, component, test)

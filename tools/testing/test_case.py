@@ -93,7 +93,7 @@ class MultiTestCase(StandardTestCase):
 
 
 class BrowserTestCase(StandardTestCase):
-  """A test case that executes inside a browser (or DumpRenderTree)."""
+  """A test case that executes inside DumpRenderTree."""
 
   def __init__(self, context, path, filename,
                fatal_static_type_errors, mode, arch, component, vm_options=None):
