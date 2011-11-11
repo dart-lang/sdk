@@ -1,0 +1,207 @@
+/* Reset */
+body, h1, h2, h3, h4, p, pre, section {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Georgia, serif;
+  background: #eee;
+  color: #333;
+}
+
+h1 {
+  font: 700 22px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  margin: 0 0 22px 0;
+}
+
+h2 {
+  font: 400 28px/44px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  margin: 22px 0;
+}
+
+h3 {
+  font: 600 14px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  color: #999;
+  margin: 22px 0 0 0;
+}
+
+h4 {
+  font: 600 16px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+}
+
+p {
+  font-size: 16px;
+  line-height: 22px;
+  margin: 22px 0;
+}
+
+strong {
+  font-weight: 700;
+}
+
+pre, code {
+  font: 14px/22px Menlo, Monaco, Consolas, Courier, monospace;
+  color: hsl(220, 20%, 30%);
+  background: hsl(220, 20%, 95%);
+  margin: 22px 0;
+  padding: 0 4px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+a {
+  color: hsl(220, 50%, 50%);
+  text-decoration: none;
+}
+
+a:hover {
+  color: hsl(220, 100%, 70%);
+}
+
+a:visited {
+  color: hsl(270, 50%, 40%);
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background: #ccc;
+  margin: 22px 0 21px 0;
+}
+
+hr + h2 {
+  margin-top: 21px; /* To compensate for the thickness of the hr. */
+}
+
+.content {
+  max-width: 704px; /* 32 x 22px */
+  padding: 22px 22px;
+  background: #fff;
+  margin: 0 auto 22px auto;
+  border: solid 1px #ccc;
+  border-top: none;
+}
+
+.method .doc,
+.field .doc {
+  padding-left: 44px;
+}
+
+/* Highlight members on hover so you can see which docs are for which member. */
+.method:hover,
+.field:hover {
+  margin: 0 -22px;
+  border: solid 4px hsl(40, 100%, 85%);
+  padding: 0 18px;
+  border-top: none;
+  border-bottom: none;
+}
+
+/* Only show the "code" link for the highlighted member. */
+.show-code {
+  float: right;
+  font: 600 11px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  padding-left: 6px; /* In case it gets too close to the member. */
+}
+
+.method:hover .show-code,
+.field:hover .show-code {
+  display: inline;
+}
+
+/* Only show permalinks when hovered over. */
+.anchor-link {
+  display: none;
+}
+
+h2:hover > .anchor-link,
+h4:hover > .anchor-link {
+  display: inline;
+}
+
+/* Only show code when expanded. */
+pre.source {
+  display: none;
+}
+
+pre.source.expanded {
+  display: block;
+}
+
+/* Links that don't cause a page refresh. */
+.anchor-link, .anchor-link:visited,
+.show-code, .show-code:visited {
+  color: hsl(40, 100%, 40%);
+  display: none;
+  cursor: pointer;
+}
+
+.anchor-link:hover,
+.show-code:hover {
+  color: hsl(40, 100%, 60%);
+}
+
+/* Syntax highlighting. */
+/* Note: these correspond to the constants in classify.dart. */
+pre.source .e { color: hsl(  0, 100%, 70%); } /* Error */
+pre.source .c { color: hsl(220,  20%, 65%); } /* Comment */
+pre.source .i { color: hsl(220,  20%, 20%); } /* Identifier */
+pre.source .k { color: hsl(220, 100%, 50%); } /* Keyword */
+pre.source .p { color: hsl(220,  20%, 50%); } /* Punctuation */
+pre.source .o { color: hsl(220,  40%, 50%); } /* Operator */
+pre.source .s { color: hsl( 40,  90%, 40%); } /* String */
+pre.source .n { color: hsl( 30,  70%, 50%); } /* Number */
+pre.source .t { color: hsl(180,  40%, 40%); } /* Type Name */
+pre.source .r { color: hsl(200, 100%, 50%); } /* Special Identifier */
+pre.source .a { color: hsl(220, 100%, 45%); } /* Arrow */
+
+/* Interpolated expressions within strings. */
+pre.source .si {
+  background: hsl(40, 100%, 90%);
+}
+
+pre.source .s.si { background: hsl(40, 80%, 95%); }
+pre.source .i.si { color: hsl(40, 30%, 30%); }
+pre.source .p.si { color: hsl(40, 60%, 40%); }
+
+/* Enable these to debug the grid: */
+
+/*
+body {
+  background: url('grid-22.png') top left repeat;
+}
+
+.content {
+  background: none;
+}
+
+h1 {
+  border-left: solid 4px green;
+}
+
+h2 {
+  border-left: solid 4px blue;
+}
+
+h3 {
+  border-left: solid 4px red;
+}
+
+h4 {
+  border-left: solid 4px orange;
+}
+
+p {
+  border-left: solid 4px purple;
+}
+
+section {
+  border-left: solid 4px gray;
+}
+*/
