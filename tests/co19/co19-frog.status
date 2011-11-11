@@ -421,6 +421,9 @@ LibTest/core/Math/max/Math/max/A01/t02: Fail
 LibTest/core/Math/atan/Math/atan/A01/t02: Fail
 LibTest/core/Math/exp/Math/exp/A01/t02: Fail
 LibTest/core/Math/parseInt/Math/parseInt/A02/t01: Fail
+LibTest/core/Math/acos/Math/acos/A01/t01: Skip # TODO(jimhug): bad test
+LibTest/core/Math/asin/Math/asin/A01/t01: Skip # TODO(jimhug): bad test
+LibTest/core/Math/atan/Math/atan/A01/t01: Skip # TODO(jimhug): bad test
 LibTest/core/Math/atan/Math/atan/A01/t03: Fail
 LibTest/core/Math/exp/Math/exp/A01/t01: Fail
 LibTest/core/Math/exp/Math/exp/A01/t03: Fail
@@ -450,6 +453,7 @@ LibTest/core/Math/sin/Math/sin/A01/t01: Fail
 LibTest/core/Math/sin/Math/sin/A01/t02: Fail
 LibTest/core/Math/sqrt/Math/sqrt/A01/t02: Fail
 LibTest/core/Math/sqrt/Math/sqrt/A01/t04: Fail
+LibTest/core/Math/tan/Math/tan/A01/t01: Skip # TODO(jimhug): bad test
 LibTest/core/Math/tan/Math/tan/A01/t02: Fail
 LibTest/core/Math/sqrt/Math/sqrt/A01/t03: Fail
 LibTest/core/Math/tan/Math/tan/A01/t03: Fail
