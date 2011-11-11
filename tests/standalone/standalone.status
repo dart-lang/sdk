@@ -53,6 +53,10 @@ PlatformTest: Skip # Uses Platform
 *: Skip
 
 
+[ $component == frog || $component == frogsh ]
+*: Skip
+
+
 [ $arch == x64 ]
 *: Skip
 
