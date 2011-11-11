@@ -148,7 +148,7 @@ def main():
     result, out = execute_command('unzip', temp_zip, '-d', temp_dir)
     if result != 0:
       raise Exception('Execution of "unzip %s -d %s" failed: %s' %
-                      (temp_zip, temp_dir, str(output)))
+                      (temp_zip, temp_dir, str(out)))
     unzipped_dir = temp_dir + '/' + os.path.basename(latest)[:-4] # remove .zip
     shutil.move(unzipped_dir, DRT_DIR)
   finally:
