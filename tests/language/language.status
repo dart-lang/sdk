@@ -191,7 +191,6 @@ RichardsTest: Fail
 UnboundGetterTest: Fail
 Private2Test: Fail
 Private3Test: Fail
-FactoryNegativeTest: Fail # Issue 417
 
 TypedMessageTest: Fail # Bug 5246195
 
