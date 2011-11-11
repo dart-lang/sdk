@@ -7,12 +7,13 @@ interface Interface<T> factory Factory {
   Interface.withArg(T value);
 }
 
+// A factory must be parametrized. Use legacy form.
 class Factory {
-  factory Interface() {
+  factory Interface<T>() {
     return null;
   }
 
-  factory Interface.withArg(value) {
+  factory Interface<T>.withArg(value) {
     return null;
   }
 }

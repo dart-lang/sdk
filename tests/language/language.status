@@ -49,6 +49,8 @@ ImplicitThisTest/03: Fail # Issue 374
 ImplicitThisTest/04: Fail # Issue 374
 ImplicitThisTest/none: Fail # Issue 374
 
+NonParameterizedFactoryTest: Fail # Bug 5257789
+
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
 *DartcNegativeTest: Skip
@@ -57,11 +59,8 @@ ImplicitThisTest/none: Fail # Issue 374
 
 
 [ $component == vm && $mode == debug ]
-NonParameterizedFactoryTest: Crash  # Issue 226
-FactoryNegativeTest: Crash # Issue 417
 
 [ $component == vm && $mode == release ]
-FactoryNegativeTest: Fail # Issue 417
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]

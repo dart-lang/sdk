@@ -164,6 +164,9 @@ class Parser : ValueObject {
   void SkipFunctionLiteral();
   void SkipStringLiteral();
 
+  void CheckConstructorCallTypeArguments(
+    intptr_t pos, Function& constructor, const TypeArguments& type_arguments);
+
   // Reports error message at location of current token.
   void ErrorMsg(const char* msg, ...);
   void ErrorMsg(intptr_t token_index, const char* msg, ...);

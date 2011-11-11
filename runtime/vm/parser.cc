@@ -6389,6 +6389,18 @@ RawType* Parser::ParseType(TypeResolution type_resolution) {
 }
 
 
+void Parser::CheckConstructorCallTypeArguments(
+    intptr_t pos, Function& constructor, const TypeArguments& type_arguments) {
+  if (!type_arguments.IsNull() &&
+      (type_arguments.Length() !=
+          Class::Handle(constructor.owner()).NumTypeArguments())) {
+    ErrorMsg(pos, "Incorrect number of type arguments, expected %d got %d",
+        Class::Handle(constructor.owner()).NumTypeArguments(),
+        type_arguments.Length());
+  }
+}
+
+
 // Parse "[" [ expr { "," expr } ["," ] "]".
 // Note: if the array literal is empty and the brackets have no whitespace
 // between them, the scanner recognizes the opening and closing bracket
@@ -6469,6 +6481,7 @@ AstNode* Parser::ParseArrayLiteral(intptr_t type_pos,
     ASSERT(!array_ctor.IsNull());
     ArgumentListNode* ctor_args = new ArgumentListNode(literal_pos);
     ctor_args->Add(array);
+    CheckConstructorCallTypeArguments(literal_pos, array_ctor, type_arguments);
     return new ConstructorCallNode(
         literal_pos, type_arguments, array_ctor, ctor_args);
   }
@@ -6833,6 +6846,7 @@ AstNode* Parser::ParseNewOperator() {
       // Make sure that the instantiator is captured.
       CaptureReceiver();
     }
+    CheckConstructorCallTypeArguments(new_pos, constructor, type_arguments);
     new_object = new ConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
   }
