@@ -256,8 +256,8 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   _Socket._internal();
-  _Socket._internalInputOnly() : _closedRead = true;
-  _Socket._internalOutputOnly() : _closedWrite = true;
+  _Socket._internalReadOnly() : _closedWrite = true;
+  _Socket._internalWriteOnly() : _closedRead = true;
 
   int available() {
     if (_id >= 0) {

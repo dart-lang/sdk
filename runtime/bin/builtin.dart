@@ -15,6 +15,33 @@ void exit(int status) {
   _exit(status);
 }
 
+Socket _stdin;
+OutputStream get stdin() {
+  if (_stdin == null) {
+    _stdin = new _Socket._internalReadOnly();
+    _stdin._id = 0;
+  }
+  return _stdin.inputStream;
+}
+
+Socket _stdout;
+OutputStream get stdout() {
+  if (_stdout == null) {
+    _stdout = new _Socket._internalWriteOnly();
+    _stdout._id = 1;
+  }
+  return _stdout.outputStream;
+}
+
+Socket _stderr;
+OutputStream get stderr() {
+  if (_stderr == null) {
+    _stderr = new _Socket._internalWriteOnly();
+    _stderr._id = 2;
+  }
+  return _stderr.outputStream;
+}
+
 _exit(int status) native "Exit";
 
 class _Logger {
