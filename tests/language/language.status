@@ -56,11 +56,11 @@ ImplicitThisTest/none: Fail # Issue 374
 *FrogNegativeTest: Skip
 
 
-[ ($component == vm || $component == dartium) && $mode == debug ]
+[ $component == vm && $mode == debug ]
 NonParameterizedFactoryTest: Crash  # Issue 226
 FactoryNegativeTest: Crash # Issue 417
 
-[ ($component == vm || $component == dartium) && $mode == release ]
+[ $component == vm && $mode == release ]
 FactoryNegativeTest: Fail # Issue 417
 
 # Problems specific to dartc optimized mode
@@ -192,6 +192,7 @@ RichardsTest: Fail
 UnboundGetterTest: Fail
 Private2Test: Fail
 Private3Test: Fail
+FactoryNegativeTest: Fail # Issue 417
 
 TypedMessageTest: Fail # Bug 5246195
 
