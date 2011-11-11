@@ -10,7 +10,7 @@ touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
 samples/total/total_tests: Fail # FIXME in DateTimeUtils.dart
 samples/swarm/swarm_tests: Fail
-touch/view_tests: Skip  # Flaky
+view/view_tests: Skip  # Flaky
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
