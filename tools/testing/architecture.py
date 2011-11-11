@@ -391,9 +391,11 @@ class FrogChromiumArchitecture(ChromiumArchitecture):
     # in a temporary directory.
 
     frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
-    cmd = [frog, '--out=' + self.GetScriptPath(), '--compile-only',
-        '--libdir=' + os.path.abspath(
-            os.path.join(self.root_path, 'frog', 'lib'))]
+    frog_libdir = os.path.abspath(os.path.join(self.root_path, 'frog', 'lib'))
+    cmd = [frog,
+        '--libdir=%s' % frog_libdir,
+        '--compile-only',
+        '--out=%s' % self.GetScriptPath()]
     cmd.extend(self.vm_options)
     cmd.append(self.GetTestScriptFile())
     return cmd
@@ -423,25 +425,13 @@ class DartiumArchitecture(BrowserArchitecture):
     return 0
 
 
-class WebDriverArchiecture(ChromiumArchitecture):
+class WebDriverArchiecture(FrogChromiumArchitecture):
   """Architecture that runs compiled dart->JS (via frog) through a variety of
   real browsers using WebDriver."""
 
   def __init__(self, root_path, arch, mode, component, test):
     super(WebDriverArchiecture, self).__init__(root_path, arch, mode,
         component, test)
-
-  def GetCompileCommand(self, fatal_static_type_errors=False):
-    """Returns cmdline as an array to invoke the compiler on this test."""
-    # We need an absolute path because the compilation will run
-    # in a temporary directory.
-    frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
-    build_root = utils.GetBuildRoot(OS_GUESS, self.mode, 'ia32')
-    cmd = [frog, '--libdir=%s' % os.path.abspath(os.path.join(self.root_path, 
-        'frog', 'lib')), '--compile-only',
-        '--out=%s' % self.GetScriptPath()]
-    cmd.append(self.GetTestScriptFile())
-    return cmd
 
   def GetRunCommand(self, fatal_static_type_errors=False):
     """Returns a command line to execute for the test."""
