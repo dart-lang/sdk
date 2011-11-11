@@ -200,7 +200,7 @@ TypedMessageTest: Fail # Bug 5246195
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-[ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver ]
+[ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver || $component == frogium ]
 FactoryNegativeTest: Fail # Issue 417
 
 # VM or DartC specific tests not to be run by Frog. See language.status
@@ -321,28 +321,39 @@ TypeVariableBoundsTest/05: Fail # issue with test filed as #354
 UnboundGetterTest: Fail
 VarInitTest: Fail
 WrongNumberTypeArgumentsTest: Fail
-GetterClosureExecutionOrderTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
+FinalVarNegativeTest: Fail
 
-[ ($component == frogsh ||  $component == frog || $component == leg) && $unchecked ]
+[ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
 
-[ ($component == frogsh ||  $component == frog || $component == leg) && $checked ]
+[ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == leg ]
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
 
-[ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver ]
-FinalVarNegativeTest: Fail
+[ $component == frog || $component == frogsh || $component == leg ]
+# these tests are inconsistent in frogium and frogsh-node, investigate
+GetterClosureExecutionOrderTest: Fail
+ParameterInitializerTest: Pass
+StaticField1RunNegativeTest: Pass
+StaticField2RunNegativeTest: Pass
+
+[ $component == frogium ]
+# these tests are inconsistent in frogium and frogsh-node, investigate
+GetterClosureExecutionOrderTest: Pass
+ParameterInitializerTest: Fail
+StaticField1RunNegativeTest: Fail
+StaticField2RunNegativeTest: Fail
 
 [ $arch == x64 ]
 *: Skip

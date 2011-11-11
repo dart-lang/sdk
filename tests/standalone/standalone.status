@@ -52,6 +52,9 @@ PlatformTest: Skip # Uses Platform
 [ $component == dartc || $component == chromium ]
 *: Skip
 
+[ $component == frog || $component == frogsh || $component == leg || $component == frogium ]
+*: Skip
+
 
 [ $component == frog || $component == frogsh ]
 *: Skip

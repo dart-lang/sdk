@@ -29,3 +29,6 @@ corelib/SharedTests: Skip
 
 [ $component == chromium ]
 *: Skip
+
+[ $component == frogium ]
+*: Skip

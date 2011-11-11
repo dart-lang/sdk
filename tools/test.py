@@ -1243,6 +1243,8 @@ def ProcessOptions(options):
       options.timeout *= 4
     elif 'chromium' in options.component:
       options.timeout *= 4
+    elif 'frogium' in options.component:
+      options.timeout *= 4
     elif 'dartium' in options.component:
       options.timeout *= 4
     elif 'debug' in options.mode:
@@ -1260,7 +1262,7 @@ def ProcessOptions(options):
       return False
   for component in options.component:
     if not component in ['vm', 'dartc', 'frog', 'frogsh', 'leg',
-                         'chromium', 'dartium', 'webdriver']:
+                         'chromium', 'dartium', 'frogium', 'webdriver']:
       print 'Unknown component %s' % component
       return False
   options.flags = []

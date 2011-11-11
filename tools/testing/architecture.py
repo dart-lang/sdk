@@ -346,6 +346,16 @@ class ChromiumArchitecture(BrowserArchitecture):
     relpath = os.path.relpath(self.test, self.root_path)
     return relpath.replace(os.sep, '_') + '.html'
 
+  def Compile(self):
+    return ExecuteCommand(self.GetCompileCommand())
+
+class DartcChromiumArchitecture(ChromiumArchitecture):
+  """ChromiumArchitecture that compiles code using dartc."""
+
+  def __init__(self, root_path, arch, mode, component, test):
+    super(DartcChromiumArchitecture, self).__init__(
+        root_path, arch, mode, component, test)
+
   def GetCompileCommand(self, fatal_static_type_errors=False):
     """Returns cmdline as an array to invoke the compiler on this test."""
 
@@ -366,8 +376,27 @@ class ChromiumArchitecture(BrowserArchitecture):
     cmd.append(self.GetTestScriptFile())
     return cmd
 
-  def Compile(self):
-    return ExecuteCommand(self.GetCompileCommand())
+
+class FrogChromiumArchitecture(ChromiumArchitecture):
+  """ChromiumArchitecture that compiles code using frog."""
+
+  def __init__(self, root_path, arch, mode, component, test):
+    super(FrogChromiumArchitecture, self).__init__(
+        root_path, arch, mode, component, test)
+
+  def GetCompileCommand(self, fatal_static_type_errors=False):
+    """Returns cmdline as an array to invoke the compiler on this test."""
+
+    # We need an absolute path because the compilation will run
+    # in a temporary directory.
+
+    frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
+    cmd = [frog, '--out=' + self.GetScriptPath(), '--compile-only',
+        '--libdir=' + os.path.abspath(
+            os.path.join(self.root_path, 'frog', 'lib'))]
+    cmd.extend(self.vm_options)
+    cmd.append(self.GetTestScriptFile())
+    return cmd
 
 
 class DartiumArchitecture(BrowserArchitecture):
@@ -524,10 +553,13 @@ def ExecuteCommand(cmd, verbose=False):
 def GetArchitecture(arch, mode, component, test):
   root_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..'))
   if component == 'chromium':
-    return ChromiumArchitecture(root_path, arch, mode, component, test)
+    return DartcChromiumArchitecture(root_path, arch, mode, component, test)
 
   elif component == 'dartium':
     return DartiumArchitecture(root_path, arch, mode, component, test)
+
+  elif component == 'frogium':
+    return FrogChromiumArchitecture(root_path, arch, mode, component, test)
 
   elif component == 'webdriver':
     return WebDriverArchiecture(root_path, arch, mode, component, test)

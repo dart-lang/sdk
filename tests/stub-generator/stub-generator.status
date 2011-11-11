@@ -28,3 +28,6 @@ prefix stub-generator
 
 [ $component == chromium ]
 *: Skip
+
+[ $component == frog || $component == frogsh ||  $component == leg || $component == frogium ]
+*: Skip

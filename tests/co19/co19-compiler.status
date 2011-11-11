@@ -407,3 +407,6 @@ LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
 
 [ $component == chromium ]
 *: Skip
+
+[ $component == frogium ]
+*: Skip

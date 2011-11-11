@@ -15,6 +15,14 @@ samples/swarm/swarm_tests: Fail
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 
+[ $component == frogium ]
+touch/touch_tests: Fail  # Issue 157.
+layout/layout_tests: Fail
+html/html_tests: Fail
+samples/swarm/swarm_tests: Fail
+samples/dartcombat/dartcombat_tests: Fail
+json/json_tests: Fail
+
 [ $component == chromium && $mode == release ]
 html/html_tests: Timeout
 samples/dartcombat/dartcombat_tests: Timeout
