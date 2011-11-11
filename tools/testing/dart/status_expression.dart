@@ -110,7 +110,7 @@ class BooleanVariable implements BooleanExpression {
 
   BooleanVariable(this.variable);
 
-  bool evaluate(environment) => variable.termValue(environment) == true;
+  bool evaluate(environment) => variable.termValue(environment) == 'true';
   String toString() => "(bool \$${variable.name})";
 }
 
