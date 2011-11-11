@@ -543,7 +543,7 @@ LibTest/core/AssertError/failedAssertion/AssertError/failedAssertion/A01/t01: Fa
 LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail
 
 [ ($component == frog || $component == frogsh || $component == leg) && $checked ]
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Fail
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Pass # for the wrong reasons
 LangGuideTest/08_Expressions/A02/t02: Fail
 LangGuideTest/08_Expressions/A01/t02: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A01/t01: Fail
@@ -559,7 +559,7 @@ LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Fail
 LibTest/core/List/some/List/some/A01/t05: Fail
 LibTest/core/List/some/List/some/A01/t04: Fail
 LibTest/core/List/some/List/some/A01/t06: Fail
-LibTest/core/List/forEach/List/forEach/A01/t07: Fail
+LibTest/core/List/forEach/List/forEach/A01/t07: Pass # for the wrong reasons
 LibTest/core/List/every/List/every/A01/t07: Fail
 LibTest/core/List/every/List/every/A01/t05: Fail
 LibTest/core/List/every/List/every/A01/t06: Fail
@@ -567,10 +567,13 @@ LibTest/core/List/filter/List/filter/A01/t07: Fail
 LibTest/core/Queue/Queue.from/Queue/Queue.from/A01/t02: Fail
 LibTest/core/BadNumberFormatException/BadNumberFormatException/BadNumberFormatException/A01/t01: Fail
 LibTest/core/UnsupportedOperationException/UnsupportedOperationException/UnsupportedOperationException/A01/t01: Fail
-LibTest/core/RegExp/RegExp/RegExp/A01/t02: Fail
 LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
 LibTest/core/Map/operator\[\]/Map/operator\[\]/A01/t03: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
 LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail
 LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail
 LibTest/core/Map/operator\[\]=/Map/operator\[\]=/A01/t03: Fail
+LibTest/core/List/some/List/some/A01/t02: Fail
+LibTest/core/List/every/List/every/A01/t02: Fail
+LangGuideTest/02_Language_Constructs/02_6_Functions/A04/t01: Fail
+LangGuideTest/02_Language_Constructs/02_2_Interface/A01/t01: Fail
