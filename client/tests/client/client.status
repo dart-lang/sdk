@@ -9,12 +9,6 @@ samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
 samples/total/total_tests: Fail # FIXME in DateTimeUtils.dart
-samples/swarm/swarm_tests: Fail
-view/view_tests: Skip # flaky - it sometimes timeout
-html/html_tests: Skip # flaky - it sometimes timeout
-observable/observable_tests: Skip # flaky - it sometimes timeout
-util/util_tests: Skip # flaky - it sometimes timeout
-json/json_tests: Skip # flaky - it sometimes timeout
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.

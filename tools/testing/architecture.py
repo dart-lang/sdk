@@ -32,9 +32,10 @@ HTML_CONTENTS = """
   <script type="%(script_type)s" src="%(source_script)s"></script>
   <script type="text/javascript">
     // If nobody intercepts the error, finish the test.
-    window.onerror = function() { window.layoutTestController.notifyDone() };
+    onerror = function() { window.layoutTestController.notifyDone() };
 
-    window.addEventListener('DOMContentLoaded', function() {
+    document.onreadystatechange = function() {
+      if (document.readyState != "loaded") return;
       // If 'startedDartTest' is not set, that means that the test did not have
       // a chance to load. This will happen when a load error occurs in the VM.
       // Give the machine time to start up.
@@ -43,13 +44,12 @@ HTML_CONTENTS = """
         // Just sleep another time to give the browser the time to process the
         // posted message.
         setTimeout(function() {
-          if (window.layoutTestController
-              && !window.layoutTestController.startedDartTest) {
-            window.layoutTestController.notifyDone();
+          if (layoutTestController && !layoutTestController.startedDartTest) {
+            layoutTestController.notifyDone();
           }
         }, 0);
       }, 50);
-    }, false);
+    };
   </script>
 </body>
 </html>
