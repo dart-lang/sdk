@@ -15,6 +15,12 @@ class Object;
 class PersistentHandle;
 class RawObject;
 
+
+#define DARTSCOPE(isolate)                                                    \
+  ASSERT(isolate != NULL);                                                    \
+  Zone zone(isolate);                                                         \
+  HANDLESCOPE(isolate);                                                       \
+
 class Api : AllStatic {
  public:
   // Creates a new local handle.

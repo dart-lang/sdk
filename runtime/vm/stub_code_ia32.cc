@@ -30,6 +30,7 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 //   EDX : number of arguments to the call.
 // Must preserve callee saved registers EDI and EBX.
 static void GenerateCallRuntimeStub(Assembler* assembler) {
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
   const intptr_t argc_offset = NativeArguments::argc_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -56,6 +57,7 @@ static void GenerateCallRuntimeStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
+  __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
   __ movl(Address(ESP, argc_offset), EDX);  // Set argc in NativeArguments.
   __ leal(EAX, Address(EBP, EDX, TIMES_4, 1 * kWordSize));  // Compute argv.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
@@ -118,6 +120,8 @@ void StubCode::GenerateStubCallToRuntimeStub(Assembler* assembler) {
 // Uses EDI.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = kWordSize;
+  const intptr_t isolate_offset =
+      NativeArguments::isolate_offset() + native_args_struct_offset;
   const intptr_t argc_offset =
       NativeArguments::argc_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -149,6 +153,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
+  __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
   __ movl(Address(ESP, argc_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.

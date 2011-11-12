@@ -55,17 +55,14 @@ static const char* CanonicalFunction(const char* func) {
 
 
 DART_EXPORT bool Dart_IsError(const Dart_Handle& handle) {
-  ASSERT(Isolate::Current() != NULL);
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   return obj.IsApiError();
 }
 
 
 DART_EXPORT bool Dart_ErrorHasException(Dart_Handle handle) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   if (obj.IsApiError()) {
     const ApiError& error = ApiError::CheckedHandle(obj.raw());
@@ -77,8 +74,7 @@ DART_EXPORT bool Dart_ErrorHasException(Dart_Handle handle) {
 
 
 DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   if (obj.IsApiError()) {
     const ApiError& error = ApiError::CheckedHandle(obj.raw());
@@ -98,8 +94,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle) {
 
 
 DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   if (obj.IsApiError()) {
     ApiError& failure = ApiError::Handle();
@@ -158,9 +153,8 @@ static const char* MakeUnhandledExceptionCString(
 
 
 DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
-  ASSERT(Isolate::Current() != NULL);
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
+
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   if (!obj.IsApiError()) {
     return "";
@@ -192,8 +186,7 @@ DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
 // TODO(turnidge): This clonse Api::Error.  I need to use va_copy to
 // fix this but not sure if it available on all of our builds.
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
 
   va_list args;
   va_start(args, format);
@@ -234,10 +227,9 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
     return reinterpret_cast<Dart_Isolate>(isolate);
   } else {
     {
-      Zone zone;  // Setup a VM zone as we are creating some handles.
-      HandleScope scope;  // Setup a VM handle scope.
+      DARTSCOPE(isolate);
       const String& error =
-          String::Handle(Isolate::Current()->object_store()->sticky_error());
+          String::Handle(isolate->object_store()->sticky_error());
       // TODO(asiva): Need to return this as a error.
       OS::PrintErr(error.ToCString());
     }
@@ -311,8 +303,8 @@ static RawInstance* DeserializeMessage(void* data) {
 DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port,
                                            Dart_Port reply_port,
                                            Dart_Message dart_message) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
+
   const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
   const String& class_name =
       String::Handle(String::NewSymbol("ReceivePortImpl"));
@@ -342,10 +334,9 @@ DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port,
 
 
 DART_EXPORT Dart_Handle Dart_RunLoop() {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
-
   Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   Dart_Handle result;
@@ -364,13 +355,13 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
-static void CompileSource(const Library& lib,
+static void CompileSource(Isolate* isolate,
+                          const Library& lib,
                           const String& url,
                           const String& source,
                           RawScript::Kind kind,
                           Dart_Handle* result) {
   const Script& script = Script::Handle(Script::New(url, source, kind));
-  Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
@@ -389,9 +380,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         Dart_LibraryTagHandler handler) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(isolate);
   TIMERSCOPE(time_script_loading);
   const String& url_str = String::CheckedHandle(Api::UnwrapHandle(url));
   const String& source_str = String::CheckedHandle(Api::UnwrapHandle(source));
@@ -404,17 +393,21 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   library.Register();
   isolate->object_store()->set_root_library(library);
   Dart_Handle result;
-  CompileSource(library, url_str, source_str, RawScript::kScript, &result);
+  CompileSource(isolate,
+                library,
+                url_str,
+                source_str,
+                RawScript::kScript,
+                &result);
   return result;
 }
 
 
 DEFINE_FLAG(bool, compile_all, false, "Eagerly compile all code.");
 
-static void CompileAll(Dart_Handle* result) {
+static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   *result = Api::Success();
   if (FLAG_compile_all) {
-    Isolate* isolate = Isolate::Current();
     ASSERT(isolate != NULL);
     LongJump* base = isolate->long_jump_base();
     LongJump jump;
@@ -431,12 +424,12 @@ static void CompileAll(Dart_Handle* result) {
 
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
-static const char* CheckIsolateState() {
+static const char* CheckIsolateState(Isolate* isolate) {
   if (!ClassFinalizer::FinalizePendingClasses()) {
     // Make a copy of the error message as the original message string
     // may get deallocated when we return back from the Dart API call.
     const String& err =
-    String::Handle(Isolate::Current()->object_store()->sticky_error());
+    String::Handle(isolate->object_store()->sticky_error());
     const char* errmsg = err.ToCString();
     intptr_t errlen = strlen(errmsg) + 1;
     char* msg = reinterpret_cast<char*>(Api::Allocate(errlen));
@@ -448,29 +441,27 @@ static const char* CheckIsolateState() {
 
 
 DART_EXPORT Dart_Handle Dart_CompileAll() {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   Dart_Handle result;
-  const char* msg = CheckIsolateState();
+  const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::Error(msg);
   }
-  CompileAll(&result);
+  CompileAll(isolate, &result);
   return result;
 }
 
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsLibrary();
 }
 
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Library& lib = Library::CheckedHandle(Api::UnwrapHandle(library));
   if (lib.IsNull()) {
     return Api::Error("Null library");
@@ -483,8 +474,7 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
 
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library_in,
                                                   Dart_Handle import_in) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Library& library =
       Library::CheckedHandle(Api::UnwrapHandle(library_in));
   if (library.IsNull()) {
@@ -498,8 +488,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library_in,
 
 
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   String& url_str = String::Handle();
   UNWRAP_NONNULL(url, url_str, String);
   const Library& library = Library::Handle(Library::LookupLibrary(url_str));
@@ -513,8 +502,8 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const String& url_str = String::CheckedHandle(Api::UnwrapHandle(url));
   const String& source_str = String::CheckedHandle(Api::UnwrapHandle(source));
   Library& library = Library::Handle(Library::LookupLibrary(url_str));
@@ -523,7 +512,12 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
     library.Register();
   }
   Dart_Handle result;
-  CompileSource(library, url_str, source_str, RawScript::kLibrary, &result);
+  CompileSource(isolate,
+                library,
+                url_str,
+                source_str,
+                RawScript::kLibrary,
+                &result);
   return result;
 }
 
@@ -531,14 +525,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library_in,
                                         Dart_Handle url_in,
                                         Dart_Handle source_in) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const String& url = String::CheckedHandle(Api::UnwrapHandle(url_in));
   const String& source = String::CheckedHandle(Api::UnwrapHandle(source_in));
   const Library& library =
       Library::CheckedHandle(Api::UnwrapHandle(library_in));
   Dart_Handle result;
-  CompileSource(library, url, source, RawScript::kSource, &result);
+  CompileSource(isolate, library, url, source, RawScript::kSource, &result);
   return result;
 }
 
@@ -546,8 +540,7 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library_in,
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Library& lib = Library::CheckedHandle(Api::UnwrapHandle(library));
   if (lib.IsNull()) {
     return Api::Error("Invalid parameter, Unknown library specified");
@@ -558,8 +551,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 
 
 DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   Object& result = Object::Handle();
   if (obj.IsString()) {
@@ -585,24 +577,21 @@ DART_EXPORT Dart_Handle Dart_Null() {
 
 
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsNull();
 }
 
 
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsClosure();
 }
 
 
 DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object) {
-  Zone zone;
-  HandleScope scope;
+  DARTSCOPE(Isolate::Current());
   const Closure& obj = Closure::CheckedHandle(Api::UnwrapHandle(object));
   const Integer& smrck = Integer::Handle(obj.smrck());
   return smrck.IsNull() ? 0 : smrck.AsInt64Value();
@@ -610,8 +599,7 @@ DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object) {
 
 
 DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
-  Zone zone;
-  HandleScope scope;
+  DARTSCOPE(Isolate::Current());
   const Closure& obj = Closure::CheckedHandle(Api::UnwrapHandle(object));
   const Integer& smrck = Integer::Handle(Integer::New(value));
   obj.set_smrck(smrck);
@@ -620,8 +608,7 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 
 DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
                                           bool* value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Instance& expected = Instance::CheckedHandle(Api::UnwrapHandle(obj1));
   const Instance& actual = Instance::CheckedHandle(Api::UnwrapHandle(obj2));
   const Instance& result =
@@ -641,8 +628,7 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
 
 DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
                                     bool* value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& expected = Object::Handle(Api::UnwrapHandle(obj1));
   const Object& actual = Object::Handle(Api::UnwrapHandle(obj2));
   *value = (expected.raw() == actual.raw());
@@ -651,8 +637,7 @@ DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
 
 
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& param = Object::Handle(Api::UnwrapHandle(name));
   if (param.IsNull() || !param.IsString()) {
     return Api::Error("Invalid class name specified");
@@ -679,8 +664,8 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
 DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle clazz,
                                           bool* value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Class& cls = Class::CheckedHandle(Api::UnwrapHandle(clazz));
   if (cls.IsNull()) {
     return Api::Error("instanceof check against null class");
@@ -689,7 +674,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   Instance& instance = Instance::Handle();
   instance ^= obj.raw();
   // Finalize all classes.
-  const char* msg = CheckIsolateState();
+  const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::Error(msg);
   }
@@ -701,32 +686,28 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 
 // TODO(iposva): The argument should be an instance.
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsNumber();
 }
 
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsInteger();
 }
 
 
 DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Integer& obj = Integer::Handle(Integer::New(value));
   return Api::NewLocalHandle(obj);
 }
 
 
 DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const String& str_obj = String::Handle(String::New(str));
   const Integer& obj = Integer::Handle(Integer::New(str_obj));
   return Api::NewLocalHandle(obj);
@@ -734,8 +715,7 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
 
 
 DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
   if (obj.IsSmi() || obj.IsMint()) {
     Integer& integer = Integer::Handle();
@@ -759,8 +739,7 @@ DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value) {
 
 DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
                                                     const char** value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
   Bigint& bigint = Bigint::Handle();
   if (obj.IsSmi() || obj.IsMint()) {
@@ -781,8 +760,7 @@ DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
 
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
                                                   bool* fits) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
   if (obj.IsSmi() || obj.IsMint()) {
     *fits = true;
@@ -811,8 +789,7 @@ DART_EXPORT Dart_Handle Dart_False() {
 
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsBool();
 }
@@ -825,8 +802,7 @@ DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
 
 DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle bool_object,
                                           bool* value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(bool_object));
   if (obj.IsBool()) {
     Bool& bool_obj = Bool::Handle();
@@ -839,24 +815,21 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle bool_object,
 
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsDouble();
 }
 
 
 DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Double& obj = Double::Handle(Double::New(value));
   return Api::NewLocalHandle(obj);
 }
 
 
 DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle integer, double* result) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
   if (obj.IsDouble()) {
     Double& double_obj = Double::Handle();
@@ -869,16 +842,14 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle integer, double* result) {
 
 
 DART_EXPORT bool Dart_IsString(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsString();
 }
 
 
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
   if (obj.IsString()) {
     String& string_obj = String::Handle();
@@ -891,8 +862,7 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
 
 
 DART_EXPORT Dart_Handle Dart_NewString(const char* str) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const String& obj = String::Handle(String::New(str));
   return Api::NewLocalHandle(obj);
 }
@@ -900,8 +870,7 @@ DART_EXPORT Dart_Handle Dart_NewString(const char* str) {
 
 DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
                                         intptr_t length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const String& obj = String::Handle(String::New(codepoints, length));
   return Api::NewLocalHandle(obj);
 }
@@ -909,8 +878,7 @@ DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
 
 DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
                                          intptr_t length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const String& obj = String::Handle(String::New(codepoints, length));
   return Api::NewLocalHandle(obj);
 }
@@ -918,24 +886,21 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
 
 DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const String& obj = String::Handle(String::New(codepoints, length));
   return Api::NewLocalHandle(obj);
 }
 
 
 DART_EXPORT bool Dart_IsString8(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsOneByteString();
 }
 
 
 DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   return obj.IsOneByteString() || obj.IsTwoByteString();
 }
@@ -944,8 +909,7 @@ DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
                                         uint8_t* codepoints,
                                         intptr_t* length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
   if (obj.IsOneByteString()) {
     OneByteString& string_obj = OneByteString::Handle();
@@ -967,8 +931,7 @@ DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
                                          uint16_t* codepoints,
                                          intptr_t* length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
   if (obj.IsOneByteString() || obj.IsTwoByteString()) {
     String& string_obj = String::Handle();
@@ -990,8 +953,7 @@ DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
                                          uint32_t* codepoints,
                                          intptr_t* length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
   if (obj.IsString()) {
     String& string_obj = String::Handle();
@@ -1010,8 +972,7 @@ DART_EXPORT Dart_Handle Dart_StringGet32(Dart_Handle str,
 
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
                                              const char** result) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   if (obj.IsString()) {
     const char* string_value = obj.ToCString();
@@ -1041,26 +1002,25 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 
 
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
   return (obj.IsArray() ||
-          (GetListInstance(Isolate::Current(), obj) != Instance::null()));
+          (GetListInstance(isolate, obj) != Instance::null()));
 }
 
 
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Array& obj = Array::Handle(Array::New(length));
   return Api::NewLocalHandle(obj);
 }
 
 
 DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
@@ -1070,7 +1030,6 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   }
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
   // Now check and handle a dart object that implements the List interface.
-  Isolate* isolate = Isolate::Current();
   const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
   if (!instance.IsNull()) {
     String& name = String::Handle(String::New("length"));
@@ -1157,8 +1116,8 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                                             intptr_t offset,
                                             uint8_t* native_array,
                                             intptr_t length) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
@@ -1180,7 +1139,6 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   }
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
   // Now check and handle a dart object that implements the List interface.
-  Isolate* isolate = Isolate::Current();
   const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
   if (!instance.IsNull()) {
     String& name = String::Handle(String::New("[]"));
@@ -1210,8 +1168,8 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
 
 
 DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
@@ -1224,7 +1182,6 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   }
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
   // Now check and handle a dart object that implements the List interface.
-  Isolate* isolate = Isolate::Current();
   const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
   if (!instance.IsNull()) {
     String& name = String::Handle(String::New("[]"));
@@ -1283,8 +1240,8 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t offset,
                                             uint8_t* native_array,
                                             intptr_t length) {
-  Zone zone;
-  HandleScope scope;
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
@@ -1301,7 +1258,6 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   }
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
   // Now check and handle a dart object that implements the List interface.
-  Isolate* isolate = Isolate::Current();
   const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
   if (!instance.IsNull()) {
     String& name = String::Handle(String::New("[]="));
@@ -1329,8 +1285,8 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
                                        intptr_t index,
                                        Dart_Handle value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
@@ -1344,7 +1300,6 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
   }
   // TODO(5526318): Make access to GrowableObjectArray more efficient.
   // Now check and handle a dart object that implements the List interface.
-  Isolate* isolate = Isolate::Current();
   const Instance& instance = Instance::Handle(GetListInstance(isolate, obj));
   if (!instance.IsNull()) {
     String& name = String::Handle(String::New("[]="));
@@ -1365,10 +1320,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
-static void InvokeStatic(const Function& function,
+static void InvokeStatic(Isolate* isolate,
+                         const Function& function,
                          GrowableArray<const Object*>& args,
                          Dart_Handle* result) {
-  Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
@@ -1392,11 +1347,11 @@ static void InvokeStatic(const Function& function,
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
-static void InvokeDynamic(const Instance& receiver,
+static void InvokeDynamic(Isolate* isolate,
+                          const Instance& receiver,
                           const Function& function,
                           GrowableArray<const Object*>& args,
                           Dart_Handle* result) {
-  Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
@@ -1420,10 +1375,10 @@ static void InvokeDynamic(const Instance& receiver,
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
-static void InvokeClosure(const Closure& closure,
+static void InvokeClosure(Isolate* isolate,
+                          const Closure& closure,
                           GrowableArray<const Object*>& args,
                           Dart_Handle* result) {
-  Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
@@ -1449,10 +1404,10 @@ DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
                                           Dart_Handle function_name_in,
                                           int number_of_arguments,
                                           Dart_Handle* arguments) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   // Finalize all classes.
-  const char* msg = CheckIsolateState();
+  const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::Error(msg);
   }
@@ -1499,7 +1454,7 @@ DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
     dart_arguments.Add(&arg);
   }
-  InvokeStatic(function, dart_arguments, &retval);
+  InvokeStatic(isolate, function, dart_arguments, &retval);
   return retval;
 }
 
@@ -1508,8 +1463,8 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle object,
                                            Dart_Handle function_name,
                                            int number_of_arguments,
                                            Dart_Handle* arguments) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
   // Let the resolver figure out the correct target for null receiver.
   // E.g., (null).toString() should execute correctly.
@@ -1542,7 +1497,7 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle object,
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
     dart_arguments.Add(&arg);
   }
-  InvokeDynamic(receiver, function, dart_arguments, &retval);
+  InvokeDynamic(isolate, receiver, function, dart_arguments, &retval);
   return retval;
 }
 
@@ -1550,8 +1505,8 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle object,
 DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            int number_of_arguments,
                                            Dart_Handle* arguments) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(closure));
   if (obj.IsNull()) {
     return Api::Error("Null object passed in to invoke closure");
@@ -1570,15 +1525,14 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
     dart_arguments.Add(&arg);
   }
-  InvokeClosure(closure_obj, dart_arguments, &retval);
+  InvokeClosure(isolate, closure_obj, dart_arguments, &retval);
   return retval;
 }
 
 
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   const Object& obj = Object::Handle(arguments->At(index));
   return Api::NewLocalHandle(obj);
@@ -1593,8 +1547,7 @@ DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
 
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Api::UnwrapHandle(retval)));
 }
@@ -1602,9 +1555,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
 
 DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(isolate);
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
@@ -1630,8 +1581,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
     // throw an exception here.
     return Api::Error("No Dart frames on stack, cannot throw exception");
   }
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(isolate);
   const Instance& excp = Instance::CheckedHandle(Api::UnwrapHandle(exception));
   const Instance& stk = Instance::CheckedHandle(Api::UnwrapHandle(stacktrace));
   // Unwind all the API scopes till the exit frame before throwing an
@@ -1669,10 +1619,8 @@ DART_EXPORT void Dart_ExitScope() {
 
 
 DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
@@ -1793,8 +1741,8 @@ static Dart_Handle LookupInstanceField(const Object& object,
 
 DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
                                             Dart_Handle name) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   Dart_Handle result = LookupStaticField(cls, name, kGetter);
   if (::Dart_IsError(result)) {
     return result;
@@ -1810,7 +1758,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
     Function& func = Function::Handle();
     func ^= obj.raw();
     GrowableArray<const Object*> args;
-    InvokeStatic(func, args, &result);
+    InvokeStatic(isolate, func, args, &result);
     return result;
   }
 }
@@ -1821,8 +1769,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
 DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
                                             Dart_Handle name,
                                             Dart_Handle value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   Dart_Handle result = LookupStaticField(cls, name, kSetter);
   if (::Dart_IsError(result)) {
     return result;
@@ -1842,8 +1789,8 @@ DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
 
 DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
                                               Dart_Handle name) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
     return Api::Error("Invalid object passed in to access instance field");
@@ -1857,7 +1804,7 @@ DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
   Function& func = Function::Handle();
   func ^= Api::UnwrapHandle(result);
   GrowableArray<const Object*> arguments;
-  InvokeDynamic(object, func, arguments, &result);
+  InvokeDynamic(isolate, object, func, arguments, &result);
   return result;
 }
 
@@ -1865,8 +1812,8 @@ DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
 DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
                                               Dart_Handle name,
                                               Dart_Handle value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
     return Api::Error("Invalid object passed in to access instance field");
@@ -1882,7 +1829,7 @@ DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
   GrowableArray<const Object*> arguments(1);
   const Object& arg = Object::Handle(Api::UnwrapHandle(value));
   arguments.Add(&arg);
-  InvokeDynamic(object, func, arguments, &result);
+  InvokeDynamic(isolate, object, func, arguments, &result);
   return result;
 }
 
@@ -1890,8 +1837,8 @@ DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
 DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
                                                       Dart_Handle name,
                                                       int field_count) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& param = Object::Handle(Api::UnwrapHandle(name));
   if (param.IsNull() || !param.IsString() || field_count <= 0) {
     return Api::Error(
@@ -1920,8 +1867,7 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
     return Api::Error(
@@ -1941,8 +1887,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
 DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t value) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& param = Object::Handle(Api::UnwrapHandle(obj));
   if (param.IsNull() || !param.IsInstance()) {
     return Api::Error("Invalid object passed in to set native instance field");
@@ -1969,17 +1914,16 @@ static uint8_t* ApiAllocator(uint8_t* ptr,
 
 DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
                                             intptr_t* snapshot_size) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   if (snapshot_buffer == NULL || snapshot_size == NULL) {
     return Api::Error("Invalid input parameters to Dart_CreateSnapshot");
   }
-  const char* msg = CheckIsolateState();
+  const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::Error(msg);
   }
   // Since this is only a snapshot the root library should not be set.
-  Isolate* isolate = Isolate::Current();
   isolate->object_store()->set_root_library(Library::Handle());
   SnapshotWriter writer(true, snapshot_buffer, ApiAllocator);
   writer.WriteFullSnapshot();
@@ -2008,8 +1952,7 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
 
 
 DART_EXPORT bool Dart_Post(Dart_Port port, Dart_Handle handle) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
   const Object& object = Object::Handle(Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
   SnapshotWriter writer(false, &data, &allocator);
@@ -2110,8 +2053,7 @@ Dart_Handle Api::Success() {
 
 
 Dart_Handle Api::Error(const char* format, ...) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
 
   va_list args;
   va_start(args, format);
@@ -2131,8 +2073,7 @@ Dart_Handle Api::Error(const char* format, ...) {
 
 
 Dart_Handle Api::ErrorFromException(const Object& obj) {
-  Zone zone;  // Setup a VM zone as we are creating some handles.
-  HandleScope scope;  // Setup a VM handle scope.
+  DARTSCOPE(Isolate::Current());
 
   ASSERT(obj.IsUnhandledException());
   if (obj.IsUnhandledException()) {

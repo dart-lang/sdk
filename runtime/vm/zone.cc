@@ -216,15 +216,16 @@ void BaseZone::DumpZoneSizes() {
 #endif
 
 
-Zone::Zone()
-    : zone_(),
+Zone::Zone(Isolate* isolate)
+    : StackResource(isolate),
+      zone_(),
       handles_(),
       previous_(NULL) {
   // Assert that there is no current zone as we only want to scope
   // zones when transitioning from generated dart code to dart VM
   // runtime code.
-  previous_ = isolate()->current_zone();
-  isolate()->set_current_zone(this);
+  previous_ = isolate->current_zone();
+  isolate->set_current_zone(this);
 }
 
 

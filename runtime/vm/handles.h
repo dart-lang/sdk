@@ -25,7 +25,7 @@ namespace dart {
 //   object is destroyed.
 // Code that uses scoped handles typically looks as follows:
 //   {
-//     HANDLESCOPE();
+//     HANDLESCOPE(isolate);
 //     const String& str = String::Handle(String::New("abc"));
 //     .....
 //     .....
@@ -48,7 +48,7 @@ namespace dart {
 // raw dart objects directly. We use NOHANDLESCOPE to assert that we do not
 // add code that will allocate new handles during this critical area.
 // {
-//   NOHANDLESCOPE();
+//   NOHANDLESCOPE(isolate);
 //   ....
 //   ....
 // }
@@ -243,7 +243,7 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 // The class HandleScope is used to start a new handles scope in the code.
 // It is used as follows:
 // {
-//   HANDLESCOPE();
+//   HANDLESCOPE(isolate);
 //   ....
 //   .....
 //   code that creates some scoped handles.
@@ -251,7 +251,7 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 // }
 class HandleScope : public StackResource {
  public:
-  HandleScope();
+  explicit HandleScope(Isolate* isolate);
   ~HandleScope();
 
  private:
@@ -264,7 +264,8 @@ class HandleScope : public StackResource {
 };
 
 // Macro to start a new Handle scope.
-#define HANDLESCOPE() dart::HandleScope vm_internal_handles_scope_;
+#define HANDLESCOPE(isolate)                                                  \
+    dart::HandleScope vm_internal_handles_scope_(isolate);
 
 
 // The class NoHandleScope is used in critical regions of the virtual machine
@@ -273,7 +274,7 @@ class HandleScope : public StackResource {
 // during this critical area.
 // It is used as follows:
 // {
-//   NOHANDLESCOPE();
+//   NOHANDLESCOPE(isolate);
 //   ....
 //   .....
 //   critical code that manipulates dart objects directly.
@@ -282,7 +283,7 @@ class HandleScope : public StackResource {
 #if defined(DEBUG)
 class NoHandleScope : public StackResource {
  public:
-  NoHandleScope();
+  explicit NoHandleScope(Isolate* isolate);
   ~NoHandleScope();
 
  private:
@@ -291,7 +292,7 @@ class NoHandleScope : public StackResource {
 #else  // defined(DEBUG)
 class NoHandleScope : public ValueObject {
  public:
-  NoHandleScope() { }
+  explicit NoHandleScope(Isolate* isolate) { }
   ~NoHandleScope() { }
 
  private:
@@ -300,7 +301,8 @@ class NoHandleScope : public ValueObject {
 #endif  // defined(DEBUG)
 
 // Macro to start a no handles scope in the code.
-#define NOHANDLESCOPE() dart::NoHandleScope no_vm_internal_handles_scope_;
+#define NOHANDLESCOPE(isolate)                                                \
+    dart::NoHandleScope no_vm_internal_handles_scope_(isolate);
 
 }  // namespace dart
 

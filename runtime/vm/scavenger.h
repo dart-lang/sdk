@@ -14,6 +14,7 @@ namespace dart {
 
 // Forward declarations.
 class Heap;
+class Isolate;
 
 class Scavenger {
  public:
@@ -68,7 +69,7 @@ class Scavenger {
  private:
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue();
-  void IterateRoots(ObjectPointerVisitor* visitor);
+  void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
   void ProcessToSpace(ObjectPointerVisitor* visitor);
   void Epilogue();
 

@@ -137,13 +137,13 @@ uword Heap::EndAddress() {
 
 
 #if defined(DEBUG)
-NoGCScope::NoGCScope() : StackResource(), isolate_(Isolate::Current()) {
-  isolate_->IncrementNoGCScopeDepth();
+NoGCScope::NoGCScope() : StackResource(Isolate::Current()) {
+  isolate()->IncrementNoGCScopeDepth();
 }
 
 
 NoGCScope::~NoGCScope() {
-  isolate_->DecrementNoGCScopeDepth();
+  isolate()->DecrementNoGCScopeDepth();
 }
 #endif  // defined(DEBUG)
 

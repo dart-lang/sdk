@@ -37,8 +37,8 @@ bool Dart::InitOnce(int argc, char** argv,
   {
     ASSERT(vm_isolate_ == NULL);
     vm_isolate_ = Isolate::Init();
-    Zone zone;
-    HandleScope handle_scope;
+    Zone zone(vm_isolate_);
+    HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     Object::InitOnce();
@@ -64,8 +64,8 @@ void Dart::InitializeIsolate(const Dart_Snapshot* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  Zone zone;
-  HandleScope handle_scope;
+  Zone zone(isolate);
+  HandleScope handle_scope(isolate);
   Heap::Init(isolate);
   ObjectStore::Init(isolate);
 

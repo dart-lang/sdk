@@ -235,7 +235,7 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   // The current context was saved in the Isolate structure when entering the
   // runtime.
-  const Context& context = Context::Handle(Isolate::Current()->top_context());
+  const Context& context = Context::Handle(isolate->top_context());
   ASSERT(!context.IsNull());
   const Closure& closure = Closure::Handle(Closure::New(function, context));
   closure.SetTypeArguments(type_arguments);
@@ -249,7 +249,7 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
 DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
   ASSERT(arguments.Count() ==
          kAllocateImplicitStaticClosureRuntimeEntry.argument_count());
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
   const Function& function = Function::CheckedHandle(arguments.At(0));
   ASSERT(function.IsImplicitStaticClosureFunction());
@@ -384,7 +384,8 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 // Resolves and compiles the target function of an instance call, updates
 // function cache of the receiver's class and returns the compiled code or null.
 // Only the number of named arguments is checked, but not the actual names.
-static RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver) {
+static RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
+                                                 const Instance& receiver) {
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -401,7 +402,7 @@ static RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver) {
   Class& receiver_class = Class::Handle();
   if (receiver.IsNull()) {
     // TODO(srdjan): Clarify behavior of null objects.
-    receiver_class = Isolate::Current()->object_store()->object_class();
+    receiver_class = isolate->object_store()->object_class();
   } else {
     receiver_class = receiver.clazz();
   }
@@ -457,7 +458,8 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
   ASSERT(arguments.Count() ==
          kResolveCompileInstanceFunctionRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Code& code = Code::Handle(ResolveCompileInstanceCallTarget(receiver));
+  const Code& code = Code::Handle(
+      ResolveCompileInstanceCallTarget(isolate, receiver));
   arguments.SetReturn(Code::Handle(code.raw()));
 }
 
@@ -472,7 +474,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandler, 1) {
       kInlineCacheMissHandlerRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
   const Code& target_code =
-      Code::Handle(ResolveCompileInstanceCallTarget(receiver));
+      Code::Handle(ResolveCompileInstanceCallTarget(isolate, receiver));
   if (target_code.IsNull()) {
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.
@@ -517,12 +519,13 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandler, 1) {
 }
 
 
-static RawFunction* LookupDynamicFunction(const Class& in_cls,
+static RawFunction* LookupDynamicFunction(Isolate* isolate,
+                                          const Class& in_cls,
                                           const String& name) {
   Class& cls = Class::Handle();
   // For lookups treat null as an instance of class Object.
   if (in_cls.IsNullClass()) {
-    cls = Isolate::Current()->object_store()->object_class();
+    cls = isolate->object_store()->object_class();
   } else {
     cls = in_cls.raw();
   }
@@ -568,8 +571,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   String& func_name = String::Handle();
   func_name = String::SubString(original_function_name, getter_prefix.Length());
   func_name = String::NewSymbol(func_name);
-  const Function& function =
-      Function::Handle(LookupDynamicFunction(receiver_class, func_name));
+  const Function& function = Function::Handle(
+      LookupDynamicFunction(isolate, receiver_class, func_name));
   if (function.IsNull()) {
     // There is no function of the same name so can't be the case where
     // we are trying to create an implicit closure of an instance function.
@@ -789,13 +792,13 @@ DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.Count() ==
          kStackOverflowRuntimeEntry.argument_count());
-  uword old_stack_limit = Isolate::Current()->stack_limit();
-  Isolate::Current()->AdjustStackLimitForException();
+  uword old_stack_limit = isolate->stack_limit();
+  isolate->AdjustStackLimitForException();
   // Recursive stack overflow check.
-  ASSERT(old_stack_limit != Isolate::Current()->stack_limit());
+  ASSERT(old_stack_limit != isolate->stack_limit());
   GrowableArray<const Object*> args;
   Exceptions::ThrowByType(Exceptions::kStackOverflow, args);
-  Isolate::Current()->ResetStackLimitAfterException();
+  isolate->ResetStackLimitAfterException();
 }
 
 
@@ -870,7 +873,7 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  CodeIndexTable* ci_table = Isolate::Current()->code_index_table();
+  CodeIndexTable* ci_table = isolate->code_index_table();
   const Code& optimized_code =
       Code::Handle(ci_table->LookupCode(caller_frame->pc()));
   const Function& function = Function::Handle(optimized_code.function());

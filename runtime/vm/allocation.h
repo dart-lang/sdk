@@ -35,7 +35,7 @@ class ValueObject {
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  StackResource();
+  explicit StackResource(Isolate* isolate);
   virtual ~StackResource();
 
   Isolate* isolate() const { return isolate_; }

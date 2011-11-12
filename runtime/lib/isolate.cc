@@ -146,8 +146,8 @@ static void RunIsolate(uword parameter) {
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    Zone zone;
-    HandleScope handle_scope;
+    Zone zone(isolate);
+    HandleScope handle_scope(isolate);
     ASSERT(ClassFinalizer::FinalizePendingClasses());
     // Lookup the target class by name, create an instance and call the run
     // method.
@@ -206,8 +206,8 @@ static void RunIsolate(uword parameter) {
     isolate->StandardRunLoop();
 
   } else {
-    Zone zone;
-    HandleScope handle_scope;
+    Zone zone(isolate);
+    HandleScope handle_scope(isolate);
     const String& error = String::Handle(
         Isolate::Current()->object_store()->sticky_error());
     const char* errmsg = error.ToCString();
@@ -220,8 +220,9 @@ static void RunIsolate(uword parameter) {
 
 
 static bool CheckArguments(const char* library_url, const char* class_name) {
-  Zone zone;
-  HandleScope handle_scope;
+  Isolate* isolate = Isolate::Current();
+  Zone zone(isolate);
+  HandleScope handle_scope(isolate);
   String& name = String::Handle();
   if (!ClassFinalizer::FinalizePendingClasses()) {
     return false;
@@ -289,8 +290,8 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
       // Make sure to grab the error message out of the isolate before it has
       // been shutdown and to allocate it in the preserved isolates zone.
       {
-        Zone zone;
-        HandleScope scope;
+        Zone zone(spawned_isolate);
+        HandleScope scope(spawned_isolate);
         const String& error = String::Handle(
             spawned_isolate->object_store()->sticky_error());
         const char* temp_error_msg = error.ToCString();

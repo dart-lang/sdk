@@ -162,8 +162,9 @@ static int MostCalledFunctionFirst(const Function* const* a,
 
 
 void Isolate::PrintInvokedFunctions() {
-  Zone zone;
-  HandleScope handle_scope;
+  ASSERT(this == Isolate::Current());
+  Zone zone(this);
+  HandleScope handle_scope(this);
   Library& library = Library::Handle();
   library = object_store()->registered_libraries();
   GrowableArray<const Function*> invoked_functions;
@@ -241,8 +242,9 @@ void Isolate::StandardRunLoop() {
   ASSERT(close_port_callback() == &StandardClosePortCallback);
 
   while (active_ports() > 0) {
-    Zone zone;
-    HandleScope handle_scope;
+    ASSERT(this == Isolate::Current());
+    Zone zone(this);
+    HandleScope handle_scope(this);
 
     PortMessage* message = message_queue()->Dequeue(0);
     if (message != NULL) {

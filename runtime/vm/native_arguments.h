@@ -10,6 +10,7 @@
 namespace dart {
 
 // Forward declarations.
+class Isolate;
 class Object;
 class RawObject;
 
@@ -31,6 +32,7 @@ class RawObject;
 // subclass of ValueObject.
 class NativeArguments {
  public:
+  Isolate* isolate() const { return isolate_; }
   int Count() const { return argc_; }
 
   RawObject* At(int index) const {
@@ -40,6 +42,9 @@ class NativeArguments {
 
   void SetReturn(const Object& value) const;
 
+  static intptr_t isolate_offset() {
+    return OFFSET_OF(NativeArguments, isolate_);
+  }
   static intptr_t argc_offset() { return OFFSET_OF(NativeArguments, argc_); }
   static intptr_t argv_offset() { return OFFSET_OF(NativeArguments, argv_); }
   static intptr_t retval_offset() {
@@ -47,6 +52,7 @@ class NativeArguments {
   }
 
  private:
+  Isolate* isolate_;  // Current isolate pointer.
   int argc_;  // Number of arguments passed to the runtime call.
   RawObject*(*argv_)[];  // Pointer to an array of arguments to runtime call.
   RawObject** retval_;  // Pointer to the return value area.

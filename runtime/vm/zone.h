@@ -17,8 +17,6 @@ namespace dart {
 // support deallocating all chunks in one fast operation.
 
 class BaseZone {
- public:
-
  private:
   BaseZone();
   ~BaseZone();  // Delete all memory associated with the zone.
@@ -100,7 +98,7 @@ class BaseZone {
 class Zone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Isolate.
-  Zone();
+  explicit Zone(Isolate* isolate);
 
   // Delete all memory associated with the zone.
   ~Zone();

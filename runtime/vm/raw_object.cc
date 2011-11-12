@@ -4,6 +4,7 @@
 
 #include "vm/raw_object.h"
 
+#include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/visitor.h"
 
@@ -25,7 +26,7 @@ void RawObject::Validate() const {
 
 
 intptr_t RawObject::Size() const {
-  NoHandleScope no_handles;
+  NoHandleScope no_handles(Isolate::Current());
 
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
@@ -143,7 +144,7 @@ intptr_t RawObject::Size() const {
 
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   intptr_t size = 0;
-  NoHandleScope no_handles;
+  NoHandleScope no_handles(Isolate::Current());
 
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());

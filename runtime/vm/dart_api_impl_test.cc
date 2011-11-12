@@ -120,8 +120,7 @@ UNIT_TEST_CASE(IsSame) {
 
   // Non-instance objects.
   {
-    Zone zone;
-    HandleScope hs;
+    DARTSCOPE(Isolate::Current());
     const Object& cls1 = Object::Handle(Object::null_class());
     const Object& cls2 = Object::Handle(Object::class_class());
     Dart_Handle class1 = Api::NewLocalHandle(cls1);
@@ -542,8 +541,7 @@ UNIT_TEST_CASE(EnterExitScope) {
   Dart_EnterScope();
   {
     EXPECT(state->top_scope() != NULL);
-    Zone zone;
-    HandleScope hs;
+    DARTSCOPE(isolate);
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewLocalHandle(str1);
     String& str2 = String::Handle();
@@ -569,8 +567,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_Handle handles[2000];
   Dart_EnterScope();
   {
-    Zone zone;
-    HandleScope hs;
+    DARTSCOPE(isolate);
     const String& str1 = String::Handle(String::New(kTestString1));
     Dart_Handle ref1 = Api::NewLocalHandle(str1);
     for (int i = 0; i < 1000; i++) {
@@ -596,8 +593,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   }
   Dart_ExitScope();
   {
-    Zone zone;
-    HandleScope hs;
+    DARTSCOPE(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
@@ -666,8 +662,7 @@ UNIT_TEST_CASE(LocalHandles) {
   ApiLocalScope* scope = state->top_scope();
   Dart_Handle handles[300];
   {
-    Zone zone;
-    HandleScope hs;
+    DARTSCOPE(isolate);
     Smi& val = Smi::Handle();
 
     // Start a new scope and allocate some local handles.
@@ -1012,8 +1007,7 @@ UNIT_TEST_CASE(InjectNativeFields1) {
 
   Dart_CreateIsolate(NULL, NULL);
   {
-    Zone zone;
-    HandleScope scope;
+    DARTSCOPE(Isolate::Current());
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     const int kNumNativeFields = 4;
 
@@ -1232,8 +1226,7 @@ UNIT_TEST_CASE(NegativeNativeFieldAccess) {
 
   Dart_CreateIsolate(NULL, NULL);
   {
-    Zone zone;
-    HandleScope scope;
+    DARTSCOPE(Isolate::Current());
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Create a test library and Load up a test script in it.
@@ -1419,8 +1412,7 @@ UNIT_TEST_CASE(InvokeDynamic) {
 
   Dart_CreateIsolate(NULL, NULL);
   {
-    Zone zone;
-    HandleScope scope;
+    DARTSCOPE(Isolate::Current());
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Create a test library and Load up a test script in it.
@@ -1489,8 +1481,7 @@ UNIT_TEST_CASE(InvokeClosure) {
 
   Dart_CreateIsolate(NULL, NULL);
   {
-    Zone zone;
-    HandleScope scope;
+    DARTSCOPE(Isolate::Current());
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Create a test library and Load up a test script in it.
@@ -1784,8 +1775,7 @@ UNIT_TEST_CASE(NullReceiver) {
   Dart_CreateIsolate(NULL, NULL);
   Dart_EnterScope();  // Enter a Dart API scope for the unit test.
   {
-    Zone zone;
-    HandleScope hs;
+    DARTSCOPE(Isolate::Current());
 
     Dart_Handle function_name = Dart_NewString("toString");
     const int number_of_arguments = 0;

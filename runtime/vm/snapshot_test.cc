@@ -342,8 +342,9 @@ UNIT_TEST_CASE(FullSnapshot) {
     OS::PrintErr("Without Snapshot: %dus\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    Zone zone;
-    HandleScope hs;
+    Isolate* isolate = Isolate::Current();
+    Zone zone(isolate);
+    HandleScope scope(isolate);
     SnapshotWriter writer(true, &buffer, &allocator);
     writer.WriteFullSnapshot();
 
@@ -394,8 +395,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
   Dart_CreateIsolate(NULL, NULL);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-    Zone zone;
-    HandleScope hs;
+    Isolate* isolate = Isolate::Current();
+    Zone zone(isolate);
+    HandleScope scope(isolate);
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);

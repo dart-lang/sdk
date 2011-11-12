@@ -52,19 +52,19 @@ class RuntimeEntry : public ValueObject {
   extern void DRT_##name(NativeArguments arguments);                           \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
       "DRT_"#name, &DRT_##name, argument_count);                               \
-  static void DRT_Helper##name(NativeArguments arguments);                     \
+  static void DRT_Helper##name(Isolate* isolate, NativeArguments arguments);   \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     if (FLAG_trace_runtime_calls) OS::Print("Runtime call: %s\n", ""#name);    \
     {                                                                          \
-      Zone zone;                                                               \
-      HANDLESCOPE();                                                           \
-      DRT_Helper##name(arguments);                                             \
+      Zone zone(arguments.isolate());                                          \
+      HANDLESCOPE(arguments.isolate());                                        \
+      DRT_Helper##name(arguments.isolate(), arguments);                        \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
-  static void DRT_Helper##name(NativeArguments arguments)
+  static void DRT_Helper##name(Isolate* isolate, NativeArguments arguments)
 
 #define DECLARE_RUNTIME_ENTRY(name)                                            \
   extern const RuntimeEntry k##name##RuntimeEntry

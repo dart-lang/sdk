@@ -31,8 +31,8 @@
   UNIT_TEST_CASE(name)                                                         \
   {                                                                            \
     TestIsolateScope __test_isolate__;                                         \
-    Zone __zone__;                                                             \
-    HandleScope __hs__;                                                        \
+    Zone __zone__(__test_isolate__.isolate());                                 \
+    HandleScope __hs__(__test_isolate__.isolate());                            \
     Dart_TestHelper##name();                                                   \
   }                                                                            \
   static void Dart_TestHelper##name()
@@ -183,6 +183,7 @@ class TestIsolateScope {
     Dart_ShutdownIsolate();
     isolate_ = NULL;
   }
+  Isolate* isolate() const { return isolate_; }
 
  private:
   Isolate* isolate_;

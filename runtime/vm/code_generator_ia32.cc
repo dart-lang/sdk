@@ -36,7 +36,9 @@ DECLARE_FLAG(bool, trace_compiler);
 class CodeGeneratorState : public StackResource {
  public:
   explicit CodeGeneratorState(CodeGenerator* codegen)
-      : codegen_(codegen), parent_(codegen->state()) {
+      : StackResource(Isolate::Current()),
+        codegen_(codegen),
+        parent_(codegen->state()) {
     if (parent_ != NULL) {
       root_node_ = parent_->root_node_;
       loop_level_ = parent_->loop_level_;

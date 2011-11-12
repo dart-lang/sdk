@@ -5,6 +5,7 @@
 #include "vm/scavenger.h"
 
 #include "vm/dart.h"
+#include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 #include "vm/verifier.h"
@@ -165,9 +166,9 @@ void Scavenger::Epilogue() {
 }
 
 
-void Scavenger::IterateRoots(ObjectPointerVisitor* visitor) {
-  Isolate::Current()->VisitObjectPointers(
-      visitor, StackFrameIterator::kDontValidateFrames);
+void Scavenger::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
+  isolate->VisitObjectPointers(visitor,
+                               StackFrameIterator::kDontValidateFrames);
   heap_->IterateOldPointers(visitor);
 }
 
@@ -195,14 +196,15 @@ void Scavenger::Scavenge() {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
-  NoHandleScope no_handles;
+  Isolate* isolate = Isolate::Current();
+  NoHandleScope no_handles(isolate);
 
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(this);
   Prologue();
-  IterateRoots(&visitor);
+  IterateRoots(isolate, &visitor);
   ProcessToSpace(&visitor);
   Epilogue();
   timer.Stop();

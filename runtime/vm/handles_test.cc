@@ -49,7 +49,8 @@ TEST_CASE(AllocateScopeHandle) {
   static const int kNumHandles = 65;
   // Create some scoped handles.
   {
-    HANDLESCOPE();
+    Isolate* isolate = Isolate::Current();
+    HANDLESCOPE(isolate);
     for (int i = 0; i < kNumHandles; i++) {
       const Smi& handle = Smi::Handle(Smi::New(i));
       EXPECT(handle.IsSmi());
@@ -58,7 +59,7 @@ TEST_CASE(AllocateScopeHandle) {
     EXPECT_EQ((handle_count + kNumHandles), VMHandles::ScopedHandleCount());
     // Create lots of scoped handles in a loop with a nested scope.
     for (int loop = 0; loop < 1000; loop++) {
-      HANDLESCOPE();
+      HANDLESCOPE(isolate);
       for (int i = 0; i < 2; i++) {
         const Smi& handle = Smi::Handle(Smi::New(i + loop));
         EXPECT(handle.IsSmi());
