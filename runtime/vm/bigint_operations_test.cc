@@ -100,6 +100,35 @@ TEST_CASE(BigintInt64) {
 }
 
 
+TEST_CASE(BigintUInt64) {
+  const uint64_t kMax =
+      static_cast<uint64_t>(DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF));
+
+  const Bigint& one = Bigint::Handle(BigintOperations::NewFromUInt64(1));
+  EXPECT(BigintOperations::FitsIntoInt64(one));
+  EXPECT(BigintOperations::FitsIntoUInt64(one));
+
+  Bigint& big = Bigint::Handle(BigintOperations::NewFromUInt64(kMax));
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(BigintOperations::FitsIntoUInt64(big));
+
+  uint64_t back = BigintOperations::ToUInt64(big);
+  EXPECT_EQ(kMax, back);
+
+  big = BigintOperations::Add(big, one);
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(!BigintOperations::FitsIntoUInt64(big));
+
+  big = BigintOperations::Subtract(big, one);
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(BigintOperations::FitsIntoUInt64(big));
+
+  big = BigintOperations::ShiftRight(big, 1);
+  EXPECT(BigintOperations::FitsIntoInt64(big));
+  EXPECT(BigintOperations::FitsIntoUInt64(big));
+}
+
+
 TEST_CASE(BigintDouble) {
   Smi& smi = Smi::Handle(Smi::New(5));
   Bigint& bigint = Bigint::Handle(BigintOperations::NewFromSmi(smi));

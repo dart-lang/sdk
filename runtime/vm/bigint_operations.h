@@ -20,6 +20,8 @@ class BigintOperations : public AllStatic {
  public:
   static RawBigint* NewFromSmi(const Smi& smi, Heap::Space space = Heap::kNew);
   static RawBigint* NewFromInt64(int64_t value, Heap::Space space = Heap::kNew);
+  static RawBigint* NewFromUInt64(uint64_t value,
+                                  Heap::Space space = Heap::kNew);
   // The given string must be a valid integer representation. It may be
   // prefixed by a minus and/or "0x".
   // Returns Bigint::null() if the string cannot be parsed.
@@ -54,6 +56,10 @@ class BigintOperations : public AllStatic {
 
   static bool FitsIntoInt64(const Bigint& bigint);
   static int64_t ToInt64(const Bigint& bigint);
+
+  static bool FitsIntoUInt64(const Bigint& bigint);
+  static uint64_t ToUInt64(const Bigint& bigint);
+  static uint64_t AbsToUInt64(const Bigint& bigint);
 
   static RawDouble* ToDouble(const Bigint& bigint);
 
