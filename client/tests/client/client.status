@@ -15,13 +15,11 @@ touch/touch_tests: Skip  # Issue 157.
 
 [ $component == frogium ]
 touch/touch_tests: Fail  # Issue 157.
-layout/layout_tests: Pass # Possibly incorrect, see Issue 152
+layout/layout_tests: Skip # Issue 152, also seems flaky
 html/html_tests: Fail
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 samples/swarm/swarm_tests: Skip
 json/json_tests: Fail
-view/view_tests: Fail # TODO(jmesserly): investigate this
-total/total_tests: Fail # TODO(jmesserly): investigate this
 
 [ $component == chromium && $mode == release ]
 html/html_tests: Timeout
