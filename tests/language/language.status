@@ -221,7 +221,6 @@ ClosuresWithComplexParamsTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstructorDefaultTest: Fail
-ConstructorSetterNegativeTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
 DynamicTest: Fail
 ExampleConstructorTest: Fail
