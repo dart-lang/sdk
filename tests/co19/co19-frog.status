@@ -276,11 +276,11 @@ LibTest/core/Promise/value/Promise/value/A01/t02: Fail
 LibTest/core/Promise/value/Promise/value/A01/t05: Fail
 LibTest/core/Promise/addCancelHandler/Promise/addCancelHandler/A01/t04: Fail
 LibTest/core/Promise/complete/Promise/complete/A01/t04: Fail
+LibTest/core/ReceivePort/receive/ReceivePort/receive/A01/t02: Fail
 LibTest/core/ReceivePort/toSendPort/ReceivePort/toSendPort/A02/t01: Fail
 LibTest/core/Isolate/spawn/Isolate/spawn/A01/t07: Fail
 LibTest/core/Isolate/spawn/Isolate/spawn/A01/t09: Fail
 LibTest/core/SendPort/send/SendPort/send/A02/t01: Fail
-LibTest/core/SendPort/send/SendPort/send/A03/t01: Fail
 LibTest/core/SendPort/send/SendPort/send/A03/t02: Fail
 LibTest/core/Set/filter/Set/filter/A01/t03: Fail
 LibTest/core/Set/addAll/Set/addAll/A01/t03: Fail
