@@ -347,10 +347,6 @@ class Parser : ValueObject {
                            const TypeArguments& type_arguments);
   AstNode* ParseNewOperator();
 
-  const Array* BuildArgumentsDescriptor(
-      int num_args,
-      GrowableArray<const String*>& named_argument_names,
-      GrowableArray<const Smi*>& named_argument_positions);
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
                                           bool require_const);
