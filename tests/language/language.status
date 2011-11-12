@@ -254,6 +254,7 @@ GenericInstanceofTest: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail
+GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is really passing in the static case
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 IncrOpTest: Fail
@@ -300,7 +301,6 @@ Private3Test: Fail
 PrivateTest: Fail
 PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
 RegExp3Test: Fail
-SavannahTest: Fail
 ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
 StringConcatTest: Fail
@@ -340,14 +340,12 @@ StaticTopLevelTest/03: Fail
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
-GetterClosureExecutionOrderTest: Fail
 ParameterInitializerTest: Pass
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
-GetterClosureExecutionOrderTest: Pass
 ParameterInitializerTest: Fail
 StaticField1RunNegativeTest: Fail
 StaticField2RunNegativeTest: Fail
