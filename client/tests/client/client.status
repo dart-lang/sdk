@@ -18,7 +18,6 @@ touch/touch_tests: Fail  # Issue 157.
 layout/layout_tests: Fail
 html/html_tests: Fail
 samples/swarm/swarm_tests: Skip
-samples/dartcombat/dartcombat_tests: Skip
 json/json_tests: Fail
 
 [ $component == chromium && $mode == release ]
