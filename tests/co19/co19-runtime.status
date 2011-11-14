@@ -72,7 +72,6 @@ LibTest/core/String/contains/String/contains/A02/t01: Fail # Issue co19 - 25
 LibTest/core/String/replaceAll/String/replaceAll/A01/t01: Fail # Issue 429
 LibTest/core/String/split/String/split/A01/t01: Fail # Issue 429
 LibTest/core/String/split/String/split/A01/t02: Fail # Issue 429
-LibTest/core/String/trim/String/trim/A01/t02: Fail # Issue co19 - 27
 LibTest/core/String/operator\+/String/operator\+/A01/t03: Fail  # Issue co19 - 20
 
 
@@ -81,16 +80,10 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/A08/t05: Fail # Issue 430
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Fail # Issue co19 - 29
 LangGuideTest/07_Overriding/A03/t01: Fail # Issue co19 - 28
 LangGuideTest/07_Overriding/A03/t02: Fail # Issue co19 - 28
-LibTest/core/Date/weekday/Date/weekday/A01/t02: Fail
-LibTest/core/Queue/every/Queue/every/A01/t06: Fail
-LibTest/core/Queue/filter/Queue/filter/A01/t06: Fail
-LibTest/core/Queue/forEach/Queue/forEach/A01/t04: Fail
-LibTest/core/Queue/some/Queue/some/A01/t06: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A06/t02: Fail
-LibTest/core/StringBuffer/isEmpty/StringBuffer/isEmpty/A01/t01: Fail
 
 # List.fromList has been removed.
-LibTest/core/List/List.fromList/*: Fail
+LibTest/core/List/List.fromList/*: Fail # Issue co19 - 32
 
 
 
@@ -206,7 +199,6 @@ LibTest/core/SendPort/send/SendPort/send/A03/t02: Fail
 LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail
 LibTest/core/StopWatch/stop/StopWatch/stop/A01/t01: Fail
 LibTest/core/String/replaceFirst/String/replaceFirst/A01/t01: Fail
-LibTest/core/StringBuffer/add/StringBuffer/add/A02/t01: Fail
 LibTest/core/TypeError/srcType/TypeError/srcType/A01/t01: Fail
 LibTest/core/double/isOdd/double/isOdd/A01/t02: Fail
 LibTest/core/double/operator%/double/operator%/A01/t06: Fail

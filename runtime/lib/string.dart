@@ -160,7 +160,7 @@ class StringBase {
   }
 
   String trim() {
-    int len = this.length;
+    final int len = this.length;
     int first = 0;
     for (; first < len; first++) {
       if (!_isWhitespace(this.charCodeAt(first))) {
@@ -172,12 +172,18 @@ class StringBase {
       return "";
     }
     int last = len - 1;
-    for (int i = last; last >= first; last--) {
+    for (; last >= first; last--) {
       if (!_isWhitespace(this.charCodeAt(last))) {
         break;
       }
     }
-    return substringUnchecked_(first, last + 1);
+    if ((first == 0) && (last == (len - 1))) {
+      // Returns this string if it does not have leading or trailing
+      // whitespaces.
+      return this;
+    } else {
+      return substringUnchecked_(first, last + 1);
+    }
   }
 
   bool contains(Pattern other, [int startIndex = 0]) {

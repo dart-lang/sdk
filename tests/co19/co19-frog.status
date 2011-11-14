@@ -160,11 +160,7 @@ LibTest/core/Dispatcher/Dispatcher_serve/A01/t01: Fail
 LibTest/core/Dispatcher/Dispatcher_Dispatcher/A01/t01: Fail
 LibTest/core/Queue/every/Queue/every/A01/t05: Fail
 LibTest/core/Queue/some/Queue/some/A01/t05: Fail
-LibTest/core/Queue/every/Queue/every/A01/t06: Fail
-LibTest/core/Queue/some/Queue/some/A01/t06: Fail
-LibTest/core/Queue/filter/Queue/filter/A01/t06: Fail
 LibTest/core/Queue/filter/Queue/filter/A01/t05: Fail
-LibTest/core/Queue/forEach/Queue/forEach/A01/t04: Fail
 LibTest/core/Queue/forEach/Queue/forEach/A01/t05: Fail
 LibTest/core/Queue/iterator/Queue/iterator/A01/t01: Fail
 LibTest/core/int/ceil/int/ceil/A01/t01: Fail

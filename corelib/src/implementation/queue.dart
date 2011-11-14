@@ -171,24 +171,27 @@ class DoubleLinkedQueue<E> implements Queue<E> {
   void forEach(void f(E element)) {
     DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (entry !== _sentinel) {
+      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
       f(entry._element);
-      entry = entry._next;
+      entry = nextEntry;
     }
   }
 
   void forEachEntry(void f(DoubleLinkedQueueEntry<E> element)) {
     DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (entry !== _sentinel) {
+      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
       f(entry);
-      entry = entry._next;
+      entry = nextEntry;
     }
   }
 
   bool every(bool f(E element)) {
     DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (entry !== _sentinel) {
+      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
       if (!f(entry._element)) return false;
-      entry = entry._next;
+      entry = nextEntry;
     }
     return true;
   }
@@ -196,8 +199,9 @@ class DoubleLinkedQueue<E> implements Queue<E> {
   bool some(bool f(E element)) {
     DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (entry !== _sentinel) {
+      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
       if (f(entry._element)) return true;
-      entry = entry._next;
+      entry = nextEntry;
     }
     return false;
   }
@@ -206,8 +210,9 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     Queue<E> other = new Queue<E>();
     DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (entry !== _sentinel) {
+      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
       if (f(entry._element)) other.addLast(entry._element);
-      entry = entry._next;
+      entry = nextEntry;
     }
     return other;
   }
