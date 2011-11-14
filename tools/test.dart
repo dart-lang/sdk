@@ -11,22 +11,23 @@
 #import("../tests/standalone/test_config.dart");
 #import("../tests/corelib/test_config.dart");
 
-
 // TODO(ager): This activity tracking is temporary until stdout is
 // closed implicitly when nothing more can happen.
 int pendingActivities = 0;
 
-void onExit() {
-  stdout.write('\n'.charCodes());
-  stdout.close();
-}
-
 void activityStarted() {
-  pendingActivities++;
+  ++pendingActivities;
 }
 
 void activityCompleted() {
-  if (--pendingActivities == 0) onExit();
+  --pendingActivities;
+}
+
+void exitIfLastActivity() {
+  if (pendingActivities == 1) {
+    stdout.write('\n'.charCodes());
+    stdout.close();
+  }
 }
 
 main() {
@@ -34,7 +35,7 @@ main() {
   var configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
   activityStarted();
-  var queue = new ProcessQueue(configurations[0], activityCompleted);
+  var queue = new ProcessQueue(configurations[0], exitIfLastActivity);
   for (var conf in configurations) {
     activityStarted();
     new StandaloneTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
