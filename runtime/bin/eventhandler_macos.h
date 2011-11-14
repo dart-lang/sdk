@@ -50,6 +50,7 @@ class SocketData {
   }
 
   bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
+  bool IsPipe() { return (mask_ & (1 << kPipe)) != 0; }
   bool IsClosedRead() { return (flags_ & (1 << kClosedRead)) != 0; }
   bool IsClosedWrite() { return (flags_ & (1 << kClosedWrite)) != 0; }
 

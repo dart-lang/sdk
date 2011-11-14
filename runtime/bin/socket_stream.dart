@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class SocketInputStream implements InputStream {
-  SocketInputStream(Socket socket) {
-    _socket = socket;
-  }
+  SocketInputStream(Socket socket) : _socket = socket;
 
   List<int> read([int len]) {
     int bytesToRead = available();
@@ -56,10 +54,7 @@ class SocketInputStream implements InputStream {
 
 class SocketOutputStream implements OutputStream {
   SocketOutputStream(Socket socket)
-      : _socket = socket, _pendingWrites = new _BufferList() {
-    _socket.writeHandler = _writeHandler;
-    _socket.errorHandler = _errorHandler;
-  }
+      : _socket = socket, _pendingWrites = new _BufferList();
 
     bool write(List<int> buffer, [bool copyBuffer = true]) {
     return _write(buffer, 0, buffer.length, copyBuffer);
@@ -91,7 +86,9 @@ class SocketOutputStream implements OutputStream {
 
   void set noPendingWriteHandler(void callback()) {
     _noPendingWriteHandler = callback;
-    _socket.writeHandler = _writeHandler;
+    if (_noPendingWriteHandler != null) {
+      _socket.writeHandler = _writeHandler;
+    }
   }
 
   void set closeHandler(void callback()) {
@@ -100,6 +97,11 @@ class SocketOutputStream implements OutputStream {
 
   void set errorHandler(void callback()) {
     _streamErrorHandler = callback;
+    if (_streamErrorHandler != null) {
+      _socket.errorHandler = _errorHandler;
+    } else {
+      _socket.errorHandler = null;
+    }
   }
 
   bool _write(List<int> buffer, int offset, int len, bool copyBuffer) {
@@ -122,6 +124,7 @@ class SocketOutputStream implements OutputStream {
       assert(offset + len == buffer.length);
       _pendingWrites.add(buffer, notWrittenOffset);
     }
+    _socket.writeHandler = _writeHandler;
   }
 
   void _writeHandler() {
@@ -145,6 +148,7 @@ class SocketOutputStream implements OutputStream {
     } else {
       if (_noPendingWriteHandler != null) _noPendingWriteHandler();
     }
+    if (_noPendingWriteHandler == null) _socket.writeHandler = null;
   }
 
   void _errorHandler() {

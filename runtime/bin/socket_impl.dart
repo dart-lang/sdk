@@ -22,9 +22,10 @@ class _SocketBase {
   static final int _SHUTDOWN_READ_COMMAND = 9;
   static final int _SHUTDOWN_WRITE_COMMAND = 10;
 
-  // Flag send to the eventhandler saying that the file descriptor in
-  // question represents a listening socket.
+  // Flag send to the eventhandler providing additional information on
+  // the type of the file descriptor.
   static final int _LISTENING_SOCKET = 16;
+  static final int _PIPE = 17;
 
   static final int _FIRST_EVENT = _IN_EVENT;
   static final int _LAST_EVENT = _CLOSE_EVENT;
@@ -33,20 +34,14 @@ class _SocketBase {
   static final int _LAST_COMMAND = _SHUTDOWN_WRITE_COMMAND;
 
   _SocketBase () {
-    _handler = new ReceivePort();
     _handlerMap = new List(_LAST_EVENT + 1);
     _handlerMask = 0;
     _canActivateHandlers = true;
     _id = -1;
-    _handler.receive((var message, ignored) {
-      _multiplex(message);
-    });
     EventHandler._start();
   }
 
-  /*
-   * Multiplexes socket events to the right socket handler.
-   */
+  // Multiplexes socket events to the socket handlers.
   void _multiplex(List<int> message) {
     assert(message.length == 1);
     _canActivateHandlers = false;
@@ -83,7 +78,17 @@ class _SocketBase {
       _handlerMask |= (1 << event);
     }
     _handlerMap[event] = callback;
-    _activateHandlers();
+    // If the socket is only for writing then close the receive port
+    // when not waiting for any events.
+    if (this is _Socket &&
+        _closedRead &&
+        _handlerMask == 0 &&
+        _handler != null) {
+      _handler.close();
+      _handler = null;
+    } else {
+      _activateHandlers();
+    }
   }
 
   void _getPort() native "Socket_GetPort";
@@ -100,14 +105,10 @@ class _SocketBase {
       } else {
         if (_closedRead) { data &= ~(1 << _IN_EVENT); }
         if (_closedWrite) { data &= ~(1 << _OUT_EVENT); }
-        if (_isListenSocket()) data |= (1 << _LISTENING_SOCKET);
+        if (_isPipe()) data |= (1 << _PIPE);
       }
-      EventHandler._sendData(_id, _handler, data);
+      _sendToEventHandler(data);
     }
-  }
-
-  void _scheduleEvent(int event) {
-    _handler.toSendPort().send([1 << event], null);
   }
 
   int get port() {
@@ -136,7 +137,7 @@ class _SocketBase {
     if (_closedRead) {
       _close();
     } else {
-      EventHandler._sendData(_id, _handler, 1 << _SHUTDOWN_WRITE_COMMAND);
+      _sendToEventHandler(1 << _SHUTDOWN_WRITE_COMMAND);
     }
     _closedWrite = true;
   }
@@ -145,19 +146,28 @@ class _SocketBase {
     if (_closedWrite) {
       _close();
     } else {
-      EventHandler._sendData(_id, _handler, 1 << _SHUTDOWN_READ_COMMAND);
+      _sendToEventHandler(1 << _SHUTDOWN_READ_COMMAND);
     }
     _closedRead = true;
   }
 
   void _close() {
-    EventHandler._sendData(_id, _handler, 1 << _CLOSE_COMMAND);
+    _sendToEventHandler(1 << _CLOSE_COMMAND);
     _handler.close();
     _handler = null;
     _id = -1;
   }
 
+  void _sendToEventHandler(int data) {
+    if (_handler === null) {
+      _handler = new ReceivePort();
+      _handler.receive((var message, ignored) { _multiplex(message); });
+    }
+    EventHandler._sendData(_id, _handler, data);
+  }
+
   abstract bool _isListenSocket();
+  abstract bool _isPipe();
 
   /*
    * Socket id is set from native. -1 indicates that the socket was closed.
@@ -235,6 +245,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   }
 
   bool _isListenSocket() => true;
+  bool _isPipe() => false;
 }
 
 
@@ -256,8 +267,8 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   _Socket._internal();
-  _Socket._internalReadOnly() : _closedWrite = true;
-  _Socket._internalWriteOnly() : _closedRead = true;
+  _Socket._internalReadOnly() : _closedWrite = true, _pipe = true;
+  _Socket._internalWriteOnly() : _closedRead = true, _pipe = true;
 
   int available() {
     if (_id >= 0) {
@@ -336,6 +347,7 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   bool _isListenSocket() => false;
+  bool _isPipe() => _pipe;
 
   InputStream get inputStream() {
     if (_inputStream === null) {
@@ -353,6 +365,7 @@ class _Socket extends _SocketBase implements Socket {
 
   bool _closedRead = false;
   bool _closedWrite = false;
+  bool _pipe = false;
   SocketInputStream _inputStream;
   SocketOutputStream _outputStream;
 }
