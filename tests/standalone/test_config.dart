@@ -69,10 +69,12 @@ class StandaloneTestSuite {
     if (configuration["component"] == "leg") {
       args.add("--enable_leg");
     }
-    args.add(filename);
 
+    var optionsFromFile = testOptions(filename);
+    List<List<String>> optionsList = optionsFromFile["vmOptions"];
+    List<String> dartOptions = optionsFromFile["dartOptions"];
+    args.addAll(dartOptions == null ? [filename] : dartOptions);
 
-    List<List> optionsList = testOptions(filename);
     if (optionsList.isEmpty()) {
       doTest(new TestCase(testName,
                           shellPath,
@@ -93,21 +95,32 @@ class StandaloneTestSuite {
     }
   }
 
-  List<List> testOptions(String filename) {
+  Map testOptions(String filename) {
     RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
+    RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
     File file = new File(filename);
     FileInputStream fileStream = file.openInputStream();
     StringInputStream lines = new StringInputStream(fileStream);
 
     List<List> result = new List<List>();
+    List<String> dartOptions;
     String line;
     while ((line = lines.readLine()) != null) {
       Match match = testOptionsRegExp.firstMatch(line);
       if (match != null) {
         result.add(match[1].split(' ').filter((e) => e != ''));
       }
+
+      match = dartOptionsRegExp.firstMatch(line);
+      if (match != null) {
+        if (dartOptions != null) {
+          throw new Exception(
+              'More than one "// DartOptions=" line in test $filename');
+        }
+        dartOptions = match[1].split(' ').filter((e) => e != '');
+      }
     }
-    return result;
+    return {"vmOptions": result, "dartOptions": dartOptions};
   }
   
   void completeHandler(TestCase testCase) {
