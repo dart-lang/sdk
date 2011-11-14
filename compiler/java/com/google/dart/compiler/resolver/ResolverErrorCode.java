@@ -98,7 +98,6 @@ public enum ResolverErrorCode implements ErrorCode {
   STATIC_METHOD_ACCESS_SUPER("Cannot use 'super' in a static method"),
   STATIC_METHOD_ACCESS_THIS("Cannot use 'this' in a static method"),
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),
-  SUPER_INVOCATION_NOT_UNIQUE("'super' must be called only once in the initialization list"),
   TOP_LEVEL_METHOD_ACCESS_SUPER("Cannot use 'super' in a top-level method"),
   TOP_LEVEL_METHOD_ACCESS_THIS("Cannot use 'this' in a top-level method"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),

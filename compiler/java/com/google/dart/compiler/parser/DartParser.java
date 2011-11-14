@@ -974,17 +974,18 @@ public class DartParser extends CompletionHooksParserBase {
       done(null);
     }
 
-    // Parse the argument definitions.
-    List<DartParameter> arguments = parseFormalParameterList();
+    // Parse the parameters definitions.
+    List<DartParameter> parameters = parseFormalParameterList();
 
-    if (arity != -1 && arguments.size() != arity) {
-      reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_ARGUMENTS);
+    if (arity != -1 && parameters.size() != arity) {
+      reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
     }
 
     // Parse initializer expressions for constructors.
     List<DartInitializer> initializers = new ArrayList<DartInitializer>();
     if (match(Token.COLON) && !(isParsingInterface || modifiers.isFactory())) {
-      boolean isRedirectedConstructor = parseInitializers(initializers);
+      parseInitializers(initializers);
+      boolean isRedirectedConstructor = validateInitializers(parameters, initializers);
       if (isRedirectedConstructor) {
         modifiers = modifiers.makeRedirectedConstructor();
       }
@@ -1001,7 +1002,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    DartFunction function = doneWithoutConsuming(new DartFunction(arguments, body, returnType));
+    DartFunction function = doneWithoutConsuming(new DartFunction(parameters, body, returnType));
     return DartMethodDefinition.create(name, function, modifiers, initializers, null);
   }
 
@@ -1054,10 +1055,10 @@ public class DartParser extends CompletionHooksParserBase {
    *            : (THIS '.')? identifier '=' conditionalExpression
    *            | THIS ('.' identifier)? arguments
    *            ;
-   * </pre>
+   * </pre> 
    * @return true if initializer is a redirected constructor, false otherwise.
    */
-  private boolean parseInitializers(List<DartInitializer> initializers) {
+  private void parseInitializers(List<DartInitializer> initializers) {
     expect(Token.COLON);
     do {
       beginInitializer();
@@ -1075,13 +1076,15 @@ public class DartParser extends CompletionHooksParserBase {
         boolean hasThisPrefix = optional(Token.THIS);
         if (hasThisPrefix) {
           if (match(Token.LPAREN)) {
-            return parseRedirectedConstructorInvocation(null, initializers);
+            parseRedirectedConstructorInvocation(null, initializers);
+            continue;
           }
           expect(Token.PERIOD);
         }
         DartIdentifier name = parseIdentifier();
         if (hasThisPrefix && match(Token.LPAREN)) {
-          return parseRedirectedConstructorInvocation(name, initializers);
+          parseRedirectedConstructorInvocation(name, initializers);
+          continue;
         } else {
           expect(Token.ASSIGN);
           boolean save = setAllowFunctionExpression(false);
@@ -1091,20 +1094,87 @@ public class DartParser extends CompletionHooksParserBase {
         }
       }
     } while (optional(Token.COMMA));
-    return false;
   }
 
-  private boolean parseRedirectedConstructorInvocation(DartIdentifier name,
-                                                       List<DartInitializer> initializers) {
-    if (initializers.isEmpty()) {
-      DartRedirectConstructorInvocation redirConstructor =
+  private void parseRedirectedConstructorInvocation(DartIdentifier name,
+      List<DartInitializer> initializers) {
+    DartRedirectConstructorInvocation redirConstructor =
         new DartRedirectConstructorInvocation(name, parseArguments());
-      initializers.add(done(new DartInitializer(null, doneWithoutConsuming(redirConstructor))));
-      return true;
-    } else {
-      reportUnexpectedToken(position(), Token.ASSIGN, Token.LPAREN);
+    initializers.add(done(new DartInitializer(null, doneWithoutConsuming(redirConstructor))));
+  }
+
+  private boolean validateInitializers(List<DartParameter> parameters,
+      List<DartInitializer> initializers) {
+    // Try to find DartRedirectConstructorInvocation, check for multiple invocations.
+    // Check for DartSuperConstructorInvocation multiple invocations.
+    DartInitializer redirectInitializer = null;
+    boolean firstMultipleRedirectReported = false;
+    {
+      DartInitializer superInitializer = null;
+      boolean firstMultipleSuperReported = false;
+      for (DartInitializer initializer : initializers) {
+        if (initializer.isInvocation()) {
+          // DartSuperConstructorInvocation
+          DartExpression initializerInvocation = initializer.getValue();
+          if (initializerInvocation instanceof DartSuperConstructorInvocation) {
+            if (superInitializer != null) {
+              if (!firstMultipleSuperReported) {
+                reportError(superInitializer, ParserErrorCode.SUPER_CONSTRUCTOR_MULTIPLE);
+                firstMultipleSuperReported = true;
+              }
+              reportError(initializer, ParserErrorCode.SUPER_CONSTRUCTOR_MULTIPLE);
+            } else {
+              superInitializer = initializer;
+            }
+          }
+          // DartRedirectConstructorInvocation
+          if (initializerInvocation instanceof DartRedirectConstructorInvocation) {
+            if (redirectInitializer != null) {
+              if (!firstMultipleRedirectReported) {
+                reportError(redirectInitializer, ParserErrorCode.REDIRECTING_CONSTRUCTOR_MULTIPLE);
+                firstMultipleRedirectReported = true;
+              }
+              reportError(initializer, ParserErrorCode.REDIRECTING_CONSTRUCTOR_MULTIPLE);
+            } else {
+              redirectInitializer = initializer;
+            }
+          }
+        }
+      }
     }
-    return false;
+    // If there is redirecting constructor, then there should be no other initializers.
+    if (redirectInitializer != null) {
+      boolean shouldRedirectInvocationReported = false;
+      // Implicit initializer in form of "this.id" parameter.
+      for (DartParameter parameter : parameters) {
+        if (parameter.getName() instanceof DartPropertyAccess) {
+          DartPropertyAccess propertyAccess = (DartPropertyAccess) parameter.getName();
+          if (propertyAccess.getQualifier() instanceof DartThisExpression) {
+            shouldRedirectInvocationReported = true;
+            reportError(
+                parameter,
+                ParserErrorCode.REDIRECTING_CONSTRUCTOR_PARAM);
+          }
+        }
+      }
+      // Iterate all initializers and mark all except of DartRedirectConstructorInvocation
+      for (DartInitializer initializer : initializers) {
+        if (!(initializer.getValue() instanceof DartRedirectConstructorInvocation)) {
+          shouldRedirectInvocationReported = true;
+          reportError(
+              initializer,
+              ParserErrorCode.REDIRECTING_CONSTRUCTOR_OTHER);
+        }
+      }
+      // Mark DartRedirectConstructorInvocation if needed.
+      if (shouldRedirectInvocationReported) {
+        reportError(
+            redirectInitializer,
+            ParserErrorCode.REDIRECTING_CONSTRUCTOR_ITSELF);
+      }
+    }
+    // Done.
+    return redirectInitializer != null;
   }
 
   /**

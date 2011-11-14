@@ -6,11 +6,9 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,20 +17,22 @@ public class NegativeResolverTest extends CompilerTestCase {
   List<DartCompilationError> errors = new ArrayList<DartCompilationError>();
   List<DartCompilationError> typeErrors = new ArrayList<DartCompilationError>();
 
-  private static class ErrorExpectation {
-    final ErrorCode errorCode;
-    final int line;
-    final int column;
-
-    public ErrorExpectation(ErrorCode errorCode, int line, int column) {
-      this.errorCode = errorCode;
-      this.line = line;
-      this.column = column;
-    }
+  /**
+   * Parses given Dart source, runs {@link Resolver} and checks that expected errors were generated.
+   */
+  public void checkSourceErrors(String source, ErrorExpectation ...expectedErrors) {
+    DartUnit unit = parseUnit("Test.dart", source);
+    resolve(unit);
+    assertErrors(errors, expectedErrors);
   }
 
-  private static ErrorExpectation errEx(ErrorCode errorCode, int line, int column) {
-    return new ErrorExpectation(errorCode, line, column);
+  /**
+   * Parses given Dart file, runs {@link Resolver} and checks that expected errors were generated.
+   */
+  public void checkFileErrors(String source, ErrorExpectation ...expectedErrors) {
+    DartUnit unit = parseUnit(source);
+    resolve(unit);
+    assertErrors(errors, expectedErrors);
   }
 
   public void checkNumErrors(String fileName, int expectedErrorCount) {
@@ -45,28 +45,6 @@ public class NegativeResolverTest extends CompilerTestCase {
     }
   }
 
-  public void checkNumErrors(String fileName,  ErrorExpectation ...expectedErrors) {
-    DartUnit unit = parseUnit(fileName);
-    resolve(unit);
-    assertEquals(expectedErrors.length, errors.size());
-    for (int i = 0; i < expectedErrors.length; i++) {
-      ErrorExpectation expectedError = expectedErrors[i];
-      DartCompilationError actualError = errors.get(i);
-      if (actualError.getErrorCode() != expectedError.errorCode
-          || actualError.getLineNumber() != expectedError.line
-          || actualError.getColumnNumber() != expectedError.column) {
-        fail(String.format(
-            "Expected %s:%s:%s, but got %s:%s:%s",
-            expectedError.errorCode,
-            expectedError.line,
-            expectedError.column,
-            actualError.getErrorCode(),
-            actualError.getLineNumber(),
-            actualError.getColumnNumber()));
-      }
-    }
-  }
-
   private void resolve(DartUnit unit) {
     unit.addTopLevelNode(ResolverTestCase.makeClass("int", null));
     unit.addTopLevelNode(ResolverTestCase.makeClass("Object", null));
@@ -75,39 +53,6 @@ public class NegativeResolverTest extends CompilerTestCase {
     unit.addTopLevelNode(ResolverTestCase.makeClass("List", null, "T"));
     unit.addTopLevelNode(ResolverTestCase.makeClass("Map", null, "K", "V"));
     ResolverTestCase.resolve(unit, getContext());
-  }
-
-  /**
-   * Parses given Dart source, runs {@link Resolver} and checks that expected errors were generated.
-   */
-  public void checkErrors(String source, ErrorExpectation ...expectedErrors) {
-    DartUnit unit = parseUnit("Test.dart", source);
-    resolve(unit);
-    // count of errors
-    if (errors.size() != expectedErrors.length) {
-      fail(String.format(
-          "Expected %s errors, but got %s: %s",
-          expectedErrors.length,
-          errors.size(),
-          errors));
-    }
-    // content of errors
-    for (int i = 0; i < expectedErrors.length; i++) {
-      ErrorExpectation expectedError = expectedErrors[i];
-      DartCompilationError actualError = errors.get(i);
-      if (actualError.getErrorCode() != expectedError.errorCode
-          || actualError.getLineNumber() != expectedError.line
-          || actualError.getColumnNumber() != expectedError.column) {
-        fail(String.format(
-            "Expected %s:%s:%s, but got %s:%s:%s",
-            expectedError.errorCode,
-            expectedError.line,
-            expectedError.column,
-            actualError.getErrorCode(),
-            actualError.getLineNumber(),
-            actualError.getColumnNumber()));
-      }
-    }
   }
 
   public void testInitializer1() {
@@ -135,25 +80,25 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   public void testArrayLiteralNegativeTest() {
-    checkErrors(
+    checkSourceErrors(
         makeCode(
             "class A {",
             "  main() {",
             "    List<int, int> ints = [1];",
             "  }",
             "}"),
-        errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5));
+        errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5, 14));
   }
   
   public void testMapLiteralNegativeTest() {
-    checkErrors(
+    checkSourceErrors(
         makeCode(
             "class A {",
             "  main() {",
             "    Map<String, int, int> map = {'foo':1};",
             "  }",
             "}"),
-            errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5));
+            errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5, 21));
   }
   
   public void testCall1() {
@@ -274,11 +219,6 @@ public class NegativeResolverTest extends CompilerTestCase {
 
   public void testRawTypesNegativeTest() {
     checkNumErrors("RawTypesNegativeTest.dart", 4);
-  }
-
-  public void testSuperMultipleInvocationsTest() {
-    checkNumErrors("SuperMultipleInvocationsTest.dart",
-                   errEx(ResolverErrorCode.SUPER_INVOCATION_NOT_UNIQUE, 14, 52));
   }
 
   private TestCompilerContext getContext() {

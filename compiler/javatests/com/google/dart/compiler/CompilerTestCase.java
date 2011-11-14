@@ -273,4 +273,57 @@ public abstract class CompilerTestCase extends TestCase {
       DartCompilerListener listener) {
     return new DartScannerParserContext(src, sourceCode, listener);
   }
+
+  protected static class ErrorExpectation {
+    final ErrorCode errorCode;
+    final int line;
+    final int column;
+    final int length;
+
+    public ErrorExpectation(ErrorCode errorCode, int line, int column, int length) {
+      this.errorCode = errorCode;
+      this.line = line;
+      this.column = column;
+      this.length = length;
+    }
+  }
+
+  protected static ErrorExpectation errEx(ErrorCode errorCode, int line, int column, int length) {
+    return new ErrorExpectation(errorCode, line, column,  length);
+  }
+
+  /**
+   * Asserts that given list of {@link DartCompilationError} is exactly same as expected.
+   */
+  protected static void assertErrors(List<DartCompilationError> errors,
+      ErrorExpectation... expectedErrors) {
+    // count of errors
+    if (errors.size() != expectedErrors.length) {
+      fail(String.format(
+          "Expected %s errors, but got %s: %s",
+          expectedErrors.length,
+          errors.size(),
+          errors));
+    }
+    // content of errors
+    for (int i = 0; i < expectedErrors.length; i++) {
+      ErrorExpectation expectedError = expectedErrors[i];
+      DartCompilationError actualError = errors.get(i);
+      if (actualError.getErrorCode() != expectedError.errorCode
+          || actualError.getLineNumber() != expectedError.line
+          || actualError.getColumnNumber() != expectedError.column
+          || actualError.getLength() != expectedError.length) {
+        fail(String.format(
+            "Expected %s:%d:%d/%d, but got %s:%d:%d/%d",
+            expectedError.errorCode,
+            expectedError.line,
+            expectedError.column,
+            expectedError.length,
+            actualError.getErrorCode(),
+            actualError.getLineNumber(),
+            actualError.getColumnNumber(),
+            actualError.getLength()));
+      }
+    }
+  }
 }
