@@ -306,7 +306,6 @@ LibTest/core/SendPort/send/SendPort/send/A02/t01: Fail
 LibTest/core/SendPort/send/SendPort/send/A03/t02: Fail
 LibTest/core/Set/filter/Set/filter/A01/t03: Fail
 LibTest/core/Set/forEach/Set/forEach/A01/t03: Fail
-LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail
 LibTest/core/String/A02/t01: Fail
 LibTest/core/String/String.fromCharCodes/String/String.fromCharCodes/A02/t01: Fail
 LibTest/core/String/charCodeAt/String/charCodeAt/A01/t01: Fail
@@ -400,6 +399,17 @@ LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
 LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail
 LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
+
+# Failing test due to rename of StopWatch to Stopwatch.
+[ $component == dartc ]
+LibTest/core/StopWatch/StopWatch/StopWatch/A01/t01: Fail
+LibTest/core/StopWatch/start/StopWatch/start/A01/t01: Fail
+LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail  # Also broken test.
+LibTest/core/StopWatch/start/StopWatch/start/A01/t03: Fail
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t01: Fail
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t02: Fail
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t03: Fail
+LibTest/core/StopWatch/frequency/StopWatch/frequency/A01/t01: Fail
 
 [ $component == dartium ]
 *: Skip

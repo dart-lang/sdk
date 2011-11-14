@@ -211,7 +211,6 @@ LibTest/core/Proxy/Proxy.forPort/Proxy/Proxy.forPort/A01/t01: Fail
 LibTest/core/Proxy/call/Proxy/call/A01/t01: Fail
 LibTest/core/Duration/Duration/Duration/A03/t01: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t09: Fail
-LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail
 LibTest/core/double/operatorLT/double/operatorLT/A01/t03: Fail
 LibTest/core/double/A01/t01: Fail
 LibTest/core/double/operatorLT/double/operatorLT/A02/t01: Fail
@@ -578,3 +577,14 @@ LibTest/core/List/some/List/some/A01/t02: Fail
 LibTest/core/List/every/List/every/A01/t02: Fail
 LangGuideTest/02_Language_Constructs/02_6_Functions/A04/t01: Fail
 LangGuideTest/02_Language_Constructs/02_2_Interface/A01/t01: Fail
+
+# The following tests fail due to renaming of StopWatch to Stopwatch.
+[ $component == frog || $component == frogsh || $component == leg ]
+LibTest/core/StopWatch/StopWatch/StopWatch/A01/t01: Fail
+LibTest/core/StopWatch/start/StopWatch/start/A01/t01: Fail
+LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail  # Also broken test.
+LibTest/core/StopWatch/start/StopWatch/start/A01/t03: Fail
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t01: Fail
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t02: Fail
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t03: Fail
+LibTest/core/StopWatch/frequency/StopWatch/frequency/A01/t01: Fail
