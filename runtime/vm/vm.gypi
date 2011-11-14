@@ -31,6 +31,7 @@
           'link_settings': {
             'libraries': [
               '-lpthread',
+              '-lrt',
               '-lcrypto',
             ],
           },
