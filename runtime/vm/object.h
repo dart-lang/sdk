@@ -2507,6 +2507,11 @@ class String : public Instance {
     raw_ptr()->hash_ = Smi::New(value);
   }
 
+  template<typename HandleType, typename ElementType>
+  static RawString* ReadFromImpl(SnapshotReader* reader,
+                                 intptr_t object_id,
+                                 bool classes_serialized);
+
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 };
 

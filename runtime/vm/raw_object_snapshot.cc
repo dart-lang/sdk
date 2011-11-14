@@ -988,147 +988,124 @@ void RawString::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
-                                          intptr_t object_id,
-                                          bool classes_serialized) {
+template<typename HandleType, typename CharacterType>
+RawString* String::ReadFromImpl(SnapshotReader* reader,
+                                intptr_t object_id,
+                                bool classes_serialized) {
   ASSERT(reader != NULL);
   // Read the length so that we can determine instance size to allocate.
   RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Set up the one byte string object.
-  OneByteString& str_obj = OneByteString::ZoneHandle(
-      OneByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  // Set up the string object.
+  HandleType& str_obj = HandleType::ZoneHandle(
+      HandleType::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
   for (intptr_t i = 0; i < len; i++) {
-    *str_obj.CharAddr(i) = reader->Read<uint8_t>();
+    *str_obj.CharAddr(i) = reader->Read<CharacterType>();
   }
-
   reader->AddBackwardReference(object_id, &str_obj);
-  RawOneByteString* raw_str = str_obj.raw();
-  raw_str->ptr()->hash_ = smi_hash;
+  str_obj.SetHash(Smi::Value(smi_hash));
   return str_obj.raw();
 }
 
 
-void RawOneByteString::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               bool serialize_classes) {
-  ASSERT(writer != NULL);
-  intptr_t len = Smi::Value(ptr()->length_);
-
-  // Write out the serialization header value for this object.
-  writer->WriteObjectHeader(kInlined, object_id);
-
-  // Write out the class information.
-  writer->WriteObjectHeader(kObjectId, ObjectStore::kOneByteStringClass);
-
-  // Write out the length field.
-  writer->Write<RawObject*>(ptr()->length_);
-
-  // Write out the hash field.
-  writer->Write<RawObject*>(ptr()->hash_);
-
-  // Write out the string.
-  for (intptr_t i = 0; i < len; i++) {
-    writer->Write<uint8_t>(ptr()->data_[i]);
-  }
+RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          bool classes_serialized) {
+  return static_cast<RawOneByteString*>(
+      ReadFromImpl<OneByteString, uint8_t>(reader,
+                                           object_id,
+                                           classes_serialized));
 }
 
 
 RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           bool classes_serialized) {
-  ASSERT(reader != NULL);
-  // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
-  intptr_t len = Smi::Value(smi_len);
-  RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
-
-  // Set up the two byte string object.
-  TwoByteString& str_obj = TwoByteString::ZoneHandle(
-      TwoByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
-  for (intptr_t i = 0; i < len; i++) {
-    *str_obj.CharAddr(i) = reader->Read<uint16_t>();
-  }
-
-  reader->AddBackwardReference(object_id, &str_obj);
-  RawTwoByteString* raw_str = str_obj.raw();
-  raw_str->ptr()->hash_ = smi_hash;
-  return str_obj.raw();
-}
-
-
-void RawTwoByteString::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               bool serialize_classes) {
-  ASSERT(writer != NULL);
-  intptr_t len = Smi::Value(ptr()->length_);
-
-  // Write out the serialization header value for this object.
-  writer->WriteObjectHeader(kInlined, object_id);
-
-  // Write out the class information.
-  writer->WriteObjectHeader(kObjectId, ObjectStore::kTwoByteStringClass);
-
-  // Write out the length field.
-  writer->Write<RawObject*>(ptr()->length_);
-
-  // Write out the hash field.
-  writer->Write<RawObject*>(ptr()->hash_);
-
-  // Write out the string.
-  for (intptr_t i = 0; i < len; i++) {
-    writer->Write<uint16_t>(ptr()->data_[i]);
-  }
+  return static_cast<RawTwoByteString*>(
+      ReadFromImpl<TwoByteString, uint16_t>(reader,
+                                            object_id,
+                                            classes_serialized));
 }
 
 
 RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
                                             bool classes_serialized) {
-  ASSERT(reader != NULL);
-  // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
-  intptr_t len = Smi::Value(smi_len);
-  RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
+  return static_cast<RawFourByteString*>(
+      ReadFromImpl<FourByteString, uint32_t>(reader,
+                                             object_id,
+                                             classes_serialized));
+}
 
-  // Set up the four byte string object.
-  FourByteString& str_obj = FourByteString::ZoneHandle(
-      FourByteString::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+
+template<typename T>
+static void StringWriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          intptr_t class_id,
+                          bool serialize_classes,
+                          RawSmi* length,
+                          RawSmi* hash,
+                          T* data) {
+  ASSERT(writer != NULL);
+  intptr_t len = Smi::Value(length);
+
+  // Write out the serialization header value for this object.
+  writer->WriteObjectHeader(kInlined, object_id);
+
+  // Write out the class information.
+  writer->WriteObjectHeader(kObjectId, class_id);
+
+  // Write out the length field.
+  writer->Write<RawObject*>(length);
+
+  // Write out the hash field.
+  writer->Write<RawObject*>(hash);
+
+  // Write out the string.
   for (intptr_t i = 0; i < len; i++) {
-    *str_obj.CharAddr(i) = reader->Read<uint32_t>();
+    writer->Write(data[i]);
   }
+}
 
-  reader->AddBackwardReference(object_id, &str_obj);
-  RawFourByteString* raw_str = str_obj.raw();
-  raw_str->ptr()->hash_ = smi_hash;
-  return str_obj.raw();
+
+void RawOneByteString::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               bool serialize_classes) {
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kOneByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->data_);
+}
+
+
+void RawTwoByteString::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               bool serialize_classes) {
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kTwoByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->data_);
 }
 
 
 void RawFourByteString::WriteTo(SnapshotWriter* writer,
                                 intptr_t object_id,
                                 bool serialize_classes) {
-  ASSERT(writer != NULL);
-  intptr_t len = Smi::Value(ptr()->length_);
-
-  // Write out the serialization header value for this object.
-  writer->WriteObjectHeader(kInlined, object_id);
-
-  // Write out the class information.
-  writer->WriteObjectHeader(kObjectId, ObjectStore::kFourByteStringClass);
-
-  // Write out the length field.
-  writer->Write<RawObject*>(ptr()->length_);
-
-  // Write out the hash field.
-  writer->Write<RawObject*>(ptr()->hash_);
-
-  // Write out the string.
-  for (intptr_t i = 0; i < len; i++) {
-    writer->Write<uint32_t>(ptr()->data_[i]);
-  }
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kFourByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->data_);
 }
 
 
