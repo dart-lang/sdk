@@ -77,6 +77,12 @@ class TestOptionsParser {
               -1,
               'int'),
           new _TestOptionSpecification(
+              'progress',
+              'Progress indication mode',
+              ['-p', '--progress'],
+              ['compact', 'line', 'verbose', 'status', 'buildbot'],
+              'compact'),
+          new _TestOptionSpecification(
               'tasks',
               'The number of parallel tasks to run',
               ['-j', '--tasks'],

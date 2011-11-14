@@ -9,10 +9,28 @@
 class ProgressIndicator {
   ProgressIndicator() : _startTime = new Date.now();
 
+  factory ProgressIndicator.fromName(String name) {
+    switch (name) {
+      case 'compact':
+        return new CompactProgressIndicator();
+      case 'line':
+        return new LineProgressIndicator();
+      case 'verbose':
+        return new VerboseProgressIndicator();
+      case 'status':
+        return new StatusProgressIndicator();
+      case 'buildbot':
+        return new BuildbotProgressIndicator();
+      default:
+        assert(false);
+        break;
+    }
+  }
+
   void testAdded() => _foundTests++;
 
   void start(TestCase test) {
-    _printProgress();
+    _printStartProgress(test);
   }
 
   void done(TestCase test) {
@@ -22,10 +40,12 @@ class ProgressIndicator {
     } else {
       _passedTests++;
     }
-    _printProgress();
+    _printDoneProgress(test);
   }
 
-  abstract _printProgress();
+  abstract allDone();
+  abstract _printStartProgress();
+  abstract _printDoneProgress();
 
   String _pad(String s, int length) {
     StringBuffer buffer = new StringBuffer();
@@ -73,6 +93,19 @@ class ProgressIndicator {
     print('\nCommand line: ${test.commandLine}');
   }
 
+  void _printStatus() {
+    if (_failedTests == 0) {
+      print('\n===');
+      print('=== All tests succeeded');
+      print('===\n');
+    } else {
+      var pluralSuffix = _failedTests != 1 ? 's' : '';
+      print('\n===');
+      print('=== ${_failedTests} test$pluralSuffix failed');
+      print('===\n');
+    }
+  }
+
   int _completedTests() => _passedTests + _failedTests;
 
   int _foundTests = 0;
@@ -83,6 +116,9 @@ class ProgressIndicator {
 
 
 class CompactProgressIndicator extends ProgressIndicator {
+  void allDone() {
+  }
+
   void _printProgress() {
     var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
     var percentPadded = _pad(percent, 5);
@@ -93,5 +129,78 @@ class CompactProgressIndicator extends ProgressIndicator {
         '+$passedPadded | -$failedPadded]';
     stdout.write(progressLine.charCodes());
   }
+
+  void _printStartProgress(TestCase test) => _printProgress();
+  void _printDoneProgress(TestCase test) => _printProgress();
 }
 
+
+class LineProgressIndicator extends ProgressIndicator {
+  void allDone() {
+    _printStatus();
+  }
+
+  void _printStartProgress(TestCase test) {
+  }
+
+  void _printDoneProgress(TestCase test) {
+    var status = 'pass';
+    if (test.output.unexpectedOutput) {
+      status = 'fail';
+    }
+    print('Done ${test.displayName}: $status');
+  }
+}
+
+
+class VerboseProgressIndicator extends ProgressIndicator {
+  void allDone() {
+    _printStatus();
+  }
+
+  void _printStartProgress(TestCase test) {
+    print('Starting ${test.displayName}...');
+  }
+
+  void _printDoneProgress(TestCase test) {
+    var status = 'pass';
+    if (test.output.unexpectedOutput) {
+      status = 'fail';
+    }
+    print('Done ${test.displayName}: $status');
+  }
+}
+
+
+class StatusProgressIndicator extends ProgressIndicator {
+  void allDone() {
+    _printStatus();
+  }
+
+  void _printStartProgress(TestCase test) {
+  }
+
+  void _printDoneProgress(TestCase test) {
+  }
+}
+
+
+class BuildbotProgressIndicator extends ProgressIndicator {
+  void allDone() {
+    _printStatus();
+  }
+
+  void _printStartProgress(TestCase test) {
+  }
+
+  void _printDoneProgress(TestCase test) {
+    var status = 'pass';
+    if (test.output.unexpectedOutput) {
+      status = 'fail';
+    }
+    var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
+    print('Done ${test.displayName}: $status');
+    print('@@@STEP_CLEAR@@@');
+    print('@@@STEP_TEXT@ $percent% +$_passedTests -$_failedTests @@@');
+  }
+}

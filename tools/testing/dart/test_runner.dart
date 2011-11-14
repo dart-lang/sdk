@@ -184,10 +184,11 @@ class ProcessQueue {
   ProcessQueue(Map configuration, this.onDone)
       : tests = new Queue<TestCase>(),
         maxProcesses = configuration['tasks'],
-        progress = new CompactProgressIndicator();
+        progress = new ProgressIndicator.fromName(configuration['progress']);
 
   tryRunTest() {
     if (tests.isEmpty() && numProcesses == 0) {
+      progress.allDone();
       onDone();
     }
     if (numProcesses < maxProcesses && !tests.isEmpty()) {
