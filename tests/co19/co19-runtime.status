@@ -66,21 +66,21 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.12_CharacterClassEscape/RegExp/firstMatch/CharacterClassEscape/A04/t01: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.13_CharacterClass/RegExp/firstMatch/CharacterClass/A01/t01: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.15_NonEmptyClassRanges/RegExp/firstMatch/NonEmptyClassRanges/A01/t01: Fail
-LibTest/core/Set/filter/Set/filter/A01/t03: Fail
-LibTest/core/Set/forEach/Set/forEach/A01/t03: Fail
-LibTest/core/String/contains/String/contains/A02/t01: Fail
-LibTest/core/String/replaceAll/String/replaceAll/A01/t01: Fail
-LibTest/core/String/split/String/split/A01/t01: Fail
-LibTest/core/String/split/String/split/A01/t02: Fail
-LibTest/core/String/trim/String/trim/A01/t02: Fail
+LibTest/core/Set/filter/Set/filter/A01/t03: Fail # Issue co19 - 24
+LibTest/core/Set/forEach/Set/forEach/A01/t03: Fail # Issue co19 - 24
+LibTest/core/String/contains/String/contains/A02/t01: Fail # Issue co19 - 25
+LibTest/core/String/replaceAll/String/replaceAll/A01/t01: Fail # Issue 429
+LibTest/core/String/split/String/split/A01/t01: Fail # Issue 429
+LibTest/core/String/split/String/split/A01/t02: Fail # Issue 429
+LibTest/core/String/trim/String/trim/A01/t02: Fail # Issue co19 - 27
 LibTest/core/String/operator\+/String/operator\+/A01/t03: Fail  # Issue co19 - 20
 
 
 # New failures
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/A08/t05: Fail
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Fail
-LangGuideTest/07_Overriding/A03/t01: Fail
-LangGuideTest/07_Overriding/A03/t02: Fail
+LangGuideTest/02_Language_Constructs/02_11_Exceptions/A08/t05: Fail # Issue 430
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Fail # Issue co19 - 29
+LangGuideTest/07_Overriding/A03/t01: Fail # Issue co19 - 28
+LangGuideTest/07_Overriding/A03/t02: Fail # Issue co19 - 28
 LibTest/core/Date/weekday/Date/weekday/A01/t02: Fail
 LibTest/core/Queue/every/Queue/every/A01/t06: Fail
 LibTest/core/Queue/filter/Queue/filter/A01/t06: Fail
