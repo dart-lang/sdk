@@ -4,6 +4,8 @@
 
 #library("test_options_parser");
 
+List<String> defaultTestSelectors = const ['standalone', 'corelib'];
+
 /**
  * Specification of a single test option.
  *
@@ -140,7 +142,7 @@ class TestOptionsParser {
         // The option name does not start with '-' or '--' so we
         // assume that the rest of the arguments specify tests or test
         // suites to run.
-        configuration['rest'] = arguments.getRange(i, numArguments - i);
+        configuration['patterns'] = arguments.getRange(i, numArguments - i);
         return _expandConfigurations(configuration);
       }
       // Find the option specification for the name.
@@ -194,6 +196,20 @@ class TestOptionsParser {
     if (configuration['component'] == 'most') {
       configuration['component'] = 'vm,dartc';
     }
+
+    // Expand the test selectors into simple regular expressions to be
+    // used on the full path of a test file. If no selectors are
+    // explicitly given use the default suite patterns.
+    List patterns = configuration['patterns'];
+    if (patterns == null) {
+      patterns = new List.from(defaultTestSelectors);
+    }
+    for (var i = 0; i < patterns.length; i++) {
+      patterns[i] = patterns[i].replaceAll('*', '.*');
+      patterns[i] = patterns[i].replaceAll('/', '.*');
+      patterns[i] = new RegExp(patterns[i]);
+    }
+    configuration['patterns'] = patterns;
 
     // Expand the architectures.
     var archs = configuration['architecture'];

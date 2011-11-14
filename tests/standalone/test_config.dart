@@ -46,6 +46,14 @@ class StandaloneTestSuite {
   void processFile(String filename) {
     if (!filename.endsWith("Test.dart")) return;
 
+    // If patterns are given only list the files that match one of the
+    // patterns.
+    var patterns = configuration['patterns'];
+    if (!patterns.isEmpty() &&
+        !patterns.some((re) => re.hasMatch(filename))) {
+      return;
+    }
+
     int start = filename.lastIndexOf(pathSeparator);
     String testName = filename.substring(start + 1, filename.length - 5);
     Set<String> expectations = testExpectationsMap.expectations(testName);
