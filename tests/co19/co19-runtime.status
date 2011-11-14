@@ -82,11 +82,8 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02:
 LangGuideTest/07_Overriding/A03/t01: Fail
 LangGuideTest/07_Overriding/A03/t02: Fail
 LibTest/core/Date/weekday/Date/weekday/A01/t02: Fail
-LibTest/core/List/sort/List/sort/A01/t04: Fail
-LibTest/core/List/sort/List/sort/A01/t05: Fail
 LibTest/core/Queue/every/Queue/every/A01/t06: Fail
 LibTest/core/Queue/filter/Queue/filter/A01/t06: Fail
-LibTest/core/List/sort/List/sort/A01/t06: Fail
 LibTest/core/Queue/forEach/Queue/forEach/A01/t04: Fail
 LibTest/core/Queue/some/Queue/some/A01/t06: Fail
 LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegExp/firstMatch/CharacterEscape/A06/t02: Fail
