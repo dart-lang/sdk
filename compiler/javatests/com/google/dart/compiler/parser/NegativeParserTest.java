@@ -172,4 +172,40 @@ public class NegativeParserTest extends CompilerTestCase {
     assertEquals(true, factory.getName() instanceof DartIdentifier);
     assertEquals("foo<T>", ((DartIdentifier) factory.getName()).getTargetName());
   }
+
+  public void test_defaultParameterValue_inInterfaceMethod() {
+    parseExpectErrors(
+        "interface A { f(int a, [int b = 12345]); }",
+        errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE, 1, 33, 5));
+  }
+
+  public void test_defaultParameterValue_inAbstractMethod() {
+    parseExpectErrors(
+        "class A { abstract f(int a, [int b = 12345, int c]); }",
+        errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT, 1, 38, 5));
+  }
+
+  public void test_defaultParameterValue_inClosureTypedef() {
+    parseExpectErrors(
+        "typedef void f(int a, [int b = 12345, inc c]);",
+        errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF, 1, 32, 5));
+  }
+
+  public void test_defaultParameterValue_inClosure() {
+    parseExpectErrors(
+        "class A {void f(void cb(int a, [int b = 12345, int c])) {}}",
+        errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE, 1, 41, 5));
+  }
+
+  public void test_namedParameterValue_inSetter() {
+    parseExpectErrors(
+        "class A { set f([int b]); }",
+        errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 18, 5));
+  }
+
+  public void test_namedParameterValue_inOperator() {
+    parseExpectErrors(
+        "class A { operator []=(int a, [int b]); }",
+        errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 32, 5));
+  }
 }

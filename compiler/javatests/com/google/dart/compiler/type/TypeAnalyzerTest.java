@@ -1233,7 +1233,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testImplementsAndOverrides() {
     analyzeClasses(loadSource(
         "interface Interface {",
-        "  void foo([x = null]);",
+        "  void foo(x);",
         "  void bar();",
         "}",
         // Abstract class not reported until first instantiation.
@@ -1271,7 +1271,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testImplementsAndOverrides2() {
     analyzeClasses(loadSource(
         "interface Interface {",
-        "  void foo([x = null]);",
+        "  void foo(x);",
         "}",
         // Abstract class not reported until first instantiation.
         "class Class implements Interface {",

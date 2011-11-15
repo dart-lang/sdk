@@ -640,6 +640,9 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
     List<DartParameter> params = parseFormalParameterList();
     expect(Token.SEMICOLON);
+    validateNoDefaultParameterValues(
+        params,
+        ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF);
 
     return done(new DartFunctionTypeAlias(name, returnType, params, typeParameters));
   }
@@ -977,8 +980,30 @@ public class DartParser extends CompletionHooksParserBase {
     // Parse the parameters definitions.
     List<DartParameter> parameters = parseFormalParameterList();
 
-    if (arity != -1 && parameters.size() != arity) {
-      reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
+    if (arity != -1) {
+      if (parameters.size() != arity) {
+        reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
+      }
+      // In methods with required arity each parameter is required.
+      for (DartParameter parameter : parameters) {
+        if (parameter.getModifiers().isNamed()) {
+          reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
+        }
+      }
+    }
+
+    // Interface method declaration can not have default values for named parameters.
+    if (isParsingInterface) {
+      validateNoDefaultParameterValues(
+          parameters,
+          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE);
+    }
+
+    // Abstract method declaration can not have default values for named parameters.
+    if (modifiers.isAbstract()) {
+      validateNoDefaultParameterValues(
+          parameters,
+          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT);
     }
 
     // Parse initializer expressions for constructors.
@@ -1240,13 +1265,13 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartParameter> params = new ArrayList<DartParameter>();
     expect(Token.LPAREN);
     boolean done = optional(Token.RPAREN);
-    boolean hasNamed = false;
+    boolean isNamed = false;
     while (!done) {
-      if (!hasNamed && optional(Token.LBRACK)) {
-        hasNamed = true;
+      if (!isNamed && optional(Token.LBRACK)) {
+        isNamed = true;
       }
 
-      DartParameter param = parseFormalParameter(hasNamed);
+      DartParameter param = parseFormalParameter(isNamed);
       params.add(param);
 
       done = optional(Token.RBRACK);
@@ -1286,7 +1311,7 @@ public class DartParser extends CompletionHooksParserBase {
     beginFormalParameter();
     DartExpression paramName = null;
     DartTypeNode type = null;
-    DartExpression initExpr = null;
+    DartExpression defaultExpr = null;
     List<DartParameter> functionParams = null;
     boolean hasVar = false;
     Modifiers modifiers = Modifiers.NONE;
@@ -1329,6 +1354,9 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_VAR);
       }
       functionParams = parseFormalParameterList();
+      validateNoDefaultParameterValues(
+          functionParams,
+          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE);
     } else {
       // Not a function parameter.
       if (isVoidType) {
@@ -1348,7 +1376,7 @@ public class DartParser extends CompletionHooksParserBase {
         // Default parameter -- only allowed for named parameters.
         if (isNamed) {
           consume(Token.ASSIGN);
-          initExpr = parseExpression();
+          defaultExpr = parseExpression();
         } else {
           reportError(position(), ParserErrorCode.DEFAULT_POSITIONAL_PARAMETER);
         }
@@ -1359,7 +1387,7 @@ public class DartParser extends CompletionHooksParserBase {
         break;
     }
 
-    return done(new DartParameter(paramName, type, functionParams, initExpr, modifiers));
+    return done(new DartParameter(paramName, type, functionParams, defaultExpr, modifiers));
   }
 
   /**
@@ -1382,6 +1410,20 @@ public class DartParser extends CompletionHooksParserBase {
       return done(new DartPropertyAccess(done(DartThisExpression.get()), parseIdentifier()));
     }
     return done(parseIdentifier());
+  }
+
+  /**
+   * Validates that given {@link DartParameter}s have no default values, or marks existing default
+   * values with given {@link ErrorCode}.
+   */
+  private void validateNoDefaultParameterValues(List<DartParameter> parameters,
+      ErrorCode errorCode) {
+    for (DartParameter parameter : parameters) {
+      DartExpression defaultExpr = parameter.getDefaultExpr();
+      if (defaultExpr != null) {
+        reportError(defaultExpr,  errorCode);
+      }
+    }
   }
 
   /**

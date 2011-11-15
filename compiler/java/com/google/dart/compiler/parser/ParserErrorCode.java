@@ -6,10 +6,21 @@ import com.google.dart.compiler.SubSystem;
 
 /**
  * {@link ErrorCode}s for parser.
+ * <p>
+ * The convention in this file (with some exceptions) is that the enumeration name matches at least
+ * the beginning default English translation of the message.
  */
 public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_MEMBER_IN_INTERFACE("Abstract members are not allowed in interfaces"),
   CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected."),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT(
+      "Default values can not be specified in abstract method"),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE(
+      "Default values can not be specified in closure parameter"),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE(
+      "Default values can not be specified in signature of an interface method"),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
+      "Default values can not be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
@@ -44,6 +55,7 @@ public enum ParserErrorCode implements ErrorCode {
   INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),
+  NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor can not have initializers"),

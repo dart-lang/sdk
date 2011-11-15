@@ -55,7 +55,6 @@ LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/A02/t01: Fai
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t01: Fail
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A01/t02: Fail
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/A02/t01: Fail
-LangGuideTest/02_Language_Constructs/02_7_Abstract_Methods/A02/t01: Fail # Bug 5371670.
 LangGuideTest/03_Values/03_3_Strings/A03/t01: Fail
 LangGuideTest/04_Operators/04_2_Operations_on_basic_types/A02/t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t02: Fail
@@ -78,7 +77,6 @@ LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t03: Crash
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A03/t01: Crash
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A04/t01: Crash
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A04/t02: Crash
-LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A06/t02: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A11/t04: Fail
