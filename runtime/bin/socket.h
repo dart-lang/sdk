@@ -17,6 +17,7 @@ class Socket {
   static intptr_t Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
   static intptr_t CreateConnect(const char* host, const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
+  static intptr_t GetStdioHandle(int num);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Socket);

@@ -55,7 +55,8 @@ static const char Builtin_source_[] = {
   V(Socket_Available, 1)                                                       \
   V(Socket_ReadList, 4)                                                        \
   V(Socket_WriteList, 4)                                                       \
-  V(Socket_GetPort, 1)
+  V(Socket_GetPort, 1)                                                         \
+  V(Socket_GetStdioHandle, 2)
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);

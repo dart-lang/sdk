@@ -88,6 +88,11 @@ intptr_t Socket::GetPort(intptr_t fd) {
 }
 
 
+intptr_t Socket::GetStdioHandle(int num) {
+  return static_cast<intptr_t>(num);
+}
+
+
 intptr_t ServerSocket::CreateBindListen(const char* host,
                                   intptr_t port,
                                   intptr_t backlog) {

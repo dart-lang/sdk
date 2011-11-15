@@ -87,6 +87,31 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
 }
 
 
+intptr_t Socket::GetStdioHandle(int num) {
+  HANDLE handle;
+  switch (num) {
+    case 0:
+      handle = GetStdHandle(STD_INPUT_HANDLE);
+      break;
+    case 1:
+      handle = GetStdHandle(STD_OUTPUT_HANDLE);
+      break;
+    case 2:
+      handle = GetStdHandle(STD_ERROR_HANDLE);
+      break;
+    default: UNREACHABLE();
+  }
+  if (handle == INVALID_HANDLE_VALUE) {
+    fprintf(stderr, "Error GetStdHandle: %d\n", GetLastError());
+    return -1;
+  }
+  FileHandle* file_handle = new FileHandle(handle);
+  if (file_handle == NULL) return -1;
+  file_handle->MarkDoesNotSupportOverlappedIO();
+  return reinterpret_cast<intptr_t>(file_handle);
+}
+
+
 intptr_t ServerSocket::Accept(intptr_t fd) {
   ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
   ClientSocket* client_socket = listen_socket->Accept();

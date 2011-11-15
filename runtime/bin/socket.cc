@@ -113,6 +113,20 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle socketobj = Dart_GetNativeArgument(args, 0);
+  intptr_t num =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  ASSERT(num == 0 || num == 1 || num == 2);
+  intptr_t socket = Socket::GetStdioHandle(num);
+  DartUtils::SetIntegerInstanceField(
+      socketobj, DartUtils::kIdFieldName, socket);
+  Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle socketobj = Dart_GetNativeArgument(args, 0);

@@ -224,7 +224,7 @@ static unsigned int __stdcall TerminationWaitThread(void* args) {
   ok = WriteFile(
       process->exit_pipe(), message, sizeof(message), &written, NULL);
   if (!ok || written != sizeof(message)) {
-    fprintf(stderr, "FileWrite failed %d\n", GetLastError());
+    fprintf(stderr, "WriteFile failed %d\n", GetLastError());
   }
   return 0;
 }
@@ -375,9 +375,8 @@ int Process::Start(const char* path,
   uintptr_t thread_handle =
       _beginthreadex(NULL, 32 * 1024, TerminationWaitThread, process, 0, &tid);
   if (thread_handle == -1) {
-    FATAL("Failed to start event handler thread");
+    FATAL("Failed to start process termination wait thread");
   }
-
 
   // Connect the three std streams.
   FileHandle* stdin_handle = new FileHandle(stdin_handles[kWriteHandle]);

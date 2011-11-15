@@ -185,11 +185,21 @@ class Handle {
   bool is_client_socket() { return type_ == kClientSocket; }
   intptr_t mask() { return mask_; }
 
+  void MarkDoesNotSupportOverlappedIO() {
+    flags_ |= (1 << kDoesNotSupportOverlappedIO);
+  }
+  bool SupportsOverlappedIO() {
+    return (flags_ & (1 << kDoesNotSupportOverlappedIO)) == 0;
+  }
+
+  void ReadSyncCompleteAsync();
+
  protected:
   enum Flags {
     kClosing = 0,
     kCloseRead = 1,
-    kCloseWrite = 2
+    kCloseWrite = 2,
+    kDoesNotSupportOverlappedIO = 3
   };
 
   explicit Handle(HANDLE handle);

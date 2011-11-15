@@ -200,30 +200,72 @@ void Handle::WriteComplete(IOBuffer* buffer) {
 }
 
 
+static unsigned int __stdcall ReadFileThread(void* args) {
+  Handle* handle = reinterpret_cast<Handle*>(args);
+  handle->ReadSyncCompleteAsync();
+  return 0;
+}
+
+
+void Handle::ReadSyncCompleteAsync() {
+  ASSERT(pending_read_ != NULL);
+  DWORD bytes_read;
+  BOOL ok = ReadFile(handle_,
+                     pending_read_->GetBufferStart(),
+                     pending_read_->GetBufferSize(),
+                     &bytes_read,
+                     NULL);
+  if (!ok) {
+    fprintf(stderr, "ReadFile failed %d\n", GetLastError());
+    bytes_read = 0;
+  }
+  OVERLAPPED* overlapped = pending_read_->GetCleanOverlapped();
+  ok = PostQueuedCompletionStatus(event_handler_->completion_port(),
+                                  bytes_read,
+                                  reinterpret_cast<ULONG_PTR>(this),
+                                  overlapped);
+  if (!ok) {
+    FATAL("PostQueuedCompletionStatus failed");
+  }
+}
+
+
 bool Handle::IssueRead() {
   ScopedLock lock(this);
   ASSERT(type_ != kListenSocket);
-  ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   ASSERT(pending_read_ == NULL);
-
   IOBuffer* buffer = IOBuffer::AllocateReadBuffer(1024);
-  BOOL ok = ReadFile(handle_,
-                     buffer->GetBufferStart(),
-                     buffer->GetBufferSize(),
-                     NULL,
-                     buffer->GetCleanOverlapped());
-  if (ok || GetLastError() == ERROR_IO_PENDING) {
-    // Completing asynchronously.
+  if (SupportsOverlappedIO()) {
+    ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
+
+    BOOL ok = ReadFile(handle_,
+                       buffer->GetBufferStart(),
+                       buffer->GetBufferSize(),
+                       NULL,
+                       buffer->GetCleanOverlapped());
+    if (ok || GetLastError() == ERROR_IO_PENDING) {
+      // Completing asynchronously.
+      pending_read_ = buffer;
+      return true;
+    }
+
+    if (GetLastError() != ERROR_BROKEN_PIPE) {
+      fprintf(stderr, "ReadFile failed: %d\n", GetLastError());
+    }
+    event_handler_->HandleClosed(this);
+    IOBuffer::DisposeBuffer(buffer);
+    return false;
+  } else {
+    // Completing asynchronously through thread.
     pending_read_ = buffer;
+    uint32_t tid;
+    uintptr_t thread_handle =
+        _beginthreadex(NULL, 32 * 1024, ReadFileThread, this, 0, &tid);
+    if (thread_handle == -1) {
+      FATAL("Failed to start read file thread");
+    }
     return true;
   }
-
-  if (GetLastError() != ERROR_BROKEN_PIPE) {
-    fprintf(stderr, "ReadFile failed: %d\n", GetLastError());
-  }
-  event_handler_->HandleClosed(this);
-  IOBuffer::DisposeBuffer(buffer);
-  return false;
 }
 
 
@@ -257,9 +299,9 @@ bool Handle::IssueWrite() {
 
 void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
   ScopedLock lock(this);
-  if (completion_port_ == INVALID_HANDLE_VALUE) {
+  event_handler_ = event_handler;
+  if (SupportsOverlappedIO() && completion_port_ == INVALID_HANDLE_VALUE) {
     ASSERT(event_handler_ == NULL);
-    event_handler_ = event_handler;
     CreateCompletionPort(event_handler_->completion_port());
   }
 }
@@ -436,14 +478,31 @@ int Handle::Read(void* buffer, int num_bytes) {
 
 int Handle::Write(const void* buffer, int num_bytes) {
   ScopedLock lock(this);
-  if (pending_write_ != NULL) return 0;
-  if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
-  if (num_bytes > 4096) num_bytes = 4096;
-  pending_write_ = IOBuffer::AllocateWriteBuffer(num_bytes);
-  pending_write_->Write(buffer, num_bytes);
-  IssueWrite();
-  return num_bytes;
+  if (SupportsOverlappedIO()) {
+    if (pending_write_ != NULL) return 0;
+    if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
+    if (num_bytes > 4096) num_bytes = 4096;
+    pending_write_ = IOBuffer::AllocateWriteBuffer(num_bytes);
+    pending_write_->Write(buffer, num_bytes);
+    IssueWrite();
+    return num_bytes;
+  } else {
+    DWORD bytes_written;
+    BOOL ok = WriteFile(handle_,
+                        buffer,
+                        num_bytes,
+                        &bytes_written,
+                        NULL);
+    if (!ok) {
+      if (GetLastError() != ERROR_BROKEN_PIPE) {
+        fprintf(stderr, "WriteFile failed: %d\n", GetLastError());
+      }
+      event_handler_->HandleClosed(this);
+    }
+    return bytes_written;
+  }
 }
+
 
 void ClientSocket::Shutdown(int how) {
   int rc = shutdown(socket(), how);
@@ -643,9 +702,7 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
 void EventHandlerImplementation::HandleClosed(Handle* handle) {
   if (!handle->IsClosing()) {
     int event_mask = 1 << kCloseEvent;
-    if ((handle->mask() & event_mask) != 0) {
-      Dart_PostIntArray(handle->port(), 1, &event_mask);
-    }
+    Dart_PostIntArray(handle->port(), 1, &event_mask);
   }
 }
 
