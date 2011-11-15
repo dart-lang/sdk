@@ -542,12 +542,10 @@ LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A18/t01: Pass # for the wrong reasons
 LangGuideTest/08_Expressions/A02/t02: Fail
 LangGuideTest/08_Expressions/A01/t02: Fail
-LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A01/t01: Fail
 LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
 LangSpecTest/13_Types/13_1_Static_Types/A01/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t08: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A08/t03: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t03: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A09/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t15: Fail
