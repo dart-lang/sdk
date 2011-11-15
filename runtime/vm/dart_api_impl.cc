@@ -207,7 +207,7 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
 
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
 DART_EXPORT bool Dart_Initialize(int argc,
-                                 char** argv,
+                                 const char** argv,
                                  Dart_IsolateInitCallback callback) {
   return Dart::InitOnce(argc, argv, callback);
 }

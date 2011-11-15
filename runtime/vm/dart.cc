@@ -23,7 +23,7 @@ namespace dart {
 Isolate* Dart::vm_isolate_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
-bool Dart::InitOnce(int argc, char** argv,
+bool Dart::InitOnce(int argc, const char** argv,
                     Dart_IsolateInitCallback callback) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL) {

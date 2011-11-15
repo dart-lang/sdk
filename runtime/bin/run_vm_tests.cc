@@ -50,10 +50,10 @@ static void* TestIsolateInitCallback(void* data) {
 }
 
 
-static int Main(int argc, char** argv) {
+static int Main(int argc, const char** argv) {
   // Flags being passed to the Dart VM.
   int dart_argc = 0;
-  char** dart_argv = NULL;
+  const char** dart_argv = NULL;
 
   if (argc < 2) {
     // Bad parameter count.
@@ -93,6 +93,6 @@ static int Main(int argc, char** argv) {
 }  // namespace dart
 
 
-int main(int argc, char** argv) {
+int main(int argc, const char** argv) {
   return dart::Main(argc, argv);
 }

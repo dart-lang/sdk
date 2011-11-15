@@ -218,9 +218,10 @@ int main(int argc, char** argv) {
     return 255;
   }
 
-  // Initialize the Dart VM.
+  // Initialize the Dart VM (TODO(asiva) - remove const_cast once
+  // dart API is fixed to take a const char** in Dart_Initialize).
   Dart_Initialize(vm_options.count(),
-                  vm_options.arguments(),
+                  const_cast<char**>(vm_options.arguments()),
                   MainIsolateInitCallback);
 
   // Create an isolate. As a side effect, MainIsolateInitCallback

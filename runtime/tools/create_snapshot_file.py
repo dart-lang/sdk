@@ -22,19 +22,23 @@ def BuildOptions():
   result = optparse.OptionParser()
   result.add_option("--executable",
       action="store", type="string",
-      help="path to executable")
+      help="path to snapshot generator executable")
   result.add_option("--output_bin",
       action="store", type="string",
-      help="binary snapshot output file name")
+      help="output file name into which snapshot in binary form is generated")
   result.add_option("--input_cc",
       action="store", type="string",
-      help="input template file name")
+      help="input file name which contains the C buffer template")
   result.add_option("--output",
       action="store", type="string",
-      help="generated snapshot output file name")
-  result.add_option("--scripts",
+      help="output file name into which snapshot in C buffer form is generated")
+  result.add_option("--script",
       action="store", type="string",
-      help="list of scripts to include in snapshot")
+      help="Dart script for which snapshot is to be generated")
+  result.add_option("--url_mapping",
+      default=[],
+      action="append",
+      help="mapping from url to file name, used when generating snapshots")
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")
@@ -80,20 +84,35 @@ def makeFile(output_file, input_cc_file, input_file):
 
 
 def Main():
-  # Parse the options.
+  # Parse options.
   parser = BuildOptions()
   (options, args) = parser.parse_args()
   if not ProcessOptions(options):
     parser.print_help()
     return 1
 
-  # Construct the path to the dart binary.
-  snapshot_argument = ''.join([ "--snapshot=", options.output_bin ])
-  if not options.scripts:
-    command = [ options.executable, snapshot_argument ]
-  else:
-    scripts = string.split(options.scripts)
-    command = [ options.executable, snapshot_argument ] + scripts
+  # If there are additional arguments, report error and exit.
+  if args:
+    parser.print_help()
+    return 1
+
+  # Setup arguments to the snapshot generator binary.
+  script_args = []
+
+  # First setup the snapshot output filename.
+  script_args.append(''.join([ "--snapshot=", options.output_bin ]))
+
+  # Next setup all url mapping options specified.
+  for url_arg in options.url_mapping:
+    url_mapping_argument = ''.join(["--url_mapping=", url_arg ])
+    script_args.append(url_mapping_argument)
+
+  # Finally append the script name if one is specified.
+  if options.script:
+    script_args.append(options.script)
+
+  # Construct command line to execute the snapshot generator binary and invoke.
+  command = [ options.executable ] + script_args
   if options.verbose:
     print ' '.join(command)
   pipe = subprocess.Popen(command,
@@ -106,6 +125,7 @@ def Main():
     return -1
 
   if not makeFile(options.output, options.input_cc, options.output_bin):
+    print "Unable to generate snapshot in C buffer form"
     return -1
 
   return 0
