@@ -315,7 +315,9 @@ template<class D, class S>
 inline D bit_copy(const S& source) {
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.
-  memcpy(&destination, &source, sizeof(destination));
+  memcpy(&destination,
+         reinterpret_cast<const void*>(&source),
+         sizeof(destination));
   return destination;
 }
 

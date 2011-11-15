@@ -189,7 +189,7 @@ int Process::Start(const char* path,
     return errno;
   }
 
-  char* program_arguments[arguments_length + 2];
+  char** program_arguments = new char*[arguments_length + 2];
   program_arguments[0] = const_cast<char *>(path);
   for (int i = 0; i < arguments_length; i++) {
     program_arguments[i + 1] = arguments[i];
@@ -206,6 +206,7 @@ int Process::Start(const char* path,
   pid = fork();
   if (pid < 0) {
     SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    delete[] program_arguments;
     close(read_in[0]);
     close(read_in[1]);
     close(read_err[0]);
@@ -254,6 +255,9 @@ int Process::Start(const char* path,
     close(exec_control[1]);
     exit(1);
   }
+
+  // The arguments for the spawned process are not needed any longer.
+  delete[] program_arguments;
 
   int event_fds[2];
   result = pipe(event_fds);
