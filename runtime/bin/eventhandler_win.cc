@@ -301,7 +301,6 @@ void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
   ScopedLock lock(this);
   event_handler_ = event_handler;
   if (SupportsOverlappedIO() && completion_port_ == INVALID_HANDLE_VALUE) {
-    ASSERT(event_handler_ == NULL);
     CreateCompletionPort(event_handler_->completion_port());
   }
 }
