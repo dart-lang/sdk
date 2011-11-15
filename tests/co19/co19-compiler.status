@@ -150,6 +150,7 @@ LibTest/core/Expect/setEquals/Expect/setEquals/A01/t01: Fail
 LibTest/core/Expect/setEquals/Expect/setEquals/A01/t02: Fail
 LibTest/core/Expect/stringEquals/Expect/stringEquals/A01/t02: Fail
 LibTest/core/Expect/stringEquals/Expect/stringEquals/A02/t01: Fail
+LibTest/core/Expect/stringEquals/Expect/stringEquals/A01/t02: Fail
 LibTest/core/Expect/throws/Expect/throws/A02/t01: Fail
 LibTest/core/Expect/throws/Expect/throws/A03/t01: Fail
 LibTest/core/FallThroughError/line/FallThroughError/line/A01/t01: Fail
