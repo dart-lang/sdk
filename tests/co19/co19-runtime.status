@@ -256,45 +256,45 @@ LibTest/core/TypeError/line/TypeError/line/A01/t01: Fail
 LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail
 LibTest/core/TypeError/url/TypeError/url/A01/t01: Fail
 [ $component == vm && $checked ]
-LangGuideTest/03_Values/03_2_Numbers/A02/t01: Fail
-LangSpecTest/13_Types/13_1_Static_Types/A01/t01: Fail
-LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A01/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A01/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A02/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A08/t03: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A09/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t10: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t11: Fail
-LibTest/core/BadNumberFormatException/BadNumberFormatException/BadNumberFormatException/A01/t01: Fail
-LibTest/core/Date/Date.withTimeZone/Date/Date.withTimeZone/A01/t01: Fail
-LibTest/core/IllegalArgumentException/IllegalArgumentException/IllegalArgumentException/A01/t01: Fail
-LibTest/core/InternalError/toString/InternalError/toString/A01/t01: Fail
-LibTest/core/List/every/List/every/A01/t02: Fail
-LibTest/core/List/every/List/every/A01/t09: Fail
-LibTest/core/List/every/List/every/A01/t10: Fail
-LibTest/core/List/filter/List/filter/A01/t09: Fail
-LibTest/core/List/forEach/List/forEach/A01/t04: Fail
-LibTest/core/List/some/List/some/A01/t02: Fail
-LibTest/core/List/some/List/some/A01/t07: Fail
-LibTest/core/List/some/List/some/A01/t09: Fail
-LibTest/core/List/some/List/some/A01/t10: Fail
-LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t03: Fail
-LibTest/core/Match/group/Match/group/A01/t01: Fail
-LibTest/core/Queue/Queue.from/Queue/Queue.from/A01/t02: Fail
+LangGuideTest/03_Values/03_2_Numbers/A02/t01: Fail # co19 - 37
+LangSpecTest/13_Types/13_1_Static_Types/A01/t01: Fail # co19 - 37
+LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A01/t01: Fail # co19 - 37
+LangSpecTest/13_Types/13_4_Interface_Types/A01/t01: Fail # co19 - 37
+LangSpecTest/13_Types/13_4_Interface_Types/A02/t01: Fail # co19 - 37
+LangSpecTest/13_Types/13_4_Interface_Types/A08/t03: Fail # co19 - 37
+LangSpecTest/13_Types/13_4_Interface_Types/A09/t01: Fail # co19 - 37
+LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail # co19 - 37
+LangSpecTest/13_Types/13_4_Interface_Types/A10/t10: Fail # co19 - 37
+LangSpecTest/13_Types/13_4_Interface_Types/A10/t11: Fail # co19 - 37
+LibTest/core/BadNumberFormatException/BadNumberFormatException/BadNumberFormatException/A01/t01: Fail # co19 - 37
+LibTest/core/Date/Date.withTimeZone/Date/Date.withTimeZone/A01/t01: Fail # co19 - 37
+LibTest/core/IllegalArgumentException/IllegalArgumentException/IllegalArgumentException/A01/t01: Fail # co19 - 37
+LibTest/core/InternalError/toString/InternalError/toString/A01/t01: Fail # co19 - 37
+LibTest/core/List/every/List/every/A01/t02: Fail # co19 - 37
+LibTest/core/List/every/List/every/A01/t09: Fail # co19 - 37
+LibTest/core/List/every/List/every/A01/t10: Fail # co19 - 37
+LibTest/core/List/filter/List/filter/A01/t09: Fail # co19 - 37
+LibTest/core/List/forEach/List/forEach/A01/t04: Fail # co19 - 37
+LibTest/core/List/some/List/some/A01/t02: Fail # co19 - 37
+LibTest/core/List/some/List/some/A01/t07: Fail # co19 - 37
+LibTest/core/List/some/List/some/A01/t09: Fail # co19 - 37
+LibTest/core/List/some/List/some/A01/t10: Fail # co19 - 37
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t03: Fail # co19 - 37
+LibTest/core/Match/group/Match/group/A01/t01: Fail # co19 - 37
+LibTest/core/Queue/Queue.from/Queue/Queue.from/A01/t02: Fail # co19 - 37
 LibTest/core/Queue/add/Queue/add/A01/t01: Skip  # Issue 331
 LibTest/core/Queue/addLast/Queue/addLast/A01/t01: Skip  # Issue 331
 LibTest/core/Queue/iterator_hasNext/Queue/iterator/hasNext/A01/t01: Skip  # Issue 331
-LibTest/core/SendPort/send/SendPort/send/A02/t01: Fail
-LibTest/core/Set/add/Set/add/A01/t03: Fail
-LibTest/core/UnsupportedOperationException/UnsupportedOperationException/UnsupportedOperationException/A01/t01: Fail
-LibTest/core/double/ceil/double/ceil/A01/t02: Fail
-LibTest/core/double/floor/double/floor/A01/t02: Fail
-LibTest/core/double/operator%/double/operator%/A01/t01: Fail
-LibTest/core/double/operator~div/double/operator~div/A01/t07: Fail
-LibTest/core/double/remainder/double/remainder/A01/t01: Fail
-LibTest/core/double/truncate/double/truncate/A01/t01: Fail
-LibTest/core/int/operator_div/int/operator/div/A01/t01: Fail
+LibTest/core/SendPort/send/SendPort/send/A02/t01: Fail # co19 - 37
+LibTest/core/Set/add/Set/add/A01/t03: Fail # co19 - 37
+LibTest/core/UnsupportedOperationException/UnsupportedOperationException/UnsupportedOperationException/A01/t01: Fail # co19 - 37
+LibTest/core/double/ceil/double/ceil/A01/t02: Fail # co19 - 36
+LibTest/core/double/floor/double/floor/A01/t02: Fail # co19 - 36
+LibTest/core/double/operator%/double/operator%/A01/t01: Fail # co19 - 36
+LibTest/core/double/operator~div/double/operator~div/A01/t07: Fail # co19 - 36
+LibTest/core/double/remainder/double/remainder/A01/t01: Fail # co19 - 36
+LibTest/core/double/truncate/double/truncate/A01/t01: Fail # co19 - 36
+LibTest/core/int/operator_div/int/operator/div/A01/t01: Fail # co19 - 36
 [ $component == vm && $system == win32 ]
 LibTest/core/int/operator\^/int/operator\^/A01/t01: Skip # Bad file name.
 LibTest/core/Math/pow/Math/pow/A07/t01: Fail
@@ -308,46 +308,46 @@ LibTest/core/TypeError/url/TypeError/url/A01/t01: Fail
 
 # Started failing after making @static-type-error non-negative.
 [ $component == vm ]
-LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail
-LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t02: Fail
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t03: Fail
-LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail
-LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail
-LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail
-LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
-LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Fail
-LibTest/core/Strings/join/Strings/join/A01/t02: Fail
+LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail # Issue 441
+LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail # Issue 441
+LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t02: Fail # Issue co19 - 35
+LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t03: Fail # Issue co19 - 35
+LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail # Issue co19 - 34
+LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail # Issue co19 - 34
+LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail # Issue co19 - 34
+LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail # Issue co19 - 34
+LibTest/core/Strings/concatAll/Strings/concatAll/A01/t02: Fail # Issue co19 - 34
+LibTest/core/Strings/join/Strings/join/A01/t02: Fail # Issue co19 - 34
 [ $component == vm && $checked ]
-LangGuideTest/08_Expressions/A02/t02: Fail
-LangGuideTest/08_Expressions/A01/t02: Fail
-LangSpecTest/13_Types/13_1_Static_Types/A04/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t01: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t02: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t03: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t04: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t05: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t06: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t07: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t08: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t17: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A12/t15: Fail
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t01: Fail
+LangGuideTest/08_Expressions/A02/t02: Fail # Issue co19 - 33
+LangGuideTest/08_Expressions/A01/t02: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_1_Static_Types/A04/t01: Fail # Issue 441
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t01: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t02: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t03: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t04: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t05: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t06: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t07: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t08: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t17: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_4_Interface_Types/A12/t15: Fail # Issue co19 - 33
+LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t01: Fail  # Issue 441
 
 # Started failing after changing how @dynamic-type-error is handled.
 [ $component == vm && $checked ]
-LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail
+LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail # Issue 220
 
 # Started failing after rename from StopWatch to Stopwatch.
 [ $component == vm ]
-LibTest/core/StopWatch/StopWatch/StopWatch/A01/t01: Fail
-LibTest/core/StopWatch/start/StopWatch/start/A01/t01: Fail
-LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail  # Also broken test.
-LibTest/core/StopWatch/start/StopWatch/start/A01/t03: Fail
-LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t01: Fail
-LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t02: Fail
-LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t03: Fail
-LibTest/core/StopWatch/frequency/StopWatch/frequency/A01/t01: Fail
+LibTest/core/StopWatch/StopWatch/StopWatch/A01/t01: Fail    # Issue co19 - 30
+LibTest/core/StopWatch/start/StopWatch/start/A01/t01: Fail  # Issue co19 - 30
+LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail  # Issue co19 - 30; Also broken test.
+LibTest/core/StopWatch/start/StopWatch/start/A01/t03: Fail  # Issue co19 - 30
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t01: Fail # Issue co19 - 30
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t02: Fail # Issue co19 - 30
+LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t03: Fail # Issue co19 - 30
+LibTest/core/StopWatch/frequency/StopWatch/frequency/A01/t01: Fail # Issue co19 - 30
 
 [ $arch == x64 ]
 *: Skip
