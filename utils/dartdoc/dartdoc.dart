@@ -69,7 +69,7 @@ void main() {
 
 num time(callback()) {
   // Unlike world.withTiming, returns the elapsed time.
-  final watch = new StopWatch();
+  final watch = new Stopwatch();
   watch.start();
   callback();
   watch.stop();
