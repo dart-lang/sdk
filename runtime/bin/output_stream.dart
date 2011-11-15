@@ -56,22 +56,23 @@ interface OutputStream {
   void destroy();
 
   /**
-   * The no pending write handler gets called when the internal OS
-   * buffers have been flushed. This callback can be used to keep the
-   * rate of writing in sync with the rate the system can write data
-   * to the underlying communication channel.
+   * Sets the handler that gets called when the internal OS buffers
+   * have been flushed. This callback can be used to keep the rate of
+   * writing in sync with the rate the system can write data to the
+   * underlying communication channel.
    */
   void set noPendingWriteHandler(void callback());
 
   /*
-   * The close handler gets called when the underlying communication
-   * channel has been closed.
+   * Sets the handler that gets called when the underlying
+   * communication channel has been closed and no more data can be
+   * send.
    */
   void set closeHandler(void callback());
 
   /**
-   * The error handler gets called when the underlying communication
-   * channel gets into some kind of error situation.
+   * Sets the handler that gets called when the underlying
+   * communication channel gets into some kind of error situation.
    */
   void set errorHandler(void callback());
 }

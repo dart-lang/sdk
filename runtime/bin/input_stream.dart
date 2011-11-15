@@ -37,19 +37,19 @@ interface InputStream {
   bool get closed();
 
   /**
-   * Sets the data handler which gets called when data is available.
+   * Sets the handler that gets called when data is available.
    */
   void set dataHandler(void callback());
 
   /**
-   * Sets the close handler which gets called when there will be no more
-   * data available in the stream.
+   * Sets the handler that gets called when there will be no more data
+   * available in the stream.
    */
   void set closeHandler(void callback());
 
   /**
-   * The error handler gets called when the underlying communication
-   * channel gets into some kind of error situation.
+   * Sets the handler that gets called when the underlying
+   * communication channel gets into some kind of error situation.
    */
   void set errorHandler(void callback());
 }
@@ -87,20 +87,19 @@ interface StringInputStream factory _StringInputStream {
   String get encoding();
 
   /**
-   * The data handler gets called when data is available.
+   * Sets the handler that gets called when data is available.
    */
   void set dataHandler(void callback());
 
   /**
-   * The close handler gets called when the underlying communication
-   * channel is closed and no more data will become available. Not all
-   * types of communication channels will emit close events.
+   * Sets the handler that gets called when there will be no more data
+   * available in the stream.
    */
   void set closeHandler(void callback());
 
   /**
-   * The error handler gets called when the underlying communication
-   * channel gets into some kind of error situation.
+   * Sets the handler that gets called when the underlying
+   * communication channel gets into some kind of error situation.
    */
   void set errorHandler(void callback());
 }
