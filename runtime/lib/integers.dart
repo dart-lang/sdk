@@ -92,10 +92,19 @@ class IntegerImplementation {
   bool isInfinite() { return false; }
 
   int compareTo(Comparable other) {
-    if (this == other) return 0;
-    if (this < other) return -1;
-    return 1;
+    final int EQUAL = 0, LESS = -1, GREATER = 1;
+    if (this < other) {
+      return LESS;
+    } else if (this > other) {
+      return GREATER;
+    } else if (this == other) {
+      return EQUAL;
+    } else {
+      // Other is NaN.
+      return LESS;
+    }
   }
+
   int round() { return this; }
   int floor() { return this; }
   int ceil() { return this; }
