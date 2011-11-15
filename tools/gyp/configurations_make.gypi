@@ -13,6 +13,7 @@
           '-Werror',
           '<@(common_gcc_warning_flags)',
           '-Wnon-virtual-dtor',
+          '-Wvla',
           # TODO(v8-team): Fix V8 build.
           #'-Woverloaded-virtual',
           '-g',
