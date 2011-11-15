@@ -49,6 +49,10 @@ public abstract class UrlSource implements Source {
 
   protected UrlSource(URI uri, SystemLibraryManager slm) {
     URI expanded = slm != null ? slm.expandRelativeDartUri(uri) : uri;
+    if (expanded == null) {
+      // import("dart:typo") case
+      expanded = uri;
+    }
     this.uri = BASE_URI.relativize(expanded.normalize());
     this.absoluteUri = BASE_URI.resolve(expanded);
     this.systemLibraryManager = slm;
