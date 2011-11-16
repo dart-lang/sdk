@@ -245,52 +245,6 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
   }
 
-  public void testConstantUnaryExpression() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  // Unary expression",
-        "  static final BOOL_LIT = true;",
-        "  static final INT_LIT = 123;",
-        "  static final DOUBLE_LIT = 12.3;",
-        "  static final UOP1_0 = !BOOL_LIT;",
-        "  static final UOP1_1 = BOOL_LIT || !true;",
-        "  static final UOP1_2 = !BOOL_LIT || true;",
-        "  static final UOP1_3 = !(BOOL_LIT && true);",
-        "  static final UOP2_0 = ~0xf0;",
-        "  static final UOP2_1 = ~INT_LIT;",
-        "  static final UOP2_2 = ~INT_LIT & 123;",
-        "  static final UOP2_3 = ~(INT_LIT | 0xff);",
-        "  static final UOP3_0 = -0xf0;",
-        "  static final UOP3_1 = -INT_LIT;",
-        "  static final UOP3_2 = -INT_LIT + 123;",
-        "  static final UOP3_3 = -(INT_LIT * 0xff);",
-        "  static final UOP3_4 = -0xf0;",
-        "  static final UOP3_5 = -DOUBLE_LIT;",
-        "  static final UOP3_6 = -DOUBLE_LIT + 123;",
-        "  static final UOP3_7 = -(DOUBLE_LIT * 0xff);",
-        "}"));
-
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class int {}",
-        "class A {",
-        "  // Unary expression",
-        "  static final BOOL_LIT = true;",
-        "  static int foo() { return 3; }",
-        "  static final UOP1 = !5;",
-        "  static final UOP2 = !foo();",
-        "  static final UOP3 = !(5);",
-        "  static final UOP4 = !(foo());",
-        "}"),
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
-  }
-
   public void testConstantConstructorAssign() {
 
     resolveAndTest(Joiner.on("\n").join(
@@ -389,6 +343,52 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+  }
+
+  public void testConstantUnaryExpression() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  // Unary expression",
+        "  static final BOOL_LIT = true;",
+        "  static final INT_LIT = 123;",
+        "  static final DOUBLE_LIT = 12.3;",
+        "  static final UOP1_0 = !BOOL_LIT;",
+        "  static final UOP1_1 = BOOL_LIT || !true;",
+        "  static final UOP1_2 = !BOOL_LIT || true;",
+        "  static final UOP1_3 = !(BOOL_LIT && true);",
+        "  static final UOP2_0 = ~0xf0;",
+        "  static final UOP2_1 = ~INT_LIT;",
+        "  static final UOP2_2 = ~INT_LIT & 123;",
+        "  static final UOP2_3 = ~(INT_LIT | 0xff);",
+        "  static final UOP3_0 = -0xf0;",
+        "  static final UOP3_1 = -INT_LIT;",
+        "  static final UOP3_2 = -INT_LIT + 123;",
+        "  static final UOP3_3 = -(INT_LIT * 0xff);",
+        "  static final UOP3_4 = -0xf0;",
+        "  static final UOP3_5 = -DOUBLE_LIT;",
+        "  static final UOP3_6 = -DOUBLE_LIT + 123;",
+        "  static final UOP3_7 = -(DOUBLE_LIT * 0xff);",
+        "}"));
+
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class int {}",
+        "class A {",
+        "  // Unary expression",
+        "  static final BOOL_LIT = true;",
+        "  static int foo() { return 3; }",
+        "  static final UOP1 = !5;",
+        "  static final UOP2 = !foo();",
+        "  static final UOP3 = !(5);",
+        "  static final UOP4 = !(foo());",
+        "}"),
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
   }
 
   public void testConstantVariableAssign() {

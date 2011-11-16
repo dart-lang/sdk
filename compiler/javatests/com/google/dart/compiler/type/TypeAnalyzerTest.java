@@ -20,254 +20,57 @@ import java.util.Map;
 public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
 
-  public void testLabels() {
-    // Labels should be inside a function or method to be used
-
-    // break
-    analyze("foo() { L: for (;true;) { break L; } }");
-    analyze("foo() { int x; List<int> c; L: for (x  in c) { break L; } }");
-    analyze("foo() { List<int> c; L: for (var x  in c) { break L; } }");
-    analyze("foo() { L: while (true) { break L; } }");
-    analyze("foo() { L: do { break L; } while (true); }");
-
-    analyze("foo() { L: for (;true;) { for (;true;) { break L; } } }");
-    analyze("foo() { int x; List<int> c; L: for (x  in c) { for (;true;) { break L; } } }");
-    analyze("foo() { List<int> c; L: for (var x  in c) { for (;true;) { break L; } } }");
-    analyze("foo() { L: while (true) { for (;true;) { break L; } } }");
-    analyze("foo() { L: do { for (;true;) { break L; } } while (true); }");
-
-    // continue
-    analyze("foo() { L: for (;true;) { continue L; } }");
-    analyze("foo() { int x; List<int> c; L: for (x  in c) { continue L; } }");
-    analyze("foo() { List<int> c; L: for (var x  in c)  { continue L; } }");
-    analyze("foo() { L: do { continue L; } while (true); }");
-
-    analyze("foo() { L: for (;true;) { for (;true;) { continue L; } } }");
-    analyze(
-      "foo() { int x; List<int> c; L: for (x  in c) { for (;true;) { continue L; } } }");
-    analyze("foo() { List<int> c; L: for (var x  in c)  { for (;true;) { continue L; } } }");
-    analyze("foo() { L: while (true) { for (;true;) { continue L; } } }");
-    analyze("foo() { L: do { for (;true;) { continue L; } } while (true); }");
-
-    // corner cases
-    analyze("foo() { L: break L; }");
-
-    // TODO(zundel): Not type errors, but warnings.
-    analyze("foo() { L: for (;true;) { } }");
-    analyze("foo() { while (true) { L: var a; } }");
+  /**
+   * There  was problem that cyclic class declaration caused infinite loop.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=348
+   */
+  public void test_cyclicDeclaration() {
+    Map<String, ClassElement> source = loadSource(
+        "class Foo extends Bar {",
+        "}",
+        "class Bar extends Foo {",
+        "}");
+    analyzeClasses(source);
+    // Foo and Bar have cyclic declaration
+    ClassElement classFoo = source.get("Foo");
+    ClassElement classBar = source.get("Bar");
+    assertEquals(classFoo, classBar.getSupertype().getElement());
+    assertEquals(classBar, classFoo.getSupertype().getElement());
   }
 
-  public void testLiterals() {
-    checkSimpleType(intElement.getType(), "1");
-    checkSimpleType(doubleElement.getType(), ".0");
-    checkSimpleType(doubleElement.getType(), "1.0");
-    checkSimpleType(bool.getType(), "true");
-    checkSimpleType(bool.getType(), "false");
-    checkSimpleType(string.getType(), "'fisk'");
-    checkSimpleType(string.getType(), "'f${null}sk'");
+  public void testArrayLiteral() {
+    analyze("['x'];");
+    analyze("<String>['x'];");
+    analyzeFail("<int>['x'];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("<String>['x', 1];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("List<String> strings = ['x'];");
+    analyze("List<String> strings = <String>['x'];");
+    analyze("List array = ['x'];");
+    analyze("List array = <String>['x'];");
+    analyze("List<int> ints = ['x'];");
+    analyzeFail("List<int> ints = <String>['x'];",
+                TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
-  public void testUnresolvedIdentifier() {
-    setExpectedTypeErrorCount(3);
-    checkType(typeProvider.getDynamicType(), "y");
-    checkExpectedTypeErrorCount();
-  }
-
-  public void testInitializers() {
-    analyze("int i = 1;");
-    analyze("double d1 = .0;");
-    analyze("double d2 = 1.0;");
-    analyze("int x = null;");
+  public void testAssert() {
+    analyze("assert(true);");
+    analyze("assert(false);");
+    analyzeFail("assert('message');",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("assert(null);");
+    analyzeFail("assert(1);",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("assert(foo() {});");
+    analyze("assert(bool foo() {});");
+    analyze("assert(Object foo() {});");
+    analyzeFail("assert(String foo() {});",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testBadInitializers() {
     analyzeFail("int i = .0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("int j = 1.0;", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testFunctionTypes() {
-    checkFunctionStatement("String foo() {};", "() -> String");
-    checkFunctionStatement("Object foo() {};", "() -> Object");
-    checkFunctionStatement("String foo(int i, bool b) {};", "(int, bool) -> String");
-  }
-
-  public void testIdentifiers() {
-    analyze("{ int i; i = 2; }");
-    analyze("{ int j, k; j = 1; k = 3; }");
-    analyzeFail("{ int i; i = 'string'; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("{ int j, k; k = 'string'; }",
-        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("{ int j, k; j = 'string'; }",
-        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testRawTypes() {
-    loadFile("interfaces.dart");
-
-    analyze("{ Sub s; }");
-    analyze("{ var s = new Sub(); }");
-    analyze("{ Sub s = new Sub(); }");
-    analyze("{ Sub<String> s = new Sub(); }");
-    analyze("{ Sub<String> s; }");
-    analyze("{ var s = new Sub<String>(); }");
-    analyze("{ Sub s = new Sub<String>(); }");
-    analyze("{ Sub<String> s = new Sub<String>(); }");
-  }
-
-  public void testMethodInvocations() {
-    loadFile("class_with_methods.dart");
-    final String header = "{ ClassWithMethods c; int i, j; ";
-
-    analyze(header + "int k = c.untypedNoArgumentMethod(); }");
-    analyze(header + "ClassWithMethods x = c.untypedNoArgumentMethod(); }");
-
-    analyze(header + "int k = c.untypedOneArgumentMethod(c); }");
-    analyze(header + "ClassWithMethods x = c.untypedOneArgumentMethod(1); }");
-    analyze(header + "int k = c.untypedOneArgumentMethod('string'); }");
-    analyze(header + "int k = c.untypedOneArgumentMethod(i); }");
-
-    analyze(header + "int k = c.untypedTwoArgumentMethod(1, 'string'); }");
-    analyze(header + "int k = c.untypedTwoArgumentMethod(i, j); }");
-    analyze(header + "ClassWithMethods x = c.untypedTwoArgumentMethod(i, c); }");
-
-    analyze(header + "int k = c.intNoArgumentMethod(); }");
-    analyzeFail(header + "ClassWithMethods x = c.intNoArgumentMethod(); }",
-        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-
-    analyzeFail(header + "int k = c.intOneArgumentMethod(c); }",
-        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail(header + "ClassWithMethods x = c.intOneArgumentMethod(1); }",
-        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail(header + "int k = c.intOneArgumentMethod('string'); }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze(header + "int k = c.intOneArgumentMethod(i); }");
-
-    analyzeFail(header + "int k = c.intTwoArgumentMethod(1, 'string'); }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze(header + "int k = c.intTwoArgumentMethod(i, j); }");
-    analyzeFail(header + "ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
-        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testMethodInvocationArgumentCount() {
-    loadFile("class_with_methods.dart");
-    final String header = "{ ClassWithMethods c; ";
-
-    analyzeFail(header + "c.untypedNoArgumentMethod(1); }",
-      TypeErrorCode.EXTRA_ARGUMENT);
-    analyzeFail(header + "c.untypedOneArgumentMethod(); }",
-      TypeErrorCode.MISSING_ARGUMENT);
-    analyzeFail(header + "c.untypedOneArgumentMethod(1, 1); }",
-      TypeErrorCode.EXTRA_ARGUMENT);
-    analyzeFail(header + "c.untypedTwoArgumentMethod(); }",
-        TypeErrorCode.MISSING_ARGUMENT);
-    analyzeFail(header + "c.untypedTwoArgumentMethod(1, 2, 3); }",
-      TypeErrorCode.EXTRA_ARGUMENT);
-    analyzeFail(header + "c.intNoArgumentMethod(1); }",
-      TypeErrorCode.EXTRA_ARGUMENT);
-    analyzeFail(header + "c.intOneArgumentMethod(); }",
-        TypeErrorCode.MISSING_ARGUMENT);
-    analyzeFail(header + "c.intOneArgumentMethod(1, 1); }",
-      TypeErrorCode.EXTRA_ARGUMENT);
-    analyzeFail(header + "c.intTwoArgumentMethod(); }",
-        TypeErrorCode.MISSING_ARGUMENT);
-    analyzeFail(header + "c.intTwoArgumentMethod(1, 2, 3); }",
-      TypeErrorCode.EXTRA_ARGUMENT);
-    analyze(header + "c.untypedField(); }");
-  }
-
-  public void testLoadInterfaces() {
-    loadFile("interfaces.dart");
-    ClassElement superElement = coreElements.get("Super");
-    assertNotNull("no element for Super", superElement);
-    assertEquals(object.getType(), superElement.getSupertype());
-    assertEquals(0, superElement.getInterfaces().size());
-    ClassElement sub = coreElements.get("Sub");
-    assertNotNull("no element for Sub", sub);
-    assertEquals(object.getType(), sub.getSupertype());
-    assertEquals(1, sub.getInterfaces().size());
-    assertEquals(superElement, sub.getInterfaces().get(0).getElement());
-    InterfaceType superString = itype(superElement, itype(string));
-    InterfaceType subString = itype(sub, itype(string));
-    Types types = getTypes();
-    assertEquals("Super<String>", String.valueOf(types.asInstanceOf(superString, superElement)));
-    assertEquals("Super<String>", String.valueOf(types.asInstanceOf(subString, superElement)));
-    assertEquals("Sub<String>", String.valueOf(types.asInstanceOf(subString, sub)));
-    assertNull(types.asInstanceOf(superString, sub));
-  }
-
-  public void testSuperInterfaces() {
-    // If this test is failing, first debug any failures in testLoadInterfaces.
-    loadFile("interfaces.dart");
-    analyze("Super<String> s = new Sub<String>();");
-    analyze("Super<Object> o = new Sub<String>();");
-    analyzeFail("Super<String> f1 = new Sub<int>();",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Sub<String> f2 = new Sub<int>();",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testUnaryOperators() {
-    Map<String, ClassElement> source = loadSource(
-        "class Foo {",
-        "  Foo foo;",
-        "  bool b;",
-        "  int i;",
-        "  Foo operator negate() { return this; }",
-        "  Foo operator +(int operand) { return this; }",
-        "  Foo operator -(int operand) { return this; }",
-        "}",
-        "class Bar {",
-        "  Bar bar;",
-        "  Bar operator +(Bar operand) { return this; }",
-        "  Bar operator -(Bar operand) { return this; }",
-        "}",
-        "class Baz<T extends Foo> {",
-        "  T baz;",
-        "}",
-        "class Qux<T> { ",
-        "  T qux; ",
-        "  void x() { }",
-        "  y() { }",
-        "}",
-        "class X {",
-        "  X x;",
-        "  Z operator negate() { return null; }",
-        "  Z operator +(int operand) { return null; }",
-        "  Z operator -(int operand) { return null; }",
-        "}",
-        "class Y extends X { Y y; }",
-        "class Z extends X { Z z; }"
-        );
-    analyzeClasses(source);
-    ClassElement foo = source.get("Foo");
-    ClassElement bar = source.get("Bar");
-    ClassElement baz = source.get("Baz");
-    ClassElement qux = source.get("Qux");
-    ClassElement y = source.get("Y");
-    ClassElement z = source.get("Z");
-    for (Token op : EnumSet.of(Token.DEC, Token.INC, Token.SUB)) {
-      analyzeIn(foo, String.format("%sfoo", op), 0);
-      analyzeIn(foo, String.format("i = %sfoo", op), 1);
-      analyzeIn(bar, String.format("%sbar", op), 1);
-      analyzeIn(baz, String.format("%sbaz", op), 0);
-      analyzeIn(qux, String.format("%squx", op), 1);
-    }
-    analyzeIn(z, "z = x++", 0);
-    analyzeIn(z, "z = ++x", 0);
-    analyzeIn(z, "z = x--", 0);
-    analyzeIn(z, "z = --x", 0);
-    analyzeIn(y, "y = x++", 0);
-    analyzeIn(y, "y = ++x", 1);
-    analyzeIn(y, "y = x--", 0);
-    analyzeIn(y, "y = --x", 1);
-
-    analyzeIn(foo, "b = !b", 0);
-    analyzeIn(foo, "foo = !foo", 2);
-    analyzeIn(foo, "b = !i", 1);
-    analyzeIn(foo, "foo = !b", 1);
-    analyzeIn(qux, "-x()", 1);
-    analyzeIn(qux, "-y()", 0);
   }
 
   public void testBinaryOperators() {
@@ -457,110 +260,79 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(cls, "d = ~n", 1);
   }
 
-
-  public void testFunctionObjectLiterals() {
-    analyze("{ bool b = foo() {}(); }");
-    analyze("{ int i = foo() {}(); }");
-    analyze("{ bool b = bool foo() { return null; }(); }");
-    analyze("{ int i = int foo() { return null; }(); }");
-    analyzeFail("{ int i = bool foo() { return null; }(); }",
+  public void testConditionalExpression() {
+    analyze("true ? 1 : 2;");
+    analyze("null ? 1 : 2;");
+    analyzeFail("0 ? 1 : 2;",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("{ int i = Object _(Object x) { return x; }('fisk'); }");
-    analyzeFail("{ int i = String _(Object x) { return x; }(1); }",
+    analyzeFail("'' ? 1 : 2;",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("Function f = foo() {};");
+    analyzeFail("{ int i; true ? i = 2.7 : 2; }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("{ int i; true ? 2 : i = 2.7; }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("{ int i; i = true ? 2.7 : 2; }");
   }
 
-  public void testAssert() {
-    analyze("assert(true);");
-    analyze("assert(false);");
-    analyzeFail("assert('message');",
+  public void testConstructorForwarding() {
+    Map<String, ClassElement> classes = loadSource(
+        "class MissingArgument {",
+        "  MissingArgument() : this.bar() {}",
+        "  MissingArgument.bar(int i) {}",
+        "}",
+        "class IntArgument {",
+        "  IntArgument() : this.bar(1) {}",
+        "  IntArgument.bar(int i) {}",
+        "}",
+        "class ExtraIntArgument {",
+        "  ExtraIntArgument() : this.bar(1, 1) {}",
+        "  ExtraIntArgument.bar(int i) {}",
+        "}",
+        "class StringArgument {",
+        "  StringArgument() : this.bar('') {}",
+        "  StringArgument.bar(int i) {}",
+        "}",
+        "class NullArgument {",
+        "  NullArgument() : this.bar(null) {}",
+        "  NullArgument.bar(int i) {}",
+        "}",
+        "class OptionalParameter {",
+        "  OptionalParameter() : this.bar() {}",
+        "  OptionalParameter.bar([int i = null]) {}",
+        "  OptionalParameter.foo() : this.bar('') {}",
+        "}");
+    analyzeClass(classes.get("MissingArgument"), 1);
+    analyzeClass(classes.get("IntArgument"), 0);
+    analyzeClass(classes.get("ExtraIntArgument"), 1);
+    analyzeClass(classes.get("StringArgument"), 1);
+    analyzeClass(classes.get("NullArgument"), 0);
+    analyzeClass(classes.get("OptionalParameter"), 1);
+  }
+
+  public void testDoWhileStatement() {
+    analyze("do {} while (true);");
+    analyze("do {} while (null);");
+    analyzeFail("do {} while (0);",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("assert(null);");
-    analyzeFail("assert(1);",
+    analyzeFail("do {} while ('');",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("assert(foo() {});");
-    analyze("assert(bool foo() {});");
-    analyze("assert(Object foo() {});");
-    analyzeFail("assert(String foo() {});",
+    analyzeFail("do { int i = 0.5; } while (true);",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("do { int i = 0.5; } while (null);",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
-  public void testReturn() {
-    analyzeFail(returnWithType("int", "'string'"),
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze(returnWithType("", "'string'"));
-    analyze(returnWithType("Object", "'string'"));
-    analyze(returnWithType("String", "'string'"));
-    analyze(returnWithType("String", null));
-    analyze(returnWithType("int", null));
-    analyze(returnWithType("void", ""));
-    analyzeFail(returnWithType("void", 1), TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze(returnWithType("void", null));
-    analyzeFail(returnWithType("String", ""), TypeErrorCode.MISSING_RETURN_VALUE);
-    analyze("String foo() {};"); // Should probably fail, http://b/4484060.
-  }
+  public void testFactory() {
+    analyzeClasses(loadSource(
+        "interface Foo factory Bar {",
+        "  Foo(argument);",
+        "}",
+        "interface Baz {}",
+        "class Bar implements Foo, Baz {",
+        "  Bar(String argument) {}",
+        "}"));
 
-  public void testNamedFunctionTypeAlias() {
-    loadFile("named_function_type_alias.dart");
-    analyze("VoidFunction f = foo() {};");
-  }
-
-  public void testUnresolved() {
-    ClassElement element = loadClass("class_with_supertypes.dart", "ClassWithSupertypes");
-    analyzeIn(element, "null", 0);
-    analyzeIn(element, "noSuchField", 1);
-    analyzeIn(element, "noSuchMethod()", 1);
-    analyzeIn(element, "method()", 0);
-    analyzeIn(element, "field", 0);
-    analyzeIn(element, "this.noSuchField", 1);
-    analyzeIn(element, "this.noSuchMethod()", 1);
-    analyzeIn(element, "this.method()", 0);
-    analyzeIn(element, "this.field", 0);
-    analyzeIn(element, "staticMethod()", 0);
-    analyzeIn(element, "staticField", 0);
-    analyzeIn(element, "this.staticMethod()", 1);
-    analyzeIn(element, "this.staticField", 1);
-    analyzeIn(element, "ClassWithSupertypes.staticMethod()", 0);
-    analyzeIn(element, "ClassWithSupertypes.staticField", 0);
-    analyzeIn(element, "methodInSuperclass()", 0);
-    analyzeIn(element, "fieldInSuperclass", 0);
-    analyzeIn(element, "staticMethodInSuperclass()", 0);
-    analyzeIn(element, "staticFieldInSuperclass", 0);
-    analyzeIn(element, "this.methodInSuperclass()", 0);
-    analyzeIn(element, "this.fieldInSuperclass", 0);
-    analyzeIn(element, "this.staticMethodInSuperclass()", 1);
-    analyzeIn(element, "this.staticFieldInSuperclass", 1);
-    analyzeIn(element, "Superclass.staticMethodInSuperclass()", 0);
-    analyzeIn(element, "Superclass.staticFieldInSuperclass", 0);
-    analyzeIn(element, "methodInInterface()", 0);
-    analyzeIn(element, "fieldInInterface", 0);
-    analyzeIn(element, "this.methodInInterface()", 0);
-    analyzeIn(element, "this.fieldInInterface", 0);
-    analyzeIn(element, "staticFieldInInterface", 0);
-    analyzeIn(element, "Interface.staticFieldInInterface", 0);
-    analyzeIn(element, "this.staticFieldInInterface", 1);
-  }
-
-  public void testTypeVariables() {
-    ClassElement cls = loadFile("class_with_type_parameter.dart").get("ClassWithTypeParameter");
-    assertNotNull("unable to locate ClassWithTypeParameter", cls);
-    analyzeIn(cls, "aField = tField", 0);
-    analyzeIn(cls, "bField = tField", 0);
-    analyzeIn(cls, "tField = aField", 0);
-    analyzeIn(cls, "tField = bField", 0);
-    analyzeIn(cls, "tField = null", 0);
-    analyzeIn(cls, "tField = 1", 1);
-    analyzeIn(cls, "tField = ''", 1);
-    analyzeIn(cls, "tField = true", 1);
-
-    analyzeIn(cls, "foo() { A a = null; T t = a; }()", 0);
-    analyzeIn(cls, "foo() { B b = null; T t = b; }()", 0);
-    analyzeIn(cls, "foo() { T t = null; A a = t; }()", 0);
-    analyzeIn(cls, "foo() { T t = null; B b = t; }()", 0);
-    analyzeIn(cls, "foo() { T t = 1; }()", 1);
-    analyzeIn(cls, "foo() { T t = ''; }()", 1);
-    analyzeIn(cls, "foo() { T t = true; }()", 1);
+    analyzeFail("Baz x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
   public void testFieldAccess() {
@@ -612,79 +384,24 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(element, "new ClassWithSupertypes().staticFieldInInterface = 1", 2);
   }
 
-  public void testPropertyAccess() {
-    ClassElement cls = loadClass("classes_with_properties.dart", "ClassWithProperties");
-    analyzeIn(cls, "null", 0);
-    analyzeIn(cls, "noSuchField", 1);
-    analyzeIn(cls, "noSuchMethod()", 1);
-    analyzeIn(cls, "x.noSuchField", 0);
-    analyzeIn(cls, "x.noSuchMethod()", 0);
-    analyzeIn(cls, "x.x.noSuchField", 0);
-    analyzeIn(cls, "x.x.noSuchMethod()", 0);
-    analyzeIn(cls, "x.a.noSuchField", 0);
-    analyzeIn(cls, "x.a.noSuchMethod()", 0);
-    String[] typedFields = { "a", "b", "c"};
-    for (String field : typedFields) {
-      analyzeIn(cls, field + ".noSuchField", 1);
-      analyzeIn(cls, field + ".noSuchMethod()", 1);
-      analyzeIn(cls, field + ".a", 0);
-      analyzeIn(cls, field + ".a()", 1);
-    }
-  }
-
-  public void testParameterAccess() {
-    analyze("{ f(int x) { x = 1; } }");
-    analyzeFail("{ f(String x) { x = 1; } }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("{ f(int x, int y) { x = y; } }");
-    analyzeFail("{ f(String x, int y) { x = y; } }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("{ f(x, int y) { x = y; } }");
-    analyze("{ f(x, int y) { x = y; } }");
-    analyzeFail("{ f(String x) { x = 1;} }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testConditionalExpression() {
-    analyze("true ? 1 : 2;");
-    analyze("null ? 1 : 2;");
-    analyzeFail("0 ? 1 : 2;",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("'' ? 1 : 2;",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("{ int i; true ? i = 2.7 : 2; }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("{ int i; true ? 2 : i = 2.7; }",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("{ int i; i = true ? 2.7 : 2; }");
-  }
-
-  public void testDoWhileStatement() {
-    analyze("do {} while (true);");
-    analyze("do {} while (null);");
-    analyzeFail("do {} while (0);",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("do {} while ('');",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("do { int i = 0.5; } while (true);",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("do { int i = 0.5; } while (null);",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testForStatement() {
-    analyze("for (;true;) {}");
-    analyze("for (;null;) {}");
-    analyzeFail("for (;0;) {}",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("for (;'';) {}",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-
-    // Foreach tests
-    analyze("{ List<String> strings = ['1','2','3']; for (String s in strings) {} }");
-    analyzeFail("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
-        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("for (String s in true) {}", TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED);
+  public void testFieldInitializers() {
+    Map<String, ClassElement> classes = loadSource(
+        "class Good {",
+        "  String string;",
+        "  int i;",
+        "  Good() : string = '', i = 1;",
+        "  Good.name() : string = null, i = null;",
+        "  Good.untyped(x) : string = x, i = x;",
+        "  Good.string(String s) : string = s, i = 0;",
+        "}",
+        "class Bad {",
+        "  String string;",
+        "  int i;",
+        "  Bad() : string = 1, i = '';",
+        "  Bad.string(String s) : string = s, i = s;",
+        "}");
+    analyzeClass(classes.get("Good"), 0);
+    analyzeClass(classes.get("Bad"), 3);
   }
 
   public void testForEachStatement() {
@@ -721,6 +438,133 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
 
+  public void testForStatement() {
+    analyze("for (;true;) {}");
+    analyze("for (;null;) {}");
+    analyzeFail("for (;0;) {}",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("for (;'';) {}",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+
+    // Foreach tests
+    analyze("{ List<String> strings = ['1','2','3']; for (String s in strings) {} }");
+    analyzeFail("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("for (String s in true) {}", TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED);
+  }
+
+  public void testFunctionObjectLiterals() {
+    analyze("{ bool b = foo() {}(); }");
+    analyze("{ int i = foo() {}(); }");
+    analyze("{ bool b = bool foo() { return null; }(); }");
+    analyze("{ int i = int foo() { return null; }(); }");
+    analyzeFail("{ int i = bool foo() { return null; }(); }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("{ int i = Object _(Object x) { return x; }('fisk'); }");
+    analyzeFail("{ int i = String _(Object x) { return x; }(1); }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("Function f = foo() {};");
+  }
+
+  public void testFunctionTypeAlias() {
+    Map<String, ClassElement> classes = loadSource(
+        "typedef void VoidFunction();",
+        "typedef String StringFunction();",
+        "typedef String IntToStringFunction(int i);",
+        "class Foo {",
+        "  VoidFunction voidFunction;",
+        "  StringFunction stringFunction;",
+        "  IntToStringFunction intToStringFunction;",
+        "  Foo foo;",
+        "  String string;",
+        "  int i;",
+        "}");
+    analyzeClasses(classes);
+    ClassElement foo = classes.get("Foo");
+    analyzeIn(foo, "voidFunction()", 0);
+    analyzeIn(foo, "voidFunction(1)", 1);
+    analyzeIn(foo, "this.voidFunction()", 0);
+    analyzeIn(foo, "this.voidFunction(1)", 1);
+    analyzeIn(foo, "foo.voidFunction()", 0);
+    analyzeIn(foo, "foo.voidFunction(1)", 1);
+    analyzeIn(foo, "(voidFunction)()", 0);
+    analyzeIn(foo, "(voidFunction)(1)", 1);
+    analyzeIn(foo, "(this.voidFunction)()", 0);
+    analyzeIn(foo, "(this.voidFunction)(1)", 1);
+    analyzeIn(foo, "(foo.voidFunction)()", 0);
+    analyzeIn(foo, "(foo.voidFunction)(1)", 1);
+
+    analyzeIn(foo, "string = stringFunction()", 0);
+    analyzeIn(foo, "i = stringFunction()", 1);
+    analyzeIn(foo, "string = this.stringFunction()", 0);
+    analyzeIn(foo, "i = this.stringFunction()", 1);
+    analyzeIn(foo, "string = foo.stringFunction()", 0);
+    analyzeIn(foo, "i = foo.stringFunction()", 1);
+    analyzeIn(foo, "string = (stringFunction)()", 0);
+    analyzeIn(foo, "i = (stringFunction)()", 1);
+    analyzeIn(foo, "string = (this.stringFunction)()", 0);
+    analyzeIn(foo, "i = (this.stringFunction)()", 1);
+    analyzeIn(foo, "string = (foo.stringFunction)()", 0);
+    analyzeIn(foo, "i = (foo.stringFunction)()", 1);
+
+    analyzeIn(foo, "voidFunction = stringFunction", 0);
+    analyzeIn(foo, "stringFunction = intToStringFunction", 1);
+    analyzeIn(foo, "stringFunction = String foo() { return ''; }", 0);
+    analyzeIn(foo, "intToStringFunction = String foo() { return ''; }", 1);
+  }
+
+  public void testFunctionTypes() {
+    checkFunctionStatement("String foo() {};", "() -> String");
+    checkFunctionStatement("Object foo() {};", "() -> Object");
+    checkFunctionStatement("String foo(int i, bool b) {};", "(int, bool) -> String");
+  }
+
+  public void testGetAllSupertypes()
+      throws CyclicDeclarationException, DuplicatedInterfaceException {
+    Map<String, ClassElement> classes = loadSource(
+        "class A extends B<String> {",
+        "}",
+        "class B<T> extends C<G<T>> implements I<int>, I1<T> {",
+        "}",
+        "class C<U> {",
+        "}",
+        "interface I<S> extends I2<bool> {",
+        "}",
+        "class G<V> {",
+        "}",
+        "interface I1<W> {",
+        "}",
+        "interface I2<X> {",
+        "}",
+        "class D implements I2<int> {",
+        "}",
+        "class E extends D implements I2<int> {",
+        "}");
+    analyzeClasses(classes);
+    assertEquals("[]", object.getAllSupertypes().toString());
+    assertEquals("[I<int>, I1<String>, I2<bool>, B<String>, C<G<String>>, Object]",
+                 classes.get("A").getAllSupertypes().toString());
+    assertEquals("[I<int>, I1<B.T>, I2<bool>, C<G<B.T>>, Object]",
+                 classes.get("B").getAllSupertypes().toString());
+    assertEquals("[Object]", classes.get("C").getAllSupertypes().toString());
+    assertEquals("[I2<bool>, Object]", classes.get("I").getAllSupertypes().toString());
+    assertEquals("[Object]", classes.get("G").getAllSupertypes().toString());
+    assertEquals("[Object]", classes.get("I1").getAllSupertypes().toString());
+    assertEquals("[Object]", classes.get("I2").getAllSupertypes().toString());
+    assertEquals("[I2<int>, Object]", classes.get("D").getAllSupertypes().toString());
+    assertEquals("[I2<int>, D, Object]", classes.get("E").getAllSupertypes().toString());
+  }
+
+  public void testIdentifiers() {
+    analyze("{ int i; i = 2; }");
+    analyze("{ int j, k; j = 1; k = 3; }");
+    analyzeFail("{ int i; i = 'string'; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("{ int j, k; k = 'string'; }",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("{ int j, k; j = 'string'; }",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
   public void testIfStatement() {
     analyze("if (true) {}");
     analyze("if (null) {}");
@@ -734,28 +578,151 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
-  public void testWhileStatement() {
-    analyze("while (true) {}");
-    analyze("while (null) {}");
-    analyzeFail("while (0) {}",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("while ('') {}",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  public void testImplementsAndOverrides() {
+    analyzeClasses(loadSource(
+        "interface Interface {",
+        "  void foo(x);",
+        "  void bar();",
+        "}",
+        // Abstract class not reported until first instantiation.
+        "class Class implements Interface {",
+        "  Class() {}",
+        "  String bar() { return null; }",
+        "}",
+        // Abstract class not reported until first instantiation.
+        "class SubClass extends Class {",
+        "  SubClass() : super() {}",
+        "  Object bar() { return null; }",
+        "}",
+        "class SubSubClass extends Class {",
+        "  num bar() { return null; }", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+        "}",
+        "class Usage {",
+        "  m() {",
+        "    new Class();", // CANNOT_INSTATIATE_ABSTRACT_CLASS
+                            // ABSTRACT_CLASS.
+        "    new Class();", // CANNOT_INSTATIATE_ABSTRACT_CLASS.
+        "    new SubClass();", // CANNOT_INSTATIATE_ABSTRACT_CLASS
+                               //ABSTRACT_CLASS.
+        "  }",
+        "}"),
+        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
+        TypeErrorCode.ABSTRACT_CLASS,
+        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
+        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
+        TypeErrorCode.ABSTRACT_CLASS);
   }
 
-  public void testThis() {
-    Map<String, ClassElement> classes = loadFile("class_with_supertypes.dart");
-    ClassElement superclass = classes.get("Superclass");
-    assertNotNull("unable to locate Superclass", superclass);
-    ClassElement subclass = classes.get("ClassWithSupertypes");
-    assertNotNull("unable to locate ClassWithSupertypes", subclass);
-    analyzeIn(superclass, "() { String x = this; }", 1);
-    analyzeIn(superclass, "() { var x = this; }", 0);
-    analyzeIn(superclass, "() { ClassWithSupertypes x = this; }", 0);
-    analyzeIn(superclass, "() { Superclass x = this; }", 0);
-    analyzeIn(superclass, "() { Interface x = this; }", 1);
-    analyzeIn(subclass, "() { Interface x = this; }", 0);
+  public void testImplementsAndOverrides2() {
+    analyzeClasses(loadSource(
+        "interface Interface {",
+        "  void foo(x);",
+        "}",
+        // Abstract class not reported until first instantiation.
+        "class Class implements Interface {",
+        "  Class() {}",
+        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+        "}"),
+        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
   }
+
+  public void testInitializedFields() {
+    Map<String, ClassElement> classes = loadSource(
+        "class GoodField {",
+        "  static final int i = 1;",
+        "}");
+    analyzeClass(classes.get("GoodField"), 0);
+
+    // Note, the TypeAnalyzer doesn't get a chance
+    // to get its hands on bad initializers anymore
+    // due to type checking in CompileTimeConstVisitor.
+  }
+
+  public void testInitializedLocals() {
+    analyze("void f([int x = 1]) {}");
+    analyzeFail("void f([int x = '']) {}", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+
+    analyze("{ int x = 1; }");
+    analyzeFail("{ int x = ''; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
+  public void testInitializers() {
+    analyze("int i = 1;");
+    analyze("double d1 = .0;");
+    analyze("double d2 = 1.0;");
+    analyze("int x = null;");
+  }
+
+  public void testLabels() {
+    // Labels should be inside a function or method to be used
+
+    // break
+    analyze("foo() { L: for (;true;) { break L; } }");
+    analyze("foo() { int x; List<int> c; L: for (x  in c) { break L; } }");
+    analyze("foo() { List<int> c; L: for (var x  in c) { break L; } }");
+    analyze("foo() { L: while (true) { break L; } }");
+    analyze("foo() { L: do { break L; } while (true); }");
+
+    analyze("foo() { L: for (;true;) { for (;true;) { break L; } } }");
+    analyze("foo() { int x; List<int> c; L: for (x  in c) { for (;true;) { break L; } } }");
+    analyze("foo() { List<int> c; L: for (var x  in c) { for (;true;) { break L; } } }");
+    analyze("foo() { L: while (true) { for (;true;) { break L; } } }");
+    analyze("foo() { L: do { for (;true;) { break L; } } while (true); }");
+
+    // continue
+    analyze("foo() { L: for (;true;) { continue L; } }");
+    analyze("foo() { int x; List<int> c; L: for (x  in c) { continue L; } }");
+    analyze("foo() { List<int> c; L: for (var x  in c)  { continue L; } }");
+    analyze("foo() { L: do { continue L; } while (true); }");
+
+    analyze("foo() { L: for (;true;) { for (;true;) { continue L; } } }");
+    analyze(
+      "foo() { int x; List<int> c; L: for (x  in c) { for (;true;) { continue L; } } }");
+    analyze("foo() { List<int> c; L: for (var x  in c)  { for (;true;) { continue L; } } }");
+    analyze("foo() { L: while (true) { for (;true;) { continue L; } } }");
+    analyze("foo() { L: do { for (;true;) { continue L; } } while (true); }");
+
+    // corner cases
+    analyze("foo() { L: break L; }");
+
+    // TODO(zundel): Not type errors, but warnings.
+    analyze("foo() { L: for (;true;) { } }");
+    analyze("foo() { while (true) { L: var a; } }");
+  }
+
+  public void testLiterals() {
+    checkSimpleType(intElement.getType(), "1");
+    checkSimpleType(doubleElement.getType(), ".0");
+    checkSimpleType(doubleElement.getType(), "1.0");
+    checkSimpleType(bool.getType(), "true");
+    checkSimpleType(bool.getType(), "false");
+    checkSimpleType(string.getType(), "'fisk'");
+    checkSimpleType(string.getType(), "'f${null}sk'");
+  }
+
+  public void testLoadInterfaces() {
+    loadFile("interfaces.dart");
+    ClassElement superElement = coreElements.get("Super");
+    assertNotNull("no element for Super", superElement);
+    assertEquals(object.getType(), superElement.getSupertype());
+    assertEquals(0, superElement.getInterfaces().size());
+    ClassElement sub = coreElements.get("Sub");
+    assertNotNull("no element for Sub", sub);
+    assertEquals(object.getType(), sub.getSupertype());
+    assertEquals(1, sub.getInterfaces().size());
+    assertEquals(superElement, sub.getInterfaces().get(0).getElement());
+    InterfaceType superString = itype(superElement, itype(string));
+    InterfaceType subString = itype(sub, itype(string));
+    Types types = getTypes();
+    assertEquals("Super<String>", String.valueOf(types.asInstanceOf(superString, superElement)));
+    assertEquals("Super<String>", String.valueOf(types.asInstanceOf(subString, superElement)));
+    assertEquals("Sub<String>", String.valueOf(types.asInstanceOf(subString, sub)));
+    assertNull(types.asInstanceOf(superString, sub));
+  }
+
 
   public void testMapLiteral() {
     analyze("{ var x = {\"key\": 42}; }");
@@ -782,6 +749,330 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
+  public void testMethodInvocationArgumentCount() {
+    loadFile("class_with_methods.dart");
+    final String header = "{ ClassWithMethods c; ";
+
+    analyzeFail(header + "c.untypedNoArgumentMethod(1); }",
+      TypeErrorCode.EXTRA_ARGUMENT);
+    analyzeFail(header + "c.untypedOneArgumentMethod(); }",
+      TypeErrorCode.MISSING_ARGUMENT);
+    analyzeFail(header + "c.untypedOneArgumentMethod(1, 1); }",
+      TypeErrorCode.EXTRA_ARGUMENT);
+    analyzeFail(header + "c.untypedTwoArgumentMethod(); }",
+        TypeErrorCode.MISSING_ARGUMENT);
+    analyzeFail(header + "c.untypedTwoArgumentMethod(1, 2, 3); }",
+      TypeErrorCode.EXTRA_ARGUMENT);
+    analyzeFail(header + "c.intNoArgumentMethod(1); }",
+      TypeErrorCode.EXTRA_ARGUMENT);
+    analyzeFail(header + "c.intOneArgumentMethod(); }",
+        TypeErrorCode.MISSING_ARGUMENT);
+    analyzeFail(header + "c.intOneArgumentMethod(1, 1); }",
+      TypeErrorCode.EXTRA_ARGUMENT);
+    analyzeFail(header + "c.intTwoArgumentMethod(); }",
+        TypeErrorCode.MISSING_ARGUMENT);
+    analyzeFail(header + "c.intTwoArgumentMethod(1, 2, 3); }",
+      TypeErrorCode.EXTRA_ARGUMENT);
+    analyze(header + "c.untypedField(); }");
+  }
+
+  public void testMethodInvocations() {
+    loadFile("class_with_methods.dart");
+    final String header = "{ ClassWithMethods c; int i, j; ";
+
+    analyze(header + "int k = c.untypedNoArgumentMethod(); }");
+    analyze(header + "ClassWithMethods x = c.untypedNoArgumentMethod(); }");
+
+    analyze(header + "int k = c.untypedOneArgumentMethod(c); }");
+    analyze(header + "ClassWithMethods x = c.untypedOneArgumentMethod(1); }");
+    analyze(header + "int k = c.untypedOneArgumentMethod('string'); }");
+    analyze(header + "int k = c.untypedOneArgumentMethod(i); }");
+
+    analyze(header + "int k = c.untypedTwoArgumentMethod(1, 'string'); }");
+    analyze(header + "int k = c.untypedTwoArgumentMethod(i, j); }");
+    analyze(header + "ClassWithMethods x = c.untypedTwoArgumentMethod(i, c); }");
+
+    analyze(header + "int k = c.intNoArgumentMethod(); }");
+    analyzeFail(header + "ClassWithMethods x = c.intNoArgumentMethod(); }",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+
+    analyzeFail(header + "int k = c.intOneArgumentMethod(c); }",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail(header + "ClassWithMethods x = c.intOneArgumentMethod(1); }",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail(header + "int k = c.intOneArgumentMethod('string'); }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze(header + "int k = c.intOneArgumentMethod(i); }");
+
+    analyzeFail(header + "int k = c.intTwoArgumentMethod(1, 'string'); }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze(header + "int k = c.intTwoArgumentMethod(i, j); }");
+    analyzeFail(header + "ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
+        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
+  public void testNamedFunctionTypeAlias() {
+    loadFile("named_function_type_alias.dart");
+    analyze("VoidFunction f = foo() {};");
+  }
+
+  public void testNewExpression() {
+    analyzeClasses(loadSource(
+        "class Foo {",
+        "  Foo(int x) {}",
+        "  Foo.foo() {}",
+        "  Foo.bar([int i = null]) {}",
+        "}",
+        "interface Bar<T> factory Baz {",
+        "  Bar.make();",
+        "}",
+        "class Baz {",
+        "  factory Bar<S>.make(S x) { return null; }",
+        "}"));
+
+    analyze("Foo x = new Foo(0);");
+    analyzeFail("Foo x = new Foo();", TypeErrorCode.MISSING_ARGUMENT);
+    analyzeFail("Foo x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("Foo x = new Foo(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
+
+    analyze("Foo x = new Foo.foo();");
+    analyzeFail("Foo x = new Foo.foo(null);", TypeErrorCode.EXTRA_ARGUMENT);
+
+    analyze("Foo x = new Foo.bar();");
+    analyze("Foo x = new Foo.bar(0);");
+    analyzeFail("Foo x = new Foo.bar('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("Foo x = new Foo.bar(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
+
+    analyze("Bar<String> x = new Bar<String>.make('');");
+  }
+
+  public void testOddStuff() {
+    Map<String, ClassElement> classes = analyzeClasses(loadSource(
+        "class Class {",
+        "  Class() {}",
+        "  var field;",
+        "  void m() {}",
+        "  static void f() {}",
+        "  static g(int i) {}",
+        "}"));
+    ClassElement cls = classes.get("Class");
+    analyzeIn(cls, "m().foo()", 1);
+    analyzeIn(cls, "m().x", 1);
+    analyzeIn(cls, "m()", 0);
+    analyzeIn(cls, "(m)().foo()", 1);
+    analyzeIn(cls, "(m)().x", 1);
+    analyzeIn(cls, "(m)()", 0);
+    analyzeIn(cls, "field = m()", 1);
+    analyzeIn(cls, "field = Class.f()", 1);
+    analyzeIn(cls, "field = (Class.f)()", 1);
+    analyzeIn(cls, "Class.f()", 0);
+    analyzeIn(cls, "(Class.f)()", 0);
+    analyzeIn(cls, "field = Class.g('x')", 1);
+    analyzeIn(cls, "field = (Class.g)('x')", 1);
+    analyzeIn(cls, "field = Class.g(0)", 0);
+    analyzeIn(cls, "field = (Class.g)(0)", 0);
+    analyzeFail("fisk: while (true) fisk++;", TypeErrorCode.CANNOT_BE_RESOLVED);
+    analyzeFail("new Class().m().x;", TypeErrorCode.VOID);
+    analyzeFail("(new Class().m)().x;", TypeErrorCode.VOID);
+  }
+
+  public void testParameterAccess() {
+    analyze("{ f(int x) { x = 1; } }");
+    analyzeFail("{ f(String x) { x = 1; } }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("{ f(int x, int y) { x = y; } }");
+    analyzeFail("{ f(String x, int y) { x = y; } }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("{ f(x, int y) { x = y; } }");
+    analyze("{ f(x, int y) { x = y; } }");
+    analyzeFail("{ f(String x) { x = 1;} }",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
+  public void testParameterInitializers() {
+    Map<String, ClassElement> classes = loadSource(
+        "class C1 { int i; C1(this.i) {} }",
+        "class C2 { String s; C2(int this.s) {} }",
+        "class C3 { int i; C3(double this.i) {} }",
+        "class C4 { int i; C4(num this.i) {} }");
+    analyzeClass(classes.get("C1"), 0);
+    analyzeClass(classes.get("C2"), 1);
+    analyzeClass(classes.get("C3"), 1);
+    analyzeClass(classes.get("C4"), 0);
+  }
+
+  public void testPropertyAccess() {
+    ClassElement cls = loadClass("classes_with_properties.dart", "ClassWithProperties");
+    analyzeIn(cls, "null", 0);
+    analyzeIn(cls, "noSuchField", 1);
+    analyzeIn(cls, "noSuchMethod()", 1);
+    analyzeIn(cls, "x.noSuchField", 0);
+    analyzeIn(cls, "x.noSuchMethod()", 0);
+    analyzeIn(cls, "x.x.noSuchField", 0);
+    analyzeIn(cls, "x.x.noSuchMethod()", 0);
+    analyzeIn(cls, "x.a.noSuchField", 0);
+    analyzeIn(cls, "x.a.noSuchMethod()", 0);
+    String[] typedFields = { "a", "b", "c"};
+    for (String field : typedFields) {
+      analyzeIn(cls, field + ".noSuchField", 1);
+      analyzeIn(cls, field + ".noSuchMethod()", 1);
+      analyzeIn(cls, field + ".a", 0);
+      analyzeIn(cls, field + ".a()", 1);
+    }
+  }
+
+  public void testRawTypes() {
+    loadFile("interfaces.dart");
+
+    analyze("{ Sub s; }");
+    analyze("{ var s = new Sub(); }");
+    analyze("{ Sub s = new Sub(); }");
+    analyze("{ Sub<String> s = new Sub(); }");
+    analyze("{ Sub<String> s; }");
+    analyze("{ var s = new Sub<String>(); }");
+    analyze("{ Sub s = new Sub<String>(); }");
+    analyze("{ Sub<String> s = new Sub<String>(); }");
+  }
+
+  public void testReturn() {
+    analyzeFail(returnWithType("int", "'string'"),
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze(returnWithType("", "'string'"));
+    analyze(returnWithType("Object", "'string'"));
+    analyze(returnWithType("String", "'string'"));
+    analyze(returnWithType("String", null));
+    analyze(returnWithType("int", null));
+    analyze(returnWithType("void", ""));
+    analyzeFail(returnWithType("void", 1), TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze(returnWithType("void", null));
+    analyzeFail(returnWithType("String", ""), TypeErrorCode.MISSING_RETURN_VALUE);
+    analyze("String foo() {};"); // Should probably fail, http://b/4484060.
+  }
+
+  public void testSuper() {
+    ClassElement sub = loadClass("covariant_class.dart", "Sub");
+    checkAssignIn(sub, "B", "field", 0);
+    checkAssignIn(sub, "C", "field", 1);
+    checkAssignIn(sub, "D", "field", 1);
+
+    checkAssignIn(sub, "B", "super.field", 0);
+    checkAssignIn(sub, "C", "super.field", 0);
+    checkAssignIn(sub, "D", "super.field", 1);
+
+    checkAssignIn(sub, "B", "accessor", 0);
+    checkAssignIn(sub, "C", "accessor", 1);
+    checkAssignIn(sub, "D", "accessor", 1);
+
+    checkAssignIn(sub, "B", "super.accessor", 0);
+    checkAssignIn(sub, "C", "super.accessor", 0);
+    checkAssignIn(sub, "D", "super.accessor", 1);
+
+    analyzeIn(sub, "accessor = b", 0);
+    analyzeIn(sub, "accessor = c", 1);
+    analyzeIn(sub, "accessor = d", 1);
+
+    analyzeIn(sub, "super.accessor = b", 0);
+    analyzeIn(sub, "super.accessor = c", 0);
+    analyzeIn(sub, "super.accessor = d", 1);
+
+    checkAssignIn(sub, "B", "method()", 0);
+    checkAssignIn(sub, "C", "method()", 1);
+    checkAssignIn(sub, "D", "method()", 1);
+
+    checkAssignIn(sub, "B", "super.untypedMethod()", 0);
+    checkAssignIn(sub, "C", "super.untypedMethod()", 0);
+    checkAssignIn(sub, "D", "super.untypedMethod()", 0);
+
+    checkAssignIn(sub, "B", "super.untypedField", 0);
+    checkAssignIn(sub, "C", "super.untypedField", 0);
+    checkAssignIn(sub, "D", "super.untypedField", 0);
+
+    checkAssignIn(sub, "B", "super.untypedAccessor", 0);
+    checkAssignIn(sub, "C", "super.untypedAccessor", 0);
+    checkAssignIn(sub, "D", "super.untypedAccessor", 0);
+
+    analyzeIn(sub, "super.untypedAccessor = b", 0);
+    analyzeIn(sub, "super.untypedAccessor = c", 0);
+    analyzeIn(sub, "super.untypedAccessor = d", 0);
+
+    checkAssignIn(sub, "B", "super.untypedMethod()", 0);
+    checkAssignIn(sub, "C", "super.untypedMethod()", 0);
+    checkAssignIn(sub, "D", "super.untypedMethod()", 0);
+  }
+
+  public void testSuperConstructorInvocation() {
+    Map<String, ClassElement> classes = loadSource(
+        "class Super {",
+        "  Super(int x) {}",
+        "  Super.foo() {}",
+        "  Super.bar([int i = null]) {}",
+        "}",
+        "class BadSub extends Super {",
+        "  BadSub() : super('x') {}",
+        "  BadSub.foo() : super.foo('x') {}",
+        "  BadSub.bar() : super() {}",
+        "  BadSub.baz() : super.foo(null) {}",
+        "  BadSub.fisk() : super.bar('') {}",
+        "  BadSub.hest() : super.bar(1, 2) {}",
+        "}",
+        "class NullSub extends Super {",
+        "  NullSub() : super(null) {}",
+        "  NullSub.foo() : super.bar(null) {}",
+        "  NullSub.bar() : super.bar() {}",
+        "}",
+        "class IntSub extends Super {",
+        "  IntSub() : super(1) {}",
+        "  IntSub.foo() : super.bar(1) {}",
+        "}",
+        // The following works fine, but was claimed to be a bug:
+        "class A {",
+        "  int value;",
+        "  A([this.value = 3]) {}",
+        "}",
+        "class B extends A {",
+        "  B() : super() {}",
+        "}");
+    analyzeClass(classes.get("Super"), 0);
+    analyzeClass(classes.get("BadSub"), 6);
+    analyzeClass(classes.get("NullSub"), 0);
+    analyzeClass(classes.get("IntSub"), 0);
+    analyzeClass(classes.get("A"), 0);
+    analyzeClass(classes.get("B"), 0);
+  }
+
+  public void testSuperInterfaces() {
+    // If this test is failing, first debug any failures in testLoadInterfaces.
+    loadFile("interfaces.dart");
+    analyze("Super<String> s = new Sub<String>();");
+    analyze("Super<Object> o = new Sub<String>();");
+    analyzeFail("Super<String> f1 = new Sub<int>();",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("Sub<String> f2 = new Sub<int>();",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
+  public void testSwitch() {
+    analyze("{ int i = 27; switch(i) { case i: break; } }");
+    analyze("{ num i = 27; switch(i) { case i: break; } }");
+    analyze("{ switch(true) { case 1: break; case 'foo': break; }}");
+    analyzeFail("{ int i = 27; switch(true) { case false: i = 2.7; }}",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
+  public void testThis() {
+    Map<String, ClassElement> classes = loadFile("class_with_supertypes.dart");
+    ClassElement superclass = classes.get("Superclass");
+    assertNotNull("unable to locate Superclass", superclass);
+    ClassElement subclass = classes.get("ClassWithSupertypes");
+    assertNotNull("unable to locate ClassWithSupertypes", subclass);
+    analyzeIn(superclass, "() { String x = this; }", 1);
+    analyzeIn(superclass, "() { var x = this; }", 0);
+    analyzeIn(superclass, "() { ClassWithSupertypes x = this; }", 0);
+    analyzeIn(superclass, "() { Superclass x = this; }", 0);
+    analyzeIn(superclass, "() { Interface x = this; }", 1);
+    analyzeIn(subclass, "() { Interface x = this; }", 0);
+  }
+
   public void testTryCatchFinally() {
     analyze("try { } catch (var _) { } finally { }");
     analyzeFail("try { int i = 4.2; } catch (var _) { } finally { }",
@@ -790,6 +1081,90 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("try { } catch (var _) { } finally { int i = 4.2; }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
+  public void testTypeVariables() {
+    ClassElement cls = loadFile("class_with_type_parameter.dart").get("ClassWithTypeParameter");
+    assertNotNull("unable to locate ClassWithTypeParameter", cls);
+    analyzeIn(cls, "aField = tField", 0);
+    analyzeIn(cls, "bField = tField", 0);
+    analyzeIn(cls, "tField = aField", 0);
+    analyzeIn(cls, "tField = bField", 0);
+    analyzeIn(cls, "tField = null", 0);
+    analyzeIn(cls, "tField = 1", 1);
+    analyzeIn(cls, "tField = ''", 1);
+    analyzeIn(cls, "tField = true", 1);
+
+    analyzeIn(cls, "foo() { A a = null; T t = a; }()", 0);
+    analyzeIn(cls, "foo() { B b = null; T t = b; }()", 0);
+    analyzeIn(cls, "foo() { T t = null; A a = t; }()", 0);
+    analyzeIn(cls, "foo() { T t = null; B b = t; }()", 0);
+    analyzeIn(cls, "foo() { T t = 1; }()", 1);
+    analyzeIn(cls, "foo() { T t = ''; }()", 1);
+    analyzeIn(cls, "foo() { T t = true; }()", 1);
+  }
+
+  public void testUnaryOperators() {
+    Map<String, ClassElement> source = loadSource(
+        "class Foo {",
+        "  Foo foo;",
+        "  bool b;",
+        "  int i;",
+        "  Foo operator negate() { return this; }",
+        "  Foo operator +(int operand) { return this; }",
+        "  Foo operator -(int operand) { return this; }",
+        "}",
+        "class Bar {",
+        "  Bar bar;",
+        "  Bar operator +(Bar operand) { return this; }",
+        "  Bar operator -(Bar operand) { return this; }",
+        "}",
+        "class Baz<T extends Foo> {",
+        "  T baz;",
+        "}",
+        "class Qux<T> { ",
+        "  T qux; ",
+        "  void x() { }",
+        "  y() { }",
+        "}",
+        "class X {",
+        "  X x;",
+        "  Z operator negate() { return null; }",
+        "  Z operator +(int operand) { return null; }",
+        "  Z operator -(int operand) { return null; }",
+        "}",
+        "class Y extends X { Y y; }",
+        "class Z extends X { Z z; }"
+        );
+    analyzeClasses(source);
+    ClassElement foo = source.get("Foo");
+    ClassElement bar = source.get("Bar");
+    ClassElement baz = source.get("Baz");
+    ClassElement qux = source.get("Qux");
+    ClassElement y = source.get("Y");
+    ClassElement z = source.get("Z");
+    for (Token op : EnumSet.of(Token.DEC, Token.INC, Token.SUB)) {
+      analyzeIn(foo, String.format("%sfoo", op), 0);
+      analyzeIn(foo, String.format("i = %sfoo", op), 1);
+      analyzeIn(bar, String.format("%sbar", op), 1);
+      analyzeIn(baz, String.format("%sbaz", op), 0);
+      analyzeIn(qux, String.format("%squx", op), 1);
+    }
+    analyzeIn(z, "z = x++", 0);
+    analyzeIn(z, "z = ++x", 0);
+    analyzeIn(z, "z = x--", 0);
+    analyzeIn(z, "z = --x", 0);
+    analyzeIn(y, "y = x++", 0);
+    analyzeIn(y, "y = ++x", 1);
+    analyzeIn(y, "y = x--", 0);
+    analyzeIn(y, "y = --x", 1);
+
+    analyzeIn(foo, "b = !b", 0);
+    analyzeIn(foo, "foo = !foo", 2);
+    analyzeIn(foo, "b = !i", 1);
+    analyzeIn(foo, "foo = !b", 1);
+    analyzeIn(qux, "-x()", 1);
+    analyzeIn(qux, "-y()", 0);
   }
 
   public void testUnqualified() {
@@ -865,228 +1240,46 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     checkAssignIn(element, "T2", "interfaceMethod(t1)", 1);
   }
 
-  public void testSuper() {
-    ClassElement sub = loadClass("covariant_class.dart", "Sub");
-    checkAssignIn(sub, "B", "field", 0);
-    checkAssignIn(sub, "C", "field", 1);
-    checkAssignIn(sub, "D", "field", 1);
-
-    checkAssignIn(sub, "B", "super.field", 0);
-    checkAssignIn(sub, "C", "super.field", 0);
-    checkAssignIn(sub, "D", "super.field", 1);
-
-    checkAssignIn(sub, "B", "accessor", 0);
-    checkAssignIn(sub, "C", "accessor", 1);
-    checkAssignIn(sub, "D", "accessor", 1);
-
-    checkAssignIn(sub, "B", "super.accessor", 0);
-    checkAssignIn(sub, "C", "super.accessor", 0);
-    checkAssignIn(sub, "D", "super.accessor", 1);
-
-    analyzeIn(sub, "accessor = b", 0);
-    analyzeIn(sub, "accessor = c", 1);
-    analyzeIn(sub, "accessor = d", 1);
-
-    analyzeIn(sub, "super.accessor = b", 0);
-    analyzeIn(sub, "super.accessor = c", 0);
-    analyzeIn(sub, "super.accessor = d", 1);
-
-    checkAssignIn(sub, "B", "method()", 0);
-    checkAssignIn(sub, "C", "method()", 1);
-    checkAssignIn(sub, "D", "method()", 1);
-
-    checkAssignIn(sub, "B", "super.untypedMethod()", 0);
-    checkAssignIn(sub, "C", "super.untypedMethod()", 0);
-    checkAssignIn(sub, "D", "super.untypedMethod()", 0);
-
-    checkAssignIn(sub, "B", "super.untypedField", 0);
-    checkAssignIn(sub, "C", "super.untypedField", 0);
-    checkAssignIn(sub, "D", "super.untypedField", 0);
-
-    checkAssignIn(sub, "B", "super.untypedAccessor", 0);
-    checkAssignIn(sub, "C", "super.untypedAccessor", 0);
-    checkAssignIn(sub, "D", "super.untypedAccessor", 0);
-
-    analyzeIn(sub, "super.untypedAccessor = b", 0);
-    analyzeIn(sub, "super.untypedAccessor = c", 0);
-    analyzeIn(sub, "super.untypedAccessor = d", 0);
-
-    checkAssignIn(sub, "B", "super.untypedMethod()", 0);
-    checkAssignIn(sub, "C", "super.untypedMethod()", 0);
-    checkAssignIn(sub, "D", "super.untypedMethod()", 0);
+  public void testUnresolved() {
+    ClassElement element = loadClass("class_with_supertypes.dart", "ClassWithSupertypes");
+    analyzeIn(element, "null", 0);
+    analyzeIn(element, "noSuchField", 1);
+    analyzeIn(element, "noSuchMethod()", 1);
+    analyzeIn(element, "method()", 0);
+    analyzeIn(element, "field", 0);
+    analyzeIn(element, "this.noSuchField", 1);
+    analyzeIn(element, "this.noSuchMethod()", 1);
+    analyzeIn(element, "this.method()", 0);
+    analyzeIn(element, "this.field", 0);
+    analyzeIn(element, "staticMethod()", 0);
+    analyzeIn(element, "staticField", 0);
+    analyzeIn(element, "this.staticMethod()", 1);
+    analyzeIn(element, "this.staticField", 1);
+    analyzeIn(element, "ClassWithSupertypes.staticMethod()", 0);
+    analyzeIn(element, "ClassWithSupertypes.staticField", 0);
+    analyzeIn(element, "methodInSuperclass()", 0);
+    analyzeIn(element, "fieldInSuperclass", 0);
+    analyzeIn(element, "staticMethodInSuperclass()", 0);
+    analyzeIn(element, "staticFieldInSuperclass", 0);
+    analyzeIn(element, "this.methodInSuperclass()", 0);
+    analyzeIn(element, "this.fieldInSuperclass", 0);
+    analyzeIn(element, "this.staticMethodInSuperclass()", 1);
+    analyzeIn(element, "this.staticFieldInSuperclass", 1);
+    analyzeIn(element, "Superclass.staticMethodInSuperclass()", 0);
+    analyzeIn(element, "Superclass.staticFieldInSuperclass", 0);
+    analyzeIn(element, "methodInInterface()", 0);
+    analyzeIn(element, "fieldInInterface", 0);
+    analyzeIn(element, "this.methodInInterface()", 0);
+    analyzeIn(element, "this.fieldInInterface", 0);
+    analyzeIn(element, "staticFieldInInterface", 0);
+    analyzeIn(element, "Interface.staticFieldInInterface", 0);
+    analyzeIn(element, "this.staticFieldInInterface", 1);
   }
 
-  public void testSwitch() {
-    analyze("{ int i = 27; switch(i) { case i: break; } }");
-    analyze("{ num i = 27; switch(i) { case i: break; } }");
-    analyze("{ switch(true) { case 1: break; case 'foo': break; }}");
-    analyzeFail("{ int i = 27; switch(true) { case false: i = 2.7; }}",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testConstructorForwarding() {
-    Map<String, ClassElement> classes = loadSource(
-        "class MissingArgument {",
-        "  MissingArgument() : this.bar() {}",
-        "  MissingArgument.bar(int i) {}",
-        "}",
-        "class IntArgument {",
-        "  IntArgument() : this.bar(1) {}",
-        "  IntArgument.bar(int i) {}",
-        "}",
-        "class ExtraIntArgument {",
-        "  ExtraIntArgument() : this.bar(1, 1) {}",
-        "  ExtraIntArgument.bar(int i) {}",
-        "}",
-        "class StringArgument {",
-        "  StringArgument() : this.bar('') {}",
-        "  StringArgument.bar(int i) {}",
-        "}",
-        "class NullArgument {",
-        "  NullArgument() : this.bar(null) {}",
-        "  NullArgument.bar(int i) {}",
-        "}",
-        "class OptionalParameter {",
-        "  OptionalParameter() : this.bar() {}",
-        "  OptionalParameter.bar([int i = null]) {}",
-        "  OptionalParameter.foo() : this.bar('') {}",
-        "}");
-    analyzeClass(classes.get("MissingArgument"), 1);
-    analyzeClass(classes.get("IntArgument"), 0);
-    analyzeClass(classes.get("ExtraIntArgument"), 1);
-    analyzeClass(classes.get("StringArgument"), 1);
-    analyzeClass(classes.get("NullArgument"), 0);
-    analyzeClass(classes.get("OptionalParameter"), 1);
-  }
-
-  public void testSuperConstructorInvocation() {
-    Map<String, ClassElement> classes = loadSource(
-        "class Super {",
-        "  Super(int x) {}",
-        "  Super.foo() {}",
-        "  Super.bar([int i = null]) {}",
-        "}",
-        "class BadSub extends Super {",
-        "  BadSub() : super('x') {}",
-        "  BadSub.foo() : super.foo('x') {}",
-        "  BadSub.bar() : super() {}",
-        "  BadSub.baz() : super.foo(null) {}",
-        "  BadSub.fisk() : super.bar('') {}",
-        "  BadSub.hest() : super.bar(1, 2) {}",
-        "}",
-        "class NullSub extends Super {",
-        "  NullSub() : super(null) {}",
-        "  NullSub.foo() : super.bar(null) {}",
-        "  NullSub.bar() : super.bar() {}",
-        "}",
-        "class IntSub extends Super {",
-        "  IntSub() : super(1) {}",
-        "  IntSub.foo() : super.bar(1) {}",
-        "}",
-        // The following works fine, but was claimed to be a bug:
-        "class A {",
-        "  int value;",
-        "  A([this.value = 3]) {}",
-        "}",
-        "class B extends A {",
-        "  B() : super() {}",
-        "}");
-    analyzeClass(classes.get("Super"), 0);
-    analyzeClass(classes.get("BadSub"), 6);
-    analyzeClass(classes.get("NullSub"), 0);
-    analyzeClass(classes.get("IntSub"), 0);
-    analyzeClass(classes.get("A"), 0);
-    analyzeClass(classes.get("B"), 0);
-  }
-
-  public void testNewExpression() {
-    analyzeClasses(loadSource(
-        "class Foo {",
-        "  Foo(int x) {}",
-        "  Foo.foo() {}",
-        "  Foo.bar([int i = null]) {}",
-        "}",
-        "interface Bar<T> factory Baz {",
-        "  Bar.make();",
-        "}",
-        "class Baz {",
-        "  factory Bar<S>.make(S x) { return null; }",
-        "}"));
-
-    analyze("Foo x = new Foo(0);");
-    analyzeFail("Foo x = new Foo();", TypeErrorCode.MISSING_ARGUMENT);
-    analyzeFail("Foo x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Foo x = new Foo(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
-
-    analyze("Foo x = new Foo.foo();");
-    analyzeFail("Foo x = new Foo.foo(null);", TypeErrorCode.EXTRA_ARGUMENT);
-
-    analyze("Foo x = new Foo.bar();");
-    analyze("Foo x = new Foo.bar(0);");
-    analyzeFail("Foo x = new Foo.bar('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("Foo x = new Foo.bar(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
-
-    analyze("Bar<String> x = new Bar<String>.make('');");
-  }
-
-  public void testFactory() {
-    analyzeClasses(loadSource(
-        "interface Foo factory Bar {",
-        "  Foo(argument);",
-        "}",
-        "interface Baz {}",
-        "class Bar implements Foo, Baz {",
-        "  Bar(String argument) {}",
-        "}"));
-
-    analyzeFail("Baz x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testFunctionTypeAlias() {
-    Map<String, ClassElement> classes = loadSource(
-        "typedef void VoidFunction();",
-        "typedef String StringFunction();",
-        "typedef String IntToStringFunction(int i);",
-        "class Foo {",
-        "  VoidFunction voidFunction;",
-        "  StringFunction stringFunction;",
-        "  IntToStringFunction intToStringFunction;",
-        "  Foo foo;",
-        "  String string;",
-        "  int i;",
-        "}");
-    analyzeClasses(classes);
-    ClassElement foo = classes.get("Foo");
-    analyzeIn(foo, "voidFunction()", 0);
-    analyzeIn(foo, "voidFunction(1)", 1);
-    analyzeIn(foo, "this.voidFunction()", 0);
-    analyzeIn(foo, "this.voidFunction(1)", 1);
-    analyzeIn(foo, "foo.voidFunction()", 0);
-    analyzeIn(foo, "foo.voidFunction(1)", 1);
-    analyzeIn(foo, "(voidFunction)()", 0);
-    analyzeIn(foo, "(voidFunction)(1)", 1);
-    analyzeIn(foo, "(this.voidFunction)()", 0);
-    analyzeIn(foo, "(this.voidFunction)(1)", 1);
-    analyzeIn(foo, "(foo.voidFunction)()", 0);
-    analyzeIn(foo, "(foo.voidFunction)(1)", 1);
-
-    analyzeIn(foo, "string = stringFunction()", 0);
-    analyzeIn(foo, "i = stringFunction()", 1);
-    analyzeIn(foo, "string = this.stringFunction()", 0);
-    analyzeIn(foo, "i = this.stringFunction()", 1);
-    analyzeIn(foo, "string = foo.stringFunction()", 0);
-    analyzeIn(foo, "i = foo.stringFunction()", 1);
-    analyzeIn(foo, "string = (stringFunction)()", 0);
-    analyzeIn(foo, "i = (stringFunction)()", 1);
-    analyzeIn(foo, "string = (this.stringFunction)()", 0);
-    analyzeIn(foo, "i = (this.stringFunction)()", 1);
-    analyzeIn(foo, "string = (foo.stringFunction)()", 0);
-    analyzeIn(foo, "i = (foo.stringFunction)()", 1);
-
-    analyzeIn(foo, "voidFunction = stringFunction", 0);
-    analyzeIn(foo, "stringFunction = intToStringFunction", 1);
-    analyzeIn(foo, "stringFunction = String foo() { return ''; }", 0);
-    analyzeIn(foo, "intToStringFunction = String foo() { return ''; }", 1);
+  public void testUnresolvedIdentifier() {
+    setExpectedTypeErrorCount(3);
+    checkType(typeProvider.getDynamicType(), "y");
+    checkExpectedTypeErrorCount();
   }
 
   public void testVoid() {
@@ -1128,205 +1321,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("{ void f() {} ({ 'x': f() }); }", TypeErrorCode.VOID);
   }
 
-  public void testFieldInitializers() {
-    Map<String, ClassElement> classes = loadSource(
-        "class Good {",
-        "  String string;",
-        "  int i;",
-        "  Good() : string = '', i = 1;",
-        "  Good.name() : string = null, i = null;",
-        "  Good.untyped(x) : string = x, i = x;",
-        "  Good.string(String s) : string = s, i = 0;",
-        "}",
-        "class Bad {",
-        "  String string;",
-        "  int i;",
-        "  Bad() : string = 1, i = '';",
-        "  Bad.string(String s) : string = s, i = s;",
-        "}");
-    analyzeClass(classes.get("Good"), 0);
-    analyzeClass(classes.get("Bad"), 3);
-  }
-
-  public void testArrayLiteral() {
-    analyze("['x'];");
-    analyze("<String>['x'];");
-    analyzeFail("<int>['x'];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("<String>['x', 1];", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("List<String> strings = ['x'];");
-    analyze("List<String> strings = <String>['x'];");
-    analyze("List array = ['x'];");
-    analyze("List array = <String>['x'];");
-    analyze("List<int> ints = ['x'];");
-    analyzeFail("List<int> ints = <String>['x'];",
-                TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testInitializedLocals() {
-    analyze("void f([int x = 1]) {}");
-    analyzeFail("void f([int x = '']) {}", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-
-    analyze("{ int x = 1; }");
-    analyzeFail("{ int x = ''; }", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-  }
-
-  public void testInitializedFields() {
-    Map<String, ClassElement> classes = loadSource(
-        "class GoodField {",
-        "  static final int i = 1;",
-        "}");
-    analyzeClass(classes.get("GoodField"), 0);
-
-    // Note, the TypeAnalyzer doesn't get a chance
-    // to get its hands on bad initializers anymore
-    // due to type checking in CompileTimeConstVisitor.
-  }
-
-  public void testGetAllSupertypes()
-      throws CyclicDeclarationException, DuplicatedInterfaceException {
-    Map<String, ClassElement> classes = loadSource(
-        "class A extends B<String> {",
-        "}",
-        "class B<T> extends C<G<T>> implements I<int>, I1<T> {",
-        "}",
-        "class C<U> {",
-        "}",
-        "interface I<S> extends I2<bool> {",
-        "}",
-        "class G<V> {",
-        "}",
-        "interface I1<W> {",
-        "}",
-        "interface I2<X> {",
-        "}",
-        "class D implements I2<int> {",
-        "}",
-        "class E extends D implements I2<int> {",
-        "}");
-    analyzeClasses(classes);
-    assertEquals("[]", object.getAllSupertypes().toString());
-    assertEquals("[I<int>, I1<String>, I2<bool>, B<String>, C<G<String>>, Object]",
-                 classes.get("A").getAllSupertypes().toString());
-    assertEquals("[I<int>, I1<B.T>, I2<bool>, C<G<B.T>>, Object]",
-                 classes.get("B").getAllSupertypes().toString());
-    assertEquals("[Object]", classes.get("C").getAllSupertypes().toString());
-    assertEquals("[I2<bool>, Object]", classes.get("I").getAllSupertypes().toString());
-    assertEquals("[Object]", classes.get("G").getAllSupertypes().toString());
-    assertEquals("[Object]", classes.get("I1").getAllSupertypes().toString());
-    assertEquals("[Object]", classes.get("I2").getAllSupertypes().toString());
-    assertEquals("[I2<int>, Object]", classes.get("D").getAllSupertypes().toString());
-    assertEquals("[I2<int>, D, Object]", classes.get("E").getAllSupertypes().toString());
-  }
-
-  public void testParameterInitializers() {
-    Map<String, ClassElement> classes = loadSource(
-        "class C1 { int i; C1(this.i) {} }",
-        "class C2 { String s; C2(int this.s) {} }",
-        "class C3 { int i; C3(double this.i) {} }",
-        "class C4 { int i; C4(num this.i) {} }");
-    analyzeClass(classes.get("C1"), 0);
-    analyzeClass(classes.get("C2"), 1);
-    analyzeClass(classes.get("C3"), 1);
-    analyzeClass(classes.get("C4"), 0);
-  }
-
-  public void testImplementsAndOverrides() {
-    analyzeClasses(loadSource(
-        "interface Interface {",
-        "  void foo(x);",
-        "  void bar();",
-        "}",
-        // Abstract class not reported until first instantiation.
-        "class Class implements Interface {",
-        "  Class() {}",
-        "  String bar() { return null; }",
-        "}",
-        // Abstract class not reported until first instantiation.
-        "class SubClass extends Class {",
-        "  SubClass() : super() {}",
-        "  Object bar() { return null; }",
-        "}",
-        "class SubSubClass extends Class {",
-        "  num bar() { return null; }", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
-        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
-        "}",
-        "class Usage {",
-        "  m() {",
-        "    new Class();", // CANNOT_INSTATIATE_ABSTRACT_CLASS
-                            // ABSTRACT_CLASS.
-        "    new Class();", // CANNOT_INSTATIATE_ABSTRACT_CLASS.
-        "    new SubClass();", // CANNOT_INSTATIATE_ABSTRACT_CLASS
-                               //ABSTRACT_CLASS.
-        "  }",
-        "}"),
-        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
-        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
-        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        TypeErrorCode.ABSTRACT_CLASS,
-        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        TypeErrorCode.ABSTRACT_CLASS);
-  }
-
-  public void testImplementsAndOverrides2() {
-    analyzeClasses(loadSource(
-        "interface Interface {",
-        "  void foo(x);",
-        "}",
-        // Abstract class not reported until first instantiation.
-        "class Class implements Interface {",
-        "  Class() {}",
-        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
-        "}"),
-        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
-  }
-
-  public void testOddStuff() {
-    Map<String, ClassElement> classes = analyzeClasses(loadSource(
-        "class Class {",
-        "  Class() {}",
-        "  var field;",
-        "  void m() {}",
-        "  static void f() {}",
-        "  static g(int i) {}",
-        "}"));
-    ClassElement cls = classes.get("Class");
-    analyzeIn(cls, "m().foo()", 1);
-    analyzeIn(cls, "m().x", 1);
-    analyzeIn(cls, "m()", 0);
-    analyzeIn(cls, "(m)().foo()", 1);
-    analyzeIn(cls, "(m)().x", 1);
-    analyzeIn(cls, "(m)()", 0);
-    analyzeIn(cls, "field = m()", 1);
-    analyzeIn(cls, "field = Class.f()", 1);
-    analyzeIn(cls, "field = (Class.f)()", 1);
-    analyzeIn(cls, "Class.f()", 0);
-    analyzeIn(cls, "(Class.f)()", 0);
-    analyzeIn(cls, "field = Class.g('x')", 1);
-    analyzeIn(cls, "field = (Class.g)('x')", 1);
-    analyzeIn(cls, "field = Class.g(0)", 0);
-    analyzeIn(cls, "field = (Class.g)(0)", 0);
-    analyzeFail("fisk: while (true) fisk++;", TypeErrorCode.CANNOT_BE_RESOLVED);
-    analyzeFail("new Class().m().x;", TypeErrorCode.VOID);
-    analyzeFail("(new Class().m)().x;", TypeErrorCode.VOID);
-  }
-
-  /**
-   * There  was problem that cyclic class declaration caused infinite loop.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=348
-   */
-  public void test_cyclicDeclaration() {
-    Map<String, ClassElement> source = loadSource(
-        "class Foo extends Bar {",
-        "}",
-        "class Bar extends Foo {",
-        "}");
-    analyzeClasses(source);
-    // Foo and Bar have cyclic declaration
-    ClassElement classFoo = source.get("Foo");
-    ClassElement classBar = source.get("Bar");
-    assertEquals(classFoo, classBar.getSupertype().getElement());
-    assertEquals(classBar, classFoo.getSupertype().getElement());
+  public void testWhileStatement() {
+    analyze("while (true) {}");
+    analyze("while (null) {}");
+    analyzeFail("while (0) {}",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyzeFail("while ('') {}",
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 }
