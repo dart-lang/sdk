@@ -69,7 +69,7 @@ off_t File::Position() {
 }
 
 
-off_t File::Position(int64_t position) {
+off_t File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
   return lseek(handle_->fd(), position, SEEK_SET);
 }
