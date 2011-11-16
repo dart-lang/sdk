@@ -25,6 +25,8 @@ class IDBDatabase native "IDBDatabase" {
 
   IDBVersionChangeRequest setVersion(String version) native;
 
+  IDBTransaction transaction(String storeName, int mode) native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;

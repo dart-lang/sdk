@@ -6,7 +6,7 @@
 
 interface FormData {
 
-  void append(String name, String value);
+  void append(String name, String value, String filename);
 }
 
 interface DOMFormData extends FormData {

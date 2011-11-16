@@ -11,11 +11,11 @@ class _DOMFormDataWrappingImplementation extends DOMWrapperBase implements DOMFo
     return new _DOMFormDataWrappingImplementation();
   }
 
-  void append(String name, String value) {
-    _append(this, name, value);
+  void append(String name, String value, String filename) {
+    _append(this, name, value, filename);
     return;
   }
-  static void _append(receiver, name, value) native;
+  static void _append(receiver, name, value, filename) native;
 
   String get typeName() { return "DOMFormData"; }
 }

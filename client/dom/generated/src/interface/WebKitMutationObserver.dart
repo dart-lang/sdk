@@ -4,13 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DataTransferItems {
+interface WebKitMutationObserver {
 
-  int get length();
-
-  void add(String data, String type);
-
-  void clear();
-
-  DataTransferItem item(int index);
+  void disconnect();
 }

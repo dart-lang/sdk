@@ -11,8 +11,8 @@ class _IDBCursorWithValueWrappingImplementation extends _IDBCursorWrappingImplem
     return new _IDBCursorWithValueWrappingImplementation();
   }
 
-  String get value() { return _get__IDBCursorWithValue_value(this); }
-  static String _get__IDBCursorWithValue_value(var _this) native;
+  IDBAny get value() { return _get__IDBCursorWithValue_value(this); }
+  static IDBAny _get__IDBCursorWithValue_value(var _this) native;
 
   String get typeName() { return "IDBCursorWithValue"; }
 }

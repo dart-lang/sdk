@@ -467,6 +467,16 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static Event _createEvent(receiver, eventType) native;
 
+  XPathExpression createExpression(String expression, XPathNSResolver resolver) {
+    return _createExpression(this, expression, resolver);
+  }
+  static XPathExpression _createExpression(receiver, expression, resolver) native;
+
+  XPathNSResolver createNSResolver(Node nodeResolver) {
+    return _createNSResolver(this, nodeResolver);
+  }
+  static XPathNSResolver _createNSResolver(receiver, nodeResolver) native;
+
   NodeIterator createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) {
     return _createNodeIterator(this, root, whatToShow, filter, expandEntityReferences);
   }
@@ -496,6 +506,11 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
     return _elementFromPoint(this, x, y);
   }
   static Element _elementFromPoint(receiver, x, y) native;
+
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) {
+    return _evaluate(this, expression, contextNode, resolver, type, inResult);
+  }
+  static XPathResult _evaluate(receiver, expression, contextNode, resolver, type, inResult) native;
 
   bool execCommand(String command, bool userInterface, String value) {
     return _execCommand(this, command, userInterface, value);

@@ -10,4 +10,6 @@ class HTMLTrackElement extends HTMLElement native "HTMLTrackElement" {
   String src;
 
   String srclang;
+
+  TextTrack track;
 }

@@ -68,6 +68,33 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   bool get isContentEditable() { return _get__HTMLElement_isContentEditable(this); }
   static bool _get__HTMLElement_isContentEditable(var _this) native;
 
+  String get itemId() { return _get__HTMLElement_itemId(this); }
+  static String _get__HTMLElement_itemId(var _this) native;
+
+  void set itemId(String value) { _set__HTMLElement_itemId(this, value); }
+  static void _set__HTMLElement_itemId(var _this, String value) native;
+
+  DOMSettableTokenList get itemProp() { return _get__HTMLElement_itemProp(this); }
+  static DOMSettableTokenList _get__HTMLElement_itemProp(var _this) native;
+
+  DOMSettableTokenList get itemRef() { return _get__HTMLElement_itemRef(this); }
+  static DOMSettableTokenList _get__HTMLElement_itemRef(var _this) native;
+
+  bool get itemScope() { return _get__HTMLElement_itemScope(this); }
+  static bool _get__HTMLElement_itemScope(var _this) native;
+
+  void set itemScope(bool value) { _set__HTMLElement_itemScope(this, value); }
+  static void _set__HTMLElement_itemScope(var _this, bool value) native;
+
+  DOMSettableTokenList get itemType() { return _get__HTMLElement_itemType(this); }
+  static DOMSettableTokenList _get__HTMLElement_itemType(var _this) native;
+
+  Object get itemValue() { return _get__HTMLElement_itemValue(this); }
+  static Object _get__HTMLElement_itemValue(var _this) native;
+
+  void set itemValue(Object value) { _set__HTMLElement_itemValue(this, value); }
+  static void _set__HTMLElement_itemValue(var _this, Object value) native;
+
   String get lang() { return _get__HTMLElement_lang(this); }
   static String _get__HTMLElement_lang(var _this) native;
 

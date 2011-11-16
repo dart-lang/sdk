@@ -44,6 +44,24 @@ interface HTMLElement extends Element {
 
   bool get isContentEditable();
 
+  String get itemId();
+
+  void set itemId(String value);
+
+  DOMSettableTokenList get itemProp();
+
+  DOMSettableTokenList get itemRef();
+
+  bool get itemScope();
+
+  void set itemScope(bool value);
+
+  DOMSettableTokenList get itemType();
+
+  Object get itemValue();
+
+  void set itemValue(Object value);
+
   String get lang();
 
   void set lang(String value);

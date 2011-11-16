@@ -23,6 +23,9 @@ class _WebSocketWrappingImplementation extends DOMWrapperBase implements WebSock
   int get bufferedAmount() { return _get__WebSocket_bufferedAmount(this); }
   static int _get__WebSocket_bufferedAmount(var _this) native;
 
+  String get extensions() { return _get__WebSocket_extensions(this); }
+  static String _get__WebSocket_extensions(var _this) native;
+
   EventListener get onclose() { return _get__WebSocket_onclose(this); }
   static EventListener _get__WebSocket_onclose(var _this) native;
 

@@ -119,26 +119,36 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   }
   static String _getResponseHeader(receiver, header) native;
 
-  void open(String method, String url, bool async, [String user = null, String password = null]) {
-    if (user === null) {
-      if (password === null) {
-        _open(this, method, url, async);
-        return;
+  void open(String method, String url, [bool async = null, String user = null, String password = null]) {
+    if (async === null) {
+      if (user === null) {
+        if (password === null) {
+          _open(this, method, url);
+          return;
+        }
       }
     } else {
-      if (password === null) {
-        _open_2(this, method, url, async, user);
-        return;
+      if (user === null) {
+        if (password === null) {
+          _open_2(this, method, url, async);
+          return;
+        }
       } else {
-        _open_3(this, method, url, async, user, password);
-        return;
+        if (password === null) {
+          _open_3(this, method, url, async, user);
+          return;
+        } else {
+          _open_4(this, method, url, async, user, password);
+          return;
+        }
       }
     }
     throw "Incorrect number or type of arguments";
   }
-  static void _open(receiver, method, url, async) native;
-  static void _open_2(receiver, method, url, async, user) native;
-  static void _open_3(receiver, method, url, async, user, password) native;
+  static void _open(receiver, method, url) native;
+  static void _open_2(receiver, method, url, async) native;
+  static void _open_3(receiver, method, url, async, user) native;
+  static void _open_4(receiver, method, url, async, user, password) native;
 
   void overrideMimeType(String override) {
     _overrideMimeType(this, override);
@@ -163,13 +173,28 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
       _send(this);
       return;
     } else {
-      if (data is String) {
+      if (data is ArrayBuffer) {
         _send_2(this, data);
         return;
       } else {
-        if (data is Document) {
+        if (data is Blob) {
           _send_3(this, data);
           return;
+        } else {
+          if (data is Document) {
+            _send_4(this, data);
+            return;
+          } else {
+            if (data is String) {
+              _send_5(this, data);
+              return;
+            } else {
+              if (data is DOMFormData) {
+                _send_6(this, data);
+                return;
+              }
+            }
+          }
         }
       }
     }
@@ -178,6 +203,9 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   static void _send(receiver) native;
   static void _send_2(receiver, data) native;
   static void _send_3(receiver, data) native;
+  static void _send_4(receiver, data) native;
+  static void _send_5(receiver, data) native;
+  static void _send_6(receiver, data) native;
 
   void setRequestHeader(String header, String value) {
     _setRequestHeader(this, header, value);

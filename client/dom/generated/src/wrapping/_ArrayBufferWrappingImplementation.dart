@@ -14,5 +14,15 @@ class _ArrayBufferWrappingImplementation extends DOMWrapperBase implements Array
   int get byteLength() { return _get__ArrayBuffer_byteLength(this); }
   static int _get__ArrayBuffer_byteLength(var _this) native;
 
+  ArrayBuffer slice(int begin, [int end = null]) {
+    if (end === null) {
+      return _slice(this, begin);
+    } else {
+      return _slice_2(this, begin, end);
+    }
+  }
+  static ArrayBuffer _slice(receiver, begin) native;
+  static ArrayBuffer _slice_2(receiver, begin, end) native;
+
   String get typeName() { return "ArrayBuffer"; }
 }

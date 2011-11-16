@@ -7,7 +7,7 @@ class Clipboard native "Clipboard" {
 
   FileList files;
 
-  DataTransferItems items;
+  DataTransferItemList items;
 
   void clearData([String type = null]) native;
 

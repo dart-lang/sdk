@@ -22,6 +22,7 @@ _idl_to_dart_type_conversions = {
     'boolean': 'bool',
     'DOMObject': 'Object',
     'DOMString': 'String',
+    'DOMStringList': 'List<String>',
     'DOMTimeStamp': 'int',
     'Date': 'Date',
     # Map to num to enable callers to pass in Dart int, rational

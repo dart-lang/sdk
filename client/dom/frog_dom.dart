@@ -64,7 +64,7 @@
 #source('generated/src/frog/DOMURL.dart');
 #source('generated/src/frog/DOMWindow.dart');
 #source('generated/src/frog/DataTransferItem.dart');
-#source('generated/src/frog/DataTransferItems.dart');
+#source('generated/src/frog/DataTransferItemList.dart');
 #source('generated/src/frog/DataView.dart');
 #source('generated/src/frog/Database.dart');
 #source('generated/src/frog/DatabaseCallback.dart');
@@ -210,16 +210,11 @@
 #source('generated/src/frog/Int8Array.dart');
 #source('generated/src/frog/JavaScriptCallFrame.dart');
 #source('generated/src/frog/KeyboardEvent.dart');
-#source('generated/src/frog/LocalMediaStream.dart');
 #source('generated/src/frog/Location.dart');
 #source('generated/src/frog/MediaError.dart');
 #source('generated/src/frog/MediaList.dart');
 #source('generated/src/frog/MediaQueryList.dart');
 #source('generated/src/frog/MediaQueryListListener.dart');
-#source('generated/src/frog/MediaStream.dart');
-#source('generated/src/frog/MediaStreamList.dart');
-#source('generated/src/frog/MediaStreamTrack.dart');
-#source('generated/src/frog/MediaStreamTrackList.dart');
 #source('generated/src/frog/MemoryInfo.dart');
 #source('generated/src/frog/MessageChannel.dart');
 #source('generated/src/frog/MessageEvent.dart');
@@ -227,6 +222,7 @@
 #source('generated/src/frog/Metadata.dart');
 #source('generated/src/frog/MetadataCallback.dart');
 #source('generated/src/frog/MouseEvent.dart');
+#source('generated/src/frog/MutationCallback.dart');
 #source('generated/src/frog/MutationEvent.dart');
 #source('generated/src/frog/MutationRecord.dart');
 #source('generated/src/frog/NamedNodeMap.dart');
@@ -293,6 +289,9 @@
 #source('generated/src/frog/Text.dart');
 #source('generated/src/frog/TextEvent.dart');
 #source('generated/src/frog/TextMetrics.dart');
+#source('generated/src/frog/TextTrack.dart');
+#source('generated/src/frog/TextTrackCue.dart');
+#source('generated/src/frog/TextTrackCueList.dart');
 #source('generated/src/frog/TimeRanges.dart');
 #source('generated/src/frog/Touch.dart');
 #source('generated/src/frog/TouchEvent.dart');
@@ -308,6 +307,8 @@
 #source('generated/src/frog/WebGLBuffer.dart');
 #source('generated/src/frog/WebGLContextAttributes.dart');
 #source('generated/src/frog/WebGLContextEvent.dart');
+#source('generated/src/frog/WebGLDebugRendererInfo.dart');
+#source('generated/src/frog/WebGLDebugShaders.dart');
 #source('generated/src/frog/WebGLFramebuffer.dart');
 #source('generated/src/frog/WebGLProgram.dart');
 #source('generated/src/frog/WebGLRenderbuffer.dart');
@@ -320,12 +321,14 @@
 #source('generated/src/frog/WebKitAnimationEvent.dart');
 #source('generated/src/frog/WebKitAnimationList.dart');
 #source('generated/src/frog/WebKitBlobBuilder.dart');
+#source('generated/src/frog/WebKitCSSFilterValue.dart');
 #source('generated/src/frog/WebKitCSSKeyframeRule.dart');
 #source('generated/src/frog/WebKitCSSKeyframesRule.dart');
 #source('generated/src/frog/WebKitCSSMatrix.dart');
 #source('generated/src/frog/WebKitCSSTransformValue.dart');
 #source('generated/src/frog/WebKitFlags.dart');
 #source('generated/src/frog/WebKitLoseContext.dart');
+#source('generated/src/frog/WebKitMutationObserver.dart');
 #source('generated/src/frog/WebKitPoint.dart');
 #source('generated/src/frog/WebKitTransitionEvent.dart');
 #source('generated/src/frog/WebSocket.dart');

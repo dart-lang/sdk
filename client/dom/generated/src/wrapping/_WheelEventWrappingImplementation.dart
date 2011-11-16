@@ -41,6 +41,9 @@ class _WheelEventWrappingImplementation extends _UIEventWrappingImplementation i
   bool get shiftKey() { return _get__WheelEvent_shiftKey(this); }
   static bool _get__WheelEvent_shiftKey(var _this) native;
 
+  bool get webkitDirectionInvertedFromDevice() { return _get__WheelEvent_webkitDirectionInvertedFromDevice(this); }
+  static bool _get__WheelEvent_webkitDirectionInvertedFromDevice(var _this) native;
+
   int get wheelDelta() { return _get__WheelEvent_wheelDelta(this); }
   static int _get__WheelEvent_wheelDelta(var _this) native;
 

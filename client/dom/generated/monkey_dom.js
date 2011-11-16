@@ -80,6 +80,7 @@ function DOM$fixClass$ArrayBuffer(c) {
   if (c.prototype) {
     c.prototype.byteLength$getter = function() { return DOM$EnsureDartNull(this.byteLength); };
   }
+  DOM$fixMembers(c, ['slice']);
   c.$implements$ArrayBuffer$Dart = 1;
 }
 function DOM$fixClass$ArrayBufferView(c) {
@@ -343,6 +344,8 @@ function DOM$fixClass$CanvasRenderingContext2D(c) {
     c.prototype.textAlign$setter = function(value) { this.textAlign = value; };
     c.prototype.textBaseline$getter = function() { return DOM$EnsureDartNull(this.textBaseline); };
     c.prototype.textBaseline$setter = function(value) { this.textBaseline = value; };
+    c.prototype.webkitLineDashOffset$getter = function() { return DOM$EnsureDartNull(this.webkitLineDashOffset); };
+    c.prototype.webkitLineDashOffset$setter = function(value) { this.webkitLineDashOffset = value; };
   }
   DOM$fixMembers(c, [
     'arc',
@@ -976,6 +979,7 @@ function DOM$fixClass$DOMWindow(c) {
     'webkitCancelRequestAnimationFrame',
     'webkitConvertPointFromNodeToPage',
     'webkitConvertPointFromPageToNode',
+    'webkitPostMessage',
     'webkitRequestAnimationFrame']);
   c.$implements$DOMWindow$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -990,7 +994,7 @@ function DOM$fixClass$DataTransferItem(c) {
     'getAsString']);
   c.$implements$DataTransferItem$Dart = 1;
 }
-function DOM$fixClass$DataTransferItems(c) {
+function DOM$fixClass$DataTransferItemList(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
   }
@@ -998,7 +1002,7 @@ function DOM$fixClass$DataTransferItems(c) {
     'add',
     'clear',
     'item']);
-  c.$implements$DataTransferItems$Dart = 1;
+  c.$implements$DataTransferItemList$Dart = 1;
 }
 function DOM$fixClass$DataView(c) {
   if (c.prototype) {
@@ -1259,12 +1263,15 @@ function DOM$fixClass$Document(c) {
     'createElementNS',
     'createEntityReference',
     'createEvent',
+    'createExpression',
+    'createNSResolver',
     'createNodeIterator',
     'createProcessingInstruction',
     'createRange',
     'createTextNode',
     'createTreeWalker',
     'elementFromPoint',
+    'evaluate',
     'execCommand',
     'getCSSCanvasContext',
     'getElementById',
@@ -2224,6 +2231,15 @@ function DOM$fixClass$HTMLElement(c) {
     c.prototype.innerText$getter = function() { return DOM$EnsureDartNull(this.innerText); };
     c.prototype.innerText$setter = function(value) { this.innerText = value; };
     c.prototype.isContentEditable$getter = function() { return DOM$EnsureDartNull(this.isContentEditable); };
+    c.prototype.itemId$getter = function() { return DOM$EnsureDartNull(this.itemId); };
+    c.prototype.itemId$setter = function(value) { this.itemId = value; };
+    c.prototype.itemProp$getter = function() { return DOM$EnsureDartNull(this.itemProp); };
+    c.prototype.itemRef$getter = function() { return DOM$EnsureDartNull(this.itemRef); };
+    c.prototype.itemScope$getter = function() { return DOM$EnsureDartNull(this.itemScope); };
+    c.prototype.itemScope$setter = function(value) { this.itemScope = value; };
+    c.prototype.itemType$getter = function() { return DOM$EnsureDartNull(this.itemType); };
+    c.prototype.itemValue$getter = function() { return DOM$EnsureDartNull(this.itemValue); };
+    c.prototype.itemValue$setter = function(value) { this.itemValue = value; };
     c.prototype.lang$getter = function() { return DOM$EnsureDartNull(this.lang); };
     c.prototype.lang$setter = function(value) { this.lang = value; };
     c.prototype.outerHTML$getter = function() { return DOM$EnsureDartNull(this.outerHTML); };
@@ -3563,6 +3579,7 @@ function DOM$fixClass$HTMLTrackElement(c) {
     c.prototype.src$setter = function(value) { this.src = value; };
     c.prototype.srclang$getter = function() { return DOM$EnsureDartNull(this.srclang); };
     c.prototype.srclang$setter = function(value) { this.srclang = value; };
+    c.prototype.track$getter = function() { return DOM$EnsureDartNull(this.track); };
   }
   c.$implements$HTMLTrackElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
@@ -3693,7 +3710,8 @@ function DOM$fixClass$IDBDatabase(c) {
     'deleteObjectStore',
     'dispatchEvent',
     'removeEventListener',
-    'setVersion']);
+    'setVersion',
+    'transaction']);
   c.$implements$IDBDatabase$Dart = 1;
 }
 function DOM$fixClass$IDBDatabaseError(c) {
@@ -3717,6 +3735,8 @@ function DOM$fixClass$IDBFactory(c) {
   if (c.prototype) {
   }
   DOM$fixMembers(c, [
+    'cmp',
+    'deleteDatabase',
     'getDatabaseNames',
     'open']);
   c.$implements$IDBFactory$Dart = 1;
@@ -3760,6 +3780,7 @@ function DOM$fixClass$IDBObjectStore(c) {
   if (c.prototype) {
     c.prototype.keyPath$getter = function() { return DOM$EnsureDartNull(this.keyPath); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.transaction$getter = function() { return DOM$EnsureDartNull(this.transaction); };
   }
   DOM$fixMembers(c, [
     'add',
@@ -3953,13 +3974,6 @@ function DOM$fixClass$KeyboardEvent(c) {
   c.$implements$UIEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
-function DOM$fixClass$LocalMediaStream(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['stop']);
-  c.$implements$LocalMediaStream$Dart = 1;
-  c.$implements$MediaStream$Dart = 1;
-}
 function DOM$fixClass$Location(c) {
   if (c.prototype) {
     c.prototype.hash$getter = function() { return DOM$EnsureDartNull(this.hash); };
@@ -4022,43 +4036,6 @@ function DOM$fixClass$MediaQueryListListener(c) {
   }
   DOM$fixMembers(c, ['queryChanged']);
   c.$implements$MediaQueryListListener$Dart = 1;
-}
-function DOM$fixClass$MediaStream(c) {
-  if (c.prototype) {
-    c.prototype.label$getter = function() { return DOM$EnsureDartNull(this.label); };
-    c.prototype.onended$getter = function() { return DOM$EnsureDartNull(this.onended); };
-    c.prototype.onended$setter = function(value) { this.onended = value; };
-    c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
-    c.prototype.tracks$getter = function() { return DOM$EnsureDartNull(this.tracks); };
-  }
-  DOM$fixMembers(c, [
-    'addEventListener',
-    'dispatchEvent',
-    'removeEventListener']);
-  c.$implements$MediaStream$Dart = 1;
-}
-function DOM$fixClass$MediaStreamList(c) {
-  if (c.prototype) {
-    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-  }
-  DOM$fixMembers(c, ['item']);
-  c.$implements$MediaStreamList$Dart = 1;
-}
-function DOM$fixClass$MediaStreamTrack(c) {
-  if (c.prototype) {
-    c.prototype.enabled$getter = function() { return DOM$EnsureDartNull(this.enabled); };
-    c.prototype.enabled$setter = function(value) { this.enabled = value; };
-    c.prototype.kind$getter = function() { return DOM$EnsureDartNull(this.kind); };
-    c.prototype.label$getter = function() { return DOM$EnsureDartNull(this.label); };
-  }
-  c.$implements$MediaStreamTrack$Dart = 1;
-}
-function DOM$fixClass$MediaStreamTrackList(c) {
-  if (c.prototype) {
-    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-  }
-  DOM$fixMembers(c, ['item']);
-  c.$implements$MediaStreamTrackList$Dart = 1;
 }
 function DOM$fixClass$MemoryInfo(c) {
   if (c.prototype) {
@@ -4139,6 +4116,11 @@ function DOM$fixClass$MouseEvent(c) {
   c.$implements$UIEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
+function DOM$fixClass$MutationCallback(c) {
+  if (c.prototype) {
+  }
+  c.$implements$MutationCallback$Dart = 1;
+}
 function DOM$fixClass$MutationEvent(c) {
   if (c.prototype) {
     c.prototype.attrChange$getter = function() { return DOM$EnsureDartNull(this.attrChange); };
@@ -4218,7 +4200,6 @@ function DOM$fixClass$NavigatorUserMediaErrorCallback(c) {
 function DOM$fixClass$NavigatorUserMediaSuccessCallback(c) {
   if (c.prototype) {
   }
-  DOM$fixMembers(c, ['handleEvent']);
   c.$implements$NavigatorUserMediaSuccessCallback$Dart = 1;
 }
 function DOM$fixClass$Node(c) {
@@ -4836,6 +4817,50 @@ function DOM$fixClass$TextMetrics(c) {
   }
   c.$implements$TextMetrics$Dart = 1;
 }
+function DOM$fixClass$TextTrack(c) {
+  if (c.prototype) {
+    c.prototype.activeCues$getter = function() { return DOM$EnsureDartNull(this.activeCues); };
+    c.prototype.cues$getter = function() { return DOM$EnsureDartNull(this.cues); };
+    c.prototype.kind$getter = function() { return DOM$EnsureDartNull(this.kind); };
+    c.prototype.label$getter = function() { return DOM$EnsureDartNull(this.label); };
+    c.prototype.language$getter = function() { return DOM$EnsureDartNull(this.language); };
+    c.prototype.mode$getter = function() { return DOM$EnsureDartNull(this.mode); };
+    c.prototype.mode$setter = function(value) { this.mode = value; };
+    c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
+  }
+  DOM$fixMembers(c, [
+    'addCue',
+    'removeCue']);
+  c.$implements$TextTrack$Dart = 1;
+}
+function DOM$fixClass$TextTrackCue(c) {
+  if (c.prototype) {
+    c.prototype.alignment$getter = function() { return DOM$EnsureDartNull(this.alignment); };
+    c.prototype.direction$getter = function() { return DOM$EnsureDartNull(this.direction); };
+    c.prototype.endTime$getter = function() { return DOM$EnsureDartNull(this.endTime); };
+    c.prototype.id$getter = function() { return DOM$EnsureDartNull(this.id); };
+    c.prototype.linePosition$getter = function() { return DOM$EnsureDartNull(this.linePosition); };
+    c.prototype.pauseOnExit$getter = function() { return DOM$EnsureDartNull(this.pauseOnExit); };
+    c.prototype.size$getter = function() { return DOM$EnsureDartNull(this.size); };
+    c.prototype.snapToLines$getter = function() { return DOM$EnsureDartNull(this.snapToLines); };
+    c.prototype.startTime$getter = function() { return DOM$EnsureDartNull(this.startTime); };
+    c.prototype.textPosition$getter = function() { return DOM$EnsureDartNull(this.textPosition); };
+    c.prototype.track$getter = function() { return DOM$EnsureDartNull(this.track); };
+  }
+  DOM$fixMembers(c, [
+    'getCueAsHTML',
+    'getCueAsSource']);
+  c.$implements$TextTrackCue$Dart = 1;
+}
+function DOM$fixClass$TextTrackCueList(c) {
+  if (c.prototype) {
+    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+  }
+  DOM$fixMembers(c, [
+    'getCueById',
+    'item']);
+  c.$implements$TextTrackCueList$Dart = 1;
+}
 function DOM$fixClass$TimeRanges(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
@@ -5037,6 +5062,17 @@ function DOM$fixClass$WebGLContextEvent(c) {
   }
   c.$implements$WebGLContextEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
+}
+function DOM$fixClass$WebGLDebugRendererInfo(c) {
+  if (c.prototype) {
+  }
+  c.$implements$WebGLDebugRendererInfo$Dart = 1;
+}
+function DOM$fixClass$WebGLDebugShaders(c) {
+  if (c.prototype) {
+  }
+  DOM$fixMembers(c, ['getTranslatedShaderSource']);
+  c.$implements$WebGLDebugShaders$Dart = 1;
 }
 function DOM$fixClass$WebGLFramebuffer(c) {
   if (c.prototype) {
@@ -5258,6 +5294,14 @@ function DOM$fixClass$WebKitBlobBuilder(c) {
     'getBlob']);
   c.$implements$WebKitBlobBuilder$Dart = 1;
 }
+function DOM$fixClass$WebKitCSSFilterValue(c) {
+  if (c.prototype) {
+    c.prototype.operationType$getter = function() { return DOM$EnsureDartNull(this.operationType); };
+  }
+  c.$implements$WebKitCSSFilterValue$Dart = 1;
+  c.$implements$CSSValueList$Dart = 1;
+  c.$implements$CSSValue$Dart = 1;
+}
 function DOM$fixClass$WebKitCSSKeyframeRule(c) {
   if (c.prototype) {
     c.prototype.keyText$getter = function() { return DOM$EnsureDartNull(this.keyText); };
@@ -5365,6 +5409,12 @@ function DOM$fixClass$WebKitLoseContext(c) {
     'restoreContext']);
   c.$implements$WebKitLoseContext$Dart = 1;
 }
+function DOM$fixClass$WebKitMutationObserver(c) {
+  if (c.prototype) {
+  }
+  DOM$fixMembers(c, ['disconnect']);
+  c.$implements$WebKitMutationObserver$Dart = 1;
+}
 function DOM$fixClass$WebKitPoint(c) {
   if (c.prototype) {
     c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
@@ -5389,6 +5439,7 @@ function DOM$fixClass$WebSocket(c) {
     c.prototype.binaryType$getter = function() { return DOM$EnsureDartNull(this.binaryType); };
     c.prototype.binaryType$setter = function(value) { this.binaryType = value; };
     c.prototype.bufferedAmount$getter = function() { return DOM$EnsureDartNull(this.bufferedAmount); };
+    c.prototype.extensions$getter = function() { return DOM$EnsureDartNull(this.extensions); };
     c.prototype.onclose$getter = function() { return DOM$EnsureDartNull(this.onclose); };
     c.prototype.onclose$setter = function(value) { this.onclose = value; };
     c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
@@ -5421,6 +5472,7 @@ function DOM$fixClass$WheelEvent(c) {
     c.prototype.screenX$getter = function() { return DOM$EnsureDartNull(this.screenX); };
     c.prototype.screenY$getter = function() { return DOM$EnsureDartNull(this.screenY); };
     c.prototype.shiftKey$getter = function() { return DOM$EnsureDartNull(this.shiftKey); };
+    c.prototype.webkitDirectionInvertedFromDevice$getter = function() { return DOM$EnsureDartNull(this.webkitDirectionInvertedFromDevice); };
     c.prototype.wheelDelta$getter = function() { return DOM$EnsureDartNull(this.wheelDelta); };
     c.prototype.wheelDeltaX$getter = function() { return DOM$EnsureDartNull(this.wheelDeltaX); };
     c.prototype.wheelDeltaY$getter = function() { return DOM$EnsureDartNull(this.wheelDeltaY); };
@@ -5903,9 +5955,9 @@ var _;
     w.DataTransferItem$Dart = _;
     DOM$fixClass$DataTransferItem(_);
   }
-  if ((_ = w.DataTransferItems)) {
-    w.DataTransferItems$Dart = _;
-    DOM$fixClass$DataTransferItems(_);
+  if ((_ = w.DataTransferItemList)) {
+    w.DataTransferItemList$Dart = _;
+    DOM$fixClass$DataTransferItemList(_);
   }
   if ((_ = w.DataView)) {
     w.DataView$Dart = _;
@@ -6499,10 +6551,6 @@ var _;
     w.KeyboardEvent$Dart = _;
     DOM$fixClass$KeyboardEvent(_);
   }
-  if ((_ = w.LocalMediaStream)) {
-    w.LocalMediaStream$Dart = _;
-    DOM$fixClass$LocalMediaStream(_);
-  }
   if (!w.Location && (_ = w.location) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.Location = _;
   }
@@ -6525,22 +6573,6 @@ var _;
   if ((_ = w.MediaQueryListListener)) {
     w.MediaQueryListListener$Dart = _;
     DOM$fixClass$MediaQueryListListener(_);
-  }
-  if ((_ = w.MediaStream)) {
-    w.MediaStream$Dart = _;
-    DOM$fixClass$MediaStream(_);
-  }
-  if ((_ = w.MediaStreamList)) {
-    w.MediaStreamList$Dart = _;
-    DOM$fixClass$MediaStreamList(_);
-  }
-  if ((_ = w.MediaStreamTrack)) {
-    w.MediaStreamTrack$Dart = _;
-    DOM$fixClass$MediaStreamTrack(_);
-  }
-  if ((_ = w.MediaStreamTrackList)) {
-    w.MediaStreamTrackList$Dart = _;
-    DOM$fixClass$MediaStreamTrackList(_);
   }
   if ((_ = w.MemoryInfo)) {
     w.MemoryInfo$Dart = _;
@@ -6569,6 +6601,10 @@ var _;
   if ((_ = w.MouseEvent)) {
     w.MouseEvent$Dart = _;
     DOM$fixClass$MouseEvent(_);
+  }
+  if ((_ = w.MutationCallback)) {
+    w.MutationCallback$Dart = _;
+    DOM$fixClass$MutationCallback(_);
   }
   if ((_ = w.MutationEvent)) {
     w.MutationEvent$Dart = _;
@@ -6858,6 +6894,18 @@ var _;
     w.TextMetrics$Dart = _;
     DOM$fixClass$TextMetrics(_);
   }
+  if ((_ = w.TextTrack)) {
+    w.TextTrack$Dart = _;
+    DOM$fixClass$TextTrack(_);
+  }
+  if ((_ = w.TextTrackCue)) {
+    w.TextTrackCue$Dart = _;
+    DOM$fixClass$TextTrackCue(_);
+  }
+  if ((_ = w.TextTrackCueList)) {
+    w.TextTrackCueList$Dart = _;
+    DOM$fixClass$TextTrackCueList(_);
+  }
   if ((_ = w.TimeRanges)) {
     w.TimeRanges$Dart = _;
     DOM$fixClass$TimeRanges(_);
@@ -6918,6 +6966,14 @@ var _;
     w.WebGLContextEvent$Dart = _;
     DOM$fixClass$WebGLContextEvent(_);
   }
+  if ((_ = w.WebGLDebugRendererInfo)) {
+    w.WebGLDebugRendererInfo$Dart = _;
+    DOM$fixClass$WebGLDebugRendererInfo(_);
+  }
+  if ((_ = w.WebGLDebugShaders)) {
+    w.WebGLDebugShaders$Dart = _;
+    DOM$fixClass$WebGLDebugShaders(_);
+  }
   if ((_ = w.WebGLFramebuffer)) {
     w.WebGLFramebuffer$Dart = _;
     DOM$fixClass$WebGLFramebuffer(_);
@@ -6966,6 +7022,10 @@ var _;
     w.WebKitBlobBuilder$Dart = _;
     DOM$fixClass$WebKitBlobBuilder(_);
   }
+  if ((_ = w.WebKitCSSFilterValue)) {
+    w.WebKitCSSFilterValue$Dart = _;
+    DOM$fixClass$WebKitCSSFilterValue(_);
+  }
   if ((_ = w.WebKitCSSKeyframeRule)) {
     w.WebKitCSSKeyframeRule$Dart = _;
     DOM$fixClass$WebKitCSSKeyframeRule(_);
@@ -6989,6 +7049,10 @@ var _;
   if ((_ = w.WebKitLoseContext)) {
     w.WebKitLoseContext$Dart = _;
     DOM$fixClass$WebKitLoseContext(_);
+  }
+  if ((_ = w.WebKitMutationObserver)) {
+    w.WebKitMutationObserver$Dart = _;
+    DOM$fixClass$WebKitMutationObserver(_);
   }
   if ((_ = w.WebKitPoint)) {
     w.WebKitPoint$Dart = _;

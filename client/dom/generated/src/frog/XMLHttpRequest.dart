@@ -43,7 +43,7 @@ class XMLHttpRequest native "XMLHttpRequest" {
 
   String getResponseHeader(String header) native;
 
-  void open(String method, String url, bool async, [String user = null, String password = null]) native;
+  void open(String method, String url, [bool async = null, String user = null, String password = null]) native;
 
   void overrideMimeType(String override) native;
 

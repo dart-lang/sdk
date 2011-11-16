@@ -79,7 +79,7 @@ interface XMLHttpRequest extends EventTarget factory _XMLHttpRequestFactoryProvi
 
   String getResponseHeader(String header);
 
-  void open(String method, String url, bool async, [String user, String password]);
+  void open(String method, String url, [bool async, String user, String password]);
 
   void overrideMimeType(String override);
 

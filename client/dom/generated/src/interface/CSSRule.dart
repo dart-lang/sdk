@@ -24,6 +24,8 @@ interface CSSRule {
 
   static final int WEBKIT_KEYFRAME_RULE = 9;
 
+  static final int WEBKIT_REGION_STYLE_RULE = 10;
+
   String get cssText();
 
   void set cssText(String value);

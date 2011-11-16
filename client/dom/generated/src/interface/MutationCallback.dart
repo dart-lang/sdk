@@ -4,9 +4,5 @@
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStreamTrackList {
-
-  int get length();
-
-  MediaStreamTrack item(int index);
+interface MutationCallback {
 }

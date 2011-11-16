@@ -4,13 +4,13 @@
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStreamTrack {
+interface DataTransferItemList {
 
-  bool get enabled();
+  int get length();
 
-  void set enabled(bool value);
+  void add(String data, String type);
 
-  String get kind();
+  void clear();
 
-  String get label();
+  DataTransferItem item(int index);
 }

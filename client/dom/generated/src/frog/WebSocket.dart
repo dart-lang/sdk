@@ -7,6 +7,8 @@ class WebSocket native "WebSocket" {
 
   int bufferedAmount;
 
+  String extensions;
+
   EventListener onclose;
 
   EventListener onerror;

@@ -811,22 +811,11 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static DOMWindow _open(receiver, url, name) native;
   static DOMWindow _open_2(receiver, url, name, options) native;
 
-  void postMessage(String message, var messagePort_OR_targetOrigin, [String targetOrigin = null]) {
-    if (messagePort_OR_targetOrigin is String) {
-      if (targetOrigin === null) {
-        _postMessage(this, message, messagePort_OR_targetOrigin);
-        return;
-      }
-    } else {
-      if (messagePort_OR_targetOrigin is MessagePort) {
-        _postMessage_2(this, message, messagePort_OR_targetOrigin, targetOrigin);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void postMessage(String message, String targetOrigin) {
+    _postMessage(this, message, targetOrigin);
+    return;
   }
-  static void _postMessage(receiver, message, messagePort_OR_targetOrigin) native;
-  static void _postMessage_2(receiver, message, messagePort_OR_targetOrigin, targetOrigin) native;
+  static void _postMessage(receiver, message, targetOrigin) native;
 
   void print() {
     _print(this);
@@ -936,6 +925,12 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
     return _webkitConvertPointFromPageToNode(this, node, p);
   }
   static WebKitPoint _webkitConvertPointFromPageToNode(receiver, node, p) native;
+
+  void webkitPostMessage(String message, String targetOrigin) {
+    _webkitPostMessage(this, message, targetOrigin);
+    return;
+  }
+  static void _webkitPostMessage(receiver, message, targetOrigin) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) {
     return _webkitRequestAnimationFrame(this, callback, element);

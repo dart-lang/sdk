@@ -4,7 +4,11 @@
 
 // WARNING: Do not edit - generated code.
 
-interface LocalMediaStream extends MediaStream {
+interface TextTrackCueList {
 
-  void stop();
+  int get length();
+
+  TextTrackCue getCueById(String id);
+
+  TextTrackCue item(int index);
 }

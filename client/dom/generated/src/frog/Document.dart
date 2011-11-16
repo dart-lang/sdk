@@ -181,6 +181,10 @@ class Document extends Node native "Document" {
 
   Event createEvent(String eventType) native;
 
+  XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
+
+  XPathNSResolver createNSResolver(Node nodeResolver) native;
+
   NodeIterator createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
   ProcessingInstruction createProcessingInstruction(String target, String data) native;
@@ -192,6 +196,8 @@ class Document extends Node native "Document" {
   TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
   Element elementFromPoint(int x, int y) native;
+
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 
   bool execCommand(String command, bool userInterface, String value) native;
 

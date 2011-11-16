@@ -17,6 +17,9 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   String get name() { return _get__IDBObjectStore_name(this); }
   static String _get__IDBObjectStore_name(var _this) native;
 
+  IDBTransaction get transaction() { return _get__IDBObjectStore_transaction(this); }
+  static IDBTransaction _get__IDBObjectStore_transaction(var _this) native;
+
   IDBRequest add(String value, [IDBKey key = null]) {
     if (key === null) {
       return _add(this, value);

@@ -294,6 +294,10 @@ interface Document extends Node, NodeSelector {
 
   Event createEvent(String eventType);
 
+  XPathExpression createExpression(String expression, XPathNSResolver resolver);
+
+  XPathNSResolver createNSResolver(Node nodeResolver);
+
   NodeIterator createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences);
 
   ProcessingInstruction createProcessingInstruction(String target, String data);
@@ -305,6 +309,8 @@ interface Document extends Node, NodeSelector {
   TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences);
 
   Element elementFromPoint(int x, int y);
+
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult);
 
   bool execCommand(String command, bool userInterface, String value);
 

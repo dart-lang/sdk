@@ -4,15 +4,15 @@
 
 // WARNING: Do not edit - generated code.
 
-class _DataTransferItemsWrappingImplementation extends DOMWrapperBase implements DataTransferItems {
-  _DataTransferItemsWrappingImplementation() : super() {}
+class _DataTransferItemListWrappingImplementation extends DOMWrapperBase implements DataTransferItemList {
+  _DataTransferItemListWrappingImplementation() : super() {}
 
-  static create__DataTransferItemsWrappingImplementation() native {
-    return new _DataTransferItemsWrappingImplementation();
+  static create__DataTransferItemListWrappingImplementation() native {
+    return new _DataTransferItemListWrappingImplementation();
   }
 
-  int get length() { return _get__DataTransferItems_length(this); }
-  static int _get__DataTransferItems_length(var _this) native;
+  int get length() { return _get__DataTransferItemList_length(this); }
+  static int _get__DataTransferItemList_length(var _this) native;
 
   void add(String data, String type) {
     _add(this, data, type);
@@ -31,5 +31,5 @@ class _DataTransferItemsWrappingImplementation extends DOMWrapperBase implements
   }
   static DataTransferItem _item(receiver, index) native;
 
-  String get typeName() { return "DataTransferItems"; }
+  String get typeName() { return "DataTransferItemList"; }
 }

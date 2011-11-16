@@ -22,6 +22,8 @@ interface WebSocket extends EventTarget {
 
   int get bufferedAmount();
 
+  String get extensions();
+
   EventListener get onclose();
 
   void set onclose(EventListener value);

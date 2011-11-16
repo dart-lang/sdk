@@ -41,5 +41,8 @@ class _HTMLTrackElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set srclang(String value) { _set__HTMLTrackElement_srclang(this, value); }
   static void _set__HTMLTrackElement_srclang(var _this, String value) native;
 
+  TextTrack get track() { return _get__HTMLTrackElement_track(this); }
+  static TextTrack _get__HTMLTrackElement_track(var _this) native;
+
   String get typeName() { return "HTMLTrackElement"; }
 }

@@ -5,6 +5,8 @@ class IDBObjectStore native "IDBObjectStore" {
 
   String name;
 
+  IDBTransaction transaction;
+
   IDBRequest add(String value, [IDBKey key = null]) native;
 
   IDBRequest clear() native;

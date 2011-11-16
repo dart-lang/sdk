@@ -58,6 +58,10 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void set textBaseline(String value);
 
+  num get webkitLineDashOffset();
+
+  void set webkitLineDashOffset(num value);
+
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise);
 
   void arcTo(num x1, num y1, num x2, num y2, num radius);

@@ -23,6 +23,18 @@ class HTMLElement extends Element native "HTMLElement" {
 
   bool isContentEditable;
 
+  String itemId;
+
+  DOMSettableTokenList itemProp;
+
+  DOMSettableTokenList itemRef;
+
+  bool itemScope;
+
+  DOMSettableTokenList itemType;
+
+  Object itemValue;
+
   String lang;
 
   String outerHTML;

@@ -1,7 +1,7 @@
 
 class DOMFormData native "DOMFormData" {
 
-  void append(String name, String value) native;
+  void append(String name, String value, String filename) native;
 
   var dartObjectLocalStorage;
 

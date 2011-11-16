@@ -4,9 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStreamList {
+interface WebGLDebugShaders {
 
-  int get length();
-
-  MediaStream item(int index);
+  String getTranslatedShaderSource(WebGLShader shader);
 }

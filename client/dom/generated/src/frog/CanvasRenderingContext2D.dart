@@ -27,6 +27,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
   String textBaseline;
 
+  num webkitLineDashOffset;
+
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;

@@ -279,7 +279,7 @@ class DOMWindow native "DOMWindow" {
 
   DOMWindow open(String url, String name, [String options = null]) native;
 
-  void postMessage(String message, var messagePort_OR_targetOrigin, [String targetOrigin = null]) native;
+  void postMessage(String message, String targetOrigin) native;
 
   void print() native;
 
@@ -312,6 +312,8 @@ class DOMWindow native "DOMWindow" {
   WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p) native;
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) native;
+
+  void webkitPostMessage(String message, String targetOrigin) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
 

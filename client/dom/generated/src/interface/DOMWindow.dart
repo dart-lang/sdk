@@ -500,7 +500,7 @@ interface Window extends EventTarget {
 
   DOMWindow open(String url, String name, [String options]);
 
-  void postMessage(String message, var messagePort_OR_targetOrigin, [String targetOrigin]);
+  void postMessage(String message, String targetOrigin);
 
   void print();
 
@@ -533,6 +533,8 @@ interface Window extends EventTarget {
   WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p);
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
+
+  void webkitPostMessage(String message, String targetOrigin);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
 }

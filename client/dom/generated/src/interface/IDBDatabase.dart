@@ -35,4 +35,6 @@ interface IDBDatabase {
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   IDBVersionChangeRequest setVersion(String version);
+
+  IDBTransaction transaction(String storeName, int mode);
 }

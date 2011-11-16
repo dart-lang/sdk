@@ -1,5 +1,5 @@
 
-class DataTransferItems native "DataTransferItems" {
+class DataTransferItemList native "DataTransferItemList" {
 
   int length;
 

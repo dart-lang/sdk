@@ -21,6 +21,8 @@ class WheelEvent extends UIEvent native "WheelEvent" {
 
   bool shiftKey;
 
+  bool webkitDirectionInvertedFromDevice;
+
   int wheelDelta;
 
   int wheelDeltaX;
