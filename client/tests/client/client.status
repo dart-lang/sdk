@@ -22,7 +22,6 @@ samples/swarm/swarm_tests: Skip
 json/json_tests: Fail
 
 [ $component == chromium && $mode == release ]
-html/html_tests: Timeout
 samples/dartcombat/dartcombat_tests: Timeout
 samples/swarm/swarm_tests: Timeout
 
