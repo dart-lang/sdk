@@ -594,7 +594,7 @@ dom_externs.initTouchEvent;             // operation TouchEvent.initTouchEvent
 dom_externs.initUIEvent;                // operation UIEvent.initUIEvent
 dom_externs.initWebKitAnimationEvent;   // operation WebKitAnimationEvent.initWebKitAnimationEvent
 dom_externs.initWebKitTransitionEvent;  // operation WebKitTransitionEvent.initWebKitTransitionEvent
-dom_externs.initWheelEvent;             // operation WheelEvent.initWheelEvent
+dom_externs.initWebKitWheelEvent;       // operation WheelEvent.initWebKitWheelEvent
 dom_externs.initialTime;                // attribute HTMLMediaElement.initialTime
 dom_externs.innerHTML;                  // attribute HTMLElement.innerHTML
 dom_externs.innerHeight;                // attribute DOMWindow.innerHeight

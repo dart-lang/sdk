@@ -56,11 +56,11 @@ class _WheelEventWrappingImplementation extends _UIEventWrappingImplementation i
   int get y() { return _get__WheelEvent_y(this); }
   static int _get__WheelEvent_y(var _this) native;
 
-  void initWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
-    _initWheelEvent(this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
+    _initWebKitWheelEvent(this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return;
   }
-  static void _initWheelEvent(receiver, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) native;
+  static void _initWebKitWheelEvent(receiver, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) native;
 
   String get typeName() { return "WheelEvent"; }
 }

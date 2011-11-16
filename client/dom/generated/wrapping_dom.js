@@ -25182,7 +25182,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_y(_this) {
   }
 }
 
-function native__WheelEventWrappingImplementation__initWheelEvent(_this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) {
+function native__WheelEventWrappingImplementation__initWebKitWheelEvent(_this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) {
   try {
     var _method = _this.$dom.initWebKitWheelEvent || _this.$dom.initWheelEvent;
     return __dom_wrap(_method.call(_this.$dom, __dom_unwrap(wheelDeltaX), __dom_unwrap(wheelDeltaY), __dom_unwrap(view), __dom_unwrap(screenX), __dom_unwrap(screenY), __dom_unwrap(clientX), __dom_unwrap(clientY), __dom_unwrap(ctrlKey), __dom_unwrap(altKey), __dom_unwrap(shiftKey), __dom_unwrap(metaKey)));
