@@ -90,9 +90,9 @@ class Dromaeo {
   Function _handler;
 
   Dromaeo()
-      : _suiteControllers = new List<SuiteController>(),
-        _handler = _createHandler()
+      : _suiteControllers = new List<SuiteController>()
   {
+    _handler = _createHandler();
     window.addEventListener(
         'message',
         (MessageEvent event) {
