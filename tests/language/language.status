@@ -200,6 +200,8 @@ TypedMessageTest: Fail # Bug 5246195
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 [ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver || $component == frogium ]
+# TODO(efortuna): Distinguish between specific browser being run for webdriver 
+# (by flag option) to specify which tests pass.
 FactoryNegativeTest: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 

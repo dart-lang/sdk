@@ -1168,7 +1168,7 @@ def BuildOptions():
       action='store_true')
   result.add_option(
       '--flag',
-      help='Pass this additional flag to the VM',
+      help='Pass this additional flag to the VM or the program running the test',
       default=[],
       action='append')
   result.add_option(
@@ -1219,8 +1219,7 @@ def BuildOptions():
   result.add_option(
       '-c', '--component',
       help='The component to test against '
-           '(most, vm, dartc, frog, frogsh, leg, chromium, dartium, '
-           'webdriver)',
+           '(most, vm, dartc, frog, frogsh, leg, chromium, dartium, webdriver)',
       metavar='[most,vm,dartc,chromium,dartium]',
       default='vm')
   return result
