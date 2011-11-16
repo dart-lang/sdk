@@ -21,14 +21,12 @@ prefix language
 [ $component == vm || $component == dartium ]
 ClassTest: Fail             # Bug 4504458 (pseudo keyword)
 NamingTest: Fail            # Bug 4504458 (pseudo keyword)
-TypeVariableBoundsTest/none: Fail # Bug 5257789
-TypeVariableBoundsTest/02: Fail # Bug 5257789
-TypeVariableBoundsTest/03: Fail # Bug 5257789
-TypeVariableBoundsTest/04: Fail # Bug 5257789
-TypeVariableBoundsTest/07: Fail # Bug 5257789
-TypeVariableScopeTest/03: Fail # Bug 5349550, was 5316513
-TypeVariableScopeTest/04: Fail # Bug 5349550, was 5316513
+TypeVariableBoundsTest/01: Skip # Issue 483
+TypeVariableBoundsTest/02: Skip # Issue 483
+TypeVariableBoundsTest/05: Skip # Issue 483
+TypeVariableBoundsTest/06: Skip # Issue 483
 ImpliedInterfaceTest: Fail # Bug 5349944
+FBoundedQuantificationTest: Skip # Issue 439
 
 # These bugs refer currently ongoing language discussions.
 Constructor5Test: Fail          # Bug 8440015
@@ -36,8 +34,6 @@ Constructor6Test: Fail          # Bug 8440015
 
 # Regular bugs which should be fixed.
 ManyEchoServerTest: Skip        # Bug 5103754
-
-NonParameterizedFactory2Test: Fail # Bug 5257789
 
 WrongNumberTypeArgumentsTest: Fail # Bug 5532690
 Prefix18NegativeTest: Fail # Issue 307
@@ -48,8 +44,6 @@ ImplicitThisTest/02: Fail # Issue 374
 ImplicitThisTest/03: Fail # Issue 374
 ImplicitThisTest/04: Fail # Issue 374
 ImplicitThisTest/none: Fail # Issue 374
-
-NonParameterizedFactoryTest: Fail # Bug 5257789
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
@@ -91,7 +85,8 @@ ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
 FactoryNegativeTest: Fail                # Issue 417
-
+TypeVariableBoundsTest/none: Fail        # Issue 417
+TypeVariableScopeTest/none: Fail         # Issue 417
 
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.
@@ -200,7 +195,7 @@ TypedMessageTest: Fail # Bug 5246195
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 [ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver || $component == frogium ]
-# TODO(efortuna): Distinguish between specific browser being run for webdriver 
+# TODO(efortuna): Distinguish between specific browser being run for webdriver
 # (by flag option) to specify which tests pass.
 FactoryNegativeTest: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
@@ -317,8 +312,11 @@ SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
-TypeVariableBoundsTest/00: Fail # Is the test syntax valid? VM gives an error.
-TypeVariableBoundsTest/05: Fail # issue with test filed as #354
+TypeVariableBoundsTest/none: Fail # Issue 417
+TypeVariableBoundsTest/00: Fail # Issue 417
+TypeVariableBoundsTest/03: Fail # Issue 417
+TypeVariableBoundsTest/04: Fail # Issue 417
+TypeVariableScopeTest/none: Fail # Issue 417
 UnboundGetterTest: Fail
 VarInitTest: Fail
 WrongNumberTypeArgumentsTest: Fail

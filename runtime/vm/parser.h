@@ -199,7 +199,7 @@ class Parser : ValueObject {
   void ParseLibraryImport();
   void ParseLibraryInclude();
 
-  bool ResolveTypeFromClass(intptr_t type_pos, const Class& cls, Type* type);
+  void TryResolveTypeFromClass(intptr_t type_pos, const Class& cls, Type* type);
   enum TypeResolution {
     kDoNotResolve,  // Type resolution is postponed.
     kCanResolve,  // Type resolution is optional.
@@ -368,8 +368,7 @@ class Parser : ValueObject {
                              TypeResolution type_resolution);
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
-  void CheckTypeParameterReference(intptr_t type_parameter_pos,
-                                   const String& type_parameter_name);
+  RawClass* TypeParametersScopeClass();
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,
                                 AstNode** node);

@@ -1,6 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--enable_type_checks
 
 // Test that type variables aren't in scope of static methods and factories.
 
@@ -15,7 +16,7 @@ class Foo<T> {
   }
 
   // T is not in scope for a static method.
-  factory I(
+  factory I<X>(
             I<T> /// 03: compile-time error
             i) {
     I<T> x; /// 04: compile-time error
@@ -33,7 +34,7 @@ class Foo<T> {
 		    value) {}
 }
 
-interface I<X> factory Foo<X> {
+interface I<X> factory Foo<T> {
   I(I<X> i);
 }
 

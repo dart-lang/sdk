@@ -1,14 +1,15 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--enable_type_checks
 
 // Test of parameterized factory methods.
 
-class Foo<F extends num> {
+class Foo<T extends num> {
   Foo();
 
   // F is not assignable to num.
-  factory IFoo<F extends String>.bad() { return null; } /// 00: compile-time error
+  factory IFoo<F extends String>.bad() { return null; } /// 00: static type error
 
   factory IFoo<F extends num>.good() { return null; }
 
@@ -16,14 +17,8 @@ class Foo<F extends num> {
   factory IFoo<F>.ish() { return null; }
 }
 
-interface IFoo<X extends num> factory Foo {
+interface IFoo<X extends num> factory Foo<T extends num> {
 }
-
-class FBound<F extends FBound<F>> {}
-
-class Bar extends FBound<Bar> {}
-
-class SubBar extends Bar {}
 
 // String is not assignable to num.
 class Baz extends Foo<String> {} /// 01: compile-time error
@@ -33,28 +28,26 @@ class Biz extends Foo<int> {}
 Foo<int> fi;
 
 // String is not assignable to num.
-Foo<String> fs; /// 02: static type error
-
-FBound<SubBar> fb; /// 03: static type error
+Foo<String> fs; /// 02: compile-time error
 
 class Box<T> {
 
   // Box.T is not assignable to num.
-  Foo<T> t; /// 04: static type error
+  Foo<T> t; /// 03: static type error
 
   makeFoo() {
     // Box.T is not assignable to num.
-    return new Foo<T>(); /// 05: compile-time error
+    return new Foo<T>(); /// 04: static type error
   }
 }
 
 class TypeVariableBoundsTest {
   static testMain() {
     // String is not assignable to num.
-    var v1 = new Foo<String>(); /// 06: compile-time error
+    var v1 = new Foo<String>(); /// 05: compile-time error
 
     // String is not assignable to num.
-    Foo<String> v2 = null; /// 07: static type error
+    Foo<String> v2 = null; /// 06: compile-time error
   }
 }
 

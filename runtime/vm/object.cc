@@ -878,17 +878,37 @@ void Class::set_super_type(const Type& value) const {
 }
 
 
-RawClass* Class::FactoryClass() const {
-  const Type& fact_type = Type::Handle(factory_type());
-  if (fact_type.IsNull()) {
-    return Class::null();
-  }
-  return fact_type.type_class();
+bool Class::HasFactoryClass() const {
+  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
+  return !factory_class.IsNull();
 }
 
 
-void Class::set_factory_type(const Type& value) const {
-  StorePointer(&raw_ptr()->factory_type_, value.raw());
+bool Class::HasResolvedFactoryClass() const {
+  ASSERT(HasFactoryClass());
+  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
+  return factory_class.IsClass();
+}
+
+
+RawClass* Class::FactoryClass() const {
+  ASSERT(HasResolvedFactoryClass());
+  Class& type_class = Class::Handle();
+  type_class ^= raw_ptr()->factory_class_;
+  return type_class.raw();
+}
+
+
+RawUnresolvedClass* Class::UnresolvedFactoryClass() const {
+  ASSERT(!HasResolvedFactoryClass());
+  UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle();
+  unresolved_factory_class ^= raw_ptr()->factory_class_;
+  return unresolved_factory_class.raw();
+}
+
+
+void Class::set_factory_class(const Object& value) const {
+  StorePointer(&raw_ptr()->factory_class_, value.raw());
 }
 
 
@@ -1582,6 +1602,11 @@ void UnresolvedClass::set_qualifier(const String& qualifier) const {
 }
 
 
+void UnresolvedClass::set_factory_signature_class(const Class& value) const {
+  StorePointer(&raw_ptr()->factory_signature_class_, value.raw());
+}
+
+
 RawString* UnresolvedClass::Name() const {
   if (qualifier() != String::null()) {
     String& name = String::Handle();
@@ -1965,6 +1990,9 @@ void ParameterizedType::set_is_being_finalized() const {
 
 
 bool ParameterizedType::IsResolved() const {
+  if (IsFinalized()) {
+    return true;
+  }
   if (!HasResolvedTypeClass()) {
     return false;
   }

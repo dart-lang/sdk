@@ -168,11 +168,9 @@ TEST_CASE(Interface) {
       Class::Handle(Class::NewInterface(interface_name, script));
   EXPECT(interface.is_interface());
   EXPECT(!factory_class.is_interface());
-  EXPECT_EQ(Object::null(), interface.factory_type());
-  const Type& factory_type =
-      Type::Handle(Type::NewNonParameterizedType(factory_class));
-  interface.set_factory_type(factory_type);
-  EXPECT_EQ(factory_type.raw(), interface.factory_type());
+  EXPECT(!interface.HasFactoryClass());
+  interface.set_factory_class(factory_class);
+  EXPECT_EQ(factory_class.raw(), interface.FactoryClass());
 }
 
 

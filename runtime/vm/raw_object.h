@@ -199,7 +199,7 @@ class RawClass : public RawObject {
   RawArray* type_parameters_;  // Array of String.
   RawTypeArray* type_parameter_extends_;  // DynamicType if no extends clause.
   RawType* super_type_;
-  RawType* factory_type_;
+  RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
@@ -231,8 +231,11 @@ class RawUnresolvedClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->qualifier_);
   }
   RawString* qualifier_;  // Qualifier for the identifier.
-  RawString* ident_;  // name of the unresolved identifier.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->ident_); }
+  RawString* ident_;  // Name of the unresolved identifier.
+  RawClass* factory_signature_class_;  // Expected type parameters for factory.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->factory_signature_class_);
+  }
   intptr_t token_index_;
 };
 

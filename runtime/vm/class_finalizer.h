@@ -60,8 +60,8 @@ class ClassFinalizer : public AllStatic {
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
-  static void ResolveSuperClass(const Class& cls);
-  static void ResolveDefaultClass(const Class& cls);
+  static void ResolveSuperType(const Class& cls);
+  static void ResolveFactoryClass(const Class& cls);
   static void ResolveInterfaces(const Class& cls,
                                 GrowableArray<const Class*>* visited);
   static void FinalizeTypeArguments(const Class& cls,
@@ -82,6 +82,7 @@ class ClassFinalizer : public AllStatic {
                           intptr_t token_index,
                           const char* format, ...);
   static void ReportError(const char* format, ...);
+  static void ReportWarning(const char* format, ...);
 };
 
 }  // namespace dart

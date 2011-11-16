@@ -18,6 +18,8 @@ DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 DEFINE_FLAG(bool, verify_implements, false,
     "Verify that all classes implement their interface.");
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, silent_warnings);
+DECLARE_FLAG(bool, warning_as_error);
 
 void ClassFinalizer::AddPendingClasses(
     const GrowableArray<const Class*>& classes) {
@@ -68,9 +70,9 @@ bool ClassFinalizer::FinalizePendingClasses() {
       if (FLAG_trace_class_finalization) {
         OS::Print("Resolving super and default: %s\n", cls.ToCString());
       }
-      ResolveSuperClass(cls);
+      ResolveSuperType(cls);
       if (cls.is_interface()) {
-        ResolveDefaultClass(cls);
+        ResolveFactoryClass(cls);
       }
     }
     // Finalize all classes.
@@ -276,8 +278,8 @@ RawClass* ClassFinalizer::ResolveClass(
 }
 
 
-// Resolve unresolved superclasses (String -> Class).
-void ClassFinalizer::ResolveSuperClass(const Class& cls) {
+// Resolve unresolved supertype (String -> Class).
+void ClassFinalizer::ResolveSuperType(const Class& cls) {
   if (cls.is_finalized()) {
     return;
   }
@@ -342,27 +344,84 @@ void ClassFinalizer::ResolveSuperClass(const Class& cls) {
 }
 
 
-void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
+void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
   ASSERT(interface.is_interface());
-  if (interface.is_finalized()) {
+  if (interface.is_finalized() ||
+      !interface.HasFactoryClass() ||
+      interface.HasResolvedFactoryClass()) {
     return;
   }
-  Type& factory_type = Type::Handle(interface.factory_type());
-  if (factory_type.IsNull()) {
-    // No resolving needed.
-    return;
-  }
-  // Resolve failures lead to a longjmp.
-  factory_type = ResolveType(interface, factory_type);
-  interface.set_factory_type(factory_type);
-  if (factory_type.IsInterfaceType()) {
+  const UnresolvedClass& unresolved_factory_class =
+      UnresolvedClass::Handle(interface.UnresolvedFactoryClass());
+
+  // Lookup the factory class.
+  const Class& factory_class =
+      Class::Handle(ResolveClass(interface, unresolved_factory_class));
+  ASSERT(!factory_class.IsNull());
+  if (factory_class.is_interface()) {
     const String& interface_name = String::Handle(interface.Name());
-    ReportError("default clause of interface '%s' does not name a class\n",
-                interface_name.ToCString());
+    const String& factory_name = String::Handle(factory_class.Name());
+    ReportError("factory clause of interface '%s' names non-class '%s'.\n",
+                interface_name.ToCString(),
+                factory_name.ToCString());
+  }
+  interface.set_factory_class(factory_class);
+  // Check that the type parameter lists are identical.
+  const Class& factory_signature_class = Class::Handle(
+      unresolved_factory_class.factory_signature_class());
+  ASSERT(!factory_signature_class.IsNull());
+  ResolveAndFinalizeUpperBounds(factory_class);
+  ResolveAndFinalizeUpperBounds(factory_signature_class);
+  const intptr_t num_type_params = factory_signature_class.NumTypeParameters();
+  bool mismatch = factory_class.NumTypeParameters() != num_type_params;
+  if (mismatch && (num_type_params == 0)) {
+    // TODO(regis): For now, and until the core lib is fixed, we accept a
+    // factory clause with a class missing its list of type parameters.
+    // See bug 5408808.
+    const String& interface_name = String::Handle(interface.Name());
+    const String& factory_name = String::Handle(factory_class.Name());
+    ReportWarning("Warning: class '%s' in factory clause of interface '%s' is "
+                  "missing its type parameter list.\n",
+                  factory_name.ToCString(),
+                  interface_name.ToCString());
+    return;
+  }
+  String& expected_type_name = String::Handle();
+  String& actual_type_name = String::Handle();
+  Type& expected_type_extends = Type::Handle();
+  Type& actual_type_extends = Type::Handle();
+  const Array& expected_type_names =
+      Array::Handle(factory_signature_class.type_parameters());
+  const Array& actual_type_names =
+      Array::Handle(factory_class.type_parameters());
+  const TypeArray& expected_extends_array =
+      TypeArray::Handle(factory_signature_class.type_parameter_extends());
+  const TypeArray& actual_extends_array =
+      TypeArray::Handle(factory_class.type_parameter_extends());
+  for (intptr_t i = 0; !mismatch && (i < num_type_params); i++) {
+    expected_type_name ^= expected_type_names.At(i);
+    actual_type_name ^= actual_type_names.At(i);
+    expected_type_extends = expected_extends_array.TypeAt(i);
+    actual_type_extends = actual_extends_array.TypeAt(i);
+    if (!expected_type_name.Equals(actual_type_name) ||
+        !expected_type_extends.Equals(actual_type_extends)) {
+      mismatch = true;
+    }
+  }
+  if (mismatch) {
+    const String& interface_name = String::Handle(interface.Name());
+    const String& factory_name = String::Handle(factory_class.Name());
+    ReportError("mismatch in number or names of type parameters between "
+                "factory clause of interface '%s' and actual factory "
+                "class '%s'.\n",
+                interface_name.ToCString(),
+                factory_name.ToCString());
   }
 }
 
 
+// TODO(regis): Now that we do not resolve type parameters anymore, we could
+// make this function void and resolve the type in place.
 RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
   if (type.IsResolved()) {
     return type.raw();
@@ -373,31 +432,15 @@ RawType* ClassFinalizer::ResolveType(const Class& cls, const Type& type) {
 
   // Resolve the type class.
   if (!type.HasResolvedTypeClass()) {
-    const UnresolvedClass& unresolved_class =
-        UnresolvedClass::Handle(type.unresolved_class());
-    const String& type_class_name = String::Handle(unresolved_class.ident());
-
-    // The type class name may be a type parameter of cls that was not resolved
-    // by the parser because it appeared as part of the declaration
-    // as T1 in B<T1, T2 extends A<T1>> or
-    // as T2 in B<T1 extends A<T2>, T2>>.
-    const TypeParameter& type_parameter = TypeParameter::Handle(
-        cls.LookupTypeParameter(type_class_name));
-    if (!type_parameter.IsNull()) {
-      // No need to check for proper instance scoping, since another type
-      // parameter must be involved for the type to still be unresolved.
-      // The scope checking was performed for the other type parameter already.
-
-      // A type parameter cannot be parameterized, so report an error if type
-      // arguments have previously been parsed.
-      if (type.arguments() != TypeArguments::null()) {
-        ReportError("type parameter '%s' cannot be parameterized",
-                    type_class_name.ToCString());
-      }
-      return type_parameter.raw();
-    }
+    // Type parameters are always resolved in the parser in the correct
+    // non-static scope or factory scope. That resolution scope is unknown here.
+    // Being able to resolve a type parameter from class cls here would indicate
+    // that the type parameter appeared in a static scope. Leaving the type as
+    // unresolved is the correct thing to do.
 
     // Lookup the type class.
+    const UnresolvedClass& unresolved_class =
+        UnresolvedClass::Handle(type.unresolved_class());
     const Class& type_class =
         Class::Handle(ResolveClass(cls, unresolved_class));
 
@@ -489,11 +532,13 @@ void ClassFinalizer::VerifyUpperBounds(const Class& cls,
         // TODO(regis): Where do we check the constraints when the type is
         // generic?
         if (!type.IsSubtypeOf(type_extends)) {
-          const String& type_name = String::Handle(type.Name());
+          const String& type_argument_name = String::Handle(type.Name());
+          const String& class_name = String::Handle(cls.Name());
           const String& extends_name = String::Handle(type_extends.Name());
           ReportError("type argument '%s' of class '%s' "
                       "does not extend type '%s'\n",
-                      type_name.ToCString(),
+                      type_argument_name.ToCString(),
+                      class_name.ToCString(),
                       extends_name.ToCString());
         }
       }
@@ -646,8 +691,50 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
   Type& type = Type::Handle(function.result_type());
-  type = ResolveType(cls, type);
-  function.set_result_type(type);
+  if (!type.IsResolved()) {
+    if (function.IsFactory()) {
+      // The signature class of the factory for a generic class holds the type
+      // parameters and their upper bounds. Copy the signature class from the
+      // result before it gets resolved.
+      const UnresolvedClass& unresolved_type_class =
+          UnresolvedClass::Handle(type.unresolved_class());
+      const Class& factory_signature_class =
+          Class::Handle(unresolved_type_class.factory_signature_class());
+      ASSERT(!factory_signature_class.IsNull());
+      function.set_signature_class(factory_signature_class);
+      type = ResolveType(cls, type);
+      function.set_result_type(type);
+      const Class& type_class = Class::Handle(type.type_class());
+      // Verify that the factory signature declares the same number of type
+      // parameters as the return type class or interface.
+      ResolveAndFinalizeUpperBounds(factory_signature_class);
+      if (factory_signature_class.NumTypeParameters() !=
+          type_class.NumTypeParameters()) {
+        const String& function_name = String::Handle(function.name());
+        if (factory_signature_class.NumTypeParameters() == 0) {
+          // TODO(regis): For now, and until the core lib is fixed, we accept a
+          // factory method with missing list of type parameters and use the
+          // list of the enclosing class.
+          // See bug 5408808.
+          const Class& enclosing_class = Class::Handle(function.owner());
+          function.set_signature_class(enclosing_class);
+          ReportWarning("Warning: factory method '%s' should declare a list of "
+                        "%d type parameter%s.\n",
+                        function_name.ToCString(),
+                        type_class.NumTypeParameters(),
+                        type_class.NumTypeParameters() > 1 ? "s" : "");
+        } else {
+          ReportError("factory method '%s' must declare %d type parameter%s.\n",
+                      function_name.ToCString(),
+                      type_class.NumTypeParameters(),
+                      type_class.NumTypeParameters() > 1 ? "s" : "");
+        }
+      }
+    } else {
+      type = ResolveType(cls, type);
+      function.set_result_type(type);
+    }
+  }
   type = FinalizeType(type);
   function.set_result_type(type);
   // Resolve formal parameter types.
@@ -880,10 +967,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     cls.set_super_type(super_type);
   }
   if (cls.is_interface()) {
-    Type& factory_type = Type::Handle(cls.factory_type());
-    if (!factory_type.IsNull()) {
-      const Class& factory_class = Class::Handle(factory_type.type_class());
-      // Finalize factory class and factory type.
+    if (cls.HasFactoryClass()) {
+      const Class& factory_class = Class::Handle(cls.FactoryClass());
+      // Finalize factory class.
       if (!factory_class.is_finalized()) {
         FinalizeClass(factory_class);
         // Finalizing the factory class may indirectly finalize this interface.
@@ -891,8 +977,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
           return;
         }
       }
-      factory_type = FinalizeType(factory_type);
-      cls.set_factory_type(factory_type);
     }
   }
   // Finalize interface types (but not necessarily interface classes).
@@ -1158,6 +1242,27 @@ void ClassFinalizer::ReportError(const char* format, ...) {
   va_end(args);
   isolate->long_jump_base()->Jump(1, msg_buffer);
   UNREACHABLE();
+}
+
+void ClassFinalizer::ReportWarning(const char* format, ...) {
+  if (FLAG_silent_warnings) return;
+  static const int kBufferLength = 1024;
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  Zone* zone = isolate->current_zone();
+  ASSERT(zone != NULL);
+  char* msg_buffer = reinterpret_cast<char*>(zone->Allocate(kBufferLength + 1));
+  ASSERT(msg_buffer != NULL);
+  va_list args;
+  va_start(args, format);
+  OS::VSNPrint(msg_buffer, kBufferLength, format, args);
+  va_end(args);
+  if (FLAG_warning_as_error) {
+    isolate->long_jump_base()->Jump(1, msg_buffer);
+    UNREACHABLE();
+  } else {
+    OS::Print(msg_buffer);
+  }
 }
 
 }  // namespace dart
