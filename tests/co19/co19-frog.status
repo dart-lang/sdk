@@ -136,7 +136,6 @@ LibTest/core/Expect/throws/Expect/throws/A03/t01: Fail
 LibTest/core/Expect/setEquals/Expect/setEquals/A01/t01: Fail
 LibTest/core/Expect/throws/Expect/throws/A01/t04: Fail
 LibTest/core/Expect/equals/Expect/equals/A02/t01: Fail
-LibTest/core/Expect/listEquals/Expect/listEquals/A03/t01: Fail
 LibTest/core/Expect/isNotNull/Expect/isNotNull/A02/t01: Fail
 LibTest/core/Date/timeZone/Date/timeZone/A01/t01: Fail
 LibTest/core/Date/Date.fromString/Date/Date.fromString/A01/t03: Fail

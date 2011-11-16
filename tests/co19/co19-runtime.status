@@ -116,7 +116,6 @@ LibTest/core/Date/Date.fromEpoch/Date/Date.fromEpoch/A01/t02: Fail # Issue 445
 LibTest/core/Date/Date/Date/A01/t01: Fail # Issue 445
 LibTest/core/Dispatcher/Dispatcher_Dispatcher/A01/t01: Fail # Issue co19 - 39
 LibTest/core/Dispatcher/Dispatcher_serve/A01/t01: Fail # Issue co19 - 39
-LibTest/core/Expect/listEquals/Expect/listEquals/A03/t01: Fail # Issue co19 - 40
 LibTest/core/Expect/setEquals/Expect/setEquals/A01/t01: Fail # Issue co19 - 41
 LibTest/core/Expect/setEquals/Expect/setEquals/A01/t02: Fail # Issue co19 - 41
 LibTest/core/Expect/throws/Expect/throws/A02/t01: Fail # Issue co19 - 42
