@@ -38,7 +38,7 @@ def convertOne(infile, options):
         options.verbose)
   if 'js' in options.target:
     htmlconverter.convertForChromium(
-        infile, options.optimize, options.dartc_extra_flags,
+        infile, options.optimize, options.frog, options.dartc_extra_flags,
         outfile.replace('.html', '-js.html'),
         options.verbose)
 
@@ -50,6 +50,10 @@ def Flags():
       help="The target html to generate",
       metavar="[js,dart]",
       default='js,dart')
+  result.add_option("--frog",
+      help="Use frog compiler (default dartc)",
+      default=False,
+      action="store_true")
   result.add_option("--optimize",
       help="Use optimizer in dartc",
       default=False,
