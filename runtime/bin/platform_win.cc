@@ -15,3 +15,33 @@ int Platform::NumberOfProcessors() {
 const char* Platform::OperatingSystem() {
   return "windows";
 }
+
+
+char* Platform::StrError(int error_code) {
+  static const int kBufferSize = 1024;
+  char* error = static_cast<char*>(malloc(kBufferSize));
+  DWORD message_size =
+      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    NULL,
+                    error_code,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    error,
+                    kBufferSize,
+                    NULL);
+  if (message_size == 0) {
+    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+      fprintf(stderr, "FormatMessage failed %d\n", GetLastError());
+    }
+    snprintf(error, kBufferSize, "OS Error %d", error_code);
+  }
+  // Strip out \r\n at the end of the generated message and ensure
+  // null termination.
+  if (message_size > 2 &&
+      error[message_size - 2] == '\r' &&
+      error[message_size - 1] == '\n') {
+    error[message_size - 2] = '\0';
+  } else {
+    error[kBufferSize - 1] = '\0';
+  }
+  return error;
+}

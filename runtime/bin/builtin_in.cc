@@ -55,7 +55,8 @@ static const char Builtin_source_[] = {
   V(Socket_Available, 1)                                                       \
   V(Socket_ReadList, 4)                                                        \
   V(Socket_WriteList, 4)                                                       \
-  V(Socket_GetPort, 1)
+  V(Socket_GetPort, 1)                                                         \
+  V(Socket_GetStdioHandle, 2)
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
@@ -73,7 +74,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          int argument_count) {
   const char* function_name = NULL;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
-  ASSERT(Dart_IsValid(result));
+  DART_CHECK_VALID(result);
   ASSERT(function_name != NULL);
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -95,7 +96,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
 void Builtin_LoadLibrary() {
   Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
   Dart_Handle result = Dart_LookupLibrary(url);
-  if (Dart_IsValid(result)) {
+  if (!Dart_IsError(result)) {
     // Builtin library already loaded.
     return;
   }
@@ -103,21 +104,21 @@ void Builtin_LoadLibrary() {
   // Load the library.
   Dart_Handle source = Dart_NewString(Builtin_source_);
   Dart_Handle builtin_lib = Dart_LoadLibrary(url, source);
-  ASSERT(Dart_IsValid(builtin_lib));
+  DART_CHECK_VALID(builtin_lib);
 
   // Lookup the core libraries and inject the builtin library into them.
   Dart_Handle core_lib = Dart_LookupLibrary(Dart_NewString("dart:core"));
-  ASSERT(Dart_IsValid(core_lib));
+  DART_CHECK_VALID(core_lib);
   result = Dart_LibraryImportLibrary(core_lib, builtin_lib);
-  ASSERT(Dart_IsValid(result));
+  DART_CHECK_VALID(result);
 
   Dart_Handle coreimpl_lib =
       Dart_LookupLibrary(Dart_NewString("dart:coreimpl"));
-  ASSERT(Dart_IsValid(coreimpl_lib));
+  DART_CHECK_VALID(coreimpl_lib);
   result = Dart_LibraryImportLibrary(coreimpl_lib, builtin_lib);
-  ASSERT(Dart_IsValid(result));
+  DART_CHECK_VALID(result);
   result = Dart_LibraryImportLibrary(builtin_lib, coreimpl_lib);
-  ASSERT(Dart_IsValid(result));
+  DART_CHECK_VALID(result);
 
   // Create a native wrapper "EventHandlerNativeWrapper" so that we can add a
   // native field to store the event handle for implementing all
@@ -127,7 +128,7 @@ void Builtin_LoadLibrary() {
   result = Dart_CreateNativeWrapperClass(builtin_lib,
                                          name,
                                          kNumEventHandlerFields);
-  ASSERT(Dart_IsValid(result));
+  DART_CHECK_VALID(result);
 }
 
 
@@ -136,16 +137,16 @@ void Builtin_ImportLibrary(Dart_Handle library) {
 
   Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
   Dart_Handle builtin_lib = Dart_LookupLibrary(url);
-  ASSERT(Dart_IsValid(builtin_lib));
+  DART_CHECK_VALID(builtin_lib);
   Dart_Handle result = Dart_LibraryImportLibrary(library, builtin_lib);
-  ASSERT(Dart_IsValid(result));
+  DART_CHECK_VALID(result);
 }
 
 
 void Builtin_SetNativeResolver() {
   Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
   Dart_Handle builtin_lib = Dart_LookupLibrary(url);
-  ASSERT(Dart_IsValid(builtin_lib));
+  DART_CHECK_VALID(builtin_lib);
   Dart_Handle result = Dart_SetNativeResolver(builtin_lib, native_lookup);
-  ASSERT(Dart_IsValid(result));
+  DART_CHECK_VALID(result);
 }

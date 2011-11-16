@@ -32,9 +32,10 @@ HTML_CONTENTS = """
   <script type="%(script_type)s" src="%(source_script)s"></script>
   <script type="text/javascript">
     // If nobody intercepts the error, finish the test.
-    window.onerror = function() { window.layoutTestController.notifyDone() };
+    onerror = function() { window.layoutTestController.notifyDone() };
 
-    window.addEventListener('DOMContentLoaded', function() {
+    document.onreadystatechange = function() {
+      if (document.readyState != "loaded") return;
       // If 'startedDartTest' is not set, that means that the test did not have
       // a chance to load. This will happen when a load error occurs in the VM.
       // Give the machine time to start up.
@@ -43,13 +44,12 @@ HTML_CONTENTS = """
         // Just sleep another time to give the browser the time to process the
         // posted message.
         setTimeout(function() {
-          if (window.layoutTestController
-              && !window.layoutTestController.startedDartTest) {
-            window.layoutTestController.notifyDone();
+          if (layoutTestController && !layoutTestController.startedDartTest) {
+            layoutTestController.notifyDone();
           }
         }, 0);
       }, 50);
-    }, false);
+    };
   </script>
 </body>
 </html>
@@ -346,6 +346,16 @@ class ChromiumArchitecture(BrowserArchitecture):
     relpath = os.path.relpath(self.test, self.root_path)
     return relpath.replace(os.sep, '_') + '.html'
 
+  def Compile(self):
+    return ExecuteCommand(self.GetCompileCommand())
+
+class DartcChromiumArchitecture(ChromiumArchitecture):
+  """ChromiumArchitecture that compiles code using dartc."""
+
+  def __init__(self, root_path, arch, mode, component, test):
+    super(DartcChromiumArchitecture, self).__init__(
+        root_path, arch, mode, component, test)
+
   def GetCompileCommand(self, fatal_static_type_errors=False):
     """Returns cmdline as an array to invoke the compiler on this test."""
 
@@ -366,8 +376,29 @@ class ChromiumArchitecture(BrowserArchitecture):
     cmd.append(self.GetTestScriptFile())
     return cmd
 
-  def Compile(self):
-    return ExecuteCommand(self.GetCompileCommand())
+
+class FrogChromiumArchitecture(ChromiumArchitecture):
+  """ChromiumArchitecture that compiles code using frog."""
+
+  def __init__(self, root_path, arch, mode, component, test):
+    super(FrogChromiumArchitecture, self).__init__(
+        root_path, arch, mode, component, test)
+
+  def GetCompileCommand(self, fatal_static_type_errors=False):
+    """Returns cmdline as an array to invoke the compiler on this test."""
+
+    # We need an absolute path because the compilation will run
+    # in a temporary directory.
+
+    frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
+    frog_libdir = os.path.abspath(os.path.join(self.root_path, 'frog', 'lib'))
+    cmd = [frog,
+        '--libdir=%s' % frog_libdir,
+        '--compile-only',
+        '--out=%s' % self.GetScriptPath()]
+    cmd.extend(self.vm_options)
+    cmd.append(self.GetTestScriptFile())
+    return cmd
 
 
 class DartiumArchitecture(BrowserArchitecture):
@@ -392,6 +423,26 @@ class DartiumArchitecture(BrowserArchitecture):
 
   def Compile(self):
     return 0
+
+
+class WebDriverArchiecture(FrogChromiumArchitecture):
+  """Architecture that runs compiled dart->JS (via frog) through a variety of
+  real browsers using WebDriver."""
+
+  def __init__(self, root_path, arch, mode, component, test):
+    super(WebDriverArchiecture, self).__init__(root_path, arch, mode,
+        component, test)
+
+  def GetRunCommand(self, fatal_static_type_errors=False):
+    """Returns a command line to execute for the test."""
+    selenium_location = os.path.join(self.root_path, 'tools', 'testing',
+                                'run_selenium.py')
+    
+    html_output_file = os.path.join(self.GetHtmlPath(), self.GetHtmlName())
+    f = open(html_output_file, 'w')
+    f.write(self.GetHtmlContents())
+    f.close()
+    return [selenium_location, html_output_file]
 
 
 class StandaloneArchitecture(Architecture):
@@ -492,10 +543,16 @@ def ExecuteCommand(cmd, verbose=False):
 def GetArchitecture(arch, mode, component, test):
   root_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..'))
   if component == 'chromium':
-    return ChromiumArchitecture(root_path, arch, mode, component, test)
+    return DartcChromiumArchitecture(root_path, arch, mode, component, test)
 
   elif component == 'dartium':
     return DartiumArchitecture(root_path, arch, mode, component, test)
+
+  elif component == 'frogium':
+    return FrogChromiumArchitecture(root_path, arch, mode, component, test)
+
+  elif component == 'webdriver':
+    return WebDriverArchiecture(root_path, arch, mode, component, test)
 
   elif component in ['vm', 'frog', 'frogsh']:
     return StandaloneArchitecture(root_path, arch, mode, component, test)

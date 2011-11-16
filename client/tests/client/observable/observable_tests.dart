@@ -4,7 +4,7 @@
 
 #library('observable_tests');
 
-#import('../../../html/html.dart');
+#import('dart:html');
 #import('../../../observable/observable.dart');
 #import('../../../testing/unittest/unittest.dart');
 

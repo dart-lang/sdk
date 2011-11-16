@@ -15,6 +15,12 @@ class Object;
 class PersistentHandle;
 class RawObject;
 
+
+#define DARTSCOPE(isolate)                                                    \
+  ASSERT(isolate != NULL);                                                    \
+  Zone zone(isolate);                                                         \
+  HANDLESCOPE(isolate);                                                       \
+
 class Api : AllStatic {
  public:
   // Creates a new local handle.
@@ -37,7 +43,8 @@ class Api : AllStatic {
   // Generates a handle used to designate an error return.
   static Dart_Handle Error(const char* format, ...);
 
-  static Dart_Handle VError(const char* format, va_list args);
+  // Generates an error handle from an unhandled exception.
+  static Dart_Handle ErrorFromException(const Object& obj);
 
   // Gets a handle to Null.
   static Dart_Handle Null();

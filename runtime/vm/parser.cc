@@ -174,6 +174,8 @@ Parser::Parser(const Script& script, const Library& library)
       current_class_(Class::Handle()),
       library_(library),
       try_blocks_list_(NULL) {
+  ASSERT(!tokens_.IsNull());
+  ASSERT(!library.IsNull());
   SetPosition(0);
 }
 
@@ -192,6 +194,8 @@ Parser::Parser(const Script& script,
       current_class_(Class::Handle(current_function_.owner())),
       library_(Library::Handle(current_class_.library())),
       try_blocks_list_(NULL) {
+  ASSERT(!tokens_.IsNull());
+  ASSERT(!function.IsNull());
   SetPosition(token_index);
 }
 
@@ -2612,7 +2616,8 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   // Allocate an interface to hold the type parameters and their 'extends'
   // constraints. Make it the owner of the function type descriptor.
   const Class& alias_owner = Class::Handle(
-      Class::New(String::Handle(String::NewSymbol("")), Script::Handle()));
+      Class::New(String::Handle(String::NewSymbol(":alias_owner")),
+                 Script::Handle()));
   alias_owner.set_is_interface();
   set_current_class(alias_owner);
   ParseTypeParameters(alias_owner);
@@ -3100,7 +3105,7 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   Dart_Handle result = handler(tag,
                                Api::NewLocalHandle(library_),
                                Api::NewLocalHandle(url));
-  if (!Dart_IsValid(result)) {
+  if (Dart_IsError(result)) {
     ErrorMsg(token_pos, "library handler failed: %s", Dart_GetError(result));
   }
   return result;
@@ -3207,7 +3212,7 @@ void Parser::ParseTopLevel() {
   is_top_level_ = true;
   TopLevel top_level;
   Class& toplevel_class = Class::ZoneHandle(
-      Class::New(String::ZoneHandle(String::NewSymbol("")), script_));
+      Class::New(String::ZoneHandle(String::NewSymbol("::")), script_));
   toplevel_class.set_library(library_);
 
   if (is_library_source()) {
@@ -3679,8 +3684,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       if (!errmsg.IsNull()) {
         ErrorMsg(errmsg.ToCString());
       }
-      // The call to ClassFinalizer::FinalizeTypeWhileParsing may have extended
-      // the vector of type arguments.
+      // The call to ClassFinalizer::FinalizeAndCanonicalizeType may have
+      // extended the vector of type arguments.
       ASSERT(signature_type_arguments.IsNull() ||
              (signature_type_arguments.Length() ==
               signature_class.NumTypeArguments()));
@@ -5318,10 +5323,14 @@ AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
       return new BinaryOpNode(op_pos, Token::kTRUNCDIV, lhs, rhs);
     case Token::kASSIGN_DIV:
       return new BinaryOpNode(op_pos, Token::kDIV, lhs, rhs);
+    case Token::kASSIGN_MOD:
+      return new BinaryOpNode(op_pos, Token::kMOD, lhs, rhs);
     case Token::kASSIGN_SAR:
       return new BinaryOpNode(op_pos, Token::kSAR, lhs, rhs);
     case Token::kASSIGN_SHL:
       return new BinaryOpNode(op_pos, Token::kSHL, lhs, rhs);
+    case Token::kASSIGN_SHR:
+      return new BinaryOpNode(op_pos, Token::kSHR, lhs, rhs);
     case Token::kASSIGN_OR:
       return new BinaryOpNode(op_pos, Token::kBIT_OR, lhs, rhs);
     case Token::kASSIGN_AND:
@@ -6385,6 +6394,18 @@ RawType* Parser::ParseType(TypeResolution type_resolution) {
 }
 
 
+void Parser::CheckConstructorCallTypeArguments(
+    intptr_t pos, Function& constructor, const TypeArguments& type_arguments) {
+  if (!type_arguments.IsNull() &&
+      (type_arguments.Length() !=
+          Class::Handle(constructor.owner()).NumTypeArguments())) {
+    ErrorMsg(pos, "Incorrect number of type arguments, expected %d got %d",
+        Class::Handle(constructor.owner()).NumTypeArguments(),
+        type_arguments.Length());
+  }
+}
+
+
 // Parse "[" [ expr { "," expr } ["," ] "]".
 // Note: if the array literal is empty and the brackets have no whitespace
 // between them, the scanner recognizes the opening and closing bracket
@@ -6465,6 +6486,7 @@ AstNode* Parser::ParseArrayLiteral(intptr_t type_pos,
     ASSERT(!array_ctor.IsNull());
     ArgumentListNode* ctor_args = new ArgumentListNode(literal_pos);
     ctor_args->Add(array);
+    CheckConstructorCallTypeArguments(literal_pos, array_ctor, type_arguments);
     return new ConstructorCallNode(
         literal_pos, type_arguments, array_ctor, ctor_args);
   }
@@ -6829,6 +6851,7 @@ AstNode* Parser::ParseNewOperator() {
       // Make sure that the instantiator is captured.
       CaptureReceiver();
     }
+    CheckConstructorCallTypeArguments(new_pos, constructor, type_arguments);
     new_object = new ConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
   }

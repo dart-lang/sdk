@@ -43,9 +43,9 @@ TEST_CASE(IsolateSpawn) {
                                          Dart_NewString("testMain"),
                                          0,
                                          NULL);
-  EXPECT_VALID(result);
-  EXPECT(Dart_ExceptionOccurred(result));
-  Dart_Handle exception_result = Dart_GetException(result);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
 }
 #endif  // TARGET_ARCH_IA32.

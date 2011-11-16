@@ -139,7 +139,7 @@ class Object {
     kExceptionHandlersClass,
     kContextClass,
     kContextScopeClass,
-    kApiFailureClass,
+    kApiErrorClass,
     kMaxId,
     kInvalidIndex = -1,
   };
@@ -239,11 +239,19 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* context_class() { return context_class_; }
   static RawClass* context_scope_class() { return context_scope_class_; }
-  static RawClass* api_failure_class() { return api_failure_class_; }
+  static RawClass* api_error_class() { return api_error_class_; }
 
   static int GetSingletonClassIndex(const RawClass* raw_class);
   static RawClass* GetSingletonClass(int index);
   static const char* GetSingletonClassName(int index);
+
+  static RawClass* CreateAndRegisterInterface(const char* cname,
+                                              const Script& script,
+                                              const Library& lib);
+  static void RegisterClass(const Class& cls,
+                            const char* cname,
+                            const Script& script,
+                            const Library& lib);
 
   static void Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
@@ -332,7 +340,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
-  static RawClass* api_failure_class_;  // Class of ApiFailure.
+  static RawClass* api_error_class_;  // Class of ApiError.
 
   friend class Class;
   friend class SnapshotReader;
@@ -410,7 +418,8 @@ class Class : public Object {
   void set_type_parameters(const Array& value) const;
   intptr_t NumTypeParameters() const;
 
-  // Type parameters may optionally extend a Type (DynamicType if no extends).
+  // Type parameters may optionally extend a Type (Dynamic if no extends).
+  // TODO(regis): Should it be Object instead of Dynamic?
   RawTypeArray* type_parameter_extends() const {
     return raw_ptr()->type_parameter_extends_;
   }
@@ -420,8 +429,12 @@ class Class : public Object {
   // Return null otherwise.
   RawTypeParameter* LookupTypeParameter(const String& type_name) const;
 
-  // If this class is parameterized, each instance has a type_arguments field.
+  // The type argument vector is flattened and includes the type arguments of
+  // the super class.
+  bool HasTypeArguments() const;
   intptr_t NumTypeArguments() const;
+
+  // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t type_arguments_instance_field_offset() const {
     ASSERT(is_finalized() || is_prefinalized());
@@ -429,15 +442,6 @@ class Class : public Object {
   }
   void set_type_arguments_instance_field_offset(intptr_t value) const {
     raw_ptr()->type_arguments_instance_field_offset_ = value;
-  }
-  bool HasTypeArguments() const {
-    if (is_finalized() || is_prefinalized()) {
-      // More efficient than calling NumTypeArguments().
-      return type_arguments_instance_field_offset() != kNoTypeArguments;
-    } else {
-      // No need to check NumTypeArguments() if class has type parameters.
-      return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
-    }
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -715,6 +719,11 @@ class Type : public Object {
     return HasResolvedTypeClass() && (type_class() == Object::void_class());
   }
 
+  bool IsObjectType() const {
+    return HasResolvedTypeClass() &&
+        Class::Handle(type_class()).IsObjectClass();
+  }
+
   // Check if this type represents the 'bool' interface.
   bool IsBoolInterface() const;
 
@@ -732,6 +741,9 @@ class Type : public Object {
 
   // Check if this type represents the 'Function' interface.
   bool IsFunctionInterface() const;
+
+  // Check if this type represents the 'List' interface.
+  bool IsListInterface() const;
 
   // Check if this type is an interface type.
   bool IsInterfaceType() const {
@@ -784,6 +796,9 @@ class Type : public Object {
 
   // The 'Function' interface type.
   static RawType* FunctionInterface();
+
+  // The 'List' interface type.
+  static RawType* ListInterface();
 
   // The least specific valid raw type of the given class.
   // For example, type A<Dynamic> would be returned for class A<T>, and type
@@ -2051,24 +2066,27 @@ class UnhandledException : public Object {
 };
 
 
-class ApiFailure : public Object {
+class ApiError : public Object {
  public:
-  RawString* message() const { return raw_ptr()->message_; }
-  static intptr_t message_offset() {
-    return OFFSET_OF(RawApiFailure, message_);
+  RawObject* data() const { return raw_ptr()->data_; }
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawApiError, data_);
   }
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawApiFailure));
+    return RoundedAllocationSize(sizeof(RawApiError));
   }
 
-  static RawApiFailure* New(const String& message,
-                            Heap::Space space = Heap::kNew);
+  static RawApiError* New(const String& message,
+                          Heap::Space space = Heap::kNew);
+
+  static RawApiError* New(const UnhandledException& exception,
+                          Heap::Space space = Heap::kNew);
 
  private:
-  void set_message(const String& message) const;
+  void set_data(const Object& data) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(ApiFailure, Object);
+  HEAP_OBJECT_IMPLEMENTATION(ApiError, Object);
   friend class Class;
 };
 
@@ -2488,6 +2506,11 @@ class String : public Instance {
     // heap allocation.
     raw_ptr()->hash_ = Smi::New(value);
   }
+
+  template<typename HandleType, typename ElementType>
+  static RawString* ReadFromImpl(SnapshotReader* reader,
+                                 intptr_t object_id,
+                                 bool classes_serialized);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 };

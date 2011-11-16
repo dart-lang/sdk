@@ -31,7 +31,8 @@ class TestValueObject : public ValueObject {
 
 class TestStackResource : public StackResource {
  public:
-  explicit TestStackResource(int* ptr) : ptr_(ptr) {
+  explicit TestStackResource(int* ptr)
+      : StackResource(Isolate::Current()), ptr_(ptr) {
     EXPECT_EQ(1, *ptr_);
     *ptr_ = 2;
   }
@@ -51,7 +52,8 @@ class TestStackResource : public StackResource {
 
 class TestStackedStackResource : public StackResource {
  public:
-  explicit TestStackedStackResource(int* ptr) : ptr_(ptr) {
+  explicit TestStackedStackResource(int* ptr)
+      : StackResource(Isolate::Current()), ptr_(ptr) {
     EXPECT_EQ(3, *ptr_);
     *ptr_ = 4;
   }

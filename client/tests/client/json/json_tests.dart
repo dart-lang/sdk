@@ -5,7 +5,7 @@
 #library('json_tests');
 
 #import('dart:json');
-#import('../../../html/html.dart');
+#import('dart:html');
 #import('../../../testing/unittest/unittest.dart');
 
 main() {

@@ -8,11 +8,11 @@ interface Interface<T> factory Factory {
 }
 
 class Factory {
-  factory Interface() {
+  factory Interface<T>() {
     return null;
   }
 
-  factory Interface.withArg(value) {
+  factory Interface<T>.withArg(value) {
     return null;
   }
 }

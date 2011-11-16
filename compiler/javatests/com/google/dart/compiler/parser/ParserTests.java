@@ -22,7 +22,7 @@ public class ParserTests extends TestSetup {
     suite.addTestSuite(CPParserTest.class);
     suite.addTestSuite(ParserRoundTripTest.class);
     suite.addTestSuite(LibraryParserTest.class);
-    //suite.addTestSuite(NegativeParserTest.class); TODO(scheglov) fix failures here and add again
+    suite.addTestSuite(NegativeParserTest.class);
     suite.addTestSuite(ValidatingSyntaxTest.class);
     suite.addTestSuite(CommentTest.class);
     suite.addTestSuite(ErrorMessageLocationTest.class);

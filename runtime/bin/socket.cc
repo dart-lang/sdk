@@ -46,7 +46,7 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   intptr_t buffer_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-  ASSERT(Dart_IsValid(result));
+  ASSERT(!Dart_IsError(result));
   ASSERT((offset + length) <= buffer_len);
 
   if (Dart_IsVMFlagSet("short_socket_read")) {
@@ -58,7 +58,7 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
   if (bytes_read > 0) {
     Dart_Handle result =
         Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
-    ASSERT(Dart_IsValid(result));
+    ASSERT(!Dart_IsError(result));
   } else if (bytes_read < 0) {
     bytes_read = 0;
   }
@@ -81,7 +81,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   intptr_t buffer_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-  ASSERT(Dart_IsValid(result));
+  ASSERT(!Dart_IsError(result));
   ASSERT((offset + length) <= buffer_len);
 
   if (Dart_IsVMFlagSet("short_socket_write")) {
@@ -90,7 +90,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
 
   uint8_t* buffer = new uint8_t[length];
   result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
-  ASSERT(Dart_IsValid(result));
+  ASSERT(!Dart_IsError(result));
   intptr_t total_bytes_written =
       Socket::Write(socket, reinterpret_cast<void*>(buffer), length);
   delete[] buffer;
@@ -109,6 +109,20 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
                                          DartUtils::kIdFieldName);
   intptr_t port = Socket::GetPort(socket);
   Dart_SetReturnValue(args, Dart_NewInteger(port));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle socketobj = Dart_GetNativeArgument(args, 0);
+  intptr_t num =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  ASSERT(num == 0 || num == 1 || num == 2);
+  intptr_t socket = Socket::GetStdioHandle(num);
+  DartUtils::SetIntegerInstanceField(
+      socketobj, DartUtils::kIdFieldName, socket);
+  Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
   Dart_ExitScope();
 }
 

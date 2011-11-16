@@ -4,8 +4,8 @@
 
 #library("test_runner");
 
-
 #import("status_file_parser.dart");
+#import("test_progress.dart");
 
 /**
  * Classes and methods for executing tests.
@@ -15,35 +15,53 @@
  * - Evaluating the output of each test as pass/fail/crash/timeout.
  */
 
-// Possible outcomes of running a test.
-final CRASH = "Crash";
-final TIMEOUT = "Timeout";
-final FAIL = "Fail";
-final PASS = "Pass";
-// An indication to skip the test.  The caller is responsible for skipping it.
-final SKIP = "Skip";
-
 final int NO_TIMEOUT = 0;
 
-String getDartShellFileName() {
-  var names = ["out/Debug_ia32/dart_bin",
-               "out/Release_ia32/dart_bin",
-               "xcodebuild/Debug_ia32/dart_bin",
-               "xcodebuild/Release_ia32/dart_bin",
-               "Debug_ia32/dart_bin.exe",
-               "Release_ia32/dart_bin.exe"];
-  for (var name in names) {
-    if (new File(name).existsSync()) {
-      return name;
-    }
+
+String getBuildDir(Map configuration) {
+  var buildDir = '';
+  var os = configuration['os'];
+  if (os == 'linux') {
+    buildDir = 'out/';
+  } else if (os == 'macos') {
+    buildDir = 'xcodebuild/';
   }
-  Expect.fail("Cound not find the Dart shell executable.");
+  buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+  buildDir += configuration['architecture'] + '/';
+  return buildDir;
+}
+
+
+String getExecutableName(Map configuration) {
+  switch (configuration['component']) {
+    case 'vm':
+      return 'dart_bin';
+    case 'dartc':
+      return 'dartc';
+    case 'frog':
+    case 'leg':
+      return 'frog/bin/frog';
+    case 'frogsh':
+      return 'frog/bin/frogsh';
+    default:
+      throw "Unknown executable for: ${configuration['component']}";
+  }
+}
+
+
+String getDartShellFileName(Map configuration) {
+  var name = getBuildDir(configuration) + getExecutableName(configuration);
+  if (!(new File(name)).existsSync()) {
+    throw "Executable '$name' does not exist";
+  }
+  return name;
 }
 
 
 class TestCase {
   String executablePath;
   List<String> arguments;
+  int timeout;
   String commandLine;
   String displayName;
   TestOutput output;
@@ -51,14 +69,14 @@ class TestCase {
   Function completedHandler;
 
   TestCase(this.displayName, this.executablePath, this.arguments,
-           this.completedHandler, this.expectedOutcomes) {
+           this.timeout, this.completedHandler, this.expectedOutcomes) {
     commandLine = executablePath;
     for (var arg in arguments) {
       commandLine += " " + arg;
     }
   }
 
-  bool get isNegative() => false;
+  bool get isNegative() => displayName.contains("NegativeTest");
 
   void completed() { completedHandler(this); }    
 }
@@ -84,7 +102,7 @@ class TestOutput {
 
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
   
-  bool get hasCrashed() => !timedOut && exitCode != 255 && exitCode != 0;
+  bool get hasCrashed() => !timedOut && exitCode != -1 && exitCode < 0;
 
   bool get hasTimedOut() => timedOut;
 
@@ -105,7 +123,6 @@ class RunningProcess {
   List<String> stdout;
   List<String> stderr;
   List<Function> handlers;
-
 
   RunningProcess(this.testCase, [this.timeout = NO_TIMEOUT]);
 
@@ -161,30 +178,37 @@ class ProcessQueue {
   int numProcesses = 0;
   final int maxProcesses;
   Queue<TestCase> tests;
+  ProgressIndicator progress;
+  var onDone;
 
-  ProcessQueue(this.maxProcesses) : tests = new Queue<TestCase>();
+  ProcessQueue(Map configuration, this.onDone)
+      : tests = new Queue<TestCase>(),
+        maxProcesses = configuration['tasks'],
+        progress = new ProgressIndicator.fromName(configuration['progress']);
 
   tryRunTest() {
+    if (tests.isEmpty() && numProcesses == 0) {
+      progress.allDone();
+      onDone();
+    }
     if (numProcesses < maxProcesses && !tests.isEmpty()) {
       TestCase test = tests.removeFirst();
-      print("running ${test.displayName}");
-      // TODO(whesse): Refactor into various test output methods.
-      Function old_callback = test.completedHandler;
+      progress.start(test);
+      Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {
         numProcesses--;
-        print("finished ${test_arg.displayName}");
+        progress.done(test_arg);
         tryRunTest();
-        old_callback(test_arg);
+        oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-        
-      // TODO(whesse): Add timeout information to TestCase, use it here.
-      new RunningProcess(test, 60).start();
+      new RunningProcess(test, test.timeout).start();
       numProcesses++;
     }
   }
 
   runTest(TestCase test) {
+    progress.testAdded();
     tests.add(test);
     tryRunTest();
   }

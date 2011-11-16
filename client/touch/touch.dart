@@ -4,9 +4,9 @@
 
 #library('touch');
 
+#import('dart:html');
 #import('../base/base.dart');
 #import('../util/utilslib.dart');
-#import('../html/html.dart');
 
 #source('BezierPhysics.dart');
 #source('FxUtil.dart');

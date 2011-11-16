@@ -20,6 +20,7 @@ enum MessageFlags {
   kShutdownReadCommand = 9,
   kShutdownWriteCommand = 10,
   kListeningSocket = 16,
+  kPipe = 17,
 };
 
 

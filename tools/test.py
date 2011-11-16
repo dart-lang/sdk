@@ -591,7 +591,7 @@ class Context(object):
 
   def __init__(self, workspace, verbose, os_name, timeout,
                processor, suppress_dialogs, executable, flags,
-               keep_temporary_files, use_batch):
+               keep_temporary_files, use_batch, checked):
     self.workspace = workspace
     self.verbose = verbose
     self.os = os_name
@@ -602,6 +602,7 @@ class Context(object):
     self.flags = flags
     self.keep_temporary_files = keep_temporary_files
     self.use_batch = use_batch == 'true'
+    self.checked = checked
 
   def GetBuildRoot(self, mode, arch):
     """The top level directory containing compiler, runtime, tools..."""
@@ -1218,7 +1219,8 @@ def BuildOptions():
   result.add_option(
       '-c', '--component',
       help='The component to test against '
-           '(most, vm, dartc, frog, frogsh, leg, chromium, dartium)',
+           '(most, vm, dartc, frog, frogsh, leg, chromium, dartium, '
+           'webdriver)',
       metavar='[most,vm,dartc,chromium,dartium]',
       default='vm')
   return result
@@ -1258,7 +1260,7 @@ def ProcessOptions(options):
       return False
   for component in options.component:
     if not component in ['vm', 'dartc', 'frog', 'frogsh', 'leg',
-                         'chromium', 'dartium']:
+                         'chromium', 'dartium', 'frogium', 'webdriver']:
       print 'Unknown component %s' % component
       return False
   options.flags = []
@@ -1442,7 +1444,8 @@ def Main():
                     options.executable,
                     options.flags,
                     options.keep_temporary_files,
-                    options.batch)
+                    options.batch,
+                    options.checked)
 
   # Get status for tests
   sections = []

@@ -147,11 +147,12 @@ class DeoptimizationBlob : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DeoptimizationBlob);
 };
 
-// TODO(srdjan): Add String_get:length, String_charCodeAt, String_hashCode.
+// TODO(srdjan): Add String_charCodeAt, String_hashCode.
 
 #define RECOGNIZED_LIST(V)                                                     \
   V(ObjectArray, get:length, ObjectArrayLength)                                \
   V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
+  V(StringBase, get:length, StringBaseLength)                                  \
   V(IntegerImplementation, toDouble, IntegerToDouble)                          \
   V(Double, toDouble, DoubleToDouble)                                          \
   V(Math, sqrt, MathSqrt)                                                      \
@@ -168,6 +169,7 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
   };
 
+  // TODO(srdjan): Check that the library is the coreimpl one.
   static Kind RecognizeKind(const Function& function) {
     const String& recognize_name = String::Handle(function.name());
     const String& recognize_class =
@@ -1334,6 +1336,11 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
       __ movl(EAX, FieldAddress(EBX, field_offset));
       return;
     }
+    case Recognizer::kStringBaseLength: {
+      TraceOpt(node, "Inlines StringBase.length");
+      __ movl(EAX, FieldAddress(EBX, String::length_offset()));
+      return;
+    }
     default:
       UNIMPLEMENTED();
   }
@@ -1347,7 +1354,8 @@ static bool IsInlineableInstanceGetter(const Function& function) {
   }
   Recognizer::Kind recognized = Recognizer::RecognizeKind(function);
   if ((recognized == Recognizer::kObjectArrayLength) ||
-      (recognized == Recognizer::kGrowableArrayLength)) {
+      (recognized == Recognizer::kGrowableArrayLength) ||
+      (recognized == Recognizer::kStringBaseLength)) {
     return true;
   }
   return false;

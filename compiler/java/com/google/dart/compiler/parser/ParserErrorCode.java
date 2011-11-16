@@ -6,10 +6,21 @@ import com.google.dart.compiler.SubSystem;
 
 /**
  * {@link ErrorCode}s for parser.
+ * <p>
+ * The convention in this file (with some exceptions) is that the enumeration name matches at least
+ * the beginning default English translation of the message.
  */
 public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_MEMBER_IN_INTERFACE("Abstract members are not allowed in interfaces"),
   CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected."),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT(
+      "Default values can not be specified in abstract method"),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE(
+      "Default values can not be specified in closure parameter"),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE(
+      "Default values can not be specified in signature of an interface method"),
+  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
+      "Default values can not be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
@@ -39,13 +50,19 @@ public enum ParserErrorCode implements ErrorCode {
   FUNCTION_TYPED_PARAMETER_IS_FINAL("Formal parameter with a function type cannot be const"),
   FUNCTION_TYPED_PARAMETER_IS_VAR("Formal parameter with a function type cannot be var"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
-  ILLEGAL_NUMBER_OF_ARGUMENTS("Illegal number of arguments"),
+  ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
   INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
   INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),
+  NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
+  REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor can not have initializers"),
+  REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor can not have initializers"),
+  REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),
+  REDIRECTING_CONSTRUCTOR_OTHER("Redirecting constructor can not have initializers"),
+  SUPER_CONSTRUCTOR_MULTIPLE("'super' must be called only once in the initialization list"),
   TOP_LEVEL_IS_STATIC("Top-level field or method may not be static"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),

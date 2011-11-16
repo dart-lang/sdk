@@ -4,7 +4,7 @@
 
 #library('lil_client');
 
-#import('../../../html/html.dart');
+#import('dart:html');
 
 void main() {
 }

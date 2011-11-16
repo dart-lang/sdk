@@ -16,7 +16,7 @@ class Isolate;
 
 class Dart : public AllStatic {
  public:
-  static bool InitOnce(int argc, char** argv,
+  static bool InitOnce(int argc, const char** argv,
                        Dart_IsolateInitCallback callback);
 
   static Isolate* CreateIsolate();

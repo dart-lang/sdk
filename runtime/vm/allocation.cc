@@ -10,18 +10,16 @@
 
 namespace dart {
 
-StackResource::StackResource() {
-  Isolate* isolate = Isolate::Current();
+StackResource::StackResource(Isolate* isolate) : isolate_(isolate) {
   previous_ = isolate->top_resource();
   isolate->set_top_resource(this);
 }
 
 
 StackResource::~StackResource() {
-  Isolate* isolate = Isolate::Current();
-  StackResource* top = isolate->top_resource();
+  StackResource* top = isolate()->top_resource();
   ASSERT(top == this);
-  isolate->set_top_resource(previous_);
+  isolate()->set_top_resource(previous_);
 }
 
 ZoneAllocated::~ZoneAllocated() {

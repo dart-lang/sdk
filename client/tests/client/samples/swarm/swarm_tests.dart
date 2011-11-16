@@ -4,8 +4,8 @@
 
 #library('swarm_tests');
 
+#import('dart:html');
 #import('../../../../base/base.dart');
-#import('../../../../html/html.dart');
 #import('../../../../samples/swarm/swarmlib.dart');
 #import('../../../../testing/unittest/unittest.dart');
 #import('../../../../view/view.dart');

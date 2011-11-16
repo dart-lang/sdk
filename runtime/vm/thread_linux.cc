@@ -18,18 +18,17 @@ namespace dart {
 
 
 static void ComputeTimeSpec(struct timespec* ts, int64_t millis) {
-  struct timeval time;
-  struct timeval delta;
-  // Convert the millis to a timeval delta.
-  int64_t secs = millis / 1000;
-  int64_t micros = (millis - (secs * 1000)) * 1000;
-  delta.tv_sec = secs;
-  delta.tv_usec = micros;
-  // Get the current time and add the delta. Convert the result to a timespec.
-  int result = gettimeofday(&time, NULL);
+  int64_t secs = millis / kMillisecondsPerSecond;
+  int64_t nanos =
+      (millis - (secs * kMillisecondsPerSecond)) * kNanosecondsPerMillisecond;
+  int result = clock_gettime(CLOCK_MONOTONIC, ts);
   ASSERT(result == 0);
-  timeradd(&time, &delta, &time);
-  TIMEVAL_TO_TIMESPEC(&time, ts);
+  ts->tv_sec += secs;
+  ts->tv_nsec += nanos;
+  if (ts->tv_nsec >= kNanosecondsPerSecond) {
+    ts->tv_sec += 1;
+    ts->tv_nsec -= kNanosecondsPerSecond;
+  }
 }
 
 
@@ -162,22 +161,32 @@ void Mutex::Unlock() {
 
 
 Monitor::Monitor() {
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
+  pthread_mutexattr_t mutex_attr;
+  int result = pthread_mutexattr_init(&mutex_attr);
   VALIDATE_PTHREAD_RESULT(result);
 
 #if defined(DEBUG)
-  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
+  result = pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
   VALIDATE_PTHREAD_RESULT(result);
 #endif  // defined(DEBUG)
 
-  result = pthread_mutex_init(data_.mutex(), &attr);
+  result = pthread_mutex_init(data_.mutex(), &mutex_attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_mutexattr_destroy(&attr);
+  result = pthread_mutexattr_destroy(&mutex_attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_cond_init(data_.cond(), NULL);
+  pthread_condattr_t cond_attr;
+  result = pthread_condattr_init(&cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_cond_init(data_.cond(), &cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_destroy(&cond_attr);
   VALIDATE_PTHREAD_RESULT(result);
 }
 

@@ -23,7 +23,6 @@
     'isolate.dart',
     'math.dart',
     'math.cc',
-    'options.dart',
     'regexp.cc',
     'regexp_jsc.cc',
     'regexp_jsc.h',

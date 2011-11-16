@@ -92,7 +92,7 @@ class TermVariable {
 
   TermVariable(this.name);
 
-  String termValue(environment) => environment[name];
+  String termValue(environment) => environment[name].toString();
 }
 
 
@@ -110,7 +110,7 @@ class BooleanVariable implements BooleanExpression {
 
   BooleanVariable(this.variable);
 
-  bool evaluate(environment) => variable.termValue(environment) == "true";
+  bool evaluate(environment) => variable.termValue(environment) == 'true';
   String toString() => "(bool \$${variable.name})";
 }
 

@@ -20,7 +20,7 @@ UNIT_TEST_CASE(AllocateZone) {
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
-    Zone zone;
+    Zone zone(isolate);
     EXPECT(isolate->current_zone() != NULL);
     intptr_t allocated_size = 0;
 
@@ -94,7 +94,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
 
   // Create a few zone allocated objects.
   {
-    Zone zone;
+    Zone zone(isolate);
     EXPECT_EQ(0, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
     EXPECT(first != NULL);

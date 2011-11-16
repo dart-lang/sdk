@@ -37,7 +37,7 @@ namespace dart {
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(UnhandledException)                                                        \
-  V(ApiFailure)                                                                \
+  V(ApiError)                                                                \
   V(Instance)                                                                  \
     V(Number)                                                                  \
       V(Integer)                                                               \
@@ -591,15 +591,15 @@ class RawUnhandledException : public RawObject {
 };
 
 
-class RawApiFailure : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ApiFailure);
+class RawApiError : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->message_);
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
-  RawString* message_;
+  RawObject* data_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->message_);
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
 };
 

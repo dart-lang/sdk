@@ -127,56 +127,58 @@ class Expect {
     String msg = _getMessage(reason);
     String defaultMessage =
         'Expect.stringEquals(expected: <$expected>", <$actual>$msg) fails';
-    if (expected != actual) {
-      // scan from the left until we find a mismatch
-      int left = 0;
-      int eLen = expected.length;
-      int aLen = actual.length;
-      while (true) {
-        if (left == eLen) {
-          assert (left < aLen);
-          String snippet = actual.substring(left, aLen);
-          _fail('$defaultMessage\nDiff:\n...[  ]\n...[ $snippet ]');
-          return;
-        }
-        if (left == aLen) {
-          assert (left < eLen);
-          String snippet = expected.substring(left, eLen);
-          _fail('$defaultMessage\nDiff:\n...[  ]\n...[ $snippet ]');
-          return;
-        }
-        if (expected[left] != actual[left]) {
-          break;
-        }
-        left++;
-      }
 
-      // scan from the right until we find a mismatch
-      int right = 0;
-      while (true) {
-        if (right == eLen) {
-          assert (right < aLen);
-          String snippet = actual.substring(0, aLen - right);
-          _fail('$defaultMessage\nDiff:\n[  ]...\n[ $snippet ]...');
-          return;
-        }
-        if (right == aLen) {
-          assert (right < eLen);
-          String snippet = expected.substring(0, eLen - right);
-          _fail('$defaultMessage\nDiff:\n[  ]...\n[ $snippet ]...');
-          return;
-        }
-        if (expected[eLen - right - 1] != actual[aLen - right - 1]) {
-          break;
-        }
-        right++;
-      }
-
-      String eSnippet = expected.substring(left, eLen - right);
-      String aSnippet = actual.substring(left, aLen - right);
-      String diff = '\nDiff:\n...[ $eSnippet} ]...\n...[ $aSnippet ]...';
-      _fail('$defaultMessage$diff');
+    if (expected == actual) return;
+    if ((expected === null) || (actual === null)) {
+      _fail('$defaultMessage');
     }
+    // scan from the left until we find a mismatch
+    int left = 0;
+    int eLen = expected.length;
+    int aLen = actual.length;
+    while (true) {
+      if (left == eLen) {
+        assert (left < aLen);
+        String snippet = actual.substring(left, aLen);
+        _fail('$defaultMessage\nDiff:\n...[  ]\n...[ $snippet ]');
+        return;
+      }
+      if (left == aLen) {
+        assert (left < eLen);
+        String snippet = expected.substring(left, eLen);
+        _fail('$defaultMessage\nDiff:\n...[  ]\n...[ $snippet ]');
+        return;
+      }
+      if (expected[left] != actual[left]) {
+        break;
+      }
+      left++;
+    }
+
+    // scan from the right until we find a mismatch
+    int right = 0;
+    while (true) {
+      if (right == eLen) {
+        assert (right < aLen);
+        String snippet = actual.substring(0, aLen - right);
+        _fail('$defaultMessage\nDiff:\n[  ]...\n[ $snippet ]...');
+        return;
+      }
+      if (right == aLen) {
+        assert (right < eLen);
+        String snippet = expected.substring(0, eLen - right);
+        _fail('$defaultMessage\nDiff:\n[  ]...\n[ $snippet ]...');
+        return;
+      }
+      if (expected[eLen - right - 1] != actual[aLen - right - 1]) {
+        break;
+      }
+      right++;
+    }
+    String eSnippet = expected.substring(left, eLen - right);
+    String aSnippet = actual.substring(left, aLen - right);
+    String diff = '\nDiff:\n...[ $eSnippet} ]...\n...[ $aSnippet ]...';
+    _fail('$defaultMessage$diff');
   }
 
   /**

@@ -158,6 +158,17 @@ const int KB = 1024;
 const int MB = KB * KB;
 const int GB = KB * KB * KB;
 
+// Time constants.
+const int kMillisecondsPerSecond = 1000;
+const int kMicrosecondsPerMillisecond = 1000;
+const int kMicrosecondsPerSecond = (kMicrosecondsPerMillisecond *
+                                    kMillisecondsPerSecond);
+const int kNanosecondsPerMicrosecond = 1000;
+const int kNanosecondsPerMillisecond = (kNanosecondsPerMicrosecond *
+                                        kMicrosecondsPerMillisecond);
+const int kNanosecondsPerSecond = (kNanosecondsPerMicrosecond *
+                                   kMicrosecondsPerSecond);
+
 // A macro to disallow the copy constructor and operator= functions.
 // This should be used in the private: declarations for a class.
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
@@ -304,7 +315,9 @@ template<class D, class S>
 inline D bit_copy(const S& source) {
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.
-  memcpy(&destination, &source, sizeof(destination));
+  memcpy(&destination,
+         reinterpret_cast<const void*>(&source),
+         sizeof(destination));
   return destination;
 }
 

@@ -162,8 +162,9 @@ static int MostCalledFunctionFirst(const Function* const* a,
 
 
 void Isolate::PrintInvokedFunctions() {
-  Zone zone;
-  HandleScope handle_scope;
+  ASSERT(this == Isolate::Current());
+  Zone zone(this);
+  HandleScope handle_scope(this);
   Library& library = Library::Handle();
   library = object_store()->registered_libraries();
   GrowableArray<const Function*> invoked_functions;
@@ -173,7 +174,10 @@ void Isolate::PrintInvokedFunctions() {
     while (iter.HasNext()) {
       cls = iter.GetNextClass();
       const Array& functions = Array::Handle(cls.functions());
-      for (int j = 0; j < functions.Length(); j++) {
+      // Class 'Dynamic' is allocated/initialized in a special way, leaving
+      // the functions field NULL instead of empty.
+      const int func_len = functions.IsNull() ? 0 : functions.Length();
+      for (int j = 0; j < func_len; j++) {
         Function& function = Function::Handle();
         function ^= functions.At(j);
         if (function.invocation_counter() > 0) {
@@ -238,13 +242,18 @@ void Isolate::StandardRunLoop() {
   ASSERT(close_port_callback() == &StandardClosePortCallback);
 
   while (active_ports() > 0) {
-    Zone zone;
-    HandleScope handle_scope;
+    ASSERT(this == Isolate::Current());
+    Zone zone(this);
+    HandleScope handle_scope(this);
 
     PortMessage* message = message_queue()->Dequeue(0);
     if (message != NULL) {
-      Dart_HandleMessage(
+      Dart_Handle result = Dart_HandleMessage(
           message->dest_port(), message->reply_port(), message->data());
+      if (Dart_IsError(result)) {
+        fprintf(stderr, "%s\n", Dart_GetError(result));
+        exit(255);
+      }
       delete message;
     }
   }

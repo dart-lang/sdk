@@ -54,7 +54,7 @@ void PortMap::Rehash(intptr_t new_capacity) {
       new_ports[new_index] = entry;
     }
   }
-  delete map_;
+  delete[] map_;
   map_ = new_ports;
   capacity_ = new_capacity;
   deleted_ = 0;

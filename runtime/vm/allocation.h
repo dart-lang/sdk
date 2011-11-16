@@ -9,6 +9,9 @@
 
 namespace dart {
 
+// Forward declarations.
+class Isolate;
+
 // Stack allocated objects subclass from this base class. Objects of this type
 // cannot be allocated on either the C or object heaps. Destructors for objects
 // of this type will not be run unless the stack is unwound through normal
@@ -32,14 +35,17 @@ class ValueObject {
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  StackResource();
+  explicit StackResource(Isolate* isolate);
   virtual ~StackResource();
+
+  Isolate* isolate() const { return isolate_; }
 
   // The delete operator should be private instead of public, but unfortunately
   // the compiler complains when compiling the destructors for subclasses.
   void operator delete(void* pointer) { UNREACHABLE(); }
 
  private:
+  Isolate* isolate_;  // Current isolate for this stack resource.
   StackResource* previous_;
 
   void* operator new(uword size);

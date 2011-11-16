@@ -45,7 +45,6 @@ import com.google.dart.compiler.ast.DartIfStatement;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
-import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMapLiteral;
@@ -641,6 +640,9 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
     List<DartParameter> params = parseFormalParameterList();
     expect(Token.SEMICOLON);
+    validateNoDefaultParameterValues(
+        params,
+        ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF);
 
     return done(new DartFunctionTypeAlias(name, returnType, params, typeParameters));
   }
@@ -775,7 +777,21 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if (modifiers.isFactory()) {
-      return done(parseFactory(modifiers));
+      // Factory is not allowed on top level.
+      if (!allowStatic) {
+        reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
+        modifiers = modifiers.removeFactory();
+      }
+      // Do parse factory.
+      DartMethodDefinition factoryNode = parseFactory(modifiers);
+      // If factory is not allowed, ensure that it is valid as method.
+      DartExpression actualName = factoryNode.getName();
+      if (!allowStatic && !(actualName instanceof DartIdentifier)) {
+        DartExpression replacementName = new DartIdentifier(actualName.toString());
+        factoryNode.setName(replacementName);
+      }
+      // Done.
+      return done(factoryNode);
     }
 
     final DartNode member;
@@ -961,17 +977,40 @@ public class DartParser extends CompletionHooksParserBase {
       done(null);
     }
 
-    // Parse the argument definitions.
-    List<DartParameter> arguments = parseFormalParameterList();
+    // Parse the parameters definitions.
+    List<DartParameter> parameters = parseFormalParameterList();
 
-    if (arity != -1 && arguments.size() != arity) {
-      reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_ARGUMENTS);
+    if (arity != -1) {
+      if (parameters.size() != arity) {
+        reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
+      }
+      // In methods with required arity each parameter is required.
+      for (DartParameter parameter : parameters) {
+        if (parameter.getModifiers().isNamed()) {
+          reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
+        }
+      }
+    }
+
+    // Interface method declaration can not have default values for named parameters.
+    if (isParsingInterface) {
+      validateNoDefaultParameterValues(
+          parameters,
+          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_INTERFACE);
+    }
+
+    // Abstract method declaration can not have default values for named parameters.
+    if (modifiers.isAbstract()) {
+      validateNoDefaultParameterValues(
+          parameters,
+          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT);
     }
 
     // Parse initializer expressions for constructors.
     List<DartInitializer> initializers = new ArrayList<DartInitializer>();
     if (match(Token.COLON) && !(isParsingInterface || modifiers.isFactory())) {
-      boolean isRedirectedConstructor = parseInitializers(initializers);
+      parseInitializers(initializers);
+      boolean isRedirectedConstructor = validateInitializers(parameters, initializers);
       if (isRedirectedConstructor) {
         modifiers = modifiers.makeRedirectedConstructor();
       }
@@ -988,7 +1027,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    DartFunction function = doneWithoutConsuming(new DartFunction(arguments, body, returnType));
+    DartFunction function = doneWithoutConsuming(new DartFunction(parameters, body, returnType));
     return DartMethodDefinition.create(name, function, modifiers, initializers, null);
   }
 
@@ -1041,10 +1080,10 @@ public class DartParser extends CompletionHooksParserBase {
    *            : (THIS '.')? identifier '=' conditionalExpression
    *            | THIS ('.' identifier)? arguments
    *            ;
-   * </pre>
+   * </pre> 
    * @return true if initializer is a redirected constructor, false otherwise.
    */
-  private boolean parseInitializers(List<DartInitializer> initializers) {
+  private void parseInitializers(List<DartInitializer> initializers) {
     expect(Token.COLON);
     do {
       beginInitializer();
@@ -1062,13 +1101,15 @@ public class DartParser extends CompletionHooksParserBase {
         boolean hasThisPrefix = optional(Token.THIS);
         if (hasThisPrefix) {
           if (match(Token.LPAREN)) {
-            return parseRedirectedConstructorInvocation(null, initializers);
+            parseRedirectedConstructorInvocation(null, initializers);
+            continue;
           }
           expect(Token.PERIOD);
         }
         DartIdentifier name = parseIdentifier();
         if (hasThisPrefix && match(Token.LPAREN)) {
-          return parseRedirectedConstructorInvocation(name, initializers);
+          parseRedirectedConstructorInvocation(name, initializers);
+          continue;
         } else {
           expect(Token.ASSIGN);
           boolean save = setAllowFunctionExpression(false);
@@ -1078,20 +1119,87 @@ public class DartParser extends CompletionHooksParserBase {
         }
       }
     } while (optional(Token.COMMA));
-    return false;
   }
 
-  private boolean parseRedirectedConstructorInvocation(DartIdentifier name,
-                                                       List<DartInitializer> initializers) {
-    if (initializers.isEmpty()) {
-      DartRedirectConstructorInvocation redirConstructor =
+  private void parseRedirectedConstructorInvocation(DartIdentifier name,
+      List<DartInitializer> initializers) {
+    DartRedirectConstructorInvocation redirConstructor =
         new DartRedirectConstructorInvocation(name, parseArguments());
-      initializers.add(done(new DartInitializer(null, doneWithoutConsuming(redirConstructor))));
-      return true;
-    } else {
-      reportUnexpectedToken(position(), Token.ASSIGN, Token.LPAREN);
+    initializers.add(done(new DartInitializer(null, doneWithoutConsuming(redirConstructor))));
+  }
+
+  private boolean validateInitializers(List<DartParameter> parameters,
+      List<DartInitializer> initializers) {
+    // Try to find DartRedirectConstructorInvocation, check for multiple invocations.
+    // Check for DartSuperConstructorInvocation multiple invocations.
+    DartInitializer redirectInitializer = null;
+    boolean firstMultipleRedirectReported = false;
+    {
+      DartInitializer superInitializer = null;
+      boolean firstMultipleSuperReported = false;
+      for (DartInitializer initializer : initializers) {
+        if (initializer.isInvocation()) {
+          // DartSuperConstructorInvocation
+          DartExpression initializerInvocation = initializer.getValue();
+          if (initializerInvocation instanceof DartSuperConstructorInvocation) {
+            if (superInitializer != null) {
+              if (!firstMultipleSuperReported) {
+                reportError(superInitializer, ParserErrorCode.SUPER_CONSTRUCTOR_MULTIPLE);
+                firstMultipleSuperReported = true;
+              }
+              reportError(initializer, ParserErrorCode.SUPER_CONSTRUCTOR_MULTIPLE);
+            } else {
+              superInitializer = initializer;
+            }
+          }
+          // DartRedirectConstructorInvocation
+          if (initializerInvocation instanceof DartRedirectConstructorInvocation) {
+            if (redirectInitializer != null) {
+              if (!firstMultipleRedirectReported) {
+                reportError(redirectInitializer, ParserErrorCode.REDIRECTING_CONSTRUCTOR_MULTIPLE);
+                firstMultipleRedirectReported = true;
+              }
+              reportError(initializer, ParserErrorCode.REDIRECTING_CONSTRUCTOR_MULTIPLE);
+            } else {
+              redirectInitializer = initializer;
+            }
+          }
+        }
+      }
     }
-    return false;
+    // If there is redirecting constructor, then there should be no other initializers.
+    if (redirectInitializer != null) {
+      boolean shouldRedirectInvocationReported = false;
+      // Implicit initializer in form of "this.id" parameter.
+      for (DartParameter parameter : parameters) {
+        if (parameter.getName() instanceof DartPropertyAccess) {
+          DartPropertyAccess propertyAccess = (DartPropertyAccess) parameter.getName();
+          if (propertyAccess.getQualifier() instanceof DartThisExpression) {
+            shouldRedirectInvocationReported = true;
+            reportError(
+                parameter,
+                ParserErrorCode.REDIRECTING_CONSTRUCTOR_PARAM);
+          }
+        }
+      }
+      // Iterate all initializers and mark all except of DartRedirectConstructorInvocation
+      for (DartInitializer initializer : initializers) {
+        if (!(initializer.getValue() instanceof DartRedirectConstructorInvocation)) {
+          shouldRedirectInvocationReported = true;
+          reportError(
+              initializer,
+              ParserErrorCode.REDIRECTING_CONSTRUCTOR_OTHER);
+        }
+      }
+      // Mark DartRedirectConstructorInvocation if needed.
+      if (shouldRedirectInvocationReported) {
+        reportError(
+            redirectInitializer,
+            ParserErrorCode.REDIRECTING_CONSTRUCTOR_ITSELF);
+      }
+    }
+    // Done.
+    return redirectInitializer != null;
   }
 
   /**
@@ -1157,13 +1265,13 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartParameter> params = new ArrayList<DartParameter>();
     expect(Token.LPAREN);
     boolean done = optional(Token.RPAREN);
-    boolean hasNamed = false;
+    boolean isNamed = false;
     while (!done) {
-      if (!hasNamed && optional(Token.LBRACK)) {
-        hasNamed = true;
+      if (!isNamed && optional(Token.LBRACK)) {
+        isNamed = true;
       }
 
-      DartParameter param = parseFormalParameter(hasNamed);
+      DartParameter param = parseFormalParameter(isNamed);
       params.add(param);
 
       done = optional(Token.RBRACK);
@@ -1203,7 +1311,7 @@ public class DartParser extends CompletionHooksParserBase {
     beginFormalParameter();
     DartExpression paramName = null;
     DartTypeNode type = null;
-    DartExpression initExpr = null;
+    DartExpression defaultExpr = null;
     List<DartParameter> functionParams = null;
     boolean hasVar = false;
     Modifiers modifiers = Modifiers.NONE;
@@ -1246,6 +1354,9 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_VAR);
       }
       functionParams = parseFormalParameterList();
+      validateNoDefaultParameterValues(
+          functionParams,
+          ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE);
     } else {
       // Not a function parameter.
       if (isVoidType) {
@@ -1265,7 +1376,7 @@ public class DartParser extends CompletionHooksParserBase {
         // Default parameter -- only allowed for named parameters.
         if (isNamed) {
           consume(Token.ASSIGN);
-          initExpr = parseExpression();
+          defaultExpr = parseExpression();
         } else {
           reportError(position(), ParserErrorCode.DEFAULT_POSITIONAL_PARAMETER);
         }
@@ -1276,7 +1387,7 @@ public class DartParser extends CompletionHooksParserBase {
         break;
     }
 
-    return done(new DartParameter(paramName, type, functionParams, initExpr, modifiers));
+    return done(new DartParameter(paramName, type, functionParams, defaultExpr, modifiers));
   }
 
   /**
@@ -1299,6 +1410,20 @@ public class DartParser extends CompletionHooksParserBase {
       return done(new DartPropertyAccess(done(DartThisExpression.get()), parseIdentifier()));
     }
     return done(parseIdentifier());
+  }
+
+  /**
+   * Validates that given {@link DartParameter}s have no default values, or marks existing default
+   * values with given {@link ErrorCode}.
+   */
+  private void validateNoDefaultParameterValues(List<DartParameter> parameters,
+      ErrorCode errorCode) {
+    for (DartParameter parameter : parameters) {
+      DartExpression defaultExpr = parameter.getDefaultExpr();
+      if (defaultExpr != null) {
+        reportError(defaultExpr,  errorCode);
+      }
+    }
   }
 
   /**

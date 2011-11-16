@@ -8,6 +8,7 @@
 #include "vm/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
+#include "vm/isolate.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_LINUX)
@@ -85,7 +86,9 @@ class Monitor {
 
 class MutexLocker : public StackResource {
  public:
-  explicit MutexLocker(Mutex* mutex) : StackResource(), mutex_(mutex) {
+  explicit MutexLocker(Mutex* mutex) :
+    StackResource(Isolate::Current()),
+    mutex_(mutex) {
     ASSERT(mutex != NULL);
     // TODO(iposva): Consider adding a no GC scope here.
     mutex_->Lock();
@@ -106,7 +109,7 @@ class MutexLocker : public StackResource {
 class MonitorLocker : public StackResource {
  public:
   explicit MonitorLocker(Monitor* monitor)
-      : StackResource(),
+      : StackResource(Isolate::Current()),
         monitor_(monitor) {
     ASSERT(monitor != NULL);
     // TODO(iposva): Consider adding a no GC scope here.

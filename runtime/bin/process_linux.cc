@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/process.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "bin/fdutils.h"
-#include "bin/process.h"
-
 
 class ProcessInfo {
  public:
@@ -84,28 +85,32 @@ static void SetChildOsErrorMessage(char* os_error_message,
 
 
 void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
-  ASSERT(process_signal == SIGCHLD);
-  struct sigaction act;
-  bzero(&act, sizeof(act));
-  act.sa_handler = SIG_IGN;
-  act.sa_flags = SA_NOCLDSTOP | SA_SIGINFO;
-  if (sigaction(SIGCHLD, &act, 0) != 0) {
-    perror("Process start: disabling signal handler failed");
-  }
-  ProcessInfo* process = LookupProcess(siginfo->si_pid);
-  if (process != NULL) {
-    intptr_t message[2] = { siginfo->si_pid, siginfo->si_status };
-    intptr_t result =
-        FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
-    if (result != sizeof(message)) {
-      perror("ExitHandler notification failed");
+  int pid = 0;
+  int status = 0;
+  while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+    int exit_code = 0;
+    int negative = 0;
+    if (WIFEXITED(status)) {
+      exit_code = WEXITSTATUS(status);
+      if (exit_code == 255) {
+        exit_code = 1;
+        negative = 1;
+      }
     }
-    close(process->fd());
-  }
-  act.sa_handler = 0;
-  act.sa_sigaction = ExitHandler;
-  if (sigaction(SIGCHLD, &act, 0) != 0) {
-    perror("Process start: enabling signal handler failed");
+    if (WIFSIGNALED(status)) {
+      exit_code = WTERMSIG(status);
+      negative = 1;
+    }
+    ProcessInfo* process = LookupProcess(pid);
+    if (process != NULL) {
+      int message[3] = { pid, exit_code, negative };
+      intptr_t result =
+          FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
+      if (result != sizeof(message)) {
+        perror("ExitHandler notification failed");
+      }
+      close(process->fd());
+    }
   }
 }
 
@@ -184,7 +189,7 @@ int Process::Start(const char* path,
     return errno;
   }
 
-  char* program_arguments[arguments_length + 2];
+  char** program_arguments = new char*[arguments_length + 2];
   program_arguments[0] = const_cast<char *>(path);
   for (int i = 0; i < arguments_length; i++) {
     program_arguments[i + 1] = arguments[i];
@@ -201,6 +206,7 @@ int Process::Start(const char* path,
   pid = fork();
   if (pid < 0) {
     SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    delete[] program_arguments;
     close(read_in[0]);
     close(read_in[1]);
     close(read_err[0]);
@@ -249,6 +255,9 @@ int Process::Start(const char* path,
     close(exec_control[1]);
     exit(1);
   }
+
+  // The arguments for the spawned process are not needed any longer.
+  delete[] program_arguments;
 
   int event_fds[2];
   result = pipe(event_fds);

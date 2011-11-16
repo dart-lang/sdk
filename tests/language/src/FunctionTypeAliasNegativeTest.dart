@@ -5,12 +5,6 @@
 
 typedef Handle Handle(String command);
 
-class FunctionTypeAliasNegativeTest {
-  static void testMain() {
-  }
-}
-
-
 main() {
-  FunctionTypeAliasNegativeTest.testMain();
+  Handle handle = null;
 }

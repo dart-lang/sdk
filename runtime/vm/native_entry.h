@@ -32,7 +32,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 
 
 #define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
-  static void DN_Helper##name(NativeArguments* arguments);                     \
+  static void DN_Helper##name(Isolate* isolate, NativeArguments* arguments);   \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
@@ -40,13 +40,13 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     ASSERT(arguments->Count() == argument_count);                              \
     if (FLAG_trace_natives) OS::Print("Calling native: %s\n", ""#name);        \
     {                                                                          \
-      Zone zone;                                                               \
-      HANDLESCOPE();                                                           \
-      DN_Helper##name(arguments);                                              \
+      Zone zone(arguments->isolate());                                         \
+      HANDLESCOPE(arguments->isolate());                                       \
+      DN_Helper##name(arguments->isolate(), arguments);                        \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
-  static void DN_Helper##name(NativeArguments* arguments)
+  static void DN_Helper##name(Isolate* isolate, NativeArguments* arguments)
 
 
 #define DECLARE_NATIVE_ENTRY(name, argument_count)                             \

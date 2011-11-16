@@ -225,7 +225,8 @@ static bool IsValidFlag(const char* name,
 }
 
 
-void Flags::ProcessCommandLineFlags(int number_of_vm_flags, char** vm_flags) {
+void Flags::ProcessCommandLineFlags(int number_of_vm_flags,
+                                    const char** vm_flags) {
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 

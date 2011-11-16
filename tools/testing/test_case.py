@@ -86,14 +86,14 @@ class MultiTestCase(StandardTestCase):
     if self.kind == 'compile-time error':
       return True
     if self.kind == 'runtime error':
-      return False
+      return True
     if self.kind == 'static type error':
       return self.run_arch.HasFatalTypeErrors()
     return False
 
 
 class BrowserTestCase(StandardTestCase):
-  """A test case that executes inside a browser (or DumpRenderTree)."""
+  """A test case that executes inside DumpRenderTree."""
 
   def __init__(self, context, path, filename,
                fatal_static_type_errors, mode, arch, component, vm_options=None):

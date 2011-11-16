@@ -27,7 +27,7 @@ void _onError(e) {
     final testCase = _tests[_currentTest];
     // TODO(vsm): figure out how to expose the stack trace here
     // Currently e.message works in dartium, but not in dartc.
-    testCase.recordError('(DOM callback has errors) Caught ${e}', '');
+    testCase.error('(DOM callback has errors) Caught ${e}', '');
     _state = _UNCAUGHT_ERROR;
     if (testCase.callbacks > 0) {
       _currentTest++;

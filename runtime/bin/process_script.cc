@@ -15,16 +15,8 @@
 #include "bin/globals.h"
 #include "bin/process_script.h"
 
-static const char* CanonicalizeUrl(const char* reference_dir,
-                                   const char* filename) {
-  static const char* kDartScheme = "dart:";
-  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
-  // If the URL starts with "dart:" then it is not modified as it will be
-  // handled by the VM internally.
-  if (strncmp(filename, kDartScheme, kDartSchemeLen) == 0) {
-    return strdup(filename);
-  }
-
+const char* GetCanonicalPath(const char* reference_dir,
+                             const char* filename) {
   if (File::IsAbsolutePath(filename)) {
     return strdup(filename);
   }
@@ -57,7 +49,79 @@ static const char* CanonicalizeUrl(const char* reference_dir,
 }
 
 
-static Dart_Handle ReadStringFromFile(const char* filename) {
+static const char* CanonicalizeUrl(const char* reference_dir,
+                                   const char* filename) {
+  static const char* kDartScheme = "dart:";
+  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
+  // If the URL starts with "dart:" then it is not modified as it will be
+  // handled by the VM internally.
+  if (strncmp(filename, kDartScheme, kDartSchemeLen) == 0) {
+    return strdup(filename);
+  }
+  return GetCanonicalPath(reference_dir, filename);
+}
+
+
+static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+                                     Dart_Handle library,
+                                     Dart_Handle url) {
+  if (!Dart_IsLibrary(library)) {
+    return Dart_Error("not a library");
+  }
+  if (!Dart_IsString8(url)) {
+    return Dart_Error("url is not a string");
+  }
+  const char* url_chars = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_chars);
+  if (Dart_IsError(result)) {
+    return Dart_Error("accessing url characters failed");
+  }
+
+  if (tag == kCanonicalizeUrl) {
+    // Create the full path based on the including library and the current url.
+
+    // Get the url of the calling library.
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return Dart_Error("accessing library url failed");
+    }
+    if (!Dart_IsString8(library_url)) {
+      return Dart_Error("library url is not a string");
+    }
+    const char* library_url_chars = NULL;
+    result = Dart_StringToCString(library_url, &library_url_chars);
+    if (Dart_IsError(result)) {
+      return Dart_Error("accessing library url characters failed");
+    }
+
+    // Calculate the path.
+    const char* canon_url_chars = CanonicalizeUrl(library_url_chars, url_chars);
+    Dart_Handle canon_url = Dart_NewString(canon_url_chars);
+    free(const_cast<char*>(canon_url_chars));
+
+    return canon_url;
+  }
+
+  // The tag is either an import or a source tag. Read the file based on the
+  // url chars.
+  Dart_Handle source = ReadStringFromFile(url_chars);
+  if (Dart_IsError(source)) {
+    return source;  // source contains the error string.
+  }
+  if (tag == kImportTag) {
+    Dart_Handle new_lib = Dart_LoadLibrary(url, source);
+    if (!Dart_IsError(new_lib)) {
+      Builtin_ImportLibrary(new_lib);
+    }
+    return new_lib;  // Return library object or an error string.
+  } else if (tag == kSourceTag) {
+    return Dart_LoadSource(library, url, source);
+  }
+  return Dart_Error("wrong tag");
+}
+
+
+Dart_Handle ReadStringFromFile(const char* filename) {
   File* file = File::Open(filename, false);
   if (file == NULL) {
     const char* format = "Unable to open file: %s";
@@ -86,98 +150,12 @@ static Dart_Handle ReadStringFromFile(const char* filename) {
 }
 
 
-static Dart_Handle LibraryTagHandlerHelper(Dart_LibraryTag tag,
-                                           Dart_Handle library,
-                                           Dart_Handle url,
-                                           bool import_builtin_lib) {
-  if (!Dart_IsLibrary(library)) {
-    return Dart_Error("not a library");
-  }
-  if (!Dart_IsString8(url)) {
-    return Dart_Error("url is not a string");
-  }
-  const char* url_chars = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_chars);
-  if (!Dart_IsValid(result)) {
-    return Dart_Error("accessing url characters failed");
-  }
-
-  if (tag == kCanonicalizeUrl) {
-    // Create the full path based on the including library and the current url.
-
-    // Get the url of the calling library.
-    Dart_Handle library_url = Dart_LibraryUrl(library);
-    if (!Dart_IsValid(library_url)) {
-      return Dart_Error("accessing library url failed");
-    }
-    if (!Dart_IsString8(library_url)) {
-      return Dart_Error("library url is not a string");
-    }
-    const char* library_url_chars = NULL;
-    result = Dart_StringToCString(library_url, &library_url_chars);
-    if (!Dart_IsValid(result)) {
-      return Dart_Error("accessing library url characters failed");
-    }
-
-    // Calculate the path.
-    const char* canon_url_chars = CanonicalizeUrl(library_url_chars, url_chars);
-    Dart_Handle canon_url = Dart_NewString(canon_url_chars);
-    free(const_cast<char*>(canon_url_chars));
-
-    return canon_url;
-  }
-
-  // The tag is either an import or a source tag. Read the file based on the
-  // url chars.
-  Dart_Handle source = ReadStringFromFile(url_chars);
-  if (!Dart_IsValid(source)) {
-    return source;  // source contains the error string.
-  }
-  if (tag == kImportTag) {
-    Dart_Handle new_lib = Dart_LoadLibrary(url, source);
-    if (import_builtin_lib && Dart_IsValid(new_lib)) {
-      Builtin_ImportLibrary(new_lib);
-    }
-    return new_lib;  // Return library object or an error string.
-  } else if (tag == kSourceTag) {
-    return Dart_LoadSource(library, url, source);
-  }
-  return Dart_Error("wrong tag");
-}
-
-static Dart_Handle MainLibraryTagHandler(Dart_LibraryTag tag,
-                                         Dart_Handle library,
-                                         Dart_Handle url) {
-  const bool kImportBuiltinLib = true;  // Import builtin library.
-  return LibraryTagHandlerHelper(tag, library, url, kImportBuiltinLib);
-}
-
-
-static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
-                                                   Dart_Handle library,
-                                                   Dart_Handle url) {
-  const bool kDontImportBuiltinLib = false;  // Do not import builtin lib.
-  return LibraryTagHandlerHelper(tag, library, url, kDontImportBuiltinLib);
-}
-
-
 Dart_Handle LoadScript(const char* script_name) {
   Dart_Handle source = ReadStringFromFile(script_name);
-  if (!Dart_IsValid(source)) {
+  if (Dart_IsError(source)) {
     return source;
   }
   Dart_Handle url = Dart_NewString(script_name);
 
-  return Dart_LoadScript(url, source, MainLibraryTagHandler);
-}
-
-
-Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
-  Dart_Handle source = ReadStringFromFile(script_name);
-  if (!Dart_IsValid(source)) {
-    return source;
-  }
-  Dart_Handle url = Dart_NewString(script_name);
-
-  return Dart_LoadScript(url, source, CreateSnapshotLibraryTagHandler);
+  return Dart_LoadScript(url, source, LibraryTagHandler);
 }

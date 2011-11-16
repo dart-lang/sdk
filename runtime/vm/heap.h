@@ -88,8 +88,6 @@ class NoGCScope : public StackResource {
   NoGCScope();
   ~NoGCScope();
  private:
-  Isolate* isolate_;
-
   DISALLOW_COPY_AND_ASSIGN(NoGCScope);
 };
 #else  // defined(DEBUG)

@@ -78,10 +78,10 @@ class DualPivotQuicksort {
     // Compute the two pivots by looking at 5 elements.
     int sixth = (right - left + 1) ~/ 6;
     int index1 = left + sixth;
-    int index2 = index1 + sixth;
-    int index3 = right - sixth;
-    int index4 = index3 - sixth;
-    int index5 = (left + right) ~/ 2;
+    int index5 = right - sixth;
+    int index3 = (left + right) ~/ 2;  // The midpoint.
+    int index2 = index3 - sixth;
+    int index4 = index3 + sixth;
 
     var el1 = a[index1];
     var el2 = a[index2];
@@ -154,19 +154,19 @@ class DualPivotQuicksort {
           // pivots are put into their final positions.
           while (true) {
             int comp = compare(a[great], pivot);
-            if (comp < 0) {
+            if (comp > 0) {
               great--;
               // This is the only location in the while-loop where a new
               // iteration is started.
               continue;
-            } else if (comp == 0) {
+            } else if (comp < 0) {
               // Triple exchange.
               a[k] = a[less];
               a[less++] = a[great];
               a[great--] = ak;
               break;
             } else {
-              // comp > 0;
+              // comp == 0;
               a[k] = a[great];
               a[great--] = ak;
               // Note: if great < k then we will exit the outer loop and fix
@@ -307,13 +307,13 @@ class DualPivotQuicksort {
               } else {
                 // a[great] < pivot2.
                 int comp = compare(a[great], pivot1);
-                if (comp == 0) {
+                if (comp < 0) {
                   // Triple exchange.
                   a[k] = a[less];
                   a[less++] = a[great];
                   a[great--] = ak;
                 } else {
-                  // a[great] > pivot1.
+                  // a[great] == pivot1.
                   a[k] = a[great];
                   a[great--] = ak;
                 }

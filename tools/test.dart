@@ -6,12 +6,40 @@
 #library("test");
 
 #import("testing/dart/test_runner.dart");
+#import("testing/dart/test_options.dart");
+
 #import("../tests/standalone/test_config.dart");
 #import("../tests/corelib/test_config.dart");
 
+// TODO(ager): This activity tracking is temporary until stdout is
+// closed implicitly when nothing more can happen.
+int pendingActivities = 0;
+
+void activityStarted() {
+  ++pendingActivities;
+}
+
+void activityCompleted() {
+  --pendingActivities;
+}
+
+void exitIfLastActivity() {
+  if (pendingActivities == 1) {
+    stdout.write('\n'.charCodes());
+    stdout.close();
+  }
+}
+
 main() {
-  int numProcessors = new Platform().numberOfProcessors();
-  var queue = new ProcessQueue(numProcessors);
-  new StandaloneTestSuite().forEachTest(queue.runTest);
-  new CorelibTestSuite().forEachTest(queue.runTest);
+  var optionsParser = new TestOptionsParser();
+  var configurations = optionsParser.parse(new Options().arguments);
+  if (configurations == null) return;
+  activityStarted();
+  var queue = new ProcessQueue(configurations[0], exitIfLastActivity);
+  for (var conf in configurations) {
+    activityStarted();
+    new StandaloneTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
+    activityStarted();
+    new CorelibTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
+  }
 }

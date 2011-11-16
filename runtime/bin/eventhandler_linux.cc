@@ -243,25 +243,36 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       } else if ((pollfd->revents & POLLERR) != 0) {
         event_mask = (1 << kErrorEvent);
       } else {
-        // If POLLIN is set with no available data and no POLLHUP use
-        // recv to peek for whether the other end of the socket
-        // actually closed.
-        char buffer;
-        ssize_t bytesPeeked = recv(sd->fd(), &buffer, 1, MSG_PEEK);
-        if (bytesPeeked == 0) {
-          event_mask = (1 << kCloseEvent);
-          sd->MarkClosedRead();
-        } else if (errno != EAGAIN) {
-          fprintf(stderr, "Error recv: %s\n", strerror(errno));
+        if (sd->IsPipe()) {
+          // For stdin when reading from a terminal treat POLLIN with 0
+          // available bytes as end-of-file.
+          if (sd->fd() == STDIN_FILENO && isatty(sd->fd())) {
+            event_mask = (1 << kCloseEvent);
+            sd->MarkClosedRead();
+          }
+        } else {
+          // If POLLIN is set with no available data and no POLLHUP use
+          // recv to peek for whether the other end of the socket
+          // actually closed.
+          char buffer;
+          ssize_t bytesPeeked = recv(sd->fd(), &buffer, 1, MSG_PEEK);
+          if (bytesPeeked == 0) {
+            event_mask = (1 << kCloseEvent);
+            sd->MarkClosedRead();
+          } else if (errno != EAGAIN) {
+            fprintf(stderr, "Error recv: %s\n", strerror(errno));
+          }
         }
       }
     }
 
     // On pipes POLLHUP is reported without POLLIN.
-    if (((pollfd->revents & POLLIN) == 0) &&
-        ((pollfd->revents & POLLHUP) != 0)) {
-      event_mask = (1 << kCloseEvent);
-      sd->MarkClosedRead();
+    if (sd->IsPipe()) {
+      if (((pollfd->revents & POLLIN) == 0) &&
+          ((pollfd->revents & POLLHUP) != 0)) {
+        event_mask = (1 << kCloseEvent);
+        sd->MarkClosedRead();
+      }
     }
 
     if ((pollfd->revents & POLLOUT) != 0) event_mask |= (1 << kOutEvent);

@@ -14,7 +14,7 @@ class CommandLineOptions {
   explicit CommandLineOptions(int max_count)
       : count_(0), max_count_(max_count), arguments_(NULL) {
     static const int kWordSize = sizeof(intptr_t);
-    arguments_ = reinterpret_cast<char **>(malloc(max_count * kWordSize));
+    arguments_ = reinterpret_cast<const char **>(malloc(max_count * kWordSize));
     if (arguments_ == NULL) {
       max_count_ = 0;
     }
@@ -27,12 +27,12 @@ class CommandLineOptions {
   }
 
   int count() const { return count_; }
-  char** arguments() const { return arguments_; }
+  const char** arguments() const { return arguments_; }
 
-  char* GetArgument(int index) const {
+  const char* GetArgument(int index) const {
     return (index >= 0 && index < count_) ? arguments_[index] : NULL;
   }
-  void AddArgument(char* argument) {
+  void AddArgument(const char* argument) {
     if (count_ < max_count_) {
       arguments_[count_] = argument;
       count_ += 1;
@@ -50,11 +50,14 @@ class CommandLineOptions {
 
   int count_;
   int max_count_;
-  char** arguments_;
+  const char** arguments_;
 };
 
 
+extern Dart_Handle ReadStringFromFile(const char* filename);
 extern Dart_Handle LoadScript(const char* script_name);
-extern Dart_Handle LoadSnapshotCreationScript(const char* script_name);
+extern const char* GetCanonicalPath(const char* reference_dir,
+                                    const char* filename);
+
 
 #endif  // BIN_PROCESS_SCRIPT_H_

@@ -35,7 +35,6 @@ Constructor5Test: Fail          # Bug 8440015
 Constructor6Test: Fail          # Bug 8440015
 
 # Regular bugs which should be fixed.
-SuperNegativeTest: Fail         # Bug 4400118 - Language still in flux.
 ManyEchoServerTest: Skip        # Bug 5103754
 
 NonParameterizedFactory2Test: Fail # Bug 5257789
@@ -50,6 +49,8 @@ ImplicitThisTest/03: Fail # Issue 374
 ImplicitThisTest/04: Fail # Issue 374
 ImplicitThisTest/none: Fail # Issue 374
 
+NonParameterizedFactoryTest: Fail # Bug 5257789
+
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
 *DartcNegativeTest: Skip
@@ -58,7 +59,8 @@ ImplicitThisTest/none: Fail # Issue 374
 
 
 [ $component == vm && $mode == debug ]
-NonParameterizedFactoryTest: Crash  # Issue 226
+
+[ $component == vm && $mode == release ]
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]
@@ -76,6 +78,8 @@ CTConst2Test: Fail                       # Codesite issue 124
 
 
 [ $component == dartc || $component == chromium ]
+CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+
 Library4NegativeTest: Fail               # Bug 5406175
 Prefix3NegativeTest: Fail                # Bug 5406175
 Prefix11NegativeTest: Fail               # Bug 5406175
@@ -86,6 +90,8 @@ Prefix16NegativeTest: Fail               # Bug 5532534
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 CTConst3Test: Fail                       # Codesite Issue 120
+FactoryNegativeTest: Fail                # Issue 417
+
 
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.
@@ -93,12 +99,10 @@ NamedParametersNegativeTest: Fail    # Implementation in progress.
 NamedParameters2NegativeTest: Fail   # Implementation in progress.
 NamedParameters3NegativeTest: Fail   # Implementation in progress.
 NamedParameters4NegativeTest: Fail   # Implementation in progress.
-NamedParameters6NegativeTest: Crash  # Implementation in progress.
 RegExp3Test: Fail                    # 5299683
 InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
-SuperNegativeTest: Fail # Now that super calls are automatically injected this test doesn't make sense
 NullToStringTest: Fail       # Bug 5421978
 FunctionTypeAliasTest: Crash # Bug 4519208.
 
@@ -195,8 +199,9 @@ TypedMessageTest: Fail # Bug 5246195
 [ $component == frog || $component == leg ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-
-[ $component == frogsh ||  $component == frog || $component == leg ]
+[ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver || $component == frogium ]
+FactoryNegativeTest: Fail # Issue 417
+CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
@@ -218,7 +223,6 @@ ClosuresWithComplexParamsTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstructorDefaultTest: Fail
-ConstructorSetterNegativeTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
 DynamicTest: Fail
 ExampleConstructorTest: Fail
@@ -234,10 +238,10 @@ ExpectTest: Fail
 FauxverrideTest/03: Fail
 #FauxverrideTest/04: Fail  # see r607 (10/21) passes, but we should be issuing warnings
 FauxverrideTest/05: Fail
-FieldOverrideTest/01: Fail
-FieldOverrideTest/02: Fail
-Field3NegativeTest: Fail
-FieldNegativeTest: Fail
+FieldOverrideTest/01: Fail  # issue with test see #354
+FieldOverrideTest/02: Fail  # issue with test see #354
+Field3NegativeTest: Fail  # issue with test see #354
+FieldNegativeTest: Fail  # issue with test see #354
 FinalParamNegativeTest: Fail
 For2Test: Fail
 FunctionLiterals2Test: Fail
@@ -252,10 +256,10 @@ GenericInstanceofTest: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail
+GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is really passing in the static case
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 IncrOpTest: Fail
-InstanceFieldNegativeTest: Fail
 Instanceof2Test: Fail
 InstanceofTest: Fail
 InterfaceFactory3NegativeTest: Fail
@@ -295,15 +299,10 @@ Prefix14NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
 Prefix15Test: Fail
-PrivateMemberTest/01: Fail # test seems bad - see issue #353
-PrivateMemberTest/02: Fail # test seems bad - see issue #353
-PrivateMemberTest/03: Fail # test seems bad - see issue #353
-PrivateMemberTest/04: Fail # test seems bad - see issue #353
 Private3Test: Fail
 PrivateTest: Fail
 PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
 RegExp3Test: Fail
-SavannahTest: Fail
 ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
 StringConcatTest: Fail
@@ -313,7 +312,6 @@ StringInterpolate2Test: Fail
 StringInterpolateTest: Fail
 StringTest: Fail
 SuperImplicitClosureTest: Fail
-SuperNegativeTest: Fail  # test seems clearly broken - see issue #358
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
@@ -322,21 +320,37 @@ TypeVariableBoundsTest/05: Fail # issue with test filed as #354
 UnboundGetterTest: Fail
 VarInitTest: Fail
 WrongNumberTypeArgumentsTest: Fail
-GetterClosureExecutionOrderTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
+FinalVarNegativeTest: Fail
 
+[ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $unchecked ]
+PrivateMemberTest/01: Fail # test seems bad - see issue #353
+PrivateMemberTest/02: Fail # test seems bad - see issue #353
+PrivateMemberTest/03: Fail # test seems bad - see issue #353
+PrivateMemberTest/04: Fail # test seems bad - see issue #353
 
-[ $component == leg]
+[ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $checked ]
+PrivateMemberTest/none: Fail # test seems bad - see issue #353
+
+[ $component == leg ]
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
-DoubleComparisonTest: Fail
 
-[ $component == frogsh ||  $component == frog ]
-FinalVarNegativeTest: Fail
+[ $component == frog || $component == frogsh || $component == leg ]
+# these tests are inconsistent in frogium and frogsh-node, investigate
+ParameterInitializerTest: Pass
+StaticField1RunNegativeTest: Pass
+StaticField2RunNegativeTest: Pass
+
+[ $component == frogium ]
+# these tests are inconsistent in frogium and frogsh-node, investigate
+ParameterInitializerTest: Fail
+StaticField1RunNegativeTest: Fail
+StaticField2RunNegativeTest: Fail
 
 [ $arch == x64 ]
 *: Skip

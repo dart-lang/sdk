@@ -43,8 +43,11 @@ static const char* ProcessOption(const char* option, const char* name) {
 
 static bool ProcessPprofOption(const char* option) {
   const char* kProfOption = "--generate_pprof_symbols=";
-  generate_pprof_symbols_filename = ProcessOption(option, kProfOption);
-  return generate_pprof_symbols_filename != NULL;
+  const char* filename = ProcessOption(option, kProfOption);
+  if (filename != NULL) {
+    generate_pprof_symbols_filename = filename;
+  }
+  return filename != NULL;
 }
 
 
@@ -65,11 +68,13 @@ static int ParseArguments(int argc,
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessPprofOption(argv[i])) {
       i += 1;
-      Dart_InitPprofSupport();
       continue;
     }
     vm_options->AddArgument(argv[i]);
     i += 1;
+  }
+  if (generate_pprof_symbols_filename != NULL) {
+    Dart_InitPprofSupport();
   }
 
   // Get the script name.
@@ -93,38 +98,38 @@ static int ParseArguments(int argc,
 static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
   Dart_Handle dart_arguments = Dart_NewList(options_count);
-  if (!Dart_IsValid(dart_arguments)) {
+  if (Dart_IsError(dart_arguments)) {
     return dart_arguments;
   }
   for (int i = 0; i < options_count; i++) {
     Dart_Handle argument_value = Dart_NewString(options->GetArgument(i));
-    if (!Dart_IsValid(argument_value)) {
+    if (Dart_IsError(argument_value)) {
       return argument_value;
     }
     Dart_Handle result = Dart_ListSetAt(dart_arguments, i, argument_value);
-    if (!Dart_IsValid(result)) {
+    if (Dart_IsError(result)) {
       return result;
     }
   }
   Dart_Handle core_lib_url = Dart_NewString("dart:coreimpl");
-  if (!Dart_IsValid(core_lib_url)) {
+  if (Dart_IsError(core_lib_url)) {
     return core_lib_url;
   }
   Dart_Handle core_lib = Dart_LookupLibrary(core_lib_url);
-  if (!Dart_IsValid(core_lib)) {
+  if (Dart_IsError(core_lib)) {
     return core_lib;
   }
   Dart_Handle runtime_options_class_name = Dart_NewString("RuntimeOptions");
-  if (!Dart_IsValid(runtime_options_class_name)) {
+  if (Dart_IsError(runtime_options_class_name)) {
     return runtime_options_class_name;
   }
   Dart_Handle runtime_options_class = Dart_GetClass(
       core_lib, runtime_options_class_name);
-  if (!Dart_IsValid(runtime_options_class)) {
+  if (Dart_IsError(runtime_options_class)) {
     return runtime_options_class;
   }
   Dart_Handle native_name = Dart_NewString("_nativeArguments");
-  if (!Dart_IsValid(native_name)) {
+  if (Dart_IsError(native_name)) {
     return native_name;
   }
 
@@ -159,7 +164,7 @@ static void* MainIsolateInitCallback(void* data) {
 
   // Load the specified script.
   library = LoadScript(script_name);
-  if (!Dart_IsValid(library)) {
+  if (Dart_IsError(library)) {
     const char* err_msg = Dart_GetError(library);
     fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
     Dart_ExitScope();
@@ -198,16 +203,6 @@ static bool HasCompileAll(const CommandLineOptions& options) {
 }
 
 
-static void PrintObject(FILE* out, Dart_Handle object) {
-  Dart_Handle result = Dart_ToString(object);
-  if (Dart_IsValid(result)) {
-    PrintString(out, result);
-  } else {
-    fprintf(out, "%s\n", Dart_GetError(result));
-  }
-}
-
-
 int main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
@@ -223,9 +218,10 @@ int main(int argc, char** argv) {
     return 255;
   }
 
-  // Initialize the Dart VM.
+  // Initialize the Dart VM (TODO(asiva) - remove const_cast once
+  // dart API is fixed to take a const char** in Dart_Initialize).
   Dart_Initialize(vm_options.count(),
-                  vm_options.arguments(),
+                  const_cast<char**>(vm_options.arguments()),
                   MainIsolateInitCallback);
 
   // Create an isolate. As a side effect, MainIsolateInitCallback
@@ -245,7 +241,7 @@ int main(int argc, char** argv) {
   Dart_EnterScope();
   if (HasCompileAll(vm_options)) {
     Dart_Handle result = Dart_CompileAll();
-    if (!Dart_IsValid(result)) {
+    if (Dart_IsError(result)) {
       fprintf(stderr, "%s\n", Dart_GetError(result));
       Dart_ExitScope();
       Dart_ShutdownIsolate();
@@ -256,7 +252,7 @@ int main(int argc, char** argv) {
 
   // Create a dart options object that can be accessed from dart code.
   Dart_Handle options_result = SetupRuntimeOptions(&dart_options);
-  if (!Dart_IsValid(options_result)) {
+  if (Dart_IsError(options_result)) {
     fprintf(stderr, "%s\n", Dart_GetError(options_result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
@@ -267,7 +263,7 @@ int main(int argc, char** argv) {
   // Lookup and invoke the top level main function.
   Dart_Handle script_url = Dart_NewString(canonical_script_name);
   Dart_Handle library = Dart_LookupLibrary(script_url);
-  if (!Dart_IsValid(library)) {
+  if (Dart_IsError(library)) {
     fprintf(stderr, "%s\n", Dart_GetError(library));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
@@ -279,24 +275,7 @@ int main(int argc, char** argv) {
                                          Dart_NewString("main"),
                                          0,
                                          NULL);
-  if (Dart_IsValid(result)) {
-    if (Dart_ExceptionOccurred(result)) {
-      // Print the exception object.
-      fprintf(stderr, "An unhandled exception has been thrown\n");
-      Dart_Handle exception_result = Dart_GetException(result);
-      ASSERT(Dart_IsValid(exception_result));
-      PrintObject(stderr, exception_result);
-      // Print the stack trace.
-      Dart_Handle stacktrace = Dart_GetStacktrace(result);
-      ASSERT(Dart_IsValid(stacktrace));
-      PrintObject(stderr, stacktrace);
-      fprintf(stderr, "\n");
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-      free(canonical_script_name);
-      return 255;  // We had an unhandled exception, hence indicate an error.
-    }
-  } else {
+  if (Dart_IsError(result)) {
     fprintf(stderr, "%s\n", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
@@ -305,7 +284,7 @@ int main(int argc, char** argv) {
   }
   // Keep handling messages until the last active receive port is closed.
   result = Dart_RunLoop();
-  if (!Dart_IsValid(result)) {
+  if (Dart_IsError(result)) {
     fprintf(stderr, "%s\n", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();

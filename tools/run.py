@@ -21,7 +21,7 @@ import utils
 
 def AreOptionsValid(options):
   if not options.arch in ['ia32', 'x64', 'arm', 'simarm', 'dartc', 'dartium',
-                          'chromium']:
+                          'chromium', 'frogium']:
     print 'Unknown arch %s' % options.arch
     return None
 

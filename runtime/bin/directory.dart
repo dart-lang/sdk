@@ -45,22 +45,21 @@ interface Directory factory _Directory {
   void set dirHandler(void dirHandler(String dir));
 
   /**
-   * Sets the file handler that is called for all files during listing
+   * Sets the handler that is called for all files during listing
    * operations. The file handler is called with the full path of the
    * file.
    */
   void set fileHandler(void fileHandler(String file));
 
   /**
-   * Set the done handler that is called when a directory listing is
+   * Set the handler that is called when a directory listing is
    * done. The handler is called with an indication of whether or not
    * the listing operation completed.
    */
   void set doneHandler(void doneHandler(bool completed));
 
   /**
-   * Sets the error handler that is called on error listing
-   * directories.
+   * Sets the handler that is called on error listing directories.
    */
   void set errorHandler(void errorHandler(String error));
 

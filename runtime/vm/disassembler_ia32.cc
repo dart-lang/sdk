@@ -394,8 +394,24 @@ void X86Decoder::PrintAddress(uword addr) {
   // Try to print as heap object or stub name
   if (!Isolate::Current()->heap()->CodeContains(addr) &&
       Isolate::Current()->heap()->Contains(addr - kHeapObjectTag)) {
+    Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
+    if (obj.IsArray()) {
+      const Array& arr = Array::CheckedHandle(obj.raw());
+      intptr_t len = arr.Length();
+      if (len > 5) len = 5;  // At max print first 5 elements.
+      Print("  Array[");
+      int i = 0;
+      while (i < len) {
+        obj = arr.At(i);
+        if (i > 0) Print(", ");
+        Print(obj.ToCString());
+        i++;
+      }
+      if (i < arr.Length()) Print(", ...");
+      Print("]");
+      return;
+    }
     Print("  '");
-    const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     Print(obj.ToCString());
     Print("'");
   } else {

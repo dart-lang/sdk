@@ -347,8 +347,7 @@ class ApiState {
   }
   PersistentHandle* Null() {
     if (null_ == NULL) {
-      Zone zone;  // Setup a VM zone as we are creating some handles.
-      HandleScope scope;  // Setup a VM handle scope.
+      DARTSCOPE(Isolate::Current());
 
       Object& null_object = Object::Handle();
       null_ = persistent_handles().AllocateHandle();
@@ -359,8 +358,7 @@ class ApiState {
   }
   PersistentHandle* True() {
     if (true_ == NULL) {
-      Zone zone;  // Setup a VM zone as we are creating some handles.
-      HandleScope scope;  // Setup a VM handle scope.
+      DARTSCOPE(Isolate::Current());
 
       const Object& true_object = Object::Handle(Bool::True());
       true_ = persistent_handles().AllocateHandle();
@@ -371,8 +369,7 @@ class ApiState {
   }
   PersistentHandle* False() {
     if (false_ == NULL) {
-      Zone zone;  // Setup a VM zone as we are creating some handles.
-      HandleScope scope;  // Setup a VM handle scope.
+      DARTSCOPE(Isolate::Current());
 
       const Object& false_object = Object::Handle(Bool::False());
       false_ = persistent_handles().AllocateHandle();

@@ -4,8 +4,8 @@
 
 #library('layout.dart');
 
+#import('dart:html');
 #import('../base/base.dart');
-#import('../html/html.dart');
 #import('../util/utilslib.dart');
 
 #source('GridLayout.dart');

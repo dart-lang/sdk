@@ -32,7 +32,9 @@ class StringBufferImpl implements StringBuffer {
    */
   StringBuffer add(Object obj) {
     String str = obj.toString();
-    if (str === null || str.isEmpty()) return;
+    if (str === null || str.isEmpty()) {
+      return this;
+    }
     _buffer.add(str);
     _length += str.length;
     return this;

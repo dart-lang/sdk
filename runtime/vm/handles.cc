@@ -69,8 +69,7 @@ int VMHandles::ZoneHandleCount() {
 }
 
 
-HandleScope::HandleScope() : StackResource() {
-  Isolate* isolate = Isolate::Current();
+HandleScope::HandleScope(Isolate* isolate) : StackResource(isolate) {
   ASSERT(isolate->no_handle_scope_depth() == 0);
   VMHandles* handles = isolate->current_zone()->handles();
   ASSERT(handles != NULL);
@@ -84,31 +83,28 @@ HandleScope::HandleScope() : StackResource() {
 
 
 HandleScope::~HandleScope() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->current_zone() != NULL);
-  VMHandles* handles = isolate->current_zone()->handles();
+  ASSERT(isolate()->current_zone() != NULL);
+  VMHandles* handles = isolate()->current_zone()->handles();
   ASSERT(handles != NULL);
   handles->scoped_blocks_ = saved_handle_block_;
   handles->scoped_blocks_->set_next_handle_slot(saved_handle_slot_);
 #if defined(DEBUG)
   handles->VerifyScopedHandleState();
   handles->ZapFreeScopedHandles();
-  ASSERT(isolate->top_handle_scope() == this);
-  isolate->set_top_handle_scope(link_);
+  ASSERT(isolate()->top_handle_scope() == this);
+  isolate()->set_top_handle_scope(link_);
 #endif
 }
 
 
 #if defined(DEBUG)
-NoHandleScope::NoHandleScope() : StackResource() {
-  Isolate* isolate = Isolate::Current();
+NoHandleScope::NoHandleScope(Isolate* isolate) : StackResource(isolate) {
   isolate->IncrementNoHandleScopeDepth();
 }
 
 
 NoHandleScope::~NoHandleScope() {
-  Isolate* isolate = Isolate::Current();
-  isolate->DecrementNoHandleScopeDepth();
+  isolate()->DecrementNoHandleScopeDepth();
 }
 #endif  // defined(DEBUG)
 

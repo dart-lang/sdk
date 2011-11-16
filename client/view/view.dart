@@ -4,10 +4,10 @@
 
 #library("view");
 
+#import('dart:html');
 #import('../base/base.dart');
 #import('../observable/observable.dart');
 #import('../touch/touch.dart');
-#import('../html/html.dart');
 #import('../layout/layout.dart');
 
 #source('CompositeView.dart');

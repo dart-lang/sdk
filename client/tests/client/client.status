@@ -7,10 +7,19 @@ prefix client
 [ $component == dartium ]
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
+layout/layout_tests: Fail  # Issue 152.
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
+
+[ $component == frogium ]
+touch/touch_tests: Fail  # Issue 157.
+layout/layout_tests: Skip # Issue 152, also seems flaky
+html/html_tests: Fail
+samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
+samples/swarm/swarm_tests: Skip
+json/json_tests: Fail
 
 [ $component == chromium && $mode == release ]
 html/html_tests: Timeout
@@ -24,4 +33,10 @@ samples/swarm/swarm_tests: Timeout
 *: Skip
 
 [ $component == vm ]
+*: Skip
+
+[ $component == leg ]
+*: Skip
+
+[ $component == frog ]
 *: Skip

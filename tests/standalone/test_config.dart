@@ -5,55 +5,124 @@
 #library("standalone_test_config");
 
 #import("../../tools/testing/dart/test_runner.dart");
+#import("../../tools/testing/dart/status_file_parser.dart");
 
 class StandaloneTestSuite {
-  final String directoryPath = "tests/standalone/src";
+  String directoryPath = "tests/standalone/src";
+  final String statusFilePath = "tests/standalone/standalone.status";
   Function doTest;
   Function doDone;
   String shellPath;
   String pathSeparator;
+  Map configuration;
+  TestExpectationsMap testExpectationsMap;
 
-  StandaloneTestSuite() {
-    shellPath = getDartShellFileName() ;
+  StandaloneTestSuite(Map this.configuration) {
+    shellPath = getDartShellFileName(configuration) ;
     pathSeparator = new Platform().pathSeparator();
   }
 
   void forEachTest(Function onTest, [Function onDone = null]) {
     doTest = onTest;
-    doDone = onDone;
+    doDone = (ignore) => onDone();
+
+    // Read test expectations from status file.
+    testExpectationsMap = ReadTestExpectations(statusFilePath, configuration);
+
     processDirectory();
   }
 
   void processDirectory() {
+    directoryPath = getDirname(directoryPath);
     Directory dir = new Directory(directoryPath);
-    if (!dir.existsSync()) {
-      dir = new Directory(".." + pathSeparator + directoryPath);
-      Expect.isTrue(dir.existsSync(),
-                    "Cannot find tests/corelib/src or ../tests/corelib/src");
-      // TODO(ager): Use dir.errorHandler instead when it is implemented.
-    }
+    dir.errorHandler = (s) {
+      throw s;
+    };
     dir.fileHandler = processFile;
     dir.doneHandler = doDone;
     dir.list(false);
   }
 
   void processFile(String filename) {
-    if (filename.endsWith("Test.dart")) {
-      int start = filename.lastIndexOf(pathSeparator);
-      String displayName = filename.substring(start + 1, filename.length - 5);
-      // TODO(whesse): Gather test case info from status file and test file.
-      doTest(new TestCase(displayName,
-                          shellPath,
-                          <String>["--enable_type_checks",
-                                   "--ignore-unrecognized-flags",
-                                   filename ],
-                          completeHandler,
-                          new Set.from([PASS, FAIL, CRASH, TIMEOUT])));
+    if (!filename.endsWith("Test.dart")) return;
+
+    // If patterns are given only list the files that match one of the
+    // patterns.
+    var patterns = configuration['patterns'];
+    if (!patterns.isEmpty() &&
+        !patterns.some((re) => re.hasMatch(filename))) {
+      return;
     }
+
+    int start = filename.lastIndexOf(pathSeparator);
+    String testName = filename.substring(start + 1, filename.length - 5);
+    Set<String> expectations = testExpectationsMap.expectations(testName);
+
+    // TODO(whesse): Skip files with internal directives, and multipart files,
+    //               until they are handled correctly.
+    if (expectations.contains(SKIP)) return;
+
+    List args = ["--ignore-unrecognized-flags"];
+    if (configuration["checked"]) {
+      args.add("--enable_type_checks");
+    }
+    if (configuration["component"] == "leg") {
+      args.add("--enable_leg");
+    }
+
+    var optionsFromFile = testOptions(filename);
+    List<List<String>> optionsList = optionsFromFile["vmOptions"];
+    List<String> dartOptions = optionsFromFile["dartOptions"];
+    args.addAll(dartOptions == null ? [filename] : dartOptions);
+
+    if (optionsList.isEmpty()) {
+      doTest(new TestCase(testName,
+                          shellPath,
+                          args,
+                          configuration["timeout"],
+                          completeHandler,
+                          expectations));
+    } else {
+      for (var options in optionsList) {
+        options.addAll(args);
+        doTest(new TestCase(testName,
+                            shellPath,
+                            options,
+                            configuration["timeout"],
+                            completeHandler,
+                            expectations));
+      }        
+    }
+  }
+
+  Map testOptions(String filename) {
+    RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
+    RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
+    File file = new File(filename);
+    FileInputStream fileStream = file.openInputStream();
+    StringInputStream lines = new StringInputStream(fileStream);
+
+    List<List> result = new List<List>();
+    List<String> dartOptions;
+    String line;
+    while ((line = lines.readLine()) != null) {
+      Match match = testOptionsRegExp.firstMatch(line);
+      if (match != null) {
+        result.add(match[1].split(' ').filter((e) => e != ''));
+      }
+
+      match = dartOptionsRegExp.firstMatch(line);
+      if (match != null) {
+        if (dartOptions != null) {
+          throw new Exception(
+              'More than one "// DartOptions=" line in test $filename');
+        }
+        dartOptions = match[1].split(' ').filter((e) => e != '');
+      }
+    }
+    return {"vmOptions": result, "dartOptions": dartOptions};
   }
   
   void completeHandler(TestCase testCase) {
-    TestOutput output = testCase.output;
-    print("Exit code: ${output.exitCode} Time: ${output.time}");
   }
 }
