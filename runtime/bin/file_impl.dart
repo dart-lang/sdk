@@ -280,6 +280,18 @@ class _PositionOperation extends _FileOperation {
 }
 
 
+class _SetPositionOperation extends _FileOperation {
+  _SetPositionOperation(int this._id, int this._position);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._setPosition(_id, _position), port.toSendPort());
+  }
+
+  int _id;
+  int _position;
+}
+
+
 class _LengthOperation extends _FileOperation {
   _LengthOperation(int this._id);
 
@@ -412,6 +424,7 @@ class _File implements File {
       native "File_WriteList";
   static int _writeString(int id, String string) native "File_WriteString";
   static int _position(int id) native "File_Position";
+  static int _setPosition(int id, int position) native "File_SetPosition";
   static int _length(int id) native "File_Length";
   static int _flush(int id) native "File_Flush";
   static bool _create(String name) native "File_Create";
@@ -759,6 +772,33 @@ class _File implements File {
     return result;
   }
 
+  void setPosition(int position) {
+    _asyncUsed = true;
+    var handler =
+        (_setPositionHandler != null) ? _setPositionHandler : () => null;
+    var handleSetPositionResult = (result, ignored) {
+      if (result == -1 && _errorHandler != null) {
+        _errorHandler("setPosition failed");
+        return;
+      }
+      handler(result);
+    };
+    var operation = new _SetPositionOperation(_id, position);
+    _scheduler.enqueue(operation, handleSetPositionResult);
+  }
+
+  void setPositionSync(int position) {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    int result = _setPosition(_id, position);
+    if (result == -1) {
+      throw new FileIOException("setPosition failed");
+    }
+  }
+  
+
   void length() {
     _asyncUsed = true;
     var handler = (_lengthHandler != null) ? _lengthHandler : (pos) => null;
@@ -881,6 +921,10 @@ class _File implements File {
     _positionHandler = handler;
   }
 
+  void set setPositionHandler(void handler()) {
+    _setPositionHandler = handler;
+  }
+
   void set lengthHandler(void handler(int length)) {
     _lengthHandler = handler;
   }
@@ -911,6 +955,7 @@ class _File implements File {
   var _readListHandler;
   var _noPendingWriteHandler;
   var _positionHandler;
+  var _setPositionHandler;
   var _lengthHandler;
   var _flushHandler;
   var _fullPathHandler;

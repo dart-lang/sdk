@@ -46,6 +46,7 @@ class File {
   // Get the current position in the file.
   // Returns a negative value if position cannot be determined.
   off_t Position();
+  off_t SetPosition(int64_t position);
 
   // Flush contents of file.
   void Flush();

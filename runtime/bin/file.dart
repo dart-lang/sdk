@@ -126,15 +126,26 @@ interface File factory _File {
   int writeStringSync(String string);
 
   /**
-   * Get the current position of the file. When the operation
+   * Get the current byte position in the file. When the operation
    * completes the [positionHandler] is called with the position.
    */
   void position();
 
   /**
-   * Synchronously get the current position of the file.
+   * Synchronously get the current byte position in the file.
    */
   int positionSync();
+
+  /**
+   * Set the byte position in the file. When the operation completes
+   * the [setPositionHandler] is called.
+   */
+  void setPosition(int position);
+
+  /**
+   * Synchronously set the byte position in the file.
+   */
+  void setPositionSync(int position);
 
   /**
    * Get the length of the file. When the operation completes the
@@ -197,6 +208,7 @@ interface File factory _File {
   void set readListHandler(void handler(int read));
   void set noPendingWriteHandler(void handler());
   void set positionHandler(void handler(int position));
+  void set setPositionHandler(void handler());
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
   void set fullPathHandler(void handler(String path));

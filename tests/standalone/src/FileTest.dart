@@ -274,7 +274,14 @@ class FileTest {
           input.readListHandler = (bytes_read) {
             input.positionHandler = (position) {
               Expect.equals(18, position);
-              input.close();
+              input.setPositionHandler = () {
+                input.positionHandler = (position) {
+                  Expect.equals(8, position);
+                  input.close();
+                };
+                input.position();
+              };
+              input.setPosition(8);
             };
           };
           input.readList(buffer, 12, 6);
@@ -297,6 +304,8 @@ class FileTest {
     Expect.equals(12, input.positionSync());
     input.readListSync(buffer, 12, 6);
     Expect.equals(18, input.positionSync());
+    input.setPositionSync(8);
+    Expect.equals(8, input.positionSync());
     input.closeSync();
     return 1;
   }
