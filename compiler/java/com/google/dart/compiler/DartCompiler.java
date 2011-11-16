@@ -18,6 +18,8 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.ast.viz.ASTWriterFactory;
+import com.google.dart.compiler.ast.viz.BaseASTWriter;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.metrics.DartEventType;
@@ -664,6 +666,9 @@ public class DartCompiler {
       try {
         // Set entry point
         setEntryPoint();
+        
+        // Dump the compiler parse tree if dump format is set in arguments
+        BaseASTWriter astWriter = ASTWriterFactory.create(config);
 
         // The two following for loops can be parallelized.
         for (LibraryUnit lib : libraries.values()) {
@@ -671,6 +676,11 @@ public class DartCompiler {
 
           // Compile all the units in this library.
           for (DartUnit unit : lib.getUnits()) {
+          
+            if(astWriter != null) {
+              astWriter.process(unit);
+            }
+            
             // Don't compile api-only units.
             if (unit.isDiet()) {
               continue;
