@@ -104,7 +104,7 @@ class Expect {
     for (int i = 0; i < n; i++) {
       if (expected[i] != actual[i]) {
         _fail('Expect.listEquals(at index $i, ' +
-              'expected: <${expected[0]}>, actual: <${actual[i]}>$msg) fails');
+              'expected: <${expected[i]}>, actual: <${actual[i]}>$msg) fails');
       }
     }
     // We check on length at the end in order to provide better error
