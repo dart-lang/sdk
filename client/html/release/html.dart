@@ -26109,7 +26109,7 @@ class WheelEventWrappingImplementation extends UIEventWrappingImplementation imp
       int screenX, int screenY, int clientX, int clientY, [bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false]) {
     final e = dom.document.createEvent("WheelEvent");
-    e.initWheelEvent(deltaX, deltaY, LevelDom.unwrap(view), screenX, screenY,
+    e.initWebKitWheelEvent(deltaX, deltaY, LevelDom.unwrap(view), screenX, screenY,
         clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return LevelDom.wrapWheelEvent(e);
   }
