@@ -1127,6 +1127,10 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       Integer& integer  = Integer::Handle();
       for (int i = 0; i < length; i++) {
         element = array_obj.At(offset + i);
+        if (!element.IsInteger()) {
+          return Api::Error("%s expects the argument 'list' to be "
+                            "a List of int", CURRENT_FUNC);
+        }
         integer ^= element.raw();
         native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);
         ASSERT(integer.AsInt64Value() <= 0xff);
@@ -1153,6 +1157,10 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
         element = GetListAt(isolate, instance, intobj, function, &result);
         if (Dart_IsError(result)) {
           return result;  // Error condition.
+        }
+        if (!element.IsInteger()) {
+          return Api::Error("%s expects the argument 'list' to be "
+                            "a List of int", CURRENT_FUNC);
         }
         intobj ^= element.raw();
         ASSERT(intobj.AsInt64Value() <= 0xff);
@@ -1249,7 +1257,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     Integer& integer = Integer::Handle();
     if ((offset + length) <= array_obj.Length()) {
       for (int i = 0; i < length; i++) {
-        integer ^= Integer::New(native_array[i]);
+        integer = Integer::New(native_array[i]);
         array_obj.SetAt(offset + i, integer);
       }
       return Api::Success();
@@ -1269,7 +1277,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
       Dart_Handle result;
       for (int i = 0; i < length; i++) {
         indexobj = Integer::New(offset + i);
-        valueobj ^= Integer::New(native_array[i]);
+        valueobj = Integer::New(native_array[i]);
         SetListAt(isolate, instance, indexobj, valueobj, function, &result);
         if (Dart_IsError(result)) {
           return result;  // Error condition.
