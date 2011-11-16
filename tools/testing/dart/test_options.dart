@@ -4,7 +4,7 @@
 
 #library("test_options_parser");
 
-List<String> defaultTestSelectors = const ['standalone', 'corelib'];
+List<String> defaultTestSelectors = const ['standalone', 'corelib', 'co19'];
 
 /**
  * Specification of a single test option.
@@ -57,9 +57,9 @@ class TestOptionsParser {
               ['all', 'ia32', 'x64', 'simarm'],
               'ia32'),
           new _TestOptionSpecification(
-              'os',
+              'system',
               'The operating system to run tests on',
-              ['-o', '--os'],
+              ['-s', '--system'],
               ['linux', 'macos', 'windows'],
               new Platform().operatingSystem()),
           new _TestOptionSpecification(
@@ -202,6 +202,10 @@ class TestOptionsParser {
     if (configuration['component'] == 'most') {
       configuration['component'] = 'vm,dartc';
     }
+
+    // Create the artificial 'unchecked' option that test status files
+    // expect.
+    configuration['unchecked'] = !configuration['checked'];
 
     // Expand the test selectors into simple regular expressions to be
     // used on the full path of a test file. If no selectors are

@@ -20,10 +20,10 @@ final int NO_TIMEOUT = 0;
 
 String getBuildDir(Map configuration) {
   var buildDir = '';
-  var os = configuration['os'];
-  if (os == 'linux') {
+  var system = configuration['system'];
+  if (system == 'linux') {
     buildDir = 'out/';
-  } else if (os == 'macos') {
+  } else if (system == 'macos') {
     buildDir = 'xcodebuild/';
   }
   buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
@@ -65,18 +65,25 @@ class TestCase {
   String commandLine;
   String displayName;
   TestOutput output;
+  bool isNegative;
   Set<String> expectedOutcomes;
   Function completedHandler;
 
-  TestCase(this.displayName, this.executablePath, this.arguments,
-           this.timeout, this.completedHandler, this.expectedOutcomes) {
+  TestCase(this.displayName,
+           this.executablePath,
+           this.arguments,
+           this.timeout,
+           this.completedHandler,
+           this.expectedOutcomes,
+           [this.isNegative = false]) {
+    if (!isNegative) {
+      isNegative = displayName.contains("NegativeTest");
+    }
     commandLine = executablePath;
     for (var arg in arguments) {
       commandLine += " " + arg;
     }
   }
-
-  bool get isNegative() => displayName.contains("NegativeTest");
 
   void completed() { completedHandler(this); }    
 }

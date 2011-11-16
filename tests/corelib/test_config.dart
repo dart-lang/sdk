@@ -15,7 +15,7 @@ class CorelibTestSuite {
   String shellPath;
   String pathSeparator;
   Map configuration;
-  TestExpectationsMap testExpectationsMap;
+  TestExpectations testExpectations;
 
   CorelibTestSuite(Map this.configuration) {
     shellPath = getDartShellFileName(configuration) ;
@@ -27,7 +27,8 @@ class CorelibTestSuite {
     doDone = (ignore) => onDone();
 
     // Read test expectations from status file.
-    testExpectationsMap = ReadTestExpectations(statusFilePath, configuration);
+    testExpectations = new TestExpectations();
+    ReadTestExpectationsInto(testExpectations, statusFilePath, configuration);
 
     processDirectory();
   }
@@ -56,10 +57,8 @@ class CorelibTestSuite {
 
     int start = filename.lastIndexOf(pathSeparator);
     String testName = filename.substring(start + 1, filename.length - 5);
-    Set<String> expectations = testExpectationsMap.expectations(testName);
+    Set<String> expectations = testExpectations.expectations(testName);
 
-    // TODO(whesse): Skip files with internal directives, and multipart files,
-    //               until they are handled correctly.
     if (expectations.contains(SKIP)) return;
 
     List args = ["--ignore-unrecognized-flags"];

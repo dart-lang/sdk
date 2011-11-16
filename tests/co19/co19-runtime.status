@@ -85,18 +85,6 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegE
 # List.fromList has been removed.
 LibTest/core/List/List.fromList/*: Fail # Issue co19 - 32
 
-
-
-[ $component == vm && $unchecked ]
-
-
-# New problems on 2011-11-01.
-[ $component == vm && $mode == debug ]
-
-[ $component == vm && $mode == debug && $unchecked ]
-
-[ $component == vm && $mode == release ]
-
 [ $component == vm ]
 LangSpecTest/13_Types/13_4_Interface_Types/A07/t02: Fail # Issue 443
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail # Issue 444
