@@ -48,6 +48,33 @@ DECLARE_RUNTIME_ENTRY(Throw);
 DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 
+enum DeoptReasonId {
+  kDeoptUnknown,
+  kDeoptIncrLocal,
+  kDeoptIncrInstance,
+  kDeoptIncrInstanceOneClass,
+  kDeoptInstanceGetterSameTarget,
+  kDeoptInstanceGetter,
+  kDeoptStoreIndexed,
+  kDeoptCheckedInstanceCallSmiOnly,
+  kDeoptCheckedInstanceCallSmiFail,
+  kDeoptCheckedInstanceCallCheckFail,
+  kDeoptIntegerToDouble,
+  kDeoptDoubleToDouble,
+  kDeoptSmiBinaryOp,
+  kDeoptMintBinaryOp,
+  kDeoptDoubleBinaryOp,
+  kDeoptInstanceSetterSameTarget,
+  kDeoptInstanceSetter,
+  kDeoptSmiEquality,
+  kDeoptSmiCompareSmis,
+  kDeoptSmiCompareAny,
+  kDeoptEqualityNoFeedback,
+  kDeoptEqualityClassCheck,
+  kDeoptDoubleComparison,
+  kDeoptLoadIndexedFixedArray,
+  kDeoptLoadIndexedGrowableArray,
+};
 
 // This class wraps around the array RawClass::functions_cache_.
 // The structure of that array is specified by FunctionsCache::Entries.

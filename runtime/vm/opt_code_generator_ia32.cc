@@ -115,7 +115,11 @@ PROPERTY_LIST(UNION_ELEMENTS)
 // be pushed for the deoptimization point in unoptimized code.
 class DeoptimizationBlob : public ZoneAllocated {
  public:
-  explicit DeoptimizationBlob(AstNode* node) : node_(node), registers_(2) {}
+  DeoptimizationBlob(AstNode* node, DeoptReasonId deopt_reason_id)
+      : node_(node),
+        registers_(2),
+        label_(),
+        deopt_reason_id_(deopt_reason_id) {}
 
   void Push(Register reg) { registers_.Add(reg); }
 
@@ -124,6 +128,7 @@ class DeoptimizationBlob : public ZoneAllocated {
     for (int i = 0; i < registers_.length(); i++) {
       codegen->assembler()->pushl(registers_[i]);
     }
+    codegen->assembler()->movl(EAX, Immediate(Smi::RawValue(deopt_reason_id_)));
     codegen->CallDeoptimize(node_->id(), node_->token_index());
 #if defined(DEBUG)
     // Check that deoptimization point exists in unoptimized code.
@@ -143,6 +148,7 @@ class DeoptimizationBlob : public ZoneAllocated {
   const AstNode* node_;
   GrowableArray<Register> registers_;
   Label label_;
+  DeoptReasonId deopt_reason_id_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptimizationBlob);
 };
@@ -219,16 +225,19 @@ OptimizingCodeGenerator::OptimizingCodeGenerator(
 
 
 DeoptimizationBlob*
-OptimizingCodeGenerator::AddDeoptimizationBlob(AstNode* node) {
-  DeoptimizationBlob* d = new DeoptimizationBlob(node);
+OptimizingCodeGenerator::AddDeoptimizationBlob(AstNode* node,
+                                               DeoptReasonId reason_id) {
+  DeoptimizationBlob* d = new DeoptimizationBlob(node, reason_id);
   deoptimization_blobs_.Add(d);
   return d;
 }
 
 
 DeoptimizationBlob*
-OptimizingCodeGenerator::AddDeoptimizationBlob(AstNode* node, Register reg) {
-  DeoptimizationBlob* d = AddDeoptimizationBlob(node);
+OptimizingCodeGenerator::AddDeoptimizationBlob(AstNode* node,
+                                               Register reg,
+                                               DeoptReasonId reason_id) {
+  DeoptimizationBlob* d = AddDeoptimizationBlob(node, reason_id);
   d->Push(reg);
   return d;
 }
@@ -237,8 +246,9 @@ OptimizingCodeGenerator::AddDeoptimizationBlob(AstNode* node, Register reg) {
 DeoptimizationBlob*
 OptimizingCodeGenerator::AddDeoptimizationBlob(AstNode* node,
                                                Register reg1,
-                                               Register reg2) {
-  DeoptimizationBlob* d = AddDeoptimizationBlob(node);
+                                               Register reg2,
+                                               DeoptReasonId reason_id) {
+  DeoptimizationBlob* d = AddDeoptimizationBlob(node, reason_id);
   d->Push(reg1);
   d->Push(reg2);
   return d;
@@ -249,8 +259,9 @@ DeoptimizationBlob*
 OptimizingCodeGenerator::AddDeoptimizationBlob(AstNode* node,
                                                Register reg1,
                                                Register reg2,
-                                               Register reg3) {
-  DeoptimizationBlob* d = AddDeoptimizationBlob(node);
+                                               Register reg3,
+                                               DeoptReasonId reason_id) {
+  DeoptimizationBlob* d = AddDeoptimizationBlob(node, reason_id);
   d->Push(reg1);
   d->Push(reg2);
   d->Push(reg3);
@@ -672,7 +683,8 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
     Label* overflow_label = NULL;
     Label two_smis, call_operator;
     if (left_info.IsClass(smi_class_) || right_info.IsClass(smi_class_)) {
-      DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, ECX, EDX);
+      DeoptimizationBlob* deopt_blob =
+          AddDeoptimizationBlob(node, ECX, EDX, kDeoptSmiBinaryOp);
       overflow_label = deopt_blob->label();
       __ movl(ECX, EAX);  // Save if overflow (needs original value).
       if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
@@ -777,7 +789,8 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
   if (kind == Token::kBIT_AND) {
     TraceOpt(node, kOptMessage);
     Label is_smi, slow_case, done;
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EDX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, EDX, kDeoptMintBinaryOp);
     VisitLoadTwo(node->left(), node->right(), EAX, EDX);
     __ testl(EDX, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);  // Call operator if right is not Smi.
@@ -899,7 +912,10 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node) {
     Label* deopt_lbl = NULL;
     if (!left_info.IsClass(double_class_) ||
         !right_info.IsClass(double_class_)) {
-      deopt_blob = AddDeoptimizationBlob(node, kLeftRegister, kRightRegister);
+      deopt_blob = AddDeoptimizationBlob(node,
+                                         kLeftRegister,
+                                         kRightRegister,
+                                         kDeoptDoubleBinaryOp);
       deopt_lbl = deopt_blob->label();
     }
 
@@ -1097,7 +1113,7 @@ void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   const int int_value = (node->kind() == Token::kINCR) ? 1 : -1;
   const Immediate smi_value =
       Immediate(reinterpret_cast<int32_t>(Smi::New(int_value)));
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node);
+  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, kDeoptIncrLocal);
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt_blob->label());
   __ addl(EAX, smi_value);
@@ -1160,7 +1176,8 @@ void OptimizingCodeGenerator::VisitIncrOpInstanceFieldNode(
   if (ic_data.NumberOfChecks() == 0) {
     // Deoptimization point for this node is after receiver has been
     // pushed twice on stack and before the getter (above) was executed.
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EBX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EBX, kDeoptIncrInstance);
     __ jmp(deopt_blob->label());
     return;
   }
@@ -1178,7 +1195,8 @@ void OptimizingCodeGenerator::VisitIncrOpInstanceFieldNode(
   if (AtIdNodeHasOnlyClass(node, node->operator_id(), smi_class_)) {
     // Deoptimization point for this node is after receiver has been
     // pushed twice on stack and before the getter (above) was executed.
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EDX, EDX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EDX, EDX, kDeoptIncrInstanceOneClass);
     if (return_original_value) {
       // Preserve pre increment result.
       __ movl(ECX, EAX);
@@ -1288,7 +1306,8 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     // TODO(srdjan): Do not hardwire register.
     UNIMPLEMENTED();
   }
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EBX);
+  DeoptimizationBlob* deopt_blob =
+      AddDeoptimizationBlob(node, EBX, kDeoptInstanceGetterSameTarget);
   if (NodeMayBeSmi(receiver)) {
     __ testl(EBX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
@@ -1429,7 +1448,8 @@ void OptimizingCodeGenerator::VisitInstanceGetterNode(
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback collected.
     node->receiver()->Visit(this);
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, kDeoptInstanceGetter);
     __ jmp(deopt_blob->label());
     return;
   }
@@ -1456,8 +1476,8 @@ void OptimizingCodeGenerator::InlineInstanceSettersWithSameTarget(
     Register recv_reg,
     Register value_reg) {
   ASSERT((recv_reg != EBX) && (value_reg != EBX));
-  DeoptimizationBlob* deopt_blob =
-      AddDeoptimizationBlob(node, recv_reg, value_reg);
+  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(
+      node, recv_reg, value_reg, kDeoptInstanceSetterSameTarget);
   if (NodeMayBeSmi(receiver)) {
     __ testl(recv_reg, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
@@ -1520,7 +1540,8 @@ void OptimizingCodeGenerator::VisitInstanceSetterNode(
   VisitLoadTwo(node->receiver(), node->value(), EDX, EAX);
   const ICData& ic_data = node->ICDataAtId(node->id());
   if (ic_data.NumberOfChecks() == 0) {
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EDX, EAX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EDX, EAX, kDeoptInstanceSetter);
     __ jmp(deopt_blob->label());
     return;
   }
@@ -1620,7 +1641,8 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label evaluate_comparison;
   if (!left_info.IsClass(smi_class_)) {
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EDX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, EDX, kDeoptSmiEquality);
     Label left_not_null;
     __ cmpl(EAX, raw_null);
     __ j(NOT_EQUAL, &left_not_null, Assembler::kNearJump);
@@ -1712,13 +1734,15 @@ bool OptimizingCodeGenerator::GenerateSmiComparison(ComparisonNode* node) {
     __ cmpl(EAX, EDX);
   } else if (left_info.IsClass(smi_class_) || right_info.IsClass(smi_class_)) {
     // One is Smi.
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EDX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, EDX, kDeoptSmiCompareSmis);
     Register reg_to_test = left_info.IsClass(smi_class_) ? EDX : EAX;
     __ testl(reg_to_test, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt_blob->label());
     __ cmpl(EAX, EDX);
   } else {
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, ECX, EDX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, ECX, EDX, kDeoptSmiCompareAny);
     __ movl(ECX, EAX);
     __ orl(EAX, EDX);
     __ testl(EAX, Immediate(kSmiTagMask));
@@ -1812,15 +1836,18 @@ bool OptimizingCodeGenerator::GenerateEqualityComparison(ComparisonNode* node) {
   if (!CodeGenerator::IsResultNeeded(node)) {
     return true;
   }
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EDX);
   Label compare;
   // Comparison with NULL is "===".
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ cmpl(EAX, raw_null);
   if (num_classes == 0) {
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, EDX, kDeoptEqualityNoFeedback);
     __ j(NOT_EQUAL, deopt_blob->label());
   } else {
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, EDX, kDeoptEqualityClassCheck);
     __ j(EQUAL, &compare);
     // Smi causes deoptimization.
     __ testl(EAX, Immediate(kSmiTagMask));
@@ -1876,7 +1903,7 @@ bool OptimizingCodeGenerator::GenerateDoubleComparison(ComparisonNode* node) {
   VisitLoadTwo(node->left(), node->right(), EAX, EDX);
   DeoptimizationBlob* deopt_blob = NULL;
   if (!left_info.IsClass(double_class_) || !right_info.IsClass(double_class_)) {
-    deopt_blob = AddDeoptimizationBlob(node, EAX, EDX);
+    deopt_blob = AddDeoptimizationBlob(node, EAX, EDX, kDeoptDoubleComparison);
   }
   if (!left_info.IsClass(double_class_)) {
     CheckIfDoubleOrSmi(EAX, EBX, deopt_blob->label(), deopt_blob->label());
@@ -1977,7 +2004,8 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
   if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class) ||
       AtIdNodeHasOnlyClass(node, node->id(), immutable_object_array_class)) {
     VisitLoadTwo(node->array(), node->index_expr(), EBX, EDX);
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EBX, EDX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EBX, EDX, kDeoptLoadIndexedFixedArray);
     const Class& test_class =
         AtIdNodeHasOnlyClass(node, node->id(), object_array_class) ?
             object_array_class : immutable_object_array_class;
@@ -2019,7 +2047,8 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     intptr_t array_offset = GetFieldOffset(growable_array_class,
                                            growable_array_array_field_name);
     VisitLoadTwo(node->array(), node->index_expr(), EDX, EAX);
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EDX, EAX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EDX, EAX, kDeoptLoadIndexedGrowableArray);
     // TODO(srdjan): Use CodeGenInfo to eliminate Smi test if possible.
     // EAX: index, EDX: array.
     __ testl(EAX, Immediate(kSmiTagMask));
@@ -2060,7 +2089,8 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
       Class::ZoneHandle(object_store->array_class());
   if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class)) {
     VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
-    DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX, EBX, ECX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, EBX, ECX, kDeoptStoreIndexed);
     __ popl(EAX);  // array.
     // ECX: value, EBX:index, EAX: array.
     // Check type of array.
@@ -2214,7 +2244,7 @@ void OptimizingCodeGenerator::VisitIfNode(IfNode* node) {
 void OptimizingCodeGenerator::GenerateDirectCall(
     intptr_t node_id,
     intptr_t token_index,
-    Function& target,
+    const Function& target,
     intptr_t arg_count,
     const Array& optional_argument_names) {
   ASSERT(!target.IsNull());
@@ -2230,6 +2260,73 @@ void OptimizingCodeGenerator::GenerateDirectCall(
 }
 
 
+// Generate inline cache calls instead of deoptimizing when no type feedback is
+// provided.
+// TODO(srdjan): Recompilation framework should recognize active IC calls
+// in optimized code and mark them for reoptimization since type feedback was
+// collected in the meantime.
+void OptimizingCodeGenerator::GenerateInlineCacheCall(
+    intptr_t node_id,
+    intptr_t token_index,
+    const ICData& ic_data,
+    intptr_t num_args,
+    const Array& optional_arguments_names) {
+  __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
+  __ LoadObject(EDX, ArgumentsDescriptor(num_args, optional_arguments_names));
+  ExternalLabel target_label(
+      "InlineCache", StubCode::InlineCacheEntryPoint());
+
+  __ call(&target_label);
+  AddCurrentDescriptor(PcDescriptors::kIcCall,
+                       node_id,
+                       token_index);
+  __ addl(ESP, Immediate(num_args * kWordSize));
+}
+
+
+// Normalizes the ic_data class/target pairs:
+// - If Smi class exists, make it the first one.
+// - If 'null_target' not null, append null-class/'null_target'
+void OptimizingCodeGenerator::NormalizeClassChecks(
+    const ICData& ic_data,
+    const Function& null_target,
+    GrowableArray<const Class*>* classes,
+    GrowableArray<const Function*>* targets) {
+  ASSERT(classes != NULL);
+  ASSERT(targets != NULL);
+  // Check if we can add Smi class in front.
+  Class& smi_test_class = Class::Handle();
+  Function& smi_target = Function::ZoneHandle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    ic_data.GetOneClassCheckAt(i, &smi_test_class, &smi_target);
+    if (smi_test_class.raw() == smi_class_.raw()) {
+      classes->Add(&Class::ZoneHandle(smi_class_.raw()));
+      targets->Add(&Function::ZoneHandle(smi_target.raw()));
+      break;
+    }
+  }
+  // Add all classes except Smi.
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    Function& target = Function::ZoneHandle();
+    Class& cls = Class::ZoneHandle();
+    ic_data.GetOneClassCheckAt(i, &cls, &target);
+    ASSERT(!cls.IsNullClass());
+    if (cls.raw() != smi_class_.raw()) {
+      ASSERT(!cls.IsNull());
+      ASSERT(!target.IsNull());
+      classes->Add(&cls);
+      targets->Add(&target);
+    }
+  }
+  // Do not add a target that has not been compiled yet.
+  if (!null_target.IsNull() && null_target.HasCode()) {
+    ASSERT(null_target.IsZoneHandle());
+    classes->Add(&Class::ZoneHandle(Object::null_class()));
+    targets->Add(&null_target);
+  }
+}
+
+
 // Use ICData in 'node' to issues checks and calls.
 void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     AstNode* node,
@@ -2237,84 +2334,88 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     intptr_t node_id,
     intptr_t token_index,
     intptr_t num_args,
-    const Array& optional_argument_names) {
+    const Array& optional_arguments_names) {
   ASSERT(node != NULL);
   ASSERT(receiver != NULL);
   ASSERT(num_args > 0);
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node);
   const ICData& ic_data = node->ICDataAtId(node_id);
   if (ic_data.NumberOfChecks() == 0) {
-    // No type feedback means node was never executed.
-    __ jmp(deopt_blob->label());
+    // No type feedback means node was never executed. However that can be
+    // a common case especially in case of large switch statements.
+    // Use a special inline cache call which can help us decide when to
+    // re-optimize this optiumized function.
+    GenerateInlineCacheCall(
+        node_id, token_index, ic_data, num_args, optional_arguments_names);
     return;
   }
   ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
 
-  // First test for Smi. Null object will cause deoptimization.
-  intptr_t smi_class_index = -1;
-  Class& smi_test_class = Class::Handle();
-  Function& smi_target = Function::ZoneHandle();
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetOneClassCheckAt(i, &smi_test_class, &smi_target);
-    if (smi_test_class.raw() == smi_class_.raw()) {
-      smi_class_index = i;
-      break;
-    }
-  }
+  Function& target_for_null = Function::ZoneHandle();
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  int num_optional_args =
+      optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
+  target_for_null = Resolver::ResolveDynamicForReceiverClass(
+      Class::Handle(object_store->object_class()),
+      String::Handle(ic_data.FunctionName()),
+      num_args,
+      num_optional_args);
+  GrowableArray<const Class*> classes;
+  GrowableArray<const Function*> targets;
+  NormalizeClassChecks(ic_data, target_for_null, &classes, &targets);
+  ASSERT(!classes.is_empty());
+  ASSERT(classes.length() == targets.length());
+  intptr_t start_ix = 0;
 
   Label done;
   __ movl(EAX, Address(ESP, (num_args - 1) * kWordSize));  // Load receiver.
-  if (smi_class_index >= 0) {
+  if (classes[0]->raw() == smi_class_.raw()) {
+    start_ix++;
     // Smi test is needed.
     __ testl(EAX, Immediate(kSmiTagMask));
-    if (ic_data.NumberOfChecks() == 1) {
-      // Only the Smi test.
+    if (classes.length() == 1) {
+      // Only Smi test.
+      DeoptimizationBlob* deopt_blob =
+          AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallSmiOnly);
       __ j(NOT_ZERO, deopt_blob->label());
       GenerateDirectCall(node_id,
                          token_index,
-                         smi_target,
+                         *targets[0],
                          num_args,
-                         optional_argument_names);
+                         optional_arguments_names);
       return;
     }
     Label not_smi;
     __ j(NOT_ZERO, &not_smi);
     GenerateDirectCall(node_id,
                        token_index,
-                       smi_target,
+                       *targets[0],
                        num_args,
-                       optional_argument_names);
+                       optional_arguments_names);
     __ jmp(&done);
     __ Bind(&not_smi);  // Continue with other test below.
   } else if (NodeMayBeSmi(receiver)) {
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallSmiFail);
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());
   } else {
     // Receiver cannot be Smi, no need to test it.
   }
-
-  intptr_t last_check_at = (smi_class_index == ic_data.NumberOfChecks() - 1) ?
-      ic_data.NumberOfChecks() - 2 : ic_data.NumberOfChecks() - 1;
-  // Every class may appear only once in the 'classes' array. Therefore, if
-  // Smi class is last, it cannot be the second to last.
   __ movl(EAX, FieldAddress(EAX, Object::class_offset()));  // Receiver's class.
-  for (intptr_t i = 0; i <= last_check_at; i++) {
-    Function& target = Function::ZoneHandle();
-    Class& cls = Class::ZoneHandle();
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
-    ASSERT(!cls.IsNullClass());
-    if (cls.raw() == smi_class_.raw()) {
-      ASSERT(i < last_check_at);  // Smi class may not be last.
-      continue;  // Skip Smi test.
-    }
+  for (intptr_t i = start_ix; i < classes.length(); i++) {
+    const Class& cls = *classes[i];
+    const Function& target = *targets[i];
     __ CompareObject(EAX, cls);
-    if (i == last_check_at) {
+    if (i == (classes.length() - 1)) {
+      // Last check.
+      DeoptimizationBlob* deopt_blob =
+          AddDeoptimizationBlob(node, kDeoptCheckedInstanceCallCheckFail);
       __ j(NOT_EQUAL, deopt_blob->label());
       GenerateDirectCall(node_id,
                          token_index,
                          target,
                          num_args,
-                         optional_argument_names);
+                         optional_arguments_names);
     } else {
       Label next;
       __ j(NOT_EQUAL, &next);
@@ -2322,7 +2423,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
                          token_index,
                          target,
                          num_args,
-                         optional_argument_names);
+                         optional_arguments_names);
       __ jmp(&done);
       __ Bind(&next);
     }
@@ -2382,7 +2483,8 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
       const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
       GenerateCall(node->token_index(), &label);
       // EAX is double object.
-      DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EBX);
+      DeoptimizationBlob* deopt_blob =
+          AddDeoptimizationBlob(node, EBX, kDeoptIntegerToDouble);
       __ popl(EBX);  // Receiver
       __ testl(EBX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, deopt_blob->label());  // Deoptimize if not Smi.
@@ -2394,7 +2496,8 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
 
     if ((recognized == Recognizer::kDoubleToDouble) &&
         AtIdNodeHasOnlyClass(node, node->id(), double_class_)) {
-      DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(node, EAX);
+      DeoptimizationBlob* deopt_blob =
+          AddDeoptimizationBlob(node, EAX, kDeoptDoubleToDouble);
       __ popl(EAX);
       CheckIfDoubleOrSmi(EAX, EBX, deopt_blob->label(), deopt_blob->label());
       return true;

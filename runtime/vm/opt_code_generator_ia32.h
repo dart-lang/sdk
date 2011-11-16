@@ -54,16 +54,20 @@ class OptimizingCodeGenerator : public CodeGenerator {
  private:
   friend class DeoptimizationBlob;
 
-  DeoptimizationBlob* AddDeoptimizationBlob(AstNode* node);
   DeoptimizationBlob* AddDeoptimizationBlob(AstNode* node,
-                                            Register reg1);
+                                            DeoptReasonId reason_id);
   DeoptimizationBlob* AddDeoptimizationBlob(AstNode* node,
                                             Register reg1,
-                                            Register reg2);
+                                            DeoptReasonId reason_id);
   DeoptimizationBlob* AddDeoptimizationBlob(AstNode* node,
                                             Register reg1,
                                             Register reg2,
-                                            Register reg3);
+                                            DeoptReasonId reason_id);
+  DeoptimizationBlob* AddDeoptimizationBlob(AstNode* node,
+                                            Register reg1,
+                                            Register reg2,
+                                            Register reg3,
+                                            DeoptReasonId reason_id);
 
   void IntrinsifyGetter();
   void IntrinsifySetter();
@@ -113,7 +117,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
                           Label* not_double_or_smi);
   void GenerateDirectCall(intptr_t node_id,
                           intptr_t token_index,
-                          Function& target,
+                          const Function& target,
                           intptr_t arg_count,
                           const Array& optional_argument_names);
   void GenerateCheckedInstanceCalls(AstNode* node,
@@ -121,7 +125,16 @@ class OptimizingCodeGenerator : public CodeGenerator {
                                     intptr_t node_id,
                                     intptr_t token_index,
                                     intptr_t num_args,
-                                    const Array& optional_argument_names);
+                                    const Array& optional_arguments_names);
+  void GenerateInlineCacheCall(intptr_t node_id,
+                                intptr_t token_index,
+                                const ICData& ic_data,
+                                intptr_t num_args,
+                                const Array& optional_arguments_names);
+  void NormalizeClassChecks(const ICData& ic_data,
+                            const Function& null_target,
+                            GrowableArray<const Class*>* classes,
+                            GrowableArray<const Function*>* targets);
   bool GenerateSmiComparison(ComparisonNode* node);
   void GenerateSmiEquality(ComparisonNode* node);
   bool GenerateDoubleComparison(ComparisonNode* node);

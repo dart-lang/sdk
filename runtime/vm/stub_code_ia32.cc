@@ -606,11 +606,14 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ EnterFrame(0);
+  // EAX: deoptimization reason id.
   // Stack at this point:
   // TOS + 0: Saved EBP of function frame that will be deoptimized. <== EBP
   // TOS + 1: Deoptimization point (return address), will be patched.
   // TOS + 2: top-of-stack at deoptimization point (all arguments on stack).
+  __ pushl(EAX);
   __ CallRuntimeFromStub(kDeoptimizeRuntimeEntry);
+  __ popl(EAX);
   __ LeaveFrame();
   __ ret();
 }
