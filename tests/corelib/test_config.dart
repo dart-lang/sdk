@@ -97,29 +97,41 @@ class CorelibTestSuite {
   Map testOptions(String filename) {
     RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
-    File file = new File(filename);
-    FileInputStream fileStream = file.openInputStream();
-    StringInputStream lines = new StringInputStream(fileStream);
 
+    // Read the entire file into a byte buffer and transform it to a
+    // String. This will treat the file as ascii but the only parts
+    // we are interested in will be ascii in any case.
+    File file = new File(filename);
+    file.openSync();
+    List chars = new List(file.lengthSync());
+    var offset = 0;
+    while (offset != chars.length) {
+      offset += file.readListSync(chars, offset, chars.length - offset);
+    }
+    file.closeSync();
+    String contents = new String.fromCharCodes(chars);
+    chars = null;
+
+    // Find the options in the file.
     List<List> result = new List<List>();
     List<String> dartOptions;
-    String line;
-    while ((line = lines.readLine()) != null) {
-      Match match = testOptionsRegExp.firstMatch(line);
-      if (match != null) {
-        result.add(match[1].split(' ').filter((e) => e != ''));
-      }
+    bool isNegative = false;
 
-      match = dartOptionsRegExp.firstMatch(line);
-      if (match != null) {
-        if (dartOptions != null) {
-          throw new Exception(
-              'More than one "// DartOptions=" line in test $filename');
-        }
-        dartOptions = match[1].split(' ').filter((e) => e != '');
-      }
+    Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
+    for (var match in matches) {
+      result.add(match[1].split(' ').filter((e) => e != ''));
     }
-    return {"vmOptions": result, "dartOptions": dartOptions};
+
+    matches = dartOptionsRegExp.allMatches(contents);
+    for (var match in matches) {
+      if (dartOptions != null) {
+        throw new Exception(
+            'More than one "// DartOptions=" line in test $filename');
+      }
+      dartOptions = match[1].split(' ').filter((e) => e != '');
+    }
+
+    return { "vmOptions": result, "dartOptions": dartOptions };
   }
   
   void completeHandler(TestCase testCase) {
