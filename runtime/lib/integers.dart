@@ -24,7 +24,7 @@ class IntegerImplementation {
     return this.toDouble() / other.toDouble();
   }
   num operator %(num other) {
-    if (other == 0) {
+    if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
     return other.moduloFromInteger(this);
@@ -118,12 +118,15 @@ class IntegerImplementation {
   }
 
   String toStringAsFixed(int fractionDigits) {
+    // Issue 460.
     throw "IntegerImplementation.toStringAsFixed not implemented";
   }
   String toStringAsExponential(int fractionDigits) {
+    // Issue 460.
     throw "IntegerImplementation.toStringAsExponential not implemented";
   }
   String toStringAsPrecision(int precision) {
+    // Issue 460.
     throw "IntegerImplementation.toStringAsPrecision not implemented";
   }
   String toRadixString(int radix) {
