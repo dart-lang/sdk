@@ -13,6 +13,7 @@
 #import("../tests/isolate/test_config.dart");
 #import("../tests/language/test_config.dart");
 #import("../tests/standalone/test_config.dart");
+#import("../tests/stub-generator/test_config.dart");
 
 // TODO(ager): This activity tracking is temporary until stdout is
 // closed implicitly when nothing more can happen.
@@ -50,5 +51,7 @@ main() {
     new LanguageTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
     activityStarted();
     new IsolateTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
+    activityStarted();
+    new StubGeneratorTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
   }
 }
