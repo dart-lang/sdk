@@ -29,6 +29,9 @@ class _ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboa
   DataTransferItemList get items() { return _get__Clipboard_items(this); }
   static DataTransferItemList _get__Clipboard_items(var _this) native;
 
+  List get types() { return _get__Clipboard_types(this); }
+  static List _get__Clipboard_types(var _this) native;
+
   void clearData([String type = null]) {
     if (type === null) {
       _clearData(this);

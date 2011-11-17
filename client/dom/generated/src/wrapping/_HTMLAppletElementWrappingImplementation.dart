@@ -47,11 +47,11 @@ class _HTMLAppletElementWrappingImplementation extends _HTMLElementWrappingImple
   void set height(String value) { _set__HTMLAppletElement_height(this, value); }
   static void _set__HTMLAppletElement_height(var _this, String value) native;
 
-  int get hspace() { return _get__HTMLAppletElement_hspace(this); }
-  static int _get__HTMLAppletElement_hspace(var _this) native;
+  String get hspace() { return _get__HTMLAppletElement_hspace(this); }
+  static String _get__HTMLAppletElement_hspace(var _this) native;
 
-  void set hspace(int value) { _set__HTMLAppletElement_hspace(this, value); }
-  static void _set__HTMLAppletElement_hspace(var _this, int value) native;
+  void set hspace(String value) { _set__HTMLAppletElement_hspace(this, value); }
+  static void _set__HTMLAppletElement_hspace(var _this, String value) native;
 
   String get name() { return _get__HTMLAppletElement_name(this); }
   static String _get__HTMLAppletElement_name(var _this) native;
@@ -65,11 +65,11 @@ class _HTMLAppletElementWrappingImplementation extends _HTMLElementWrappingImple
   void set object(String value) { _set__HTMLAppletElement_object(this, value); }
   static void _set__HTMLAppletElement_object(var _this, String value) native;
 
-  int get vspace() { return _get__HTMLAppletElement_vspace(this); }
-  static int _get__HTMLAppletElement_vspace(var _this) native;
+  String get vspace() { return _get__HTMLAppletElement_vspace(this); }
+  static String _get__HTMLAppletElement_vspace(var _this) native;
 
-  void set vspace(int value) { _set__HTMLAppletElement_vspace(this, value); }
-  static void _set__HTMLAppletElement_vspace(var _this, int value) native;
+  void set vspace(String value) { _set__HTMLAppletElement_vspace(this, value); }
+  static void _set__HTMLAppletElement_vspace(var _this, String value) native;
 
   String get width() { return _get__HTMLAppletElement_width(this); }
   static String _get__HTMLAppletElement_width(var _this) native;

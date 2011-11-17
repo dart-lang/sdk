@@ -196,8 +196,6 @@ interface HTMLInputElement extends HTMLElement {
 
   void setSelectionRange(int start, int end, [String direction]);
 
-  void setValueForUser(String value);
-
   void stepDown([int n]);
 
   void stepUp([int n]);

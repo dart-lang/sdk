@@ -39,6 +39,7 @@ _idl_to_dart_type_conversions = {
     'short': 'int',
     'string': 'String',
     'void': 'void',
+    'Array': 'List',
     'sequence': 'List',
     # TODO(vsm): We need to support other types. We could weaken to
     # Object, or inject SSV into the appropriate types.

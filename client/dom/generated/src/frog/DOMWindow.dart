@@ -13,6 +13,8 @@ class DOMWindow native "DOMWindow" {
 
   String defaultStatus;
 
+  String defaultstatus;
+
   num devicePixelRatio;
 
   Document document;
@@ -239,6 +241,8 @@ class DOMWindow native "DOMWindow" {
 
   NotificationCenter webkitNotifications;
 
+  DOMURL webkitURL;
+
   DOMWindow window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -269,6 +273,8 @@ class DOMWindow native "DOMWindow" {
 
   CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native;
 
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) native;
+
   DOMSelection getSelection() native;
 
   MediaQueryList matchMedia(String query) native;
@@ -279,7 +285,7 @@ class DOMWindow native "DOMWindow" {
 
   DOMWindow open(String url, String name, [String options = null]) native;
 
-  void postMessage(String message, String targetOrigin) native;
+  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) native;
 
   void print() native;
 
@@ -313,7 +319,7 @@ class DOMWindow native "DOMWindow" {
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) native;
 
-  void webkitPostMessage(String message, String targetOrigin) native;
+  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
 

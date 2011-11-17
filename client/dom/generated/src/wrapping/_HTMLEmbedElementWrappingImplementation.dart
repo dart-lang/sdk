@@ -17,11 +17,11 @@ class _HTMLEmbedElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set align(String value) { _set__HTMLEmbedElement_align(this, value); }
   static void _set__HTMLEmbedElement_align(var _this, String value) native;
 
-  int get height() { return _get__HTMLEmbedElement_height(this); }
-  static int _get__HTMLEmbedElement_height(var _this) native;
+  String get height() { return _get__HTMLEmbedElement_height(this); }
+  static String _get__HTMLEmbedElement_height(var _this) native;
 
-  void set height(int value) { _set__HTMLEmbedElement_height(this, value); }
-  static void _set__HTMLEmbedElement_height(var _this, int value) native;
+  void set height(String value) { _set__HTMLEmbedElement_height(this, value); }
+  static void _set__HTMLEmbedElement_height(var _this, String value) native;
 
   String get name() { return _get__HTMLEmbedElement_name(this); }
   static String _get__HTMLEmbedElement_name(var _this) native;
@@ -41,11 +41,11 @@ class _HTMLEmbedElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set type(String value) { _set__HTMLEmbedElement_type(this, value); }
   static void _set__HTMLEmbedElement_type(var _this, String value) native;
 
-  int get width() { return _get__HTMLEmbedElement_width(this); }
-  static int _get__HTMLEmbedElement_width(var _this) native;
+  String get width() { return _get__HTMLEmbedElement_width(this); }
+  static String _get__HTMLEmbedElement_width(var _this) native;
 
-  void set width(int value) { _set__HTMLEmbedElement_width(this, value); }
-  static void _set__HTMLEmbedElement_width(var _this, int value) native;
+  void set width(String value) { _set__HTMLEmbedElement_width(this, value); }
+  static void _set__HTMLEmbedElement_width(var _this, String value) native;
 
   String get typeName() { return "HTMLEmbedElement"; }
 }

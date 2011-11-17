@@ -65,6 +65,9 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   String get domain() { return _get__Document_domain(this); }
   static String _get__Document_domain(var _this) native;
 
+  void set domain(String value) { _set__Document_domain(this, value); }
+  static void _set__Document_domain(var _this, String value) native;
+
   HTMLCollection get forms() { return _get__Document_forms(this); }
   static HTMLCollection _get__Document_forms(var _this) native;
 
@@ -85,6 +88,12 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
 
   HTMLCollection get links() { return _get__Document_links(this); }
   static HTMLCollection _get__Document_links(var _this) native;
+
+  Location get location() { return _get__Document_location(this); }
+  static Location _get__Document_location(var _this) native;
+
+  void set location(Location value) { _set__Document_location(this, value); }
+  static void _set__Document_location(var _this, Location value) native;
 
   EventListener get onabort() { return _get__Document_onabort(this); }
   static EventListener _get__Document_onabort(var _this) native;
@@ -432,11 +441,6 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static CDATASection _createCDATASection(receiver, data) native;
 
-  CSSStyleDeclaration createCSSStyleDeclaration() {
-    return _createCSSStyleDeclaration(this);
-  }
-  static CSSStyleDeclaration _createCSSStyleDeclaration(receiver) native;
-
   Comment createComment(String data) {
     return _createComment(this, data);
   }
@@ -551,6 +555,11 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
     return _getOverrideStyle(this, element, pseudoElement);
   }
   static CSSStyleDeclaration _getOverrideStyle(receiver, element, pseudoElement) native;
+
+  DOMSelection getSelection() {
+    return _getSelection(this);
+  }
+  static DOMSelection _getSelection(receiver) native;
 
   Node importNode(Node importedNode, bool deep) {
     return _importNode(this, importedNode, deep);

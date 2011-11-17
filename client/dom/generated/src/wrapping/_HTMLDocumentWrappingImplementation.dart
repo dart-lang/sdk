@@ -20,6 +20,12 @@ class _HTMLDocumentWrappingImplementation extends _DocumentWrappingImplementatio
   void set alinkColor(String value) { _set__HTMLDocument_alinkColor(this, value); }
   static void _set__HTMLDocument_alinkColor(var _this, String value) native;
 
+  HTMLAllCollection get all() { return _get__HTMLDocument_all(this); }
+  static HTMLAllCollection _get__HTMLDocument_all(var _this) native;
+
+  void set all(HTMLAllCollection value) { _set__HTMLDocument_all(this, value); }
+  static void _set__HTMLDocument_all(var _this, HTMLAllCollection value) native;
+
   String get bgColor() { return _get__HTMLDocument_bgColor(this); }
   static String _get__HTMLDocument_bgColor(var _this) native;
 

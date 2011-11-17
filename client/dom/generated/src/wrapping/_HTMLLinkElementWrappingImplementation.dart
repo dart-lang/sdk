@@ -56,6 +56,12 @@ class _HTMLLinkElementWrappingImplementation extends _HTMLElementWrappingImpleme
   StyleSheet get sheet() { return _get__HTMLLinkElement_sheet(this); }
   static StyleSheet _get__HTMLLinkElement_sheet(var _this) native;
 
+  DOMSettableTokenList get sizes() { return _get__HTMLLinkElement_sizes(this); }
+  static DOMSettableTokenList _get__HTMLLinkElement_sizes(var _this) native;
+
+  void set sizes(DOMSettableTokenList value) { _set__HTMLLinkElement_sizes(this, value); }
+  static void _set__HTMLLinkElement_sizes(var _this, DOMSettableTokenList value) native;
+
   String get target() { return _get__HTMLLinkElement_target(this); }
   static String _get__HTMLLinkElement_target(var _this) native;
 

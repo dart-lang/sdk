@@ -7,6 +7,8 @@ class Event native "Event" {
 
   bool cancelable;
 
+  Clipboard clipboardData;
+
   EventTarget currentTarget;
 
   bool defaultPrevented;

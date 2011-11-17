@@ -316,12 +316,6 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   static void _setSelectionRange(receiver, start, end) native;
   static void _setSelectionRange_2(receiver, start, end, direction) native;
 
-  void setValueForUser(String value) {
-    _setValueForUser(this, value);
-    return;
-  }
-  static void _setValueForUser(receiver, value) native;
-
   void stepDown([int n = null]) {
     if (n === null) {
       _stepDown(this);

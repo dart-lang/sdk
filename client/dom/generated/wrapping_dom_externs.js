@@ -57,7 +57,8 @@ dom_externs.alert;                      // operation DOMWindow.alert
 dom_externs.align;                      // attribute HTMLAppletElement.align, attribute HTMLDivElement.align, attribute HTMLEmbedElement.align, attribute HTMLHRElement.align, attribute HTMLHeadingElement.align, attribute HTMLIFrameElement.align, attribute HTMLImageElement.align, attribute HTMLInputElement.align, attribute HTMLLegendElement.align, attribute HTMLObjectElement.align, attribute HTMLParagraphElement.align, attribute HTMLTableCaptionElement.align, attribute HTMLTableCellElement.align, attribute HTMLTableColElement.align, attribute HTMLTableElement.align, attribute HTMLTableRowElement.align, attribute HTMLTableSectionElement.align
 dom_externs.alignment;                  // attribute TextTrackCue.alignment
 dom_externs.alinkColor;                 // attribute HTMLDocument.alinkColor
-dom_externs.alpha;                      // attribute DeviceOrientationEvent.alpha, attribute RGBColor.alpha, attribute WebGLContextAttributes.alpha
+dom_externs.all;                        // attribute HTMLDocument.all
+dom_externs.alpha;                      // attribute DeviceOrientationEvent.alpha, attribute WebGLContextAttributes.alpha
 dom_externs.alt;                        // attribute HTMLAppletElement.alt, attribute HTMLAreaElement.alt, attribute HTMLImageElement.alt, attribute HTMLInputElement.alt
 dom_externs.altGraphKey;                // attribute KeyboardEvent.altGraphKey
 dom_externs.altKey;                     // attribute KeyboardEvent.altKey, attribute MouseEvent.altKey, attribute TouchEvent.altKey, attribute WheelEvent.altKey
@@ -170,7 +171,7 @@ dom_externs.checkValidity;              // operation HTMLButtonElement.checkVali
 dom_externs.checked;                    // attribute HTMLInputElement.checked
 dom_externs.childElementCount;          // attribute Element.childElementCount, attribute ElementTraversal.childElementCount
 dom_externs.childNodes;                 // attribute Node.childNodes
-dom_externs.children;                   // attribute HTMLElement.children
+dom_externs.children;                   // attribute HTMLElement.children, attribute ScriptProfileNode.children
 dom_externs.cite;                       // attribute HTMLModElement.cite, attribute HTMLQuoteElement.cite
 dom_externs.classList;                  // attribute HTMLElement.classList
 dom_externs.className;                  // attribute HTMLElement.className
@@ -195,6 +196,7 @@ dom_externs.clientWidth;                // attribute Element.clientWidth
 dom_externs.clientX;                    // attribute MouseEvent.clientX, attribute Touch.clientX, attribute WheelEvent.clientX
 dom_externs.clientY;                    // attribute MouseEvent.clientY, attribute Touch.clientY, attribute WheelEvent.clientY
 dom_externs.clip;                       // operation CanvasRenderingContext2D.clip
+dom_externs.clipboardData;              // attribute Event.clipboardData
 dom_externs.cloneContents;              // operation Range.cloneContents
 dom_externs.cloneNode;                  // operation Node.cloneNode
 dom_externs.cloneRange;                 // operation Range.cloneRange
@@ -251,7 +253,6 @@ dom_externs.createAttribute;            // operation Document.createAttribute
 dom_externs.createAttributeNS;          // operation Document.createAttributeNS
 dom_externs.createBuffer;               // operation WebGLRenderingContext.createBuffer
 dom_externs.createCDATASection;         // operation Document.createCDATASection
-dom_externs.createCSSStyleDeclaration;  // operation Document.createCSSStyleDeclaration
 dom_externs.createCSSStyleSheet;        // operation DOMImplementation.createCSSStyleSheet
 dom_externs.createCaption;              // operation HTMLTableElement.createCaption
 dom_externs.createComment;              // operation Document.createComment
@@ -305,6 +306,7 @@ dom_externs.currentTime;                // attribute HTMLMediaElement.currentTim
 dom_externs.customError;                // attribute ValidityState.customError
 dom_externs.d;                          // attribute WebKitCSSMatrix.d
 dom_externs.data;                       // attribute CharacterData.data, attribute CompositionEvent.data, attribute HTMLObjectElement.data, attribute ImageData.data, attribute MessageEvent.data, attribute ProcessingInstruction.data, attribute TextEvent.data
+dom_externs.dataTransfer;               // attribute MouseEvent.dataTransfer
 dom_externs.databaseId;                 // operation InjectedScriptHost.databaseId
 dom_externs.dateTime;                   // attribute HTMLModElement.dateTime
 dom_externs.db;                         // attribute IDBTransaction.db
@@ -319,6 +321,7 @@ dom_externs.defaultSelected;            // attribute HTMLOptionElement.defaultSe
 dom_externs.defaultStatus;              // attribute DOMWindow.defaultStatus
 dom_externs.defaultValue;               // attribute HTMLInputElement.defaultValue, attribute HTMLOutputElement.defaultValue, attribute HTMLTextAreaElement.defaultValue
 dom_externs.defaultView;                // attribute Document.defaultView
+dom_externs.defaultstatus;              // attribute DOMWindow.defaultstatus
 dom_externs.defer;                      // attribute HTMLScriptElement.defer
 dom_externs.delay;                      // attribute WebKitAnimation.delay
 dom_externs.deleteBuffer;               // operation WebGLRenderingContext.deleteBuffer
@@ -473,10 +476,10 @@ dom_externs.getAttributeNS;             // operation Element.getAttributeNS
 dom_externs.getAttributeNode;           // operation Element.getAttributeNode
 dom_externs.getAttributeNodeNS;         // operation Element.getAttributeNodeNS
 dom_externs.getBlob;                    // operation WebKitBlobBuilder.getBlob
-dom_externs.getBoundingClientRect;      // operation Element.getBoundingClientRect
+dom_externs.getBoundingClientRect;      // operation Element.getBoundingClientRect, operation Range.getBoundingClientRect
 dom_externs.getBufferParameter;         // operation WebGLRenderingContext.getBufferParameter
 dom_externs.getCSSCanvasContext;        // operation Document.getCSSCanvasContext
-dom_externs.getClientRects;             // operation Element.getClientRects
+dom_externs.getClientRects;             // operation Element.getClientRects, operation Range.getClientRects
 dom_externs.getComputedStyle;           // operation DOMWindow.getComputedStyle
 dom_externs.getContext;                 // operation HTMLCanvasElement.getContext
 dom_externs.getContextAttributes;       // operation WebGLRenderingContext.getContextAttributes
@@ -506,8 +509,8 @@ dom_externs.getInt32;                   // operation DataView.getInt32
 dom_externs.getInt8;                    // operation DataView.getInt8
 dom_externs.getItem;                    // operation Storage.getItem
 dom_externs.getKey;                     // operation IDBIndex.getKey
+dom_externs.getMatchedCSSRules;         // operation DOMWindow.getMatchedCSSRules
 dom_externs.getMetadata;                // operation Entry.getMetadata, operation EntrySync.getMetadata
-dom_externs.getModifierState;           // operation KeyboardEvent.getModifierState
 dom_externs.getNamedItem;               // operation NamedNodeMap.getNamedItem
 dom_externs.getNamedItemNS;             // operation NamedNodeMap.getNamedItemNS
 dom_externs.getOverrideStyle;           // operation Document.getOverrideStyle
@@ -525,7 +528,7 @@ dom_externs.getRangeAt;                 // operation DOMSelection.getRangeAt
 dom_externs.getRectValue;               // operation CSSPrimitiveValue.getRectValue
 dom_externs.getRenderbufferParameter;   // operation WebGLRenderingContext.getRenderbufferParameter
 dom_externs.getResponseHeader;          // operation XMLHttpRequest.getResponseHeader
-dom_externs.getSelection;               // operation DOMWindow.getSelection
+dom_externs.getSelection;               // operation DOMWindow.getSelection, operation Document.getSelection
 dom_externs.getShaderInfoLog;           // operation WebGLRenderingContext.getShaderInfoLog
 dom_externs.getShaderParameter;         // operation WebGLRenderingContext.getShaderParameter
 dom_externs.getShaderSource;            // operation WebGLRenderingContext.getShaderSource
@@ -711,7 +714,7 @@ dom_externs.loadEventStart;             // attribute PerformanceTiming.loadEvent
 dom_externs.loaded;                     // operation InspectorFrontendHost.loaded, attribute ProgressEvent.loaded
 dom_externs.localName;                  // attribute Node.localName
 dom_externs.localizedStringsURL;        // operation InspectorFrontendHost.localizedStringsURL
-dom_externs.location;                   // attribute DOMWindow.location, attribute HTMLFrameElement.location, attribute WorkerContext.location
+dom_externs.location;                   // attribute DOMWindow.location, attribute Document.location, attribute HTMLFrameElement.location, attribute WorkerContext.location
 dom_externs.locationbar;                // attribute DOMWindow.locationbar
 dom_externs.log;                        // operation Console.log
 dom_externs.longDesc;                   // attribute HTMLFrameElement.longDesc, attribute HTMLIFrameElement.longDesc, attribute HTMLImageElement.longDesc
@@ -756,7 +759,6 @@ dom_externs.mediaText;                  // attribute MediaList.mediaText
 dom_externs.memory;                     // attribute Console.memory, attribute Performance.memory
 dom_externs.menubar;                    // attribute DOMWindow.menubar
 dom_externs.message;                    // attribute DOMException.message, attribute ErrorEvent.message, attribute EventException.message, attribute FileException.message, attribute IDBDatabaseError.message, attribute IDBDatabaseException.message, attribute OperationNotAllowedException.message, attribute PositionError.message, attribute RangeException.message, attribute SQLError.message, attribute SQLException.message, attribute XMLHttpRequestException.message, attribute XPathException.message
-dom_externs.messagePort;                // attribute MessageEvent.messagePort
 dom_externs.metaKey;                    // attribute KeyboardEvent.metaKey, attribute MouseEvent.metaKey, attribute TouchEvent.metaKey, attribute WheelEvent.metaKey
 dom_externs.method;                     // attribute HTMLFormElement.method
 dom_externs.mimeTypes;                  // attribute Navigator.mimeTypes
@@ -966,6 +968,7 @@ dom_externs.polygonOffset;              // operation WebGLRenderingContext.polyg
 dom_externs.port;                       // attribute HTMLAnchorElement.port, attribute HTMLAreaElement.port, operation InspectorFrontendHost.port, attribute Location.port, attribute SharedWorker.port, attribute WorkerLocation.port
 dom_externs.port1;                      // attribute MessageChannel.port1
 dom_externs.port2;                      // attribute MessageChannel.port2
+dom_externs.ports;                      // attribute MessageEvent.ports
 dom_externs.position;                   // attribute FileWriter.position, attribute FileWriterSync.position, attribute HTMLProgressElement.position, attribute XMLHttpRequestProgressEvent.position
 dom_externs.postMessage;                // operation DOMWindow.postMessage, operation DedicatedWorkerContext.postMessage, operation MessagePort.postMessage, operation Worker.postMessage
 dom_externs.poster;                     // attribute HTMLVideoElement.poster
@@ -1096,6 +1099,7 @@ dom_externs.scale;                      // operation CanvasRenderingContext2D.sc
 dom_externs.scheme;                     // attribute HTMLMetaElement.scheme
 dom_externs.scissor;                    // operation WebGLRenderingContext.scissor
 dom_externs.scope;                      // attribute HTMLTableCellElement.scope
+dom_externs.scopeChain;                 // attribute JavaScriptCallFrame.scopeChain
 dom_externs.scopeType;                  // operation JavaScriptCallFrame.scopeType
 dom_externs.screen;                     // attribute DOMWindow.screen
 dom_externs.screenLeft;                 // attribute DOMWindow.screenLeft
@@ -1138,7 +1142,7 @@ dom_externs.selectionDirection;         // attribute HTMLInputElement.selectionD
 dom_externs.selectionEnd;               // attribute HTMLInputElement.selectionEnd, attribute HTMLTextAreaElement.selectionEnd
 dom_externs.selectionStart;             // attribute HTMLInputElement.selectionStart, attribute HTMLTextAreaElement.selectionStart
 dom_externs.selectorText;               // attribute CSSPageRule.selectorText, attribute CSSStyleRule.selectorText
-dom_externs.self;                       // attribute DOMWindow.self
+dom_externs.self;                       // attribute DOMWindow.self, attribute WorkerContext.self
 dom_externs.selfTime;                   // attribute ScriptProfileNode.selfTime
 dom_externs.send;                       // operation WebSocket.send, operation XMLHttpRequest.send
 dom_externs.sendMessageToBackend;       // operation InspectorFrontendHost.sendMessageToBackend
@@ -1194,7 +1198,6 @@ dom_externs.setTransform;               // operation CanvasRenderingContext2D.se
 dom_externs.setUint16;                  // operation DataView.setUint16
 dom_externs.setUint32;                  // operation DataView.setUint32
 dom_externs.setUint8;                   // operation DataView.setUint8
-dom_externs.setValueForUser;            // operation HTMLInputElement.setValueForUser
 dom_externs.setVersion;                 // operation IDBDatabase.setVersion
 dom_externs.shaderSource;               // operation WebGLRenderingContext.shaderSource
 dom_externs.shadowBlur;                 // attribute CanvasRenderingContext2D.shadowBlur
@@ -1209,6 +1212,7 @@ dom_externs.showContextMenu;            // operation InspectorFrontendHost.showC
 dom_externs.showModalDialog;            // operation DOMWindow.showModalDialog
 dom_externs.singleNodeValue;            // attribute XPathResult.singleNodeValue
 dom_externs.size;                       // attribute Blob.size, attribute HTMLBaseFontElement.size, attribute HTMLFontElement.size, attribute HTMLHRElement.size, attribute HTMLInputElement.size, attribute HTMLSelectElement.size, attribute TextTrackCue.size, attribute WebGLActiveInfo.size
+dom_externs.sizes;                      // attribute HTMLLinkElement.sizes
 dom_externs.skewX;                      // operation WebKitCSSMatrix.skewX
 dom_externs.skewY;                      // operation WebKitCSSMatrix.skewY
 dom_externs.slice;                      // operation ArrayBuffer.slice
@@ -1260,7 +1264,7 @@ dom_externs.styleMedia;                 // attribute DOMWindow.styleMedia
 dom_externs.styleSheet;                 // attribute CSSImportRule.styleSheet
 dom_externs.styleSheets;                // attribute Document.styleSheets
 dom_externs.subarray;                   // operation Float32Array.subarray, operation Float64Array.subarray, operation Int16Array.subarray, operation Int32Array.subarray, operation Int8Array.subarray, operation Uint16Array.subarray, operation Uint32Array.subarray, operation Uint8Array.subarray
-dom_externs.submit;                     // operation HTMLFormElement.submit
+dom_externs.submitFromJavaScript;       // operation HTMLFormElement.submitFromJavaScript
 dom_externs.substringData;              // operation CharacterData.substringData
 dom_externs.suffixes;                   // attribute DOMMimeType.suffixes
 dom_externs.summary;                    // attribute HTMLTableElement.summary
@@ -1280,7 +1284,7 @@ dom_externs.texImage2D;                 // operation WebGLRenderingContext.texIm
 dom_externs.texParameterf;              // operation WebGLRenderingContext.texParameterf
 dom_externs.texParameteri;              // operation WebGLRenderingContext.texParameteri
 dom_externs.texSubImage2D;              // operation WebGLRenderingContext.texSubImage2D
-dom_externs.text;                       // attribute HTMLAnchorElement.text, attribute HTMLBodyElement.text, attribute HTMLOptionElement.text, attribute HTMLScriptElement.text, attribute HTMLTitleElement.text, attribute Range.text
+dom_externs.text;                       // attribute HTMLAnchorElement.text, attribute HTMLBodyElement.text, attribute HTMLOptionElement.text, attribute HTMLScriptElement.text, attribute HTMLTitleElement.text
 dom_externs.textAlign;                  // attribute CanvasRenderingContext2D.textAlign
 dom_externs.textBaseline;               // attribute CanvasRenderingContext2D.textBaseline
 dom_externs.textContent;                // attribute Node.textContent
@@ -1294,7 +1298,8 @@ dom_externs.timing;                     // attribute Performance.timing
 dom_externs.title;                      // attribute Document.title, attribute HTMLElement.title, attribute ScriptProfile.title, attribute StyleSheet.title
 dom_externs.toDataURL;                  // operation HTMLCanvasElement.toDataURL
 dom_externs.toElement;                  // attribute MouseEvent.toElement
-dom_externs.toString;                   // operation Range.toString, operation WebKitCSSMatrix.toString, operation WorkerLocation.toString
+dom_externs.toString;                   // operation DOMException.toString, operation DOMSelection.toString, operation DOMTokenList.toString, operation EventException.toString, operation FileException.toString, operation HTMLAnchorElement.toString, operation IDBDatabaseException.toString, operation OperationNotAllowedException.toString, operation Range.toString, operation RangeException.toString, operation WebKitCSSMatrix.toString, operation WorkerLocation.toString, operation XMLHttpRequestException.toString, operation XPathException.toString
+dom_externs.toStringFunction;           // operation Location.toStringFunction
 dom_externs.toURL;                      // operation Entry.toURL, operation EntrySync.toURL
 dom_externs.toggle;                     // operation DOMTokenList.toggle
 dom_externs.tooLong;                    // attribute ValidityState.tooLong
@@ -1316,6 +1321,7 @@ dom_externs.trueSpeed;                  // attribute HTMLMarqueeElement.trueSpee
 dom_externs.truncate;                   // operation FileWriter.truncate, operation FileWriterSync.truncate
 dom_externs.type;                       // attribute Blob.type, attribute CSSRule.type, attribute DOMMimeType.type, attribute DOMSelection.type, attribute DataTransferItem.type, attribute Event.type, attribute HTMLAnchorElement.type, attribute HTMLButtonElement.type, attribute HTMLEmbedElement.type, attribute HTMLInputElement.type, attribute HTMLKeygenElement.type, attribute HTMLLIElement.type, attribute HTMLLinkElement.type, attribute HTMLOListElement.type, attribute HTMLObjectElement.type, attribute HTMLOutputElement.type, attribute HTMLParamElement.type, attribute HTMLScriptElement.type, attribute HTMLSelectElement.type, attribute HTMLSourceElement.type, attribute HTMLStyleElement.type, attribute HTMLTextAreaElement.type, attribute HTMLUListElement.type, operation InjectedScriptHost.type, attribute JavaScriptCallFrame.type, attribute MutationRecord.type, attribute PerformanceNavigation.type, attribute StyleMedia.type, attribute StyleSheet.type, attribute WebGLActiveInfo.type
 dom_externs.typeMismatch;               // attribute ValidityState.typeMismatch
+dom_externs.types;                      // attribute Clipboard.types
 dom_externs.uid;                        // attribute ScriptProfile.uid
 dom_externs.uniform1f;                  // operation WebGLRenderingContext.uniform1f
 dom_externs.uniform1fv;                 // operation WebGLRenderingContext.uniform1fv
@@ -1403,10 +1409,12 @@ dom_externs.webkitForce;                // attribute Touch.webkitForce
 dom_externs.webkitGrammar;              // attribute HTMLInputElement.webkitGrammar
 dom_externs.webkitHasClosedCaptions;    // attribute HTMLMediaElement.webkitHasClosedCaptions
 dom_externs.webkitHidden;               // attribute Document.webkitHidden
+dom_externs.webkitInitMessageEvent;     // operation MessageEvent.webkitInitMessageEvent
+dom_externs.webkitLineDash;             // attribute CanvasRenderingContext2D.webkitLineDash
 dom_externs.webkitLineDashOffset;       // attribute CanvasRenderingContext2D.webkitLineDashOffset
 dom_externs.webkitMatchesSelector;      // operation Element.webkitMatchesSelector
 dom_externs.webkitNotifications;        // attribute DOMWindow.webkitNotifications, attribute WorkerContext.webkitNotifications
-dom_externs.webkitPostMessage;          // operation DOMWindow.webkitPostMessage, operation DedicatedWorkerContext.webkitPostMessage, operation MessagePort.webkitPostMessage
+dom_externs.webkitPostMessage;          // operation DOMWindow.webkitPostMessage, operation DedicatedWorkerContext.webkitPostMessage, operation MessagePort.webkitPostMessage, operation Worker.webkitPostMessage
 dom_externs.webkitPreservesPitch;       // attribute HTMLMediaElement.webkitPreservesPitch
 dom_externs.webkitRadiusX;              // attribute Touch.webkitRadiusX
 dom_externs.webkitRadiusY;              // attribute Touch.webkitRadiusY
@@ -1414,7 +1422,7 @@ dom_externs.webkitRequestAnimationFrame;  // operation DOMWindow.webkitRequestAn
 dom_externs.webkitRotationAngle;        // attribute Touch.webkitRotationAngle
 dom_externs.webkitSpeech;               // attribute HTMLInputElement.webkitSpeech
 dom_externs.webkitSupportsFullscreen;   // attribute HTMLVideoElement.webkitSupportsFullscreen
-dom_externs.webkitURL;                  // attribute WorkerContext.webkitURL
+dom_externs.webkitURL;                  // attribute DOMWindow.webkitURL, attribute WorkerContext.webkitURL
 dom_externs.webkitVideoDecodedByteCount;  // attribute HTMLMediaElement.webkitVideoDecodedByteCount
 dom_externs.webkitVisibilityState;      // attribute Document.webkitVisibilityState
 dom_externs.webkitdirectory;            // attribute HTMLInputElement.webkitdirectory

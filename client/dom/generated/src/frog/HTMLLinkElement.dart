@@ -17,6 +17,8 @@ class HTMLLinkElement extends HTMLElement native "HTMLLinkElement" {
 
   StyleSheet sheet;
 
+  DOMSettableTokenList sizes;
+
   String target;
 
   String type;

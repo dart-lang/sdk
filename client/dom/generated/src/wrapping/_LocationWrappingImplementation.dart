@@ -85,5 +85,10 @@ class _LocationWrappingImplementation extends DOMWrapperBase implements Location
   }
   static void _replace(receiver, url) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "Location"; }
 }

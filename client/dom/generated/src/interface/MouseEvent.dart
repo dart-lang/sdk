@@ -16,6 +16,8 @@ interface MouseEvent extends UIEvent {
 
   bool get ctrlKey();
 
+  Clipboard get dataTransfer();
+
   Node get fromElement();
 
   bool get metaKey();

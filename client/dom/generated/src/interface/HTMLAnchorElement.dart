@@ -91,4 +91,6 @@ interface HTMLAnchorElement extends HTMLElement {
   void set type(String value);
 
   String getParameter(String name);
+
+  String toString();
 }

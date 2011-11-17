@@ -107,11 +107,11 @@ class _HTMLSelectElementWrappingImplementation extends _HTMLElementWrappingImple
   }
   static Node _namedItem(receiver, name) native;
 
-  void remove(int index) {
-    _remove(this, index);
+  void remove() {
+    _remove(this);
     return;
   }
-  static void _remove(receiver, index) native;
+  static void _remove(receiver) native;
 
   void setCustomValidity(String error) {
     _setCustomValidity(this, error);

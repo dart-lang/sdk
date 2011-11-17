@@ -43,6 +43,8 @@ class Document extends Node native "Document" {
 
   HTMLCollection links;
 
+  Location location;
+
   EventListener onabort;
 
   EventListener onbeforecopy;
@@ -167,8 +169,6 @@ class Document extends Node native "Document" {
 
   CDATASection createCDATASection(String data) native;
 
-  CSSStyleDeclaration createCSSStyleDeclaration() native;
-
   Comment createComment(String data) native;
 
   DocumentFragment createDocumentFragment() native;
@@ -214,6 +214,8 @@ class Document extends Node native "Document" {
   NodeList getElementsByTagNameNS(String namespaceURI, String localName) native;
 
   CSSStyleDeclaration getOverrideStyle(Element element, String pseudoElement) native;
+
+  DOMSelection getSelection() native;
 
   Node importNode(Node importedNode, bool deep) native;
 

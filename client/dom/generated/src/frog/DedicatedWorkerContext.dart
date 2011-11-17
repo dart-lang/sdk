@@ -3,7 +3,7 @@ class DedicatedWorkerContext extends WorkerContext native "DedicatedWorkerContex
 
   EventListener onmessage;
 
-  void postMessage(Object message) native;
+  void postMessage(Object message, [List messagePorts = null]) native;
 
-  void webkitPostMessage(Object message) native;
+  void webkitPostMessage(Object message, [List transferList = null]) native;
 }

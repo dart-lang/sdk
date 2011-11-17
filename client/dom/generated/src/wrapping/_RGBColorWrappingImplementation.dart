@@ -11,9 +11,6 @@ class _RGBColorWrappingImplementation extends DOMWrapperBase implements RGBColor
     return new _RGBColorWrappingImplementation();
   }
 
-  CSSPrimitiveValue get alpha() { return _get__RGBColor_alpha(this); }
-  static CSSPrimitiveValue _get__RGBColor_alpha(var _this) native;
-
   CSSPrimitiveValue get blue() { return _get__RGBColor_blue(this); }
   static CSSPrimitiveValue _get__RGBColor_blue(var _this) native;
 

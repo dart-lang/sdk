@@ -1,8 +1,6 @@
 
 class RGBColor native "RGBColor" {
 
-  CSSPrimitiveValue alpha;
-
   CSSPrimitiveValue blue;
 
   CSSPrimitiveValue green;

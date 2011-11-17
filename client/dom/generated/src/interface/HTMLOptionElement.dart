@@ -28,6 +28,8 @@ interface HTMLOptionElement extends HTMLElement {
 
   String get text();
 
+  void set text(String value);
+
   String get value();
 
   void set value(String value);

@@ -42,6 +42,8 @@ interface Document extends Node, NodeSelector {
 
   String get domain();
 
+  void set domain(String value);
+
   HTMLCollection get forms();
 
   HTMLHeadElement get head();
@@ -55,6 +57,10 @@ interface Document extends Node, NodeSelector {
   String get lastModified();
 
   HTMLCollection get links();
+
+  Location get location();
+
+  void set location(Location value);
 
   EventListener get onabort();
 
@@ -280,8 +286,6 @@ interface Document extends Node, NodeSelector {
 
   CDATASection createCDATASection(String data);
 
-  CSSStyleDeclaration createCSSStyleDeclaration();
-
   Comment createComment(String data);
 
   DocumentFragment createDocumentFragment();
@@ -327,6 +331,8 @@ interface Document extends Node, NodeSelector {
   NodeList getElementsByTagNameNS(String namespaceURI, String localName);
 
   CSSStyleDeclaration getOverrideStyle(Element element, String pseudoElement);
+
+  DOMSelection getSelection();
 
   Node importNode(Node importedNode, bool deep);
 

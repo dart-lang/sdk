@@ -23,6 +23,9 @@ class _JavaScriptCallFrameWrappingImplementation extends DOMWrapperBase implemen
   int get line() { return _get__JavaScriptCallFrame_line(this); }
   static int _get__JavaScriptCallFrame_line(var _this) native;
 
+  List get scopeChain() { return _get__JavaScriptCallFrame_scopeChain(this); }
+  static List _get__JavaScriptCallFrame_scopeChain(var _this) native;
+
   int get sourceID() { return _get__JavaScriptCallFrame_sourceID(this); }
   static int _get__JavaScriptCallFrame_sourceID(var _this) native;
 

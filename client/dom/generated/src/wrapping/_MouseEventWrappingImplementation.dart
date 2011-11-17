@@ -26,6 +26,9 @@ class _MouseEventWrappingImplementation extends _UIEventWrappingImplementation i
   bool get ctrlKey() { return _get__MouseEvent_ctrlKey(this); }
   static bool _get__MouseEvent_ctrlKey(var _this) native;
 
+  Clipboard get dataTransfer() { return _get__MouseEvent_dataTransfer(this); }
+  static Clipboard _get__MouseEvent_dataTransfer(var _this) native;
+
   Node get fromElement() { return _get__MouseEvent_fromElement(this); }
   static Node _get__MouseEvent_fromElement(var _this) native;
 

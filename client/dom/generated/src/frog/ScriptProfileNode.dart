@@ -3,6 +3,8 @@ class ScriptProfileNode native "ScriptProfileNode" {
 
   int callUID;
 
+  List children;
+
   String functionName;
 
   int lineNumber;

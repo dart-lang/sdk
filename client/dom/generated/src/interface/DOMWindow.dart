@@ -24,6 +24,10 @@ interface Window extends EventTarget {
 
   void set defaultStatus(String value);
 
+  String get defaultstatus();
+
+  void set defaultstatus(String value);
+
   num get devicePixelRatio();
 
   void set devicePixelRatio(num value);
@@ -460,6 +464,8 @@ interface Window extends EventTarget {
 
   NotificationCenter get webkitNotifications();
 
+  DOMURL get webkitURL();
+
   DOMWindow get window();
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -490,6 +496,8 @@ interface Window extends EventTarget {
 
   CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement);
 
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
+
   DOMSelection getSelection();
 
   MediaQueryList matchMedia(String query);
@@ -500,7 +508,7 @@ interface Window extends EventTarget {
 
   DOMWindow open(String url, String name, [String options]);
 
-  void postMessage(String message, String targetOrigin);
+  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin]);
 
   void print();
 
@@ -534,7 +542,7 @@ interface Window extends EventTarget {
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
 
-  void webkitPostMessage(String message, String targetOrigin);
+  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
 }

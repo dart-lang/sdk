@@ -13,4 +13,6 @@ interface OperationNotAllowedException {
   String get message();
 
   String get name();
+
+  String toString();
 }

@@ -32,11 +32,6 @@ class _KeyboardEventWrappingImplementation extends _UIEventWrappingImplementatio
   bool get shiftKey() { return _get__KeyboardEvent_shiftKey(this); }
   static bool _get__KeyboardEvent_shiftKey(var _this) native;
 
-  bool getModifierState(String keyIdentifierArg) {
-    return _getModifierState(this, keyIdentifierArg);
-  }
-  static bool _getModifierState(receiver, keyIdentifierArg) native;
-
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
     _initKeyboardEvent(this, type, canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
     return;

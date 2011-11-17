@@ -11,6 +11,8 @@ class DOMTokenList native "DOMTokenList" {
 
   void remove(String token) native;
 
+  String toString() native;
+
   bool toggle(String token) native;
 
   var dartObjectLocalStorage;

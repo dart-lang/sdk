@@ -7,6 +7,8 @@ class WorkerContext native "WorkerContext" {
 
   EventListener onerror;
 
+  WorkerContext self;
+
   NotificationCenter webkitNotifications;
 
   DOMURL webkitURL;

@@ -894,6 +894,22 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
+function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_webkitLineDash(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitLineDash);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_webkitLineDash(_this, value) {
+  try {
+    _this.$dom.webkitLineDash = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_webkitLineDashOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitLineDashOffset);
@@ -1726,6 +1742,14 @@ function native__ClipboardWrappingImplementation__get__Clipboard_items(_this) {
   }
 }
 
+function native__ClipboardWrappingImplementation__get__Clipboard_types(_this) {
+  try {
+    return __dom_wrap(_this.$dom.types);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__ClipboardWrappingImplementation__clearData(_this) {
   try {
     return __dom_wrap(_this.$dom.clearData());
@@ -2278,6 +2302,14 @@ function native__DOMExceptionWrappingImplementation__get__DOMException_name(_thi
   }
 }
 
+function native__DOMExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMFileSystemWrappingImplementation__get__DOMFileSystem_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
@@ -2702,6 +2734,14 @@ function native__DOMSelectionWrappingImplementation__setPosition(_this, node, of
   }
 }
 
+function native__DOMSelectionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMSettableTokenListWrappingImplementation__get__DOMSettableTokenList_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
@@ -2753,6 +2793,14 @@ function native__DOMTokenListWrappingImplementation__item(_this, index) {
 function native__DOMTokenListWrappingImplementation__remove(_this, token) {
   try {
     return __dom_wrap(_this.$dom.remove(__dom_unwrap(token)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMTokenListWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -2849,6 +2897,22 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_defaultStatus(_
 function native__DOMWindowWrappingImplementation__set__DOMWindow_defaultStatus(_this, value) {
   try {
     _this.$dom.defaultStatus = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__get__DOMWindow_defaultstatus(_this) {
+  try {
+    return __dom_wrap(_this.$dom.defaultstatus);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__set__DOMWindow_defaultstatus(_this, value) {
+  try {
+    _this.$dom.defaultstatus = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4590,6 +4654,14 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_webkitNotificat
   }
 }
 
+function native__DOMWindowWrappingImplementation__get__DOMWindow_webkitURL(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitURL);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMWindowWrappingImplementation__get__DOMWindow_window(_this) {
   try {
     return __dom_wrap(_this.$dom.window);
@@ -4718,6 +4790,14 @@ function native__DOMWindowWrappingImplementation__getComputedStyle(_this, elemen
   }
 }
 
+function native__DOMWindowWrappingImplementation__getMatchedCSSRules(_this, element, pseudoElement) {
+  try {
+    return __dom_wrap(_this.$dom.getMatchedCSSRules(__dom_unwrap(element), __dom_unwrap(pseudoElement)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMWindowWrappingImplementation__getSelection(_this) {
   try {
     return __dom_wrap(_this.$dom.getSelection());
@@ -4766,9 +4846,17 @@ function native__DOMWindowWrappingImplementation__open_2(_this, url, name, optio
   }
 }
 
-function native__DOMWindowWrappingImplementation__postMessage(_this, message, targetOrigin) {
+function native__DOMWindowWrappingImplementation__postMessage(_this, message, messagePorts_OR_targetOrigin) {
   try {
-    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(targetOrigin)));
+    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(messagePorts_OR_targetOrigin)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__postMessage_2(_this, message, messagePorts_OR_targetOrigin, targetOrigin) {
+  try {
+    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(messagePorts_OR_targetOrigin), __dom_unwrap(targetOrigin)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4910,9 +4998,17 @@ function native__DOMWindowWrappingImplementation__webkitConvertPointFromPageToNo
   }
 }
 
-function native__DOMWindowWrappingImplementation__webkitPostMessage(_this, message, targetOrigin) {
+function native__DOMWindowWrappingImplementation__webkitPostMessage(_this, message, targetOrigin_OR_transferList) {
   try {
-    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(targetOrigin)));
+    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(targetOrigin_OR_transferList)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitPostMessage_2(_this, message, targetOrigin_OR_transferList, targetOrigin) {
+  try {
+    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(targetOrigin_OR_transferList), __dom_unwrap(targetOrigin)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5382,9 +5478,25 @@ function native__DedicatedWorkerContextWrappingImplementation__postMessage(_this
   }
 }
 
+function native__DedicatedWorkerContextWrappingImplementation__postMessage_2(_this, message, messagePorts) {
+  try {
+    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(messagePorts)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DedicatedWorkerContextWrappingImplementation__webkitPostMessage(_this, message) {
   try {
     return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DedicatedWorkerContextWrappingImplementation__webkitPostMessage_2(_this, message, transferList) {
+  try {
+    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(transferList)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5726,6 +5838,14 @@ function native__DocumentWrappingImplementation__get__Document_domain(_this) {
   }
 }
 
+function native__DocumentWrappingImplementation__set__Document_domain(_this, value) {
+  try {
+    _this.$dom.domain = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DocumentWrappingImplementation__get__Document_forms(_this) {
   try {
     return __dom_wrap(_this.$dom.forms);
@@ -5777,6 +5897,22 @@ function native__DocumentWrappingImplementation__get__Document_lastModified(_thi
 function native__DocumentWrappingImplementation__get__Document_links(_this) {
   try {
     return __dom_wrap(_this.$dom.links);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__get__Document_location(_this) {
+  try {
+    return __dom_wrap(_this.$dom.location);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__set__Document_location(_this, value) {
+  try {
+    _this.$dom.location = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -6678,14 +6814,6 @@ function native__DocumentWrappingImplementation__createCDATASection(_this, data)
   }
 }
 
-function native__DocumentWrappingImplementation__createCSSStyleDeclaration(_this) {
-  try {
-    return __dom_wrap(_this.$dom.createCSSStyleDeclaration());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__DocumentWrappingImplementation__createComment(_this, data) {
   try {
     return __dom_wrap(_this.$dom.createComment(__dom_unwrap(data)));
@@ -6865,6 +6993,14 @@ function native__DocumentWrappingImplementation__getElementsByTagNameNS(_this, n
 function native__DocumentWrappingImplementation__getOverrideStyle(_this, element, pseudoElement) {
   try {
     return __dom_wrap(_this.$dom.getOverrideStyle(__dom_unwrap(element), __dom_unwrap(pseudoElement)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__getSelection(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSelection());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -8566,6 +8702,14 @@ function native__EventWrappingImplementation__get__Event_cancelable(_this) {
   }
 }
 
+function native__EventWrappingImplementation__get__Event_clipboardData(_this) {
+  try {
+    return __dom_wrap(_this.$dom.clipboardData);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__EventWrappingImplementation__get__Event_currentTarget(_this) {
   try {
     return __dom_wrap(_this.$dom.currentTarget);
@@ -8689,6 +8833,14 @@ function native__EventExceptionWrappingImplementation__get__EventException_messa
 function native__EventExceptionWrappingImplementation__get__EventException_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__EventExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -8961,6 +9113,14 @@ function native__FileExceptionWrappingImplementation__get__FileException_message
 function native__FileExceptionWrappingImplementation__get__FileException_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -9881,6 +10041,14 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
 function native__HTMLAnchorElementWrappingImplementation__getParameter(_this, name) {
   try {
     return __dom_wrap(_this.$dom.getParameter(__dom_unwrap(name)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLAnchorElementWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -11062,6 +11230,22 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_alinkColo
   }
 }
 
+function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_all(_this) {
+  try {
+    return __dom_wrap(_this.$dom.all);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_all(_this, value) {
+  try {
+    _this.$dom.all = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_bgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.bgColor);
@@ -12000,7 +12184,7 @@ function native__HTMLFormElementWrappingImplementation__reset(_this) {
 
 function native__HTMLFormElementWrappingImplementation__submit(_this) {
   try {
-    return __dom_wrap(_this.$dom.submit());
+    return __dom_wrap(_this.$dom.submitFromJavaScript());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -13790,14 +13974,6 @@ function native__HTMLInputElementWrappingImplementation__setSelectionRange_2(_th
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__setValueForUser(_this, value) {
-  try {
-    return __dom_wrap(_this.$dom.setValueForUser(__dom_unwrap(value)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__HTMLInputElementWrappingImplementation__stepDown(_this) {
   try {
     return __dom_wrap(_this.$dom.stepDown());
@@ -14233,6 +14409,22 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_rev
 function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_sheet(_this) {
   try {
     return __dom_wrap(_this.$dom.sheet);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_sizes(_this) {
+  try {
+    return __dom_wrap(_this.$dom.sizes);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_sizes(_this, value) {
+  try {
+    _this.$dom.sizes = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -15558,6 +15750,14 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
+function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement_text(_this, value) {
+  try {
+    _this.$dom.text = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
@@ -16286,9 +16486,9 @@ function native__HTMLSelectElementWrappingImplementation__namedItem(_this, name)
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__remove(_this, index) {
+function native__HTMLSelectElementWrappingImplementation__remove(_this) {
   try {
-    return __dom_wrap(_this.$dom.remove(__dom_unwrap(index)));
+    return __dom_wrap(_this.$dom.remove());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -18206,6 +18406,14 @@ function native__IDBDatabaseExceptionWrappingImplementation__get__IDBDatabaseExc
   }
 }
 
+function native__IDBDatabaseExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__IDBFactoryWrappingImplementation__cmp(_this, first, second) {
   try {
     return __dom_wrap(_this.$dom.cmp(__dom_unwrap(first), __dom_unwrap(second)));
@@ -19198,6 +19406,14 @@ function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallF
   }
 }
 
+function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_scopeChain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.scopeChain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_sourceID(_this) {
   try {
     return __dom_wrap(_this.$dom.sourceID);
@@ -19281,14 +19497,6 @@ function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_metaKey
 function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_shiftKey(_this) {
   try {
     return __dom_wrap(_this.$dom.shiftKey);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__KeyboardEventWrappingImplementation__getModifierState(_this, keyIdentifierArg) {
-  try {
-    return __dom_wrap(_this.$dom.getModifierState(__dom_unwrap(keyIdentifierArg)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -19470,6 +19678,14 @@ function native__LocationWrappingImplementation__replace(_this, url) {
   }
 }
 
+function native__LocationWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toStringFunction());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__MediaErrorWrappingImplementation__get__MediaError_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
@@ -19622,17 +19838,17 @@ function native__MessageEventWrappingImplementation__get__MessageEvent_lastEvent
   }
 }
 
-function native__MessageEventWrappingImplementation__get__MessageEvent_messagePort(_this) {
+function native__MessageEventWrappingImplementation__get__MessageEvent_origin(_this) {
   try {
-    return __dom_wrap(_this.$dom.messagePort);
+    return __dom_wrap(_this.$dom.origin);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__MessageEventWrappingImplementation__get__MessageEvent_origin(_this) {
+function native__MessageEventWrappingImplementation__get__MessageEvent_ports(_this) {
   try {
-    return __dom_wrap(_this.$dom.origin);
+    return __dom_wrap(_this.$dom.ports);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -19646,9 +19862,17 @@ function native__MessageEventWrappingImplementation__get__MessageEvent_source(_t
   }
 }
 
-function native__MessageEventWrappingImplementation__initMessageEvent(_this, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePort) {
+function native__MessageEventWrappingImplementation__initMessageEvent(_this, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts) {
   try {
-    return __dom_wrap(_this.$dom.initMessageEvent(__dom_unwrap(typeArg), __dom_unwrap(canBubbleArg), __dom_unwrap(cancelableArg), __dom_unwrap(dataArg), __dom_unwrap(originArg), __dom_unwrap(lastEventIdArg), __dom_unwrap(sourceArg), __dom_unwrap(messagePort)));
+    return __dom_wrap(_this.$dom.initMessageEvent(__dom_unwrap(typeArg), __dom_unwrap(canBubbleArg), __dom_unwrap(cancelableArg), __dom_unwrap(dataArg), __dom_unwrap(originArg), __dom_unwrap(lastEventIdArg), __dom_unwrap(sourceArg), __dom_unwrap(messagePorts)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessageEventWrappingImplementation__webkitInitMessageEvent(_this, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, transferables) {
+  try {
+    return __dom_wrap(_this.$dom.webkitInitMessageEvent(__dom_unwrap(typeArg), __dom_unwrap(canBubbleArg), __dom_unwrap(cancelableArg), __dom_unwrap(dataArg), __dom_unwrap(originArg), __dom_unwrap(lastEventIdArg), __dom_unwrap(sourceArg), __dom_unwrap(transferables)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -19710,6 +19934,14 @@ function native__MessagePortWrappingImplementation__postMessage(_this, message) 
   }
 }
 
+function native__MessagePortWrappingImplementation__postMessage_2(_this, message, messagePorts) {
+  try {
+    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(messagePorts)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__MessagePortWrappingImplementation__removeEventListener(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
@@ -19737,6 +19969,14 @@ function native__MessagePortWrappingImplementation__start(_this) {
 function native__MessagePortWrappingImplementation__webkitPostMessage(_this, message) {
   try {
     return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MessagePortWrappingImplementation__webkitPostMessage_2(_this, message, transfer) {
+  try {
+    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(transfer)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -19793,6 +20033,14 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_clientY(_this
 function native__MouseEventWrappingImplementation__get__MouseEvent_ctrlKey(_this) {
   try {
     return __dom_wrap(_this.$dom.ctrlKey);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MouseEventWrappingImplementation__get__MouseEvent_dataTransfer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.dataTransfer);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -20918,6 +21166,14 @@ function native__OperationNotAllowedExceptionWrappingImplementation__get__Operat
   }
 }
 
+function native__OperationNotAllowedExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__OverflowEventWrappingImplementation__get__OverflowEvent_horizontalOverflow(_this) {
   try {
     return __dom_wrap(_this.$dom.horizontalOverflow);
@@ -21286,14 +21542,6 @@ function native__ProgressEventWrappingImplementation__initProgressEvent(_this, t
   }
 }
 
-function native__RGBColorWrappingImplementation__get__RGBColor_alpha(_this) {
-  try {
-    return __dom_wrap(_this.$dom.alpha);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__RGBColorWrappingImplementation__get__RGBColor_blue(_this) {
   try {
     return __dom_wrap(_this.$dom.blue);
@@ -21361,14 +21609,6 @@ function native__RangeWrappingImplementation__get__Range_startContainer(_this) {
 function native__RangeWrappingImplementation__get__Range_startOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.startOffset);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__RangeWrappingImplementation__get__Range_text(_this) {
-  try {
-    return __dom_wrap(_this.$dom.text);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -21449,6 +21689,22 @@ function native__RangeWrappingImplementation__expand(_this, unit) {
 function native__RangeWrappingImplementation__extractContents(_this) {
   try {
     return __dom_wrap(_this.$dom.extractContents());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RangeWrappingImplementation__getBoundingClientRect(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getBoundingClientRect());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RangeWrappingImplementation__getClientRects(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getClientRects());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -21577,6 +21833,14 @@ function native__RangeExceptionWrappingImplementation__get__RangeException_messa
 function native__RangeExceptionWrappingImplementation__get__RangeException_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RangeExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -21817,6 +22081,14 @@ function native__ScriptProfileWrappingImplementation__get__ScriptProfile_uid(_th
 function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_callUID(_this) {
   try {
     return __dom_wrap(_this.$dom.callUID);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_children(_this) {
+  try {
+    return __dom_wrap(_this.$dom.children);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -25440,8 +25712,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_y(_this) {
 
 function native__WheelEventWrappingImplementation__initWebKitWheelEvent(_this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) {
   try {
-    var _method = _this.$dom.initWebKitWheelEvent || _this.$dom.initWheelEvent;
-    return __dom_wrap(_method.call(_this.$dom, __dom_unwrap(wheelDeltaX), __dom_unwrap(wheelDeltaY), __dom_unwrap(view), __dom_unwrap(screenX), __dom_unwrap(screenY), __dom_unwrap(clientX), __dom_unwrap(clientY), __dom_unwrap(ctrlKey), __dom_unwrap(altKey), __dom_unwrap(shiftKey), __dom_unwrap(metaKey)));
+    return __dom_wrap(_this.$dom.initWebKitWheelEvent(__dom_unwrap(wheelDeltaX), __dom_unwrap(wheelDeltaY), __dom_unwrap(view), __dom_unwrap(screenX), __dom_unwrap(screenY), __dom_unwrap(clientX), __dom_unwrap(clientY), __dom_unwrap(ctrlKey), __dom_unwrap(altKey), __dom_unwrap(shiftKey), __dom_unwrap(metaKey)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -25471,9 +25742,9 @@ function native__WorkerWrappingImplementation__postMessage(_this, message) {
   }
 }
 
-function native__WorkerWrappingImplementation__postMessage_2(_this, message, messagePort) {
+function native__WorkerWrappingImplementation__postMessage_2(_this, message, messagePorts) {
   try {
-    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(messagePort)));
+    return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(messagePorts)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -25482,6 +25753,22 @@ function native__WorkerWrappingImplementation__postMessage_2(_this, message, mes
 function native__WorkerWrappingImplementation__terminate(_this) {
   try {
     return __dom_wrap(_this.$dom.terminate());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerWrappingImplementation__webkitPostMessage(_this, message) {
+  try {
+    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerWrappingImplementation__webkitPostMessage_2(_this, message, messagePorts) {
+  try {
+    return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(messagePorts)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -25530,6 +25817,22 @@ function native__WorkerContextWrappingImplementation__get__WorkerContext_onerror
 function native__WorkerContextWrappingImplementation__set__WorkerContext_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__get__WorkerContext_self(_this) {
+  try {
+    return __dom_wrap(_this.$dom.self);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__set__WorkerContext_self(_this, value) {
+  try {
+    _this.$dom.self = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -26119,6 +26422,14 @@ function native__XMLHttpRequestExceptionWrappingImplementation__get__XMLHttpRequ
   }
 }
 
+function native__XMLHttpRequestExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__XMLHttpRequestProgressEventWrappingImplementation__get__XMLHttpRequestProgressEvent_position(_this) {
   try {
     return __dom_wrap(_this.$dom.position);
@@ -26306,6 +26617,14 @@ function native__XPathExceptionWrappingImplementation__get__XPathException_messa
 function native__XPathExceptionWrappingImplementation__get__XPathException_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__XPathExceptionWrappingImplementation__toString(_this) {
+  try {
+    return __dom_wrap(_this.$dom.toString());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

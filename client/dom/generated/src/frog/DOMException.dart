@@ -7,6 +7,8 @@ class DOMException native "DOMException" {
 
   String name;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;

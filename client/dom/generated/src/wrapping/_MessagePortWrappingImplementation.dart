@@ -40,11 +40,17 @@ class _MessagePortWrappingImplementation extends DOMWrapperBase implements Messa
   }
   static bool _dispatchEvent(receiver, evt) native;
 
-  void postMessage(String message) {
-    _postMessage(this, message);
-    return;
+  void postMessage(String message, [List messagePorts = null]) {
+    if (messagePorts === null) {
+      _postMessage(this, message);
+      return;
+    } else {
+      _postMessage_2(this, message, messagePorts);
+      return;
+    }
   }
   static void _postMessage(receiver, message) native;
+  static void _postMessage_2(receiver, message, messagePorts) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
@@ -64,11 +70,17 @@ class _MessagePortWrappingImplementation extends DOMWrapperBase implements Messa
   }
   static void _start(receiver) native;
 
-  void webkitPostMessage(String message) {
-    _webkitPostMessage(this, message);
-    return;
+  void webkitPostMessage(String message, [List transfer = null]) {
+    if (transfer === null) {
+      _webkitPostMessage(this, message);
+      return;
+    } else {
+      _webkitPostMessage_2(this, message, transfer);
+      return;
+    }
   }
   static void _webkitPostMessage(receiver, message) native;
+  static void _webkitPostMessage_2(receiver, message, transfer) native;
 
   String get typeName() { return "MessagePort"; }
 }

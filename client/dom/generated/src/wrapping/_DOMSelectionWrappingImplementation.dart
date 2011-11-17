@@ -126,5 +126,10 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
   }
   static void _setPosition(receiver, node, offset) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "DOMSelection"; }
 }

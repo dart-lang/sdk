@@ -20,5 +20,10 @@ class _FileExceptionWrappingImplementation extends DOMWrapperBase implements Fil
   String get name() { return _get__FileException_name(this); }
   static String _get__FileException_name(var _this) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "FileException"; }
 }

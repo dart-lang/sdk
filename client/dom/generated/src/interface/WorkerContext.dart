@@ -18,6 +18,10 @@ interface WorkerGlobalScope {
 
   void set onerror(EventListener value);
 
+  WorkerContext get self();
+
+  void set self(WorkerContext value);
+
   NotificationCenter get webkitNotifications();
 
   DOMURL get webkitURL();

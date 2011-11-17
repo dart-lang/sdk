@@ -20,5 +20,10 @@ class _RangeExceptionWrappingImplementation extends DOMWrapperBase implements Ra
   String get name() { return _get__RangeException_name(this); }
   static String _get__RangeException_name(var _this) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "RangeException"; }
 }

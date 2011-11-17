@@ -10,9 +10,9 @@ interface DedicatedWorkerGlobalScope extends WorkerContext {
 
   void set onmessage(EventListener value);
 
-  void postMessage(Object message);
+  void postMessage(Object message, [List messagePorts]);
 
-  void webkitPostMessage(Object message);
+  void webkitPostMessage(Object message, [List transferList]);
 }
 
 interface DedicatedWorkerContext extends DedicatedWorkerGlobalScope {

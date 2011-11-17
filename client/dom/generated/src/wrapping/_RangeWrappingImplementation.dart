@@ -29,9 +29,6 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
   int get startOffset() { return _get__Range_startOffset(this); }
   static int _get__Range_startOffset(var _this) native;
 
-  String get text() { return _get__Range_text(this); }
-  static String _get__Range_text(var _this) native;
-
   DocumentFragment cloneContents() {
     return _cloneContents(this);
   }
@@ -85,6 +82,16 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
     return _extractContents(this);
   }
   static DocumentFragment _extractContents(receiver) native;
+
+  ClientRect getBoundingClientRect() {
+    return _getBoundingClientRect(this);
+  }
+  static ClientRect _getBoundingClientRect(receiver) native;
+
+  ClientRectList getClientRects() {
+    return _getClientRects(this);
+  }
+  static ClientRectList _getClientRects(receiver) native;
 
   void insertNode(Node newNode) {
     _insertNode(this, newNode);

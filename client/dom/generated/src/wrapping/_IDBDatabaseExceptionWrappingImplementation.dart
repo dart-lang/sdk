@@ -20,5 +20,10 @@ class _IDBDatabaseExceptionWrappingImplementation extends DOMWrapperBase impleme
   String get name() { return _get__IDBDatabaseException_name(this); }
   static String _get__IDBDatabaseException_name(var _this) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "IDBDatabaseException"; }
 }

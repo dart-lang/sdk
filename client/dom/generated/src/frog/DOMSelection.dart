@@ -51,6 +51,8 @@ class DOMSelection native "DOMSelection" {
 
   void setPosition(Node node, int offset) native;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;

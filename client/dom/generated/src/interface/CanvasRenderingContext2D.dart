@@ -58,6 +58,10 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void set textBaseline(String value);
 
+  List get webkitLineDash();
+
+  void set webkitLineDash(List value);
+
   num get webkitLineDashOffset();
 
   void set webkitLineDashOffset(num value);

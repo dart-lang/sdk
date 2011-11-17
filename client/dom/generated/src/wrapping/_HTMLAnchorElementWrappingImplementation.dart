@@ -142,5 +142,10 @@ class _HTMLAnchorElementWrappingImplementation extends _HTMLElementWrappingImple
   }
   static String _getParameter(receiver, name) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "HTMLAnchorElement"; }
 }

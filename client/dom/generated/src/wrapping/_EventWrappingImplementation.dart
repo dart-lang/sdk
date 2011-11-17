@@ -23,6 +23,9 @@ class _EventWrappingImplementation extends DOMWrapperBase implements Event {
   bool get cancelable() { return _get__Event_cancelable(this); }
   static bool _get__Event_cancelable(var _this) native;
 
+  Clipboard get clipboardData() { return _get__Event_clipboardData(this); }
+  static Clipboard _get__Event_clipboardData(var _this) native;
+
   EventTarget get currentTarget() { return _get__Event_currentTarget(this); }
   static EventTarget _get__Event_currentTarget(var _this) native;
 

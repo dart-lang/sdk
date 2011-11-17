@@ -5,6 +5,8 @@ class HTMLDocument extends Document native "HTMLDocument" {
 
   String alinkColor;
 
+  HTMLAllCollection all;
+
   String bgColor;
 
   String compatMode;

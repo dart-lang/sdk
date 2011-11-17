@@ -109,8 +109,6 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
 
   void setSelectionRange(int start, int end, [String direction = null]) native;
 
-  void setValueForUser(String value) native;
-
   void stepDown([int n = null]) native;
 
   void stepUp([int n = null]) native;

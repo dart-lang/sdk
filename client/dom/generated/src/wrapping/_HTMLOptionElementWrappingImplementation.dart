@@ -44,6 +44,9 @@ class _HTMLOptionElementWrappingImplementation extends _HTMLElementWrappingImple
   String get text() { return _get__HTMLOptionElement_text(this); }
   static String _get__HTMLOptionElement_text(var _this) native;
 
+  void set text(String value) { _set__HTMLOptionElement_text(this, value); }
+  static void _set__HTMLOptionElement_text(var _this, String value) native;
+
   String get value() { return _get__HTMLOptionElement_value(this); }
   static String _get__HTMLOptionElement_value(var _this) native;
 

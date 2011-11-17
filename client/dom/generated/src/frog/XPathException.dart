@@ -7,6 +7,8 @@ class XPathException native "XPathException" {
 
   String name;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;

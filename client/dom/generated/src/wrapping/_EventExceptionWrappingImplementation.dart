@@ -20,5 +20,10 @@ class _EventExceptionWrappingImplementation extends DOMWrapperBase implements Ev
   String get name() { return _get__EventException_name(this); }
   static String _get__EventException_name(var _this) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "EventException"; }
 }

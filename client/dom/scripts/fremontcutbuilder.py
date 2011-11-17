@@ -54,6 +54,7 @@ def main():
   # generation.
   webkit_defines = [
       'LANGUAGE_DART',
+      'LANGUAGE_JAVASCRIPT',
       'ENABLE_DOM_STORAGE',
       'ENABLE_NOTIFICATIONS',
       'ENABLE_OFFLINE_WEB_APPLICATIONS',

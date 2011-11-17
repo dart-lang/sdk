@@ -46,4 +46,6 @@ class HTMLAnchorElement extends HTMLElement native "HTMLAnchorElement" {
   String type;
 
   String getParameter(String name) native;
+
+  String toString() native;
 }

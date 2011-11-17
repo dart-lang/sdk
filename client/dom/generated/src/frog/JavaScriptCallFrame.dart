@@ -9,6 +9,8 @@ class JavaScriptCallFrame native "JavaScriptCallFrame" {
 
   int line;
 
+  List scopeChain;
+
   int sourceID;
 
   String type;

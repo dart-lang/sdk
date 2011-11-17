@@ -16,11 +16,11 @@ interface MessagePort extends EventTarget {
 
   bool dispatchEvent(Event evt);
 
-  void postMessage(String message);
+  void postMessage(String message, [List messagePorts]);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
 
-  void webkitPostMessage(String message);
+  void webkitPostMessage(String message, [List transfer]);
 }

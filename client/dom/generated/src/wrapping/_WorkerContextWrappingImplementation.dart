@@ -29,6 +29,12 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   void set onerror(EventListener value) { _set__WorkerContext_onerror(this, value); }
   static void _set__WorkerContext_onerror(var _this, EventListener value) native;
 
+  WorkerContext get self() { return _get__WorkerContext_self(this); }
+  static WorkerContext _get__WorkerContext_self(var _this) native;
+
+  void set self(WorkerContext value) { _set__WorkerContext_self(this, value); }
+  static void _set__WorkerContext_self(var _this, WorkerContext value) native;
+
   NotificationCenter get webkitNotifications() { return _get__WorkerContext_webkitNotifications(this); }
   static NotificationCenter _get__WorkerContext_webkitNotifications(var _this) native;
 

@@ -344,6 +344,8 @@ function DOM$fixClass$CanvasRenderingContext2D(c) {
     c.prototype.textAlign$setter = function(value) { this.textAlign = value; };
     c.prototype.textBaseline$getter = function() { return DOM$EnsureDartNull(this.textBaseline); };
     c.prototype.textBaseline$setter = function(value) { this.textBaseline = value; };
+    c.prototype.webkitLineDash$getter = function() { return DOM$EnsureDartNull(this.webkitLineDash); };
+    c.prototype.webkitLineDash$setter = function(value) { this.webkitLineDash = value; };
     c.prototype.webkitLineDashOffset$getter = function() { return DOM$EnsureDartNull(this.webkitLineDashOffset); };
     c.prototype.webkitLineDashOffset$setter = function(value) { this.webkitLineDashOffset = value; };
   }
@@ -443,6 +445,7 @@ function DOM$fixClass$Clipboard(c) {
     c.prototype.effectAllowed$setter = function(value) { this.effectAllowed = value; };
     c.prototype.files$getter = function() { return DOM$EnsureDartNull(this.files); };
     c.prototype.items$getter = function() { return DOM$EnsureDartNull(this.items); };
+    c.prototype.types$getter = function() { return DOM$EnsureDartNull(this.types); };
   }
   DOM$fixMembers(c, [
     'clearData',
@@ -573,6 +576,7 @@ function DOM$fixClass$DOMException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$DOMException$Dart = 1;
 }
 function DOM$fixClass$DOMFileSystem(c) {
@@ -680,7 +684,8 @@ function DOM$fixClass$DOMSelection(c) {
     'removeAllRanges',
     'selectAllChildren',
     'setBaseAndExtent',
-    'setPosition']);
+    'setPosition',
+    'toString']);
   c.$implements$DOMSelection$Dart = 1;
 }
 function DOM$fixClass$DOMSettableTokenList(c) {
@@ -700,6 +705,7 @@ function DOM$fixClass$DOMTokenList(c) {
     'contains',
     'item',
     'remove',
+    'toString',
     'toggle']);
   c.$implements$DOMTokenList$Dart = 1;
 }
@@ -722,6 +728,8 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.crypto$getter = function() { return DOM$EnsureDartNull(this.crypto); };
     c.prototype.defaultStatus$getter = function() { return DOM$EnsureDartNull(this.defaultStatus); };
     c.prototype.defaultStatus$setter = function(value) { this.defaultStatus = value; };
+    c.prototype.defaultstatus$getter = function() { return DOM$EnsureDartNull(this.defaultstatus); };
+    c.prototype.defaultstatus$setter = function(value) { this.defaultstatus = value; };
     c.prototype.devicePixelRatio$getter = function() { return DOM$EnsureDartNull(this.devicePixelRatio); };
     c.prototype.devicePixelRatio$setter = function(value) { this.devicePixelRatio = value; };
     c.prototype.document$getter = function() { return DOM$EnsureDartNull(this.document); };
@@ -940,6 +948,7 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.top$getter = function() { return DOM$EnsureDartNull(this.top); };
     c.prototype.top$setter = function(value) { this.top = value; };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
+    c.prototype.webkitURL$getter = function() { return DOM$EnsureDartNull(this.webkitURL); };
     c.prototype.window$getter = function() { return DOM$EnsureDartNull(this.window); };
   }
   DOM$fixMembers(c, [
@@ -957,6 +966,7 @@ function DOM$fixClass$DOMWindow(c) {
     'find',
     'focus',
     'getComputedStyle',
+    'getMatchedCSSRules',
     'getSelection',
     'matchMedia',
     'moveBy',
@@ -1135,6 +1145,7 @@ function DOM$fixClass$Document(c) {
     c.prototype.documentURI$getter = function() { return DOM$EnsureDartNull(this.documentURI); };
     c.prototype.documentURI$setter = function(value) { this.documentURI = value; };
     c.prototype.domain$getter = function() { return DOM$EnsureDartNull(this.domain); };
+    c.prototype.domain$setter = function(value) { this.domain = value; };
     c.prototype.forms$getter = function() { return DOM$EnsureDartNull(this.forms); };
     c.prototype.head$getter = function() { return DOM$EnsureDartNull(this.head); };
     c.prototype.images$getter = function() { return DOM$EnsureDartNull(this.images); };
@@ -1142,6 +1153,8 @@ function DOM$fixClass$Document(c) {
     c.prototype.inputEncoding$getter = function() { return DOM$EnsureDartNull(this.inputEncoding); };
     c.prototype.lastModified$getter = function() { return DOM$EnsureDartNull(this.lastModified); };
     c.prototype.links$getter = function() { return DOM$EnsureDartNull(this.links); };
+    c.prototype.location$getter = function() { return DOM$EnsureDartNull(this.location); };
+    c.prototype.location$setter = function(value) { this.location = value; };
     c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
     c.prototype.onabort$setter = function(value) { this.onabort = value; };
     c.prototype.onbeforecopy$getter = function() { return DOM$EnsureDartNull(this.onbeforecopy); };
@@ -1256,7 +1269,6 @@ function DOM$fixClass$Document(c) {
     'createAttribute',
     'createAttributeNS',
     'createCDATASection',
-    'createCSSStyleDeclaration',
     'createComment',
     'createDocumentFragment',
     'createElement',
@@ -1280,6 +1292,7 @@ function DOM$fixClass$Document(c) {
     'getElementsByTagName',
     'getElementsByTagNameNS',
     'getOverrideStyle',
+    'getSelection',
     'importNode',
     'queryCommandEnabled',
     'queryCommandIndeterm',
@@ -1573,6 +1586,7 @@ function DOM$fixClass$Event(c) {
     c.prototype.cancelBubble$getter = function() { return DOM$EnsureDartNull(this.cancelBubble); };
     c.prototype.cancelBubble$setter = function(value) { this.cancelBubble = value; };
     c.prototype.cancelable$getter = function() { return DOM$EnsureDartNull(this.cancelable); };
+    c.prototype.clipboardData$getter = function() { return DOM$EnsureDartNull(this.clipboardData); };
     c.prototype.currentTarget$getter = function() { return DOM$EnsureDartNull(this.currentTarget); };
     c.prototype.defaultPrevented$getter = function() { return DOM$EnsureDartNull(this.defaultPrevented); };
     c.prototype.eventPhase$getter = function() { return DOM$EnsureDartNull(this.eventPhase); };
@@ -1596,6 +1610,7 @@ function DOM$fixClass$EventException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$EventException$Dart = 1;
 }
 function DOM$fixClass$EventSource(c) {
@@ -1672,6 +1687,7 @@ function DOM$fixClass$FileException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$FileException$Dart = 1;
 }
 function DOM$fixClass$FileList(c) {
@@ -1853,7 +1869,9 @@ function DOM$fixClass$HTMLAnchorElement(c) {
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
     c.prototype.type$setter = function(value) { this.type = value; };
   }
-  DOM$fixMembers(c, ['getParameter']);
+  DOM$fixMembers(c, [
+    'getParameter',
+    'toString']);
   c.$implements$HTMLAnchorElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2176,6 +2194,8 @@ function DOM$fixClass$HTMLDocument(c) {
     c.prototype.activeElement$getter = function() { return DOM$EnsureDartNull(this.activeElement); };
     c.prototype.alinkColor$getter = function() { return DOM$EnsureDartNull(this.alinkColor); };
     c.prototype.alinkColor$setter = function(value) { this.alinkColor = value; };
+    c.prototype.all$getter = function() { return DOM$EnsureDartNull(this.all); };
+    c.prototype.all$setter = function(value) { this.all = value; };
     c.prototype.bgColor$getter = function() { return DOM$EnsureDartNull(this.bgColor); };
     c.prototype.bgColor$setter = function(value) { this.bgColor = value; };
     c.prototype.compatMode$getter = function() { return DOM$EnsureDartNull(this.compatMode); };
@@ -2349,8 +2369,10 @@ function DOM$fixClass$HTMLFormElement(c) {
   }
   DOM$fixMembers(c, [
     'checkValidity',
-    'reset',
-    'submit']);
+    'reset']);
+  c.prototype.submit$member = function() {
+    return DOM$EnsureDartNull(this.submitFromJavaScript.apply(this, arguments));
+  };
   c.$implements$HTMLFormElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2673,7 +2695,6 @@ function DOM$fixClass$HTMLInputElement(c) {
     'select',
     'setCustomValidity',
     'setSelectionRange',
-    'setValueForUser',
     'stepDown',
     'stepUp']);
   c.$implements$HTMLInputElement$Dart = 1;
@@ -2794,6 +2815,8 @@ function DOM$fixClass$HTMLLinkElement(c) {
     c.prototype.rev$getter = function() { return DOM$EnsureDartNull(this.rev); };
     c.prototype.rev$setter = function(value) { this.rev = value; };
     c.prototype.sheet$getter = function() { return DOM$EnsureDartNull(this.sheet); };
+    c.prototype.sizes$getter = function() { return DOM$EnsureDartNull(this.sizes); };
+    c.prototype.sizes$setter = function(value) { this.sizes = value; };
     c.prototype.target$getter = function() { return DOM$EnsureDartNull(this.target); };
     c.prototype.target$setter = function(value) { this.target = value; };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
@@ -3083,6 +3106,7 @@ function DOM$fixClass$HTMLOptionElement(c) {
     c.prototype.selected$getter = function() { return DOM$EnsureDartNull(this.selected); };
     c.prototype.selected$setter = function(value) { this.selected = value; };
     c.prototype.text$getter = function() { return DOM$EnsureDartNull(this.text); };
+    c.prototype.text$setter = function(value) { this.text = value; };
     c.prototype.value$getter = function() { return DOM$EnsureDartNull(this.value); };
     c.prototype.value$setter = function(value) { this.value = value; };
   }
@@ -3729,6 +3753,7 @@ function DOM$fixClass$IDBDatabaseException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$IDBDatabaseException$Dart = 1;
 }
 function DOM$fixClass$IDBFactory(c) {
@@ -3949,6 +3974,7 @@ function DOM$fixClass$JavaScriptCallFrame(c) {
     c.prototype.column$getter = function() { return DOM$EnsureDartNull(this.column); };
     c.prototype.functionName$getter = function() { return DOM$EnsureDartNull(this.functionName); };
     c.prototype.line$getter = function() { return DOM$EnsureDartNull(this.line); };
+    c.prototype.scopeChain$getter = function() { return DOM$EnsureDartNull(this.scopeChain); };
     c.prototype.sourceID$getter = function() { return DOM$EnsureDartNull(this.sourceID); };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
   }
@@ -3967,9 +3993,7 @@ function DOM$fixClass$KeyboardEvent(c) {
     c.prototype.metaKey$getter = function() { return DOM$EnsureDartNull(this.metaKey); };
     c.prototype.shiftKey$getter = function() { return DOM$EnsureDartNull(this.shiftKey); };
   }
-  DOM$fixMembers(c, [
-    'getModifierState',
-    'initKeyboardEvent']);
+  DOM$fixMembers(c, ['initKeyboardEvent']);
   c.$implements$KeyboardEvent$Dart = 1;
   c.$implements$UIEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
@@ -3999,6 +4023,9 @@ function DOM$fixClass$Location(c) {
     'getParameter',
     'reload',
     'replace']);
+  c.prototype.toString$member = function() {
+    return DOM$EnsureDartNull(this.toStringFunction.apply(this, arguments));
+  };
   c.$implements$Location$Dart = 1;
 }
 function DOM$fixClass$MediaError(c) {
@@ -4056,11 +4083,13 @@ function DOM$fixClass$MessageEvent(c) {
   if (c.prototype) {
     c.prototype.data$getter = function() { return DOM$EnsureDartNull(this.data); };
     c.prototype.lastEventId$getter = function() { return DOM$EnsureDartNull(this.lastEventId); };
-    c.prototype.messagePort$getter = function() { return DOM$EnsureDartNull(this.messagePort); };
     c.prototype.origin$getter = function() { return DOM$EnsureDartNull(this.origin); };
+    c.prototype.ports$getter = function() { return DOM$EnsureDartNull(this.ports); };
     c.prototype.source$getter = function() { return DOM$EnsureDartNull(this.source); };
   }
-  DOM$fixMembers(c, ['initMessageEvent']);
+  DOM$fixMembers(c, [
+    'initMessageEvent',
+    'webkitInitMessageEvent']);
   c.$implements$MessageEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -4099,6 +4128,7 @@ function DOM$fixClass$MouseEvent(c) {
     c.prototype.clientX$getter = function() { return DOM$EnsureDartNull(this.clientX); };
     c.prototype.clientY$getter = function() { return DOM$EnsureDartNull(this.clientY); };
     c.prototype.ctrlKey$getter = function() { return DOM$EnsureDartNull(this.ctrlKey); };
+    c.prototype.dataTransfer$getter = function() { return DOM$EnsureDartNull(this.dataTransfer); };
     c.prototype.fromElement$getter = function() { return DOM$EnsureDartNull(this.fromElement); };
     c.prototype.metaKey$getter = function() { return DOM$EnsureDartNull(this.metaKey); };
     c.prototype.offsetX$getter = function() { return DOM$EnsureDartNull(this.offsetX); };
@@ -4393,6 +4423,7 @@ function DOM$fixClass$OperationNotAllowedException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$OperationNotAllowedException$Dart = 1;
 }
 function DOM$fixClass$OverflowEvent(c) {
@@ -4504,7 +4535,6 @@ function DOM$fixClass$ProgressEvent(c) {
 }
 function DOM$fixClass$RGBColor(c) {
   if (c.prototype) {
-    c.prototype.alpha$getter = function() { return DOM$EnsureDartNull(this.alpha); };
     c.prototype.blue$getter = function() { return DOM$EnsureDartNull(this.blue); };
     c.prototype.green$getter = function() { return DOM$EnsureDartNull(this.green); };
     c.prototype.red$getter = function() { return DOM$EnsureDartNull(this.red); };
@@ -4519,7 +4549,6 @@ function DOM$fixClass$Range(c) {
     c.prototype.endOffset$getter = function() { return DOM$EnsureDartNull(this.endOffset); };
     c.prototype.startContainer$getter = function() { return DOM$EnsureDartNull(this.startContainer); };
     c.prototype.startOffset$getter = function() { return DOM$EnsureDartNull(this.startOffset); };
-    c.prototype.text$getter = function() { return DOM$EnsureDartNull(this.text); };
   }
   DOM$fixMembers(c, [
     'cloneContents',
@@ -4532,6 +4561,8 @@ function DOM$fixClass$Range(c) {
     'detach',
     'expand',
     'extractContents',
+    'getBoundingClientRect',
+    'getClientRects',
     'insertNode',
     'intersectsNode',
     'isPointInRange',
@@ -4553,6 +4584,7 @@ function DOM$fixClass$RangeException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$RangeException$Dart = 1;
 }
 function DOM$fixClass$Rect(c) {
@@ -4657,6 +4689,7 @@ function DOM$fixClass$ScriptProfile(c) {
 function DOM$fixClass$ScriptProfileNode(c) {
   if (c.prototype) {
     c.prototype.callUID$getter = function() { return DOM$EnsureDartNull(this.callUID); };
+    c.prototype.children$getter = function() { return DOM$EnsureDartNull(this.children); };
     c.prototype.functionName$getter = function() { return DOM$EnsureDartNull(this.functionName); };
     c.prototype.lineNumber$getter = function() { return DOM$EnsureDartNull(this.lineNumber); };
     c.prototype.numberOfCalls$getter = function() { return DOM$EnsureDartNull(this.numberOfCalls); };
@@ -5479,7 +5512,7 @@ function DOM$fixClass$WheelEvent(c) {
     c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
     c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
   }
-  DOM$fixMembers(c, ['initWheelEvent']);
+  DOM$fixMembers(c, ['initWebKitWheelEvent']);
   c.$implements$WheelEvent$Dart = 1;
   c.$implements$UIEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
@@ -5491,7 +5524,8 @@ function DOM$fixClass$Worker(c) {
   }
   DOM$fixMembers(c, [
     'postMessage',
-    'terminate']);
+    'terminate',
+    'webkitPostMessage']);
   c.$implements$Worker$Dart = 1;
   c.$implements$AbstractWorker$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -5504,6 +5538,8 @@ function DOM$fixClass$WorkerContext(c) {
     c.prototype.navigator$setter = function(value) { this.navigator = value; };
     c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
     c.prototype.onerror$setter = function(value) { this.onerror = value; };
+    c.prototype.self$getter = function() { return DOM$EnsureDartNull(this.self); };
+    c.prototype.self$setter = function(value) { this.self = value; };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
     c.prototype.webkitURL$getter = function() { return DOM$EnsureDartNull(this.webkitURL); };
   }
@@ -5591,6 +5627,7 @@ function DOM$fixClass$XMLHttpRequestException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$XMLHttpRequestException$Dart = 1;
 }
 function DOM$fixClass$XMLHttpRequestProgressEvent(c) {
@@ -5643,6 +5680,7 @@ function DOM$fixClass$XPathException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$XPathException$Dart = 1;
 }
 function DOM$fixClass$XPathExpression(c) {
@@ -5939,6 +5977,9 @@ var _;
   if ((_ = w.DOMTokenList)) {
     w.DOMTokenList$Dart = _;
     DOM$fixClass$DOMTokenList(_);
+  }
+  if (!w.DOMURL && (_ = w.webkitURL) && (_ = _.__proto__) && (_ = {prototype: _})) {
+    w.DOMURL = _;
   }
   if ((_ = w.DOMURL)) {
     w.DOMURL$Dart = _;

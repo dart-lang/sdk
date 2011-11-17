@@ -38,6 +38,12 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   void set defaultStatus(String value) { _set__DOMWindow_defaultStatus(this, value); }
   static void _set__DOMWindow_defaultStatus(var _this, String value) native;
 
+  String get defaultstatus() { return _get__DOMWindow_defaultstatus(this); }
+  static String _get__DOMWindow_defaultstatus(var _this) native;
+
+  void set defaultstatus(String value) { _set__DOMWindow_defaultstatus(this, value); }
+  static void _set__DOMWindow_defaultstatus(var _this, String value) native;
+
   num get devicePixelRatio() { return _get__DOMWindow_devicePixelRatio(this); }
   static num _get__DOMWindow_devicePixelRatio(var _this) native;
 
@@ -692,6 +698,9 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   NotificationCenter get webkitNotifications() { return _get__DOMWindow_webkitNotifications(this); }
   static NotificationCenter _get__DOMWindow_webkitNotifications(var _this) native;
 
+  DOMURL get webkitURL() { return _get__DOMWindow_webkitURL(this); }
+  static DOMURL _get__DOMWindow_webkitURL(var _this) native;
+
   DOMWindow get window() { return _get__DOMWindow_window(this); }
   static DOMWindow _get__DOMWindow_window(var _this) native;
 
@@ -779,6 +788,11 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static CSSStyleDeclaration _getComputedStyle(receiver, element, pseudoElement) native;
 
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) {
+    return _getMatchedCSSRules(this, element, pseudoElement);
+  }
+  static CSSRuleList _getMatchedCSSRules(receiver, element, pseudoElement) native;
+
   DOMSelection getSelection() {
     return _getSelection(this);
   }
@@ -811,11 +825,22 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static DOMWindow _open(receiver, url, name) native;
   static DOMWindow _open_2(receiver, url, name, options) native;
 
-  void postMessage(String message, String targetOrigin) {
-    _postMessage(this, message, targetOrigin);
-    return;
+  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) {
+    if (messagePorts_OR_targetOrigin is String) {
+      if (targetOrigin === null) {
+        _postMessage(this, message, messagePorts_OR_targetOrigin);
+        return;
+      }
+    } else {
+      if (messagePorts_OR_targetOrigin is List) {
+        _postMessage_2(this, message, messagePorts_OR_targetOrigin, targetOrigin);
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _postMessage(receiver, message, targetOrigin) native;
+  static void _postMessage(receiver, message, messagePorts_OR_targetOrigin) native;
+  static void _postMessage_2(receiver, message, messagePorts_OR_targetOrigin, targetOrigin) native;
 
   void print() {
     _print(this);
@@ -926,11 +951,22 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static WebKitPoint _webkitConvertPointFromPageToNode(receiver, node, p) native;
 
-  void webkitPostMessage(String message, String targetOrigin) {
-    _webkitPostMessage(this, message, targetOrigin);
-    return;
+  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) {
+    if (targetOrigin_OR_transferList is String) {
+      if (targetOrigin === null) {
+        _webkitPostMessage(this, message, targetOrigin_OR_transferList);
+        return;
+      }
+    } else {
+      if (targetOrigin_OR_transferList is List) {
+        _webkitPostMessage_2(this, message, targetOrigin_OR_transferList, targetOrigin);
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _webkitPostMessage(receiver, message, targetOrigin) native;
+  static void _webkitPostMessage(receiver, message, targetOrigin_OR_transferList) native;
+  static void _webkitPostMessage_2(receiver, message, targetOrigin_OR_transferList, targetOrigin) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) {
     return _webkitRequestAnimationFrame(this, callback, element);

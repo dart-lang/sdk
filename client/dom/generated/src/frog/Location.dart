@@ -27,6 +27,8 @@ class Location native "Location" {
 
   void replace(String url) native;
 
+  String toString() native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;

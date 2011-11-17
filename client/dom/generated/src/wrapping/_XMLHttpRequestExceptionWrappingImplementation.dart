@@ -20,5 +20,10 @@ class _XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase impl
   String get name() { return _get__XMLHttpRequestException_name(this); }
   static String _get__XMLHttpRequestException_name(var _this) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   String get typeName() { return "XMLHttpRequestException"; }
 }

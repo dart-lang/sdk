@@ -13,8 +13,6 @@ class Range native "Range" {
 
   int startOffset;
 
-  String text;
-
   DocumentFragment cloneContents() native;
 
   Range cloneRange() native;
@@ -34,6 +32,10 @@ class Range native "Range" {
   void expand(String unit) native;
 
   DocumentFragment extractContents() native;
+
+  ClientRect getBoundingClientRect() native;
+
+  ClientRectList getClientRects() native;
 
   void insertNode(Node newNode) native;
 

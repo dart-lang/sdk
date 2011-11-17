@@ -13,13 +13,13 @@ class HTMLAppletElement extends HTMLElement native "HTMLAppletElement" {
 
   String height;
 
-  int hspace;
+  String hspace;
 
   String name;
 
   String object;
 
-  int vspace;
+  String vspace;
 
   String width;
 }

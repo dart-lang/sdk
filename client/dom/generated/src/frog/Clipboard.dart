@@ -9,6 +9,8 @@ class Clipboard native "Clipboard" {
 
   DataTransferItemList items;
 
+  List types;
+
   void clearData([String type = null]) native;
 
   void getData(String type) native;

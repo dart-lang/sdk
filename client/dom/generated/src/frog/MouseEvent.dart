@@ -11,6 +11,8 @@ class MouseEvent extends UIEvent native "MouseEvent" {
 
   bool ctrlKey;
 
+  Clipboard dataTransfer;
+
   Node fromElement;
 
   bool metaKey;

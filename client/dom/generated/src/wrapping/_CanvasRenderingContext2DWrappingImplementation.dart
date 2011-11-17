@@ -89,6 +89,12 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   void set textBaseline(String value) { _set__CanvasRenderingContext2D_textBaseline(this, value); }
   static void _set__CanvasRenderingContext2D_textBaseline(var _this, String value) native;
 
+  List get webkitLineDash() { return _get__CanvasRenderingContext2D_webkitLineDash(this); }
+  static List _get__CanvasRenderingContext2D_webkitLineDash(var _this) native;
+
+  void set webkitLineDash(List value) { _set__CanvasRenderingContext2D_webkitLineDash(this, value); }
+  static void _set__CanvasRenderingContext2D_webkitLineDash(var _this, List value) native;
+
   num get webkitLineDashOffset() { return _get__CanvasRenderingContext2D_webkitLineDashOffset(this); }
   static num _get__CanvasRenderingContext2D_webkitLineDashOffset(var _this) native;
 

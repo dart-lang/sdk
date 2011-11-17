@@ -14,6 +14,9 @@ class _ScriptProfileNodeWrappingImplementation extends DOMWrapperBase implements
   int get callUID() { return _get__ScriptProfileNode_callUID(this); }
   static int _get__ScriptProfileNode_callUID(var _this) native;
 
+  List get children() { return _get__ScriptProfileNode_children(this); }
+  static List _get__ScriptProfileNode_children(var _this) native;
+
   String get functionName() { return _get__ScriptProfileNode_functionName(this); }
   static String _get__ScriptProfileNode_functionName(var _this) native;
 

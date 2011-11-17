@@ -8,6 +8,8 @@ interface ScriptProfileNode {
 
   int get callUID();
 
+  List get children();
+
   String get functionName();
 
   int get lineNumber();

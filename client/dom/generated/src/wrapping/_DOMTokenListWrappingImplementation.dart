@@ -36,6 +36,11 @@ class _DOMTokenListWrappingImplementation extends DOMWrapperBase implements DOMT
   }
   static void _remove(receiver, token) native;
 
+  String toString() {
+    return _toString(this);
+  }
+  static String _toString(receiver) native;
+
   bool toggle(String token) {
     return _toggle(this, token);
   }
