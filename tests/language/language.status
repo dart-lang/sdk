@@ -270,6 +270,7 @@ LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MathTest: Fail
+MethodBindingTest: Fail
 MethodOverrideTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail

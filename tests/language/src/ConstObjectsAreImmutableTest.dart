@@ -17,7 +17,11 @@ main() {
   Expect.throws(() => m['foo'] = 42);
   Expect.equals(499, m['foo']);
 
-  var a = const A(1, 2);
-  Expect.throws(() => a.x = 499);
-  Expect.equals(1, a.x);
+  var a1 = const A(1, 2);
+  Expect.throws(() => a1.x = 499);
+  Expect.equals(1, a1.x);
+
+  A a2 = const A(1, 2);
+  Expect.throws(() => a2.x = 499);
+  Expect.equals(1, a2.x);
 }
