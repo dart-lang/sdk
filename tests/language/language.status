@@ -219,13 +219,11 @@ ClassOverrideNegativeTest: Fail
 ClosuresWithComplexParamsTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
-ConstructorDefaultTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
 DynamicTest: Fail
 ExampleConstructorTest: Fail
 Constructor2Test: Fail
 Constructor3Test: Fail
-Constructor4Test: Fail
 Constructor5Test: Fail    # Order of initializers.
 Constructor6Test: Fail    # Parse failure in initializers.
 ExecuteFinally6Test: Fail
