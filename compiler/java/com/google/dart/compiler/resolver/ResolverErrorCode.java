@@ -31,6 +31,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method %s"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
+  CIRCULAR_REFERENCE(
+      "Circular reference detected:  compile-time constants cannot reference themselves."),
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
   CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE("Generative constructors cannot have return type"),
@@ -121,14 +123,17 @@ public enum ResolverErrorCode implements ErrorCode {
     this.message = message;
   }
 
+  @Override
   public String getMessage() {
     return message;
   }
 
+  @Override
   public ErrorSeverity getErrorSeverity() {
     return severity;
   }
 
+  @Override
   public SubSystem getSubSystem() {
     return SubSystem.RESOLVER;
   }

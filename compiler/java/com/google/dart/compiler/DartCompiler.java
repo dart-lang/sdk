@@ -30,6 +30,7 @@ import com.google.dart.compiler.parser.CommentPreservingParser;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScannerParserContext;
+import com.google.dart.compiler.resolver.CompileTimeConstantResolver;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
@@ -541,6 +542,13 @@ public class DartCompiler {
             // These two method calls can be parallelized.
             new SupertypeResolver().exec(unit, context, getTypeProvider());
             new MemberBuilder().exec(unit, context, getTypeProvider());
+          }
+        }
+
+        // Perform resolution on compile-time constant expressions.
+        for (LibraryUnit lib : libraries.values()) {
+          for (DartUnit unit : lib.getUnits()) {
+            new CompileTimeConstantResolver().exec(unit, context, getTypeProvider());
           }
         }
       } finally {

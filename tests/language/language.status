@@ -83,11 +83,9 @@ Prefix15Test: Skip                       # Bug 5406175
 Prefix16NegativeTest: Fail               # Bug 5532534
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
-CTConst3Test: Fail                       # Codesite Issue 120
 FactoryNegativeTest: Fail                # Issue 417
 TypeVariableBoundsTest/none: Fail        # Issue 417
 TypeVariableScopeTest/none: Fail         # Issue 417
-
 StringConcatTest: FAIL                   # Bug 5196164
 NamedParametersTypeTest: Fail            # Implementation in progress.
 NamedParametersNegativeTest: Fail    # Implementation in progress.

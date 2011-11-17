@@ -6,32 +6,18 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.base.Joiner;
 
+
+
 /**
  * Tests the code in {@link CompileTimeConstantVisitor}
  */
-public class CompileTimeConstantTest extends ResolverTestCase{
+public class CompileTimeConstantTest extends ResolverTestCase {
 
-  // TODO(zundel) This test should pass, but the compiler doesn't currently
-  // recursively resolve types in CompileTimeConstVisitor
-  public void disabledTestForwardLookupExpressions() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  static final value1 = value2 * 2;",
-        "  static final value2 = value3 * 4;",
-        "  static final value3 = 8;",
-        "}"));
-  }
-
-  public void testConstantBinaryExpression() {
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantBinaryExpression1() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         " static final INT_LIT = 5;",
-        " static final INT_LIT_REF = INT_LIT;",
-        " static final DOUBLE_LIT = 1.5;",
-        " static final BOOL_LIT = true;",
-        " static final STRING_LIT = \"Hello\";",
         " static final BOP1_0 = INT_LIT + 1;",
         " static final BOP1_1 = 1 + INT_LIT;",
         " static final BOP1_2 = INT_LIT - 1;",
@@ -40,6 +26,87 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP1_5 = 1 * INT_LIT;",
         " static final BOP1_6 = INT_LIT / 1;",
         " static final BOP1_7 = 1 / INT_LIT;",
+        "}"));
+  }
+
+  public void testConstantBinaryExpression10() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  static final INT_LIT = 5;",
+        "  static final INT_LIT_REF = INT_LIT;",
+        "  static final DOUBLE_LIT = 1.5;",
+        "  static final BOOL_LIT = true;",
+        "  // Multiple binary expresions",
+        "  static final BOP1 = 1 * INT_LIT / 3 + INT_LIT + 9;",
+        "  // Parenthized expression",
+        "  static final BOP2 = ( 1 > 2 );",
+        "  static final BOP3 = (1 * 2) + 3;",
+        "  static final BOP4 = 3 + (1 * 2);",
+        "}"));
+  }
+
+  public void testConstantBinaryExpression11() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  static final INT_LIT = 5;",
+        "  static final DOUBLE_LIT = 1.5;",
+        "  const A();",
+        "  static final OBJECT_LIT = const A();",
+        "  // Multiple binary expresions",
+        "  static final BOP1_0 = 0 + 1 + OBJECT_LIT;",
+        "  static final BOP1_1 = 0 + OBJECT_LIT + 1;",
+        "  static final BOP1_2 = OBJECT_LIT + 3 + 9;",
+        "}"),
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+  }
+
+  public void testConstantBinaryExpression12() {
+    // Multiple binary expressions
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  static final INT_LIT = 5;",
+        "  static final DOUBLE_LIT = 1.5;",
+        "  const A();",
+        "  static final OBJECT_LIT = new A();",
+        "  static final PP0 = 0 - (1 + OBJECT_LIT);",
+        "  static final PP1 = 0 + (OBJECT_LIT + 1);",
+        "  static final PP2 = (OBJECT_LIT + 3) + 9;",
+        "  static final PP3 = (OBJECT_LIT) + 3 + 9;",
+        "  static final PP4 = (OBJECT_LIT + 3 + 9);",
+        "  static final PP5 = OBJECT_LIT + (3 + 9);",
+        "}"),
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+  }
+
+  public void testConstantBinaryExpression2() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        " static final DOUBLE_LIT = 1.5;",
         " static final BOP2_0 = DOUBLE_LIT + 1.5;",
         " static final BOP2_1 = 1.5 + DOUBLE_LIT;",
         " static final BOP2_2 = DOUBLE_LIT - 1.5;",
@@ -48,10 +115,25 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP2_5 = 1.5 * DOUBLE_LIT;",
         " static final BOP2_6 = DOUBLE_LIT / 1.5;",
         " static final BOP2_7 = 1.5 / DOUBLE_LIT;",
+        "}"));
+  }
+
+  public void testConstantBinaryExpression3() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        " static final INT_LIT = 5;",
         " static final BOP3_0 = 2 < INT_LIT;",
         " static final BOP3_1 = INT_LIT < 2;",
         " static final BOP3_2 = 2 > INT_LIT;",
         " static final BOP3_3 = INT_LIT > 2;",
+        "}"));
+
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        " static final INT_LIT = 5;",
+        " static final DOUBLE_LIT = 1.5;",
         " static final BOP3_4 = 2 < DOUBLE_LIT;",
         " static final BOP3_5 = DOUBLE_LIT < 2;",
         " static final BOP3_6 = 2 > DOUBLE_LIT;",
@@ -64,6 +146,18 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP3_13 = DOUBLE_LIT <= 2.0;",
         " static final BOP3_14 = 2.0 >= DOUBLE_LIT;",
         " static final BOP3_15 = DOUBLE_LIT >= 2;",
+        "}"));
+  }
+
+  public void testConstantBinaryExpression4() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        " static final INT_LIT = 5;",
+        " static final INT_LIT_REF = INT_LIT;",
+        " static final DOUBLE_LIT = 1.5;",
+        " static final BOOL_LIT = true;",
+        " static final STRING_LIT = \"Hello\";",
         " static final BOP4_0 = 5 % INT_LIT;",
         " static final BOP4_1 = INT_LIT % 5;",
         " static final BOP4_2 = 5.0 % DOUBLE_LIT;",
@@ -81,8 +175,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         " static final BOP10 = INT_LIT === INT_LIT_REF;",
         " static final BOP11 = BOOL_LIT !== true;",
         "}"));
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantBinaryExpression5() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class int {}",
         "class A {",
@@ -96,8 +192,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantBinaryExpression6() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class int {}",
         "class String {}",
@@ -108,19 +206,19 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "class B {",
         " static final BOP1 = 2 < A.foo();",
         " static final BOP2 = A.foo() < 2;",
-        " static final BOP3 = 2 < A.bar();",
-        " static final BOP4 = A.bar() < 2;",
+        " static final BOP3 = A.foo();",
+        " static final BOP4 = A.bar();",
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
+        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantBinaryExpression7() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class int {}",
         "class double {}",
@@ -131,8 +229,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT);
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantBinaryExpression8() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class bool {}",
         "class int {}",
@@ -153,8 +253,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantBinaryExpression9() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class bool {}",
         "class int {}",
@@ -181,73 +283,11 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL);
-
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  static final INT_LIT = 5;",
-        "  static final INT_LIT_REF = INT_LIT;",
-        "  static final DOUBLE_LIT = 1.5;",
-        "  static final BOOL_LIT = true;",
-        "  // Multiple binary expresions",
-        "  static final BOP1 = 1 * INT_LIT / 3 + INT_LIT + 9;",
-        "  // Parenthized expression",
-        "  static final BOP2 = ( 1 > 2 );",
-        "  static final BOP3 = (1 * 2) + 3;",
-        "  static final BOP4 = 3 + (1 * 2);",
-        "}"));
-
-    // Negative Tests
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  static final INT_LIT = 5;",
-        "  static final DOUBLE_LIT = 1.5;",
-        "  const A();",
-        "  static final OBJECT_LIT = const A();",
-        "  // Multiple binary expresions",
-        "  static final BOP1_0 = 0 + 1 + OBJECT_LIT;",
-        "  static final BOP1_1 = 0 + OBJECT_LIT + 1;",
-        "  static final BOP1_2 = OBJECT_LIT + 3 + 9;",
-        "}"),
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
-
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  static final INT_LIT = 5;",
-        "  static final DOUBLE_LIT = 1.5;",
-        "  const A();",
-        "  static final OBJECT_LIT = new A();",
-        "  // Multiple binary expresions",
-        "  static final PP0 = 0 - (1 + OBJECT_LIT);",
-        "  static final PP1 = 0 + (OBJECT_LIT + 1);",
-        "  static final PP2 = (OBJECT_LIT + 3) + 9;",
-        "  static final PP3 = (OBJECT_LIT) + 3 + 9;",
-        "  static final PP4 = (OBJECT_LIT + 3 + 9);",
-        "  static final PP5 = OBJECT_LIT + (3 + 9);",
-        "}"),
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
-        ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
   }
 
-  public void testConstantConstructorAssign() {
+  public void testConstantConstructorAssign1() {
 
-    resolveAndTest(Joiner.on("\n").join(
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         "  const A();",
@@ -255,9 +295,11 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "class B {",
         "  static final a = const A();", // Constant constructor
         "}"));
+  }
 
+  public void testConstantConstructorAssign2() {
     // Negative tests
-    resolveAndTest(Joiner.on("\n").join(
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         "  const A();",
@@ -266,9 +308,8 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 
-  public void testConstantLiteralAssign() {
-
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantLiteralAssign1() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         "  static final b = true;",
@@ -278,9 +319,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final h = 0xf;", // hex literal
         "  static final n = null;", // null
         "}"));
+  }
 
-    // Negative tests
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantLiteralAssign2() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         "  foo() { return \"Eve\";}",
@@ -290,8 +332,8 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 
-  public void testConstantTypedLiteralAssign() {
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantTypedLiteralAssign1() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class List<T> {}",
         "class Map<K,V> {}",
@@ -300,9 +342,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final map = const { \"1\": \"one\", \"2\": \"banana\" };", // map literal
         "  static final val = aList[2];",
         "}"));
+  }
 
-    // Negative tests, on literals that are not compile time constants.
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantTypedLiteralAssign2() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class List<T> {}",
         "class A {",
@@ -310,8 +353,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final aList= [1, 2, 3];",
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantTypedLiteralAssign3() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class List<T> {}",
         "class A {",
@@ -320,8 +365,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final aList = const [foo(), 2, 3];",
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantTypedLiteralAssign4() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class Map<K,V> {}",
         "class A {",
@@ -329,8 +376,9 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final aMap = { \"1\": \"one\", \"2\": \"banana\" };",
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
-
-    resolveAndTest(Joiner.on("\n").join(
+  }
+  public void testConstantTypedLiteralAssign5() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class String {}",
         "class Map<K,V> {}",
@@ -345,22 +393,38 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
   }
 
-  public void testConstantUnaryExpression() {
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantUnaryExpression1() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
-        "  // Unary expression",
         "  static final BOOL_LIT = true;",
-        "  static final INT_LIT = 123;",
-        "  static final DOUBLE_LIT = 12.3;",
         "  static final UOP1_0 = !BOOL_LIT;",
         "  static final UOP1_1 = BOOL_LIT || !true;",
         "  static final UOP1_2 = !BOOL_LIT || true;",
         "  static final UOP1_3 = !(BOOL_LIT && true);",
+        "}"));
+  }
+
+  public void testConstantUnaryExpression2() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  static final BOOL_LIT = true;",
+        "  static final INT_LIT = 123;",
+        "  static final DOUBLE_LIT = 12.3;",
         "  static final UOP2_0 = ~0xf0;",
         "  static final UOP2_1 = ~INT_LIT;",
         "  static final UOP2_2 = ~INT_LIT & 123;",
         "  static final UOP2_3 = ~(INT_LIT | 0xff);",
+        "}"));
+  }
+
+  public void testConstantUnaryExpression3() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  static final INT_LIT = 123;",
+        "  static final DOUBLE_LIT = 12.3;",
         "  static final UOP3_0 = -0xf0;",
         "  static final UOP3_1 = -INT_LIT;",
         "  static final UOP3_2 = -INT_LIT + 123;",
@@ -370,8 +434,10 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final UOP3_6 = -DOUBLE_LIT + 123;",
         "  static final UOP3_7 = -(DOUBLE_LIT * 0xff);",
         "}"));
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantUnaryExpression4() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class int {}",
         "class A {",
@@ -391,8 +457,8 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_BOOLEAN);
   }
 
-  public void testConstantVariableAssign() {
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantVariableAssign1() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         "  static final a = 1;",
@@ -402,21 +468,35 @@ public class CompileTimeConstantTest extends ResolverTestCase{
         "  static final j = i;", // variable that is a compile-time constant
         "  static final k = A.a;", // variable that is a compile-time constant
         "}"));
+  }
 
-    // Negative tests
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantVariableAssign2() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
         " static foo() {return 1;}",
         " static final i = foo();",  // Error: not a constant integer
         "}"),
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION);
+  }
 
-    resolveAndTest(Joiner.on("\n").join(
+  public void testConstantVariableAssign3() {
+      // Part of the regular resolver pass
+      resolveAndTest(Joiner.on("\n").join(
+          "class Object {}",
+          "class A {",
+          "  static final foo;",
+          "}"),
+          ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
+  }
+
+  public void testForwardLookupExpressions() {
+    resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
-        "  static final foo;",
-        "}"),
-        ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
+        "  static final value1 = value2 * 2;",
+        "  static final value2 = value3 * 4;",
+        "  static final value3 = 8;",
+        "}"));
   }
 }

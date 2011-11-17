@@ -10,6 +10,7 @@ import com.google.dart.compiler.backend.isolate.DartIsolateStubGenerator;
 import com.google.dart.compiler.backend.js.ClosureJsBackend;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
+import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
 import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.type.TypeAnalyzer;
 
@@ -120,6 +121,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   @Override
   public List<DartCompilationPhase> getPhases() {
     List<DartCompilationPhase> phases = new ArrayList<DartCompilationPhase>();
+    phases.add(new CompileTimeConstantAnalyzer.Phase());
     phases.add(new Resolver.Phase());
     phases.add(new TypeAnalyzer());
     return phases;

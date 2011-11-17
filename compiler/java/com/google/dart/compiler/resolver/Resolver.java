@@ -40,7 +40,6 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -318,7 +317,7 @@ public class Resolver {
       }
       for (DartParameter parameter : parameters) {
         // Then resolve the default values.
-        resolveConstantExpression(parameter.getDefaultExpr());
+        resolve(parameter.getDefaultExpr());
       }
 
       if ((functionNode.getBody() == null)
@@ -338,18 +337,6 @@ public class Resolver {
       return member;
     }
 
-    private void resolveConstantExpression(DartExpression expr) {
-      resolve(expr);
-      checkConstantExpression(expr);
-    }
-
-    private void checkConstantExpression(DartExpression expr) {
-      if (expr != null) {
-        DartNodeTraverser<Void> v = CompileTimeConstVisitor.create(typeProvider, context);
-        expr.accept(v);
-      }
-    }
-
     @Override
     public Element visitField(DartField node) {
       DartExpression expression = node.getValue();
@@ -364,7 +351,6 @@ public class Resolver {
 
       if (expression != null) {
         resolve(expression);
-        checkConstantExpression(expression);
         // Now, this constant has a type. Save it for future reference.
         Element element = node.getSymbol();
         if (expression.getType() != null) {
@@ -399,7 +385,7 @@ public class Resolver {
     @Override
     public Element visitParameter(DartParameter x) {
       Element element = super.visitParameter(x);
-      resolveConstantExpression(x.getDefaultExpr());
+      resolve(x.getDefaultExpr());
       getContext().declare(element);
       return element;
     }
@@ -875,14 +861,7 @@ public class Resolver {
 
     @Override
     public Element visitNewExpression(DartNewExpression x) {
-
       this.visit(x.getArgs());
-
-      if (x.isConst()) {
-        for (DartExpression arg : x.getArgs()) {
-         checkConstantExpression(arg);
-        }
-      }
 
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
@@ -1064,7 +1043,7 @@ public class Resolver {
           if (field.isStatic()) {
             onError(x, ResolverErrorCode.CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER);
           } else if (field.getModifiers().isAbstractField()) {
-            /* 
+            /*
              * If we get here then we know that this is a property accessor and not a true field.
              * If there was a field and property accessor with the same name a name collision error
              * would keep us from reaching this point.
@@ -1294,7 +1273,7 @@ public class Resolver {
         } else if (isImplicitlyInitialized && (variable.getValue() != null)) {
           onError(variable.getName(), ResolverErrorCode.CANNOT_BE_INITIALIZED);
         } else if (modifiers.isStatic() && modifiers.isFinal() && variable.getValue() != null) {
-          resolveConstantExpression(variable.getValue());
+          resolve(variable.getValue());
           node.setType(variable.getValue().getType());
         }
       }

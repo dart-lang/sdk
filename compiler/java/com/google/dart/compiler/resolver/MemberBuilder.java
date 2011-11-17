@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
@@ -39,6 +40,7 @@ public class MemberBuilder {
     exec(unit, context, libraryElement.getScope(), typeProvider);
   }
 
+  @VisibleForTesting
   public void exec(DartUnit unit, DartCompilerContext compilerContext, Scope scope,
                    CoreTypeProvider typeProvider) {
     topLevelContext = new ResolutionContext(scope, compilerContext, typeProvider);
