@@ -59,13 +59,16 @@ static void ThrowExceptionHelper(const Instance& exception,
   // TODO(5411263): At some point we can optimize by figuring out if a
   // stack trace is needed based on whether the catch code specifies a
   // stack trace object or there is a rethrow in the catch clause.
-  ASSERT(stack_frame_pcs.length() > 0);  // At least one dart frame must exist.
   Stacktrace& stacktrace = Stacktrace::Handle();
-  if (existing_stacktrace.IsNull()) {
-    stacktrace = Stacktrace::New(stack_frame_pcs);
+  if (stack_frame_pcs.length() > 0) {
+    if (existing_stacktrace.IsNull()) {
+      stacktrace = Stacktrace::New(stack_frame_pcs);
+    } else {
+      stacktrace ^= existing_stacktrace.raw();
+      stacktrace.Append(stack_frame_pcs);
+    }
   } else {
     stacktrace ^= existing_stacktrace.raw();
-    stacktrace.Append(stack_frame_pcs);
   }
   if (FLAG_print_stack_trace_at_throw) {
     OS::Print("Exception '%s' thrown:\n", exception.ToCString());
