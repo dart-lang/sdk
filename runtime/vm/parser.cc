@@ -6465,10 +6465,10 @@ void Parser::CheckConstructorCallTypeArguments(
     }
     ASSERT(!signature_class.IsNull());
     ASSERT(signature_class.is_finalized());
+    // Do not report the expected vs. actual number of type arguments, because
+    // the type argument vector is flattened and raw types are allowed.
     if (type_arguments.Length() != signature_class.NumTypeArguments()) {
-      ErrorMsg(pos, "incorrect number of type arguments, expected %d got %d",
-               signature_class.NumTypeArguments(),
-               type_arguments.Length());
+      ErrorMsg(pos, "wrong number of type arguments passed to constructor");
     }
   }
 }
@@ -6751,11 +6751,6 @@ AstNode* Parser::ParseNewOperator() {
   // constructor would be misinterpreted as a qualified type name.
   // TODO(regis): Revisit once we correctly support qualified identifiers.
   // For now, we inline a customized version of ParseType(kMustResolve).
-  Type& type = Type::Handle();
-  Class& type_class = Class::ZoneHandle();
-  String& type_class_name = String::Handle();
-  TypeArguments& type_arguments = TypeArguments::ZoneHandle();
-  String* named_constructor = NULL;
   const intptr_t  type_pos = token_index_;
   QualIdent type_name;
   ParseQualIdent(&type_name);
@@ -6763,6 +6758,7 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg(type_pos, "using '%s' in this context is invalid",
              type_name.ident->ToCString());
   }
+  String* named_constructor = NULL;
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
     named_constructor = ExpectIdentifier("identifier expected after '.'");
@@ -6785,20 +6781,14 @@ AstNode* Parser::ParseNewOperator() {
                String::Handle(type_parameter.Name()).ToCString());
     }
   }
+  Class& type_class = Class::ZoneHandle();
   type_class ^= LookupTypeClass(type_name, kMustResolve);
+  String& type_class_name = String::Handle();
   type_class_name = type_class.Name();
+  TypeArguments& type_arguments = TypeArguments::ZoneHandle();
   // Type arguments are not allowed after the optional constructor name.
   if (named_constructor == NULL) {
     type_arguments = ParseTypeArguments(kMustResolve);
-    type = Type::NewParameterizedType(type_class, type_arguments);
-    String& errmsg = String::Handle();
-    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
-    if (!errmsg.IsNull()) {
-      ErrorMsg(errmsg.ToCString());
-    }
-    // The type argument vector may have been expanded with the type arguments
-    // of the super type when finalizing the type.
-    type_arguments = type.arguments();
   }
   if ((named_constructor == NULL) && (CurrentToken() == Token::kPERIOD)) {
     ConsumeToken();
@@ -6886,6 +6876,30 @@ AstNode* Parser::ParseNewOperator() {
              String::Handle(type_class.Name()).ToCString());
   }
 
+  // Now that the constructor to be called is identified, finalize the type
+  // argument vector to be passed.
+  {
+    Class& signature_class = Class::Handle();
+    if (constructor.IsFactory()) {
+      signature_class = constructor.signature_class();
+    } else {
+      signature_class = constructor.owner();
+      ASSERT(signature_class.raw() == type_class.raw());
+    }
+    // TODO(regis): Temporary type should be allocated in new gen heap.
+    Type& type = Type::Handle(
+        Type::NewParameterizedType(signature_class, type_arguments));
+    String& errmsg = String::Handle();
+    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
+    if (!errmsg.IsNull()) {
+      ErrorMsg(errmsg.ToCString());
+    }
+    // The type argument vector may have been expanded with the type arguments
+    // of the super type when finalizing the type.
+    type_arguments = type.arguments();
+  }
+
+  // Make the constructor call.
   AstNode* new_object = NULL;
   if (is_const) {
     if (!constructor.is_const()) {
@@ -6904,13 +6918,13 @@ AstNode* Parser::ParseNewOperator() {
     }
   } else {
     CheckFunctionIsCallable(new_pos, constructor);
+    CheckConstructorCallTypeArguments(new_pos, constructor, type_arguments);
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureReceiver();
     }
-    CheckConstructorCallTypeArguments(new_pos, constructor, type_arguments);
     new_object = new ConstructorCallNode(
         new_pos, type_arguments, constructor, arguments);
   }
