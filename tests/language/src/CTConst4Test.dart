@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check compile-time constant library references with prefixes
 
+#library("CTConst4Test");
 #import("CTConst4Lib.dart", prefix:"mylib");
 
 final A = mylib.B;
