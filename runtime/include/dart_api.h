@@ -256,7 +256,7 @@ typedef void* (*Dart_IsolateInitCallback)(void* embedder_data);
  *
  * \return True if initialization is successful.
  */
-DART_EXPORT bool Dart_Initialize(int argc, char** argv,
+DART_EXPORT bool Dart_Initialize(int argc, const char** argv,
                                  Dart_IsolateInitCallback callback);
 
 /**
