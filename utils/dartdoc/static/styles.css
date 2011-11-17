@@ -174,7 +174,9 @@ pre.source .p.si { color: hsl(40, 60%, 40%); }
 
 /*
 body {
-  background: url('grid-22.png') top left repeat;
+  background: -webkit-linear-gradient(top, #eee 0, #fff 10%, #fff 90%, #eee 100%);
+  background-size: 22px 22px;
+  background-repeat: repeat;
 }
 
 .content {

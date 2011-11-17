@@ -6,6 +6,7 @@
 #library('dartdoc');
 
 #import('../../frog/lang.dart');
+#import('../../frog/file_system.dart');
 #import('../../frog/file_system_node.dart');
 
 #source('classify.dart');
@@ -35,6 +36,8 @@ int _totalLibraries = 0;
 int _totalTypes = 0;
 int _totalMembers = 0;
 
+FileSystem files;
+
 /**
  * Run this from the frog/samples directory.  Before running, you need
  * to create a docs dir with 'mkdir docs' - since Dart currently doesn't
@@ -44,19 +47,30 @@ void main() {
   // The entrypoint of the library to generate docs for.
   final libPath = process.argv[2];
 
-  // TODO(rnystrom): Get options and homedir like frog.dart does.
-  final files = new NodeFileSystem();
+  files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
 
   final elapsed = time(() {
+    _comments = <String, Map<int, String>>{};
+
     initializeWorld(files);
 
     world.processScript(libPath);
     world.resolveAll();
 
-    _comments = <String, Map<int, String>>{};
+    // Clean the output directory.
+    if (files.fileExists(outdir)) {
+      files.removeDirectory(outdir, recursive: true);
+    }
+    files.createDirectory(outdir, recursive: true);
 
-    for (var library in world.libraries.getValues()) {
+    // Copy over the static files.
+    for (final file in ['interact.js', 'styles.css']) {
+      copyStatic(file);
+    }
+
+    // Generate the docs.
+    for (final library in world.libraries.getValues()) {
       docLibrary(library);
     }
 
@@ -65,6 +79,12 @@ void main() {
 
   print('Documented $_totalLibraries libraries, $_totalTypes types, and ' +
         '$_totalMembers members in ${elapsed}msec.');
+}
+
+/** Copies the static file at 'static/file' to the output directory. */
+copyStatic(String file) {
+  var contents = files.readAll(joinPaths('static', file));
+  files.writeString(joinPaths(outdir, file), contents);
 }
 
 num time(callback()) {
@@ -111,10 +131,10 @@ docIndex(List<Library> libraries) {
       <ul>
       ''');
 
-  var sorted = new List<Library>.from(libraries);
+  final sorted = new List<Library>.from(libraries);
   sorted.sort((a, b) => a.name.compareTo(b.name));
 
-  for (var library in sorted) {
+  for (final library in sorted) {
     writeln(
         '''
         <li><a href="${sanitize(library.name)}.html">
@@ -160,7 +180,7 @@ docLibrary(Library library) {
     needsSeparator = true;
   }
 
-  for (var type in library.types.getValues()) {
+  for (final type in library.types.getValues()) {
     if (needsSeparator) writeln('<hr/>');
     if (docType(type)) needsSeparator = true;
   }
@@ -201,10 +221,10 @@ bool docType(Type type) {
   }
 
   // Collect the different kinds of members.
-  var methods = [];
-  var fields = [];
+  final methods = [];
+  final fields = [];
 
-  for (var member in orderValuesByKeys(type.members)) {
+  for (final member in orderValuesByKeys(type.members)) {
     if (member.isMethod &&
         (member.definition != null) &&
         !member.name.startsWith('_')) {
@@ -219,12 +239,12 @@ bool docType(Type type) {
 
   if (methods.length > 0) {
     writeln('<h3>Methods</h3>');
-    for (var method in methods) docMethod(type.name, method);
+    for (final method in methods) docMethod(type.name, method);
   }
 
   if (fields.length > 0) {
     writeln('<h3>Fields</h3>');
-    for (var field in fields) docField(type.name, field);
+    for (final field in fields) docField(type.name, field);
   }
 
   return wroteSomething || methods.length > 0 || fields.length > 0;
@@ -242,7 +262,7 @@ docInheritance(Type type) {
     }
 
     if (type.interfaces != null) {
-      var interfaces = [];
+      final interfaces = [];
       switch (type.interfaces.length) {
         case 0:
           // Do nothing.
@@ -259,7 +279,7 @@ docInheritance(Type type) {
 
         default:
           write('Implements ');
-          for (var i = 0; i < type.interfaces.length; i++) {
+          for (final i = 0; i < type.interfaces.length; i++) {
             write('${typeRef(type.interfaces[i])}');
             if (i < type.interfaces.length - 1) {
               write(', ');
@@ -278,8 +298,8 @@ docInheritance(Type type) {
 docConstructors(Type type) {
   if (type.constructors.length > 0) {
     writeln('<h3>Constructors</h3>');
-    for (var name in type.constructors.getKeys()) {
-      var constructor = type.constructors[name];
+    for (final name in type.constructors.getKeys()) {
+      final constructor = type.constructors[name];
       docMethod(type.name, constructor, namedConstructor: name);
     }
   }
@@ -340,9 +360,9 @@ docMethod(String typeName, MethodMember method,
   }
 
   write('(');
-  var paramList = [];
+  final paramList = [];
   if (method.parameters == null) print(method.name);
-  for (var p in method.parameters) {
+  for (final p in method.parameters) {
     paramList.add('${optionalTypeRef(p.type)}${p.name}');
   }
   write(Strings.join(paramList, ", "));
@@ -398,7 +418,7 @@ docField(String typeName, FieldMember field) {
  */
 typeRef(Type type) {
   if (type.library != null) {
-    var library = sanitize(type.library.name);
+    final library = sanitize(type.library.name);
     return '<a href="${library}.html#${type.name}">${type.name}</a>';
   } else {
     return type.name;
@@ -426,7 +446,7 @@ docCode(SourceSpan span, [bool showCode = false]) {
   if (span == null) return;
 
   writeln('<div class="doc">');
-  var comment = findComment(span);
+  final comment = findComment(span);
   if (comment != null) {
     writeln('<p>$comment</p>');
   }
@@ -446,24 +466,24 @@ findComment(SourceSpan span) => findCommentInFile(span.file, span.start);
 /** Finds the doc comment preceding the given source span, if there is one. */
 findCommentInFile(SourceFile file, int position) {
   // Get the doc comments for this file.
-  var fileComments = _comments.putIfAbsent(file.filename,
+  final fileComments = _comments.putIfAbsent(file.filename,
     () => parseDocComments(file));
 
   return fileComments[position];
 }
 
 parseDocComments(SourceFile file) {
-  var comments = <int, String>{};
+  final comments = <int, String>{};
 
-  var tokenizer = new Tokenizer(file, false);
+  final tokenizer = new Tokenizer(file, false);
   var lastComment = null;
 
   while (true) {
-    var token = tokenizer.next();
+    final token = tokenizer.next();
     if (token.kind == TokenKind.END_OF_FILE) break;
 
     if (token.kind == TokenKind.COMMENT) {
-      var text = token.text;
+      final text = token.text;
       if (text.startsWith('/**')) {
         // Remember that we've encountered a doc comment.
         lastComment = stripComment(token.text);
@@ -472,7 +492,7 @@ parseDocComments(SourceFile file) {
       // Ignore whitespace tokens.
     } else if (token.kind == TokenKind.HASH) {
       // Look for #library() to find the library comment.
-      var next = tokenizer.next();
+      final next = tokenizer.next();
       if ((lastComment != null) && (next.kind == TokenKind.LIBRARY)) {
         comments[_libraryDoc] = lastComment;
         lastComment = null;
@@ -495,14 +515,14 @@ parseDocComments(SourceFile file) {
  */
 formatCode(SourceSpan span) {
   // Remove leading indentation to line up with first line.
-  var column = getSpanColumn(span);
-  var lines = span.text.split('\n');
+  final column = getSpanColumn(span);
+  final lines = span.text.split('\n');
   // TODO(rnystrom): Dirty hack.
-  for (int i = 1; i < lines.length; i++) {
+  for (final i = 1; i < lines.length; i++) {
     lines[i] = unindent(lines[i], column);
   }
 
-  var code = Strings.join(lines, '\n');
+  final code = Strings.join(lines, '\n');
 
   // Syntax highlight.
   return classifySource(new SourceFile('', code));
@@ -510,7 +530,7 @@ formatCode(SourceSpan span) {
 
 // TODO(rnystrom): Move into SourceSpan?
 int getSpanColumn(SourceSpan span) {
-  var line = span.file.getLine(span.start);
+  final line = span.file.getLine(span.start);
   return span.file.getColumn(line, span.start);
 }
 
@@ -536,7 +556,7 @@ unindent(String text, int indentation) {
 stripComment(comment) {
   StringBuffer buf = new StringBuffer();
 
-  for (var line in comment.split('\n')) {
+  for (final line in comment.split('\n')) {
     line = line.trim();
     if (line.startsWith('/**')) line = line.substring(3, line.length);
     if (line.endsWith('*/')) line = line.substring(0, line.length-2);
