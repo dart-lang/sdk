@@ -4,8 +4,9 @@
 
 #library("corelib_test_config");
 
-#import("../../tools/testing/dart/test_runner.dart");
 #import("../../tools/testing/dart/status_file_parser.dart");
+#import("../../tools/testing/dart/test_config_utils.dart");
+#import("../../tools/testing/dart/test_runner.dart");
 
 class CorelibTestSuite {
   String directoryPath = "tests/corelib/src";
@@ -61,79 +62,22 @@ class CorelibTestSuite {
 
     if (expectations.contains(SKIP)) return;
 
-    List args = ["--ignore-unrecognized-flags"];
-    if (configuration["checked"]) {
-      args.add("--enable_type_checks");
-    }
-    if (configuration["component"] == "leg") {
-      args.add("--enable_leg");
-    }
-
-    var optionsFromFile = testOptions(filename);
-    List<List<String>> optionsList = optionsFromFile["vmOptions"];
-    List<String> dartOptions = optionsFromFile["dartOptions"];
-    args.addAll(dartOptions == null ? [filename] : dartOptions);
-
-    if (optionsList.isEmpty()) {
+    var optionsFromFile = TestUtils.optionsFromFile(filename, configuration);
+    var argumentLists =
+        TestUtils.argumentLists(filename, optionsFromFile, configuration);
+    for (var args in argumentLists) {
+      var timeout = configuration['timeout'];
+      var isNegative = optionsFromFile['isNegative'];
       doTest(new TestCase(testName,
                           shellPath,
                           args,
-                          configuration["timeout"],
+                          timeout,
                           completeHandler,
-                          expectations));
-    } else {
-      for (var options in optionsList) {
-        options.addAll(args);
-        doTest(new TestCase(testName,
-                            shellPath,
-                            options,
-                            configuration["timeout"],
-                            completeHandler,
-                            expectations));
-      }        
+                          expectations,
+                          isNegative));
     }
   }
 
-  Map testOptions(String filename) {
-    RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
-    RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
-
-    // Read the entire file into a byte buffer and transform it to a
-    // String. This will treat the file as ascii but the only parts
-    // we are interested in will be ascii in any case.
-    File file = new File(filename);
-    file.openSync();
-    List chars = new List(file.lengthSync());
-    var offset = 0;
-    while (offset != chars.length) {
-      offset += file.readListSync(chars, offset, chars.length - offset);
-    }
-    file.closeSync();
-    String contents = new String.fromCharCodes(chars);
-    chars = null;
-
-    // Find the options in the file.
-    List<List> result = new List<List>();
-    List<String> dartOptions;
-    bool isNegative = false;
-
-    Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
-    for (var match in matches) {
-      result.add(match[1].split(' ').filter((e) => e != ''));
-    }
-
-    matches = dartOptionsRegExp.allMatches(contents);
-    for (var match in matches) {
-      if (dartOptions != null) {
-        throw new Exception(
-            'More than one "// DartOptions=" line in test $filename');
-      }
-      dartOptions = match[1].split(' ').filter((e) => e != '');
-    }
-
-    return { "vmOptions": result, "dartOptions": dartOptions };
-  }
-  
   void completeHandler(TestCase testCase) {
   }
 }
