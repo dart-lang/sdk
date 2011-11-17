@@ -37,7 +37,7 @@ String getExecutableName(Map configuration) {
     case 'vm':
       return 'dart_bin';
     case 'dartc':
-      return 'dartc';
+      return 'compiler/bin/dartc_test';
     case 'frog':
     case 'leg':
       return 'frog/bin/frog';
@@ -109,7 +109,10 @@ class TestOutput {
 
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
   
-  bool get hasCrashed() => !timedOut && exitCode != -1 && exitCode < 0;
+  // The Java dartc runner exits with code 253 in case of unhandles
+  // exceptions.
+  bool get hasCrashed() =>
+      !timedOut && (exitCode != -1) && ((exitCode < 0) || (exitCode == 253));
 
   bool get hasTimedOut() => timedOut;
 

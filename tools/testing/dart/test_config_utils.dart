@@ -23,6 +23,11 @@ class TestUtils {
     if (configuration["component"] == "leg") {
       args.add("--enable_leg");
     }
+    if (configuration["component"] == "dartc") {
+      if (configuration["mode"] == "release") {
+        args.add("--optimize");
+      }
+    }
 
     List<String> dartOptions = optionsFromFile["dartOptions"];
     args.addAll(dartOptions == null ? [filename] : dartOptions);
