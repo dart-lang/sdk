@@ -159,9 +159,6 @@ _runTests() {
 /** Runs a single test. */
 _runTest(TestCase testCase) {
   try {
-    // TODO(sigmund): remove this declaration once dartc supports trapping error
-    // traces.
-    var trace = '';
     _callbacksCalled = 0;
     _state = _RUNNING_TEST;
 
@@ -175,11 +172,13 @@ _runTest(TestCase testCase) {
 
   } catch (ExpectException e, var trace) {
     if (_state != _UNCAUGHT_ERROR) {
-      testCase.fail(e.message, trace.toString());
+      //TODO(pquitslund) remove guard once dartc reliably propagates traces
+      testCase.fail(e.message, trace == null ? '' : trace.toString());
     }
   } catch (var e, var trace) {
     if (_state != _UNCAUGHT_ERROR) {
-      testCase.error('Caught ${e}', trace.toString());
+      //TODO(pquitslund) remove guard once dartc reliably propagates traces
+      testCase.error('Caught ${e}', trace == null ? '' : trace.toString());
     }
   } finally {
     _state = _READY;
