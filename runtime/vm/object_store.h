@@ -46,6 +46,7 @@ class ObjectStore {
     kBoolClass,
     kArrayClass,
     kImmutableArrayClass,
+    kByteBufferClass,
     kUnhandledExceptionClass,
     kStacktraceClass,
     kJSRegExpClass,
@@ -146,6 +147,11 @@ class ObjectStore {
   RawClass* immutable_array_class() const { return immutable_array_class_; }
   void set_immutable_array_class(const Class& value) {
     immutable_array_class_ = value.raw();
+  }
+
+  RawClass* byte_buffer_class() const { return byte_buffer_class_; }
+  void set_byte_buffer_class(const Class& value) {
+    byte_buffer_class_ = value.raw();
   }
 
   RawClass* unhandled_exception_class() const {
@@ -264,6 +270,7 @@ class ObjectStore {
   RawType* list_interface_;
   RawClass* array_class_;
   RawClass* immutable_array_class_;
+  RawClass* byte_buffer_class_;
   RawClass* unhandled_exception_class_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;

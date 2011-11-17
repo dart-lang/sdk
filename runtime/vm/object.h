@@ -2819,6 +2819,70 @@ class ImmutableArray : public Array {
 };
 
 
+class ByteBuffer : public Instance {
+ public:
+  intptr_t Length() const {
+    ASSERT(!IsNull());
+    return Smi::Value(raw_ptr()->length_);
+  }
+
+  template<typename T>
+  T At(intptr_t byte_offset) const {
+    T* addr = Addr<T>(byte_offset);
+    ASSERT(Utils::IsAligned(reinterpret_cast<intptr_t>(addr), sizeof(T)));
+    return *addr;
+  }
+  template<typename T>
+  void SetAt(intptr_t byte_offset, T value) const {
+    T* addr = Addr<T>(byte_offset);
+    ASSERT(Utils::IsAligned(reinterpret_cast<intptr_t>(addr), sizeof(T)));
+    *addr = value;
+  }
+
+  template<typename T>
+  T UnalignedAt(intptr_t byte_offset) const {
+    T result;
+    memmove(&result, Addr<T>(byte_offset), sizeof(T));
+    return result;
+  }
+  template<typename T>
+  void SetUnalignedAt(intptr_t byte_offset, T value) const {
+    memmove(Addr<T>(byte_offset), &value, sizeof(T));
+  }
+
+  virtual bool Equals(const Instance& other) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawByteBuffer));
+  }
+
+  static RawByteBuffer* New(uint8_t* data,
+                            intptr_t len,
+                            Heap::Space space = Heap::kNew);
+
+ private:
+  template<typename T>
+  T* Addr(intptr_t byte_offset) const {
+    intptr_t limit = byte_offset + sizeof(T);
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((byte_offset >= 0) && (limit <= Length()));
+    uint8_t* addr = &raw_ptr()->data_[byte_offset];
+    return reinterpret_cast<T*>(addr);
+  }
+
+  void SetLength(intptr_t value) {
+    raw_ptr()->length_ = Smi::New(value);
+  }
+
+  void SetData(uint8_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ByteBuffer, Instance);
+  friend class Class;
+};
+
+
 class Closure : public Instance {
  public:
   RawFunction* function() const { return raw_ptr()->function_; }

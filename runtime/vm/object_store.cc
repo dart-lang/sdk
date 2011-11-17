@@ -77,6 +77,7 @@ RawClass* ObjectStore::GetClass(int index) {
     case kBoolClass: return bool_class_;
     case kArrayClass: return array_class_;
     case kImmutableArrayClass: return immutable_array_class_;
+    case kByteBufferClass: return byte_buffer_class_;
     case kUnhandledExceptionClass: return unhandled_exception_class_;
     case kStacktraceClass: return stacktrace_class_;
     case kJSRegExpClass: return jsregexp_class_;
@@ -111,6 +112,8 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
     return kArrayClass;
   } else if (raw_class == immutable_array_class_) {
     return kImmutableArrayClass;
+  } else if (raw_class == byte_buffer_class_) {
+    return kByteBufferClass;
   } else if (raw_class == unhandled_exception_class_) {
     return kUnhandledExceptionClass;
   } else if (raw_class == stacktrace_class_) {

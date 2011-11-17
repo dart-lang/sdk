@@ -1222,6 +1222,21 @@ void RawImmutableArray::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawByteBuffer* ByteBuffer::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    bool classes_serialized) {
+  UNIMPLEMENTED();
+  return ByteBuffer::null();
+}
+
+
+void RawByteBuffer::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            bool serialize_classes) {
+  UNIMPLEMENTED();
+}
+
+
 RawClosure* Closure::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               bool classes_serialized) {

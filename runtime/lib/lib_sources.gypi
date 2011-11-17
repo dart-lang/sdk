@@ -6,6 +6,8 @@
 
 {
   'sources': [
+    'byte_buffer.cc',
+    'byte_buffer.dart',
     'clock.cc',
     'clock.dart',
     'error.cc',

@@ -485,7 +485,8 @@ void Object::Init(Isolate* isolate) {
   const Script& script = Script::Handle(Bootstrap::LoadScript());
 
   // Allocate and initialize the Object class and type.
-  // Object class is the only pre-allocated non-interface in the core library.
+  // The Object and ByteBuffer classes are the only pre-allocated
+  // non-interface classes in the core library.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
   cls.set_name(String::Handle(String::NewSymbol("Object")));
@@ -494,6 +495,12 @@ void Object::Init(Isolate* isolate) {
   pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
+
+  cls = Class::New<ByteBuffer>();
+  object_store->set_byte_buffer_class(cls);
+  cls.set_name(String::Handle(String::NewSymbol("ByteBuffer")));
+  cls.set_script(script);
+  core_lib.AddClass(cls);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -600,6 +607,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
+
+  cls = Class::New<ByteBuffer>();
+  object_store->set_byte_buffer_class(cls);
 
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
@@ -1132,6 +1142,9 @@ RawClass* Class::GetClass(ObjectKind kind) {
     case kImmutableArray:
       ASSERT(object_store->immutable_array_class() != Class::null());
       return object_store->immutable_array_class();
+    case kByteBuffer:
+      ASSERT(object_store->byte_buffer_class() != Class::null());
+      return object_store->byte_buffer_class();
     case kStacktrace:
       ASSERT(object_store->stacktrace_class() != Class::null());
       return object_store->stacktrace_class();
@@ -6723,6 +6736,53 @@ RawArray* Array::Empty() {
 
 const char* ImmutableArray::ToCString() const {
   return "ImmutableArray";
+}
+
+
+RawByteBuffer* ByteBuffer::New(uint8_t* data,
+                               intptr_t len,
+                               Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  const Class& byte_buffer_class =
+      Class::Handle(isolate->object_store()->byte_buffer_class());
+  ByteBuffer& result = ByteBuffer::Handle();
+  {
+    RawObject* raw = Object::Allocate(byte_buffer_class,
+                                      ByteBuffer::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetData(data);
+  }
+  return result.raw();
+}
+
+
+bool ByteBuffer::Equals(const Instance& other) const {
+  if (this->raw() == other.raw()) {
+    // Both handles point to the same raw instance.
+    return true;
+  }
+
+  if (!other.IsByteBuffer() || other.IsNull()) {
+    return false;
+  }
+
+  ByteBuffer& other_array = ByteBuffer::Handle();
+  other_array ^= other.raw();
+
+  intptr_t len = this->Length();
+  if (len != other_array.Length()) {
+    return false;
+  }
+
+  return memcmp(this->Addr<uint8_t>(0), other_array.Addr<uint8_t>(0), len) == 0;
+}
+
+
+const char* ByteBuffer::ToCString() const {
+  return "ByteBuffer";
 }
 
 

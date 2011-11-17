@@ -218,6 +218,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(Array::InstanceSize() == cls.instance_size());
   cls = object_store->immutable_array_class();
   ASSERT(Array::InstanceSize() == cls.instance_size());
+  cls = object_store->byte_buffer_class();
+  ASSERT(ByteBuffer::InstanceSize() == cls.instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -328,6 +330,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
         (super_class.raw() == object_store->array_class()) ||
         (super_class.raw() == object_store->immutable_array_class()) ||
         (super_class.raw() == growable_object_array_class.raw()) ||
+        (super_class.raw() == object_store->byte_buffer_class()) ||
         (super_class.raw() == integer_implementation_class.raw()) ||
         (super_class.raw() == object_store->smi_class()) ||
         (super_class.raw() == object_store->mint_class()) ||

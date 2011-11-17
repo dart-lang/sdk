@@ -477,6 +477,15 @@ intptr_t RawImmutableArray::VisitImmutableArrayPointers(
 }
 
 
+intptr_t RawByteBuffer::VisitByteBufferPointers(
+    RawByteBuffer* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ByteBuffer::InstanceSize();
+}
+
+
 intptr_t RawClosure::VisitClosurePointers(RawClosure* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
