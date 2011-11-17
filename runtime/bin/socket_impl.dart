@@ -296,7 +296,11 @@ class _Socket extends _SocketBase implements Socket {
       if ((offset + bytes) > buffer.length) {
         throw new IndexOutOfRangeException(offset + bytes);
       }
-      return _readList(buffer, offset, bytes);
+      int result = _readList(buffer, offset, bytes);
+      if (result < 0) {
+        throw new SocketIOException("Error: readList failed");
+      }
+      return result;
     }
     throw new
         SocketIOException("Error: readList failed - invalid socket handle");

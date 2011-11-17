@@ -58,7 +58,9 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
   if (bytes_read > 0) {
     Dart_Handle result =
         Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
-    ASSERT(!Dart_IsError(result));
+    if (Dart_IsError(result)) {
+      bytes_read = -1;
+    }
   } else if (bytes_read < 0) {
     bytes_read = 0;
   }

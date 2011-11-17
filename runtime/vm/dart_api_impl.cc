@@ -1252,6 +1252,9 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
+    if (obj.IsImmutableArray()) {
+      return Api::Error("Cannot modify immutable array");
+    }
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
     Integer& integer = Integer::Handle();
@@ -1297,6 +1300,9 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
   if (obj.IsArray()) {
+    if (obj.IsImmutableArray()) {
+      return Api::Error("Cannot modify immutable array");
+    }
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
     const Object& value_obj = Object::Handle(Api::UnwrapHandle(value));

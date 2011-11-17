@@ -159,8 +159,9 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
     if (total_bytes_read >= 0) {
       result =
           Dart_ListSetAsBytes(buffer_obj, offset, buffer, total_bytes_read);
-      ASSERT(!Dart_IsError(result));
-      return_value = total_bytes_read;
+      if (!Dart_IsError(result)) {
+        return_value = total_bytes_read;
+      }
     }
     delete[] buffer;
   }
