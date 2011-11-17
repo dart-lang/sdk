@@ -447,15 +447,15 @@ class ElementRectWrappingImplementation implements ElementRect {
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
   // This should be type dom.ClientRect but that fails on dartium. b/5522629
-  final _boundingClientRect; 
+  final _boundingClientRect;
   // an exception due to a dartium bug.
   final dom.ClientRectList _clientRects;
 
   ElementRectWrappingImplementation(dom.HTMLElement element) :
     client = new SimpleClientRect(element.clientLeft,
                                   element.clientTop,
-                                  element.clientWidth, 
-                                  element.clientHeight), 
+                                  element.clientWidth,
+                                  element.clientHeight),
     offset = new SimpleClientRect(element.offsetLeft,
                                   element.offsetTop,
                                   element.offsetWidth,
@@ -480,7 +480,7 @@ class ElementRectWrappingImplementation implements ElementRect {
 }
 
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
-  
+
     static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
     static final _CUSTOM_PARENT_TAG_MAP = const {
       'body' : 'html',
@@ -497,7 +497,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
       'track' : 'audio',
     };
 
-   factory ElementWrappingImplementation.html(String html) {
+   factory Element.html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
     //    creating them every call.
@@ -513,11 +513,11 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    final temp = dom.document.createElement(parentTag);
+    dom.HTMLElement temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
     if (temp.childElementCount == 1) {
-      return LevelDom.wrapElement(temp.firstElementChild);     
+      return LevelDom.wrapElement(temp.firstElementChild);
     } else if (parentTag == 'html' && temp.childElementCount == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
@@ -528,7 +528,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
   }
 
-  factory ElementWrappingImplementation.tag(String tag) {
+  factory Element.tag(String tag) {
     return LevelDom.wrapElement(dom.document.createElement(tag));
   }
 
@@ -710,7 +710,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set scrollLeft(int value) { _ptr.scrollLeft = value; }
- 
+
   void set scrollTop(int value) { _ptr.scrollTop = value; }
 
   Future<ElementRect> get rect() {
