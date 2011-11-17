@@ -322,7 +322,6 @@ ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
-FinalVarNegativeTest: Fail
 
 [ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
@@ -334,6 +333,7 @@ PrivateMemberTest/04: Fail # test seems bad - see issue #353
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == leg ]
+FinalVarNegativeTest: Fail
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
 
