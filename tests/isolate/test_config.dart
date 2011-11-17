@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("corelib_test_config");
+#library("isolate_test_config");
 
 #import("../../tools/testing/dart/test_suite.dart");
 
-class CorelibTestSuite extends StandardTestSuite {
-  CorelibTestSuite(Map configuration)
+class IsolateTestSuite extends StandardTestSuite {
+  IsolateTestSuite(Map configuration)
       : super(configuration,
-              "tests/corelib/src",
-              ["tests/corelib/corelib.status"]);
+              "tests/isolate/src",
+              ["tests/isolate/isolate.status"]);
 }

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("corelib_test_config");
+#library("language_test_config");
 
 #import("../../tools/testing/dart/test_suite.dart");
 
-class CorelibTestSuite extends StandardTestSuite {
-  CorelibTestSuite(Map configuration)
+class LanguageTestSuite extends StandardTestSuite {
+  LanguageTestSuite(Map configuration)
       : super(configuration,
-              "tests/corelib/src",
-              ["tests/corelib/corelib.status"]);
+              "tests/language/src",
+              ["tests/language/language.status"]);
 }

@@ -8,9 +8,11 @@
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
 
-#import("../tests/standalone/test_config.dart");
-#import("../tests/corelib/test_config.dart");
 #import("../tests/co19/test_config.dart");
+#import("../tests/corelib/test_config.dart");
+#import("../tests/isolate/test_config.dart");
+#import("../tests/language/test_config.dart");
+#import("../tests/standalone/test_config.dart");
 
 // TODO(ager): This activity tracking is temporary until stdout is
 // closed implicitly when nothing more can happen.
@@ -44,5 +46,9 @@ main() {
     new CorelibTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
     activityStarted();
     new Co19TestSuite(conf).forEachTest(queue.runTest, activityCompleted);
+    activityStarted();
+    new LanguageTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
+    activityStarted();
+    new IsolateTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
   }
 }

@@ -4,7 +4,8 @@
 
 #library("test_options_parser");
 
-List<String> defaultTestSelectors = const ['standalone', 'corelib', 'co19'];
+List<String> defaultTestSelectors =
+    const ['standalone', 'corelib', 'co19', 'language', 'isolate'];
 
 /**
  * Specification of a single test option.
