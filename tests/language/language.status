@@ -21,29 +21,28 @@ prefix language
 [ $component == vm || $component == dartium ]
 ClassTest: Fail             # Bug 4504458 (pseudo keyword)
 NamingTest: Fail            # Bug 4504458 (pseudo keyword)
-TypeVariableBoundsTest/01: Skip # Issue 483
+TypeVariableBoundsTest/01: Skip # Issue 483 (testing framework issue)
 TypeVariableBoundsTest/02: Skip # Issue 483
 TypeVariableBoundsTest/05: Skip # Issue 483
 TypeVariableBoundsTest/06: Skip # Issue 483
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
 
-# These bugs refer currently ongoing language discussions.
-Constructor5Test: Fail          # Bug 8440015
-Constructor6Test: Fail          # Bug 8440015
-
-# Regular bugs which should be fixed.
-ManyEchoServerTest: Skip        # Bug 5103754
-
-WrongNumberTypeArgumentsTest: Fail # Bug 5532690
-Prefix18NegativeTest: Fail # Issue 307
-Prefix20NegativeTest: Fail # Issue 307
-
-ImplicitThisTest/01: Fail # Issue 374
+ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
 ImplicitThisTest/02: Fail # Issue 374
 ImplicitThisTest/03: Fail # Issue 374
 ImplicitThisTest/04: Fail # Issue 374
 ImplicitThisTest/none: Fail # Issue 374
+
+# These bugs refer currently ongoing language discussions.
+Constructor5Test: Fail          # (Discussion ongoing)
+Constructor6Test: Fail          # (Discussion ongoing)
+
+# Regular bugs which should be fixed.
+
+WrongNumberTypeArgumentsTest: Fail # Issue 441
+Prefix18NegativeTest: Fail # Issue 307
+Prefix20NegativeTest: Fail # Issue 307
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
