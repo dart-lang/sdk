@@ -24,10 +24,17 @@ class DartCallPattern : public ValueObject {
  public:
   explicit DartCallPattern(uword return_address)
       : start_(return_address - (kNumInstructions * kInstructionSize)) {
-    ASSERT(*reinterpret_cast<uint8_t*>(start_) == 0xB9);
-    ASSERT(*reinterpret_cast<uint8_t*>(start_ + 1 * kInstructionSize) == 0xBA);
-    ASSERT(*reinterpret_cast<uint8_t*>(start_ + 2 * kInstructionSize) == 0xE8);
+    ASSERT(IsValid(return_address));
     ASSERT(kInstructionSize == Assembler::kCallExternalLabelSize);
+  }
+
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(
+            return_address - (kNumInstructions * kInstructionSize));
+    return (code_bytes[0] == 0xB9) &&
+           (code_bytes[kInstructionSize] == 0xBA) &&
+           (code_bytes[2 * kInstructionSize] == 0xE8);
   }
 
   uword target() const {
@@ -214,6 +221,11 @@ bool CodePatcher::CodeIsPatchable(const Code& code) {
     }
   }
   return true;
+}
+
+
+bool CodePatcher::IsDartCall(uword return_address) {
+  return DartCallPattern::IsValid(return_address);
 }
 
 
