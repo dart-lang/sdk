@@ -24,7 +24,6 @@ StaticStateTest: Fail         # Bug 5401734
 [ $component == frog || $component == frogsh || $component == leg || $component == frogium ]
 MessageTest: Fail
 StaticStateTest: Fail
-MintMakerPromiseTest: Fail
 
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.

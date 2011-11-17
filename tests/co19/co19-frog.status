@@ -68,7 +68,6 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A06/t04:
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A08/t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A15/t01: Fail
 LangGuideTest/03_Values/03_2_Numbers/A03/t01: Fail
-LangGuideTest/03_Values/03_4_String_Interpolation/A01/t01: Fail
 LangGuideTest/03_Values/03_2_Numbers/A01/t01: Fail
 LangGuideTest/03_Values/03_4_String_Interpolation/A01/t02: Fail
 LangGuideTest/03_Values/03_3_Strings/A03/t01: Fail

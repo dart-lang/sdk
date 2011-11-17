@@ -302,9 +302,6 @@ ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
 StringConcatTest: Fail
 StringEscapesTest: Fail
-StringInterpolate1NegativeTest: Fail
-StringInterpolate2Test: Fail
-StringInterpolateTest: Fail
 StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
@@ -315,7 +312,6 @@ TypeVariableBoundsTest/00: Fail # Issue 417
 TypeVariableBoundsTest/03: Fail # Issue 417
 TypeVariableBoundsTest/04: Fail # Issue 417
 TypeVariableScopeTest/none: Fail # Issue 417
-UnboundGetterTest: Fail
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
@@ -336,6 +332,7 @@ PrivateMemberTest/none: Fail # test seems bad - see issue #353
 FinalVarNegativeTest: Fail
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
+StringInterpolate2Test: Fail
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
