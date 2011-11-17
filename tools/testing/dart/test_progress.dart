@@ -69,7 +69,7 @@ class ProgressIndicator {
   String _timeString() {
     Duration d = (new Date.now()).difference(_startTime);
     var min = d.inMinutes;
-    var sec = d.inSeconds;
+    var sec = d.inSeconds % 60;
     return '${_padTime(min)}:${_padTime(sec)}';
   }
 

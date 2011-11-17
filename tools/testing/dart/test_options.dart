@@ -145,11 +145,15 @@ class TestOptionsParser {
         }
         value = arguments[++i];
       } else {
-        // The option name does not start with '-' or '--' so we
-        // assume that the rest of the arguments specify tests or test
-        // suites to run.
-        configuration['patterns'] = arguments.getRange(i, numArguments - i);
-        return _expandConfigurations(configuration);
+        // The argument does not start with '-' or '--' and is
+        // therefore not an option. We use it as a test selection
+        // pattern.
+        var patterns = configuration['patterns'];
+        if (patterns == null) {
+          configuration['patterns'] = patterns = new List();
+        }
+        patterns.add(arg);
+        continue;
       }
       // Find the option specification for the name.
       var spec = _getSpecification(name);
@@ -215,6 +219,7 @@ class TestOptionsParser {
       patterns = new List.from(defaultTestSelectors);
     }
     for (var i = 0; i < patterns.length; i++) {
+      if (patterns[i] is RegExp) continue;
       patterns[i] = patterns[i].replaceAll('*', '.*');
       patterns[i] = patterns[i].replaceAll('/', '.*');
       patterns[i] = new RegExp(patterns[i]);
