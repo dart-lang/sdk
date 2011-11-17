@@ -170,7 +170,6 @@ static void* MainIsolateInitCallback(void* data) {
     Dart_ExitScope();
     exit(255);
   }
-
   if (!Dart_IsLibrary(library)) {
     fprintf(stderr,
             "Expected a library when loading script: %s",
@@ -178,9 +177,7 @@ static void* MainIsolateInitCallback(void* data) {
     Dart_ExitScope();
     exit(255);
   }
-  Builtin_ImportLibrary(library);
-  // Setup the native resolver for built in library functions.
-  Builtin_SetNativeResolver();
+  Builtin_ImportLibrary(library);  // Import builtin library.
 
   Dart_ExitScope();
   return data;
@@ -239,6 +236,12 @@ int main(int argc, char** argv) {
   }
 
   Dart_EnterScope();
+
+  if (snapshot_buffer != NULL) {
+    // Setup the native resolver as the snapshot does not carry it.
+    Builtin_SetNativeResolver();
+  }
+
   if (HasCompileAll(vm_options)) {
     Dart_Handle result = Dart_CompileAll();
     if (Dart_IsError(result)) {

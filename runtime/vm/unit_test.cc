@@ -48,11 +48,39 @@ void TestCaseBase::RunAll() {
 }
 
 
+static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+                                     Dart_Handle library,
+                                     Dart_Handle url) {
+  if (!Dart_IsLibrary(library)) {
+    return Dart_Error("not a library");
+  }
+  if (!Dart_IsString8(url)) {
+    return Dart_Error("url is not a string");
+  }
+  const char* url_chars = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_chars);
+  if (Dart_IsError(result)) {
+    return Dart_Error("accessing url characters failed");
+  }
+  static const char* kDartScheme = "dart:";
+  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
+  // If the URL starts with "dart:" then it is not modified as it will be
+  // handled by the VM internally.
+  if (strncmp(url_chars, kDartScheme, kDartSchemeLen) == 0) {
+    if (tag == kCanonicalizeUrl) {
+      return url;
+    }
+    return Dart_Error("unexpected tag encountered %d", tag);
+  }
+  return Dart_Error("unsupported url encountered %s", url_chars);
+}
+
+
 Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver) {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
-  Dart_Handle lib = Dart_LoadScript(url, source, NULL);
+  Dart_Handle lib = Dart_LoadScript(url, source, LibraryTagHandler);
   ASSERT(!Dart_IsError(lib));
   Dart_Handle result = Dart_SetNativeResolver(lib, resolver);
   ASSERT(!Dart_IsError(result));

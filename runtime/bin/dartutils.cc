@@ -4,8 +4,10 @@
 
 #include "bin/dartutils.h"
 
-const char* DartUtils::kBuiltinLibURL = "./dart:builtin-lib";
-const char* DartUtils::kBuiltinLibSpec = "library { }";
+const char* DartUtils::kBuiltinLibURL = "dart:builtin";
+const char* DartUtils::kCoreLibURL = "dart:core";
+const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
+const char* DartUtils::kCoreNativeWrappersLibURL = "dart:nativewrappers";
 const char* DartUtils::kIdFieldName = "_id";
 
 
@@ -16,6 +18,7 @@ int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
   ASSERT(!Dart_IsError(result));
   return value;
 }
+
 
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
   const char* cstring = NULL;
@@ -32,6 +35,7 @@ bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
   return value;
 }
 
+
 void DartUtils::SetIntegerInstanceField(Dart_Handle handle,
                                         const char* name,
                                         intptr_t val) {
@@ -41,6 +45,7 @@ void DartUtils::SetIntegerInstanceField(Dart_Handle handle,
   ASSERT(!Dart_IsError(result));
 }
 
+
 intptr_t DartUtils::GetIntegerInstanceField(Dart_Handle handle,
                                             const char* name) {
   Dart_Handle result =
@@ -49,6 +54,7 @@ intptr_t DartUtils::GetIntegerInstanceField(Dart_Handle handle,
   intptr_t value = DartUtils::GetIntegerValue(result);
   return value;
 }
+
 
 void DartUtils::SetStringInstanceField(Dart_Handle handle,
                                        const char* name,

@@ -573,6 +573,11 @@ void Object::Init(Isolate* isolate) {
   bool_value = Bool::New(false);
   object_store->set_false_value(bool_value);
 
+  // Setup some default native field classes which can be extended for
+  // specifying native fields in dart classes.
+  Library::InitNativeWrappersLibrary(isolate);
+  ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
+
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
   Bootstrap::Compile(core_lib, script);
@@ -4143,6 +4148,32 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 
+void Library::InitNativeWrappersLibrary(Isolate* isolate) {
+  static const int kNumNativeWrappersClasses = 4;
+  ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
+  const String& native_flds_lib_url = String::Handle(
+      String::NewSymbol("dart:nativewrappers"));
+  Library& native_flds_lib = Library::Handle(
+      Library::NewLibraryHelper(native_flds_lib_url, false));
+  native_flds_lib.Register();
+  isolate->object_store()->set_native_wrappers_library(native_flds_lib);
+  static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
+  static const int kNameLength = 25;
+  ASSERT(kNameLength == (strlen(kNativeWrappersClass) + 1 + 1));
+  char name_buffer[kNameLength];
+  String& cls_name = String::Handle();
+  for (int fld_cnt = 1; fld_cnt <= kNumNativeWrappersClasses; fld_cnt++) {
+    OS::SNPrint(name_buffer,
+                kNameLength,
+                "%s%d",
+                kNativeWrappersClass,
+                fld_cnt);
+    cls_name = String::NewSymbol(name_buffer);
+    Class::NewNativeWrapper(&native_flds_lib, cls_name, fld_cnt);
+  }
+}
+
+
 RawLibrary* Library::LookupLibrary(const String &url) {
   Library& lib = Library::Handle();
   String& lib_url = String::Handle();
@@ -4210,6 +4241,11 @@ RawLibrary* Library::CoreLibrary() {
 
 RawLibrary* Library::CoreImplLibrary() {
   return Isolate::Current()->object_store()->core_impl_library();
+}
+
+
+RawLibrary* Library::NativeWrappersLibrary() {
+  return Isolate::Current()->object_store()->native_wrappers_library();
 }
 
 

@@ -25,7 +25,9 @@ class DartUtils {
                                      const char* val);
 
   static const char* kBuiltinLibURL;
-  static const char* kBuiltinLibSpec;
+  static const char* kCoreLibURL;
+  static const char* kCoreImplLibURL;
+  static const char* kCoreNativeWrappersLibURL;
 
   static const char* kIdFieldName;
  private:

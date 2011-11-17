@@ -12,6 +12,7 @@
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/globals.h"
 #include "bin/process_script.h"
@@ -220,39 +221,72 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
 }
 
 
+static Dart_Handle BuiltinSnapshotLibraryTagHandler(Dart_LibraryTag tag,
+                                                    Dart_Handle library,
+                                                    Dart_Handle url) {
+  if (!Dart_IsLibrary(library)) {
+    return Dart_Error("not a library");
+  }
+  if (!Dart_IsString8(url)) {
+    return Dart_Error("url is not a string");
+  }
+  const char* url_chars = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_chars);
+  if (Dart_IsError(result)) {
+    return Dart_Error("accessing url characters failed");
+  }
+  // We only support canonicalization of "dart:".
+  static const char* kDartScheme = "dart:";
+  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
+  if (strncmp(url_chars, kDartScheme, kDartSchemeLen) == 0) {
+    if (tag == kCanonicalizeUrl) {
+      return url;
+    }
+    return Dart_Error("unexpected tag encountered %d", tag);
+  }
+  return Dart_Error("unsupported url encountered %s", url_chars);
+}
+
+
+static Dart_Handle LoadGenericSnapshotCreationScript() {
+  Dart_Handle source = Builtin_Source();
+  if (Dart_IsError(source)) {
+    return source;  // source contains the error string.
+  }
+  Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
+  Dart_Handle lib = Dart_LoadScript(url,
+                                    source,
+                                    BuiltinSnapshotLibraryTagHandler);
+  if (!Dart_IsError(lib)) {
+    Builtin_SetupLibrary(lib);
+  }
+  return lib;
+}
+
+
 static void* SnapshotCreateCallback(void* data) {
   const char* script_name = reinterpret_cast<const char*>(data);
   Dart_Handle result;
+  Dart_Handle library;
   Dart_EnterScope();
 
   ASSERT(snapshot_filename != NULL);
 
-  // If a file is specified on the command line, load it up before a snapshot
-  // is created.
+  // Load up the script before a snapshot is created.
   if (script_name != NULL) {
     // Load the specified script.
-    Dart_Handle library = LoadSnapshotCreationScript(script_name);
-    if (Dart_IsError(library)) {
-      const char* err_msg = Dart_GetError(library);
-      fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
-      Dart_ExitScope();
-      exit(255);
-    }
-
-    if (!Dart_IsLibrary(library)) {
-      fprintf(stderr,
-              "Expected a library when loading script: %s",
-              script_name);
-      Dart_ExitScope();
-      exit(255);
-    }
+    library = LoadSnapshotCreationScript(script_name);
   } else {
-    // Implicitly load builtin library.
-    Builtin_LoadLibrary();
-    // Setup the native resolver for built in library functions.
-    Builtin_SetNativeResolver();
+    // This is a generic dart snapshot which needs builtin library setup.
+    library = LoadGenericSnapshotCreationScript();
   }
-
+  if (Dart_IsError(library)) {
+    const char* err_msg = Dart_GetError(library);
+    fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
+    Dart_ExitScope();
+    exit(255);
+  }
+  ASSERT(Dart_IsLibrary(library));
   uint8_t* buffer = NULL;
   intptr_t size = 0;
   // First create the snapshot.

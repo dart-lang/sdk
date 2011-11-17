@@ -1569,6 +1569,8 @@ class Library : public Object {
   static void InitCoreLibrary(Isolate* isolate);
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
+  static void InitNativeWrappersLibrary(Isolate* isolate);
+  static RawLibrary* NativeWrappersLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static void CompileAll();
