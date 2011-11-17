@@ -172,6 +172,8 @@ BlackListedTest/14: Crash # Bug 5469684
 
 ImplicitThisTest/none: Fail # Issue 375
 
+IsObjectTest: Skip # Hasn't be tested on DartC yet
+
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
 *VMNegativeTest: Skip
