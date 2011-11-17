@@ -49,19 +49,6 @@ const char* GetCanonicalPath(const char* reference_dir,
 }
 
 
-static const char* CanonicalizeUrl(const char* reference_dir,
-                                   const char* filename) {
-  static const char* kDartScheme = "dart:";
-  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
-  // If the URL starts with "dart:" then it is not modified as it will be
-  // handled by the VM internally.
-  if (strncmp(filename, kDartScheme, kDartSchemeLen) == 0) {
-    return strdup(filename);
-  }
-  return GetCanonicalPath(reference_dir, filename);
-}
-
-
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
@@ -77,10 +64,20 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return Dart_Error("accessing url characters failed");
   }
 
+  static const char* kDartScheme = "dart:";
+  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
+  // If the URL starts with "dart:" then it is not modified as it will be
+  // handled by the VM internally.
+  if (strncmp(url_chars, kDartScheme, kDartSchemeLen) == 0) {
+    if (tag == kCanonicalizeUrl) {
+      return url;
+    }
+    return Dart_Error("Do not know how to load '%s'", url_chars);
+  }
   if (tag == kCanonicalizeUrl) {
-    // Create the full path based on the including library and the current url.
+    // Create a canonical path based on the including library and current url.
 
-    // Get the url of the calling library.
+    // Get the url of the including library.
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
       return Dart_Error("accessing library url failed");
@@ -94,8 +91,9 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Dart_Error("accessing library url characters failed");
     }
 
-    // Calculate the path.
-    const char* canon_url_chars = CanonicalizeUrl(library_url_chars, url_chars);
+    // Calculate the canonical path.
+    const char* canon_url_chars = GetCanonicalPath(library_url_chars,
+                                                   url_chars);
     Dart_Handle canon_url = Dart_NewString(canon_url_chars);
     free(const_cast<char*>(canon_url_chars));
 
