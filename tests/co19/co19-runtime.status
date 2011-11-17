@@ -245,11 +245,11 @@ LibTest/core/double/operator~div/double/operator~div/A01/t07: Fail # Issue co19 
 LibTest/core/double/remainder/double/remainder/A01/t01: Fail # Issue co19 - 36
 LibTest/core/double/truncate/double/truncate/A01/t01: Fail # Issue co19 - 36
 LibTest/core/int/operator_div/int/operator/div/A01/t01: Fail # Issue co19 - 36
-LibTest/core/Set/remove/Set/remove/A01/t03: Fail # Issue 441
-LibTest/core/Set/add/Set/add/A01/t04: Fail # Issue 441
-LibTest/core/Set/addAll/Set/addAll/A01/t03: Fail # Issue 441
-LibTest/core/Map/A01/t03: Fail # Issue 441
-LibTest/core/Map/Map/Map/A01/t01: Fail # Issue 441
+LibTest/core/Set/remove/Set/remove/A01/t03: Fail # Issue co19 - 53
+LibTest/core/Set/add/Set/add/A01/t04: Fail # Issue co19 - 53
+LibTest/core/Set/addAll/Set/addAll/A01/t03: Fail # Issue co19 - 53
+LibTest/core/Map/A01/t03: Fail # Issue co19 - 53
+LibTest/core/Map/Map/Map/A01/t01: Fail # Issue co19 - 53
 LangSpecTest/13_Types/13_4_Interface_Types/A07/t03: Fail # Issue co19 - 53
 
 [ $component == vm && $system == win32 ]
