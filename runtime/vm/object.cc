@@ -2603,7 +2603,7 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::New() {
       Class::Handle(Object::instantiated_type_arguments_class());
   RawObject* raw = Object::Allocate(instantiated_type_arguments_class,
                                     InstantiatedTypeArguments::InstanceSize(),
-                                    Heap::kOld);
+                                    Heap::kNew);
   return reinterpret_cast<RawInstantiatedTypeArguments*>(raw);
 }
 
