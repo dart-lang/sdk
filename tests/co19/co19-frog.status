@@ -56,8 +56,6 @@ LangGuideTest/02_Language_Constructs/02_2_Interface/A02/t01: Fail
 LangGuideTest/02_Language_Constructs/02_2_Interface/A02/t03: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/A06/t02: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/A04/t01: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/A05/t01: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/A03/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/A05/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A03/t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/A04/t01: Fail
@@ -156,10 +154,6 @@ LibTest/core/Date/year/Date/year/A01/t01: Fail
 LibTest/core/Date/value/Date/value/A01/t01: Fail
 LibTest/core/Dispatcher/Dispatcher_serve/A01/t01: Fail
 LibTest/core/Dispatcher/Dispatcher_Dispatcher/A01/t01: Fail
-LibTest/core/Queue/every/Queue/every/A01/t05: Fail
-LibTest/core/Queue/some/Queue/some/A01/t05: Fail
-LibTest/core/Queue/filter/Queue/filter/A01/t05: Fail
-LibTest/core/Queue/forEach/Queue/forEach/A01/t05: Fail
 LibTest/core/Queue/iterator/Queue/iterator/A01/t01: Fail
 LibTest/core/int/ceil/int/ceil/A01/t01: Fail
 LibTest/core/int/abs/int/abs/A01/t01: Fail
