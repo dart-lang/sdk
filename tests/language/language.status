@@ -318,7 +318,6 @@ TypeVariableBoundsTest/03: Fail # Issue 417
 TypeVariableBoundsTest/04: Fail # Issue 417
 TypeVariableScopeTest/none: Fail # Issue 417
 UnboundGetterTest: Fail
-VarInitTest: Fail
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
