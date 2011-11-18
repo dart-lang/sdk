@@ -36,6 +36,18 @@ interface File factory _File {
   void createSync();
 
   /**
+   * Delete the file. The [deleteHandler] is called when the file has
+   * been successfully deleted. The [errorHandler] is called if the
+   * file cannot be deleted.
+   */
+  void delete();
+
+  /**
+   * Synchronously delete the file.
+   */
+  void deleteSync();
+
+  /**
    * Open the file for random access operations. When the file is
    * opened the openHandler is called. Opened files must be closed
    * using the [close] method. By default writable is false.
@@ -202,6 +214,7 @@ interface File factory _File {
   // Event handlers.
   void set existsHandler(void handler(bool exists));
   void set createHandler(void handler());
+  void set deleteHandler(void handler());
   void set openHandler(void handler());
   void set closeHandler(void handler());
   void set readByteHandler(void handler(int byte));

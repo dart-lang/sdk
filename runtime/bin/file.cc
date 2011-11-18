@@ -271,6 +271,16 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  bool result = File::Delete(str);
+  Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =

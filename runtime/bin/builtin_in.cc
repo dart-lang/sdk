@@ -42,6 +42,7 @@ static const char Builtin_source_[] = {
   V(File_Length, 1)                                                            \
   V(File_Flush, 1)                                                             \
   V(File_Create, 1)                                                            \
+  V(File_Delete, 1)                                                            \
   V(File_FullPath, 1)                                                          \
   V(Logger_PrintString, 1)                                                     \
   V(Platform_NumberOfProcessors, 0)                                            \

@@ -44,15 +44,15 @@ class FileTest {
     Expect.equals(42, bytesRead);
     input.close();
     // Write the contents of the file just read into another file.
-    String outFilename = getFilename("tests/vm/data/fixed_length_file");
-    file = new File(outFilename + "_out");
+    String outFilenameBase = getFilename("tests/vm/data/fixed_length_file");
+    file = new File(outFilenameBase + "_out");
     OutputStream output = file.openOutputStream();
     bool writeDone = output.writeFrom(buffer1, 0, 42);
     Expect.equals(true, writeDone);
     output.close();
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(42);
-    file = new File(outFilename);
+    file = new File(outFilenameBase + "_out");
     input = file.openInputStream();
     bytesRead = input.readInto(buffer2, 0, 42);
     input.close();
@@ -61,6 +61,9 @@ class FileTest {
     for (int i = 0; i < buffer1.length; i++) {
       Expect.equals(buffer1[i],  buffer2[i]);
     }
+    // Delete the output file.
+    file.deleteSync();
+    Expect.isFalse(file.existsSync());
     return 1;
   }
 
@@ -154,7 +157,7 @@ class FileTest {
                   file.closeHandler = () {
                     // Now read the contents of the file just written.
                     List<int> buffer2 = new List<int>(bytes_read);
-                    file = new File(getFilename(outFilenameBase));
+                    file = new File(getFilename(outFilenameBase + "_out"));
                     file.errorHandler = (s) {
                       Expect.fail("No errors expected");
                     };
@@ -168,6 +171,14 @@ class FileTest {
                           for (int i = 0; i < buffer1.length; i++) {
                             Expect.equals(buffer1[i],  buffer2[i]);
                           }
+                          // Delete the output file.
+                          file.deleteHandler = () {
+                            file.existsHandler = (exists) {
+                              Expect.isFalse(exists);
+                            };
+                            file.exists();
+                          };
+                          file.delete();
                         };
                         file.close();
                       };
@@ -219,7 +230,7 @@ class FileTest {
     file.closeSync();
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(bytes_read);
-    file = new File(getFilename(outFilenameBase));
+    file = new File(getFilename(outFilenameBase + "_out"));
     file.openSync();
     bytes_read = file.readListSync(buffer2, 0, 42);
     Expect.equals(42, bytes_read);
@@ -229,6 +240,9 @@ class FileTest {
     for (int i = 0; i < buffer1.length; i++) {
       Expect.equals(buffer1[i],  buffer2[i]);
     }
+    // Delete the output file.
+    file.deleteSync();
+    Expect.isFalse(file.existsSync());
     return 1;
   }
 

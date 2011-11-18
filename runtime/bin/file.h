@@ -56,6 +56,7 @@ class File {
   static File* Open(const char* name, bool writable);
   static bool Exists(const char* name);
   static bool Create(const char* name);
+  static bool Delete(const char* name);
   static bool IsAbsolutePath(const char* pathname);
   static char* GetCanonicalPath(const char* name);
   static const char* PathSeparator();

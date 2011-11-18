@@ -336,6 +336,17 @@ class _CreateOperation extends _FileOperation {
 }
 
 
+class _DeleteOperation extends _FileOperation {
+  _DeleteOperation(String this._name);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._checkedDelete(_name), port.toSendPort());
+  }
+
+  String _name;
+}
+
+
 class _ExitOperation extends _FileOperation {
   void execute(ReceivePort port) {
     port.close();
@@ -428,6 +439,7 @@ class _File implements File {
   static int _length(int id) native "File_Length";
   static int _flush(int id) native "File_Flush";
   static bool _create(String name) native "File_Create";
+  static bool _delete(String name) native "File_Delete";
   static String _fullPath(String name) native "File_FullPath";
 
   static int _checkReadWriteListArguments(int length, int offset, int bytes) {
@@ -445,6 +457,11 @@ class _File implements File {
   static bool _checkedCreate(String name) {
     if (name is !String) return false;
     return _create(name);
+  }
+
+  static bool _checkedDelete(String name) {
+    if (name is !String) return false;
+    return _delete(name);
   }
 
   static int _checkedWriteString(int id, String string) {
@@ -504,6 +521,31 @@ class _File implements File {
     bool created = _checkedCreate(_name);
     if (!created) {
       throw new FileIOException("Cannot create file: $_name");
+    }
+  }
+
+  void delete() {
+    _asyncUsed = true;
+    var handler = (_deleteHandler != null) ? _deleteHandler : () => null;
+    var handleDeleteResult = (created, ignored) {
+      if (created) {
+        handler();
+      } else if (_errorHandler != null) {
+        _errorHandler("Cannot delete file: $_name");
+      }
+    };
+    var operation = new _DeleteOperation(_name);
+    _scheduler.enqueue(operation, handleDeleteResult);
+  }
+
+  void deleteSync() {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    bool deleted = _checkedDelete(_name);
+    if (!deleted) {
+      throw new FileIOException("Cannot delete file: $_name");
     }
   }
 
@@ -897,6 +939,10 @@ class _File implements File {
     _createHandler = handler;
   }
 
+  void set deleteHandler(void handler()) {
+    _deleteHandler = handler;
+  }
+
   void set openHandler(void handler()) {
     _openHandler = handler;
   }
@@ -949,6 +995,7 @@ class _File implements File {
 
   var _existsHandler;
   var _createHandler;
+  var _deleteHandler;
   var _openHandler;
   var _closeHandler;
   var _readByteHandler;

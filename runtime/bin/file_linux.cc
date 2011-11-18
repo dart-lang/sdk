@@ -129,6 +129,15 @@ bool File::Create(const char* name) {
 }
 
 
+bool File::Delete(const char* name) {
+  int status = remove(name);
+  if (status == -1) {
+    return false;
+  }
+  return true;
+}
+
+
 bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
 }
