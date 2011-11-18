@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ListFactory<T> {
+class ListFactory {
 
-  factory List.from(Iterable<T> other) {
+  factory List<T>.from(Iterable<T> other) {
     GrowableObjectArray<T> list = new GrowableObjectArray<T>();
     for (final e in other) {
       list.add(e);
@@ -12,7 +12,7 @@ class ListFactory<T> {
     return list;
   }
 
-  factory List([int length = null]) {
+  factory List<T>([int length = null]) {
     if (length === null) {
       return new GrowableObjectArray<T>();
     } else {
@@ -24,7 +24,7 @@ class ListFactory<T> {
 // TODO(srdjan): Use shared array implementation.
 class ObjectArray<T> implements List<T> {
 
-  factory ObjectArray(int length) native "ObjectArray_allocate";
+  factory ObjectArray<T>(int length) native "ObjectArray_allocate";
 
   T operator [](int index) native "ObjectArray_getIndexed";
 

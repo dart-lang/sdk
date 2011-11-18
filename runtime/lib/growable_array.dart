@@ -95,8 +95,8 @@ class GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  factory GrowableObjectArray.from(Collection<T> other) {
-    List result = new GrowableObjectArray();
+  factory GrowableObjectArray<T>.from(Collection<T> other) {
+    List<T> result = new GrowableObjectArray<T>();
     result.addAll(other);
     return result;
   }

@@ -2255,11 +2255,21 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 
 // Pushes the type arguments of the instantiator on the stack.
 void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
-  const Class& instantiator_class =
-      Class::Handle(parsed_function().function().owner());
+  Class& instantiator_class = Class::Handle();
+  Function& outer_function =
+      Function::Handle(parsed_function().function().raw());
+  while (outer_function.IsLocalFunction()) {
+    outer_function = outer_function.parent_function();
+  }
+  if (outer_function.IsFactory()) {
+    instantiator_class = outer_function.signature_class();
+  } else {
+    instantiator_class = outer_function.owner();
+  }
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
     TypeArguments& type_arguments = TypeArguments::ZoneHandle();
+    // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
     String& errmsg = String::Handle();
@@ -2272,7 +2282,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   } else {
     ASSERT(parsed_function().instantiator() != NULL);
     parsed_function().instantiator()->Visit(this);
-    if (!parsed_function().function().IsInFactoryScope()) {
+    if (!outer_function.IsFactory()) {
       __ popl(EAX);  // Pop instantiator.
       // The instantiator is the receiver of the caller, which is not a factory.
       // The receiver cannot be null; extract its TypeArguments object.
@@ -2307,7 +2317,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
   // Instantiate the type arguments if necessary.
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    if (node->constructor().IsFactory() || requires_type_arguments) {
+    if (requires_type_arguments) {
       // A factory requires the type arguments as first parameter.
       __ PushObject(node->type_arguments());
       if (!node->constructor().IsFactory()) {
@@ -2317,7 +2327,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     }
   } else {
     // The type arguments are uninstantiated.
-    ASSERT(node->constructor().IsFactory() || requires_type_arguments);
+    ASSERT(requires_type_arguments);
     GenerateInstantiatorTypeArguments(node->token_index());
     __ popl(EAX);  // Pop instantiator.
     // EAX is the instantiator TypeArguments object (or null).
@@ -2373,10 +2383,9 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
 
 void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
-  const Class& cls = Class::ZoneHandle(node->constructor().owner());
-  const bool requires_type_arguments = cls.HasTypeArguments();
-  GenerateTypeArguments(node, requires_type_arguments);
   if (node->constructor().IsFactory()) {
+    const bool requires_type_arguments = true;  // Always first arg to factory.
+    GenerateTypeArguments(node, requires_type_arguments);
     // The top of stack is an instantiated TypeArguments object (or null).
     int num_args = node->arguments()->length() + 1;  // +1 to include type args.
     node->arguments()->Visit(this);
@@ -2392,6 +2401,10 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
     }
     return;
   }
+
+  const Class& cls = Class::ZoneHandle(node->constructor().owner());
+  const bool requires_type_arguments = cls.HasTypeArguments();
+  GenerateTypeArguments(node, requires_type_arguments);
 
   // If cls is parameterized, the type arguments and the instantiator's
   // type arguments are on the stack.

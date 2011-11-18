@@ -414,6 +414,7 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
   if (mismatch) {
     const String& interface_name = String::Handle(interface.Name());
     const String& factory_name = String::Handle(factory_class.Name());
+    // TODO(regis): Report the filename and position as well.
     ReportError("mismatch in number or names of type parameters between "
                 "factory clause of interface '%s' and actual factory "
                 "class '%s'.\n",
@@ -727,6 +728,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                         type_class.NumTypeParameters(),
                         type_class.NumTypeParameters() > 1 ? "s" : "");
         } else {
+          // TODO(regis): Report the filename and position as well.
           ReportError("factory method '%s' must declare %d type parameter%s.\n",
                       function_name.ToCString(),
                       type_class.NumTypeParameters(),

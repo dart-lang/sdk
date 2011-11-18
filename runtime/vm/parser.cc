@@ -599,9 +599,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 
   // The instantiator may be required at run time for generic type checks or
   // allocation of generic types.
-  if ((parser.current_class().NumTypeParameters() > 0) &&
-      (!parser.current_function().is_static() ||
-       parser.current_function().IsInFactoryScope())) {
+  if (parser.IsInstantiatorRequired()) {
     // In the case of a local function, only set the instantiator if the
     // receiver was captured.
     const bool kTestOnly = true;
@@ -1827,9 +1825,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       (current_block_->scope->function_level() > 0)) {
     // We are parsing, but not compiling, a local function.
     // The instantiator may be required at run time for generic type checks.
-    if ((current_class().NumTypeParameters() > 0) &&
-        (!current_function().is_static() ||
-         current_function().IsInFactoryScope())) {
+    if (IsInstantiatorRequired()) {
       // Make sure that the receiver of the enclosing instance function
       // (or implicit first parameter of an enclosing factory) is marked as
       // captured if type checks are enabled, because they may access the
@@ -6065,6 +6061,24 @@ RawClass* Parser::TypeParametersScopeClass() {
     }
   }
   return Class::null();
+}
+
+
+bool Parser::IsInstantiatorRequired() const {
+  ASSERT(!current_function().IsNull());
+  Function& outer_function = Function::Handle(current_function().raw());
+  while (outer_function.IsLocalFunction()) {
+    outer_function = outer_function.parent_function();
+  }
+  if (outer_function.IsFactory()) {
+    const Class& signature_class =
+        Class::Handle(outer_function.signature_class());
+    return signature_class.NumTypeParameters() > 0;
+  }
+  if (!outer_function.is_static()) {
+    return current_class().NumTypeParameters() > 0;
+  }
+  return false;
 }
 
 
