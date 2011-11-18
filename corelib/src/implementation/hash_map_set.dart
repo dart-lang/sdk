@@ -7,8 +7,8 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
 
   // The [_keys] list contains the keys inserted in the map.
   // The [_keys] list must be a raw list because it
-  // will contain both elements of type K, and the [_deletedKey] of type
-  // Object.
+  // will contain both elements of type K, and the [_DELETED_KEY] of type
+  // [_DeletedKeySentinel].
   // The alternative of declaring the [_keys] list as of type Object
   // does not work, because the HashSetIterator constructor would fail:
   //  HashSetIterator(HashSet<E> set)
@@ -36,19 +36,13 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   // The current number of deleted entries in the map.
   int _numberOfDeleted;
 
-  // The sentinel when a key is deleted from the map. We cannot use static
-  // const here because we would need to allocate a "const Object()" which
-  // would end up canonicalized and then we cannot distinguish the deleted
-  // key from the canonicalized Object().
-  static Object _deletedKey;
+  // The sentinel when a key is deleted from the map.
+  static final _DeletedKeySentinel _DELETED_KEY = const _DeletedKeySentinel();
 
   // The initial capacity of a hash map.
   static final int _INITIAL_CAPACITY = 8;  // must be power of 2
 
   HashMapImplementation() {
-    if (_deletedKey === null) {
-      _deletedKey = new Object();
-    }
     _numberOfEntries = 0;
     _numberOfDeleted = 0;
     _loadLimit = _computeLoadLimit(_INITIAL_CAPACITY);
@@ -56,7 +50,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
     _values = new List<V>(_INITIAL_CAPACITY);
   }
 
-  // See bug 5257789.
+  // See bug 5257789. Works in the vm, fails in dartc and frog.
   factory HashMapImplementation/* <K, V> */.from(Map/* <K, V> */other) {
     Map/* <K, V> */ result = new HashMapImplementation/* <K, V> */();
     other.forEach((/* K */ key, /* V */ value) { result[key] = value; });
@@ -82,6 +76,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
     // insertionIndex points to a slot where a key was deleted.
     int insertionIndex = -1;
     while (true) {
+      // [existingKey] can be either of type [K] or [_DeletedKeySentinel].
       Object existingKey = _keys[hash];
       if (existingKey === null) {
         // We are sure the key is not already in the set.
@@ -93,7 +88,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
       } else if (existingKey == key) {
         // The key is already in the map. Return its slot.
         return hash;
-      } else if ((insertionIndex < 0) && (_deletedKey === existingKey)) {
+      } else if ((insertionIndex < 0) && (_DELETED_KEY === existingKey)) {
         // The slot contains a deleted element. Because previous calls to this
         // method may not have had this slot deleted, we must continue iterate
         // to find if there is a slot with the given key.
@@ -112,6 +107,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
     int numberOfProbes = 1;
     int initialHash = hash;
     while (true) {
+      // [existingKey] can be either of type [K] or [_DeletedKeySentinel].
       Object existingKey = _keys[hash];
       // If the slot does not contain anything (in particular, it does not
       // contain a deleted key), we know the key is not in the map.
@@ -158,9 +154,10 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
     _keys = new List(newCapacity);
     _values = new List<V>(newCapacity);
     for (int i = 0; i < capacity; i++) {
+      // [key] can be either of type [K] or [_DeletedKeySentinel].
       Object key = oldKeys[i];
       // If there is no key, we don't need to deal with the current slot.
-      if (key === null || key === _deletedKey) {
+      if (key === null || key === _DELETED_KEY) {
         continue;
       }
       V value = oldValues[i];
@@ -185,7 +182,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   void operator []=(K key, V value) {
     _ensureCapacity();
     int index = _probeForAdding(key);
-    if ((_keys[index] === null) || (_keys[index] === _deletedKey)) {
+    if ((_keys[index] === null) || (_keys[index] === _DELETED_KEY)) {
       _numberOfEntries++;
     }
     _keys[index] = key;
@@ -214,7 +211,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
       V value = _values[index];
       _values[index] = null;
       // Set the key to the sentinel to not break the probing chain.
-      _keys[index] = _deletedKey;
+      _keys[index] = _DELETED_KEY;
       _numberOfDeleted++;
       return value;
     }
@@ -232,7 +229,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   void forEach(void f(K key, V value)) {
     int length = _keys.length;
     for (int i = 0; i < length; i++) {
-      if ((_keys[i] !== null) && (_keys[i] !== _deletedKey)) {
+      if ((_keys[i] !== null) && (_keys[i] !== _DELETED_KEY)) {
         f(_keys[i], _values[i]);
       }
     }
@@ -264,7 +261,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   bool containsValue(V value) {
     int length = _values.length;
     for (int i = 0; i < length; i++) {
-      if ((_keys[i] !== null) && (_keys[i] !== _deletedKey)) {
+      if ((_keys[i] !== null) && (_keys[i] !== _DELETED_KEY)) {
         if (_values[i] == value) return true;
       }
     }
@@ -388,7 +385,7 @@ class HashSetIterator<E> implements Iterator<E> {
 
   bool hasNext() {
     if (_nextValidIndex >= _entries.length) return false;
-    if (_entries[_nextValidIndex] === HashMapImplementation._deletedKey) {
+    if (_entries[_nextValidIndex] === HashMapImplementation._DELETED_KEY) {
       // This happens in case the set was modified in the meantime.
       // A modification on the set may make this iterator misbehave,
       // but we should never return the sentinel.
@@ -409,7 +406,7 @@ class HashSetIterator<E> implements Iterator<E> {
   void _advance() {
     int length = _entries.length;
     var entry;
-    Object deletedKey = HashMapImplementation._deletedKey;
+    final deletedKey = HashMapImplementation._DELETED_KEY;
     do {
       if (++_nextValidIndex >= length) break;
       entry = _entries[_nextValidIndex];
@@ -423,4 +420,14 @@ class HashSetIterator<E> implements Iterator<E> {
   // If it is the length of [_entries], calling [hasNext] on the
   // iterator will return false.
   int _nextValidIndex;
+}
+
+/**
+ * A singleton sentinel used to represent when a key is deleted from the map.
+ * We can't use [: const Object() :] as a sentinel because it would end up
+ * canonicalized and then we cannot distinguish the deleted key from the
+ * canonicalized [: Object() :].
+ */
+class _DeletedKeySentinel {
+  const _DeletedKeySentinel();
 }
