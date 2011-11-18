@@ -11,62 +11,62 @@ class _WebSocketWrappingImplementation extends DOMWrapperBase implements WebSock
     return new _WebSocketWrappingImplementation();
   }
 
-  String get URL() { return _get__WebSocket_URL(this); }
-  static String _get__WebSocket_URL(var _this) native;
+  String get URL() { return _get_URL(this); }
+  static String _get_URL(var _this) native;
 
-  String get binaryType() { return _get__WebSocket_binaryType(this); }
-  static String _get__WebSocket_binaryType(var _this) native;
+  String get binaryType() { return _get_binaryType(this); }
+  static String _get_binaryType(var _this) native;
 
-  void set binaryType(String value) { _set__WebSocket_binaryType(this, value); }
-  static void _set__WebSocket_binaryType(var _this, String value) native;
+  void set binaryType(String value) { _set_binaryType(this, value); }
+  static void _set_binaryType(var _this, String value) native;
 
-  int get bufferedAmount() { return _get__WebSocket_bufferedAmount(this); }
-  static int _get__WebSocket_bufferedAmount(var _this) native;
+  int get bufferedAmount() { return _get_bufferedAmount(this); }
+  static int _get_bufferedAmount(var _this) native;
 
-  String get extensions() { return _get__WebSocket_extensions(this); }
-  static String _get__WebSocket_extensions(var _this) native;
+  String get extensions() { return _get_extensions(this); }
+  static String _get_extensions(var _this) native;
 
-  EventListener get onclose() { return _get__WebSocket_onclose(this); }
-  static EventListener _get__WebSocket_onclose(var _this) native;
+  EventListener get onclose() { return _get_onclose(this); }
+  static EventListener _get_onclose(var _this) native;
 
-  void set onclose(EventListener value) { _set__WebSocket_onclose(this, value); }
-  static void _set__WebSocket_onclose(var _this, EventListener value) native;
+  void set onclose(EventListener value) { _set_onclose(this, value); }
+  static void _set_onclose(var _this, EventListener value) native;
 
-  EventListener get onerror() { return _get__WebSocket_onerror(this); }
-  static EventListener _get__WebSocket_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__WebSocket_onerror(this, value); }
-  static void _set__WebSocket_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
-  EventListener get onmessage() { return _get__WebSocket_onmessage(this); }
-  static EventListener _get__WebSocket_onmessage(var _this) native;
+  EventListener get onmessage() { return _get_onmessage(this); }
+  static EventListener _get_onmessage(var _this) native;
 
-  void set onmessage(EventListener value) { _set__WebSocket_onmessage(this, value); }
-  static void _set__WebSocket_onmessage(var _this, EventListener value) native;
+  void set onmessage(EventListener value) { _set_onmessage(this, value); }
+  static void _set_onmessage(var _this, EventListener value) native;
 
-  EventListener get onopen() { return _get__WebSocket_onopen(this); }
-  static EventListener _get__WebSocket_onopen(var _this) native;
+  EventListener get onopen() { return _get_onopen(this); }
+  static EventListener _get_onopen(var _this) native;
 
-  void set onopen(EventListener value) { _set__WebSocket_onopen(this, value); }
-  static void _set__WebSocket_onopen(var _this, EventListener value) native;
+  void set onopen(EventListener value) { _set_onopen(this, value); }
+  static void _set_onopen(var _this, EventListener value) native;
 
-  String get protocol() { return _get__WebSocket_protocol(this); }
-  static String _get__WebSocket_protocol(var _this) native;
+  String get protocol() { return _get_protocol(this); }
+  static String _get_protocol(var _this) native;
 
-  int get readyState() { return _get__WebSocket_readyState(this); }
-  static int _get__WebSocket_readyState(var _this) native;
+  int get readyState() { return _get_readyState(this); }
+  static int _get_readyState(var _this) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _addEventListener(this, type, listener);
+      _addEventListener_WebSocket(this, type, listener);
       return;
     } else {
-      _addEventListener_2(this, type, listener, useCapture);
+      _addEventListener_WebSocket_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+  static void _addEventListener_WebSocket(receiver, type, listener) native;
+  static void _addEventListener_WebSocket_2(receiver, type, listener, useCapture) native;
 
   void close([int code = null, String reason = null]) {
     if (code === null) {
@@ -90,21 +90,21 @@ class _WebSocketWrappingImplementation extends DOMWrapperBase implements WebSock
   static void _close_3(receiver, code, reason) native;
 
   bool dispatchEvent(Event evt) {
-    return _dispatchEvent(this, evt);
+    return _dispatchEvent_WebSocket(this, evt);
   }
-  static bool _dispatchEvent(receiver, evt) native;
+  static bool _dispatchEvent_WebSocket(receiver, evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _removeEventListener(this, type, listener);
+      _removeEventListener_WebSocket(this, type, listener);
       return;
     } else {
-      _removeEventListener_2(this, type, listener, useCapture);
+      _removeEventListener_WebSocket_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
+  static void _removeEventListener_WebSocket(receiver, type, listener) native;
+  static void _removeEventListener_WebSocket_2(receiver, type, listener, useCapture) native;
 
   bool send(String data) {
     return _send(this, data);

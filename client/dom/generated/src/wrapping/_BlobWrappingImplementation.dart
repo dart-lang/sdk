@@ -11,11 +11,11 @@ class _BlobWrappingImplementation extends DOMWrapperBase implements Blob {
     return new _BlobWrappingImplementation();
   }
 
-  int get size() { return _get__Blob_size(this); }
-  static int _get__Blob_size(var _this) native;
+  int get size() { return _get_size(this); }
+  static int _get_size(var _this) native;
 
-  String get type() { return _get__Blob_type(this); }
-  static String _get__Blob_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
   String get typeName() { return "Blob"; }
 }

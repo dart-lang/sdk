@@ -11,14 +11,14 @@ class _RangeExceptionWrappingImplementation extends DOMWrapperBase implements Ra
     return new _RangeExceptionWrappingImplementation();
   }
 
-  int get code() { return _get__RangeException_code(this); }
-  static int _get__RangeException_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
-  String get message() { return _get__RangeException_message(this); }
-  static String _get__RangeException_message(var _this) native;
+  String get message() { return _get_message(this); }
+  static String _get_message(var _this) native;
 
-  String get name() { return _get__RangeException_name(this); }
-  static String _get__RangeException_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
   String toString() {
     return _toString(this);

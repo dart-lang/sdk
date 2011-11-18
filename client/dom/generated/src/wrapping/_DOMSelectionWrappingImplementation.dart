@@ -11,38 +11,38 @@ class _DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMS
     return new _DOMSelectionWrappingImplementation();
   }
 
-  Node get anchorNode() { return _get__DOMSelection_anchorNode(this); }
-  static Node _get__DOMSelection_anchorNode(var _this) native;
+  Node get anchorNode() { return _get_anchorNode(this); }
+  static Node _get_anchorNode(var _this) native;
 
-  int get anchorOffset() { return _get__DOMSelection_anchorOffset(this); }
-  static int _get__DOMSelection_anchorOffset(var _this) native;
+  int get anchorOffset() { return _get_anchorOffset(this); }
+  static int _get_anchorOffset(var _this) native;
 
-  Node get baseNode() { return _get__DOMSelection_baseNode(this); }
-  static Node _get__DOMSelection_baseNode(var _this) native;
+  Node get baseNode() { return _get_baseNode(this); }
+  static Node _get_baseNode(var _this) native;
 
-  int get baseOffset() { return _get__DOMSelection_baseOffset(this); }
-  static int _get__DOMSelection_baseOffset(var _this) native;
+  int get baseOffset() { return _get_baseOffset(this); }
+  static int _get_baseOffset(var _this) native;
 
-  Node get extentNode() { return _get__DOMSelection_extentNode(this); }
-  static Node _get__DOMSelection_extentNode(var _this) native;
+  Node get extentNode() { return _get_extentNode(this); }
+  static Node _get_extentNode(var _this) native;
 
-  int get extentOffset() { return _get__DOMSelection_extentOffset(this); }
-  static int _get__DOMSelection_extentOffset(var _this) native;
+  int get extentOffset() { return _get_extentOffset(this); }
+  static int _get_extentOffset(var _this) native;
 
-  Node get focusNode() { return _get__DOMSelection_focusNode(this); }
-  static Node _get__DOMSelection_focusNode(var _this) native;
+  Node get focusNode() { return _get_focusNode(this); }
+  static Node _get_focusNode(var _this) native;
 
-  int get focusOffset() { return _get__DOMSelection_focusOffset(this); }
-  static int _get__DOMSelection_focusOffset(var _this) native;
+  int get focusOffset() { return _get_focusOffset(this); }
+  static int _get_focusOffset(var _this) native;
 
-  bool get isCollapsed() { return _get__DOMSelection_isCollapsed(this); }
-  static bool _get__DOMSelection_isCollapsed(var _this) native;
+  bool get isCollapsed() { return _get_isCollapsed(this); }
+  static bool _get_isCollapsed(var _this) native;
 
-  int get rangeCount() { return _get__DOMSelection_rangeCount(this); }
-  static int _get__DOMSelection_rangeCount(var _this) native;
+  int get rangeCount() { return _get_rangeCount(this); }
+  static int _get_rangeCount(var _this) native;
 
-  String get type() { return _get__DOMSelection_type(this); }
-  static String _get__DOMSelection_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
   void addRange(Range range) {
     _addRange(this, range);

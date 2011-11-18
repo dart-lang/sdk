@@ -11,8 +11,8 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
     return new _ConsoleWrappingImplementation();
   }
 
-  MemoryInfo get memory() { return _get__Console_memory(this); }
-  static MemoryInfo _get__Console_memory(var _this) native;
+  MemoryInfo get memory() { return _get_memory(this); }
+  static MemoryInfo _get_memory(var _this) native;
 
   void assert(bool condition) {
     _assert(this, condition);

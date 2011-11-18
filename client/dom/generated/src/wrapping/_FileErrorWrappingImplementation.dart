@@ -11,8 +11,8 @@ class _FileErrorWrappingImplementation extends DOMWrapperBase implements FileErr
     return new _FileErrorWrappingImplementation();
   }
 
-  int get code() { return _get__FileError_code(this); }
-  static int _get__FileError_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
   String get typeName() { return "FileError"; }
 }

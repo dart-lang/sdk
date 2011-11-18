@@ -11,11 +11,11 @@ class _HTMLQuoteElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLQuoteElementWrappingImplementation();
   }
 
-  String get cite() { return _get__HTMLQuoteElement_cite(this); }
-  static String _get__HTMLQuoteElement_cite(var _this) native;
+  String get cite() { return _get_cite(this); }
+  static String _get_cite(var _this) native;
 
-  void set cite(String value) { _set__HTMLQuoteElement_cite(this, value); }
-  static void _set__HTMLQuoteElement_cite(var _this, String value) native;
+  void set cite(String value) { _set_cite(this, value); }
+  static void _set_cite(var _this, String value) native;
 
   String get typeName() { return "HTMLQuoteElement"; }
 }

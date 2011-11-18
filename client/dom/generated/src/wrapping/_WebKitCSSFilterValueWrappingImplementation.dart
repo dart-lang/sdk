@@ -11,8 +11,8 @@ class _WebKitCSSFilterValueWrappingImplementation extends _CSSValueListWrappingI
     return new _WebKitCSSFilterValueWrappingImplementation();
   }
 
-  int get operationType() { return _get__WebKitCSSFilterValue_operationType(this); }
-  static int _get__WebKitCSSFilterValue_operationType(var _this) native;
+  int get operationType() { return _get_operationType(this); }
+  static int _get_operationType(var _this) native;
 
   String get typeName() { return "WebKitCSSFilterValue"; }
 }

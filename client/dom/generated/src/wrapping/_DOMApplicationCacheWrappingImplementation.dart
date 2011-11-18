@@ -11,85 +11,85 @@ class _DOMApplicationCacheWrappingImplementation extends DOMWrapperBase implemen
     return new _DOMApplicationCacheWrappingImplementation();
   }
 
-  EventListener get oncached() { return _get__DOMApplicationCache_oncached(this); }
-  static EventListener _get__DOMApplicationCache_oncached(var _this) native;
+  EventListener get oncached() { return _get_oncached(this); }
+  static EventListener _get_oncached(var _this) native;
 
-  void set oncached(EventListener value) { _set__DOMApplicationCache_oncached(this, value); }
-  static void _set__DOMApplicationCache_oncached(var _this, EventListener value) native;
+  void set oncached(EventListener value) { _set_oncached(this, value); }
+  static void _set_oncached(var _this, EventListener value) native;
 
-  EventListener get onchecking() { return _get__DOMApplicationCache_onchecking(this); }
-  static EventListener _get__DOMApplicationCache_onchecking(var _this) native;
+  EventListener get onchecking() { return _get_onchecking(this); }
+  static EventListener _get_onchecking(var _this) native;
 
-  void set onchecking(EventListener value) { _set__DOMApplicationCache_onchecking(this, value); }
-  static void _set__DOMApplicationCache_onchecking(var _this, EventListener value) native;
+  void set onchecking(EventListener value) { _set_onchecking(this, value); }
+  static void _set_onchecking(var _this, EventListener value) native;
 
-  EventListener get ondownloading() { return _get__DOMApplicationCache_ondownloading(this); }
-  static EventListener _get__DOMApplicationCache_ondownloading(var _this) native;
+  EventListener get ondownloading() { return _get_ondownloading(this); }
+  static EventListener _get_ondownloading(var _this) native;
 
-  void set ondownloading(EventListener value) { _set__DOMApplicationCache_ondownloading(this, value); }
-  static void _set__DOMApplicationCache_ondownloading(var _this, EventListener value) native;
+  void set ondownloading(EventListener value) { _set_ondownloading(this, value); }
+  static void _set_ondownloading(var _this, EventListener value) native;
 
-  EventListener get onerror() { return _get__DOMApplicationCache_onerror(this); }
-  static EventListener _get__DOMApplicationCache_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__DOMApplicationCache_onerror(this, value); }
-  static void _set__DOMApplicationCache_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
-  EventListener get onnoupdate() { return _get__DOMApplicationCache_onnoupdate(this); }
-  static EventListener _get__DOMApplicationCache_onnoupdate(var _this) native;
+  EventListener get onnoupdate() { return _get_onnoupdate(this); }
+  static EventListener _get_onnoupdate(var _this) native;
 
-  void set onnoupdate(EventListener value) { _set__DOMApplicationCache_onnoupdate(this, value); }
-  static void _set__DOMApplicationCache_onnoupdate(var _this, EventListener value) native;
+  void set onnoupdate(EventListener value) { _set_onnoupdate(this, value); }
+  static void _set_onnoupdate(var _this, EventListener value) native;
 
-  EventListener get onobsolete() { return _get__DOMApplicationCache_onobsolete(this); }
-  static EventListener _get__DOMApplicationCache_onobsolete(var _this) native;
+  EventListener get onobsolete() { return _get_onobsolete(this); }
+  static EventListener _get_onobsolete(var _this) native;
 
-  void set onobsolete(EventListener value) { _set__DOMApplicationCache_onobsolete(this, value); }
-  static void _set__DOMApplicationCache_onobsolete(var _this, EventListener value) native;
+  void set onobsolete(EventListener value) { _set_onobsolete(this, value); }
+  static void _set_onobsolete(var _this, EventListener value) native;
 
-  EventListener get onprogress() { return _get__DOMApplicationCache_onprogress(this); }
-  static EventListener _get__DOMApplicationCache_onprogress(var _this) native;
+  EventListener get onprogress() { return _get_onprogress(this); }
+  static EventListener _get_onprogress(var _this) native;
 
-  void set onprogress(EventListener value) { _set__DOMApplicationCache_onprogress(this, value); }
-  static void _set__DOMApplicationCache_onprogress(var _this, EventListener value) native;
+  void set onprogress(EventListener value) { _set_onprogress(this, value); }
+  static void _set_onprogress(var _this, EventListener value) native;
 
-  EventListener get onupdateready() { return _get__DOMApplicationCache_onupdateready(this); }
-  static EventListener _get__DOMApplicationCache_onupdateready(var _this) native;
+  EventListener get onupdateready() { return _get_onupdateready(this); }
+  static EventListener _get_onupdateready(var _this) native;
 
-  void set onupdateready(EventListener value) { _set__DOMApplicationCache_onupdateready(this, value); }
-  static void _set__DOMApplicationCache_onupdateready(var _this, EventListener value) native;
+  void set onupdateready(EventListener value) { _set_onupdateready(this, value); }
+  static void _set_onupdateready(var _this, EventListener value) native;
 
-  int get status() { return _get__DOMApplicationCache_status(this); }
-  static int _get__DOMApplicationCache_status(var _this) native;
+  int get status() { return _get_status(this); }
+  static int _get_status(var _this) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _addEventListener(this, type, listener);
+      _addEventListener_DOMApplicationCache(this, type, listener);
       return;
     } else {
-      _addEventListener_2(this, type, listener, useCapture);
+      _addEventListener_DOMApplicationCache_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+  static void _addEventListener_DOMApplicationCache(receiver, type, listener) native;
+  static void _addEventListener_DOMApplicationCache_2(receiver, type, listener, useCapture) native;
 
   bool dispatchEvent(Event evt) {
-    return _dispatchEvent(this, evt);
+    return _dispatchEvent_DOMApplicationCache(this, evt);
   }
-  static bool _dispatchEvent(receiver, evt) native;
+  static bool _dispatchEvent_DOMApplicationCache(receiver, evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _removeEventListener(this, type, listener);
+      _removeEventListener_DOMApplicationCache(this, type, listener);
       return;
     } else {
-      _removeEventListener_2(this, type, listener, useCapture);
+      _removeEventListener_DOMApplicationCache_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
+  static void _removeEventListener_DOMApplicationCache(receiver, type, listener) native;
+  static void _removeEventListener_DOMApplicationCache_2(receiver, type, listener, useCapture) native;
 
   void swapCache() {
     _swapCache(this);

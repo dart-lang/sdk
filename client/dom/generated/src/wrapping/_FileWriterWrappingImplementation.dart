@@ -11,53 +11,53 @@ class _FileWriterWrappingImplementation extends DOMWrapperBase implements FileWr
     return new _FileWriterWrappingImplementation();
   }
 
-  FileError get error() { return _get__FileWriter_error(this); }
-  static FileError _get__FileWriter_error(var _this) native;
+  FileError get error() { return _get_error(this); }
+  static FileError _get_error(var _this) native;
 
-  int get length() { return _get__FileWriter_length(this); }
-  static int _get__FileWriter_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
-  EventListener get onabort() { return _get__FileWriter_onabort(this); }
-  static EventListener _get__FileWriter_onabort(var _this) native;
+  EventListener get onabort() { return _get_onabort(this); }
+  static EventListener _get_onabort(var _this) native;
 
-  void set onabort(EventListener value) { _set__FileWriter_onabort(this, value); }
-  static void _set__FileWriter_onabort(var _this, EventListener value) native;
+  void set onabort(EventListener value) { _set_onabort(this, value); }
+  static void _set_onabort(var _this, EventListener value) native;
 
-  EventListener get onerror() { return _get__FileWriter_onerror(this); }
-  static EventListener _get__FileWriter_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__FileWriter_onerror(this, value); }
-  static void _set__FileWriter_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
-  EventListener get onprogress() { return _get__FileWriter_onprogress(this); }
-  static EventListener _get__FileWriter_onprogress(var _this) native;
+  EventListener get onprogress() { return _get_onprogress(this); }
+  static EventListener _get_onprogress(var _this) native;
 
-  void set onprogress(EventListener value) { _set__FileWriter_onprogress(this, value); }
-  static void _set__FileWriter_onprogress(var _this, EventListener value) native;
+  void set onprogress(EventListener value) { _set_onprogress(this, value); }
+  static void _set_onprogress(var _this, EventListener value) native;
 
-  EventListener get onwrite() { return _get__FileWriter_onwrite(this); }
-  static EventListener _get__FileWriter_onwrite(var _this) native;
+  EventListener get onwrite() { return _get_onwrite(this); }
+  static EventListener _get_onwrite(var _this) native;
 
-  void set onwrite(EventListener value) { _set__FileWriter_onwrite(this, value); }
-  static void _set__FileWriter_onwrite(var _this, EventListener value) native;
+  void set onwrite(EventListener value) { _set_onwrite(this, value); }
+  static void _set_onwrite(var _this, EventListener value) native;
 
-  EventListener get onwriteend() { return _get__FileWriter_onwriteend(this); }
-  static EventListener _get__FileWriter_onwriteend(var _this) native;
+  EventListener get onwriteend() { return _get_onwriteend(this); }
+  static EventListener _get_onwriteend(var _this) native;
 
-  void set onwriteend(EventListener value) { _set__FileWriter_onwriteend(this, value); }
-  static void _set__FileWriter_onwriteend(var _this, EventListener value) native;
+  void set onwriteend(EventListener value) { _set_onwriteend(this, value); }
+  static void _set_onwriteend(var _this, EventListener value) native;
 
-  EventListener get onwritestart() { return _get__FileWriter_onwritestart(this); }
-  static EventListener _get__FileWriter_onwritestart(var _this) native;
+  EventListener get onwritestart() { return _get_onwritestart(this); }
+  static EventListener _get_onwritestart(var _this) native;
 
-  void set onwritestart(EventListener value) { _set__FileWriter_onwritestart(this, value); }
-  static void _set__FileWriter_onwritestart(var _this, EventListener value) native;
+  void set onwritestart(EventListener value) { _set_onwritestart(this, value); }
+  static void _set_onwritestart(var _this, EventListener value) native;
 
-  int get position() { return _get__FileWriter_position(this); }
-  static int _get__FileWriter_position(var _this) native;
+  int get position() { return _get_position(this); }
+  static int _get_position(var _this) native;
 
-  int get readyState() { return _get__FileWriter_readyState(this); }
-  static int _get__FileWriter_readyState(var _this) native;
+  int get readyState() { return _get_readyState(this); }
+  static int _get_readyState(var _this) native;
 
   void abort() {
     _abort(this);

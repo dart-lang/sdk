@@ -11,8 +11,8 @@ class _HistoryWrappingImplementation extends DOMWrapperBase implements History {
     return new _HistoryWrappingImplementation();
   }
 
-  int get length() { return _get__History_length(this); }
-  static int _get__History_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   void back() {
     _back(this);

@@ -11,17 +11,17 @@ class _FileWrappingImplementation extends _BlobWrappingImplementation implements
     return new _FileWrappingImplementation();
   }
 
-  String get fileName() { return _get__File_fileName(this); }
-  static String _get__File_fileName(var _this) native;
+  String get fileName() { return _get_fileName(this); }
+  static String _get_fileName(var _this) native;
 
-  int get fileSize() { return _get__File_fileSize(this); }
-  static int _get__File_fileSize(var _this) native;
+  int get fileSize() { return _get_fileSize(this); }
+  static int _get_fileSize(var _this) native;
 
-  Date get lastModifiedDate() { return _get__File_lastModifiedDate(this); }
-  static Date _get__File_lastModifiedDate(var _this) native;
+  Date get lastModifiedDate() { return _get_lastModifiedDate(this); }
+  static Date _get_lastModifiedDate(var _this) native;
 
-  String get name() { return _get__File_name(this); }
-  static String _get__File_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
   String get typeName() { return "File"; }
 }

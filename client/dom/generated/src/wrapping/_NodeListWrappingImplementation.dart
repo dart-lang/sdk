@@ -11,8 +11,8 @@ class _NodeListWrappingImplementation extends DOMWrapperBase implements NodeList
     return new _NodeListWrappingImplementation();
   }
 
-  int get length() { return _get__NodeList_length(this); }
-  static int _get__NodeList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Node operator[](int index) {
     return item(index);

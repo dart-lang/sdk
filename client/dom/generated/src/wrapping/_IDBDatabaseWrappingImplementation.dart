@@ -11,29 +11,29 @@ class _IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDa
     return new _IDBDatabaseWrappingImplementation();
   }
 
-  String get name() { return _get__IDBDatabase_name(this); }
-  static String _get__IDBDatabase_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  EventListener get onabort() { return _get__IDBDatabase_onabort(this); }
-  static EventListener _get__IDBDatabase_onabort(var _this) native;
+  EventListener get onabort() { return _get_onabort(this); }
+  static EventListener _get_onabort(var _this) native;
 
-  void set onabort(EventListener value) { _set__IDBDatabase_onabort(this, value); }
-  static void _set__IDBDatabase_onabort(var _this, EventListener value) native;
+  void set onabort(EventListener value) { _set_onabort(this, value); }
+  static void _set_onabort(var _this, EventListener value) native;
 
-  EventListener get onerror() { return _get__IDBDatabase_onerror(this); }
-  static EventListener _get__IDBDatabase_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__IDBDatabase_onerror(this, value); }
-  static void _set__IDBDatabase_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
-  EventListener get onversionchange() { return _get__IDBDatabase_onversionchange(this); }
-  static EventListener _get__IDBDatabase_onversionchange(var _this) native;
+  EventListener get onversionchange() { return _get_onversionchange(this); }
+  static EventListener _get_onversionchange(var _this) native;
 
-  void set onversionchange(EventListener value) { _set__IDBDatabase_onversionchange(this, value); }
-  static void _set__IDBDatabase_onversionchange(var _this, EventListener value) native;
+  void set onversionchange(EventListener value) { _set_onversionchange(this, value); }
+  static void _set_onversionchange(var _this, EventListener value) native;
 
-  String get version() { return _get__IDBDatabase_version(this); }
-  static String _get__IDBDatabase_version(var _this) native;
+  String get version() { return _get_version(this); }
+  static String _get_version(var _this) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

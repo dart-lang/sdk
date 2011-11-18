@@ -11,14 +11,14 @@ class _EntityWrappingImplementation extends _NodeWrappingImplementation implemen
     return new _EntityWrappingImplementation();
   }
 
-  String get notationName() { return _get__Entity_notationName(this); }
-  static String _get__Entity_notationName(var _this) native;
+  String get notationName() { return _get_notationName(this); }
+  static String _get_notationName(var _this) native;
 
-  String get publicId() { return _get__Entity_publicId(this); }
-  static String _get__Entity_publicId(var _this) native;
+  String get publicId() { return _get_publicId(this); }
+  static String _get_publicId(var _this) native;
 
-  String get systemId() { return _get__Entity_systemId(this); }
-  static String _get__Entity_systemId(var _this) native;
+  String get systemId() { return _get_systemId(this); }
+  static String _get_systemId(var _this) native;
 
   String get typeName() { return "Entity"; }
 }

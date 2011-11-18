@@ -11,26 +11,26 @@ class _TouchEventWrappingImplementation extends _UIEventWrappingImplementation i
     return new _TouchEventWrappingImplementation();
   }
 
-  bool get altKey() { return _get__TouchEvent_altKey(this); }
-  static bool _get__TouchEvent_altKey(var _this) native;
+  bool get altKey() { return _get_altKey(this); }
+  static bool _get_altKey(var _this) native;
 
-  TouchList get changedTouches() { return _get__TouchEvent_changedTouches(this); }
-  static TouchList _get__TouchEvent_changedTouches(var _this) native;
+  TouchList get changedTouches() { return _get_changedTouches(this); }
+  static TouchList _get_changedTouches(var _this) native;
 
-  bool get ctrlKey() { return _get__TouchEvent_ctrlKey(this); }
-  static bool _get__TouchEvent_ctrlKey(var _this) native;
+  bool get ctrlKey() { return _get_ctrlKey(this); }
+  static bool _get_ctrlKey(var _this) native;
 
-  bool get metaKey() { return _get__TouchEvent_metaKey(this); }
-  static bool _get__TouchEvent_metaKey(var _this) native;
+  bool get metaKey() { return _get_metaKey(this); }
+  static bool _get_metaKey(var _this) native;
 
-  bool get shiftKey() { return _get__TouchEvent_shiftKey(this); }
-  static bool _get__TouchEvent_shiftKey(var _this) native;
+  bool get shiftKey() { return _get_shiftKey(this); }
+  static bool _get_shiftKey(var _this) native;
 
-  TouchList get targetTouches() { return _get__TouchEvent_targetTouches(this); }
-  static TouchList _get__TouchEvent_targetTouches(var _this) native;
+  TouchList get targetTouches() { return _get_targetTouches(this); }
+  static TouchList _get_targetTouches(var _this) native;
 
-  TouchList get touches() { return _get__TouchEvent_touches(this); }
-  static TouchList _get__TouchEvent_touches(var _this) native;
+  TouchList get touches() { return _get_touches(this); }
+  static TouchList _get_touches(var _this) native;
 
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
     _initTouchEvent(this, touches, targetTouches, changedTouches, type, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);

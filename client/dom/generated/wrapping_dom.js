@@ -6,7 +6,7 @@
 // Auto-generated Dart DOM implementation.
 
 
-function native__AbstractWorkerWrappingImplementation__get__AbstractWorker_onerror(_this) {
+function native__AbstractWorkerWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -14,7 +14,7 @@ function native__AbstractWorkerWrappingImplementation__get__AbstractWorker_onerr
   }
 }
 
-function native__AbstractWorkerWrappingImplementation__set__AbstractWorker_onerror(_this, value) {
+function native__AbstractWorkerWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -22,7 +22,7 @@ function native__AbstractWorkerWrappingImplementation__set__AbstractWorker_onerr
   }
 }
 
-function native__AbstractWorkerWrappingImplementation__addEventListener(_this, type, listener) {
+function native__AbstractWorkerWrappingImplementation__addEventListener_AbstractWorker(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -30,7 +30,7 @@ function native__AbstractWorkerWrappingImplementation__addEventListener(_this, t
   }
 }
 
-function native__AbstractWorkerWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__AbstractWorkerWrappingImplementation__addEventListener_AbstractWorker_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -38,7 +38,7 @@ function native__AbstractWorkerWrappingImplementation__addEventListener_2(_this,
   }
 }
 
-function native__AbstractWorkerWrappingImplementation__dispatchEvent(_this, evt) {
+function native__AbstractWorkerWrappingImplementation__dispatchEvent_AbstractWorker(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -46,7 +46,7 @@ function native__AbstractWorkerWrappingImplementation__dispatchEvent(_this, evt)
   }
 }
 
-function native__AbstractWorkerWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__AbstractWorkerWrappingImplementation__removeEventListener_AbstractWorker(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -54,7 +54,7 @@ function native__AbstractWorkerWrappingImplementation__removeEventListener(_this
   }
 }
 
-function native__AbstractWorkerWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__AbstractWorkerWrappingImplementation__removeEventListener_AbstractWorker_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -62,7 +62,7 @@ function native__AbstractWorkerWrappingImplementation__removeEventListener_2(_th
   }
 }
 
-function native__ArrayBufferWrappingImplementation__get__ArrayBuffer_byteLength(_this) {
+function native__ArrayBufferWrappingImplementation__get_byteLength(_this) {
   try {
     return __dom_wrap(_this.$dom.byteLength);
   } catch (e) {
@@ -86,7 +86,7 @@ function native__ArrayBufferWrappingImplementation__slice_2(_this, begin, end) {
   }
 }
 
-function native__ArrayBufferViewWrappingImplementation__get__ArrayBufferView_buffer(_this) {
+function native__ArrayBufferViewWrappingImplementation__get_buffer(_this) {
   try {
     return __dom_wrap(_this.$dom.buffer);
   } catch (e) {
@@ -94,7 +94,7 @@ function native__ArrayBufferViewWrappingImplementation__get__ArrayBufferView_buf
   }
 }
 
-function native__ArrayBufferViewWrappingImplementation__get__ArrayBufferView_byteLength(_this) {
+function native__ArrayBufferViewWrappingImplementation__get_byteLength(_this) {
   try {
     return __dom_wrap(_this.$dom.byteLength);
   } catch (e) {
@@ -102,7 +102,7 @@ function native__ArrayBufferViewWrappingImplementation__get__ArrayBufferView_byt
   }
 }
 
-function native__ArrayBufferViewWrappingImplementation__get__ArrayBufferView_byteOffset(_this) {
+function native__ArrayBufferViewWrappingImplementation__get_byteOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.byteOffset);
   } catch (e) {
@@ -110,7 +110,7 @@ function native__ArrayBufferViewWrappingImplementation__get__ArrayBufferView_byt
   }
 }
 
-function native__AttrWrappingImplementation__get__Attr_isId(_this) {
+function native__AttrWrappingImplementation__get_isId(_this) {
   try {
     return __dom_wrap(_this.$dom.isId);
   } catch (e) {
@@ -118,7 +118,7 @@ function native__AttrWrappingImplementation__get__Attr_isId(_this) {
   }
 }
 
-function native__AttrWrappingImplementation__get__Attr_name(_this) {
+function native__AttrWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -126,7 +126,7 @@ function native__AttrWrappingImplementation__get__Attr_name(_this) {
   }
 }
 
-function native__AttrWrappingImplementation__get__Attr_ownerElement(_this) {
+function native__AttrWrappingImplementation__get_ownerElement(_this) {
   try {
     return __dom_wrap(_this.$dom.ownerElement);
   } catch (e) {
@@ -134,7 +134,7 @@ function native__AttrWrappingImplementation__get__Attr_ownerElement(_this) {
   }
 }
 
-function native__AttrWrappingImplementation__get__Attr_specified(_this) {
+function native__AttrWrappingImplementation__get_specified(_this) {
   try {
     return __dom_wrap(_this.$dom.specified);
   } catch (e) {
@@ -142,7 +142,7 @@ function native__AttrWrappingImplementation__get__Attr_specified(_this) {
   }
 }
 
-function native__AttrWrappingImplementation__get__Attr_value(_this) {
+function native__AttrWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -150,7 +150,7 @@ function native__AttrWrappingImplementation__get__Attr_value(_this) {
   }
 }
 
-function native__AttrWrappingImplementation__set__Attr_value(_this, value) {
+function native__AttrWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -158,7 +158,7 @@ function native__AttrWrappingImplementation__set__Attr_value(_this, value) {
   }
 }
 
-function native__BarInfoWrappingImplementation__get__BarInfo_visible(_this) {
+function native__BarInfoWrappingImplementation__get_visible(_this) {
   try {
     return __dom_wrap(_this.$dom.visible);
   } catch (e) {
@@ -166,7 +166,7 @@ function native__BarInfoWrappingImplementation__get__BarInfo_visible(_this) {
   }
 }
 
-function native__BeforeLoadEventWrappingImplementation__get__BeforeLoadEvent_url(_this) {
+function native__BeforeLoadEventWrappingImplementation__get_url(_this) {
   try {
     return __dom_wrap(_this.$dom.url);
   } catch (e) {
@@ -182,7 +182,7 @@ function native__BeforeLoadEventWrappingImplementation__initBeforeLoadEvent(_thi
   }
 }
 
-function native__BlobWrappingImplementation__get__Blob_size(_this) {
+function native__BlobWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -190,7 +190,7 @@ function native__BlobWrappingImplementation__get__Blob_size(_this) {
   }
 }
 
-function native__BlobWrappingImplementation__get__Blob_type(_this) {
+function native__BlobWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -198,7 +198,7 @@ function native__BlobWrappingImplementation__get__Blob_type(_this) {
   }
 }
 
-function native__CSSCharsetRuleWrappingImplementation__get__CSSCharsetRule_encoding(_this) {
+function native__CSSCharsetRuleWrappingImplementation__get_encoding(_this) {
   try {
     return __dom_wrap(_this.$dom.encoding);
   } catch (e) {
@@ -206,7 +206,7 @@ function native__CSSCharsetRuleWrappingImplementation__get__CSSCharsetRule_encod
   }
 }
 
-function native__CSSCharsetRuleWrappingImplementation__set__CSSCharsetRule_encoding(_this, value) {
+function native__CSSCharsetRuleWrappingImplementation__set_encoding(_this, value) {
   try {
     _this.$dom.encoding = __dom_unwrap(value);
   } catch (e) {
@@ -214,7 +214,7 @@ function native__CSSCharsetRuleWrappingImplementation__set__CSSCharsetRule_encod
   }
 }
 
-function native__CSSFontFaceRuleWrappingImplementation__get__CSSFontFaceRule_style(_this) {
+function native__CSSFontFaceRuleWrappingImplementation__get_style(_this) {
   try {
     return __dom_wrap(_this.$dom.style);
   } catch (e) {
@@ -222,7 +222,7 @@ function native__CSSFontFaceRuleWrappingImplementation__get__CSSFontFaceRule_sty
   }
 }
 
-function native__CSSImportRuleWrappingImplementation__get__CSSImportRule_href(_this) {
+function native__CSSImportRuleWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -230,7 +230,7 @@ function native__CSSImportRuleWrappingImplementation__get__CSSImportRule_href(_t
   }
 }
 
-function native__CSSImportRuleWrappingImplementation__get__CSSImportRule_media(_this) {
+function native__CSSImportRuleWrappingImplementation__get_media(_this) {
   try {
     return __dom_wrap(_this.$dom.media);
   } catch (e) {
@@ -238,7 +238,7 @@ function native__CSSImportRuleWrappingImplementation__get__CSSImportRule_media(_
   }
 }
 
-function native__CSSImportRuleWrappingImplementation__get__CSSImportRule_styleSheet(_this) {
+function native__CSSImportRuleWrappingImplementation__get_styleSheet(_this) {
   try {
     return __dom_wrap(_this.$dom.styleSheet);
   } catch (e) {
@@ -246,7 +246,7 @@ function native__CSSImportRuleWrappingImplementation__get__CSSImportRule_styleSh
   }
 }
 
-function native__CSSMediaRuleWrappingImplementation__get__CSSMediaRule_cssRules(_this) {
+function native__CSSMediaRuleWrappingImplementation__get_cssRules(_this) {
   try {
     return __dom_wrap(_this.$dom.cssRules);
   } catch (e) {
@@ -254,7 +254,7 @@ function native__CSSMediaRuleWrappingImplementation__get__CSSMediaRule_cssRules(
   }
 }
 
-function native__CSSMediaRuleWrappingImplementation__get__CSSMediaRule_media(_this) {
+function native__CSSMediaRuleWrappingImplementation__get_media(_this) {
   try {
     return __dom_wrap(_this.$dom.media);
   } catch (e) {
@@ -278,7 +278,7 @@ function native__CSSMediaRuleWrappingImplementation__insertRule(_this, rule, ind
   }
 }
 
-function native__CSSPageRuleWrappingImplementation__get__CSSPageRule_selectorText(_this) {
+function native__CSSPageRuleWrappingImplementation__get_selectorText(_this) {
   try {
     return __dom_wrap(_this.$dom.selectorText);
   } catch (e) {
@@ -286,7 +286,7 @@ function native__CSSPageRuleWrappingImplementation__get__CSSPageRule_selectorTex
   }
 }
 
-function native__CSSPageRuleWrappingImplementation__set__CSSPageRule_selectorText(_this, value) {
+function native__CSSPageRuleWrappingImplementation__set_selectorText(_this, value) {
   try {
     _this.$dom.selectorText = __dom_unwrap(value);
   } catch (e) {
@@ -294,7 +294,7 @@ function native__CSSPageRuleWrappingImplementation__set__CSSPageRule_selectorTex
   }
 }
 
-function native__CSSPageRuleWrappingImplementation__get__CSSPageRule_style(_this) {
+function native__CSSPageRuleWrappingImplementation__get_style(_this) {
   try {
     return __dom_wrap(_this.$dom.style);
   } catch (e) {
@@ -302,7 +302,7 @@ function native__CSSPageRuleWrappingImplementation__get__CSSPageRule_style(_this
   }
 }
 
-function native__CSSPrimitiveValueWrappingImplementation__get__CSSPrimitiveValue_primitiveType(_this) {
+function native__CSSPrimitiveValueWrappingImplementation__get_primitiveType(_this) {
   try {
     return __dom_wrap(_this.$dom.primitiveType);
   } catch (e) {
@@ -366,7 +366,7 @@ function native__CSSPrimitiveValueWrappingImplementation__setStringValue(_this, 
   }
 }
 
-function native__CSSRuleWrappingImplementation__get__CSSRule_cssText(_this) {
+function native__CSSRuleWrappingImplementation__get_cssText(_this) {
   try {
     return __dom_wrap(_this.$dom.cssText);
   } catch (e) {
@@ -374,7 +374,7 @@ function native__CSSRuleWrappingImplementation__get__CSSRule_cssText(_this) {
   }
 }
 
-function native__CSSRuleWrappingImplementation__set__CSSRule_cssText(_this, value) {
+function native__CSSRuleWrappingImplementation__set_cssText(_this, value) {
   try {
     _this.$dom.cssText = __dom_unwrap(value);
   } catch (e) {
@@ -382,7 +382,7 @@ function native__CSSRuleWrappingImplementation__set__CSSRule_cssText(_this, valu
   }
 }
 
-function native__CSSRuleWrappingImplementation__get__CSSRule_parentRule(_this) {
+function native__CSSRuleWrappingImplementation__get_parentRule(_this) {
   try {
     return __dom_wrap(_this.$dom.parentRule);
   } catch (e) {
@@ -390,7 +390,7 @@ function native__CSSRuleWrappingImplementation__get__CSSRule_parentRule(_this) {
   }
 }
 
-function native__CSSRuleWrappingImplementation__get__CSSRule_parentStyleSheet(_this) {
+function native__CSSRuleWrappingImplementation__get_parentStyleSheet(_this) {
   try {
     return __dom_wrap(_this.$dom.parentStyleSheet);
   } catch (e) {
@@ -398,7 +398,7 @@ function native__CSSRuleWrappingImplementation__get__CSSRule_parentStyleSheet(_t
   }
 }
 
-function native__CSSRuleWrappingImplementation__get__CSSRule_type(_this) {
+function native__CSSRuleWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -406,7 +406,7 @@ function native__CSSRuleWrappingImplementation__get__CSSRule_type(_this) {
   }
 }
 
-function native__CSSRuleListWrappingImplementation__get__CSSRuleList_length(_this) {
+function native__CSSRuleListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -422,7 +422,7 @@ function native__CSSRuleListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__CSSStyleDeclarationWrappingImplementation__get__CSSStyleDeclaration_cssText(_this) {
+function native__CSSStyleDeclarationWrappingImplementation__get_cssText(_this) {
   try {
     return __dom_wrap(_this.$dom.cssText);
   } catch (e) {
@@ -430,7 +430,7 @@ function native__CSSStyleDeclarationWrappingImplementation__get__CSSStyleDeclara
   }
 }
 
-function native__CSSStyleDeclarationWrappingImplementation__set__CSSStyleDeclaration_cssText(_this, value) {
+function native__CSSStyleDeclarationWrappingImplementation__set_cssText(_this, value) {
   try {
     _this.$dom.cssText = __dom_unwrap(value);
   } catch (e) {
@@ -438,7 +438,7 @@ function native__CSSStyleDeclarationWrappingImplementation__set__CSSStyleDeclara
   }
 }
 
-function native__CSSStyleDeclarationWrappingImplementation__get__CSSStyleDeclaration_length(_this) {
+function native__CSSStyleDeclarationWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -446,7 +446,7 @@ function native__CSSStyleDeclarationWrappingImplementation__get__CSSStyleDeclara
   }
 }
 
-function native__CSSStyleDeclarationWrappingImplementation__get__CSSStyleDeclaration_parentRule(_this) {
+function native__CSSStyleDeclarationWrappingImplementation__get_parentRule(_this) {
   try {
     return __dom_wrap(_this.$dom.parentRule);
   } catch (e) {
@@ -526,7 +526,7 @@ function native__CSSStyleDeclarationWrappingImplementation__setProperty_2(_this,
   }
 }
 
-function native__CSSStyleRuleWrappingImplementation__get__CSSStyleRule_selectorText(_this) {
+function native__CSSStyleRuleWrappingImplementation__get_selectorText(_this) {
   try {
     return __dom_wrap(_this.$dom.selectorText);
   } catch (e) {
@@ -534,7 +534,7 @@ function native__CSSStyleRuleWrappingImplementation__get__CSSStyleRule_selectorT
   }
 }
 
-function native__CSSStyleRuleWrappingImplementation__set__CSSStyleRule_selectorText(_this, value) {
+function native__CSSStyleRuleWrappingImplementation__set_selectorText(_this, value) {
   try {
     _this.$dom.selectorText = __dom_unwrap(value);
   } catch (e) {
@@ -542,7 +542,7 @@ function native__CSSStyleRuleWrappingImplementation__set__CSSStyleRule_selectorT
   }
 }
 
-function native__CSSStyleRuleWrappingImplementation__get__CSSStyleRule_style(_this) {
+function native__CSSStyleRuleWrappingImplementation__get_style(_this) {
   try {
     return __dom_wrap(_this.$dom.style);
   } catch (e) {
@@ -550,7 +550,7 @@ function native__CSSStyleRuleWrappingImplementation__get__CSSStyleRule_style(_th
   }
 }
 
-function native__CSSStyleSheetWrappingImplementation__get__CSSStyleSheet_cssRules(_this) {
+function native__CSSStyleSheetWrappingImplementation__get_cssRules(_this) {
   try {
     return __dom_wrap(_this.$dom.cssRules);
   } catch (e) {
@@ -558,7 +558,7 @@ function native__CSSStyleSheetWrappingImplementation__get__CSSStyleSheet_cssRule
   }
 }
 
-function native__CSSStyleSheetWrappingImplementation__get__CSSStyleSheet_ownerRule(_this) {
+function native__CSSStyleSheetWrappingImplementation__get_ownerRule(_this) {
   try {
     return __dom_wrap(_this.$dom.ownerRule);
   } catch (e) {
@@ -566,7 +566,7 @@ function native__CSSStyleSheetWrappingImplementation__get__CSSStyleSheet_ownerRu
   }
 }
 
-function native__CSSStyleSheetWrappingImplementation__get__CSSStyleSheet_rules(_this) {
+function native__CSSStyleSheetWrappingImplementation__get_rules(_this) {
   try {
     return __dom_wrap(_this.$dom.rules);
   } catch (e) {
@@ -614,7 +614,7 @@ function native__CSSStyleSheetWrappingImplementation__removeRule(_this, index) {
   }
 }
 
-function native__CSSValueWrappingImplementation__get__CSSValue_cssText(_this) {
+function native__CSSValueWrappingImplementation__get_cssText(_this) {
   try {
     return __dom_wrap(_this.$dom.cssText);
   } catch (e) {
@@ -622,7 +622,7 @@ function native__CSSValueWrappingImplementation__get__CSSValue_cssText(_this) {
   }
 }
 
-function native__CSSValueWrappingImplementation__set__CSSValue_cssText(_this, value) {
+function native__CSSValueWrappingImplementation__set_cssText(_this, value) {
   try {
     _this.$dom.cssText = __dom_unwrap(value);
   } catch (e) {
@@ -630,7 +630,7 @@ function native__CSSValueWrappingImplementation__set__CSSValue_cssText(_this, va
   }
 }
 
-function native__CSSValueWrappingImplementation__get__CSSValue_cssValueType(_this) {
+function native__CSSValueWrappingImplementation__get_cssValueType(_this) {
   try {
     return __dom_wrap(_this.$dom.cssValueType);
   } catch (e) {
@@ -638,7 +638,7 @@ function native__CSSValueWrappingImplementation__get__CSSValue_cssValueType(_thi
   }
 }
 
-function native__CSSValueListWrappingImplementation__get__CSSValueList_length(_this) {
+function native__CSSValueListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -662,7 +662,7 @@ function native__CanvasGradientWrappingImplementation__addColorStop(_this, offse
   }
 }
 
-function native__CanvasPixelArrayWrappingImplementation__get__CanvasPixelArray_length(_this) {
+function native__CanvasPixelArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -678,7 +678,7 @@ function native__CanvasPixelArrayWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__CanvasRenderingContextWrappingImplementation__get__CanvasRenderingContext_canvas(_this) {
+function native__CanvasRenderingContextWrappingImplementation__get_canvas(_this) {
   try {
     return __dom_wrap(_this.$dom.canvas);
   } catch (e) {
@@ -686,7 +686,7 @@ function native__CanvasRenderingContextWrappingImplementation__get__CanvasRender
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_fillStyle(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_fillStyle(_this) {
   try {
     return __dom_wrap(_this.$dom.fillStyle);
   } catch (e) {
@@ -694,7 +694,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_fillStyle(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_fillStyle(_this, value) {
   try {
     _this.$dom.fillStyle = __dom_unwrap(value);
   } catch (e) {
@@ -702,7 +702,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_font(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_font(_this) {
   try {
     return __dom_wrap(_this.$dom.font);
   } catch (e) {
@@ -710,7 +710,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_font(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_font(_this, value) {
   try {
     _this.$dom.font = __dom_unwrap(value);
   } catch (e) {
@@ -718,7 +718,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_globalAlpha(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_globalAlpha(_this) {
   try {
     return __dom_wrap(_this.$dom.globalAlpha);
   } catch (e) {
@@ -726,7 +726,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_globalAlpha(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_globalAlpha(_this, value) {
   try {
     _this.$dom.globalAlpha = __dom_unwrap(value);
   } catch (e) {
@@ -734,7 +734,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_globalCompositeOperation(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_globalCompositeOperation(_this) {
   try {
     return __dom_wrap(_this.$dom.globalCompositeOperation);
   } catch (e) {
@@ -742,7 +742,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_globalCompositeOperation(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_globalCompositeOperation(_this, value) {
   try {
     _this.$dom.globalCompositeOperation = __dom_unwrap(value);
   } catch (e) {
@@ -750,7 +750,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_lineCap(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_lineCap(_this) {
   try {
     return __dom_wrap(_this.$dom.lineCap);
   } catch (e) {
@@ -758,7 +758,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_lineCap(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_lineCap(_this, value) {
   try {
     _this.$dom.lineCap = __dom_unwrap(value);
   } catch (e) {
@@ -766,7 +766,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_lineJoin(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_lineJoin(_this) {
   try {
     return __dom_wrap(_this.$dom.lineJoin);
   } catch (e) {
@@ -774,7 +774,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_lineJoin(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_lineJoin(_this, value) {
   try {
     _this.$dom.lineJoin = __dom_unwrap(value);
   } catch (e) {
@@ -782,7 +782,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_lineWidth(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_lineWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.lineWidth);
   } catch (e) {
@@ -790,7 +790,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_lineWidth(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_lineWidth(_this, value) {
   try {
     _this.$dom.lineWidth = __dom_unwrap(value);
   } catch (e) {
@@ -798,7 +798,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_miterLimit(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_miterLimit(_this) {
   try {
     return __dom_wrap(_this.$dom.miterLimit);
   } catch (e) {
@@ -806,7 +806,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_miterLimit(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_miterLimit(_this, value) {
   try {
     _this.$dom.miterLimit = __dom_unwrap(value);
   } catch (e) {
@@ -814,7 +814,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_shadowBlur(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_shadowBlur(_this) {
   try {
     return __dom_wrap(_this.$dom.shadowBlur);
   } catch (e) {
@@ -822,7 +822,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_shadowBlur(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_shadowBlur(_this, value) {
   try {
     _this.$dom.shadowBlur = __dom_unwrap(value);
   } catch (e) {
@@ -830,7 +830,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_shadowColor(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_shadowColor(_this) {
   try {
     return __dom_wrap(_this.$dom.shadowColor);
   } catch (e) {
@@ -838,7 +838,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_shadowColor(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_shadowColor(_this, value) {
   try {
     _this.$dom.shadowColor = __dom_unwrap(value);
   } catch (e) {
@@ -846,7 +846,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_shadowOffsetX(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_shadowOffsetX(_this) {
   try {
     return __dom_wrap(_this.$dom.shadowOffsetX);
   } catch (e) {
@@ -854,7 +854,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_shadowOffsetX(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_shadowOffsetX(_this, value) {
   try {
     _this.$dom.shadowOffsetX = __dom_unwrap(value);
   } catch (e) {
@@ -862,7 +862,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_shadowOffsetY(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_shadowOffsetY(_this) {
   try {
     return __dom_wrap(_this.$dom.shadowOffsetY);
   } catch (e) {
@@ -870,7 +870,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_shadowOffsetY(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_shadowOffsetY(_this, value) {
   try {
     _this.$dom.shadowOffsetY = __dom_unwrap(value);
   } catch (e) {
@@ -878,7 +878,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_strokeStyle(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_strokeStyle(_this) {
   try {
     return __dom_wrap(_this.$dom.strokeStyle);
   } catch (e) {
@@ -886,7 +886,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_strokeStyle(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_strokeStyle(_this, value) {
   try {
     _this.$dom.strokeStyle = __dom_unwrap(value);
   } catch (e) {
@@ -894,7 +894,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_textAlign(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_textAlign(_this) {
   try {
     return __dom_wrap(_this.$dom.textAlign);
   } catch (e) {
@@ -902,7 +902,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_textAlign(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_textAlign(_this, value) {
   try {
     _this.$dom.textAlign = __dom_unwrap(value);
   } catch (e) {
@@ -910,7 +910,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_textBaseline(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_textBaseline(_this) {
   try {
     return __dom_wrap(_this.$dom.textBaseline);
   } catch (e) {
@@ -918,7 +918,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_textBaseline(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_textBaseline(_this, value) {
   try {
     _this.$dom.textBaseline = __dom_unwrap(value);
   } catch (e) {
@@ -926,7 +926,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_webkitLineDash(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_webkitLineDash(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitLineDash);
   } catch (e) {
@@ -934,7 +934,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_webkitLineDash(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_webkitLineDash(_this, value) {
   try {
     _this.$dom.webkitLineDash = __dom_unwrap(value);
   } catch (e) {
@@ -942,7 +942,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_webkitLineDashOffset(_this) {
+function native__CanvasRenderingContext2DWrappingImplementation__get_webkitLineDashOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitLineDashOffset);
   } catch (e) {
@@ -950,7 +950,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_webkitLineDashOffset(_this, value) {
+function native__CanvasRenderingContext2DWrappingImplementation__set_webkitLineDashOffset(_this, value) {
   try {
     _this.$dom.webkitLineDashOffset = __dom_unwrap(value);
   } catch (e) {
@@ -1598,7 +1598,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__translate(_this
   }
 }
 
-function native__CharacterDataWrappingImplementation__get__CharacterData_data(_this) {
+function native__CharacterDataWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
   } catch (e) {
@@ -1606,7 +1606,7 @@ function native__CharacterDataWrappingImplementation__get__CharacterData_data(_t
   }
 }
 
-function native__CharacterDataWrappingImplementation__set__CharacterData_data(_this, value) {
+function native__CharacterDataWrappingImplementation__set_data(_this, value) {
   try {
     _this.$dom.data = __dom_unwrap(value);
   } catch (e) {
@@ -1614,7 +1614,7 @@ function native__CharacterDataWrappingImplementation__set__CharacterData_data(_t
   }
 }
 
-function native__CharacterDataWrappingImplementation__get__CharacterData_length(_this) {
+function native__CharacterDataWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -1662,7 +1662,7 @@ function native__CharacterDataWrappingImplementation__substringData(_this, offse
   }
 }
 
-function native__ClientRectWrappingImplementation__get__ClientRect_bottom(_this) {
+function native__ClientRectWrappingImplementation__get_bottom(_this) {
   try {
     return __dom_wrap(_this.$dom.bottom);
   } catch (e) {
@@ -1670,7 +1670,7 @@ function native__ClientRectWrappingImplementation__get__ClientRect_bottom(_this)
   }
 }
 
-function native__ClientRectWrappingImplementation__get__ClientRect_height(_this) {
+function native__ClientRectWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -1678,7 +1678,7 @@ function native__ClientRectWrappingImplementation__get__ClientRect_height(_this)
   }
 }
 
-function native__ClientRectWrappingImplementation__get__ClientRect_left(_this) {
+function native__ClientRectWrappingImplementation__get_left(_this) {
   try {
     return __dom_wrap(_this.$dom.left);
   } catch (e) {
@@ -1686,7 +1686,7 @@ function native__ClientRectWrappingImplementation__get__ClientRect_left(_this) {
   }
 }
 
-function native__ClientRectWrappingImplementation__get__ClientRect_right(_this) {
+function native__ClientRectWrappingImplementation__get_right(_this) {
   try {
     return __dom_wrap(_this.$dom.right);
   } catch (e) {
@@ -1694,7 +1694,7 @@ function native__ClientRectWrappingImplementation__get__ClientRect_right(_this) 
   }
 }
 
-function native__ClientRectWrappingImplementation__get__ClientRect_top(_this) {
+function native__ClientRectWrappingImplementation__get_top(_this) {
   try {
     return __dom_wrap(_this.$dom.top);
   } catch (e) {
@@ -1702,7 +1702,7 @@ function native__ClientRectWrappingImplementation__get__ClientRect_top(_this) {
   }
 }
 
-function native__ClientRectWrappingImplementation__get__ClientRect_width(_this) {
+function native__ClientRectWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -1710,7 +1710,7 @@ function native__ClientRectWrappingImplementation__get__ClientRect_width(_this) 
   }
 }
 
-function native__ClientRectListWrappingImplementation__get__ClientRectList_length(_this) {
+function native__ClientRectListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -1726,7 +1726,7 @@ function native__ClientRectListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__ClipboardWrappingImplementation__get__Clipboard_dropEffect(_this) {
+function native__ClipboardWrappingImplementation__get_dropEffect(_this) {
   try {
     return __dom_wrap(_this.$dom.dropEffect);
   } catch (e) {
@@ -1734,7 +1734,7 @@ function native__ClipboardWrappingImplementation__get__Clipboard_dropEffect(_thi
   }
 }
 
-function native__ClipboardWrappingImplementation__set__Clipboard_dropEffect(_this, value) {
+function native__ClipboardWrappingImplementation__set_dropEffect(_this, value) {
   try {
     _this.$dom.dropEffect = __dom_unwrap(value);
   } catch (e) {
@@ -1742,7 +1742,7 @@ function native__ClipboardWrappingImplementation__set__Clipboard_dropEffect(_thi
   }
 }
 
-function native__ClipboardWrappingImplementation__get__Clipboard_effectAllowed(_this) {
+function native__ClipboardWrappingImplementation__get_effectAllowed(_this) {
   try {
     return __dom_wrap(_this.$dom.effectAllowed);
   } catch (e) {
@@ -1750,7 +1750,7 @@ function native__ClipboardWrappingImplementation__get__Clipboard_effectAllowed(_
   }
 }
 
-function native__ClipboardWrappingImplementation__set__Clipboard_effectAllowed(_this, value) {
+function native__ClipboardWrappingImplementation__set_effectAllowed(_this, value) {
   try {
     _this.$dom.effectAllowed = __dom_unwrap(value);
   } catch (e) {
@@ -1758,7 +1758,7 @@ function native__ClipboardWrappingImplementation__set__Clipboard_effectAllowed(_
   }
 }
 
-function native__ClipboardWrappingImplementation__get__Clipboard_files(_this) {
+function native__ClipboardWrappingImplementation__get_files(_this) {
   try {
     return __dom_wrap(_this.$dom.files);
   } catch (e) {
@@ -1766,7 +1766,7 @@ function native__ClipboardWrappingImplementation__get__Clipboard_files(_this) {
   }
 }
 
-function native__ClipboardWrappingImplementation__get__Clipboard_items(_this) {
+function native__ClipboardWrappingImplementation__get_items(_this) {
   try {
     return __dom_wrap(_this.$dom.items);
   } catch (e) {
@@ -1774,7 +1774,7 @@ function native__ClipboardWrappingImplementation__get__Clipboard_items(_this) {
   }
 }
 
-function native__ClipboardWrappingImplementation__get__Clipboard_types(_this) {
+function native__ClipboardWrappingImplementation__get_types(_this) {
   try {
     return __dom_wrap(_this.$dom.types);
   } catch (e) {
@@ -1822,7 +1822,7 @@ function native__ClipboardWrappingImplementation__setDragImage(_this, image, x, 
   }
 }
 
-function native__CloseEventWrappingImplementation__get__CloseEvent_code(_this) {
+function native__CloseEventWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -1830,7 +1830,7 @@ function native__CloseEventWrappingImplementation__get__CloseEvent_code(_this) {
   }
 }
 
-function native__CloseEventWrappingImplementation__get__CloseEvent_reason(_this) {
+function native__CloseEventWrappingImplementation__get_reason(_this) {
   try {
     return __dom_wrap(_this.$dom.reason);
   } catch (e) {
@@ -1838,7 +1838,7 @@ function native__CloseEventWrappingImplementation__get__CloseEvent_reason(_this)
   }
 }
 
-function native__CloseEventWrappingImplementation__get__CloseEvent_wasClean(_this) {
+function native__CloseEventWrappingImplementation__get_wasClean(_this) {
   try {
     return __dom_wrap(_this.$dom.wasClean);
   } catch (e) {
@@ -1854,7 +1854,7 @@ function native__CloseEventWrappingImplementation__initCloseEvent(_this, typeArg
   }
 }
 
-function native__CompositionEventWrappingImplementation__get__CompositionEvent_data(_this) {
+function native__CompositionEventWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
   } catch (e) {
@@ -1870,7 +1870,7 @@ function native__CompositionEventWrappingImplementation__initCompositionEvent(_t
   }
 }
 
-function native__ConsoleWrappingImplementation__get__Console_memory(_this) {
+function native__ConsoleWrappingImplementation__get_memory(_this) {
   try {
     return __dom_wrap(_this.$dom.memory);
   } catch (e) {
@@ -2014,7 +2014,7 @@ function native__ConsoleWrappingImplementation__warn(_this, arg) {
   }
 }
 
-function native__CoordinatesWrappingImplementation__get__Coordinates_accuracy(_this) {
+function native__CoordinatesWrappingImplementation__get_accuracy(_this) {
   try {
     return __dom_wrap(_this.$dom.accuracy);
   } catch (e) {
@@ -2022,7 +2022,7 @@ function native__CoordinatesWrappingImplementation__get__Coordinates_accuracy(_t
   }
 }
 
-function native__CoordinatesWrappingImplementation__get__Coordinates_altitude(_this) {
+function native__CoordinatesWrappingImplementation__get_altitude(_this) {
   try {
     return __dom_wrap(_this.$dom.altitude);
   } catch (e) {
@@ -2030,7 +2030,7 @@ function native__CoordinatesWrappingImplementation__get__Coordinates_altitude(_t
   }
 }
 
-function native__CoordinatesWrappingImplementation__get__Coordinates_altitudeAccuracy(_this) {
+function native__CoordinatesWrappingImplementation__get_altitudeAccuracy(_this) {
   try {
     return __dom_wrap(_this.$dom.altitudeAccuracy);
   } catch (e) {
@@ -2038,7 +2038,7 @@ function native__CoordinatesWrappingImplementation__get__Coordinates_altitudeAcc
   }
 }
 
-function native__CoordinatesWrappingImplementation__get__Coordinates_heading(_this) {
+function native__CoordinatesWrappingImplementation__get_heading(_this) {
   try {
     return __dom_wrap(_this.$dom.heading);
   } catch (e) {
@@ -2046,7 +2046,7 @@ function native__CoordinatesWrappingImplementation__get__Coordinates_heading(_th
   }
 }
 
-function native__CoordinatesWrappingImplementation__get__Coordinates_latitude(_this) {
+function native__CoordinatesWrappingImplementation__get_latitude(_this) {
   try {
     return __dom_wrap(_this.$dom.latitude);
   } catch (e) {
@@ -2054,7 +2054,7 @@ function native__CoordinatesWrappingImplementation__get__Coordinates_latitude(_t
   }
 }
 
-function native__CoordinatesWrappingImplementation__get__Coordinates_longitude(_this) {
+function native__CoordinatesWrappingImplementation__get_longitude(_this) {
   try {
     return __dom_wrap(_this.$dom.longitude);
   } catch (e) {
@@ -2062,7 +2062,7 @@ function native__CoordinatesWrappingImplementation__get__Coordinates_longitude(_
   }
 }
 
-function native__CoordinatesWrappingImplementation__get__Coordinates_speed(_this) {
+function native__CoordinatesWrappingImplementation__get_speed(_this) {
   try {
     return __dom_wrap(_this.$dom.speed);
   } catch (e) {
@@ -2070,7 +2070,7 @@ function native__CoordinatesWrappingImplementation__get__Coordinates_speed(_this
   }
 }
 
-function native__CounterWrappingImplementation__get__Counter_identifier(_this) {
+function native__CounterWrappingImplementation__get_identifier(_this) {
   try {
     return __dom_wrap(_this.$dom.identifier);
   } catch (e) {
@@ -2078,7 +2078,7 @@ function native__CounterWrappingImplementation__get__Counter_identifier(_this) {
   }
 }
 
-function native__CounterWrappingImplementation__get__Counter_listStyle(_this) {
+function native__CounterWrappingImplementation__get_listStyle(_this) {
   try {
     return __dom_wrap(_this.$dom.listStyle);
   } catch (e) {
@@ -2086,7 +2086,7 @@ function native__CounterWrappingImplementation__get__Counter_listStyle(_this) {
   }
 }
 
-function native__CounterWrappingImplementation__get__Counter_separator(_this) {
+function native__CounterWrappingImplementation__get_separator(_this) {
   try {
     return __dom_wrap(_this.$dom.separator);
   } catch (e) {
@@ -2102,7 +2102,7 @@ function native__CryptoWrappingImplementation__getRandomValues(_this, array) {
   }
 }
 
-function native__CustomEventWrappingImplementation__get__CustomEvent_detail(_this) {
+function native__CustomEventWrappingImplementation__get_detail(_this) {
   try {
     return __dom_wrap(_this.$dom.detail);
   } catch (e) {
@@ -2118,7 +2118,7 @@ function native__CustomEventWrappingImplementation__initCustomEvent(_this, typeA
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_oncached(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_oncached(_this) {
   try {
     return __dom_wrap(_this.$dom.oncached);
   } catch (e) {
@@ -2126,7 +2126,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_oncached(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_oncached(_this, value) {
   try {
     _this.$dom.oncached = __dom_unwrap(value);
   } catch (e) {
@@ -2134,7 +2134,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_onchecking(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_onchecking(_this) {
   try {
     return __dom_wrap(_this.$dom.onchecking);
   } catch (e) {
@@ -2142,7 +2142,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_onchecking(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_onchecking(_this, value) {
   try {
     _this.$dom.onchecking = __dom_unwrap(value);
   } catch (e) {
@@ -2150,7 +2150,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_ondownloading(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_ondownloading(_this) {
   try {
     return __dom_wrap(_this.$dom.ondownloading);
   } catch (e) {
@@ -2158,7 +2158,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_ondownloading(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_ondownloading(_this, value) {
   try {
     _this.$dom.ondownloading = __dom_unwrap(value);
   } catch (e) {
@@ -2166,7 +2166,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_onerror(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -2174,7 +2174,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_onerror(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -2182,7 +2182,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_onnoupdate(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_onnoupdate(_this) {
   try {
     return __dom_wrap(_this.$dom.onnoupdate);
   } catch (e) {
@@ -2190,7 +2190,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_onnoupdate(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_onnoupdate(_this, value) {
   try {
     _this.$dom.onnoupdate = __dom_unwrap(value);
   } catch (e) {
@@ -2198,7 +2198,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_onobsolete(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_onobsolete(_this) {
   try {
     return __dom_wrap(_this.$dom.onobsolete);
   } catch (e) {
@@ -2206,7 +2206,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_onobsolete(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_onobsolete(_this, value) {
   try {
     _this.$dom.onobsolete = __dom_unwrap(value);
   } catch (e) {
@@ -2214,7 +2214,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_onprogress(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_onprogress(_this) {
   try {
     return __dom_wrap(_this.$dom.onprogress);
   } catch (e) {
@@ -2222,7 +2222,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_onprogress(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_onprogress(_this, value) {
   try {
     _this.$dom.onprogress = __dom_unwrap(value);
   } catch (e) {
@@ -2230,7 +2230,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_onupdateready(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_onupdateready(_this) {
   try {
     return __dom_wrap(_this.$dom.onupdateready);
   } catch (e) {
@@ -2238,7 +2238,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationCache_onupdateready(_this, value) {
+function native__DOMApplicationCacheWrappingImplementation__set_onupdateready(_this, value) {
   try {
     _this.$dom.onupdateready = __dom_unwrap(value);
   } catch (e) {
@@ -2246,7 +2246,7 @@ function native__DOMApplicationCacheWrappingImplementation__set__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationCache_status(_this) {
+function native__DOMApplicationCacheWrappingImplementation__get_status(_this) {
   try {
     return __dom_wrap(_this.$dom.status);
   } catch (e) {
@@ -2254,7 +2254,7 @@ function native__DOMApplicationCacheWrappingImplementation__get__DOMApplicationC
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__addEventListener(_this, type, listener) {
+function native__DOMApplicationCacheWrappingImplementation__addEventListener_DOMApplicationCache(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -2262,7 +2262,7 @@ function native__DOMApplicationCacheWrappingImplementation__addEventListener(_th
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__DOMApplicationCacheWrappingImplementation__addEventListener_DOMApplicationCache_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -2270,7 +2270,7 @@ function native__DOMApplicationCacheWrappingImplementation__addEventListener_2(_
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__dispatchEvent(_this, evt) {
+function native__DOMApplicationCacheWrappingImplementation__dispatchEvent_DOMApplicationCache(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -2278,7 +2278,7 @@ function native__DOMApplicationCacheWrappingImplementation__dispatchEvent(_this,
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__DOMApplicationCacheWrappingImplementation__removeEventListener_DOMApplicationCache(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -2286,7 +2286,7 @@ function native__DOMApplicationCacheWrappingImplementation__removeEventListener(
   }
 }
 
-function native__DOMApplicationCacheWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__DOMApplicationCacheWrappingImplementation__removeEventListener_DOMApplicationCache_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -2310,7 +2310,7 @@ function native__DOMApplicationCacheWrappingImplementation__update(_this) {
   }
 }
 
-function native__DOMExceptionWrappingImplementation__get__DOMException_code(_this) {
+function native__DOMExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -2318,7 +2318,7 @@ function native__DOMExceptionWrappingImplementation__get__DOMException_code(_thi
   }
 }
 
-function native__DOMExceptionWrappingImplementation__get__DOMException_message(_this) {
+function native__DOMExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -2326,7 +2326,7 @@ function native__DOMExceptionWrappingImplementation__get__DOMException_message(_
   }
 }
 
-function native__DOMExceptionWrappingImplementation__get__DOMException_name(_this) {
+function native__DOMExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -2342,7 +2342,7 @@ function native__DOMExceptionWrappingImplementation__toString(_this) {
   }
 }
 
-function native__DOMFileSystemWrappingImplementation__get__DOMFileSystem_name(_this) {
+function native__DOMFileSystemWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -2350,7 +2350,7 @@ function native__DOMFileSystemWrappingImplementation__get__DOMFileSystem_name(_t
   }
 }
 
-function native__DOMFileSystemWrappingImplementation__get__DOMFileSystem_root(_this) {
+function native__DOMFileSystemWrappingImplementation__get_root(_this) {
   try {
     return __dom_wrap(_this.$dom.root);
   } catch (e) {
@@ -2358,7 +2358,7 @@ function native__DOMFileSystemWrappingImplementation__get__DOMFileSystem_root(_t
   }
 }
 
-function native__DOMFileSystemSyncWrappingImplementation__get__DOMFileSystemSync_name(_this) {
+function native__DOMFileSystemSyncWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -2366,7 +2366,7 @@ function native__DOMFileSystemSyncWrappingImplementation__get__DOMFileSystemSync
   }
 }
 
-function native__DOMFileSystemSyncWrappingImplementation__get__DOMFileSystemSync_root(_this) {
+function native__DOMFileSystemSyncWrappingImplementation__get_root(_this) {
   try {
     return __dom_wrap(_this.$dom.root);
   } catch (e) {
@@ -2422,7 +2422,7 @@ function native__DOMImplementationWrappingImplementation__hasFeature(_this, feat
   }
 }
 
-function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_description(_this) {
+function native__DOMMimeTypeWrappingImplementation__get_description(_this) {
   try {
     return __dom_wrap(_this.$dom.description);
   } catch (e) {
@@ -2430,7 +2430,7 @@ function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_description
   }
 }
 
-function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_enabledPlugin(_this) {
+function native__DOMMimeTypeWrappingImplementation__get_enabledPlugin(_this) {
   try {
     return __dom_wrap(_this.$dom.enabledPlugin);
   } catch (e) {
@@ -2438,7 +2438,7 @@ function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_enabledPlug
   }
 }
 
-function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_suffixes(_this) {
+function native__DOMMimeTypeWrappingImplementation__get_suffixes(_this) {
   try {
     return __dom_wrap(_this.$dom.suffixes);
   } catch (e) {
@@ -2446,7 +2446,7 @@ function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_suffixes(_t
   }
 }
 
-function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_type(_this) {
+function native__DOMMimeTypeWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -2454,7 +2454,7 @@ function native__DOMMimeTypeWrappingImplementation__get__DOMMimeType_type(_this)
   }
 }
 
-function native__DOMMimeTypeArrayWrappingImplementation__get__DOMMimeTypeArray_length(_this) {
+function native__DOMMimeTypeArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -2486,7 +2486,7 @@ function native__DOMParserWrappingImplementation__parseFromString(_this, str, co
   }
 }
 
-function native__DOMPluginWrappingImplementation__get__DOMPlugin_description(_this) {
+function native__DOMPluginWrappingImplementation__get_description(_this) {
   try {
     return __dom_wrap(_this.$dom.description);
   } catch (e) {
@@ -2494,7 +2494,7 @@ function native__DOMPluginWrappingImplementation__get__DOMPlugin_description(_th
   }
 }
 
-function native__DOMPluginWrappingImplementation__get__DOMPlugin_filename(_this) {
+function native__DOMPluginWrappingImplementation__get_filename(_this) {
   try {
     return __dom_wrap(_this.$dom.filename);
   } catch (e) {
@@ -2502,7 +2502,7 @@ function native__DOMPluginWrappingImplementation__get__DOMPlugin_filename(_this)
   }
 }
 
-function native__DOMPluginWrappingImplementation__get__DOMPlugin_length(_this) {
+function native__DOMPluginWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -2510,7 +2510,7 @@ function native__DOMPluginWrappingImplementation__get__DOMPlugin_length(_this) {
   }
 }
 
-function native__DOMPluginWrappingImplementation__get__DOMPlugin_name(_this) {
+function native__DOMPluginWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -2534,7 +2534,7 @@ function native__DOMPluginWrappingImplementation__namedItem(_this, name) {
   }
 }
 
-function native__DOMPluginArrayWrappingImplementation__get__DOMPluginArray_length(_this) {
+function native__DOMPluginArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -2566,7 +2566,7 @@ function native__DOMPluginArrayWrappingImplementation__refresh(_this, reload) {
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_anchorNode(_this) {
+function native__DOMSelectionWrappingImplementation__get_anchorNode(_this) {
   try {
     return __dom_wrap(_this.$dom.anchorNode);
   } catch (e) {
@@ -2574,7 +2574,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_anchorNod
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_anchorOffset(_this) {
+function native__DOMSelectionWrappingImplementation__get_anchorOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.anchorOffset);
   } catch (e) {
@@ -2582,7 +2582,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_anchorOff
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_baseNode(_this) {
+function native__DOMSelectionWrappingImplementation__get_baseNode(_this) {
   try {
     return __dom_wrap(_this.$dom.baseNode);
   } catch (e) {
@@ -2590,7 +2590,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_baseNode(
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_baseOffset(_this) {
+function native__DOMSelectionWrappingImplementation__get_baseOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.baseOffset);
   } catch (e) {
@@ -2598,7 +2598,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_baseOffse
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_extentNode(_this) {
+function native__DOMSelectionWrappingImplementation__get_extentNode(_this) {
   try {
     return __dom_wrap(_this.$dom.extentNode);
   } catch (e) {
@@ -2606,7 +2606,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_extentNod
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_extentOffset(_this) {
+function native__DOMSelectionWrappingImplementation__get_extentOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.extentOffset);
   } catch (e) {
@@ -2614,7 +2614,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_extentOff
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_focusNode(_this) {
+function native__DOMSelectionWrappingImplementation__get_focusNode(_this) {
   try {
     return __dom_wrap(_this.$dom.focusNode);
   } catch (e) {
@@ -2622,7 +2622,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_focusNode
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_focusOffset(_this) {
+function native__DOMSelectionWrappingImplementation__get_focusOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.focusOffset);
   } catch (e) {
@@ -2630,7 +2630,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_focusOffs
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_isCollapsed(_this) {
+function native__DOMSelectionWrappingImplementation__get_isCollapsed(_this) {
   try {
     return __dom_wrap(_this.$dom.isCollapsed);
   } catch (e) {
@@ -2638,7 +2638,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_isCollaps
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_rangeCount(_this) {
+function native__DOMSelectionWrappingImplementation__get_rangeCount(_this) {
   try {
     return __dom_wrap(_this.$dom.rangeCount);
   } catch (e) {
@@ -2646,7 +2646,7 @@ function native__DOMSelectionWrappingImplementation__get__DOMSelection_rangeCoun
   }
 }
 
-function native__DOMSelectionWrappingImplementation__get__DOMSelection_type(_this) {
+function native__DOMSelectionWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -2774,7 +2774,7 @@ function native__DOMSelectionWrappingImplementation__toString(_this) {
   }
 }
 
-function native__DOMSettableTokenListWrappingImplementation__get__DOMSettableTokenList_value(_this) {
+function native__DOMSettableTokenListWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -2782,7 +2782,7 @@ function native__DOMSettableTokenListWrappingImplementation__get__DOMSettableTok
   }
 }
 
-function native__DOMSettableTokenListWrappingImplementation__set__DOMSettableTokenList_value(_this, value) {
+function native__DOMSettableTokenListWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -2790,7 +2790,7 @@ function native__DOMSettableTokenListWrappingImplementation__set__DOMSettableTok
   }
 }
 
-function native__DOMTokenListWrappingImplementation__get__DOMTokenList_length(_this) {
+function native__DOMTokenListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -2862,7 +2862,7 @@ function native__DOMURLWrappingImplementation__revokeObjectURL(_this, url) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_applicationCache(_this) {
+function native__DOMWindowWrappingImplementation__get_applicationCache(_this) {
   try {
     return __dom_wrap(_this.$dom.applicationCache);
   } catch (e) {
@@ -2870,7 +2870,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_applicationCach
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_clientInformation(_this) {
+function native__DOMWindowWrappingImplementation__get_clientInformation(_this) {
   try {
     return __dom_wrap(_this.$dom.clientInformation);
   } catch (e) {
@@ -2878,7 +2878,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_clientInformati
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_clientInformation(_this, value) {
+function native__DOMWindowWrappingImplementation__set_clientInformation(_this, value) {
   try {
     _this.$dom.clientInformation = __dom_unwrap(value);
   } catch (e) {
@@ -2886,7 +2886,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_clientInformati
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_closed(_this) {
+function native__DOMWindowWrappingImplementation__get_closed(_this) {
   try {
     return __dom_wrap(_this.$dom.closed);
   } catch (e) {
@@ -2894,7 +2894,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_closed(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_console(_this) {
+function native__DOMWindowWrappingImplementation__get_console(_this) {
   try {
     return __dom_wrap(_this.$dom.console);
   } catch (e) {
@@ -2902,7 +2902,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_console(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_console(_this, value) {
+function native__DOMWindowWrappingImplementation__set_console(_this, value) {
   try {
     _this.$dom.console = __dom_unwrap(value);
   } catch (e) {
@@ -2910,7 +2910,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_console(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_crypto(_this) {
+function native__DOMWindowWrappingImplementation__get_crypto(_this) {
   try {
     return __dom_wrap(_this.$dom.crypto);
   } catch (e) {
@@ -2918,7 +2918,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_crypto(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_defaultStatus(_this) {
+function native__DOMWindowWrappingImplementation__get_defaultStatus(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultStatus);
   } catch (e) {
@@ -2926,7 +2926,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_defaultStatus(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_defaultStatus(_this, value) {
+function native__DOMWindowWrappingImplementation__set_defaultStatus(_this, value) {
   try {
     _this.$dom.defaultStatus = __dom_unwrap(value);
   } catch (e) {
@@ -2934,7 +2934,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_defaultStatus(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_defaultstatus(_this) {
+function native__DOMWindowWrappingImplementation__get_defaultstatus(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultstatus);
   } catch (e) {
@@ -2942,7 +2942,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_defaultstatus(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_defaultstatus(_this, value) {
+function native__DOMWindowWrappingImplementation__set_defaultstatus(_this, value) {
   try {
     _this.$dom.defaultstatus = __dom_unwrap(value);
   } catch (e) {
@@ -2950,7 +2950,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_defaultstatus(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_devicePixelRatio(_this) {
+function native__DOMWindowWrappingImplementation__get_devicePixelRatio(_this) {
   try {
     return __dom_wrap(_this.$dom.devicePixelRatio);
   } catch (e) {
@@ -2958,7 +2958,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_devicePixelRati
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_devicePixelRatio(_this, value) {
+function native__DOMWindowWrappingImplementation__set_devicePixelRatio(_this, value) {
   try {
     _this.$dom.devicePixelRatio = __dom_unwrap(value);
   } catch (e) {
@@ -2966,7 +2966,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_devicePixelRati
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_document(_this) {
+function native__DOMWindowWrappingImplementation__get_document(_this) {
   try {
     return __dom_wrap(_this.$dom.document);
   } catch (e) {
@@ -2974,7 +2974,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_document(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_event(_this) {
+function native__DOMWindowWrappingImplementation__get_event(_this) {
   try {
     return __dom_wrap(_this.$dom.event);
   } catch (e) {
@@ -2982,7 +2982,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_event(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_event(_this, value) {
+function native__DOMWindowWrappingImplementation__set_event(_this, value) {
   try {
     _this.$dom.event = __dom_unwrap(value);
   } catch (e) {
@@ -2990,7 +2990,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_event(_this, va
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_frameElement(_this) {
+function native__DOMWindowWrappingImplementation__get_frameElement(_this) {
   try {
     return __dom_wrap(_this.$dom.frameElement);
   } catch (e) {
@@ -2998,7 +2998,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_frameElement(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_frames(_this) {
+function native__DOMWindowWrappingImplementation__get_frames(_this) {
   try {
     return __dom_wrap(_this.$dom.frames);
   } catch (e) {
@@ -3006,7 +3006,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_frames(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_frames(_this, value) {
+function native__DOMWindowWrappingImplementation__set_frames(_this, value) {
   try {
     _this.$dom.frames = __dom_unwrap(value);
   } catch (e) {
@@ -3014,7 +3014,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_frames(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_history(_this) {
+function native__DOMWindowWrappingImplementation__get_history(_this) {
   try {
     return __dom_wrap(_this.$dom.history);
   } catch (e) {
@@ -3022,7 +3022,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_history(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_history(_this, value) {
+function native__DOMWindowWrappingImplementation__set_history(_this, value) {
   try {
     _this.$dom.history = __dom_unwrap(value);
   } catch (e) {
@@ -3030,7 +3030,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_history(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_innerHeight(_this) {
+function native__DOMWindowWrappingImplementation__get_innerHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.innerHeight);
   } catch (e) {
@@ -3038,7 +3038,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_innerHeight(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_innerHeight(_this, value) {
+function native__DOMWindowWrappingImplementation__set_innerHeight(_this, value) {
   try {
     _this.$dom.innerHeight = __dom_unwrap(value);
   } catch (e) {
@@ -3046,7 +3046,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_innerHeight(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_innerWidth(_this) {
+function native__DOMWindowWrappingImplementation__get_innerWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.innerWidth);
   } catch (e) {
@@ -3054,7 +3054,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_innerWidth(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_innerWidth(_this, value) {
+function native__DOMWindowWrappingImplementation__set_innerWidth(_this, value) {
   try {
     _this.$dom.innerWidth = __dom_unwrap(value);
   } catch (e) {
@@ -3062,7 +3062,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_innerWidth(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_length(_this) {
+function native__DOMWindowWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -3070,7 +3070,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_length(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_length(_this, value) {
+function native__DOMWindowWrappingImplementation__set_length(_this, value) {
   try {
     _this.$dom.length = __dom_unwrap(value);
   } catch (e) {
@@ -3078,7 +3078,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_length(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_location(_this) {
+function native__DOMWindowWrappingImplementation__get_location(_this) {
   try {
     return __dom_wrap(_this.$dom.location);
   } catch (e) {
@@ -3086,7 +3086,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_location(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_location(_this, value) {
+function native__DOMWindowWrappingImplementation__set_location(_this, value) {
   try {
     _this.$dom.location = __dom_unwrap(value);
   } catch (e) {
@@ -3094,7 +3094,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_location(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_locationbar(_this) {
+function native__DOMWindowWrappingImplementation__get_locationbar(_this) {
   try {
     return __dom_wrap(_this.$dom.locationbar);
   } catch (e) {
@@ -3102,7 +3102,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_locationbar(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_locationbar(_this, value) {
+function native__DOMWindowWrappingImplementation__set_locationbar(_this, value) {
   try {
     _this.$dom.locationbar = __dom_unwrap(value);
   } catch (e) {
@@ -3110,7 +3110,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_locationbar(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_menubar(_this) {
+function native__DOMWindowWrappingImplementation__get_menubar(_this) {
   try {
     return __dom_wrap(_this.$dom.menubar);
   } catch (e) {
@@ -3118,7 +3118,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_menubar(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_menubar(_this, value) {
+function native__DOMWindowWrappingImplementation__set_menubar(_this, value) {
   try {
     _this.$dom.menubar = __dom_unwrap(value);
   } catch (e) {
@@ -3126,7 +3126,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_menubar(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_name(_this) {
+function native__DOMWindowWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -3134,7 +3134,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_name(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_name(_this, value) {
+function native__DOMWindowWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -3142,7 +3142,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_name(_this, val
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_navigator(_this) {
+function native__DOMWindowWrappingImplementation__get_navigator(_this) {
   try {
     return __dom_wrap(_this.$dom.navigator);
   } catch (e) {
@@ -3150,7 +3150,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_navigator(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_navigator(_this, value) {
+function native__DOMWindowWrappingImplementation__set_navigator(_this, value) {
   try {
     _this.$dom.navigator = __dom_unwrap(value);
   } catch (e) {
@@ -3158,7 +3158,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_navigator(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_offscreenBuffering(_this) {
+function native__DOMWindowWrappingImplementation__get_offscreenBuffering(_this) {
   try {
     return __dom_wrap(_this.$dom.offscreenBuffering);
   } catch (e) {
@@ -3166,7 +3166,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_offscreenBuffer
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_offscreenBuffering(_this, value) {
+function native__DOMWindowWrappingImplementation__set_offscreenBuffering(_this, value) {
   try {
     _this.$dom.offscreenBuffering = __dom_unwrap(value);
   } catch (e) {
@@ -3174,7 +3174,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_offscreenBuffer
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onabort(_this) {
+function native__DOMWindowWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -3182,7 +3182,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onabort(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onabort(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -3190,7 +3190,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onabort(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onbeforeunload(_this) {
+function native__DOMWindowWrappingImplementation__get_onbeforeunload(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforeunload);
   } catch (e) {
@@ -3198,7 +3198,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onbeforeunload(
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onbeforeunload(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onbeforeunload(_this, value) {
   try {
     _this.$dom.onbeforeunload = __dom_unwrap(value);
   } catch (e) {
@@ -3206,7 +3206,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onbeforeunload(
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onblur(_this) {
+function native__DOMWindowWrappingImplementation__get_onblur(_this) {
   try {
     return __dom_wrap(_this.$dom.onblur);
   } catch (e) {
@@ -3214,7 +3214,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onblur(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onblur(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onblur(_this, value) {
   try {
     _this.$dom.onblur = __dom_unwrap(value);
   } catch (e) {
@@ -3222,7 +3222,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onblur(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_oncanplay(_this) {
+function native__DOMWindowWrappingImplementation__get_oncanplay(_this) {
   try {
     return __dom_wrap(_this.$dom.oncanplay);
   } catch (e) {
@@ -3230,7 +3230,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_oncanplay(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_oncanplay(_this, value) {
+function native__DOMWindowWrappingImplementation__set_oncanplay(_this, value) {
   try {
     _this.$dom.oncanplay = __dom_unwrap(value);
   } catch (e) {
@@ -3238,7 +3238,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_oncanplay(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_oncanplaythrough(_this) {
+function native__DOMWindowWrappingImplementation__get_oncanplaythrough(_this) {
   try {
     return __dom_wrap(_this.$dom.oncanplaythrough);
   } catch (e) {
@@ -3246,7 +3246,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_oncanplaythroug
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_oncanplaythrough(_this, value) {
+function native__DOMWindowWrappingImplementation__set_oncanplaythrough(_this, value) {
   try {
     _this.$dom.oncanplaythrough = __dom_unwrap(value);
   } catch (e) {
@@ -3254,7 +3254,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_oncanplaythroug
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onchange(_this) {
+function native__DOMWindowWrappingImplementation__get_onchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onchange);
   } catch (e) {
@@ -3262,7 +3262,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onchange(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onchange(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onchange(_this, value) {
   try {
     _this.$dom.onchange = __dom_unwrap(value);
   } catch (e) {
@@ -3270,7 +3270,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onchange(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onclick(_this) {
+function native__DOMWindowWrappingImplementation__get_onclick(_this) {
   try {
     return __dom_wrap(_this.$dom.onclick);
   } catch (e) {
@@ -3278,7 +3278,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onclick(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onclick(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onclick(_this, value) {
   try {
     _this.$dom.onclick = __dom_unwrap(value);
   } catch (e) {
@@ -3286,7 +3286,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onclick(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_oncontextmenu(_this) {
+function native__DOMWindowWrappingImplementation__get_oncontextmenu(_this) {
   try {
     return __dom_wrap(_this.$dom.oncontextmenu);
   } catch (e) {
@@ -3294,7 +3294,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_oncontextmenu(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_oncontextmenu(_this, value) {
+function native__DOMWindowWrappingImplementation__set_oncontextmenu(_this, value) {
   try {
     _this.$dom.oncontextmenu = __dom_unwrap(value);
   } catch (e) {
@@ -3302,7 +3302,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_oncontextmenu(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondblclick(_this) {
+function native__DOMWindowWrappingImplementation__get_ondblclick(_this) {
   try {
     return __dom_wrap(_this.$dom.ondblclick);
   } catch (e) {
@@ -3310,7 +3310,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondblclick(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondblclick(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondblclick(_this, value) {
   try {
     _this.$dom.ondblclick = __dom_unwrap(value);
   } catch (e) {
@@ -3318,7 +3318,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondblclick(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondevicemotion(_this) {
+function native__DOMWindowWrappingImplementation__get_ondevicemotion(_this) {
   try {
     return __dom_wrap(_this.$dom.ondevicemotion);
   } catch (e) {
@@ -3326,7 +3326,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondevicemotion(
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondevicemotion(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondevicemotion(_this, value) {
   try {
     _this.$dom.ondevicemotion = __dom_unwrap(value);
   } catch (e) {
@@ -3334,7 +3334,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondevicemotion(
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondeviceorientation(_this) {
+function native__DOMWindowWrappingImplementation__get_ondeviceorientation(_this) {
   try {
     return __dom_wrap(_this.$dom.ondeviceorientation);
   } catch (e) {
@@ -3342,7 +3342,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondeviceorienta
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondeviceorientation(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondeviceorientation(_this, value) {
   try {
     _this.$dom.ondeviceorientation = __dom_unwrap(value);
   } catch (e) {
@@ -3350,7 +3350,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondeviceorienta
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondrag(_this) {
+function native__DOMWindowWrappingImplementation__get_ondrag(_this) {
   try {
     return __dom_wrap(_this.$dom.ondrag);
   } catch (e) {
@@ -3358,7 +3358,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondrag(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondrag(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondrag(_this, value) {
   try {
     _this.$dom.ondrag = __dom_unwrap(value);
   } catch (e) {
@@ -3366,7 +3366,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondrag(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragend(_this) {
+function native__DOMWindowWrappingImplementation__get_ondragend(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragend);
   } catch (e) {
@@ -3374,7 +3374,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragend(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragend(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondragend(_this, value) {
   try {
     _this.$dom.ondragend = __dom_unwrap(value);
   } catch (e) {
@@ -3382,7 +3382,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragend(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragenter(_this) {
+function native__DOMWindowWrappingImplementation__get_ondragenter(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragenter);
   } catch (e) {
@@ -3390,7 +3390,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragenter(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragenter(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondragenter(_this, value) {
   try {
     _this.$dom.ondragenter = __dom_unwrap(value);
   } catch (e) {
@@ -3398,7 +3398,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragenter(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragleave(_this) {
+function native__DOMWindowWrappingImplementation__get_ondragleave(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragleave);
   } catch (e) {
@@ -3406,7 +3406,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragleave(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragleave(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondragleave(_this, value) {
   try {
     _this.$dom.ondragleave = __dom_unwrap(value);
   } catch (e) {
@@ -3414,7 +3414,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragleave(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragover(_this) {
+function native__DOMWindowWrappingImplementation__get_ondragover(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragover);
   } catch (e) {
@@ -3422,7 +3422,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragover(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragover(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondragover(_this, value) {
   try {
     _this.$dom.ondragover = __dom_unwrap(value);
   } catch (e) {
@@ -3430,7 +3430,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragover(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragstart(_this) {
+function native__DOMWindowWrappingImplementation__get_ondragstart(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragstart);
   } catch (e) {
@@ -3438,7 +3438,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondragstart(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragstart(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondragstart(_this, value) {
   try {
     _this.$dom.ondragstart = __dom_unwrap(value);
   } catch (e) {
@@ -3446,7 +3446,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondragstart(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondrop(_this) {
+function native__DOMWindowWrappingImplementation__get_ondrop(_this) {
   try {
     return __dom_wrap(_this.$dom.ondrop);
   } catch (e) {
@@ -3454,7 +3454,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondrop(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondrop(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondrop(_this, value) {
   try {
     _this.$dom.ondrop = __dom_unwrap(value);
   } catch (e) {
@@ -3462,7 +3462,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondrop(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ondurationchange(_this) {
+function native__DOMWindowWrappingImplementation__get_ondurationchange(_this) {
   try {
     return __dom_wrap(_this.$dom.ondurationchange);
   } catch (e) {
@@ -3470,7 +3470,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ondurationchang
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ondurationchange(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ondurationchange(_this, value) {
   try {
     _this.$dom.ondurationchange = __dom_unwrap(value);
   } catch (e) {
@@ -3478,7 +3478,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ondurationchang
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onemptied(_this) {
+function native__DOMWindowWrappingImplementation__get_onemptied(_this) {
   try {
     return __dom_wrap(_this.$dom.onemptied);
   } catch (e) {
@@ -3486,7 +3486,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onemptied(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onemptied(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onemptied(_this, value) {
   try {
     _this.$dom.onemptied = __dom_unwrap(value);
   } catch (e) {
@@ -3494,7 +3494,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onemptied(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onended(_this) {
+function native__DOMWindowWrappingImplementation__get_onended(_this) {
   try {
     return __dom_wrap(_this.$dom.onended);
   } catch (e) {
@@ -3502,7 +3502,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onended(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onended(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onended(_this, value) {
   try {
     _this.$dom.onended = __dom_unwrap(value);
   } catch (e) {
@@ -3510,7 +3510,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onended(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onerror(_this) {
+function native__DOMWindowWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -3518,7 +3518,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onerror(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onerror(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -3526,7 +3526,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onerror(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onfocus(_this) {
+function native__DOMWindowWrappingImplementation__get_onfocus(_this) {
   try {
     return __dom_wrap(_this.$dom.onfocus);
   } catch (e) {
@@ -3534,7 +3534,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onfocus(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onfocus(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onfocus(_this, value) {
   try {
     _this.$dom.onfocus = __dom_unwrap(value);
   } catch (e) {
@@ -3542,7 +3542,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onfocus(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onhashchange(_this) {
+function native__DOMWindowWrappingImplementation__get_onhashchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onhashchange);
   } catch (e) {
@@ -3550,7 +3550,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onhashchange(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onhashchange(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onhashchange(_this, value) {
   try {
     _this.$dom.onhashchange = __dom_unwrap(value);
   } catch (e) {
@@ -3558,7 +3558,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onhashchange(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_oninput(_this) {
+function native__DOMWindowWrappingImplementation__get_oninput(_this) {
   try {
     return __dom_wrap(_this.$dom.oninput);
   } catch (e) {
@@ -3566,7 +3566,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_oninput(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_oninput(_this, value) {
+function native__DOMWindowWrappingImplementation__set_oninput(_this, value) {
   try {
     _this.$dom.oninput = __dom_unwrap(value);
   } catch (e) {
@@ -3574,7 +3574,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_oninput(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_oninvalid(_this) {
+function native__DOMWindowWrappingImplementation__get_oninvalid(_this) {
   try {
     return __dom_wrap(_this.$dom.oninvalid);
   } catch (e) {
@@ -3582,7 +3582,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_oninvalid(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_oninvalid(_this, value) {
+function native__DOMWindowWrappingImplementation__set_oninvalid(_this, value) {
   try {
     _this.$dom.oninvalid = __dom_unwrap(value);
   } catch (e) {
@@ -3590,7 +3590,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_oninvalid(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onkeydown(_this) {
+function native__DOMWindowWrappingImplementation__get_onkeydown(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeydown);
   } catch (e) {
@@ -3598,7 +3598,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onkeydown(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onkeydown(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onkeydown(_this, value) {
   try {
     _this.$dom.onkeydown = __dom_unwrap(value);
   } catch (e) {
@@ -3606,7 +3606,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onkeydown(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onkeypress(_this) {
+function native__DOMWindowWrappingImplementation__get_onkeypress(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeypress);
   } catch (e) {
@@ -3614,7 +3614,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onkeypress(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onkeypress(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onkeypress(_this, value) {
   try {
     _this.$dom.onkeypress = __dom_unwrap(value);
   } catch (e) {
@@ -3622,7 +3622,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onkeypress(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onkeyup(_this) {
+function native__DOMWindowWrappingImplementation__get_onkeyup(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeyup);
   } catch (e) {
@@ -3630,7 +3630,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onkeyup(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onkeyup(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onkeyup(_this, value) {
   try {
     _this.$dom.onkeyup = __dom_unwrap(value);
   } catch (e) {
@@ -3638,7 +3638,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onkeyup(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onload(_this) {
+function native__DOMWindowWrappingImplementation__get_onload(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -3646,7 +3646,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onload(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onload(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onload(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -3654,7 +3654,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onload(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onloadeddata(_this) {
+function native__DOMWindowWrappingImplementation__get_onloadeddata(_this) {
   try {
     return __dom_wrap(_this.$dom.onloadeddata);
   } catch (e) {
@@ -3662,7 +3662,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onloadeddata(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onloadeddata(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onloadeddata(_this, value) {
   try {
     _this.$dom.onloadeddata = __dom_unwrap(value);
   } catch (e) {
@@ -3670,7 +3670,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onloadeddata(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onloadedmetadata(_this) {
+function native__DOMWindowWrappingImplementation__get_onloadedmetadata(_this) {
   try {
     return __dom_wrap(_this.$dom.onloadedmetadata);
   } catch (e) {
@@ -3678,7 +3678,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onloadedmetadat
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onloadedmetadata(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onloadedmetadata(_this, value) {
   try {
     _this.$dom.onloadedmetadata = __dom_unwrap(value);
   } catch (e) {
@@ -3686,7 +3686,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onloadedmetadat
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onloadstart(_this) {
+function native__DOMWindowWrappingImplementation__get_onloadstart(_this) {
   try {
     return __dom_wrap(_this.$dom.onloadstart);
   } catch (e) {
@@ -3694,7 +3694,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onloadstart(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onloadstart(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onloadstart(_this, value) {
   try {
     _this.$dom.onloadstart = __dom_unwrap(value);
   } catch (e) {
@@ -3702,7 +3702,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onloadstart(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onmessage(_this) {
+function native__DOMWindowWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -3710,7 +3710,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onmessage(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onmessage(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -3718,7 +3718,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onmessage(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onmousedown(_this) {
+function native__DOMWindowWrappingImplementation__get_onmousedown(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousedown);
   } catch (e) {
@@ -3726,7 +3726,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onmousedown(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onmousedown(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onmousedown(_this, value) {
   try {
     _this.$dom.onmousedown = __dom_unwrap(value);
   } catch (e) {
@@ -3734,7 +3734,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onmousedown(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onmousemove(_this) {
+function native__DOMWindowWrappingImplementation__get_onmousemove(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousemove);
   } catch (e) {
@@ -3742,7 +3742,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onmousemove(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onmousemove(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onmousemove(_this, value) {
   try {
     _this.$dom.onmousemove = __dom_unwrap(value);
   } catch (e) {
@@ -3750,7 +3750,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onmousemove(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onmouseout(_this) {
+function native__DOMWindowWrappingImplementation__get_onmouseout(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseout);
   } catch (e) {
@@ -3758,7 +3758,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onmouseout(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onmouseout(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onmouseout(_this, value) {
   try {
     _this.$dom.onmouseout = __dom_unwrap(value);
   } catch (e) {
@@ -3766,7 +3766,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onmouseout(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onmouseover(_this) {
+function native__DOMWindowWrappingImplementation__get_onmouseover(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseover);
   } catch (e) {
@@ -3774,7 +3774,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onmouseover(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onmouseover(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onmouseover(_this, value) {
   try {
     _this.$dom.onmouseover = __dom_unwrap(value);
   } catch (e) {
@@ -3782,7 +3782,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onmouseover(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onmouseup(_this) {
+function native__DOMWindowWrappingImplementation__get_onmouseup(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseup);
   } catch (e) {
@@ -3790,7 +3790,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onmouseup(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onmouseup(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onmouseup(_this, value) {
   try {
     _this.$dom.onmouseup = __dom_unwrap(value);
   } catch (e) {
@@ -3798,7 +3798,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onmouseup(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onmousewheel(_this) {
+function native__DOMWindowWrappingImplementation__get_onmousewheel(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousewheel);
   } catch (e) {
@@ -3806,7 +3806,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onmousewheel(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onmousewheel(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onmousewheel(_this, value) {
   try {
     _this.$dom.onmousewheel = __dom_unwrap(value);
   } catch (e) {
@@ -3814,7 +3814,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onmousewheel(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onoffline(_this) {
+function native__DOMWindowWrappingImplementation__get_onoffline(_this) {
   try {
     return __dom_wrap(_this.$dom.onoffline);
   } catch (e) {
@@ -3822,7 +3822,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onoffline(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onoffline(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onoffline(_this, value) {
   try {
     _this.$dom.onoffline = __dom_unwrap(value);
   } catch (e) {
@@ -3830,7 +3830,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onoffline(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ononline(_this) {
+function native__DOMWindowWrappingImplementation__get_ononline(_this) {
   try {
     return __dom_wrap(_this.$dom.ononline);
   } catch (e) {
@@ -3838,7 +3838,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ononline(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ononline(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ononline(_this, value) {
   try {
     _this.$dom.ononline = __dom_unwrap(value);
   } catch (e) {
@@ -3846,7 +3846,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ononline(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onpagehide(_this) {
+function native__DOMWindowWrappingImplementation__get_onpagehide(_this) {
   try {
     return __dom_wrap(_this.$dom.onpagehide);
   } catch (e) {
@@ -3854,7 +3854,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onpagehide(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onpagehide(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onpagehide(_this, value) {
   try {
     _this.$dom.onpagehide = __dom_unwrap(value);
   } catch (e) {
@@ -3862,7 +3862,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onpagehide(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onpageshow(_this) {
+function native__DOMWindowWrappingImplementation__get_onpageshow(_this) {
   try {
     return __dom_wrap(_this.$dom.onpageshow);
   } catch (e) {
@@ -3870,7 +3870,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onpageshow(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onpageshow(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onpageshow(_this, value) {
   try {
     _this.$dom.onpageshow = __dom_unwrap(value);
   } catch (e) {
@@ -3878,7 +3878,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onpageshow(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onpause(_this) {
+function native__DOMWindowWrappingImplementation__get_onpause(_this) {
   try {
     return __dom_wrap(_this.$dom.onpause);
   } catch (e) {
@@ -3886,7 +3886,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onpause(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onpause(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onpause(_this, value) {
   try {
     _this.$dom.onpause = __dom_unwrap(value);
   } catch (e) {
@@ -3894,7 +3894,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onpause(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onplay(_this) {
+function native__DOMWindowWrappingImplementation__get_onplay(_this) {
   try {
     return __dom_wrap(_this.$dom.onplay);
   } catch (e) {
@@ -3902,7 +3902,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onplay(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onplay(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onplay(_this, value) {
   try {
     _this.$dom.onplay = __dom_unwrap(value);
   } catch (e) {
@@ -3910,7 +3910,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onplay(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onplaying(_this) {
+function native__DOMWindowWrappingImplementation__get_onplaying(_this) {
   try {
     return __dom_wrap(_this.$dom.onplaying);
   } catch (e) {
@@ -3918,7 +3918,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onplaying(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onplaying(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onplaying(_this, value) {
   try {
     _this.$dom.onplaying = __dom_unwrap(value);
   } catch (e) {
@@ -3926,7 +3926,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onplaying(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onpopstate(_this) {
+function native__DOMWindowWrappingImplementation__get_onpopstate(_this) {
   try {
     return __dom_wrap(_this.$dom.onpopstate);
   } catch (e) {
@@ -3934,7 +3934,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onpopstate(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onpopstate(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onpopstate(_this, value) {
   try {
     _this.$dom.onpopstate = __dom_unwrap(value);
   } catch (e) {
@@ -3942,7 +3942,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onpopstate(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onprogress(_this) {
+function native__DOMWindowWrappingImplementation__get_onprogress(_this) {
   try {
     return __dom_wrap(_this.$dom.onprogress);
   } catch (e) {
@@ -3950,7 +3950,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onprogress(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onprogress(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onprogress(_this, value) {
   try {
     _this.$dom.onprogress = __dom_unwrap(value);
   } catch (e) {
@@ -3958,7 +3958,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onprogress(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onratechange(_this) {
+function native__DOMWindowWrappingImplementation__get_onratechange(_this) {
   try {
     return __dom_wrap(_this.$dom.onratechange);
   } catch (e) {
@@ -3966,7 +3966,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onratechange(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onratechange(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onratechange(_this, value) {
   try {
     _this.$dom.onratechange = __dom_unwrap(value);
   } catch (e) {
@@ -3974,7 +3974,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onratechange(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onreset(_this) {
+function native__DOMWindowWrappingImplementation__get_onreset(_this) {
   try {
     return __dom_wrap(_this.$dom.onreset);
   } catch (e) {
@@ -3982,7 +3982,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onreset(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onreset(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onreset(_this, value) {
   try {
     _this.$dom.onreset = __dom_unwrap(value);
   } catch (e) {
@@ -3990,7 +3990,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onreset(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onresize(_this) {
+function native__DOMWindowWrappingImplementation__get_onresize(_this) {
   try {
     return __dom_wrap(_this.$dom.onresize);
   } catch (e) {
@@ -3998,7 +3998,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onresize(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onresize(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onresize(_this, value) {
   try {
     _this.$dom.onresize = __dom_unwrap(value);
   } catch (e) {
@@ -4006,7 +4006,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onresize(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onscroll(_this) {
+function native__DOMWindowWrappingImplementation__get_onscroll(_this) {
   try {
     return __dom_wrap(_this.$dom.onscroll);
   } catch (e) {
@@ -4014,7 +4014,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onscroll(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onscroll(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onscroll(_this, value) {
   try {
     _this.$dom.onscroll = __dom_unwrap(value);
   } catch (e) {
@@ -4022,7 +4022,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onscroll(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onsearch(_this) {
+function native__DOMWindowWrappingImplementation__get_onsearch(_this) {
   try {
     return __dom_wrap(_this.$dom.onsearch);
   } catch (e) {
@@ -4030,7 +4030,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onsearch(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onsearch(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onsearch(_this, value) {
   try {
     _this.$dom.onsearch = __dom_unwrap(value);
   } catch (e) {
@@ -4038,7 +4038,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onsearch(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onseeked(_this) {
+function native__DOMWindowWrappingImplementation__get_onseeked(_this) {
   try {
     return __dom_wrap(_this.$dom.onseeked);
   } catch (e) {
@@ -4046,7 +4046,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onseeked(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onseeked(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onseeked(_this, value) {
   try {
     _this.$dom.onseeked = __dom_unwrap(value);
   } catch (e) {
@@ -4054,7 +4054,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onseeked(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onseeking(_this) {
+function native__DOMWindowWrappingImplementation__get_onseeking(_this) {
   try {
     return __dom_wrap(_this.$dom.onseeking);
   } catch (e) {
@@ -4062,7 +4062,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onseeking(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onseeking(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onseeking(_this, value) {
   try {
     _this.$dom.onseeking = __dom_unwrap(value);
   } catch (e) {
@@ -4070,7 +4070,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onseeking(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onselect(_this) {
+function native__DOMWindowWrappingImplementation__get_onselect(_this) {
   try {
     return __dom_wrap(_this.$dom.onselect);
   } catch (e) {
@@ -4078,7 +4078,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onselect(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onselect(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onselect(_this, value) {
   try {
     _this.$dom.onselect = __dom_unwrap(value);
   } catch (e) {
@@ -4086,7 +4086,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onselect(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onstalled(_this) {
+function native__DOMWindowWrappingImplementation__get_onstalled(_this) {
   try {
     return __dom_wrap(_this.$dom.onstalled);
   } catch (e) {
@@ -4094,7 +4094,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onstalled(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onstalled(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onstalled(_this, value) {
   try {
     _this.$dom.onstalled = __dom_unwrap(value);
   } catch (e) {
@@ -4102,7 +4102,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onstalled(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onstorage(_this) {
+function native__DOMWindowWrappingImplementation__get_onstorage(_this) {
   try {
     return __dom_wrap(_this.$dom.onstorage);
   } catch (e) {
@@ -4110,7 +4110,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onstorage(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onstorage(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onstorage(_this, value) {
   try {
     _this.$dom.onstorage = __dom_unwrap(value);
   } catch (e) {
@@ -4118,7 +4118,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onstorage(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onsubmit(_this) {
+function native__DOMWindowWrappingImplementation__get_onsubmit(_this) {
   try {
     return __dom_wrap(_this.$dom.onsubmit);
   } catch (e) {
@@ -4126,7 +4126,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onsubmit(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onsubmit(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onsubmit(_this, value) {
   try {
     _this.$dom.onsubmit = __dom_unwrap(value);
   } catch (e) {
@@ -4134,7 +4134,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onsubmit(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onsuspend(_this) {
+function native__DOMWindowWrappingImplementation__get_onsuspend(_this) {
   try {
     return __dom_wrap(_this.$dom.onsuspend);
   } catch (e) {
@@ -4142,7 +4142,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onsuspend(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onsuspend(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onsuspend(_this, value) {
   try {
     _this.$dom.onsuspend = __dom_unwrap(value);
   } catch (e) {
@@ -4150,7 +4150,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onsuspend(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ontimeupdate(_this) {
+function native__DOMWindowWrappingImplementation__get_ontimeupdate(_this) {
   try {
     return __dom_wrap(_this.$dom.ontimeupdate);
   } catch (e) {
@@ -4158,7 +4158,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ontimeupdate(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ontimeupdate(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ontimeupdate(_this, value) {
   try {
     _this.$dom.ontimeupdate = __dom_unwrap(value);
   } catch (e) {
@@ -4166,7 +4166,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ontimeupdate(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchcancel(_this) {
+function native__DOMWindowWrappingImplementation__get_ontouchcancel(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchcancel);
   } catch (e) {
@@ -4174,7 +4174,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchcancel(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchcancel(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ontouchcancel(_this, value) {
   try {
     _this.$dom.ontouchcancel = __dom_unwrap(value);
   } catch (e) {
@@ -4182,7 +4182,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchcancel(_
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchend(_this) {
+function native__DOMWindowWrappingImplementation__get_ontouchend(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchend);
   } catch (e) {
@@ -4190,7 +4190,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchend(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchend(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ontouchend(_this, value) {
   try {
     _this.$dom.ontouchend = __dom_unwrap(value);
   } catch (e) {
@@ -4198,7 +4198,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchend(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchmove(_this) {
+function native__DOMWindowWrappingImplementation__get_ontouchmove(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchmove);
   } catch (e) {
@@ -4206,7 +4206,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchmove(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchmove(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ontouchmove(_this, value) {
   try {
     _this.$dom.ontouchmove = __dom_unwrap(value);
   } catch (e) {
@@ -4214,7 +4214,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchmove(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchstart(_this) {
+function native__DOMWindowWrappingImplementation__get_ontouchstart(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchstart);
   } catch (e) {
@@ -4222,7 +4222,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_ontouchstart(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchstart(_this, value) {
+function native__DOMWindowWrappingImplementation__set_ontouchstart(_this, value) {
   try {
     _this.$dom.ontouchstart = __dom_unwrap(value);
   } catch (e) {
@@ -4230,7 +4230,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_ontouchstart(_t
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onunload(_this) {
+function native__DOMWindowWrappingImplementation__get_onunload(_this) {
   try {
     return __dom_wrap(_this.$dom.onunload);
   } catch (e) {
@@ -4238,7 +4238,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onunload(_this)
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onunload(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onunload(_this, value) {
   try {
     _this.$dom.onunload = __dom_unwrap(value);
   } catch (e) {
@@ -4246,7 +4246,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onunload(_this,
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onvolumechange(_this) {
+function native__DOMWindowWrappingImplementation__get_onvolumechange(_this) {
   try {
     return __dom_wrap(_this.$dom.onvolumechange);
   } catch (e) {
@@ -4254,7 +4254,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onvolumechange(
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onvolumechange(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onvolumechange(_this, value) {
   try {
     _this.$dom.onvolumechange = __dom_unwrap(value);
   } catch (e) {
@@ -4262,7 +4262,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onvolumechange(
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onwaiting(_this) {
+function native__DOMWindowWrappingImplementation__get_onwaiting(_this) {
   try {
     return __dom_wrap(_this.$dom.onwaiting);
   } catch (e) {
@@ -4270,7 +4270,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onwaiting(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onwaiting(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onwaiting(_this, value) {
   try {
     _this.$dom.onwaiting = __dom_unwrap(value);
   } catch (e) {
@@ -4278,7 +4278,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onwaiting(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkitanimationend(_this) {
+function native__DOMWindowWrappingImplementation__get_onwebkitanimationend(_this) {
   try {
     return __dom_wrap(_this.$dom.onwebkitanimationend);
   } catch (e) {
@@ -4286,7 +4286,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkitanimati
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkitanimationend(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onwebkitanimationend(_this, value) {
   try {
     _this.$dom.onwebkitanimationend = __dom_unwrap(value);
   } catch (e) {
@@ -4294,7 +4294,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkitanimati
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkitanimationiteration(_this) {
+function native__DOMWindowWrappingImplementation__get_onwebkitanimationiteration(_this) {
   try {
     return __dom_wrap(_this.$dom.onwebkitanimationiteration);
   } catch (e) {
@@ -4302,7 +4302,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkitanimati
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkitanimationiteration(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onwebkitanimationiteration(_this, value) {
   try {
     _this.$dom.onwebkitanimationiteration = __dom_unwrap(value);
   } catch (e) {
@@ -4310,7 +4310,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkitanimati
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkitanimationstart(_this) {
+function native__DOMWindowWrappingImplementation__get_onwebkitanimationstart(_this) {
   try {
     return __dom_wrap(_this.$dom.onwebkitanimationstart);
   } catch (e) {
@@ -4318,7 +4318,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkitanimati
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkitanimationstart(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onwebkitanimationstart(_this, value) {
   try {
     _this.$dom.onwebkitanimationstart = __dom_unwrap(value);
   } catch (e) {
@@ -4326,7 +4326,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkitanimati
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkittransitionend(_this) {
+function native__DOMWindowWrappingImplementation__get_onwebkittransitionend(_this) {
   try {
     return __dom_wrap(_this.$dom.onwebkittransitionend);
   } catch (e) {
@@ -4334,7 +4334,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_onwebkittransit
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkittransitionend(_this, value) {
+function native__DOMWindowWrappingImplementation__set_onwebkittransitionend(_this, value) {
   try {
     _this.$dom.onwebkittransitionend = __dom_unwrap(value);
   } catch (e) {
@@ -4342,7 +4342,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_onwebkittransit
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_opener(_this) {
+function native__DOMWindowWrappingImplementation__get_opener(_this) {
   try {
     return __dom_wrap(_this.$dom.opener);
   } catch (e) {
@@ -4350,7 +4350,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_opener(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_opener(_this, value) {
+function native__DOMWindowWrappingImplementation__set_opener(_this, value) {
   try {
     _this.$dom.opener = __dom_unwrap(value);
   } catch (e) {
@@ -4358,7 +4358,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_opener(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_outerHeight(_this) {
+function native__DOMWindowWrappingImplementation__get_outerHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.outerHeight);
   } catch (e) {
@@ -4366,7 +4366,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_outerHeight(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_outerHeight(_this, value) {
+function native__DOMWindowWrappingImplementation__set_outerHeight(_this, value) {
   try {
     _this.$dom.outerHeight = __dom_unwrap(value);
   } catch (e) {
@@ -4374,7 +4374,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_outerHeight(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_outerWidth(_this) {
+function native__DOMWindowWrappingImplementation__get_outerWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.outerWidth);
   } catch (e) {
@@ -4382,7 +4382,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_outerWidth(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_outerWidth(_this, value) {
+function native__DOMWindowWrappingImplementation__set_outerWidth(_this, value) {
   try {
     _this.$dom.outerWidth = __dom_unwrap(value);
   } catch (e) {
@@ -4390,7 +4390,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_outerWidth(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_pageXOffset(_this) {
+function native__DOMWindowWrappingImplementation__get_pageXOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.pageXOffset);
   } catch (e) {
@@ -4398,7 +4398,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_pageXOffset(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_pageYOffset(_this) {
+function native__DOMWindowWrappingImplementation__get_pageYOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.pageYOffset);
   } catch (e) {
@@ -4406,7 +4406,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_pageYOffset(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_parent(_this) {
+function native__DOMWindowWrappingImplementation__get_parent(_this) {
   try {
     return __dom_wrap(_this.$dom.parent);
   } catch (e) {
@@ -4414,7 +4414,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_parent(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_parent(_this, value) {
+function native__DOMWindowWrappingImplementation__set_parent(_this, value) {
   try {
     _this.$dom.parent = __dom_unwrap(value);
   } catch (e) {
@@ -4422,7 +4422,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_parent(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_performance(_this) {
+function native__DOMWindowWrappingImplementation__get_performance(_this) {
   try {
     return __dom_wrap(_this.$dom.performance);
   } catch (e) {
@@ -4430,7 +4430,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_performance(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_performance(_this, value) {
+function native__DOMWindowWrappingImplementation__set_performance(_this, value) {
   try {
     _this.$dom.performance = __dom_unwrap(value);
   } catch (e) {
@@ -4438,7 +4438,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_performance(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_personalbar(_this) {
+function native__DOMWindowWrappingImplementation__get_personalbar(_this) {
   try {
     return __dom_wrap(_this.$dom.personalbar);
   } catch (e) {
@@ -4446,7 +4446,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_personalbar(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_personalbar(_this, value) {
+function native__DOMWindowWrappingImplementation__set_personalbar(_this, value) {
   try {
     _this.$dom.personalbar = __dom_unwrap(value);
   } catch (e) {
@@ -4454,7 +4454,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_personalbar(_th
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_screen(_this) {
+function native__DOMWindowWrappingImplementation__get_screen(_this) {
   try {
     return __dom_wrap(_this.$dom.screen);
   } catch (e) {
@@ -4462,7 +4462,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_screen(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_screen(_this, value) {
+function native__DOMWindowWrappingImplementation__set_screen(_this, value) {
   try {
     _this.$dom.screen = __dom_unwrap(value);
   } catch (e) {
@@ -4470,7 +4470,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_screen(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_screenLeft(_this) {
+function native__DOMWindowWrappingImplementation__get_screenLeft(_this) {
   try {
     return __dom_wrap(_this.$dom.screenLeft);
   } catch (e) {
@@ -4478,7 +4478,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_screenLeft(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_screenLeft(_this, value) {
+function native__DOMWindowWrappingImplementation__set_screenLeft(_this, value) {
   try {
     _this.$dom.screenLeft = __dom_unwrap(value);
   } catch (e) {
@@ -4486,7 +4486,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_screenLeft(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_screenTop(_this) {
+function native__DOMWindowWrappingImplementation__get_screenTop(_this) {
   try {
     return __dom_wrap(_this.$dom.screenTop);
   } catch (e) {
@@ -4494,7 +4494,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_screenTop(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_screenTop(_this, value) {
+function native__DOMWindowWrappingImplementation__set_screenTop(_this, value) {
   try {
     _this.$dom.screenTop = __dom_unwrap(value);
   } catch (e) {
@@ -4502,7 +4502,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_screenTop(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_screenX(_this) {
+function native__DOMWindowWrappingImplementation__get_screenX(_this) {
   try {
     return __dom_wrap(_this.$dom.screenX);
   } catch (e) {
@@ -4510,7 +4510,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_screenX(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_screenX(_this, value) {
+function native__DOMWindowWrappingImplementation__set_screenX(_this, value) {
   try {
     _this.$dom.screenX = __dom_unwrap(value);
   } catch (e) {
@@ -4518,7 +4518,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_screenX(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_screenY(_this) {
+function native__DOMWindowWrappingImplementation__get_screenY(_this) {
   try {
     return __dom_wrap(_this.$dom.screenY);
   } catch (e) {
@@ -4526,7 +4526,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_screenY(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_screenY(_this, value) {
+function native__DOMWindowWrappingImplementation__set_screenY(_this, value) {
   try {
     _this.$dom.screenY = __dom_unwrap(value);
   } catch (e) {
@@ -4534,7 +4534,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_screenY(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_scrollX(_this) {
+function native__DOMWindowWrappingImplementation__get_scrollX(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollX);
   } catch (e) {
@@ -4542,7 +4542,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_scrollX(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_scrollX(_this, value) {
+function native__DOMWindowWrappingImplementation__set_scrollX(_this, value) {
   try {
     _this.$dom.scrollX = __dom_unwrap(value);
   } catch (e) {
@@ -4550,7 +4550,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_scrollX(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_scrollY(_this) {
+function native__DOMWindowWrappingImplementation__get_scrollY(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollY);
   } catch (e) {
@@ -4558,7 +4558,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_scrollY(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_scrollY(_this, value) {
+function native__DOMWindowWrappingImplementation__set_scrollY(_this, value) {
   try {
     _this.$dom.scrollY = __dom_unwrap(value);
   } catch (e) {
@@ -4566,7 +4566,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_scrollY(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_scrollbars(_this) {
+function native__DOMWindowWrappingImplementation__get_scrollbars(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollbars);
   } catch (e) {
@@ -4574,7 +4574,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_scrollbars(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_scrollbars(_this, value) {
+function native__DOMWindowWrappingImplementation__set_scrollbars(_this, value) {
   try {
     _this.$dom.scrollbars = __dom_unwrap(value);
   } catch (e) {
@@ -4582,7 +4582,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_scrollbars(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_self(_this) {
+function native__DOMWindowWrappingImplementation__get_self(_this) {
   try {
     return __dom_wrap(_this.$dom.self);
   } catch (e) {
@@ -4590,7 +4590,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_self(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_self(_this, value) {
+function native__DOMWindowWrappingImplementation__set_self(_this, value) {
   try {
     _this.$dom.self = __dom_unwrap(value);
   } catch (e) {
@@ -4598,7 +4598,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_self(_this, val
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_sessionStorage(_this) {
+function native__DOMWindowWrappingImplementation__get_sessionStorage(_this) {
   try {
     return __dom_wrap(_this.$dom.sessionStorage);
   } catch (e) {
@@ -4606,7 +4606,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_sessionStorage(
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_status(_this) {
+function native__DOMWindowWrappingImplementation__get_status(_this) {
   try {
     return __dom_wrap(_this.$dom.status);
   } catch (e) {
@@ -4614,7 +4614,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_status(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_status(_this, value) {
+function native__DOMWindowWrappingImplementation__set_status(_this, value) {
   try {
     _this.$dom.status = __dom_unwrap(value);
   } catch (e) {
@@ -4622,7 +4622,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_status(_this, v
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_statusbar(_this) {
+function native__DOMWindowWrappingImplementation__get_statusbar(_this) {
   try {
     return __dom_wrap(_this.$dom.statusbar);
   } catch (e) {
@@ -4630,7 +4630,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_statusbar(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_statusbar(_this, value) {
+function native__DOMWindowWrappingImplementation__set_statusbar(_this, value) {
   try {
     _this.$dom.statusbar = __dom_unwrap(value);
   } catch (e) {
@@ -4638,7 +4638,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_statusbar(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_styleMedia(_this) {
+function native__DOMWindowWrappingImplementation__get_styleMedia(_this) {
   try {
     return __dom_wrap(_this.$dom.styleMedia);
   } catch (e) {
@@ -4646,7 +4646,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_styleMedia(_thi
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_toolbar(_this) {
+function native__DOMWindowWrappingImplementation__get_toolbar(_this) {
   try {
     return __dom_wrap(_this.$dom.toolbar);
   } catch (e) {
@@ -4654,7 +4654,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_toolbar(_this) 
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_toolbar(_this, value) {
+function native__DOMWindowWrappingImplementation__set_toolbar(_this, value) {
   try {
     _this.$dom.toolbar = __dom_unwrap(value);
   } catch (e) {
@@ -4662,7 +4662,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_toolbar(_this, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_top(_this) {
+function native__DOMWindowWrappingImplementation__get_top(_this) {
   try {
     return __dom_wrap(_this.$dom.top);
   } catch (e) {
@@ -4670,7 +4670,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_top(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__set__DOMWindow_top(_this, value) {
+function native__DOMWindowWrappingImplementation__set_top(_this, value) {
   try {
     _this.$dom.top = __dom_unwrap(value);
   } catch (e) {
@@ -4678,7 +4678,7 @@ function native__DOMWindowWrappingImplementation__set__DOMWindow_top(_this, valu
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_webkitNotifications(_this) {
+function native__DOMWindowWrappingImplementation__get_webkitNotifications(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitNotifications);
   } catch (e) {
@@ -4686,7 +4686,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_webkitNotificat
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_webkitURL(_this) {
+function native__DOMWindowWrappingImplementation__get_webkitURL(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitURL);
   } catch (e) {
@@ -4694,7 +4694,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_webkitURL(_this
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_window(_this) {
+function native__DOMWindowWrappingImplementation__get_window(_this) {
   try {
     return __dom_wrap(_this.$dom.window);
   } catch (e) {
@@ -4702,7 +4702,7 @@ function native__DOMWindowWrappingImplementation__get__DOMWindow_window(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__addEventListener(_this, type, listener) {
+function native__DOMWindowWrappingImplementation__addEventListener_DOMWindow(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -4710,7 +4710,7 @@ function native__DOMWindowWrappingImplementation__addEventListener(_this, type, 
   }
 }
 
-function native__DOMWindowWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__DOMWindowWrappingImplementation__addEventListener_DOMWindow_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -4790,7 +4790,7 @@ function native__DOMWindowWrappingImplementation__confirm(_this, message) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__dispatchEvent(_this, evt) {
+function native__DOMWindowWrappingImplementation__dispatchEvent_DOMWindow(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -4918,7 +4918,7 @@ function native__DOMWindowWrappingImplementation__releaseEvents(_this) {
   }
 }
 
-function native__DOMWindowWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__DOMWindowWrappingImplementation__removeEventListener_DOMWindow(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -4926,7 +4926,7 @@ function native__DOMWindowWrappingImplementation__removeEventListener(_this, typ
   }
 }
 
-function native__DOMWindowWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__DOMWindowWrappingImplementation__removeEventListener_DOMWindow_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -5054,7 +5054,7 @@ function native__DOMWindowWrappingImplementation__webkitRequestAnimationFrame(_t
   }
 }
 
-function native__DataTransferItemWrappingImplementation__get__DataTransferItem_kind(_this) {
+function native__DataTransferItemWrappingImplementation__get_kind(_this) {
   try {
     return __dom_wrap(_this.$dom.kind);
   } catch (e) {
@@ -5062,7 +5062,7 @@ function native__DataTransferItemWrappingImplementation__get__DataTransferItem_k
   }
 }
 
-function native__DataTransferItemWrappingImplementation__get__DataTransferItem_type(_this) {
+function native__DataTransferItemWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -5086,7 +5086,7 @@ function native__DataTransferItemWrappingImplementation__getAsString(_this, call
   }
 }
 
-function native__DataTransferItemListWrappingImplementation__get__DataTransferItemList_length(_this) {
+function native__DataTransferItemListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -5342,7 +5342,7 @@ function native__DataViewWrappingImplementation__setUint8(_this) {
   }
 }
 
-function native__DatabaseWrappingImplementation__get__Database_version(_this) {
+function native__DatabaseWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
   } catch (e) {
@@ -5446,7 +5446,7 @@ function native__DatabaseCallbackWrappingImplementation__handleEvent_2(_this, da
   }
 }
 
-function native__DatabaseSyncWrappingImplementation__get__DatabaseSync_version(_this) {
+function native__DatabaseSyncWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
   } catch (e) {
@@ -5486,7 +5486,7 @@ function native__DatabaseSyncWrappingImplementation__transaction(_this, callback
   }
 }
 
-function native__DedicatedWorkerContextWrappingImplementation__get__DedicatedWorkerContext_onmessage(_this) {
+function native__DedicatedWorkerContextWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -5494,7 +5494,7 @@ function native__DedicatedWorkerContextWrappingImplementation__get__DedicatedWor
   }
 }
 
-function native__DedicatedWorkerContextWrappingImplementation__set__DedicatedWorkerContext_onmessage(_this, value) {
+function native__DedicatedWorkerContextWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -5534,7 +5534,7 @@ function native__DedicatedWorkerContextWrappingImplementation__webkitPostMessage
   }
 }
 
-function native__DeviceMotionEventWrappingImplementation__get__DeviceMotionEvent_interval(_this) {
+function native__DeviceMotionEventWrappingImplementation__get_interval(_this) {
   try {
     return __dom_wrap(_this.$dom.interval);
   } catch (e) {
@@ -5542,7 +5542,7 @@ function native__DeviceMotionEventWrappingImplementation__get__DeviceMotionEvent
   }
 }
 
-function native__DeviceOrientationEventWrappingImplementation__get__DeviceOrientationEvent_alpha(_this) {
+function native__DeviceOrientationEventWrappingImplementation__get_alpha(_this) {
   try {
     return __dom_wrap(_this.$dom.alpha);
   } catch (e) {
@@ -5550,7 +5550,7 @@ function native__DeviceOrientationEventWrappingImplementation__get__DeviceOrient
   }
 }
 
-function native__DeviceOrientationEventWrappingImplementation__get__DeviceOrientationEvent_beta(_this) {
+function native__DeviceOrientationEventWrappingImplementation__get_beta(_this) {
   try {
     return __dom_wrap(_this.$dom.beta);
   } catch (e) {
@@ -5558,7 +5558,7 @@ function native__DeviceOrientationEventWrappingImplementation__get__DeviceOrient
   }
 }
 
-function native__DeviceOrientationEventWrappingImplementation__get__DeviceOrientationEvent_gamma(_this) {
+function native__DeviceOrientationEventWrappingImplementation__get_gamma(_this) {
   try {
     return __dom_wrap(_this.$dom.gamma);
   } catch (e) {
@@ -5726,7 +5726,7 @@ function native__DirectoryReaderSyncWrappingImplementation__readEntries(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_URL(_this) {
+function native__DocumentWrappingImplementation__get_URL(_this) {
   try {
     return __dom_wrap(_this.$dom.URL);
   } catch (e) {
@@ -5734,7 +5734,7 @@ function native__DocumentWrappingImplementation__get__Document_URL(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_anchors(_this) {
+function native__DocumentWrappingImplementation__get_anchors(_this) {
   try {
     return __dom_wrap(_this.$dom.anchors);
   } catch (e) {
@@ -5742,7 +5742,7 @@ function native__DocumentWrappingImplementation__get__Document_anchors(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_applets(_this) {
+function native__DocumentWrappingImplementation__get_applets(_this) {
   try {
     return __dom_wrap(_this.$dom.applets);
   } catch (e) {
@@ -5750,7 +5750,7 @@ function native__DocumentWrappingImplementation__get__Document_applets(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_body(_this) {
+function native__DocumentWrappingImplementation__get_body(_this) {
   try {
     return __dom_wrap(_this.$dom.body);
   } catch (e) {
@@ -5758,7 +5758,7 @@ function native__DocumentWrappingImplementation__get__Document_body(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_body(_this, value) {
+function native__DocumentWrappingImplementation__set_body(_this, value) {
   try {
     _this.$dom.body = __dom_unwrap(value);
   } catch (e) {
@@ -5766,7 +5766,7 @@ function native__DocumentWrappingImplementation__set__Document_body(_this, value
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_characterSet(_this) {
+function native__DocumentWrappingImplementation__get_characterSet(_this) {
   try {
     return __dom_wrap(_this.$dom.characterSet);
   } catch (e) {
@@ -5774,7 +5774,7 @@ function native__DocumentWrappingImplementation__get__Document_characterSet(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_charset(_this) {
+function native__DocumentWrappingImplementation__get_charset(_this) {
   try {
     return __dom_wrap(_this.$dom.charset);
   } catch (e) {
@@ -5782,7 +5782,7 @@ function native__DocumentWrappingImplementation__get__Document_charset(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_charset(_this, value) {
+function native__DocumentWrappingImplementation__set_charset(_this, value) {
   try {
     _this.$dom.charset = __dom_unwrap(value);
   } catch (e) {
@@ -5790,7 +5790,7 @@ function native__DocumentWrappingImplementation__set__Document_charset(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_compatMode(_this) {
+function native__DocumentWrappingImplementation__get_compatMode(_this) {
   try {
     return __dom_wrap(_this.$dom.compatMode);
   } catch (e) {
@@ -5798,7 +5798,7 @@ function native__DocumentWrappingImplementation__get__Document_compatMode(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_cookie(_this) {
+function native__DocumentWrappingImplementation__get_cookie(_this) {
   try {
     return __dom_wrap(_this.$dom.cookie);
   } catch (e) {
@@ -5806,7 +5806,7 @@ function native__DocumentWrappingImplementation__get__Document_cookie(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_cookie(_this, value) {
+function native__DocumentWrappingImplementation__set_cookie(_this, value) {
   try {
     _this.$dom.cookie = __dom_unwrap(value);
   } catch (e) {
@@ -5814,7 +5814,7 @@ function native__DocumentWrappingImplementation__set__Document_cookie(_this, val
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_defaultCharset(_this) {
+function native__DocumentWrappingImplementation__get_defaultCharset(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultCharset);
   } catch (e) {
@@ -5822,7 +5822,7 @@ function native__DocumentWrappingImplementation__get__Document_defaultCharset(_t
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_defaultView(_this) {
+function native__DocumentWrappingImplementation__get_defaultView(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultView);
   } catch (e) {
@@ -5830,7 +5830,7 @@ function native__DocumentWrappingImplementation__get__Document_defaultView(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_doctype(_this) {
+function native__DocumentWrappingImplementation__get_doctype(_this) {
   try {
     return __dom_wrap(_this.$dom.doctype);
   } catch (e) {
@@ -5838,7 +5838,7 @@ function native__DocumentWrappingImplementation__get__Document_doctype(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_documentElement(_this) {
+function native__DocumentWrappingImplementation__get_documentElement(_this) {
   try {
     return __dom_wrap(_this.$dom.documentElement);
   } catch (e) {
@@ -5846,7 +5846,7 @@ function native__DocumentWrappingImplementation__get__Document_documentElement(_
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_documentURI(_this) {
+function native__DocumentWrappingImplementation__get_documentURI(_this) {
   try {
     return __dom_wrap(_this.$dom.documentURI);
   } catch (e) {
@@ -5854,7 +5854,7 @@ function native__DocumentWrappingImplementation__get__Document_documentURI(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_documentURI(_this, value) {
+function native__DocumentWrappingImplementation__set_documentURI(_this, value) {
   try {
     _this.$dom.documentURI = __dom_unwrap(value);
   } catch (e) {
@@ -5862,7 +5862,7 @@ function native__DocumentWrappingImplementation__set__Document_documentURI(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_domain(_this) {
+function native__DocumentWrappingImplementation__get_domain(_this) {
   try {
     return __dom_wrap(_this.$dom.domain);
   } catch (e) {
@@ -5870,7 +5870,7 @@ function native__DocumentWrappingImplementation__get__Document_domain(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_domain(_this, value) {
+function native__DocumentWrappingImplementation__set_domain(_this, value) {
   try {
     _this.$dom.domain = __dom_unwrap(value);
   } catch (e) {
@@ -5878,7 +5878,7 @@ function native__DocumentWrappingImplementation__set__Document_domain(_this, val
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_forms(_this) {
+function native__DocumentWrappingImplementation__get_forms(_this) {
   try {
     return __dom_wrap(_this.$dom.forms);
   } catch (e) {
@@ -5886,7 +5886,7 @@ function native__DocumentWrappingImplementation__get__Document_forms(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_head(_this) {
+function native__DocumentWrappingImplementation__get_head(_this) {
   try {
     return __dom_wrap(_this.$dom.head);
   } catch (e) {
@@ -5894,7 +5894,7 @@ function native__DocumentWrappingImplementation__get__Document_head(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_images(_this) {
+function native__DocumentWrappingImplementation__get_images(_this) {
   try {
     return __dom_wrap(_this.$dom.images);
   } catch (e) {
@@ -5902,7 +5902,7 @@ function native__DocumentWrappingImplementation__get__Document_images(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_implementation(_this) {
+function native__DocumentWrappingImplementation__get_implementation(_this) {
   try {
     return __dom_wrap(_this.$dom.implementation);
   } catch (e) {
@@ -5910,7 +5910,7 @@ function native__DocumentWrappingImplementation__get__Document_implementation(_t
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_inputEncoding(_this) {
+function native__DocumentWrappingImplementation__get_inputEncoding(_this) {
   try {
     return __dom_wrap(_this.$dom.inputEncoding);
   } catch (e) {
@@ -5918,7 +5918,7 @@ function native__DocumentWrappingImplementation__get__Document_inputEncoding(_th
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_lastModified(_this) {
+function native__DocumentWrappingImplementation__get_lastModified(_this) {
   try {
     return __dom_wrap(_this.$dom.lastModified);
   } catch (e) {
@@ -5926,7 +5926,7 @@ function native__DocumentWrappingImplementation__get__Document_lastModified(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_links(_this) {
+function native__DocumentWrappingImplementation__get_links(_this) {
   try {
     return __dom_wrap(_this.$dom.links);
   } catch (e) {
@@ -5934,7 +5934,7 @@ function native__DocumentWrappingImplementation__get__Document_links(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_location(_this) {
+function native__DocumentWrappingImplementation__get_location(_this) {
   try {
     return __dom_wrap(_this.$dom.location);
   } catch (e) {
@@ -5942,7 +5942,7 @@ function native__DocumentWrappingImplementation__get__Document_location(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_location(_this, value) {
+function native__DocumentWrappingImplementation__set_location(_this, value) {
   try {
     _this.$dom.location = __dom_unwrap(value);
   } catch (e) {
@@ -5950,7 +5950,7 @@ function native__DocumentWrappingImplementation__set__Document_location(_this, v
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onabort(_this) {
+function native__DocumentWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -5958,7 +5958,7 @@ function native__DocumentWrappingImplementation__get__Document_onabort(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onabort(_this, value) {
+function native__DocumentWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -5966,7 +5966,7 @@ function native__DocumentWrappingImplementation__set__Document_onabort(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onbeforecopy(_this) {
+function native__DocumentWrappingImplementation__get_onbeforecopy(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforecopy);
   } catch (e) {
@@ -5974,7 +5974,7 @@ function native__DocumentWrappingImplementation__get__Document_onbeforecopy(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onbeforecopy(_this, value) {
+function native__DocumentWrappingImplementation__set_onbeforecopy(_this, value) {
   try {
     _this.$dom.onbeforecopy = __dom_unwrap(value);
   } catch (e) {
@@ -5982,7 +5982,7 @@ function native__DocumentWrappingImplementation__set__Document_onbeforecopy(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onbeforecut(_this) {
+function native__DocumentWrappingImplementation__get_onbeforecut(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforecut);
   } catch (e) {
@@ -5990,7 +5990,7 @@ function native__DocumentWrappingImplementation__get__Document_onbeforecut(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onbeforecut(_this, value) {
+function native__DocumentWrappingImplementation__set_onbeforecut(_this, value) {
   try {
     _this.$dom.onbeforecut = __dom_unwrap(value);
   } catch (e) {
@@ -5998,7 +5998,7 @@ function native__DocumentWrappingImplementation__set__Document_onbeforecut(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onbeforepaste(_this) {
+function native__DocumentWrappingImplementation__get_onbeforepaste(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforepaste);
   } catch (e) {
@@ -6006,7 +6006,7 @@ function native__DocumentWrappingImplementation__get__Document_onbeforepaste(_th
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onbeforepaste(_this, value) {
+function native__DocumentWrappingImplementation__set_onbeforepaste(_this, value) {
   try {
     _this.$dom.onbeforepaste = __dom_unwrap(value);
   } catch (e) {
@@ -6014,7 +6014,7 @@ function native__DocumentWrappingImplementation__set__Document_onbeforepaste(_th
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onblur(_this) {
+function native__DocumentWrappingImplementation__get_onblur(_this) {
   try {
     return __dom_wrap(_this.$dom.onblur);
   } catch (e) {
@@ -6022,7 +6022,7 @@ function native__DocumentWrappingImplementation__get__Document_onblur(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onblur(_this, value) {
+function native__DocumentWrappingImplementation__set_onblur(_this, value) {
   try {
     _this.$dom.onblur = __dom_unwrap(value);
   } catch (e) {
@@ -6030,7 +6030,7 @@ function native__DocumentWrappingImplementation__set__Document_onblur(_this, val
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onchange(_this) {
+function native__DocumentWrappingImplementation__get_onchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onchange);
   } catch (e) {
@@ -6038,7 +6038,7 @@ function native__DocumentWrappingImplementation__get__Document_onchange(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onchange(_this, value) {
+function native__DocumentWrappingImplementation__set_onchange(_this, value) {
   try {
     _this.$dom.onchange = __dom_unwrap(value);
   } catch (e) {
@@ -6046,7 +6046,7 @@ function native__DocumentWrappingImplementation__set__Document_onchange(_this, v
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onclick(_this) {
+function native__DocumentWrappingImplementation__get_onclick(_this) {
   try {
     return __dom_wrap(_this.$dom.onclick);
   } catch (e) {
@@ -6054,7 +6054,7 @@ function native__DocumentWrappingImplementation__get__Document_onclick(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onclick(_this, value) {
+function native__DocumentWrappingImplementation__set_onclick(_this, value) {
   try {
     _this.$dom.onclick = __dom_unwrap(value);
   } catch (e) {
@@ -6062,7 +6062,7 @@ function native__DocumentWrappingImplementation__set__Document_onclick(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_oncontextmenu(_this) {
+function native__DocumentWrappingImplementation__get_oncontextmenu(_this) {
   try {
     return __dom_wrap(_this.$dom.oncontextmenu);
   } catch (e) {
@@ -6070,7 +6070,7 @@ function native__DocumentWrappingImplementation__get__Document_oncontextmenu(_th
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_oncontextmenu(_this, value) {
+function native__DocumentWrappingImplementation__set_oncontextmenu(_this, value) {
   try {
     _this.$dom.oncontextmenu = __dom_unwrap(value);
   } catch (e) {
@@ -6078,7 +6078,7 @@ function native__DocumentWrappingImplementation__set__Document_oncontextmenu(_th
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_oncopy(_this) {
+function native__DocumentWrappingImplementation__get_oncopy(_this) {
   try {
     return __dom_wrap(_this.$dom.oncopy);
   } catch (e) {
@@ -6086,7 +6086,7 @@ function native__DocumentWrappingImplementation__get__Document_oncopy(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_oncopy(_this, value) {
+function native__DocumentWrappingImplementation__set_oncopy(_this, value) {
   try {
     _this.$dom.oncopy = __dom_unwrap(value);
   } catch (e) {
@@ -6094,7 +6094,7 @@ function native__DocumentWrappingImplementation__set__Document_oncopy(_this, val
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_oncut(_this) {
+function native__DocumentWrappingImplementation__get_oncut(_this) {
   try {
     return __dom_wrap(_this.$dom.oncut);
   } catch (e) {
@@ -6102,7 +6102,7 @@ function native__DocumentWrappingImplementation__get__Document_oncut(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_oncut(_this, value) {
+function native__DocumentWrappingImplementation__set_oncut(_this, value) {
   try {
     _this.$dom.oncut = __dom_unwrap(value);
   } catch (e) {
@@ -6110,7 +6110,7 @@ function native__DocumentWrappingImplementation__set__Document_oncut(_this, valu
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondblclick(_this) {
+function native__DocumentWrappingImplementation__get_ondblclick(_this) {
   try {
     return __dom_wrap(_this.$dom.ondblclick);
   } catch (e) {
@@ -6118,7 +6118,7 @@ function native__DocumentWrappingImplementation__get__Document_ondblclick(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondblclick(_this, value) {
+function native__DocumentWrappingImplementation__set_ondblclick(_this, value) {
   try {
     _this.$dom.ondblclick = __dom_unwrap(value);
   } catch (e) {
@@ -6126,7 +6126,7 @@ function native__DocumentWrappingImplementation__set__Document_ondblclick(_this,
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondrag(_this) {
+function native__DocumentWrappingImplementation__get_ondrag(_this) {
   try {
     return __dom_wrap(_this.$dom.ondrag);
   } catch (e) {
@@ -6134,7 +6134,7 @@ function native__DocumentWrappingImplementation__get__Document_ondrag(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondrag(_this, value) {
+function native__DocumentWrappingImplementation__set_ondrag(_this, value) {
   try {
     _this.$dom.ondrag = __dom_unwrap(value);
   } catch (e) {
@@ -6142,7 +6142,7 @@ function native__DocumentWrappingImplementation__set__Document_ondrag(_this, val
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondragend(_this) {
+function native__DocumentWrappingImplementation__get_ondragend(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragend);
   } catch (e) {
@@ -6150,7 +6150,7 @@ function native__DocumentWrappingImplementation__get__Document_ondragend(_this) 
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondragend(_this, value) {
+function native__DocumentWrappingImplementation__set_ondragend(_this, value) {
   try {
     _this.$dom.ondragend = __dom_unwrap(value);
   } catch (e) {
@@ -6158,7 +6158,7 @@ function native__DocumentWrappingImplementation__set__Document_ondragend(_this, 
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondragenter(_this) {
+function native__DocumentWrappingImplementation__get_ondragenter(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragenter);
   } catch (e) {
@@ -6166,7 +6166,7 @@ function native__DocumentWrappingImplementation__get__Document_ondragenter(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondragenter(_this, value) {
+function native__DocumentWrappingImplementation__set_ondragenter(_this, value) {
   try {
     _this.$dom.ondragenter = __dom_unwrap(value);
   } catch (e) {
@@ -6174,7 +6174,7 @@ function native__DocumentWrappingImplementation__set__Document_ondragenter(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondragleave(_this) {
+function native__DocumentWrappingImplementation__get_ondragleave(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragleave);
   } catch (e) {
@@ -6182,7 +6182,7 @@ function native__DocumentWrappingImplementation__get__Document_ondragleave(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondragleave(_this, value) {
+function native__DocumentWrappingImplementation__set_ondragleave(_this, value) {
   try {
     _this.$dom.ondragleave = __dom_unwrap(value);
   } catch (e) {
@@ -6190,7 +6190,7 @@ function native__DocumentWrappingImplementation__set__Document_ondragleave(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondragover(_this) {
+function native__DocumentWrappingImplementation__get_ondragover(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragover);
   } catch (e) {
@@ -6198,7 +6198,7 @@ function native__DocumentWrappingImplementation__get__Document_ondragover(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondragover(_this, value) {
+function native__DocumentWrappingImplementation__set_ondragover(_this, value) {
   try {
     _this.$dom.ondragover = __dom_unwrap(value);
   } catch (e) {
@@ -6206,7 +6206,7 @@ function native__DocumentWrappingImplementation__set__Document_ondragover(_this,
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondragstart(_this) {
+function native__DocumentWrappingImplementation__get_ondragstart(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragstart);
   } catch (e) {
@@ -6214,7 +6214,7 @@ function native__DocumentWrappingImplementation__get__Document_ondragstart(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondragstart(_this, value) {
+function native__DocumentWrappingImplementation__set_ondragstart(_this, value) {
   try {
     _this.$dom.ondragstart = __dom_unwrap(value);
   } catch (e) {
@@ -6222,7 +6222,7 @@ function native__DocumentWrappingImplementation__set__Document_ondragstart(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ondrop(_this) {
+function native__DocumentWrappingImplementation__get_ondrop(_this) {
   try {
     return __dom_wrap(_this.$dom.ondrop);
   } catch (e) {
@@ -6230,7 +6230,7 @@ function native__DocumentWrappingImplementation__get__Document_ondrop(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ondrop(_this, value) {
+function native__DocumentWrappingImplementation__set_ondrop(_this, value) {
   try {
     _this.$dom.ondrop = __dom_unwrap(value);
   } catch (e) {
@@ -6238,7 +6238,7 @@ function native__DocumentWrappingImplementation__set__Document_ondrop(_this, val
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onerror(_this) {
+function native__DocumentWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -6246,7 +6246,7 @@ function native__DocumentWrappingImplementation__get__Document_onerror(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onerror(_this, value) {
+function native__DocumentWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -6254,7 +6254,7 @@ function native__DocumentWrappingImplementation__set__Document_onerror(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onfocus(_this) {
+function native__DocumentWrappingImplementation__get_onfocus(_this) {
   try {
     return __dom_wrap(_this.$dom.onfocus);
   } catch (e) {
@@ -6262,7 +6262,7 @@ function native__DocumentWrappingImplementation__get__Document_onfocus(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onfocus(_this, value) {
+function native__DocumentWrappingImplementation__set_onfocus(_this, value) {
   try {
     _this.$dom.onfocus = __dom_unwrap(value);
   } catch (e) {
@@ -6270,7 +6270,7 @@ function native__DocumentWrappingImplementation__set__Document_onfocus(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_oninput(_this) {
+function native__DocumentWrappingImplementation__get_oninput(_this) {
   try {
     return __dom_wrap(_this.$dom.oninput);
   } catch (e) {
@@ -6278,7 +6278,7 @@ function native__DocumentWrappingImplementation__get__Document_oninput(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_oninput(_this, value) {
+function native__DocumentWrappingImplementation__set_oninput(_this, value) {
   try {
     _this.$dom.oninput = __dom_unwrap(value);
   } catch (e) {
@@ -6286,7 +6286,7 @@ function native__DocumentWrappingImplementation__set__Document_oninput(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_oninvalid(_this) {
+function native__DocumentWrappingImplementation__get_oninvalid(_this) {
   try {
     return __dom_wrap(_this.$dom.oninvalid);
   } catch (e) {
@@ -6294,7 +6294,7 @@ function native__DocumentWrappingImplementation__get__Document_oninvalid(_this) 
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_oninvalid(_this, value) {
+function native__DocumentWrappingImplementation__set_oninvalid(_this, value) {
   try {
     _this.$dom.oninvalid = __dom_unwrap(value);
   } catch (e) {
@@ -6302,7 +6302,7 @@ function native__DocumentWrappingImplementation__set__Document_oninvalid(_this, 
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onkeydown(_this) {
+function native__DocumentWrappingImplementation__get_onkeydown(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeydown);
   } catch (e) {
@@ -6310,7 +6310,7 @@ function native__DocumentWrappingImplementation__get__Document_onkeydown(_this) 
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onkeydown(_this, value) {
+function native__DocumentWrappingImplementation__set_onkeydown(_this, value) {
   try {
     _this.$dom.onkeydown = __dom_unwrap(value);
   } catch (e) {
@@ -6318,7 +6318,7 @@ function native__DocumentWrappingImplementation__set__Document_onkeydown(_this, 
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onkeypress(_this) {
+function native__DocumentWrappingImplementation__get_onkeypress(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeypress);
   } catch (e) {
@@ -6326,7 +6326,7 @@ function native__DocumentWrappingImplementation__get__Document_onkeypress(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onkeypress(_this, value) {
+function native__DocumentWrappingImplementation__set_onkeypress(_this, value) {
   try {
     _this.$dom.onkeypress = __dom_unwrap(value);
   } catch (e) {
@@ -6334,7 +6334,7 @@ function native__DocumentWrappingImplementation__set__Document_onkeypress(_this,
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onkeyup(_this) {
+function native__DocumentWrappingImplementation__get_onkeyup(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeyup);
   } catch (e) {
@@ -6342,7 +6342,7 @@ function native__DocumentWrappingImplementation__get__Document_onkeyup(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onkeyup(_this, value) {
+function native__DocumentWrappingImplementation__set_onkeyup(_this, value) {
   try {
     _this.$dom.onkeyup = __dom_unwrap(value);
   } catch (e) {
@@ -6350,7 +6350,7 @@ function native__DocumentWrappingImplementation__set__Document_onkeyup(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onload(_this) {
+function native__DocumentWrappingImplementation__get_onload(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -6358,7 +6358,7 @@ function native__DocumentWrappingImplementation__get__Document_onload(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onload(_this, value) {
+function native__DocumentWrappingImplementation__set_onload(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -6366,7 +6366,7 @@ function native__DocumentWrappingImplementation__set__Document_onload(_this, val
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onmousedown(_this) {
+function native__DocumentWrappingImplementation__get_onmousedown(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousedown);
   } catch (e) {
@@ -6374,7 +6374,7 @@ function native__DocumentWrappingImplementation__get__Document_onmousedown(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onmousedown(_this, value) {
+function native__DocumentWrappingImplementation__set_onmousedown(_this, value) {
   try {
     _this.$dom.onmousedown = __dom_unwrap(value);
   } catch (e) {
@@ -6382,7 +6382,7 @@ function native__DocumentWrappingImplementation__set__Document_onmousedown(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onmousemove(_this) {
+function native__DocumentWrappingImplementation__get_onmousemove(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousemove);
   } catch (e) {
@@ -6390,7 +6390,7 @@ function native__DocumentWrappingImplementation__get__Document_onmousemove(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onmousemove(_this, value) {
+function native__DocumentWrappingImplementation__set_onmousemove(_this, value) {
   try {
     _this.$dom.onmousemove = __dom_unwrap(value);
   } catch (e) {
@@ -6398,7 +6398,7 @@ function native__DocumentWrappingImplementation__set__Document_onmousemove(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onmouseout(_this) {
+function native__DocumentWrappingImplementation__get_onmouseout(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseout);
   } catch (e) {
@@ -6406,7 +6406,7 @@ function native__DocumentWrappingImplementation__get__Document_onmouseout(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onmouseout(_this, value) {
+function native__DocumentWrappingImplementation__set_onmouseout(_this, value) {
   try {
     _this.$dom.onmouseout = __dom_unwrap(value);
   } catch (e) {
@@ -6414,7 +6414,7 @@ function native__DocumentWrappingImplementation__set__Document_onmouseout(_this,
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onmouseover(_this) {
+function native__DocumentWrappingImplementation__get_onmouseover(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseover);
   } catch (e) {
@@ -6422,7 +6422,7 @@ function native__DocumentWrappingImplementation__get__Document_onmouseover(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onmouseover(_this, value) {
+function native__DocumentWrappingImplementation__set_onmouseover(_this, value) {
   try {
     _this.$dom.onmouseover = __dom_unwrap(value);
   } catch (e) {
@@ -6430,7 +6430,7 @@ function native__DocumentWrappingImplementation__set__Document_onmouseover(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onmouseup(_this) {
+function native__DocumentWrappingImplementation__get_onmouseup(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseup);
   } catch (e) {
@@ -6438,7 +6438,7 @@ function native__DocumentWrappingImplementation__get__Document_onmouseup(_this) 
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onmouseup(_this, value) {
+function native__DocumentWrappingImplementation__set_onmouseup(_this, value) {
   try {
     _this.$dom.onmouseup = __dom_unwrap(value);
   } catch (e) {
@@ -6446,7 +6446,7 @@ function native__DocumentWrappingImplementation__set__Document_onmouseup(_this, 
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onmousewheel(_this) {
+function native__DocumentWrappingImplementation__get_onmousewheel(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousewheel);
   } catch (e) {
@@ -6454,7 +6454,7 @@ function native__DocumentWrappingImplementation__get__Document_onmousewheel(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onmousewheel(_this, value) {
+function native__DocumentWrappingImplementation__set_onmousewheel(_this, value) {
   try {
     _this.$dom.onmousewheel = __dom_unwrap(value);
   } catch (e) {
@@ -6462,7 +6462,7 @@ function native__DocumentWrappingImplementation__set__Document_onmousewheel(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onpaste(_this) {
+function native__DocumentWrappingImplementation__get_onpaste(_this) {
   try {
     return __dom_wrap(_this.$dom.onpaste);
   } catch (e) {
@@ -6470,7 +6470,7 @@ function native__DocumentWrappingImplementation__get__Document_onpaste(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onpaste(_this, value) {
+function native__DocumentWrappingImplementation__set_onpaste(_this, value) {
   try {
     _this.$dom.onpaste = __dom_unwrap(value);
   } catch (e) {
@@ -6478,7 +6478,7 @@ function native__DocumentWrappingImplementation__set__Document_onpaste(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onreadystatechange(_this) {
+function native__DocumentWrappingImplementation__get_onreadystatechange(_this) {
   try {
     return __dom_wrap(_this.$dom.onreadystatechange);
   } catch (e) {
@@ -6486,7 +6486,7 @@ function native__DocumentWrappingImplementation__get__Document_onreadystatechang
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onreadystatechange(_this, value) {
+function native__DocumentWrappingImplementation__set_onreadystatechange(_this, value) {
   try {
     _this.$dom.onreadystatechange = __dom_unwrap(value);
   } catch (e) {
@@ -6494,7 +6494,7 @@ function native__DocumentWrappingImplementation__set__Document_onreadystatechang
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onreset(_this) {
+function native__DocumentWrappingImplementation__get_onreset(_this) {
   try {
     return __dom_wrap(_this.$dom.onreset);
   } catch (e) {
@@ -6502,7 +6502,7 @@ function native__DocumentWrappingImplementation__get__Document_onreset(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onreset(_this, value) {
+function native__DocumentWrappingImplementation__set_onreset(_this, value) {
   try {
     _this.$dom.onreset = __dom_unwrap(value);
   } catch (e) {
@@ -6510,7 +6510,7 @@ function native__DocumentWrappingImplementation__set__Document_onreset(_this, va
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onscroll(_this) {
+function native__DocumentWrappingImplementation__get_onscroll(_this) {
   try {
     return __dom_wrap(_this.$dom.onscroll);
   } catch (e) {
@@ -6518,7 +6518,7 @@ function native__DocumentWrappingImplementation__get__Document_onscroll(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onscroll(_this, value) {
+function native__DocumentWrappingImplementation__set_onscroll(_this, value) {
   try {
     _this.$dom.onscroll = __dom_unwrap(value);
   } catch (e) {
@@ -6526,7 +6526,7 @@ function native__DocumentWrappingImplementation__set__Document_onscroll(_this, v
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onsearch(_this) {
+function native__DocumentWrappingImplementation__get_onsearch(_this) {
   try {
     return __dom_wrap(_this.$dom.onsearch);
   } catch (e) {
@@ -6534,7 +6534,7 @@ function native__DocumentWrappingImplementation__get__Document_onsearch(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onsearch(_this, value) {
+function native__DocumentWrappingImplementation__set_onsearch(_this, value) {
   try {
     _this.$dom.onsearch = __dom_unwrap(value);
   } catch (e) {
@@ -6542,7 +6542,7 @@ function native__DocumentWrappingImplementation__set__Document_onsearch(_this, v
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onselect(_this) {
+function native__DocumentWrappingImplementation__get_onselect(_this) {
   try {
     return __dom_wrap(_this.$dom.onselect);
   } catch (e) {
@@ -6550,7 +6550,7 @@ function native__DocumentWrappingImplementation__get__Document_onselect(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onselect(_this, value) {
+function native__DocumentWrappingImplementation__set_onselect(_this, value) {
   try {
     _this.$dom.onselect = __dom_unwrap(value);
   } catch (e) {
@@ -6558,7 +6558,7 @@ function native__DocumentWrappingImplementation__set__Document_onselect(_this, v
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onselectionchange(_this) {
+function native__DocumentWrappingImplementation__get_onselectionchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onselectionchange);
   } catch (e) {
@@ -6566,7 +6566,7 @@ function native__DocumentWrappingImplementation__get__Document_onselectionchange
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onselectionchange(_this, value) {
+function native__DocumentWrappingImplementation__set_onselectionchange(_this, value) {
   try {
     _this.$dom.onselectionchange = __dom_unwrap(value);
   } catch (e) {
@@ -6574,7 +6574,7 @@ function native__DocumentWrappingImplementation__set__Document_onselectionchange
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onselectstart(_this) {
+function native__DocumentWrappingImplementation__get_onselectstart(_this) {
   try {
     return __dom_wrap(_this.$dom.onselectstart);
   } catch (e) {
@@ -6582,7 +6582,7 @@ function native__DocumentWrappingImplementation__get__Document_onselectstart(_th
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onselectstart(_this, value) {
+function native__DocumentWrappingImplementation__set_onselectstart(_this, value) {
   try {
     _this.$dom.onselectstart = __dom_unwrap(value);
   } catch (e) {
@@ -6590,7 +6590,7 @@ function native__DocumentWrappingImplementation__set__Document_onselectstart(_th
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onsubmit(_this) {
+function native__DocumentWrappingImplementation__get_onsubmit(_this) {
   try {
     return __dom_wrap(_this.$dom.onsubmit);
   } catch (e) {
@@ -6598,7 +6598,7 @@ function native__DocumentWrappingImplementation__get__Document_onsubmit(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onsubmit(_this, value) {
+function native__DocumentWrappingImplementation__set_onsubmit(_this, value) {
   try {
     _this.$dom.onsubmit = __dom_unwrap(value);
   } catch (e) {
@@ -6606,7 +6606,7 @@ function native__DocumentWrappingImplementation__set__Document_onsubmit(_this, v
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ontouchcancel(_this) {
+function native__DocumentWrappingImplementation__get_ontouchcancel(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchcancel);
   } catch (e) {
@@ -6614,7 +6614,7 @@ function native__DocumentWrappingImplementation__get__Document_ontouchcancel(_th
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ontouchcancel(_this, value) {
+function native__DocumentWrappingImplementation__set_ontouchcancel(_this, value) {
   try {
     _this.$dom.ontouchcancel = __dom_unwrap(value);
   } catch (e) {
@@ -6622,7 +6622,7 @@ function native__DocumentWrappingImplementation__set__Document_ontouchcancel(_th
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ontouchend(_this) {
+function native__DocumentWrappingImplementation__get_ontouchend(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchend);
   } catch (e) {
@@ -6630,7 +6630,7 @@ function native__DocumentWrappingImplementation__get__Document_ontouchend(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ontouchend(_this, value) {
+function native__DocumentWrappingImplementation__set_ontouchend(_this, value) {
   try {
     _this.$dom.ontouchend = __dom_unwrap(value);
   } catch (e) {
@@ -6638,7 +6638,7 @@ function native__DocumentWrappingImplementation__set__Document_ontouchend(_this,
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ontouchmove(_this) {
+function native__DocumentWrappingImplementation__get_ontouchmove(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchmove);
   } catch (e) {
@@ -6646,7 +6646,7 @@ function native__DocumentWrappingImplementation__get__Document_ontouchmove(_this
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ontouchmove(_this, value) {
+function native__DocumentWrappingImplementation__set_ontouchmove(_this, value) {
   try {
     _this.$dom.ontouchmove = __dom_unwrap(value);
   } catch (e) {
@@ -6654,7 +6654,7 @@ function native__DocumentWrappingImplementation__set__Document_ontouchmove(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_ontouchstart(_this) {
+function native__DocumentWrappingImplementation__get_ontouchstart(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchstart);
   } catch (e) {
@@ -6662,7 +6662,7 @@ function native__DocumentWrappingImplementation__get__Document_ontouchstart(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_ontouchstart(_this, value) {
+function native__DocumentWrappingImplementation__set_ontouchstart(_this, value) {
   try {
     _this.$dom.ontouchstart = __dom_unwrap(value);
   } catch (e) {
@@ -6670,7 +6670,7 @@ function native__DocumentWrappingImplementation__set__Document_ontouchstart(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_onwebkitfullscreenchange(_this) {
+function native__DocumentWrappingImplementation__get_onwebkitfullscreenchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onwebkitfullscreenchange);
   } catch (e) {
@@ -6678,7 +6678,7 @@ function native__DocumentWrappingImplementation__get__Document_onwebkitfullscree
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_onwebkitfullscreenchange(_this, value) {
+function native__DocumentWrappingImplementation__set_onwebkitfullscreenchange(_this, value) {
   try {
     _this.$dom.onwebkitfullscreenchange = __dom_unwrap(value);
   } catch (e) {
@@ -6686,7 +6686,7 @@ function native__DocumentWrappingImplementation__set__Document_onwebkitfullscree
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_preferredStylesheetSet(_this) {
+function native__DocumentWrappingImplementation__get_preferredStylesheetSet(_this) {
   try {
     return __dom_wrap(_this.$dom.preferredStylesheetSet);
   } catch (e) {
@@ -6694,7 +6694,7 @@ function native__DocumentWrappingImplementation__get__Document_preferredStyleshe
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_readyState(_this) {
+function native__DocumentWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -6702,7 +6702,7 @@ function native__DocumentWrappingImplementation__get__Document_readyState(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_referrer(_this) {
+function native__DocumentWrappingImplementation__get_referrer(_this) {
   try {
     return __dom_wrap(_this.$dom.referrer);
   } catch (e) {
@@ -6710,7 +6710,7 @@ function native__DocumentWrappingImplementation__get__Document_referrer(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_selectedStylesheetSet(_this) {
+function native__DocumentWrappingImplementation__get_selectedStylesheetSet(_this) {
   try {
     return __dom_wrap(_this.$dom.selectedStylesheetSet);
   } catch (e) {
@@ -6718,7 +6718,7 @@ function native__DocumentWrappingImplementation__get__Document_selectedStyleshee
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_selectedStylesheetSet(_this, value) {
+function native__DocumentWrappingImplementation__set_selectedStylesheetSet(_this, value) {
   try {
     _this.$dom.selectedStylesheetSet = __dom_unwrap(value);
   } catch (e) {
@@ -6726,7 +6726,7 @@ function native__DocumentWrappingImplementation__set__Document_selectedStyleshee
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_styleSheets(_this) {
+function native__DocumentWrappingImplementation__get_styleSheets(_this) {
   try {
     return __dom_wrap(_this.$dom.styleSheets);
   } catch (e) {
@@ -6734,7 +6734,7 @@ function native__DocumentWrappingImplementation__get__Document_styleSheets(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_title(_this) {
+function native__DocumentWrappingImplementation__get_title(_this) {
   try {
     return __dom_wrap(_this.$dom.title);
   } catch (e) {
@@ -6742,7 +6742,7 @@ function native__DocumentWrappingImplementation__get__Document_title(_this) {
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_title(_this, value) {
+function native__DocumentWrappingImplementation__set_title(_this, value) {
   try {
     _this.$dom.title = __dom_unwrap(value);
   } catch (e) {
@@ -6750,7 +6750,7 @@ function native__DocumentWrappingImplementation__set__Document_title(_this, valu
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_webkitHidden(_this) {
+function native__DocumentWrappingImplementation__get_webkitHidden(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitHidden);
   } catch (e) {
@@ -6758,7 +6758,7 @@ function native__DocumentWrappingImplementation__get__Document_webkitHidden(_thi
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_webkitVisibilityState(_this) {
+function native__DocumentWrappingImplementation__get_webkitVisibilityState(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitVisibilityState);
   } catch (e) {
@@ -6766,7 +6766,7 @@ function native__DocumentWrappingImplementation__get__Document_webkitVisibilityS
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_xmlEncoding(_this) {
+function native__DocumentWrappingImplementation__get_xmlEncoding(_this) {
   try {
     return __dom_wrap(_this.$dom.xmlEncoding);
   } catch (e) {
@@ -6774,7 +6774,7 @@ function native__DocumentWrappingImplementation__get__Document_xmlEncoding(_this
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_xmlStandalone(_this) {
+function native__DocumentWrappingImplementation__get_xmlStandalone(_this) {
   try {
     return __dom_wrap(_this.$dom.xmlStandalone);
   } catch (e) {
@@ -6782,7 +6782,7 @@ function native__DocumentWrappingImplementation__get__Document_xmlStandalone(_th
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_xmlStandalone(_this, value) {
+function native__DocumentWrappingImplementation__set_xmlStandalone(_this, value) {
   try {
     _this.$dom.xmlStandalone = __dom_unwrap(value);
   } catch (e) {
@@ -6790,7 +6790,7 @@ function native__DocumentWrappingImplementation__set__Document_xmlStandalone(_th
   }
 }
 
-function native__DocumentWrappingImplementation__get__Document_xmlVersion(_this) {
+function native__DocumentWrappingImplementation__get_xmlVersion(_this) {
   try {
     return __dom_wrap(_this.$dom.xmlVersion);
   } catch (e) {
@@ -6798,7 +6798,7 @@ function native__DocumentWrappingImplementation__get__Document_xmlVersion(_this)
   }
 }
 
-function native__DocumentWrappingImplementation__set__Document_xmlVersion(_this, value) {
+function native__DocumentWrappingImplementation__set_xmlVersion(_this, value) {
   try {
     _this.$dom.xmlVersion = __dom_unwrap(value);
   } catch (e) {
@@ -7118,7 +7118,7 @@ function native__DocumentFragmentWrappingImplementation__querySelectorAll(_this,
   }
 }
 
-function native__DocumentTypeWrappingImplementation__get__DocumentType_entities(_this) {
+function native__DocumentTypeWrappingImplementation__get_entities(_this) {
   try {
     return __dom_wrap(_this.$dom.entities);
   } catch (e) {
@@ -7126,7 +7126,7 @@ function native__DocumentTypeWrappingImplementation__get__DocumentType_entities(
   }
 }
 
-function native__DocumentTypeWrappingImplementation__get__DocumentType_internalSubset(_this) {
+function native__DocumentTypeWrappingImplementation__get_internalSubset(_this) {
   try {
     return __dom_wrap(_this.$dom.internalSubset);
   } catch (e) {
@@ -7134,7 +7134,7 @@ function native__DocumentTypeWrappingImplementation__get__DocumentType_internalS
   }
 }
 
-function native__DocumentTypeWrappingImplementation__get__DocumentType_name(_this) {
+function native__DocumentTypeWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -7142,7 +7142,7 @@ function native__DocumentTypeWrappingImplementation__get__DocumentType_name(_thi
   }
 }
 
-function native__DocumentTypeWrappingImplementation__get__DocumentType_notations(_this) {
+function native__DocumentTypeWrappingImplementation__get_notations(_this) {
   try {
     return __dom_wrap(_this.$dom.notations);
   } catch (e) {
@@ -7150,7 +7150,7 @@ function native__DocumentTypeWrappingImplementation__get__DocumentType_notations
   }
 }
 
-function native__DocumentTypeWrappingImplementation__get__DocumentType_publicId(_this) {
+function native__DocumentTypeWrappingImplementation__get_publicId(_this) {
   try {
     return __dom_wrap(_this.$dom.publicId);
   } catch (e) {
@@ -7158,7 +7158,7 @@ function native__DocumentTypeWrappingImplementation__get__DocumentType_publicId(
   }
 }
 
-function native__DocumentTypeWrappingImplementation__get__DocumentType_systemId(_this) {
+function native__DocumentTypeWrappingImplementation__get_systemId(_this) {
   try {
     return __dom_wrap(_this.$dom.systemId);
   } catch (e) {
@@ -7166,7 +7166,7 @@ function native__DocumentTypeWrappingImplementation__get__DocumentType_systemId(
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_childElementCount(_this) {
+function native__ElementWrappingImplementation__get_childElementCount(_this) {
   try {
     return __dom_wrap(_this.$dom.childElementCount);
   } catch (e) {
@@ -7174,7 +7174,7 @@ function native__ElementWrappingImplementation__get__Element_childElementCount(_
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_clientHeight(_this) {
+function native__ElementWrappingImplementation__get_clientHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.clientHeight);
   } catch (e) {
@@ -7182,7 +7182,7 @@ function native__ElementWrappingImplementation__get__Element_clientHeight(_this)
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_clientLeft(_this) {
+function native__ElementWrappingImplementation__get_clientLeft(_this) {
   try {
     return __dom_wrap(_this.$dom.clientLeft);
   } catch (e) {
@@ -7190,7 +7190,7 @@ function native__ElementWrappingImplementation__get__Element_clientLeft(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_clientTop(_this) {
+function native__ElementWrappingImplementation__get_clientTop(_this) {
   try {
     return __dom_wrap(_this.$dom.clientTop);
   } catch (e) {
@@ -7198,7 +7198,7 @@ function native__ElementWrappingImplementation__get__Element_clientTop(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_clientWidth(_this) {
+function native__ElementWrappingImplementation__get_clientWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.clientWidth);
   } catch (e) {
@@ -7206,7 +7206,7 @@ function native__ElementWrappingImplementation__get__Element_clientWidth(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_firstElementChild(_this) {
+function native__ElementWrappingImplementation__get_firstElementChild(_this) {
   try {
     return __dom_wrap(_this.$dom.firstElementChild);
   } catch (e) {
@@ -7214,7 +7214,7 @@ function native__ElementWrappingImplementation__get__Element_firstElementChild(_
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_lastElementChild(_this) {
+function native__ElementWrappingImplementation__get_lastElementChild(_this) {
   try {
     return __dom_wrap(_this.$dom.lastElementChild);
   } catch (e) {
@@ -7222,7 +7222,7 @@ function native__ElementWrappingImplementation__get__Element_lastElementChild(_t
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_nextElementSibling(_this) {
+function native__ElementWrappingImplementation__get_nextElementSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.nextElementSibling);
   } catch (e) {
@@ -7230,7 +7230,7 @@ function native__ElementWrappingImplementation__get__Element_nextElementSibling(
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_offsetHeight(_this) {
+function native__ElementWrappingImplementation__get_offsetHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetHeight);
   } catch (e) {
@@ -7238,7 +7238,7 @@ function native__ElementWrappingImplementation__get__Element_offsetHeight(_this)
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_offsetLeft(_this) {
+function native__ElementWrappingImplementation__get_offsetLeft(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetLeft);
   } catch (e) {
@@ -7246,7 +7246,7 @@ function native__ElementWrappingImplementation__get__Element_offsetLeft(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_offsetParent(_this) {
+function native__ElementWrappingImplementation__get_offsetParent(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetParent);
   } catch (e) {
@@ -7254,7 +7254,7 @@ function native__ElementWrappingImplementation__get__Element_offsetParent(_this)
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_offsetTop(_this) {
+function native__ElementWrappingImplementation__get_offsetTop(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetTop);
   } catch (e) {
@@ -7262,7 +7262,7 @@ function native__ElementWrappingImplementation__get__Element_offsetTop(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_offsetWidth(_this) {
+function native__ElementWrappingImplementation__get_offsetWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetWidth);
   } catch (e) {
@@ -7270,7 +7270,7 @@ function native__ElementWrappingImplementation__get__Element_offsetWidth(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onabort(_this) {
+function native__ElementWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -7278,7 +7278,7 @@ function native__ElementWrappingImplementation__get__Element_onabort(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onabort(_this, value) {
+function native__ElementWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -7286,7 +7286,7 @@ function native__ElementWrappingImplementation__set__Element_onabort(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onbeforecopy(_this) {
+function native__ElementWrappingImplementation__get_onbeforecopy(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforecopy);
   } catch (e) {
@@ -7294,7 +7294,7 @@ function native__ElementWrappingImplementation__get__Element_onbeforecopy(_this)
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onbeforecopy(_this, value) {
+function native__ElementWrappingImplementation__set_onbeforecopy(_this, value) {
   try {
     _this.$dom.onbeforecopy = __dom_unwrap(value);
   } catch (e) {
@@ -7302,7 +7302,7 @@ function native__ElementWrappingImplementation__set__Element_onbeforecopy(_this,
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onbeforecut(_this) {
+function native__ElementWrappingImplementation__get_onbeforecut(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforecut);
   } catch (e) {
@@ -7310,7 +7310,7 @@ function native__ElementWrappingImplementation__get__Element_onbeforecut(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onbeforecut(_this, value) {
+function native__ElementWrappingImplementation__set_onbeforecut(_this, value) {
   try {
     _this.$dom.onbeforecut = __dom_unwrap(value);
   } catch (e) {
@@ -7318,7 +7318,7 @@ function native__ElementWrappingImplementation__set__Element_onbeforecut(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onbeforepaste(_this) {
+function native__ElementWrappingImplementation__get_onbeforepaste(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforepaste);
   } catch (e) {
@@ -7326,7 +7326,7 @@ function native__ElementWrappingImplementation__get__Element_onbeforepaste(_this
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onbeforepaste(_this, value) {
+function native__ElementWrappingImplementation__set_onbeforepaste(_this, value) {
   try {
     _this.$dom.onbeforepaste = __dom_unwrap(value);
   } catch (e) {
@@ -7334,7 +7334,7 @@ function native__ElementWrappingImplementation__set__Element_onbeforepaste(_this
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onblur(_this) {
+function native__ElementWrappingImplementation__get_onblur(_this) {
   try {
     return __dom_wrap(_this.$dom.onblur);
   } catch (e) {
@@ -7342,7 +7342,7 @@ function native__ElementWrappingImplementation__get__Element_onblur(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onblur(_this, value) {
+function native__ElementWrappingImplementation__set_onblur(_this, value) {
   try {
     _this.$dom.onblur = __dom_unwrap(value);
   } catch (e) {
@@ -7350,7 +7350,7 @@ function native__ElementWrappingImplementation__set__Element_onblur(_this, value
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onchange(_this) {
+function native__ElementWrappingImplementation__get_onchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onchange);
   } catch (e) {
@@ -7358,7 +7358,7 @@ function native__ElementWrappingImplementation__get__Element_onchange(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onchange(_this, value) {
+function native__ElementWrappingImplementation__set_onchange(_this, value) {
   try {
     _this.$dom.onchange = __dom_unwrap(value);
   } catch (e) {
@@ -7366,7 +7366,7 @@ function native__ElementWrappingImplementation__set__Element_onchange(_this, val
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onclick(_this) {
+function native__ElementWrappingImplementation__get_onclick(_this) {
   try {
     return __dom_wrap(_this.$dom.onclick);
   } catch (e) {
@@ -7374,7 +7374,7 @@ function native__ElementWrappingImplementation__get__Element_onclick(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onclick(_this, value) {
+function native__ElementWrappingImplementation__set_onclick(_this, value) {
   try {
     _this.$dom.onclick = __dom_unwrap(value);
   } catch (e) {
@@ -7382,7 +7382,7 @@ function native__ElementWrappingImplementation__set__Element_onclick(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_oncontextmenu(_this) {
+function native__ElementWrappingImplementation__get_oncontextmenu(_this) {
   try {
     return __dom_wrap(_this.$dom.oncontextmenu);
   } catch (e) {
@@ -7390,7 +7390,7 @@ function native__ElementWrappingImplementation__get__Element_oncontextmenu(_this
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_oncontextmenu(_this, value) {
+function native__ElementWrappingImplementation__set_oncontextmenu(_this, value) {
   try {
     _this.$dom.oncontextmenu = __dom_unwrap(value);
   } catch (e) {
@@ -7398,7 +7398,7 @@ function native__ElementWrappingImplementation__set__Element_oncontextmenu(_this
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_oncopy(_this) {
+function native__ElementWrappingImplementation__get_oncopy(_this) {
   try {
     return __dom_wrap(_this.$dom.oncopy);
   } catch (e) {
@@ -7406,7 +7406,7 @@ function native__ElementWrappingImplementation__get__Element_oncopy(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_oncopy(_this, value) {
+function native__ElementWrappingImplementation__set_oncopy(_this, value) {
   try {
     _this.$dom.oncopy = __dom_unwrap(value);
   } catch (e) {
@@ -7414,7 +7414,7 @@ function native__ElementWrappingImplementation__set__Element_oncopy(_this, value
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_oncut(_this) {
+function native__ElementWrappingImplementation__get_oncut(_this) {
   try {
     return __dom_wrap(_this.$dom.oncut);
   } catch (e) {
@@ -7422,7 +7422,7 @@ function native__ElementWrappingImplementation__get__Element_oncut(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_oncut(_this, value) {
+function native__ElementWrappingImplementation__set_oncut(_this, value) {
   try {
     _this.$dom.oncut = __dom_unwrap(value);
   } catch (e) {
@@ -7430,7 +7430,7 @@ function native__ElementWrappingImplementation__set__Element_oncut(_this, value)
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondblclick(_this) {
+function native__ElementWrappingImplementation__get_ondblclick(_this) {
   try {
     return __dom_wrap(_this.$dom.ondblclick);
   } catch (e) {
@@ -7438,7 +7438,7 @@ function native__ElementWrappingImplementation__get__Element_ondblclick(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondblclick(_this, value) {
+function native__ElementWrappingImplementation__set_ondblclick(_this, value) {
   try {
     _this.$dom.ondblclick = __dom_unwrap(value);
   } catch (e) {
@@ -7446,7 +7446,7 @@ function native__ElementWrappingImplementation__set__Element_ondblclick(_this, v
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondrag(_this) {
+function native__ElementWrappingImplementation__get_ondrag(_this) {
   try {
     return __dom_wrap(_this.$dom.ondrag);
   } catch (e) {
@@ -7454,7 +7454,7 @@ function native__ElementWrappingImplementation__get__Element_ondrag(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondrag(_this, value) {
+function native__ElementWrappingImplementation__set_ondrag(_this, value) {
   try {
     _this.$dom.ondrag = __dom_unwrap(value);
   } catch (e) {
@@ -7462,7 +7462,7 @@ function native__ElementWrappingImplementation__set__Element_ondrag(_this, value
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondragend(_this) {
+function native__ElementWrappingImplementation__get_ondragend(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragend);
   } catch (e) {
@@ -7470,7 +7470,7 @@ function native__ElementWrappingImplementation__get__Element_ondragend(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondragend(_this, value) {
+function native__ElementWrappingImplementation__set_ondragend(_this, value) {
   try {
     _this.$dom.ondragend = __dom_unwrap(value);
   } catch (e) {
@@ -7478,7 +7478,7 @@ function native__ElementWrappingImplementation__set__Element_ondragend(_this, va
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondragenter(_this) {
+function native__ElementWrappingImplementation__get_ondragenter(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragenter);
   } catch (e) {
@@ -7486,7 +7486,7 @@ function native__ElementWrappingImplementation__get__Element_ondragenter(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondragenter(_this, value) {
+function native__ElementWrappingImplementation__set_ondragenter(_this, value) {
   try {
     _this.$dom.ondragenter = __dom_unwrap(value);
   } catch (e) {
@@ -7494,7 +7494,7 @@ function native__ElementWrappingImplementation__set__Element_ondragenter(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondragleave(_this) {
+function native__ElementWrappingImplementation__get_ondragleave(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragleave);
   } catch (e) {
@@ -7502,7 +7502,7 @@ function native__ElementWrappingImplementation__get__Element_ondragleave(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondragleave(_this, value) {
+function native__ElementWrappingImplementation__set_ondragleave(_this, value) {
   try {
     _this.$dom.ondragleave = __dom_unwrap(value);
   } catch (e) {
@@ -7510,7 +7510,7 @@ function native__ElementWrappingImplementation__set__Element_ondragleave(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondragover(_this) {
+function native__ElementWrappingImplementation__get_ondragover(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragover);
   } catch (e) {
@@ -7518,7 +7518,7 @@ function native__ElementWrappingImplementation__get__Element_ondragover(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondragover(_this, value) {
+function native__ElementWrappingImplementation__set_ondragover(_this, value) {
   try {
     _this.$dom.ondragover = __dom_unwrap(value);
   } catch (e) {
@@ -7526,7 +7526,7 @@ function native__ElementWrappingImplementation__set__Element_ondragover(_this, v
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondragstart(_this) {
+function native__ElementWrappingImplementation__get_ondragstart(_this) {
   try {
     return __dom_wrap(_this.$dom.ondragstart);
   } catch (e) {
@@ -7534,7 +7534,7 @@ function native__ElementWrappingImplementation__get__Element_ondragstart(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondragstart(_this, value) {
+function native__ElementWrappingImplementation__set_ondragstart(_this, value) {
   try {
     _this.$dom.ondragstart = __dom_unwrap(value);
   } catch (e) {
@@ -7542,7 +7542,7 @@ function native__ElementWrappingImplementation__set__Element_ondragstart(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ondrop(_this) {
+function native__ElementWrappingImplementation__get_ondrop(_this) {
   try {
     return __dom_wrap(_this.$dom.ondrop);
   } catch (e) {
@@ -7550,7 +7550,7 @@ function native__ElementWrappingImplementation__get__Element_ondrop(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ondrop(_this, value) {
+function native__ElementWrappingImplementation__set_ondrop(_this, value) {
   try {
     _this.$dom.ondrop = __dom_unwrap(value);
   } catch (e) {
@@ -7558,7 +7558,7 @@ function native__ElementWrappingImplementation__set__Element_ondrop(_this, value
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onerror(_this) {
+function native__ElementWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -7566,7 +7566,7 @@ function native__ElementWrappingImplementation__get__Element_onerror(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onerror(_this, value) {
+function native__ElementWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -7574,7 +7574,7 @@ function native__ElementWrappingImplementation__set__Element_onerror(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onfocus(_this) {
+function native__ElementWrappingImplementation__get_onfocus(_this) {
   try {
     return __dom_wrap(_this.$dom.onfocus);
   } catch (e) {
@@ -7582,7 +7582,7 @@ function native__ElementWrappingImplementation__get__Element_onfocus(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onfocus(_this, value) {
+function native__ElementWrappingImplementation__set_onfocus(_this, value) {
   try {
     _this.$dom.onfocus = __dom_unwrap(value);
   } catch (e) {
@@ -7590,7 +7590,7 @@ function native__ElementWrappingImplementation__set__Element_onfocus(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_oninput(_this) {
+function native__ElementWrappingImplementation__get_oninput(_this) {
   try {
     return __dom_wrap(_this.$dom.oninput);
   } catch (e) {
@@ -7598,7 +7598,7 @@ function native__ElementWrappingImplementation__get__Element_oninput(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_oninput(_this, value) {
+function native__ElementWrappingImplementation__set_oninput(_this, value) {
   try {
     _this.$dom.oninput = __dom_unwrap(value);
   } catch (e) {
@@ -7606,7 +7606,7 @@ function native__ElementWrappingImplementation__set__Element_oninput(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_oninvalid(_this) {
+function native__ElementWrappingImplementation__get_oninvalid(_this) {
   try {
     return __dom_wrap(_this.$dom.oninvalid);
   } catch (e) {
@@ -7614,7 +7614,7 @@ function native__ElementWrappingImplementation__get__Element_oninvalid(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_oninvalid(_this, value) {
+function native__ElementWrappingImplementation__set_oninvalid(_this, value) {
   try {
     _this.$dom.oninvalid = __dom_unwrap(value);
   } catch (e) {
@@ -7622,7 +7622,7 @@ function native__ElementWrappingImplementation__set__Element_oninvalid(_this, va
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onkeydown(_this) {
+function native__ElementWrappingImplementation__get_onkeydown(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeydown);
   } catch (e) {
@@ -7630,7 +7630,7 @@ function native__ElementWrappingImplementation__get__Element_onkeydown(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onkeydown(_this, value) {
+function native__ElementWrappingImplementation__set_onkeydown(_this, value) {
   try {
     _this.$dom.onkeydown = __dom_unwrap(value);
   } catch (e) {
@@ -7638,7 +7638,7 @@ function native__ElementWrappingImplementation__set__Element_onkeydown(_this, va
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onkeypress(_this) {
+function native__ElementWrappingImplementation__get_onkeypress(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeypress);
   } catch (e) {
@@ -7646,7 +7646,7 @@ function native__ElementWrappingImplementation__get__Element_onkeypress(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onkeypress(_this, value) {
+function native__ElementWrappingImplementation__set_onkeypress(_this, value) {
   try {
     _this.$dom.onkeypress = __dom_unwrap(value);
   } catch (e) {
@@ -7654,7 +7654,7 @@ function native__ElementWrappingImplementation__set__Element_onkeypress(_this, v
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onkeyup(_this) {
+function native__ElementWrappingImplementation__get_onkeyup(_this) {
   try {
     return __dom_wrap(_this.$dom.onkeyup);
   } catch (e) {
@@ -7662,7 +7662,7 @@ function native__ElementWrappingImplementation__get__Element_onkeyup(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onkeyup(_this, value) {
+function native__ElementWrappingImplementation__set_onkeyup(_this, value) {
   try {
     _this.$dom.onkeyup = __dom_unwrap(value);
   } catch (e) {
@@ -7670,7 +7670,7 @@ function native__ElementWrappingImplementation__set__Element_onkeyup(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onload(_this) {
+function native__ElementWrappingImplementation__get_onload(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -7678,7 +7678,7 @@ function native__ElementWrappingImplementation__get__Element_onload(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onload(_this, value) {
+function native__ElementWrappingImplementation__set_onload(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -7686,7 +7686,7 @@ function native__ElementWrappingImplementation__set__Element_onload(_this, value
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onmousedown(_this) {
+function native__ElementWrappingImplementation__get_onmousedown(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousedown);
   } catch (e) {
@@ -7694,7 +7694,7 @@ function native__ElementWrappingImplementation__get__Element_onmousedown(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onmousedown(_this, value) {
+function native__ElementWrappingImplementation__set_onmousedown(_this, value) {
   try {
     _this.$dom.onmousedown = __dom_unwrap(value);
   } catch (e) {
@@ -7702,7 +7702,7 @@ function native__ElementWrappingImplementation__set__Element_onmousedown(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onmousemove(_this) {
+function native__ElementWrappingImplementation__get_onmousemove(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousemove);
   } catch (e) {
@@ -7710,7 +7710,7 @@ function native__ElementWrappingImplementation__get__Element_onmousemove(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onmousemove(_this, value) {
+function native__ElementWrappingImplementation__set_onmousemove(_this, value) {
   try {
     _this.$dom.onmousemove = __dom_unwrap(value);
   } catch (e) {
@@ -7718,7 +7718,7 @@ function native__ElementWrappingImplementation__set__Element_onmousemove(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onmouseout(_this) {
+function native__ElementWrappingImplementation__get_onmouseout(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseout);
   } catch (e) {
@@ -7726,7 +7726,7 @@ function native__ElementWrappingImplementation__get__Element_onmouseout(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onmouseout(_this, value) {
+function native__ElementWrappingImplementation__set_onmouseout(_this, value) {
   try {
     _this.$dom.onmouseout = __dom_unwrap(value);
   } catch (e) {
@@ -7734,7 +7734,7 @@ function native__ElementWrappingImplementation__set__Element_onmouseout(_this, v
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onmouseover(_this) {
+function native__ElementWrappingImplementation__get_onmouseover(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseover);
   } catch (e) {
@@ -7742,7 +7742,7 @@ function native__ElementWrappingImplementation__get__Element_onmouseover(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onmouseover(_this, value) {
+function native__ElementWrappingImplementation__set_onmouseover(_this, value) {
   try {
     _this.$dom.onmouseover = __dom_unwrap(value);
   } catch (e) {
@@ -7750,7 +7750,7 @@ function native__ElementWrappingImplementation__set__Element_onmouseover(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onmouseup(_this) {
+function native__ElementWrappingImplementation__get_onmouseup(_this) {
   try {
     return __dom_wrap(_this.$dom.onmouseup);
   } catch (e) {
@@ -7758,7 +7758,7 @@ function native__ElementWrappingImplementation__get__Element_onmouseup(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onmouseup(_this, value) {
+function native__ElementWrappingImplementation__set_onmouseup(_this, value) {
   try {
     _this.$dom.onmouseup = __dom_unwrap(value);
   } catch (e) {
@@ -7766,7 +7766,7 @@ function native__ElementWrappingImplementation__set__Element_onmouseup(_this, va
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onmousewheel(_this) {
+function native__ElementWrappingImplementation__get_onmousewheel(_this) {
   try {
     return __dom_wrap(_this.$dom.onmousewheel);
   } catch (e) {
@@ -7774,7 +7774,7 @@ function native__ElementWrappingImplementation__get__Element_onmousewheel(_this)
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onmousewheel(_this, value) {
+function native__ElementWrappingImplementation__set_onmousewheel(_this, value) {
   try {
     _this.$dom.onmousewheel = __dom_unwrap(value);
   } catch (e) {
@@ -7782,7 +7782,7 @@ function native__ElementWrappingImplementation__set__Element_onmousewheel(_this,
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onpaste(_this) {
+function native__ElementWrappingImplementation__get_onpaste(_this) {
   try {
     return __dom_wrap(_this.$dom.onpaste);
   } catch (e) {
@@ -7790,7 +7790,7 @@ function native__ElementWrappingImplementation__get__Element_onpaste(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onpaste(_this, value) {
+function native__ElementWrappingImplementation__set_onpaste(_this, value) {
   try {
     _this.$dom.onpaste = __dom_unwrap(value);
   } catch (e) {
@@ -7798,7 +7798,7 @@ function native__ElementWrappingImplementation__set__Element_onpaste(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onreset(_this) {
+function native__ElementWrappingImplementation__get_onreset(_this) {
   try {
     return __dom_wrap(_this.$dom.onreset);
   } catch (e) {
@@ -7806,7 +7806,7 @@ function native__ElementWrappingImplementation__get__Element_onreset(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onreset(_this, value) {
+function native__ElementWrappingImplementation__set_onreset(_this, value) {
   try {
     _this.$dom.onreset = __dom_unwrap(value);
   } catch (e) {
@@ -7814,7 +7814,7 @@ function native__ElementWrappingImplementation__set__Element_onreset(_this, valu
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onscroll(_this) {
+function native__ElementWrappingImplementation__get_onscroll(_this) {
   try {
     return __dom_wrap(_this.$dom.onscroll);
   } catch (e) {
@@ -7822,7 +7822,7 @@ function native__ElementWrappingImplementation__get__Element_onscroll(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onscroll(_this, value) {
+function native__ElementWrappingImplementation__set_onscroll(_this, value) {
   try {
     _this.$dom.onscroll = __dom_unwrap(value);
   } catch (e) {
@@ -7830,7 +7830,7 @@ function native__ElementWrappingImplementation__set__Element_onscroll(_this, val
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onsearch(_this) {
+function native__ElementWrappingImplementation__get_onsearch(_this) {
   try {
     return __dom_wrap(_this.$dom.onsearch);
   } catch (e) {
@@ -7838,7 +7838,7 @@ function native__ElementWrappingImplementation__get__Element_onsearch(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onsearch(_this, value) {
+function native__ElementWrappingImplementation__set_onsearch(_this, value) {
   try {
     _this.$dom.onsearch = __dom_unwrap(value);
   } catch (e) {
@@ -7846,7 +7846,7 @@ function native__ElementWrappingImplementation__set__Element_onsearch(_this, val
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onselect(_this) {
+function native__ElementWrappingImplementation__get_onselect(_this) {
   try {
     return __dom_wrap(_this.$dom.onselect);
   } catch (e) {
@@ -7854,7 +7854,7 @@ function native__ElementWrappingImplementation__get__Element_onselect(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onselect(_this, value) {
+function native__ElementWrappingImplementation__set_onselect(_this, value) {
   try {
     _this.$dom.onselect = __dom_unwrap(value);
   } catch (e) {
@@ -7862,7 +7862,7 @@ function native__ElementWrappingImplementation__set__Element_onselect(_this, val
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onselectstart(_this) {
+function native__ElementWrappingImplementation__get_onselectstart(_this) {
   try {
     return __dom_wrap(_this.$dom.onselectstart);
   } catch (e) {
@@ -7870,7 +7870,7 @@ function native__ElementWrappingImplementation__get__Element_onselectstart(_this
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onselectstart(_this, value) {
+function native__ElementWrappingImplementation__set_onselectstart(_this, value) {
   try {
     _this.$dom.onselectstart = __dom_unwrap(value);
   } catch (e) {
@@ -7878,7 +7878,7 @@ function native__ElementWrappingImplementation__set__Element_onselectstart(_this
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onsubmit(_this) {
+function native__ElementWrappingImplementation__get_onsubmit(_this) {
   try {
     return __dom_wrap(_this.$dom.onsubmit);
   } catch (e) {
@@ -7886,7 +7886,7 @@ function native__ElementWrappingImplementation__get__Element_onsubmit(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onsubmit(_this, value) {
+function native__ElementWrappingImplementation__set_onsubmit(_this, value) {
   try {
     _this.$dom.onsubmit = __dom_unwrap(value);
   } catch (e) {
@@ -7894,7 +7894,7 @@ function native__ElementWrappingImplementation__set__Element_onsubmit(_this, val
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ontouchcancel(_this) {
+function native__ElementWrappingImplementation__get_ontouchcancel(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchcancel);
   } catch (e) {
@@ -7902,7 +7902,7 @@ function native__ElementWrappingImplementation__get__Element_ontouchcancel(_this
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ontouchcancel(_this, value) {
+function native__ElementWrappingImplementation__set_ontouchcancel(_this, value) {
   try {
     _this.$dom.ontouchcancel = __dom_unwrap(value);
   } catch (e) {
@@ -7910,7 +7910,7 @@ function native__ElementWrappingImplementation__set__Element_ontouchcancel(_this
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ontouchend(_this) {
+function native__ElementWrappingImplementation__get_ontouchend(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchend);
   } catch (e) {
@@ -7918,7 +7918,7 @@ function native__ElementWrappingImplementation__get__Element_ontouchend(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ontouchend(_this, value) {
+function native__ElementWrappingImplementation__set_ontouchend(_this, value) {
   try {
     _this.$dom.ontouchend = __dom_unwrap(value);
   } catch (e) {
@@ -7926,7 +7926,7 @@ function native__ElementWrappingImplementation__set__Element_ontouchend(_this, v
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ontouchmove(_this) {
+function native__ElementWrappingImplementation__get_ontouchmove(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchmove);
   } catch (e) {
@@ -7934,7 +7934,7 @@ function native__ElementWrappingImplementation__get__Element_ontouchmove(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ontouchmove(_this, value) {
+function native__ElementWrappingImplementation__set_ontouchmove(_this, value) {
   try {
     _this.$dom.ontouchmove = __dom_unwrap(value);
   } catch (e) {
@@ -7942,7 +7942,7 @@ function native__ElementWrappingImplementation__set__Element_ontouchmove(_this, 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_ontouchstart(_this) {
+function native__ElementWrappingImplementation__get_ontouchstart(_this) {
   try {
     return __dom_wrap(_this.$dom.ontouchstart);
   } catch (e) {
@@ -7950,7 +7950,7 @@ function native__ElementWrappingImplementation__get__Element_ontouchstart(_this)
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_ontouchstart(_this, value) {
+function native__ElementWrappingImplementation__set_ontouchstart(_this, value) {
   try {
     _this.$dom.ontouchstart = __dom_unwrap(value);
   } catch (e) {
@@ -7958,7 +7958,7 @@ function native__ElementWrappingImplementation__set__Element_ontouchstart(_this,
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_onwebkitfullscreenchange(_this) {
+function native__ElementWrappingImplementation__get_onwebkitfullscreenchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onwebkitfullscreenchange);
   } catch (e) {
@@ -7966,7 +7966,7 @@ function native__ElementWrappingImplementation__get__Element_onwebkitfullscreenc
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_onwebkitfullscreenchange(_this, value) {
+function native__ElementWrappingImplementation__set_onwebkitfullscreenchange(_this, value) {
   try {
     _this.$dom.onwebkitfullscreenchange = __dom_unwrap(value);
   } catch (e) {
@@ -7974,7 +7974,7 @@ function native__ElementWrappingImplementation__set__Element_onwebkitfullscreenc
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_previousElementSibling(_this) {
+function native__ElementWrappingImplementation__get_previousElementSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.previousElementSibling);
   } catch (e) {
@@ -7982,7 +7982,7 @@ function native__ElementWrappingImplementation__get__Element_previousElementSibl
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_scrollHeight(_this) {
+function native__ElementWrappingImplementation__get_scrollHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollHeight);
   } catch (e) {
@@ -7990,7 +7990,7 @@ function native__ElementWrappingImplementation__get__Element_scrollHeight(_this)
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_scrollLeft(_this) {
+function native__ElementWrappingImplementation__get_scrollLeft(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollLeft);
   } catch (e) {
@@ -7998,7 +7998,7 @@ function native__ElementWrappingImplementation__get__Element_scrollLeft(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_scrollLeft(_this, value) {
+function native__ElementWrappingImplementation__set_scrollLeft(_this, value) {
   try {
     _this.$dom.scrollLeft = __dom_unwrap(value);
   } catch (e) {
@@ -8006,7 +8006,7 @@ function native__ElementWrappingImplementation__set__Element_scrollLeft(_this, v
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_scrollTop(_this) {
+function native__ElementWrappingImplementation__get_scrollTop(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollTop);
   } catch (e) {
@@ -8014,7 +8014,7 @@ function native__ElementWrappingImplementation__get__Element_scrollTop(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__set__Element_scrollTop(_this, value) {
+function native__ElementWrappingImplementation__set_scrollTop(_this, value) {
   try {
     _this.$dom.scrollTop = __dom_unwrap(value);
   } catch (e) {
@@ -8022,7 +8022,7 @@ function native__ElementWrappingImplementation__set__Element_scrollTop(_this, va
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_scrollWidth(_this) {
+function native__ElementWrappingImplementation__get_scrollWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollWidth);
   } catch (e) {
@@ -8030,7 +8030,7 @@ function native__ElementWrappingImplementation__get__Element_scrollWidth(_this) 
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_style(_this) {
+function native__ElementWrappingImplementation__get_style(_this) {
   try {
     return __dom_wrap(_this.$dom.style);
   } catch (e) {
@@ -8038,7 +8038,7 @@ function native__ElementWrappingImplementation__get__Element_style(_this) {
   }
 }
 
-function native__ElementWrappingImplementation__get__Element_tagName(_this) {
+function native__ElementWrappingImplementation__get_tagName(_this) {
   try {
     return __dom_wrap(_this.$dom.tagName);
   } catch (e) {
@@ -8278,7 +8278,7 @@ function native__ElementWrappingImplementation__webkitMatchesSelector(_this, sel
   }
 }
 
-function native__ElementTraversalWrappingImplementation__get__ElementTraversal_childElementCount(_this) {
+function native__ElementTraversalWrappingImplementation__get_childElementCount(_this) {
   try {
     return __dom_wrap(_this.$dom.childElementCount);
   } catch (e) {
@@ -8286,7 +8286,7 @@ function native__ElementTraversalWrappingImplementation__get__ElementTraversal_c
   }
 }
 
-function native__ElementTraversalWrappingImplementation__get__ElementTraversal_firstElementChild(_this) {
+function native__ElementTraversalWrappingImplementation__get_firstElementChild(_this) {
   try {
     return __dom_wrap(_this.$dom.firstElementChild);
   } catch (e) {
@@ -8294,7 +8294,7 @@ function native__ElementTraversalWrappingImplementation__get__ElementTraversal_f
   }
 }
 
-function native__ElementTraversalWrappingImplementation__get__ElementTraversal_lastElementChild(_this) {
+function native__ElementTraversalWrappingImplementation__get_lastElementChild(_this) {
   try {
     return __dom_wrap(_this.$dom.lastElementChild);
   } catch (e) {
@@ -8302,7 +8302,7 @@ function native__ElementTraversalWrappingImplementation__get__ElementTraversal_l
   }
 }
 
-function native__ElementTraversalWrappingImplementation__get__ElementTraversal_nextElementSibling(_this) {
+function native__ElementTraversalWrappingImplementation__get_nextElementSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.nextElementSibling);
   } catch (e) {
@@ -8310,7 +8310,7 @@ function native__ElementTraversalWrappingImplementation__get__ElementTraversal_n
   }
 }
 
-function native__ElementTraversalWrappingImplementation__get__ElementTraversal_previousElementSibling(_this) {
+function native__ElementTraversalWrappingImplementation__get_previousElementSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.previousElementSibling);
   } catch (e) {
@@ -8318,7 +8318,7 @@ function native__ElementTraversalWrappingImplementation__get__ElementTraversal_p
   }
 }
 
-function native__EntityWrappingImplementation__get__Entity_notationName(_this) {
+function native__EntityWrappingImplementation__get_notationName(_this) {
   try {
     return __dom_wrap(_this.$dom.notationName);
   } catch (e) {
@@ -8326,7 +8326,7 @@ function native__EntityWrappingImplementation__get__Entity_notationName(_this) {
   }
 }
 
-function native__EntityWrappingImplementation__get__Entity_publicId(_this) {
+function native__EntityWrappingImplementation__get_publicId(_this) {
   try {
     return __dom_wrap(_this.$dom.publicId);
   } catch (e) {
@@ -8334,7 +8334,7 @@ function native__EntityWrappingImplementation__get__Entity_publicId(_this) {
   }
 }
 
-function native__EntityWrappingImplementation__get__Entity_systemId(_this) {
+function native__EntityWrappingImplementation__get_systemId(_this) {
   try {
     return __dom_wrap(_this.$dom.systemId);
   } catch (e) {
@@ -8350,7 +8350,7 @@ function native__EntriesCallbackWrappingImplementation__handleEvent(_this, entri
   }
 }
 
-function native__EntryWrappingImplementation__get__Entry_filesystem(_this) {
+function native__EntryWrappingImplementation__get_filesystem(_this) {
   try {
     return __dom_wrap(_this.$dom.filesystem);
   } catch (e) {
@@ -8358,7 +8358,7 @@ function native__EntryWrappingImplementation__get__Entry_filesystem(_this) {
   }
 }
 
-function native__EntryWrappingImplementation__get__Entry_fullPath(_this) {
+function native__EntryWrappingImplementation__get_fullPath(_this) {
   try {
     return __dom_wrap(_this.$dom.fullPath);
   } catch (e) {
@@ -8366,7 +8366,7 @@ function native__EntryWrappingImplementation__get__Entry_fullPath(_this) {
   }
 }
 
-function native__EntryWrappingImplementation__get__Entry_isDirectory(_this) {
+function native__EntryWrappingImplementation__get_isDirectory(_this) {
   try {
     return __dom_wrap(_this.$dom.isDirectory);
   } catch (e) {
@@ -8374,7 +8374,7 @@ function native__EntryWrappingImplementation__get__Entry_isDirectory(_this) {
   }
 }
 
-function native__EntryWrappingImplementation__get__Entry_isFile(_this) {
+function native__EntryWrappingImplementation__get_isFile(_this) {
   try {
     return __dom_wrap(_this.$dom.isFile);
   } catch (e) {
@@ -8382,7 +8382,7 @@ function native__EntryWrappingImplementation__get__Entry_isFile(_this) {
   }
 }
 
-function native__EntryWrappingImplementation__get__Entry_name(_this) {
+function native__EntryWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -8534,7 +8534,7 @@ function native__EntryWrappingImplementation__toURL(_this) {
   }
 }
 
-function native__EntryArrayWrappingImplementation__get__EntryArray_length(_this) {
+function native__EntryArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -8550,7 +8550,7 @@ function native__EntryArrayWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__EntryArraySyncWrappingImplementation__get__EntryArraySync_length(_this) {
+function native__EntryArraySyncWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -8574,7 +8574,7 @@ function native__EntryCallbackWrappingImplementation__handleEvent(_this, entry) 
   }
 }
 
-function native__EntrySyncWrappingImplementation__get__EntrySync_filesystem(_this) {
+function native__EntrySyncWrappingImplementation__get_filesystem(_this) {
   try {
     return __dom_wrap(_this.$dom.filesystem);
   } catch (e) {
@@ -8582,7 +8582,7 @@ function native__EntrySyncWrappingImplementation__get__EntrySync_filesystem(_thi
   }
 }
 
-function native__EntrySyncWrappingImplementation__get__EntrySync_fullPath(_this) {
+function native__EntrySyncWrappingImplementation__get_fullPath(_this) {
   try {
     return __dom_wrap(_this.$dom.fullPath);
   } catch (e) {
@@ -8590,7 +8590,7 @@ function native__EntrySyncWrappingImplementation__get__EntrySync_fullPath(_this)
   }
 }
 
-function native__EntrySyncWrappingImplementation__get__EntrySync_isDirectory(_this) {
+function native__EntrySyncWrappingImplementation__get_isDirectory(_this) {
   try {
     return __dom_wrap(_this.$dom.isDirectory);
   } catch (e) {
@@ -8598,7 +8598,7 @@ function native__EntrySyncWrappingImplementation__get__EntrySync_isDirectory(_th
   }
 }
 
-function native__EntrySyncWrappingImplementation__get__EntrySync_isFile(_this) {
+function native__EntrySyncWrappingImplementation__get_isFile(_this) {
   try {
     return __dom_wrap(_this.$dom.isFile);
   } catch (e) {
@@ -8606,7 +8606,7 @@ function native__EntrySyncWrappingImplementation__get__EntrySync_isFile(_this) {
   }
 }
 
-function native__EntrySyncWrappingImplementation__get__EntrySync_name(_this) {
+function native__EntrySyncWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -8670,7 +8670,7 @@ function native__ErrorCallbackWrappingImplementation__handleEvent(_this, error) 
   }
 }
 
-function native__ErrorEventWrappingImplementation__get__ErrorEvent_filename(_this) {
+function native__ErrorEventWrappingImplementation__get_filename(_this) {
   try {
     return __dom_wrap(_this.$dom.filename);
   } catch (e) {
@@ -8678,7 +8678,7 @@ function native__ErrorEventWrappingImplementation__get__ErrorEvent_filename(_thi
   }
 }
 
-function native__ErrorEventWrappingImplementation__get__ErrorEvent_lineno(_this) {
+function native__ErrorEventWrappingImplementation__get_lineno(_this) {
   try {
     return __dom_wrap(_this.$dom.lineno);
   } catch (e) {
@@ -8686,7 +8686,7 @@ function native__ErrorEventWrappingImplementation__get__ErrorEvent_lineno(_this)
   }
 }
 
-function native__ErrorEventWrappingImplementation__get__ErrorEvent_message(_this) {
+function native__ErrorEventWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -8702,7 +8702,7 @@ function native__ErrorEventWrappingImplementation__initErrorEvent(_this, typeArg
   }
 }
 
-function native__EventWrappingImplementation__get__Event_bubbles(_this) {
+function native__EventWrappingImplementation__get_bubbles(_this) {
   try {
     return __dom_wrap(_this.$dom.bubbles);
   } catch (e) {
@@ -8710,7 +8710,7 @@ function native__EventWrappingImplementation__get__Event_bubbles(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_cancelBubble(_this) {
+function native__EventWrappingImplementation__get_cancelBubble(_this) {
   try {
     return __dom_wrap(_this.$dom.cancelBubble);
   } catch (e) {
@@ -8718,7 +8718,7 @@ function native__EventWrappingImplementation__get__Event_cancelBubble(_this) {
   }
 }
 
-function native__EventWrappingImplementation__set__Event_cancelBubble(_this, value) {
+function native__EventWrappingImplementation__set_cancelBubble(_this, value) {
   try {
     _this.$dom.cancelBubble = __dom_unwrap(value);
   } catch (e) {
@@ -8726,7 +8726,7 @@ function native__EventWrappingImplementation__set__Event_cancelBubble(_this, val
   }
 }
 
-function native__EventWrappingImplementation__get__Event_cancelable(_this) {
+function native__EventWrappingImplementation__get_cancelable(_this) {
   try {
     return __dom_wrap(_this.$dom.cancelable);
   } catch (e) {
@@ -8734,7 +8734,7 @@ function native__EventWrappingImplementation__get__Event_cancelable(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_clipboardData(_this) {
+function native__EventWrappingImplementation__get_clipboardData(_this) {
   try {
     return __dom_wrap(_this.$dom.clipboardData);
   } catch (e) {
@@ -8742,7 +8742,7 @@ function native__EventWrappingImplementation__get__Event_clipboardData(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_currentTarget(_this) {
+function native__EventWrappingImplementation__get_currentTarget(_this) {
   try {
     return __dom_wrap(_this.$dom.currentTarget);
   } catch (e) {
@@ -8750,7 +8750,7 @@ function native__EventWrappingImplementation__get__Event_currentTarget(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_defaultPrevented(_this) {
+function native__EventWrappingImplementation__get_defaultPrevented(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultPrevented);
   } catch (e) {
@@ -8758,7 +8758,7 @@ function native__EventWrappingImplementation__get__Event_defaultPrevented(_this)
   }
 }
 
-function native__EventWrappingImplementation__get__Event_eventPhase(_this) {
+function native__EventWrappingImplementation__get_eventPhase(_this) {
   try {
     return __dom_wrap(_this.$dom.eventPhase);
   } catch (e) {
@@ -8766,7 +8766,7 @@ function native__EventWrappingImplementation__get__Event_eventPhase(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_returnValue(_this) {
+function native__EventWrappingImplementation__get_returnValue(_this) {
   try {
     return __dom_wrap(_this.$dom.returnValue);
   } catch (e) {
@@ -8774,7 +8774,7 @@ function native__EventWrappingImplementation__get__Event_returnValue(_this) {
   }
 }
 
-function native__EventWrappingImplementation__set__Event_returnValue(_this, value) {
+function native__EventWrappingImplementation__set_returnValue(_this, value) {
   try {
     _this.$dom.returnValue = __dom_unwrap(value);
   } catch (e) {
@@ -8782,7 +8782,7 @@ function native__EventWrappingImplementation__set__Event_returnValue(_this, valu
   }
 }
 
-function native__EventWrappingImplementation__get__Event_srcElement(_this) {
+function native__EventWrappingImplementation__get_srcElement(_this) {
   try {
     return __dom_wrap(_this.$dom.srcElement);
   } catch (e) {
@@ -8790,7 +8790,7 @@ function native__EventWrappingImplementation__get__Event_srcElement(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_target(_this) {
+function native__EventWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -8798,7 +8798,7 @@ function native__EventWrappingImplementation__get__Event_target(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_timeStamp(_this) {
+function native__EventWrappingImplementation__get_timeStamp(_this) {
   try {
     return __dom_wrap(_this.$dom.timeStamp);
   } catch (e) {
@@ -8806,7 +8806,7 @@ function native__EventWrappingImplementation__get__Event_timeStamp(_this) {
   }
 }
 
-function native__EventWrappingImplementation__get__Event_type(_this) {
+function native__EventWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -8846,7 +8846,7 @@ function native__EventWrappingImplementation__stopPropagation(_this) {
   }
 }
 
-function native__EventExceptionWrappingImplementation__get__EventException_code(_this) {
+function native__EventExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -8854,7 +8854,7 @@ function native__EventExceptionWrappingImplementation__get__EventException_code(
   }
 }
 
-function native__EventExceptionWrappingImplementation__get__EventException_message(_this) {
+function native__EventExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -8862,7 +8862,7 @@ function native__EventExceptionWrappingImplementation__get__EventException_messa
   }
 }
 
-function native__EventExceptionWrappingImplementation__get__EventException_name(_this) {
+function native__EventExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -8878,7 +8878,7 @@ function native__EventExceptionWrappingImplementation__toString(_this) {
   }
 }
 
-function native__EventSourceWrappingImplementation__get__EventSource_URL(_this) {
+function native__EventSourceWrappingImplementation__get_URL(_this) {
   try {
     return __dom_wrap(_this.$dom.URL);
   } catch (e) {
@@ -8886,7 +8886,7 @@ function native__EventSourceWrappingImplementation__get__EventSource_URL(_this) 
   }
 }
 
-function native__EventSourceWrappingImplementation__get__EventSource_onerror(_this) {
+function native__EventSourceWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -8894,7 +8894,7 @@ function native__EventSourceWrappingImplementation__get__EventSource_onerror(_th
   }
 }
 
-function native__EventSourceWrappingImplementation__set__EventSource_onerror(_this, value) {
+function native__EventSourceWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -8902,7 +8902,7 @@ function native__EventSourceWrappingImplementation__set__EventSource_onerror(_th
   }
 }
 
-function native__EventSourceWrappingImplementation__get__EventSource_onmessage(_this) {
+function native__EventSourceWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -8910,7 +8910,7 @@ function native__EventSourceWrappingImplementation__get__EventSource_onmessage(_
   }
 }
 
-function native__EventSourceWrappingImplementation__set__EventSource_onmessage(_this, value) {
+function native__EventSourceWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -8918,7 +8918,7 @@ function native__EventSourceWrappingImplementation__set__EventSource_onmessage(_
   }
 }
 
-function native__EventSourceWrappingImplementation__get__EventSource_onopen(_this) {
+function native__EventSourceWrappingImplementation__get_onopen(_this) {
   try {
     return __dom_wrap(_this.$dom.onopen);
   } catch (e) {
@@ -8926,7 +8926,7 @@ function native__EventSourceWrappingImplementation__get__EventSource_onopen(_thi
   }
 }
 
-function native__EventSourceWrappingImplementation__set__EventSource_onopen(_this, value) {
+function native__EventSourceWrappingImplementation__set_onopen(_this, value) {
   try {
     _this.$dom.onopen = __dom_unwrap(value);
   } catch (e) {
@@ -8934,7 +8934,7 @@ function native__EventSourceWrappingImplementation__set__EventSource_onopen(_thi
   }
 }
 
-function native__EventSourceWrappingImplementation__get__EventSource_readyState(_this) {
+function native__EventSourceWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -8942,7 +8942,7 @@ function native__EventSourceWrappingImplementation__get__EventSource_readyState(
   }
 }
 
-function native__EventSourceWrappingImplementation__addEventListener(_this, type, listener) {
+function native__EventSourceWrappingImplementation__addEventListener_EventSource(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -8950,7 +8950,7 @@ function native__EventSourceWrappingImplementation__addEventListener(_this, type
   }
 }
 
-function native__EventSourceWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__EventSourceWrappingImplementation__addEventListener_EventSource_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -8966,7 +8966,7 @@ function native__EventSourceWrappingImplementation__close(_this) {
   }
 }
 
-function native__EventSourceWrappingImplementation__dispatchEvent(_this, evt) {
+function native__EventSourceWrappingImplementation__dispatchEvent_EventSource(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -8974,7 +8974,7 @@ function native__EventSourceWrappingImplementation__dispatchEvent(_this, evt) {
   }
 }
 
-function native__EventSourceWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__EventSourceWrappingImplementation__removeEventListener_EventSource(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -8982,7 +8982,7 @@ function native__EventSourceWrappingImplementation__removeEventListener(_this, t
   }
 }
 
-function native__EventSourceWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__EventSourceWrappingImplementation__removeEventListener_EventSource_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -9030,7 +9030,7 @@ function native__EventTargetWrappingImplementation__removeEventListener_2(_this,
   }
 }
 
-function native__FileWrappingImplementation__get__File_fileName(_this) {
+function native__FileWrappingImplementation__get_fileName(_this) {
   try {
     return __dom_wrap(_this.$dom.fileName);
   } catch (e) {
@@ -9038,7 +9038,7 @@ function native__FileWrappingImplementation__get__File_fileName(_this) {
   }
 }
 
-function native__FileWrappingImplementation__get__File_fileSize(_this) {
+function native__FileWrappingImplementation__get_fileSize(_this) {
   try {
     return __dom_wrap(_this.$dom.fileSize);
   } catch (e) {
@@ -9046,7 +9046,7 @@ function native__FileWrappingImplementation__get__File_fileSize(_this) {
   }
 }
 
-function native__FileWrappingImplementation__get__File_lastModifiedDate(_this) {
+function native__FileWrappingImplementation__get_lastModifiedDate(_this) {
   try {
     return __dom_wrap(_this.$dom.lastModifiedDate);
   } catch (e) {
@@ -9054,7 +9054,7 @@ function native__FileWrappingImplementation__get__File_lastModifiedDate(_this) {
   }
 }
 
-function native__FileWrappingImplementation__get__File_name(_this) {
+function native__FileWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -9118,7 +9118,7 @@ function native__FileEntrySyncWrappingImplementation__file(_this) {
   }
 }
 
-function native__FileErrorWrappingImplementation__get__FileError_code(_this) {
+function native__FileErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -9126,7 +9126,7 @@ function native__FileErrorWrappingImplementation__get__FileError_code(_this) {
   }
 }
 
-function native__FileExceptionWrappingImplementation__get__FileException_code(_this) {
+function native__FileExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -9134,7 +9134,7 @@ function native__FileExceptionWrappingImplementation__get__FileException_code(_t
   }
 }
 
-function native__FileExceptionWrappingImplementation__get__FileException_message(_this) {
+function native__FileExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -9142,7 +9142,7 @@ function native__FileExceptionWrappingImplementation__get__FileException_message
   }
 }
 
-function native__FileExceptionWrappingImplementation__get__FileException_name(_this) {
+function native__FileExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -9158,7 +9158,7 @@ function native__FileExceptionWrappingImplementation__toString(_this) {
   }
 }
 
-function native__FileListWrappingImplementation__get__FileList_length(_this) {
+function native__FileListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -9174,7 +9174,7 @@ function native__FileListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_error(_this) {
+function native__FileReaderWrappingImplementation__get_error(_this) {
   try {
     return __dom_wrap(_this.$dom.error);
   } catch (e) {
@@ -9182,7 +9182,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_error(_this) 
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_onabort(_this) {
+function native__FileReaderWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -9190,7 +9190,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_onabort(_this
   }
 }
 
-function native__FileReaderWrappingImplementation__set__FileReader_onabort(_this, value) {
+function native__FileReaderWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -9198,7 +9198,7 @@ function native__FileReaderWrappingImplementation__set__FileReader_onabort(_this
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_onerror(_this) {
+function native__FileReaderWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -9206,7 +9206,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_onerror(_this
   }
 }
 
-function native__FileReaderWrappingImplementation__set__FileReader_onerror(_this, value) {
+function native__FileReaderWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -9214,7 +9214,7 @@ function native__FileReaderWrappingImplementation__set__FileReader_onerror(_this
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_onload(_this) {
+function native__FileReaderWrappingImplementation__get_onload(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -9222,7 +9222,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_onload(_this)
   }
 }
 
-function native__FileReaderWrappingImplementation__set__FileReader_onload(_this, value) {
+function native__FileReaderWrappingImplementation__set_onload(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -9230,7 +9230,7 @@ function native__FileReaderWrappingImplementation__set__FileReader_onload(_this,
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_onloadend(_this) {
+function native__FileReaderWrappingImplementation__get_onloadend(_this) {
   try {
     return __dom_wrap(_this.$dom.onloadend);
   } catch (e) {
@@ -9238,7 +9238,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_onloadend(_th
   }
 }
 
-function native__FileReaderWrappingImplementation__set__FileReader_onloadend(_this, value) {
+function native__FileReaderWrappingImplementation__set_onloadend(_this, value) {
   try {
     _this.$dom.onloadend = __dom_unwrap(value);
   } catch (e) {
@@ -9246,7 +9246,7 @@ function native__FileReaderWrappingImplementation__set__FileReader_onloadend(_th
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_onloadstart(_this) {
+function native__FileReaderWrappingImplementation__get_onloadstart(_this) {
   try {
     return __dom_wrap(_this.$dom.onloadstart);
   } catch (e) {
@@ -9254,7 +9254,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_onloadstart(_
   }
 }
 
-function native__FileReaderWrappingImplementation__set__FileReader_onloadstart(_this, value) {
+function native__FileReaderWrappingImplementation__set_onloadstart(_this, value) {
   try {
     _this.$dom.onloadstart = __dom_unwrap(value);
   } catch (e) {
@@ -9262,7 +9262,7 @@ function native__FileReaderWrappingImplementation__set__FileReader_onloadstart(_
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_onprogress(_this) {
+function native__FileReaderWrappingImplementation__get_onprogress(_this) {
   try {
     return __dom_wrap(_this.$dom.onprogress);
   } catch (e) {
@@ -9270,7 +9270,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_onprogress(_t
   }
 }
 
-function native__FileReaderWrappingImplementation__set__FileReader_onprogress(_this, value) {
+function native__FileReaderWrappingImplementation__set_onprogress(_this, value) {
   try {
     _this.$dom.onprogress = __dom_unwrap(value);
   } catch (e) {
@@ -9278,7 +9278,7 @@ function native__FileReaderWrappingImplementation__set__FileReader_onprogress(_t
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_readyState(_this) {
+function native__FileReaderWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -9286,7 +9286,7 @@ function native__FileReaderWrappingImplementation__get__FileReader_readyState(_t
   }
 }
 
-function native__FileReaderWrappingImplementation__get__FileReader_result(_this) {
+function native__FileReaderWrappingImplementation__get_result(_this) {
   try {
     return __dom_wrap(_this.$dom.result);
   } catch (e) {
@@ -9390,7 +9390,7 @@ function native__FileSystemCallbackWrappingImplementation__handleEvent(_this, fi
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_error(_this) {
+function native__FileWriterWrappingImplementation__get_error(_this) {
   try {
     return __dom_wrap(_this.$dom.error);
   } catch (e) {
@@ -9398,7 +9398,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_error(_this) 
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_length(_this) {
+function native__FileWriterWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -9406,7 +9406,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_length(_this)
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_onabort(_this) {
+function native__FileWriterWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -9414,7 +9414,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_onabort(_this
   }
 }
 
-function native__FileWriterWrappingImplementation__set__FileWriter_onabort(_this, value) {
+function native__FileWriterWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -9422,7 +9422,7 @@ function native__FileWriterWrappingImplementation__set__FileWriter_onabort(_this
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_onerror(_this) {
+function native__FileWriterWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -9430,7 +9430,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_onerror(_this
   }
 }
 
-function native__FileWriterWrappingImplementation__set__FileWriter_onerror(_this, value) {
+function native__FileWriterWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -9438,7 +9438,7 @@ function native__FileWriterWrappingImplementation__set__FileWriter_onerror(_this
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_onprogress(_this) {
+function native__FileWriterWrappingImplementation__get_onprogress(_this) {
   try {
     return __dom_wrap(_this.$dom.onprogress);
   } catch (e) {
@@ -9446,7 +9446,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_onprogress(_t
   }
 }
 
-function native__FileWriterWrappingImplementation__set__FileWriter_onprogress(_this, value) {
+function native__FileWriterWrappingImplementation__set_onprogress(_this, value) {
   try {
     _this.$dom.onprogress = __dom_unwrap(value);
   } catch (e) {
@@ -9454,7 +9454,7 @@ function native__FileWriterWrappingImplementation__set__FileWriter_onprogress(_t
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_onwrite(_this) {
+function native__FileWriterWrappingImplementation__get_onwrite(_this) {
   try {
     return __dom_wrap(_this.$dom.onwrite);
   } catch (e) {
@@ -9462,7 +9462,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_onwrite(_this
   }
 }
 
-function native__FileWriterWrappingImplementation__set__FileWriter_onwrite(_this, value) {
+function native__FileWriterWrappingImplementation__set_onwrite(_this, value) {
   try {
     _this.$dom.onwrite = __dom_unwrap(value);
   } catch (e) {
@@ -9470,7 +9470,7 @@ function native__FileWriterWrappingImplementation__set__FileWriter_onwrite(_this
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_onwriteend(_this) {
+function native__FileWriterWrappingImplementation__get_onwriteend(_this) {
   try {
     return __dom_wrap(_this.$dom.onwriteend);
   } catch (e) {
@@ -9478,7 +9478,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_onwriteend(_t
   }
 }
 
-function native__FileWriterWrappingImplementation__set__FileWriter_onwriteend(_this, value) {
+function native__FileWriterWrappingImplementation__set_onwriteend(_this, value) {
   try {
     _this.$dom.onwriteend = __dom_unwrap(value);
   } catch (e) {
@@ -9486,7 +9486,7 @@ function native__FileWriterWrappingImplementation__set__FileWriter_onwriteend(_t
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_onwritestart(_this) {
+function native__FileWriterWrappingImplementation__get_onwritestart(_this) {
   try {
     return __dom_wrap(_this.$dom.onwritestart);
   } catch (e) {
@@ -9494,7 +9494,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_onwritestart(
   }
 }
 
-function native__FileWriterWrappingImplementation__set__FileWriter_onwritestart(_this, value) {
+function native__FileWriterWrappingImplementation__set_onwritestart(_this, value) {
   try {
     _this.$dom.onwritestart = __dom_unwrap(value);
   } catch (e) {
@@ -9502,7 +9502,7 @@ function native__FileWriterWrappingImplementation__set__FileWriter_onwritestart(
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_position(_this) {
+function native__FileWriterWrappingImplementation__get_position(_this) {
   try {
     return __dom_wrap(_this.$dom.position);
   } catch (e) {
@@ -9510,7 +9510,7 @@ function native__FileWriterWrappingImplementation__get__FileWriter_position(_thi
   }
 }
 
-function native__FileWriterWrappingImplementation__get__FileWriter_readyState(_this) {
+function native__FileWriterWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -9558,7 +9558,7 @@ function native__FileWriterCallbackWrappingImplementation__handleEvent(_this, fi
   }
 }
 
-function native__FileWriterSyncWrappingImplementation__get__FileWriterSync_length(_this) {
+function native__FileWriterSyncWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -9566,7 +9566,7 @@ function native__FileWriterSyncWrappingImplementation__get__FileWriterSync_lengt
   }
 }
 
-function native__FileWriterSyncWrappingImplementation__get__FileWriterSync_position(_this) {
+function native__FileWriterSyncWrappingImplementation__get_position(_this) {
   try {
     return __dom_wrap(_this.$dom.position);
   } catch (e) {
@@ -9598,7 +9598,7 @@ function native__FileWriterSyncWrappingImplementation__write(_this, data) {
   }
 }
 
-function native__Float32ArrayWrappingImplementation__get__Float32Array_length(_this) {
+function native__Float32ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -9622,7 +9622,7 @@ function native__Float32ArrayWrappingImplementation__subarray_2(_this, start, en
   }
 }
 
-function native__Float64ArrayWrappingImplementation__get__Float64Array_length(_this) {
+function native__Float64ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -9686,7 +9686,7 @@ function native__GeolocationWrappingImplementation__watchPosition_2(_this, succe
   }
 }
 
-function native__GeopositionWrappingImplementation__get__Geoposition_coords(_this) {
+function native__GeopositionWrappingImplementation__get_coords(_this) {
   try {
     return __dom_wrap(_this.$dom.coords);
   } catch (e) {
@@ -9694,7 +9694,7 @@ function native__GeopositionWrappingImplementation__get__Geoposition_coords(_thi
   }
 }
 
-function native__GeopositionWrappingImplementation__get__Geoposition_timestamp(_this) {
+function native__GeopositionWrappingImplementation__get_timestamp(_this) {
   try {
     return __dom_wrap(_this.$dom.timestamp);
   } catch (e) {
@@ -9702,7 +9702,7 @@ function native__GeopositionWrappingImplementation__get__Geoposition_timestamp(_
   }
 }
 
-function native__HTMLAllCollectionWrappingImplementation__get__HTMLAllCollection_length(_this) {
+function native__HTMLAllCollectionWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -9734,7 +9734,7 @@ function native__HTMLAllCollectionWrappingImplementation__tags(_this, name) {
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_accessKey(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_accessKey(_this) {
   try {
     return __dom_wrap(_this.$dom.accessKey);
   } catch (e) {
@@ -9742,7 +9742,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_accessKey(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_accessKey(_this, value) {
   try {
     _this.$dom.accessKey = __dom_unwrap(value);
   } catch (e) {
@@ -9750,7 +9750,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_charset(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_charset(_this) {
   try {
     return __dom_wrap(_this.$dom.charset);
   } catch (e) {
@@ -9758,7 +9758,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_charset(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_charset(_this, value) {
   try {
     _this.$dom.charset = __dom_unwrap(value);
   } catch (e) {
@@ -9766,7 +9766,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_coords(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_coords(_this) {
   try {
     return __dom_wrap(_this.$dom.coords);
   } catch (e) {
@@ -9774,7 +9774,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_coords(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_coords(_this, value) {
   try {
     _this.$dom.coords = __dom_unwrap(value);
   } catch (e) {
@@ -9782,7 +9782,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_download(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_download(_this) {
   try {
     return __dom_wrap(_this.$dom.download);
   } catch (e) {
@@ -9790,7 +9790,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_download(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_download(_this, value) {
   try {
     _this.$dom.download = __dom_unwrap(value);
   } catch (e) {
@@ -9798,7 +9798,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_hash(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_hash(_this) {
   try {
     return __dom_wrap(_this.$dom.hash);
   } catch (e) {
@@ -9806,7 +9806,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_hash(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_hash(_this, value) {
   try {
     _this.$dom.hash = __dom_unwrap(value);
   } catch (e) {
@@ -9814,7 +9814,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_host(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_host(_this) {
   try {
     return __dom_wrap(_this.$dom.host);
   } catch (e) {
@@ -9822,7 +9822,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_host(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_host(_this, value) {
   try {
     _this.$dom.host = __dom_unwrap(value);
   } catch (e) {
@@ -9830,7 +9830,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_hostname(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_hostname(_this) {
   try {
     return __dom_wrap(_this.$dom.hostname);
   } catch (e) {
@@ -9838,7 +9838,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_hostname(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_hostname(_this, value) {
   try {
     _this.$dom.hostname = __dom_unwrap(value);
   } catch (e) {
@@ -9846,7 +9846,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_href(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -9854,7 +9854,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_href(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_href(_this, value) {
   try {
     _this.$dom.href = __dom_unwrap(value);
   } catch (e) {
@@ -9862,7 +9862,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_hreflang(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_hreflang(_this) {
   try {
     return __dom_wrap(_this.$dom.hreflang);
   } catch (e) {
@@ -9870,7 +9870,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_hreflang(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_hreflang(_this, value) {
   try {
     _this.$dom.hreflang = __dom_unwrap(value);
   } catch (e) {
@@ -9878,7 +9878,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_name(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -9886,7 +9886,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_name(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -9894,7 +9894,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_origin(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_origin(_this) {
   try {
     return __dom_wrap(_this.$dom.origin);
   } catch (e) {
@@ -9902,7 +9902,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_pathname(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_pathname(_this) {
   try {
     return __dom_wrap(_this.$dom.pathname);
   } catch (e) {
@@ -9910,7 +9910,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_pathname(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_pathname(_this, value) {
   try {
     _this.$dom.pathname = __dom_unwrap(value);
   } catch (e) {
@@ -9918,7 +9918,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_ping(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_ping(_this) {
   try {
     return __dom_wrap(_this.$dom.ping);
   } catch (e) {
@@ -9926,7 +9926,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_ping(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_ping(_this, value) {
   try {
     _this.$dom.ping = __dom_unwrap(value);
   } catch (e) {
@@ -9934,7 +9934,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_port(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_port(_this) {
   try {
     return __dom_wrap(_this.$dom.port);
   } catch (e) {
@@ -9942,7 +9942,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_port(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_port(_this, value) {
   try {
     _this.$dom.port = __dom_unwrap(value);
   } catch (e) {
@@ -9950,7 +9950,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_protocol(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_protocol(_this) {
   try {
     return __dom_wrap(_this.$dom.protocol);
   } catch (e) {
@@ -9958,7 +9958,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_protocol(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_protocol(_this, value) {
   try {
     _this.$dom.protocol = __dom_unwrap(value);
   } catch (e) {
@@ -9966,7 +9966,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_rel(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_rel(_this) {
   try {
     return __dom_wrap(_this.$dom.rel);
   } catch (e) {
@@ -9974,7 +9974,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_rel(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_rel(_this, value) {
   try {
     _this.$dom.rel = __dom_unwrap(value);
   } catch (e) {
@@ -9982,7 +9982,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_rev(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_rev(_this) {
   try {
     return __dom_wrap(_this.$dom.rev);
   } catch (e) {
@@ -9990,7 +9990,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_rev(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_rev(_this, value) {
   try {
     _this.$dom.rev = __dom_unwrap(value);
   } catch (e) {
@@ -9998,7 +9998,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_search(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_search(_this) {
   try {
     return __dom_wrap(_this.$dom.search);
   } catch (e) {
@@ -10006,7 +10006,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_search(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_search(_this, value) {
   try {
     _this.$dom.search = __dom_unwrap(value);
   } catch (e) {
@@ -10014,7 +10014,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_shape(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_shape(_this) {
   try {
     return __dom_wrap(_this.$dom.shape);
   } catch (e) {
@@ -10022,7 +10022,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_shape(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_shape(_this, value) {
   try {
     _this.$dom.shape = __dom_unwrap(value);
   } catch (e) {
@@ -10030,7 +10030,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_target(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -10038,7 +10038,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_target(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_target(_this, value) {
   try {
     _this.$dom.target = __dom_unwrap(value);
   } catch (e) {
@@ -10046,7 +10046,7 @@ function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_text(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_text(_this) {
   try {
     return __dom_wrap(_this.$dom.text);
   } catch (e) {
@@ -10054,7 +10054,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement_type(_this) {
+function native__HTMLAnchorElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -10062,7 +10062,7 @@ function native__HTMLAnchorElementWrappingImplementation__get__HTMLAnchorElement
   }
 }
 
-function native__HTMLAnchorElementWrappingImplementation__set__HTMLAnchorElement_type(_this, value) {
+function native__HTMLAnchorElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -10086,7 +10086,7 @@ function native__HTMLAnchorElementWrappingImplementation__toString(_this) {
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_align(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -10094,7 +10094,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_align(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -10102,7 +10102,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_alt(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_alt(_this) {
   try {
     return __dom_wrap(_this.$dom.alt);
   } catch (e) {
@@ -10110,7 +10110,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_alt(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_alt(_this, value) {
   try {
     _this.$dom.alt = __dom_unwrap(value);
   } catch (e) {
@@ -10118,7 +10118,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_archive(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_archive(_this) {
   try {
     return __dom_wrap(_this.$dom.archive);
   } catch (e) {
@@ -10126,7 +10126,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_archive(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_archive(_this, value) {
   try {
     _this.$dom.archive = __dom_unwrap(value);
   } catch (e) {
@@ -10134,7 +10134,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_code(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -10142,7 +10142,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_code(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_code(_this, value) {
   try {
     _this.$dom.code = __dom_unwrap(value);
   } catch (e) {
@@ -10150,7 +10150,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_codeBase(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_codeBase(_this) {
   try {
     return __dom_wrap(_this.$dom.codeBase);
   } catch (e) {
@@ -10158,7 +10158,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_codeBase(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_codeBase(_this, value) {
   try {
     _this.$dom.codeBase = __dom_unwrap(value);
   } catch (e) {
@@ -10166,7 +10166,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_height(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -10174,7 +10174,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_height(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -10182,7 +10182,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_hspace(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_hspace(_this) {
   try {
     return __dom_wrap(_this.$dom.hspace);
   } catch (e) {
@@ -10190,7 +10190,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_hspace(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_hspace(_this, value) {
   try {
     _this.$dom.hspace = __dom_unwrap(value);
   } catch (e) {
@@ -10198,7 +10198,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_name(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -10206,7 +10206,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_name(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -10214,7 +10214,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_object(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_object(_this) {
   try {
     return __dom_wrap(_this.$dom.object);
   } catch (e) {
@@ -10222,7 +10222,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_object(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_object(_this, value) {
   try {
     _this.$dom.object = __dom_unwrap(value);
   } catch (e) {
@@ -10230,7 +10230,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_vspace(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_vspace(_this) {
   try {
     return __dom_wrap(_this.$dom.vspace);
   } catch (e) {
@@ -10238,7 +10238,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_vspace(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_vspace(_this, value) {
   try {
     _this.$dom.vspace = __dom_unwrap(value);
   } catch (e) {
@@ -10246,7 +10246,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement_width(_this) {
+function native__HTMLAppletElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -10254,7 +10254,7 @@ function native__HTMLAppletElementWrappingImplementation__get__HTMLAppletElement
   }
 }
 
-function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement_width(_this, value) {
+function native__HTMLAppletElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -10262,7 +10262,7 @@ function native__HTMLAppletElementWrappingImplementation__set__HTMLAppletElement
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_accessKey(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_accessKey(_this) {
   try {
     return __dom_wrap(_this.$dom.accessKey);
   } catch (e) {
@@ -10270,7 +10270,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_acc
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_accessKey(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_accessKey(_this, value) {
   try {
     _this.$dom.accessKey = __dom_unwrap(value);
   } catch (e) {
@@ -10278,7 +10278,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_acc
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_alt(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_alt(_this) {
   try {
     return __dom_wrap(_this.$dom.alt);
   } catch (e) {
@@ -10286,7 +10286,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_alt
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_alt(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_alt(_this, value) {
   try {
     _this.$dom.alt = __dom_unwrap(value);
   } catch (e) {
@@ -10294,7 +10294,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_alt
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_coords(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_coords(_this) {
   try {
     return __dom_wrap(_this.$dom.coords);
   } catch (e) {
@@ -10302,7 +10302,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_coo
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_coords(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_coords(_this, value) {
   try {
     _this.$dom.coords = __dom_unwrap(value);
   } catch (e) {
@@ -10310,7 +10310,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_coo
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_hash(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_hash(_this) {
   try {
     return __dom_wrap(_this.$dom.hash);
   } catch (e) {
@@ -10318,7 +10318,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_has
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_host(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_host(_this) {
   try {
     return __dom_wrap(_this.$dom.host);
   } catch (e) {
@@ -10326,7 +10326,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_hos
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_hostname(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_hostname(_this) {
   try {
     return __dom_wrap(_this.$dom.hostname);
   } catch (e) {
@@ -10334,7 +10334,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_hos
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_href(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -10342,7 +10342,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_hre
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_href(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_href(_this, value) {
   try {
     _this.$dom.href = __dom_unwrap(value);
   } catch (e) {
@@ -10350,7 +10350,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_hre
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_noHref(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_noHref(_this) {
   try {
     return __dom_wrap(_this.$dom.noHref);
   } catch (e) {
@@ -10358,7 +10358,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_noH
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_noHref(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_noHref(_this, value) {
   try {
     _this.$dom.noHref = __dom_unwrap(value);
   } catch (e) {
@@ -10366,7 +10366,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_noH
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_pathname(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_pathname(_this) {
   try {
     return __dom_wrap(_this.$dom.pathname);
   } catch (e) {
@@ -10374,7 +10374,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_pat
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_ping(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_ping(_this) {
   try {
     return __dom_wrap(_this.$dom.ping);
   } catch (e) {
@@ -10382,7 +10382,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_pin
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_ping(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_ping(_this, value) {
   try {
     _this.$dom.ping = __dom_unwrap(value);
   } catch (e) {
@@ -10390,7 +10390,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_pin
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_port(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_port(_this) {
   try {
     return __dom_wrap(_this.$dom.port);
   } catch (e) {
@@ -10398,7 +10398,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_por
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_protocol(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_protocol(_this) {
   try {
     return __dom_wrap(_this.$dom.protocol);
   } catch (e) {
@@ -10406,7 +10406,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_pro
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_search(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_search(_this) {
   try {
     return __dom_wrap(_this.$dom.search);
   } catch (e) {
@@ -10414,7 +10414,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_sea
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_shape(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_shape(_this) {
   try {
     return __dom_wrap(_this.$dom.shape);
   } catch (e) {
@@ -10422,7 +10422,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_sha
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_shape(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_shape(_this, value) {
   try {
     _this.$dom.shape = __dom_unwrap(value);
   } catch (e) {
@@ -10430,7 +10430,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_sha
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_target(_this) {
+function native__HTMLAreaElementWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -10438,7 +10438,7 @@ function native__HTMLAreaElementWrappingImplementation__get__HTMLAreaElement_tar
   }
 }
 
-function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_target(_this, value) {
+function native__HTMLAreaElementWrappingImplementation__set_target(_this, value) {
   try {
     _this.$dom.target = __dom_unwrap(value);
   } catch (e) {
@@ -10446,7 +10446,7 @@ function native__HTMLAreaElementWrappingImplementation__set__HTMLAreaElement_tar
   }
 }
 
-function native__HTMLBRElementWrappingImplementation__get__HTMLBRElement_clear(_this) {
+function native__HTMLBRElementWrappingImplementation__get_clear(_this) {
   try {
     return __dom_wrap(_this.$dom.clear);
   } catch (e) {
@@ -10454,7 +10454,7 @@ function native__HTMLBRElementWrappingImplementation__get__HTMLBRElement_clear(_
   }
 }
 
-function native__HTMLBRElementWrappingImplementation__set__HTMLBRElement_clear(_this, value) {
+function native__HTMLBRElementWrappingImplementation__set_clear(_this, value) {
   try {
     _this.$dom.clear = __dom_unwrap(value);
   } catch (e) {
@@ -10462,7 +10462,7 @@ function native__HTMLBRElementWrappingImplementation__set__HTMLBRElement_clear(_
   }
 }
 
-function native__HTMLBaseElementWrappingImplementation__get__HTMLBaseElement_href(_this) {
+function native__HTMLBaseElementWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -10470,7 +10470,7 @@ function native__HTMLBaseElementWrappingImplementation__get__HTMLBaseElement_hre
   }
 }
 
-function native__HTMLBaseElementWrappingImplementation__set__HTMLBaseElement_href(_this, value) {
+function native__HTMLBaseElementWrappingImplementation__set_href(_this, value) {
   try {
     _this.$dom.href = __dom_unwrap(value);
   } catch (e) {
@@ -10478,7 +10478,7 @@ function native__HTMLBaseElementWrappingImplementation__set__HTMLBaseElement_hre
   }
 }
 
-function native__HTMLBaseElementWrappingImplementation__get__HTMLBaseElement_target(_this) {
+function native__HTMLBaseElementWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -10486,7 +10486,7 @@ function native__HTMLBaseElementWrappingImplementation__get__HTMLBaseElement_tar
   }
 }
 
-function native__HTMLBaseElementWrappingImplementation__set__HTMLBaseElement_target(_this, value) {
+function native__HTMLBaseElementWrappingImplementation__set_target(_this, value) {
   try {
     _this.$dom.target = __dom_unwrap(value);
   } catch (e) {
@@ -10494,7 +10494,7 @@ function native__HTMLBaseElementWrappingImplementation__set__HTMLBaseElement_tar
   }
 }
 
-function native__HTMLBaseFontElementWrappingImplementation__get__HTMLBaseFontElement_color(_this) {
+function native__HTMLBaseFontElementWrappingImplementation__get_color(_this) {
   try {
     return __dom_wrap(_this.$dom.color);
   } catch (e) {
@@ -10502,7 +10502,7 @@ function native__HTMLBaseFontElementWrappingImplementation__get__HTMLBaseFontEle
   }
 }
 
-function native__HTMLBaseFontElementWrappingImplementation__set__HTMLBaseFontElement_color(_this, value) {
+function native__HTMLBaseFontElementWrappingImplementation__set_color(_this, value) {
   try {
     _this.$dom.color = __dom_unwrap(value);
   } catch (e) {
@@ -10510,7 +10510,7 @@ function native__HTMLBaseFontElementWrappingImplementation__set__HTMLBaseFontEle
   }
 }
 
-function native__HTMLBaseFontElementWrappingImplementation__get__HTMLBaseFontElement_face(_this) {
+function native__HTMLBaseFontElementWrappingImplementation__get_face(_this) {
   try {
     return __dom_wrap(_this.$dom.face);
   } catch (e) {
@@ -10518,7 +10518,7 @@ function native__HTMLBaseFontElementWrappingImplementation__get__HTMLBaseFontEle
   }
 }
 
-function native__HTMLBaseFontElementWrappingImplementation__set__HTMLBaseFontElement_face(_this, value) {
+function native__HTMLBaseFontElementWrappingImplementation__set_face(_this, value) {
   try {
     _this.$dom.face = __dom_unwrap(value);
   } catch (e) {
@@ -10526,7 +10526,7 @@ function native__HTMLBaseFontElementWrappingImplementation__set__HTMLBaseFontEle
   }
 }
 
-function native__HTMLBaseFontElementWrappingImplementation__get__HTMLBaseFontElement_size(_this) {
+function native__HTMLBaseFontElementWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -10534,7 +10534,7 @@ function native__HTMLBaseFontElementWrappingImplementation__get__HTMLBaseFontEle
   }
 }
 
-function native__HTMLBaseFontElementWrappingImplementation__set__HTMLBaseFontElement_size(_this, value) {
+function native__HTMLBaseFontElementWrappingImplementation__set_size(_this, value) {
   try {
     _this.$dom.size = __dom_unwrap(value);
   } catch (e) {
@@ -10542,7 +10542,7 @@ function native__HTMLBaseFontElementWrappingImplementation__set__HTMLBaseFontEle
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_aLink(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_aLink(_this) {
   try {
     return __dom_wrap(_this.$dom.aLink);
   } catch (e) {
@@ -10550,7 +10550,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_aLi
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_aLink(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_aLink(_this, value) {
   try {
     _this.$dom.aLink = __dom_unwrap(value);
   } catch (e) {
@@ -10558,7 +10558,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_aLi
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_background(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_background(_this) {
   try {
     return __dom_wrap(_this.$dom.background);
   } catch (e) {
@@ -10566,7 +10566,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_bac
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_background(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_background(_this, value) {
   try {
     _this.$dom.background = __dom_unwrap(value);
   } catch (e) {
@@ -10574,7 +10574,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_bac
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_bgColor(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_bgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.bgColor);
   } catch (e) {
@@ -10582,7 +10582,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_bgC
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_bgColor(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_bgColor(_this, value) {
   try {
     _this.$dom.bgColor = __dom_unwrap(value);
   } catch (e) {
@@ -10590,7 +10590,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_bgC
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_link(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_link(_this) {
   try {
     return __dom_wrap(_this.$dom.link);
   } catch (e) {
@@ -10598,7 +10598,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_lin
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_link(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_link(_this, value) {
   try {
     _this.$dom.link = __dom_unwrap(value);
   } catch (e) {
@@ -10606,7 +10606,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_lin
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onbeforeunload(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onbeforeunload(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforeunload);
   } catch (e) {
@@ -10614,7 +10614,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onb
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onbeforeunload(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onbeforeunload(_this, value) {
   try {
     _this.$dom.onbeforeunload = __dom_unwrap(value);
   } catch (e) {
@@ -10622,7 +10622,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onb
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onblur(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onblur_HTMLBodyElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onblur);
   } catch (e) {
@@ -10630,7 +10630,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onb
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onblur(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onblur_HTMLBodyElement(_this, value) {
   try {
     _this.$dom.onblur = __dom_unwrap(value);
   } catch (e) {
@@ -10638,7 +10638,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onb
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onerror(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onerror_HTMLBodyElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -10646,7 +10646,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_one
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onerror(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onerror_HTMLBodyElement(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -10654,7 +10654,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_one
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onfocus(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onfocus_HTMLBodyElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onfocus);
   } catch (e) {
@@ -10662,7 +10662,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onf
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onfocus(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onfocus_HTMLBodyElement(_this, value) {
   try {
     _this.$dom.onfocus = __dom_unwrap(value);
   } catch (e) {
@@ -10670,7 +10670,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onf
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onhashchange(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onhashchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onhashchange);
   } catch (e) {
@@ -10678,7 +10678,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onh
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onhashchange(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onhashchange(_this, value) {
   try {
     _this.$dom.onhashchange = __dom_unwrap(value);
   } catch (e) {
@@ -10686,7 +10686,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onh
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onload(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onload_HTMLBodyElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -10694,7 +10694,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onl
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onload(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onload_HTMLBodyElement(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -10702,7 +10702,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onl
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onmessage(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -10710,7 +10710,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onm
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onmessage(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -10718,7 +10718,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onm
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onoffline(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onoffline(_this) {
   try {
     return __dom_wrap(_this.$dom.onoffline);
   } catch (e) {
@@ -10726,7 +10726,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_ono
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onoffline(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onoffline(_this, value) {
   try {
     _this.$dom.onoffline = __dom_unwrap(value);
   } catch (e) {
@@ -10734,7 +10734,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_ono
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_ononline(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_ononline(_this) {
   try {
     return __dom_wrap(_this.$dom.ononline);
   } catch (e) {
@@ -10742,7 +10742,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_ono
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_ononline(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_ononline(_this, value) {
   try {
     _this.$dom.ononline = __dom_unwrap(value);
   } catch (e) {
@@ -10750,7 +10750,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_ono
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onorientationchange(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onorientationchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onorientationchange);
   } catch (e) {
@@ -10758,7 +10758,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_ono
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onorientationchange(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onorientationchange(_this, value) {
   try {
     _this.$dom.onorientationchange = __dom_unwrap(value);
   } catch (e) {
@@ -10766,7 +10766,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_ono
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onpopstate(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onpopstate(_this) {
   try {
     return __dom_wrap(_this.$dom.onpopstate);
   } catch (e) {
@@ -10774,7 +10774,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onp
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onpopstate(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onpopstate(_this, value) {
   try {
     _this.$dom.onpopstate = __dom_unwrap(value);
   } catch (e) {
@@ -10782,7 +10782,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onp
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onresize(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onresize(_this) {
   try {
     return __dom_wrap(_this.$dom.onresize);
   } catch (e) {
@@ -10790,7 +10790,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onr
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onresize(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onresize(_this, value) {
   try {
     _this.$dom.onresize = __dom_unwrap(value);
   } catch (e) {
@@ -10798,7 +10798,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onr
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onstorage(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onstorage(_this) {
   try {
     return __dom_wrap(_this.$dom.onstorage);
   } catch (e) {
@@ -10806,7 +10806,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_ons
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onstorage(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onstorage(_this, value) {
   try {
     _this.$dom.onstorage = __dom_unwrap(value);
   } catch (e) {
@@ -10814,7 +10814,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_ons
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onunload(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_onunload(_this) {
   try {
     return __dom_wrap(_this.$dom.onunload);
   } catch (e) {
@@ -10822,7 +10822,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_onu
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onunload(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_onunload(_this, value) {
   try {
     _this.$dom.onunload = __dom_unwrap(value);
   } catch (e) {
@@ -10830,7 +10830,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_onu
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_text(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_text(_this) {
   try {
     return __dom_wrap(_this.$dom.text);
   } catch (e) {
@@ -10838,7 +10838,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_tex
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_text(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_text(_this, value) {
   try {
     _this.$dom.text = __dom_unwrap(value);
   } catch (e) {
@@ -10846,7 +10846,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_tex
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_vLink(_this) {
+function native__HTMLBodyElementWrappingImplementation__get_vLink(_this) {
   try {
     return __dom_wrap(_this.$dom.vLink);
   } catch (e) {
@@ -10854,7 +10854,7 @@ function native__HTMLBodyElementWrappingImplementation__get__HTMLBodyElement_vLi
   }
 }
 
-function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_vLink(_this, value) {
+function native__HTMLBodyElementWrappingImplementation__set_vLink(_this, value) {
   try {
     _this.$dom.vLink = __dom_unwrap(value);
   } catch (e) {
@@ -10862,7 +10862,7 @@ function native__HTMLBodyElementWrappingImplementation__set__HTMLBodyElement_vLi
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_accessKey(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_accessKey(_this) {
   try {
     return __dom_wrap(_this.$dom.accessKey);
   } catch (e) {
@@ -10870,7 +10870,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_accessKey(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_accessKey(_this, value) {
   try {
     _this.$dom.accessKey = __dom_unwrap(value);
   } catch (e) {
@@ -10878,7 +10878,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_autofocus(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_autofocus(_this) {
   try {
     return __dom_wrap(_this.$dom.autofocus);
   } catch (e) {
@@ -10886,7 +10886,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_autofocus(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_autofocus(_this, value) {
   try {
     _this.$dom.autofocus = __dom_unwrap(value);
   } catch (e) {
@@ -10894,7 +10894,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_disabled(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -10902,7 +10902,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_disabled(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -10910,7 +10910,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_form(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -10918,7 +10918,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_formAction(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_formAction(_this) {
   try {
     return __dom_wrap(_this.$dom.formAction);
   } catch (e) {
@@ -10926,7 +10926,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_formAction(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_formAction(_this, value) {
   try {
     _this.$dom.formAction = __dom_unwrap(value);
   } catch (e) {
@@ -10934,7 +10934,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_formEnctype(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_formEnctype(_this) {
   try {
     return __dom_wrap(_this.$dom.formEnctype);
   } catch (e) {
@@ -10942,7 +10942,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_formEnctype(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_formEnctype(_this, value) {
   try {
     _this.$dom.formEnctype = __dom_unwrap(value);
   } catch (e) {
@@ -10950,7 +10950,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_formMethod(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_formMethod(_this) {
   try {
     return __dom_wrap(_this.$dom.formMethod);
   } catch (e) {
@@ -10958,7 +10958,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_formMethod(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_formMethod(_this, value) {
   try {
     _this.$dom.formMethod = __dom_unwrap(value);
   } catch (e) {
@@ -10966,7 +10966,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_formNoValidate(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_formNoValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.formNoValidate);
   } catch (e) {
@@ -10974,7 +10974,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_formNoValidate(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_formNoValidate(_this, value) {
   try {
     _this.$dom.formNoValidate = __dom_unwrap(value);
   } catch (e) {
@@ -10982,7 +10982,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_formTarget(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_formTarget(_this) {
   try {
     return __dom_wrap(_this.$dom.formTarget);
   } catch (e) {
@@ -10990,7 +10990,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_formTarget(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_formTarget(_this, value) {
   try {
     _this.$dom.formTarget = __dom_unwrap(value);
   } catch (e) {
@@ -10998,7 +10998,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_labels(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -11006,7 +11006,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_name(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -11014,7 +11014,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_name(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -11022,7 +11022,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_type(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -11030,7 +11030,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_validationMessage(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -11038,7 +11038,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_validity(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -11046,7 +11046,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_value(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -11054,7 +11054,7 @@ function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement_value(_this, value) {
+function native__HTMLButtonElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -11062,7 +11062,7 @@ function native__HTMLButtonElementWrappingImplementation__set__HTMLButtonElement
   }
 }
 
-function native__HTMLButtonElementWrappingImplementation__get__HTMLButtonElement_willValidate(_this) {
+function native__HTMLButtonElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -11094,7 +11094,7 @@ function native__HTMLButtonElementWrappingImplementation__setCustomValidity(_thi
   }
 }
 
-function native__HTMLCanvasElementWrappingImplementation__get__HTMLCanvasElement_height(_this) {
+function native__HTMLCanvasElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -11102,7 +11102,7 @@ function native__HTMLCanvasElementWrappingImplementation__get__HTMLCanvasElement
   }
 }
 
-function native__HTMLCanvasElementWrappingImplementation__set__HTMLCanvasElement_height(_this, value) {
+function native__HTMLCanvasElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -11110,7 +11110,7 @@ function native__HTMLCanvasElementWrappingImplementation__set__HTMLCanvasElement
   }
 }
 
-function native__HTMLCanvasElementWrappingImplementation__get__HTMLCanvasElement_width(_this) {
+function native__HTMLCanvasElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -11118,7 +11118,7 @@ function native__HTMLCanvasElementWrappingImplementation__get__HTMLCanvasElement
   }
 }
 
-function native__HTMLCanvasElementWrappingImplementation__set__HTMLCanvasElement_width(_this, value) {
+function native__HTMLCanvasElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -11142,7 +11142,7 @@ function native__HTMLCanvasElementWrappingImplementation__toDataURL(_this, type)
   }
 }
 
-function native__HTMLCollectionWrappingImplementation__get__HTMLCollection_length(_this) {
+function native__HTMLCollectionWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -11166,7 +11166,7 @@ function native__HTMLCollectionWrappingImplementation__namedItem(_this, name) {
   }
 }
 
-function native__HTMLDListElementWrappingImplementation__get__HTMLDListElement_compact(_this) {
+function native__HTMLDListElementWrappingImplementation__get_compact(_this) {
   try {
     return __dom_wrap(_this.$dom.compact);
   } catch (e) {
@@ -11174,7 +11174,7 @@ function native__HTMLDListElementWrappingImplementation__get__HTMLDListElement_c
   }
 }
 
-function native__HTMLDListElementWrappingImplementation__set__HTMLDListElement_compact(_this, value) {
+function native__HTMLDListElementWrappingImplementation__set_compact(_this, value) {
   try {
     _this.$dom.compact = __dom_unwrap(value);
   } catch (e) {
@@ -11182,7 +11182,7 @@ function native__HTMLDListElementWrappingImplementation__set__HTMLDListElement_c
   }
 }
 
-function native__HTMLDataListElementWrappingImplementation__get__HTMLDataListElement_options(_this) {
+function native__HTMLDataListElementWrappingImplementation__get_options(_this) {
   try {
     return __dom_wrap(_this.$dom.options);
   } catch (e) {
@@ -11190,7 +11190,7 @@ function native__HTMLDataListElementWrappingImplementation__get__HTMLDataListEle
   }
 }
 
-function native__HTMLDetailsElementWrappingImplementation__get__HTMLDetailsElement_open(_this) {
+function native__HTMLDetailsElementWrappingImplementation__get_open(_this) {
   try {
     return __dom_wrap(_this.$dom.open);
   } catch (e) {
@@ -11198,7 +11198,7 @@ function native__HTMLDetailsElementWrappingImplementation__get__HTMLDetailsEleme
   }
 }
 
-function native__HTMLDetailsElementWrappingImplementation__set__HTMLDetailsElement_open(_this, value) {
+function native__HTMLDetailsElementWrappingImplementation__set_open(_this, value) {
   try {
     _this.$dom.open = __dom_unwrap(value);
   } catch (e) {
@@ -11206,7 +11206,7 @@ function native__HTMLDetailsElementWrappingImplementation__set__HTMLDetailsEleme
   }
 }
 
-function native__HTMLDirectoryElementWrappingImplementation__get__HTMLDirectoryElement_compact(_this) {
+function native__HTMLDirectoryElementWrappingImplementation__get_compact(_this) {
   try {
     return __dom_wrap(_this.$dom.compact);
   } catch (e) {
@@ -11214,7 +11214,7 @@ function native__HTMLDirectoryElementWrappingImplementation__get__HTMLDirectoryE
   }
 }
 
-function native__HTMLDirectoryElementWrappingImplementation__set__HTMLDirectoryElement_compact(_this, value) {
+function native__HTMLDirectoryElementWrappingImplementation__set_compact(_this, value) {
   try {
     _this.$dom.compact = __dom_unwrap(value);
   } catch (e) {
@@ -11222,7 +11222,7 @@ function native__HTMLDirectoryElementWrappingImplementation__set__HTMLDirectoryE
   }
 }
 
-function native__HTMLDivElementWrappingImplementation__get__HTMLDivElement_align(_this) {
+function native__HTMLDivElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -11230,7 +11230,7 @@ function native__HTMLDivElementWrappingImplementation__get__HTMLDivElement_align
   }
 }
 
-function native__HTMLDivElementWrappingImplementation__set__HTMLDivElement_align(_this, value) {
+function native__HTMLDivElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -11238,7 +11238,7 @@ function native__HTMLDivElementWrappingImplementation__set__HTMLDivElement_align
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_activeElement(_this) {
+function native__HTMLDocumentWrappingImplementation__get_activeElement(_this) {
   try {
     return __dom_wrap(_this.$dom.activeElement);
   } catch (e) {
@@ -11246,7 +11246,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_activeEle
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_alinkColor(_this) {
+function native__HTMLDocumentWrappingImplementation__get_alinkColor(_this) {
   try {
     return __dom_wrap(_this.$dom.alinkColor);
   } catch (e) {
@@ -11254,7 +11254,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_alinkColo
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_alinkColor(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_alinkColor(_this, value) {
   try {
     _this.$dom.alinkColor = __dom_unwrap(value);
   } catch (e) {
@@ -11262,7 +11262,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_alinkColo
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_all(_this) {
+function native__HTMLDocumentWrappingImplementation__get_all(_this) {
   try {
     return __dom_wrap(_this.$dom.all);
   } catch (e) {
@@ -11270,7 +11270,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_all(_this
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_all(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_all(_this, value) {
   try {
     _this.$dom.all = __dom_unwrap(value);
   } catch (e) {
@@ -11278,7 +11278,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_all(_this
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_bgColor(_this) {
+function native__HTMLDocumentWrappingImplementation__get_bgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.bgColor);
   } catch (e) {
@@ -11286,7 +11286,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_bgColor(_
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_bgColor(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_bgColor(_this, value) {
   try {
     _this.$dom.bgColor = __dom_unwrap(value);
   } catch (e) {
@@ -11294,7 +11294,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_bgColor(_
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_compatMode(_this) {
+function native__HTMLDocumentWrappingImplementation__get_compatMode_HTMLDocument(_this) {
   try {
     return __dom_wrap(_this.$dom.compatMode);
   } catch (e) {
@@ -11302,7 +11302,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_compatMod
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_designMode(_this) {
+function native__HTMLDocumentWrappingImplementation__get_designMode(_this) {
   try {
     return __dom_wrap(_this.$dom.designMode);
   } catch (e) {
@@ -11310,7 +11310,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_designMod
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_designMode(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_designMode(_this, value) {
   try {
     _this.$dom.designMode = __dom_unwrap(value);
   } catch (e) {
@@ -11318,7 +11318,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_designMod
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_dir(_this) {
+function native__HTMLDocumentWrappingImplementation__get_dir(_this) {
   try {
     return __dom_wrap(_this.$dom.dir);
   } catch (e) {
@@ -11326,7 +11326,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_dir(_this
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_dir(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_dir(_this, value) {
   try {
     _this.$dom.dir = __dom_unwrap(value);
   } catch (e) {
@@ -11334,7 +11334,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_dir(_this
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_embeds(_this) {
+function native__HTMLDocumentWrappingImplementation__get_embeds(_this) {
   try {
     return __dom_wrap(_this.$dom.embeds);
   } catch (e) {
@@ -11342,7 +11342,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_embeds(_t
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_fgColor(_this) {
+function native__HTMLDocumentWrappingImplementation__get_fgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.fgColor);
   } catch (e) {
@@ -11350,7 +11350,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_fgColor(_
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_fgColor(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_fgColor(_this, value) {
   try {
     _this.$dom.fgColor = __dom_unwrap(value);
   } catch (e) {
@@ -11358,7 +11358,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_fgColor(_
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_height(_this) {
+function native__HTMLDocumentWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -11366,7 +11366,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_height(_t
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_linkColor(_this) {
+function native__HTMLDocumentWrappingImplementation__get_linkColor(_this) {
   try {
     return __dom_wrap(_this.$dom.linkColor);
   } catch (e) {
@@ -11374,7 +11374,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_linkColor
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_linkColor(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_linkColor(_this, value) {
   try {
     _this.$dom.linkColor = __dom_unwrap(value);
   } catch (e) {
@@ -11382,7 +11382,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_linkColor
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_plugins(_this) {
+function native__HTMLDocumentWrappingImplementation__get_plugins(_this) {
   try {
     return __dom_wrap(_this.$dom.plugins);
   } catch (e) {
@@ -11390,7 +11390,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_plugins(_
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_scripts(_this) {
+function native__HTMLDocumentWrappingImplementation__get_scripts(_this) {
   try {
     return __dom_wrap(_this.$dom.scripts);
   } catch (e) {
@@ -11398,7 +11398,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_scripts(_
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_vlinkColor(_this) {
+function native__HTMLDocumentWrappingImplementation__get_vlinkColor(_this) {
   try {
     return __dom_wrap(_this.$dom.vlinkColor);
   } catch (e) {
@@ -11406,7 +11406,7 @@ function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_vlinkColo
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_vlinkColor(_this, value) {
+function native__HTMLDocumentWrappingImplementation__set_vlinkColor(_this, value) {
   try {
     _this.$dom.vlinkColor = __dom_unwrap(value);
   } catch (e) {
@@ -11414,7 +11414,7 @@ function native__HTMLDocumentWrappingImplementation__set__HTMLDocument_vlinkColo
   }
 }
 
-function native__HTMLDocumentWrappingImplementation__get__HTMLDocument_width(_this) {
+function native__HTMLDocumentWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -11486,7 +11486,7 @@ function native__HTMLDocumentWrappingImplementation__writeln(_this, text) {
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_children(_this) {
+function native__HTMLElementWrappingImplementation__get_children(_this) {
   try {
     return __dom_wrap(_this.$dom.children);
   } catch (e) {
@@ -11494,7 +11494,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_children(_t
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_classList(_this) {
+function native__HTMLElementWrappingImplementation__get_classList(_this) {
   try {
     return __dom_wrap(_this.$dom.classList);
   } catch (e) {
@@ -11502,7 +11502,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_classList(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_className(_this) {
+function native__HTMLElementWrappingImplementation__get_className(_this) {
   try {
     return __dom_wrap(_this.$dom.className);
   } catch (e) {
@@ -11510,7 +11510,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_className(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_className(_this, value) {
+function native__HTMLElementWrappingImplementation__set_className(_this, value) {
   try {
     _this.$dom.className = __dom_unwrap(value);
   } catch (e) {
@@ -11518,7 +11518,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_className(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_contentEditable(_this) {
+function native__HTMLElementWrappingImplementation__get_contentEditable(_this) {
   try {
     return __dom_wrap(_this.$dom.contentEditable);
   } catch (e) {
@@ -11526,7 +11526,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_contentEdit
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_contentEditable(_this, value) {
+function native__HTMLElementWrappingImplementation__set_contentEditable(_this, value) {
   try {
     _this.$dom.contentEditable = __dom_unwrap(value);
   } catch (e) {
@@ -11534,7 +11534,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_contentEdit
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_dir(_this) {
+function native__HTMLElementWrappingImplementation__get_dir(_this) {
   try {
     return __dom_wrap(_this.$dom.dir);
   } catch (e) {
@@ -11542,7 +11542,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_dir(_this) 
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_dir(_this, value) {
+function native__HTMLElementWrappingImplementation__set_dir(_this, value) {
   try {
     _this.$dom.dir = __dom_unwrap(value);
   } catch (e) {
@@ -11550,7 +11550,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_dir(_this, 
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_draggable(_this) {
+function native__HTMLElementWrappingImplementation__get_draggable(_this) {
   try {
     return __dom_wrap(_this.$dom.draggable);
   } catch (e) {
@@ -11558,7 +11558,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_draggable(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_draggable(_this, value) {
+function native__HTMLElementWrappingImplementation__set_draggable(_this, value) {
   try {
     _this.$dom.draggable = __dom_unwrap(value);
   } catch (e) {
@@ -11566,7 +11566,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_draggable(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_hidden(_this) {
+function native__HTMLElementWrappingImplementation__get_hidden(_this) {
   try {
     return __dom_wrap(_this.$dom.hidden);
   } catch (e) {
@@ -11574,7 +11574,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_hidden(_thi
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_hidden(_this, value) {
+function native__HTMLElementWrappingImplementation__set_hidden(_this, value) {
   try {
     _this.$dom.hidden = __dom_unwrap(value);
   } catch (e) {
@@ -11582,7 +11582,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_hidden(_thi
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_id(_this) {
+function native__HTMLElementWrappingImplementation__get_id(_this) {
   try {
     return __dom_wrap(_this.$dom.id);
   } catch (e) {
@@ -11590,7 +11590,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_id(_this) {
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_id(_this, value) {
+function native__HTMLElementWrappingImplementation__set_id(_this, value) {
   try {
     _this.$dom.id = __dom_unwrap(value);
   } catch (e) {
@@ -11598,7 +11598,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_id(_this, v
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_innerHTML(_this) {
+function native__HTMLElementWrappingImplementation__get_innerHTML(_this) {
   try {
     return __dom_wrap(_this.$dom.innerHTML);
   } catch (e) {
@@ -11606,7 +11606,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_innerHTML(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_innerHTML(_this, value) {
+function native__HTMLElementWrappingImplementation__set_innerHTML(_this, value) {
   try {
     _this.$dom.innerHTML = __dom_unwrap(value);
   } catch (e) {
@@ -11614,7 +11614,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_innerHTML(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_innerText(_this) {
+function native__HTMLElementWrappingImplementation__get_innerText(_this) {
   try {
     return __dom_wrap(_this.$dom.innerText);
   } catch (e) {
@@ -11622,7 +11622,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_innerText(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_innerText(_this, value) {
+function native__HTMLElementWrappingImplementation__set_innerText(_this, value) {
   try {
     _this.$dom.innerText = __dom_unwrap(value);
   } catch (e) {
@@ -11630,7 +11630,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_innerText(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_isContentEditable(_this) {
+function native__HTMLElementWrappingImplementation__get_isContentEditable(_this) {
   try {
     return __dom_wrap(_this.$dom.isContentEditable);
   } catch (e) {
@@ -11638,7 +11638,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_isContentEd
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_itemId(_this) {
+function native__HTMLElementWrappingImplementation__get_itemId(_this) {
   try {
     return __dom_wrap(_this.$dom.itemId);
   } catch (e) {
@@ -11646,7 +11646,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_itemId(_thi
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_itemId(_this, value) {
+function native__HTMLElementWrappingImplementation__set_itemId(_this, value) {
   try {
     _this.$dom.itemId = __dom_unwrap(value);
   } catch (e) {
@@ -11654,7 +11654,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_itemId(_thi
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_itemProp(_this) {
+function native__HTMLElementWrappingImplementation__get_itemProp(_this) {
   try {
     return __dom_wrap(_this.$dom.itemProp);
   } catch (e) {
@@ -11662,7 +11662,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_itemProp(_t
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_itemRef(_this) {
+function native__HTMLElementWrappingImplementation__get_itemRef(_this) {
   try {
     return __dom_wrap(_this.$dom.itemRef);
   } catch (e) {
@@ -11670,7 +11670,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_itemRef(_th
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_itemScope(_this) {
+function native__HTMLElementWrappingImplementation__get_itemScope(_this) {
   try {
     return __dom_wrap(_this.$dom.itemScope);
   } catch (e) {
@@ -11678,7 +11678,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_itemScope(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_itemScope(_this, value) {
+function native__HTMLElementWrappingImplementation__set_itemScope(_this, value) {
   try {
     _this.$dom.itemScope = __dom_unwrap(value);
   } catch (e) {
@@ -11686,7 +11686,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_itemScope(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_itemType(_this) {
+function native__HTMLElementWrappingImplementation__get_itemType(_this) {
   try {
     return __dom_wrap(_this.$dom.itemType);
   } catch (e) {
@@ -11694,7 +11694,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_itemType(_t
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_itemValue(_this) {
+function native__HTMLElementWrappingImplementation__get_itemValue(_this) {
   try {
     return __dom_wrap(_this.$dom.itemValue);
   } catch (e) {
@@ -11702,7 +11702,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_itemValue(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_itemValue(_this, value) {
+function native__HTMLElementWrappingImplementation__set_itemValue(_this, value) {
   try {
     _this.$dom.itemValue = __dom_unwrap(value);
   } catch (e) {
@@ -11710,7 +11710,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_itemValue(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_lang(_this) {
+function native__HTMLElementWrappingImplementation__get_lang(_this) {
   try {
     return __dom_wrap(_this.$dom.lang);
   } catch (e) {
@@ -11718,7 +11718,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_lang(_this)
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_lang(_this, value) {
+function native__HTMLElementWrappingImplementation__set_lang(_this, value) {
   try {
     _this.$dom.lang = __dom_unwrap(value);
   } catch (e) {
@@ -11726,7 +11726,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_lang(_this,
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_outerHTML(_this) {
+function native__HTMLElementWrappingImplementation__get_outerHTML(_this) {
   try {
     return __dom_wrap(_this.$dom.outerHTML);
   } catch (e) {
@@ -11734,7 +11734,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_outerHTML(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_outerHTML(_this, value) {
+function native__HTMLElementWrappingImplementation__set_outerHTML(_this, value) {
   try {
     _this.$dom.outerHTML = __dom_unwrap(value);
   } catch (e) {
@@ -11742,7 +11742,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_outerHTML(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_outerText(_this) {
+function native__HTMLElementWrappingImplementation__get_outerText(_this) {
   try {
     return __dom_wrap(_this.$dom.outerText);
   } catch (e) {
@@ -11750,7 +11750,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_outerText(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_outerText(_this, value) {
+function native__HTMLElementWrappingImplementation__set_outerText(_this, value) {
   try {
     _this.$dom.outerText = __dom_unwrap(value);
   } catch (e) {
@@ -11758,7 +11758,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_outerText(_
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_spellcheck(_this) {
+function native__HTMLElementWrappingImplementation__get_spellcheck(_this) {
   try {
     return __dom_wrap(_this.$dom.spellcheck);
   } catch (e) {
@@ -11766,7 +11766,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_spellcheck(
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_spellcheck(_this, value) {
+function native__HTMLElementWrappingImplementation__set_spellcheck(_this, value) {
   try {
     _this.$dom.spellcheck = __dom_unwrap(value);
   } catch (e) {
@@ -11774,7 +11774,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_spellcheck(
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_tabIndex(_this) {
+function native__HTMLElementWrappingImplementation__get_tabIndex(_this) {
   try {
     return __dom_wrap(_this.$dom.tabIndex);
   } catch (e) {
@@ -11782,7 +11782,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_tabIndex(_t
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_tabIndex(_this, value) {
+function native__HTMLElementWrappingImplementation__set_tabIndex(_this, value) {
   try {
     _this.$dom.tabIndex = __dom_unwrap(value);
   } catch (e) {
@@ -11790,7 +11790,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_tabIndex(_t
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_title(_this) {
+function native__HTMLElementWrappingImplementation__get_title(_this) {
   try {
     return __dom_wrap(_this.$dom.title);
   } catch (e) {
@@ -11798,7 +11798,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_title(_this
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_title(_this, value) {
+function native__HTMLElementWrappingImplementation__set_title(_this, value) {
   try {
     _this.$dom.title = __dom_unwrap(value);
   } catch (e) {
@@ -11806,7 +11806,7 @@ function native__HTMLElementWrappingImplementation__set__HTMLElement_title(_this
   }
 }
 
-function native__HTMLElementWrappingImplementation__get__HTMLElement_webkitdropzone(_this) {
+function native__HTMLElementWrappingImplementation__get_webkitdropzone(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitdropzone);
   } catch (e) {
@@ -11814,7 +11814,7 @@ function native__HTMLElementWrappingImplementation__get__HTMLElement_webkitdropz
   }
 }
 
-function native__HTMLElementWrappingImplementation__set__HTMLElement_webkitdropzone(_this, value) {
+function native__HTMLElementWrappingImplementation__set_webkitdropzone(_this, value) {
   try {
     _this.$dom.webkitdropzone = __dom_unwrap(value);
   } catch (e) {
@@ -11846,7 +11846,7 @@ function native__HTMLElementWrappingImplementation__insertAdjacentText(_this, wh
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_align(_this) {
+function native__HTMLEmbedElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -11854,7 +11854,7 @@ function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_a
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_align(_this, value) {
+function native__HTMLEmbedElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -11862,7 +11862,7 @@ function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_a
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_height(_this) {
+function native__HTMLEmbedElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -11870,7 +11870,7 @@ function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_h
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_height(_this, value) {
+function native__HTMLEmbedElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -11878,7 +11878,7 @@ function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_h
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_name(_this) {
+function native__HTMLEmbedElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -11886,7 +11886,7 @@ function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_n
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_name(_this, value) {
+function native__HTMLEmbedElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -11894,7 +11894,7 @@ function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_n
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_src(_this) {
+function native__HTMLEmbedElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -11902,7 +11902,7 @@ function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_s
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_src(_this, value) {
+function native__HTMLEmbedElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -11910,7 +11910,7 @@ function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_s
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_type(_this) {
+function native__HTMLEmbedElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -11918,7 +11918,7 @@ function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_t
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_type(_this, value) {
+function native__HTMLEmbedElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -11926,7 +11926,7 @@ function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_t
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_width(_this) {
+function native__HTMLEmbedElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -11934,7 +11934,7 @@ function native__HTMLEmbedElementWrappingImplementation__get__HTMLEmbedElement_w
   }
 }
 
-function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_width(_this, value) {
+function native__HTMLEmbedElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -11942,7 +11942,7 @@ function native__HTMLEmbedElementWrappingImplementation__set__HTMLEmbedElement_w
   }
 }
 
-function native__HTMLFieldSetElementWrappingImplementation__get__HTMLFieldSetElement_form(_this) {
+function native__HTMLFieldSetElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -11950,7 +11950,7 @@ function native__HTMLFieldSetElementWrappingImplementation__get__HTMLFieldSetEle
   }
 }
 
-function native__HTMLFieldSetElementWrappingImplementation__get__HTMLFieldSetElement_validationMessage(_this) {
+function native__HTMLFieldSetElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -11958,7 +11958,7 @@ function native__HTMLFieldSetElementWrappingImplementation__get__HTMLFieldSetEle
   }
 }
 
-function native__HTMLFieldSetElementWrappingImplementation__get__HTMLFieldSetElement_validity(_this) {
+function native__HTMLFieldSetElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -11966,7 +11966,7 @@ function native__HTMLFieldSetElementWrappingImplementation__get__HTMLFieldSetEle
   }
 }
 
-function native__HTMLFieldSetElementWrappingImplementation__get__HTMLFieldSetElement_willValidate(_this) {
+function native__HTMLFieldSetElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -11990,7 +11990,7 @@ function native__HTMLFieldSetElementWrappingImplementation__setCustomValidity(_t
   }
 }
 
-function native__HTMLFontElementWrappingImplementation__get__HTMLFontElement_color(_this) {
+function native__HTMLFontElementWrappingImplementation__get_color(_this) {
   try {
     return __dom_wrap(_this.$dom.color);
   } catch (e) {
@@ -11998,7 +11998,7 @@ function native__HTMLFontElementWrappingImplementation__get__HTMLFontElement_col
   }
 }
 
-function native__HTMLFontElementWrappingImplementation__set__HTMLFontElement_color(_this, value) {
+function native__HTMLFontElementWrappingImplementation__set_color(_this, value) {
   try {
     _this.$dom.color = __dom_unwrap(value);
   } catch (e) {
@@ -12006,7 +12006,7 @@ function native__HTMLFontElementWrappingImplementation__set__HTMLFontElement_col
   }
 }
 
-function native__HTMLFontElementWrappingImplementation__get__HTMLFontElement_face(_this) {
+function native__HTMLFontElementWrappingImplementation__get_face(_this) {
   try {
     return __dom_wrap(_this.$dom.face);
   } catch (e) {
@@ -12014,7 +12014,7 @@ function native__HTMLFontElementWrappingImplementation__get__HTMLFontElement_fac
   }
 }
 
-function native__HTMLFontElementWrappingImplementation__set__HTMLFontElement_face(_this, value) {
+function native__HTMLFontElementWrappingImplementation__set_face(_this, value) {
   try {
     _this.$dom.face = __dom_unwrap(value);
   } catch (e) {
@@ -12022,7 +12022,7 @@ function native__HTMLFontElementWrappingImplementation__set__HTMLFontElement_fac
   }
 }
 
-function native__HTMLFontElementWrappingImplementation__get__HTMLFontElement_size(_this) {
+function native__HTMLFontElementWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -12030,7 +12030,7 @@ function native__HTMLFontElementWrappingImplementation__get__HTMLFontElement_siz
   }
 }
 
-function native__HTMLFontElementWrappingImplementation__set__HTMLFontElement_size(_this, value) {
+function native__HTMLFontElementWrappingImplementation__set_size(_this, value) {
   try {
     _this.$dom.size = __dom_unwrap(value);
   } catch (e) {
@@ -12038,7 +12038,7 @@ function native__HTMLFontElementWrappingImplementation__set__HTMLFontElement_siz
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_acceptCharset(_this) {
+function native__HTMLFormElementWrappingImplementation__get_acceptCharset(_this) {
   try {
     return __dom_wrap(_this.$dom.acceptCharset);
   } catch (e) {
@@ -12046,7 +12046,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_acc
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_acceptCharset(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_acceptCharset(_this, value) {
   try {
     _this.$dom.acceptCharset = __dom_unwrap(value);
   } catch (e) {
@@ -12054,7 +12054,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_acc
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_action(_this) {
+function native__HTMLFormElementWrappingImplementation__get_action(_this) {
   try {
     return __dom_wrap(_this.$dom.action);
   } catch (e) {
@@ -12062,7 +12062,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_act
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_action(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_action(_this, value) {
   try {
     _this.$dom.action = __dom_unwrap(value);
   } catch (e) {
@@ -12070,7 +12070,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_act
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_autocomplete(_this) {
+function native__HTMLFormElementWrappingImplementation__get_autocomplete(_this) {
   try {
     return __dom_wrap(_this.$dom.autocomplete);
   } catch (e) {
@@ -12078,7 +12078,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_aut
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_autocomplete(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_autocomplete(_this, value) {
   try {
     _this.$dom.autocomplete = __dom_unwrap(value);
   } catch (e) {
@@ -12086,7 +12086,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_aut
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_elements(_this) {
+function native__HTMLFormElementWrappingImplementation__get_elements(_this) {
   try {
     return __dom_wrap(_this.$dom.elements);
   } catch (e) {
@@ -12094,7 +12094,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_ele
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_encoding(_this) {
+function native__HTMLFormElementWrappingImplementation__get_encoding(_this) {
   try {
     return __dom_wrap(_this.$dom.encoding);
   } catch (e) {
@@ -12102,7 +12102,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_enc
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_encoding(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_encoding(_this, value) {
   try {
     _this.$dom.encoding = __dom_unwrap(value);
   } catch (e) {
@@ -12110,7 +12110,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_enc
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_enctype(_this) {
+function native__HTMLFormElementWrappingImplementation__get_enctype(_this) {
   try {
     return __dom_wrap(_this.$dom.enctype);
   } catch (e) {
@@ -12118,7 +12118,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_enc
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_enctype(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_enctype(_this, value) {
   try {
     _this.$dom.enctype = __dom_unwrap(value);
   } catch (e) {
@@ -12126,7 +12126,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_enc
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_length(_this) {
+function native__HTMLFormElementWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -12134,7 +12134,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_len
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_method(_this) {
+function native__HTMLFormElementWrappingImplementation__get_method(_this) {
   try {
     return __dom_wrap(_this.$dom.method);
   } catch (e) {
@@ -12142,7 +12142,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_met
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_method(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_method(_this, value) {
   try {
     _this.$dom.method = __dom_unwrap(value);
   } catch (e) {
@@ -12150,7 +12150,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_met
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_name(_this) {
+function native__HTMLFormElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -12158,7 +12158,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_nam
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_name(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -12166,7 +12166,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_nam
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_noValidate(_this) {
+function native__HTMLFormElementWrappingImplementation__get_noValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.noValidate);
   } catch (e) {
@@ -12174,7 +12174,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_noV
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_noValidate(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_noValidate(_this, value) {
   try {
     _this.$dom.noValidate = __dom_unwrap(value);
   } catch (e) {
@@ -12182,7 +12182,7 @@ function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_noV
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_target(_this) {
+function native__HTMLFormElementWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -12190,7 +12190,7 @@ function native__HTMLFormElementWrappingImplementation__get__HTMLFormElement_tar
   }
 }
 
-function native__HTMLFormElementWrappingImplementation__set__HTMLFormElement_target(_this, value) {
+function native__HTMLFormElementWrappingImplementation__set_target(_this, value) {
   try {
     _this.$dom.target = __dom_unwrap(value);
   } catch (e) {
@@ -12222,7 +12222,7 @@ function native__HTMLFormElementWrappingImplementation__submit(_this) {
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_contentDocument(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_contentDocument(_this) {
   try {
     return __dom_wrap(_this.$dom.contentDocument);
   } catch (e) {
@@ -12230,7 +12230,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_c
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_contentWindow(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_contentWindow(_this) {
   try {
     return __dom_wrap(_this.$dom.contentWindow);
   } catch (e) {
@@ -12238,7 +12238,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_c
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_frameBorder(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_frameBorder(_this) {
   try {
     return __dom_wrap(_this.$dom.frameBorder);
   } catch (e) {
@@ -12246,7 +12246,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_f
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_frameBorder(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_frameBorder(_this, value) {
   try {
     _this.$dom.frameBorder = __dom_unwrap(value);
   } catch (e) {
@@ -12254,7 +12254,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_f
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_height(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -12262,7 +12262,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_h
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_location(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_location(_this) {
   try {
     return __dom_wrap(_this.$dom.location);
   } catch (e) {
@@ -12270,7 +12270,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_l
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_location(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_location(_this, value) {
   try {
     _this.$dom.location = __dom_unwrap(value);
   } catch (e) {
@@ -12278,7 +12278,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_l
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_longDesc(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_longDesc(_this) {
   try {
     return __dom_wrap(_this.$dom.longDesc);
   } catch (e) {
@@ -12286,7 +12286,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_l
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_longDesc(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_longDesc(_this, value) {
   try {
     _this.$dom.longDesc = __dom_unwrap(value);
   } catch (e) {
@@ -12294,7 +12294,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_l
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_marginHeight(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_marginHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.marginHeight);
   } catch (e) {
@@ -12302,7 +12302,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_m
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_marginHeight(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_marginHeight(_this, value) {
   try {
     _this.$dom.marginHeight = __dom_unwrap(value);
   } catch (e) {
@@ -12310,7 +12310,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_m
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_marginWidth(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_marginWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.marginWidth);
   } catch (e) {
@@ -12318,7 +12318,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_m
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_marginWidth(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_marginWidth(_this, value) {
   try {
     _this.$dom.marginWidth = __dom_unwrap(value);
   } catch (e) {
@@ -12326,7 +12326,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_m
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_name(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -12334,7 +12334,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_n
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_name(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -12342,7 +12342,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_n
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_noResize(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_noResize(_this) {
   try {
     return __dom_wrap(_this.$dom.noResize);
   } catch (e) {
@@ -12350,7 +12350,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_n
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_noResize(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_noResize(_this, value) {
   try {
     _this.$dom.noResize = __dom_unwrap(value);
   } catch (e) {
@@ -12358,7 +12358,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_n
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_scrolling(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_scrolling(_this) {
   try {
     return __dom_wrap(_this.$dom.scrolling);
   } catch (e) {
@@ -12366,7 +12366,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_s
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_scrolling(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_scrolling(_this, value) {
   try {
     _this.$dom.scrolling = __dom_unwrap(value);
   } catch (e) {
@@ -12374,7 +12374,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_s
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_src(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -12382,7 +12382,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_s
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_src(_this, value) {
+function native__HTMLFrameElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -12390,7 +12390,7 @@ function native__HTMLFrameElementWrappingImplementation__set__HTMLFrameElement_s
   }
 }
 
-function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_width(_this) {
+function native__HTMLFrameElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -12398,7 +12398,7 @@ function native__HTMLFrameElementWrappingImplementation__get__HTMLFrameElement_w
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_cols(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_cols(_this) {
   try {
     return __dom_wrap(_this.$dom.cols);
   } catch (e) {
@@ -12406,7 +12406,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_cols(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_cols(_this, value) {
   try {
     _this.$dom.cols = __dom_unwrap(value);
   } catch (e) {
@@ -12414,7 +12414,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onbeforeunload(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onbeforeunload(_this) {
   try {
     return __dom_wrap(_this.$dom.onbeforeunload);
   } catch (e) {
@@ -12422,7 +12422,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onbeforeunload(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onbeforeunload(_this, value) {
   try {
     _this.$dom.onbeforeunload = __dom_unwrap(value);
   } catch (e) {
@@ -12430,7 +12430,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onblur(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onblur_HTMLFrameSetElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onblur);
   } catch (e) {
@@ -12438,7 +12438,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onblur(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onblur_HTMLFrameSetElement(_this, value) {
   try {
     _this.$dom.onblur = __dom_unwrap(value);
   } catch (e) {
@@ -12446,7 +12446,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onerror(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onerror_HTMLFrameSetElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -12454,7 +12454,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onerror(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onerror_HTMLFrameSetElement(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -12462,7 +12462,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onfocus(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onfocus_HTMLFrameSetElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onfocus);
   } catch (e) {
@@ -12470,7 +12470,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onfocus(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onfocus_HTMLFrameSetElement(_this, value) {
   try {
     _this.$dom.onfocus = __dom_unwrap(value);
   } catch (e) {
@@ -12478,7 +12478,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onhashchange(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onhashchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onhashchange);
   } catch (e) {
@@ -12486,7 +12486,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onhashchange(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onhashchange(_this, value) {
   try {
     _this.$dom.onhashchange = __dom_unwrap(value);
   } catch (e) {
@@ -12494,7 +12494,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onload(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onload_HTMLFrameSetElement(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -12502,7 +12502,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onload(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onload_HTMLFrameSetElement(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -12510,7 +12510,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onmessage(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -12518,7 +12518,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onmessage(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -12526,7 +12526,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onoffline(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onoffline(_this) {
   try {
     return __dom_wrap(_this.$dom.onoffline);
   } catch (e) {
@@ -12534,7 +12534,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onoffline(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onoffline(_this, value) {
   try {
     _this.$dom.onoffline = __dom_unwrap(value);
   } catch (e) {
@@ -12542,7 +12542,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_ononline(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_ononline(_this) {
   try {
     return __dom_wrap(_this.$dom.ononline);
   } catch (e) {
@@ -12550,7 +12550,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_ononline(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_ononline(_this, value) {
   try {
     _this.$dom.ononline = __dom_unwrap(value);
   } catch (e) {
@@ -12558,7 +12558,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onorientationchange(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onorientationchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onorientationchange);
   } catch (e) {
@@ -12566,7 +12566,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onorientationchange(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onorientationchange(_this, value) {
   try {
     _this.$dom.onorientationchange = __dom_unwrap(value);
   } catch (e) {
@@ -12574,7 +12574,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onpopstate(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onpopstate(_this) {
   try {
     return __dom_wrap(_this.$dom.onpopstate);
   } catch (e) {
@@ -12582,7 +12582,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onpopstate(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onpopstate(_this, value) {
   try {
     _this.$dom.onpopstate = __dom_unwrap(value);
   } catch (e) {
@@ -12590,7 +12590,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onresize(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onresize(_this) {
   try {
     return __dom_wrap(_this.$dom.onresize);
   } catch (e) {
@@ -12598,7 +12598,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onresize(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onresize(_this, value) {
   try {
     _this.$dom.onresize = __dom_unwrap(value);
   } catch (e) {
@@ -12606,7 +12606,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onstorage(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onstorage(_this) {
   try {
     return __dom_wrap(_this.$dom.onstorage);
   } catch (e) {
@@ -12614,7 +12614,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onstorage(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onstorage(_this, value) {
   try {
     _this.$dom.onstorage = __dom_unwrap(value);
   } catch (e) {
@@ -12622,7 +12622,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_onunload(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_onunload(_this) {
   try {
     return __dom_wrap(_this.$dom.onunload);
   } catch (e) {
@@ -12630,7 +12630,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_onunload(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_onunload(_this, value) {
   try {
     _this.$dom.onunload = __dom_unwrap(value);
   } catch (e) {
@@ -12638,7 +12638,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetElement_rows(_this) {
+function native__HTMLFrameSetElementWrappingImplementation__get_rows(_this) {
   try {
     return __dom_wrap(_this.$dom.rows);
   } catch (e) {
@@ -12646,7 +12646,7 @@ function native__HTMLFrameSetElementWrappingImplementation__get__HTMLFrameSetEle
   }
 }
 
-function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetElement_rows(_this, value) {
+function native__HTMLFrameSetElementWrappingImplementation__set_rows(_this, value) {
   try {
     _this.$dom.rows = __dom_unwrap(value);
   } catch (e) {
@@ -12654,7 +12654,7 @@ function native__HTMLFrameSetElementWrappingImplementation__set__HTMLFrameSetEle
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_align(_this) {
+function native__HTMLHRElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -12662,7 +12662,7 @@ function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_align(_
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_align(_this, value) {
+function native__HTMLHRElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -12670,7 +12670,7 @@ function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_align(_
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_noShade(_this) {
+function native__HTMLHRElementWrappingImplementation__get_noShade(_this) {
   try {
     return __dom_wrap(_this.$dom.noShade);
   } catch (e) {
@@ -12678,7 +12678,7 @@ function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_noShade
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_noShade(_this, value) {
+function native__HTMLHRElementWrappingImplementation__set_noShade(_this, value) {
   try {
     _this.$dom.noShade = __dom_unwrap(value);
   } catch (e) {
@@ -12686,7 +12686,7 @@ function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_noShade
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_size(_this) {
+function native__HTMLHRElementWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -12694,7 +12694,7 @@ function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_size(_t
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_size(_this, value) {
+function native__HTMLHRElementWrappingImplementation__set_size(_this, value) {
   try {
     _this.$dom.size = __dom_unwrap(value);
   } catch (e) {
@@ -12702,7 +12702,7 @@ function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_size(_t
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_width(_this) {
+function native__HTMLHRElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -12710,7 +12710,7 @@ function native__HTMLHRElementWrappingImplementation__get__HTMLHRElement_width(_
   }
 }
 
-function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_width(_this, value) {
+function native__HTMLHRElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -12718,7 +12718,7 @@ function native__HTMLHRElementWrappingImplementation__set__HTMLHRElement_width(_
   }
 }
 
-function native__HTMLHeadElementWrappingImplementation__get__HTMLHeadElement_profile(_this) {
+function native__HTMLHeadElementWrappingImplementation__get_profile(_this) {
   try {
     return __dom_wrap(_this.$dom.profile);
   } catch (e) {
@@ -12726,7 +12726,7 @@ function native__HTMLHeadElementWrappingImplementation__get__HTMLHeadElement_pro
   }
 }
 
-function native__HTMLHeadElementWrappingImplementation__set__HTMLHeadElement_profile(_this, value) {
+function native__HTMLHeadElementWrappingImplementation__set_profile(_this, value) {
   try {
     _this.$dom.profile = __dom_unwrap(value);
   } catch (e) {
@@ -12734,7 +12734,7 @@ function native__HTMLHeadElementWrappingImplementation__set__HTMLHeadElement_pro
   }
 }
 
-function native__HTMLHeadingElementWrappingImplementation__get__HTMLHeadingElement_align(_this) {
+function native__HTMLHeadingElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -12742,7 +12742,7 @@ function native__HTMLHeadingElementWrappingImplementation__get__HTMLHeadingEleme
   }
 }
 
-function native__HTMLHeadingElementWrappingImplementation__set__HTMLHeadingElement_align(_this, value) {
+function native__HTMLHeadingElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -12750,7 +12750,7 @@ function native__HTMLHeadingElementWrappingImplementation__set__HTMLHeadingEleme
   }
 }
 
-function native__HTMLHtmlElementWrappingImplementation__get__HTMLHtmlElement_manifest(_this) {
+function native__HTMLHtmlElementWrappingImplementation__get_manifest(_this) {
   try {
     return __dom_wrap(_this.$dom.manifest);
   } catch (e) {
@@ -12758,7 +12758,7 @@ function native__HTMLHtmlElementWrappingImplementation__get__HTMLHtmlElement_man
   }
 }
 
-function native__HTMLHtmlElementWrappingImplementation__set__HTMLHtmlElement_manifest(_this, value) {
+function native__HTMLHtmlElementWrappingImplementation__set_manifest(_this, value) {
   try {
     _this.$dom.manifest = __dom_unwrap(value);
   } catch (e) {
@@ -12766,7 +12766,7 @@ function native__HTMLHtmlElementWrappingImplementation__set__HTMLHtmlElement_man
   }
 }
 
-function native__HTMLHtmlElementWrappingImplementation__get__HTMLHtmlElement_version(_this) {
+function native__HTMLHtmlElementWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
   } catch (e) {
@@ -12774,7 +12774,7 @@ function native__HTMLHtmlElementWrappingImplementation__get__HTMLHtmlElement_ver
   }
 }
 
-function native__HTMLHtmlElementWrappingImplementation__set__HTMLHtmlElement_version(_this, value) {
+function native__HTMLHtmlElementWrappingImplementation__set_version(_this, value) {
   try {
     _this.$dom.version = __dom_unwrap(value);
   } catch (e) {
@@ -12782,7 +12782,7 @@ function native__HTMLHtmlElementWrappingImplementation__set__HTMLHtmlElement_ver
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_align(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -12790,7 +12790,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_align(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -12798,7 +12798,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_contentDocument(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_contentDocument(_this) {
   try {
     return __dom_wrap(_this.$dom.contentDocument);
   } catch (e) {
@@ -12806,7 +12806,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_contentWindow(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_contentWindow(_this) {
   try {
     return __dom_wrap(_this.$dom.contentWindow);
   } catch (e) {
@@ -12814,7 +12814,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_frameBorder(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_frameBorder(_this) {
   try {
     return __dom_wrap(_this.$dom.frameBorder);
   } catch (e) {
@@ -12822,7 +12822,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_frameBorder(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_frameBorder(_this, value) {
   try {
     _this.$dom.frameBorder = __dom_unwrap(value);
   } catch (e) {
@@ -12830,7 +12830,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_height(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -12838,7 +12838,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_height(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -12846,7 +12846,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_longDesc(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_longDesc(_this) {
   try {
     return __dom_wrap(_this.$dom.longDesc);
   } catch (e) {
@@ -12854,7 +12854,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_longDesc(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_longDesc(_this, value) {
   try {
     _this.$dom.longDesc = __dom_unwrap(value);
   } catch (e) {
@@ -12862,7 +12862,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_marginHeight(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_marginHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.marginHeight);
   } catch (e) {
@@ -12870,7 +12870,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_marginHeight(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_marginHeight(_this, value) {
   try {
     _this.$dom.marginHeight = __dom_unwrap(value);
   } catch (e) {
@@ -12878,7 +12878,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_marginWidth(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_marginWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.marginWidth);
   } catch (e) {
@@ -12886,7 +12886,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_marginWidth(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_marginWidth(_this, value) {
   try {
     _this.$dom.marginWidth = __dom_unwrap(value);
   } catch (e) {
@@ -12894,7 +12894,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_name(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -12902,7 +12902,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_name(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -12910,7 +12910,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_sandbox(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_sandbox(_this) {
   try {
     return __dom_wrap(_this.$dom.sandbox);
   } catch (e) {
@@ -12918,7 +12918,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_sandbox(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_sandbox(_this, value) {
   try {
     _this.$dom.sandbox = __dom_unwrap(value);
   } catch (e) {
@@ -12926,7 +12926,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_scrolling(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_scrolling(_this) {
   try {
     return __dom_wrap(_this.$dom.scrolling);
   } catch (e) {
@@ -12934,7 +12934,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_scrolling(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_scrolling(_this, value) {
   try {
     _this.$dom.scrolling = __dom_unwrap(value);
   } catch (e) {
@@ -12942,7 +12942,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_src(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -12950,7 +12950,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_src(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -12958,7 +12958,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement_width(_this) {
+function native__HTMLIFrameElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -12966,7 +12966,7 @@ function native__HTMLIFrameElementWrappingImplementation__get__HTMLIFrameElement
   }
 }
 
-function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement_width(_this, value) {
+function native__HTMLIFrameElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -12974,7 +12974,7 @@ function native__HTMLIFrameElementWrappingImplementation__set__HTMLIFrameElement
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_align(_this) {
+function native__HTMLImageElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -12982,7 +12982,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_a
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_align(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -12990,7 +12990,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_a
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_alt(_this) {
+function native__HTMLImageElementWrappingImplementation__get_alt(_this) {
   try {
     return __dom_wrap(_this.$dom.alt);
   } catch (e) {
@@ -12998,7 +12998,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_a
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_alt(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_alt(_this, value) {
   try {
     _this.$dom.alt = __dom_unwrap(value);
   } catch (e) {
@@ -13006,7 +13006,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_a
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_border(_this) {
+function native__HTMLImageElementWrappingImplementation__get_border(_this) {
   try {
     return __dom_wrap(_this.$dom.border);
   } catch (e) {
@@ -13014,7 +13014,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_b
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_border(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_border(_this, value) {
   try {
     _this.$dom.border = __dom_unwrap(value);
   } catch (e) {
@@ -13022,7 +13022,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_b
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_complete(_this) {
+function native__HTMLImageElementWrappingImplementation__get_complete(_this) {
   try {
     return __dom_wrap(_this.$dom.complete);
   } catch (e) {
@@ -13030,7 +13030,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_c
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_crossOrigin(_this) {
+function native__HTMLImageElementWrappingImplementation__get_crossOrigin(_this) {
   try {
     return __dom_wrap(_this.$dom.crossOrigin);
   } catch (e) {
@@ -13038,7 +13038,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_c
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_crossOrigin(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_crossOrigin(_this, value) {
   try {
     _this.$dom.crossOrigin = __dom_unwrap(value);
   } catch (e) {
@@ -13046,7 +13046,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_c
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_height(_this) {
+function native__HTMLImageElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -13054,7 +13054,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_h
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_height(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -13062,7 +13062,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_h
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_hspace(_this) {
+function native__HTMLImageElementWrappingImplementation__get_hspace(_this) {
   try {
     return __dom_wrap(_this.$dom.hspace);
   } catch (e) {
@@ -13070,7 +13070,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_h
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_hspace(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_hspace(_this, value) {
   try {
     _this.$dom.hspace = __dom_unwrap(value);
   } catch (e) {
@@ -13078,7 +13078,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_h
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_isMap(_this) {
+function native__HTMLImageElementWrappingImplementation__get_isMap(_this) {
   try {
     return __dom_wrap(_this.$dom.isMap);
   } catch (e) {
@@ -13086,7 +13086,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_i
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_isMap(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_isMap(_this, value) {
   try {
     _this.$dom.isMap = __dom_unwrap(value);
   } catch (e) {
@@ -13094,7 +13094,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_i
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_longDesc(_this) {
+function native__HTMLImageElementWrappingImplementation__get_longDesc(_this) {
   try {
     return __dom_wrap(_this.$dom.longDesc);
   } catch (e) {
@@ -13102,7 +13102,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_l
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_longDesc(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_longDesc(_this, value) {
   try {
     _this.$dom.longDesc = __dom_unwrap(value);
   } catch (e) {
@@ -13110,7 +13110,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_l
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_lowsrc(_this) {
+function native__HTMLImageElementWrappingImplementation__get_lowsrc(_this) {
   try {
     return __dom_wrap(_this.$dom.lowsrc);
   } catch (e) {
@@ -13118,7 +13118,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_l
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_lowsrc(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_lowsrc(_this, value) {
   try {
     _this.$dom.lowsrc = __dom_unwrap(value);
   } catch (e) {
@@ -13126,7 +13126,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_l
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_name(_this) {
+function native__HTMLImageElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -13134,7 +13134,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_n
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_name(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -13142,7 +13142,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_n
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_naturalHeight(_this) {
+function native__HTMLImageElementWrappingImplementation__get_naturalHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.naturalHeight);
   } catch (e) {
@@ -13150,7 +13150,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_n
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_naturalWidth(_this) {
+function native__HTMLImageElementWrappingImplementation__get_naturalWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.naturalWidth);
   } catch (e) {
@@ -13158,7 +13158,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_n
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_src(_this) {
+function native__HTMLImageElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -13166,7 +13166,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_s
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_src(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -13174,7 +13174,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_s
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_useMap(_this) {
+function native__HTMLImageElementWrappingImplementation__get_useMap(_this) {
   try {
     return __dom_wrap(_this.$dom.useMap);
   } catch (e) {
@@ -13182,7 +13182,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_u
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_useMap(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_useMap(_this, value) {
   try {
     _this.$dom.useMap = __dom_unwrap(value);
   } catch (e) {
@@ -13190,7 +13190,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_u
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_vspace(_this) {
+function native__HTMLImageElementWrappingImplementation__get_vspace(_this) {
   try {
     return __dom_wrap(_this.$dom.vspace);
   } catch (e) {
@@ -13198,7 +13198,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_v
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_vspace(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_vspace(_this, value) {
   try {
     _this.$dom.vspace = __dom_unwrap(value);
   } catch (e) {
@@ -13206,7 +13206,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_v
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_width(_this) {
+function native__HTMLImageElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -13214,7 +13214,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_w
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_width(_this, value) {
+function native__HTMLImageElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -13222,7 +13222,7 @@ function native__HTMLImageElementWrappingImplementation__set__HTMLImageElement_w
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_x(_this) {
+function native__HTMLImageElementWrappingImplementation__get_x(_this) {
   try {
     return __dom_wrap(_this.$dom.x);
   } catch (e) {
@@ -13230,7 +13230,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_x
   }
 }
 
-function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_y(_this) {
+function native__HTMLImageElementWrappingImplementation__get_y(_this) {
   try {
     return __dom_wrap(_this.$dom.y);
   } catch (e) {
@@ -13238,7 +13238,7 @@ function native__HTMLImageElementWrappingImplementation__get__HTMLImageElement_y
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_accept(_this) {
+function native__HTMLInputElementWrappingImplementation__get_accept(_this) {
   try {
     return __dom_wrap(_this.$dom.accept);
   } catch (e) {
@@ -13246,7 +13246,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_accept(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_accept(_this, value) {
   try {
     _this.$dom.accept = __dom_unwrap(value);
   } catch (e) {
@@ -13254,7 +13254,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_accessKey(_this) {
+function native__HTMLInputElementWrappingImplementation__get_accessKey(_this) {
   try {
     return __dom_wrap(_this.$dom.accessKey);
   } catch (e) {
@@ -13262,7 +13262,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_accessKey(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_accessKey(_this, value) {
   try {
     _this.$dom.accessKey = __dom_unwrap(value);
   } catch (e) {
@@ -13270,7 +13270,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_align(_this) {
+function native__HTMLInputElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -13278,7 +13278,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_align(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -13286,7 +13286,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_alt(_this) {
+function native__HTMLInputElementWrappingImplementation__get_alt(_this) {
   try {
     return __dom_wrap(_this.$dom.alt);
   } catch (e) {
@@ -13294,7 +13294,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_alt(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_alt(_this, value) {
   try {
     _this.$dom.alt = __dom_unwrap(value);
   } catch (e) {
@@ -13302,7 +13302,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_autocomplete(_this) {
+function native__HTMLInputElementWrappingImplementation__get_autocomplete(_this) {
   try {
     return __dom_wrap(_this.$dom.autocomplete);
   } catch (e) {
@@ -13310,7 +13310,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_autocomplete(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_autocomplete(_this, value) {
   try {
     _this.$dom.autocomplete = __dom_unwrap(value);
   } catch (e) {
@@ -13318,7 +13318,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_autofocus(_this) {
+function native__HTMLInputElementWrappingImplementation__get_autofocus(_this) {
   try {
     return __dom_wrap(_this.$dom.autofocus);
   } catch (e) {
@@ -13326,7 +13326,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_autofocus(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_autofocus(_this, value) {
   try {
     _this.$dom.autofocus = __dom_unwrap(value);
   } catch (e) {
@@ -13334,7 +13334,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_a
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_checked(_this) {
+function native__HTMLInputElementWrappingImplementation__get_checked(_this) {
   try {
     return __dom_wrap(_this.$dom.checked);
   } catch (e) {
@@ -13342,7 +13342,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_c
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_checked(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_checked(_this, value) {
   try {
     _this.$dom.checked = __dom_unwrap(value);
   } catch (e) {
@@ -13350,7 +13350,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_c
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_defaultChecked(_this) {
+function native__HTMLInputElementWrappingImplementation__get_defaultChecked(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultChecked);
   } catch (e) {
@@ -13358,7 +13358,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_d
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_defaultChecked(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_defaultChecked(_this, value) {
   try {
     _this.$dom.defaultChecked = __dom_unwrap(value);
   } catch (e) {
@@ -13366,7 +13366,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_d
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_defaultValue(_this) {
+function native__HTMLInputElementWrappingImplementation__get_defaultValue(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultValue);
   } catch (e) {
@@ -13374,7 +13374,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_d
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_defaultValue(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_defaultValue(_this, value) {
   try {
     _this.$dom.defaultValue = __dom_unwrap(value);
   } catch (e) {
@@ -13382,7 +13382,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_d
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_disabled(_this) {
+function native__HTMLInputElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -13390,7 +13390,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_d
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_disabled(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -13398,7 +13398,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_d
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_files(_this) {
+function native__HTMLInputElementWrappingImplementation__get_files(_this) {
   try {
     return __dom_wrap(_this.$dom.files);
   } catch (e) {
@@ -13406,7 +13406,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_form(_this) {
+function native__HTMLInputElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -13414,7 +13414,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_formAction(_this) {
+function native__HTMLInputElementWrappingImplementation__get_formAction(_this) {
   try {
     return __dom_wrap(_this.$dom.formAction);
   } catch (e) {
@@ -13422,7 +13422,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_formAction(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_formAction(_this, value) {
   try {
     _this.$dom.formAction = __dom_unwrap(value);
   } catch (e) {
@@ -13430,7 +13430,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_formEnctype(_this) {
+function native__HTMLInputElementWrappingImplementation__get_formEnctype(_this) {
   try {
     return __dom_wrap(_this.$dom.formEnctype);
   } catch (e) {
@@ -13438,7 +13438,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_formEnctype(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_formEnctype(_this, value) {
   try {
     _this.$dom.formEnctype = __dom_unwrap(value);
   } catch (e) {
@@ -13446,7 +13446,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_formMethod(_this) {
+function native__HTMLInputElementWrappingImplementation__get_formMethod(_this) {
   try {
     return __dom_wrap(_this.$dom.formMethod);
   } catch (e) {
@@ -13454,7 +13454,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_formMethod(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_formMethod(_this, value) {
   try {
     _this.$dom.formMethod = __dom_unwrap(value);
   } catch (e) {
@@ -13462,7 +13462,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_formNoValidate(_this) {
+function native__HTMLInputElementWrappingImplementation__get_formNoValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.formNoValidate);
   } catch (e) {
@@ -13470,7 +13470,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_formNoValidate(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_formNoValidate(_this, value) {
   try {
     _this.$dom.formNoValidate = __dom_unwrap(value);
   } catch (e) {
@@ -13478,7 +13478,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_formTarget(_this) {
+function native__HTMLInputElementWrappingImplementation__get_formTarget(_this) {
   try {
     return __dom_wrap(_this.$dom.formTarget);
   } catch (e) {
@@ -13486,7 +13486,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_formTarget(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_formTarget(_this, value) {
   try {
     _this.$dom.formTarget = __dom_unwrap(value);
   } catch (e) {
@@ -13494,7 +13494,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_f
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_incremental(_this) {
+function native__HTMLInputElementWrappingImplementation__get_incremental(_this) {
   try {
     return __dom_wrap(_this.$dom.incremental);
   } catch (e) {
@@ -13502,7 +13502,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_i
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_incremental(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_incremental(_this, value) {
   try {
     _this.$dom.incremental = __dom_unwrap(value);
   } catch (e) {
@@ -13510,7 +13510,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_i
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_indeterminate(_this) {
+function native__HTMLInputElementWrappingImplementation__get_indeterminate(_this) {
   try {
     return __dom_wrap(_this.$dom.indeterminate);
   } catch (e) {
@@ -13518,7 +13518,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_i
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_indeterminate(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_indeterminate(_this, value) {
   try {
     _this.$dom.indeterminate = __dom_unwrap(value);
   } catch (e) {
@@ -13526,7 +13526,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_i
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_labels(_this) {
+function native__HTMLInputElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -13534,7 +13534,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_l
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_list(_this) {
+function native__HTMLInputElementWrappingImplementation__get_list(_this) {
   try {
     return __dom_wrap(_this.$dom.list);
   } catch (e) {
@@ -13542,7 +13542,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_l
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_max(_this) {
+function native__HTMLInputElementWrappingImplementation__get_max(_this) {
   try {
     return __dom_wrap(_this.$dom.max);
   } catch (e) {
@@ -13550,7 +13550,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_max(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_max(_this, value) {
   try {
     _this.$dom.max = __dom_unwrap(value);
   } catch (e) {
@@ -13558,7 +13558,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_maxLength(_this) {
+function native__HTMLInputElementWrappingImplementation__get_maxLength(_this) {
   try {
     return __dom_wrap(_this.$dom.maxLength);
   } catch (e) {
@@ -13566,7 +13566,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_maxLength(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_maxLength(_this, value) {
   try {
     _this.$dom.maxLength = __dom_unwrap(value);
   } catch (e) {
@@ -13574,7 +13574,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_min(_this) {
+function native__HTMLInputElementWrappingImplementation__get_min(_this) {
   try {
     return __dom_wrap(_this.$dom.min);
   } catch (e) {
@@ -13582,7 +13582,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_min(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_min(_this, value) {
   try {
     _this.$dom.min = __dom_unwrap(value);
   } catch (e) {
@@ -13590,7 +13590,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_multiple(_this) {
+function native__HTMLInputElementWrappingImplementation__get_multiple(_this) {
   try {
     return __dom_wrap(_this.$dom.multiple);
   } catch (e) {
@@ -13598,7 +13598,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_multiple(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_multiple(_this, value) {
   try {
     _this.$dom.multiple = __dom_unwrap(value);
   } catch (e) {
@@ -13606,7 +13606,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_m
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_name(_this) {
+function native__HTMLInputElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -13614,7 +13614,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_n
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_name(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -13622,7 +13622,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_n
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_onwebkitspeechchange(_this) {
+function native__HTMLInputElementWrappingImplementation__get_onwebkitspeechchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onwebkitspeechchange);
   } catch (e) {
@@ -13630,7 +13630,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_o
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_onwebkitspeechchange(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_onwebkitspeechchange(_this, value) {
   try {
     _this.$dom.onwebkitspeechchange = __dom_unwrap(value);
   } catch (e) {
@@ -13638,7 +13638,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_o
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_pattern(_this) {
+function native__HTMLInputElementWrappingImplementation__get_pattern(_this) {
   try {
     return __dom_wrap(_this.$dom.pattern);
   } catch (e) {
@@ -13646,7 +13646,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_p
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_pattern(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_pattern(_this, value) {
   try {
     _this.$dom.pattern = __dom_unwrap(value);
   } catch (e) {
@@ -13654,7 +13654,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_p
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_placeholder(_this) {
+function native__HTMLInputElementWrappingImplementation__get_placeholder(_this) {
   try {
     return __dom_wrap(_this.$dom.placeholder);
   } catch (e) {
@@ -13662,7 +13662,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_p
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_placeholder(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_placeholder(_this, value) {
   try {
     _this.$dom.placeholder = __dom_unwrap(value);
   } catch (e) {
@@ -13670,7 +13670,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_p
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_readOnly(_this) {
+function native__HTMLInputElementWrappingImplementation__get_readOnly(_this) {
   try {
     return __dom_wrap(_this.$dom.readOnly);
   } catch (e) {
@@ -13678,7 +13678,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_r
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_readOnly(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_readOnly(_this, value) {
   try {
     _this.$dom.readOnly = __dom_unwrap(value);
   } catch (e) {
@@ -13686,7 +13686,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_r
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_required(_this) {
+function native__HTMLInputElementWrappingImplementation__get_required(_this) {
   try {
     return __dom_wrap(_this.$dom.required);
   } catch (e) {
@@ -13694,7 +13694,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_r
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_required(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_required(_this, value) {
   try {
     _this.$dom.required = __dom_unwrap(value);
   } catch (e) {
@@ -13702,7 +13702,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_r
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_selectedOption(_this) {
+function native__HTMLInputElementWrappingImplementation__get_selectedOption(_this) {
   try {
     return __dom_wrap(_this.$dom.selectedOption);
   } catch (e) {
@@ -13710,7 +13710,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_selectionDirection(_this) {
+function native__HTMLInputElementWrappingImplementation__get_selectionDirection(_this) {
   try {
     return __dom_wrap(_this.$dom.selectionDirection);
   } catch (e) {
@@ -13718,7 +13718,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_selectionDirection(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_selectionDirection(_this, value) {
   try {
     _this.$dom.selectionDirection = __dom_unwrap(value);
   } catch (e) {
@@ -13726,7 +13726,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_selectionEnd(_this) {
+function native__HTMLInputElementWrappingImplementation__get_selectionEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.selectionEnd);
   } catch (e) {
@@ -13734,7 +13734,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_selectionEnd(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_selectionEnd(_this, value) {
   try {
     _this.$dom.selectionEnd = __dom_unwrap(value);
   } catch (e) {
@@ -13742,7 +13742,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_selectionStart(_this) {
+function native__HTMLInputElementWrappingImplementation__get_selectionStart(_this) {
   try {
     return __dom_wrap(_this.$dom.selectionStart);
   } catch (e) {
@@ -13750,7 +13750,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_selectionStart(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_selectionStart(_this, value) {
   try {
     _this.$dom.selectionStart = __dom_unwrap(value);
   } catch (e) {
@@ -13758,7 +13758,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_size(_this) {
+function native__HTMLInputElementWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -13766,7 +13766,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_size(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_size(_this, value) {
   try {
     _this.$dom.size = __dom_unwrap(value);
   } catch (e) {
@@ -13774,7 +13774,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_src(_this) {
+function native__HTMLInputElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -13782,7 +13782,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_src(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -13790,7 +13790,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_step(_this) {
+function native__HTMLInputElementWrappingImplementation__get_step(_this) {
   try {
     return __dom_wrap(_this.$dom.step);
   } catch (e) {
@@ -13798,7 +13798,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_step(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_step(_this, value) {
   try {
     _this.$dom.step = __dom_unwrap(value);
   } catch (e) {
@@ -13806,7 +13806,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_s
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_type(_this) {
+function native__HTMLInputElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -13814,7 +13814,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_t
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_type(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -13822,7 +13822,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_t
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_useMap(_this) {
+function native__HTMLInputElementWrappingImplementation__get_useMap(_this) {
   try {
     return __dom_wrap(_this.$dom.useMap);
   } catch (e) {
@@ -13830,7 +13830,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_u
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_useMap(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_useMap(_this, value) {
   try {
     _this.$dom.useMap = __dom_unwrap(value);
   } catch (e) {
@@ -13838,7 +13838,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_u
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_validationMessage(_this) {
+function native__HTMLInputElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -13846,7 +13846,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_validity(_this) {
+function native__HTMLInputElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -13854,7 +13854,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_value(_this) {
+function native__HTMLInputElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -13862,7 +13862,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_value(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -13870,7 +13870,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_valueAsDate(_this) {
+function native__HTMLInputElementWrappingImplementation__get_valueAsDate(_this) {
   try {
     return __dom_wrap(_this.$dom.valueAsDate);
   } catch (e) {
@@ -13878,7 +13878,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_valueAsDate(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_valueAsDate(_this, value) {
   try {
     _this.$dom.valueAsDate = __dom_unwrap(value);
   } catch (e) {
@@ -13886,7 +13886,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_valueAsNumber(_this) {
+function native__HTMLInputElementWrappingImplementation__get_valueAsNumber(_this) {
   try {
     return __dom_wrap(_this.$dom.valueAsNumber);
   } catch (e) {
@@ -13894,7 +13894,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_valueAsNumber(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_valueAsNumber(_this, value) {
   try {
     _this.$dom.valueAsNumber = __dom_unwrap(value);
   } catch (e) {
@@ -13902,7 +13902,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_v
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_webkitGrammar(_this) {
+function native__HTMLInputElementWrappingImplementation__get_webkitGrammar(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitGrammar);
   } catch (e) {
@@ -13910,7 +13910,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_w
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_webkitGrammar(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_webkitGrammar(_this, value) {
   try {
     _this.$dom.webkitGrammar = __dom_unwrap(value);
   } catch (e) {
@@ -13918,7 +13918,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_w
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_webkitSpeech(_this) {
+function native__HTMLInputElementWrappingImplementation__get_webkitSpeech(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitSpeech);
   } catch (e) {
@@ -13926,7 +13926,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_w
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_webkitSpeech(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_webkitSpeech(_this, value) {
   try {
     _this.$dom.webkitSpeech = __dom_unwrap(value);
   } catch (e) {
@@ -13934,7 +13934,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_w
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_webkitdirectory(_this) {
+function native__HTMLInputElementWrappingImplementation__get_webkitdirectory(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitdirectory);
   } catch (e) {
@@ -13942,7 +13942,7 @@ function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_w
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_webkitdirectory(_this, value) {
+function native__HTMLInputElementWrappingImplementation__set_webkitdirectory(_this, value) {
   try {
     _this.$dom.webkitdirectory = __dom_unwrap(value);
   } catch (e) {
@@ -13950,7 +13950,7 @@ function native__HTMLInputElementWrappingImplementation__set__HTMLInputElement_w
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get__HTMLInputElement_willValidate(_this) {
+function native__HTMLInputElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -14038,7 +14038,7 @@ function native__HTMLInputElementWrappingImplementation__stepUp_2(_this, n) {
   }
 }
 
-function native__HTMLIsIndexElementWrappingImplementation__get__HTMLIsIndexElement_form(_this) {
+function native__HTMLIsIndexElementWrappingImplementation__get_form_HTMLIsIndexElement(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -14046,7 +14046,7 @@ function native__HTMLIsIndexElementWrappingImplementation__get__HTMLIsIndexEleme
   }
 }
 
-function native__HTMLIsIndexElementWrappingImplementation__get__HTMLIsIndexElement_prompt(_this) {
+function native__HTMLIsIndexElementWrappingImplementation__get_prompt(_this) {
   try {
     return __dom_wrap(_this.$dom.prompt);
   } catch (e) {
@@ -14054,7 +14054,7 @@ function native__HTMLIsIndexElementWrappingImplementation__get__HTMLIsIndexEleme
   }
 }
 
-function native__HTMLIsIndexElementWrappingImplementation__set__HTMLIsIndexElement_prompt(_this, value) {
+function native__HTMLIsIndexElementWrappingImplementation__set_prompt(_this, value) {
   try {
     _this.$dom.prompt = __dom_unwrap(value);
   } catch (e) {
@@ -14062,7 +14062,7 @@ function native__HTMLIsIndexElementWrappingImplementation__set__HTMLIsIndexEleme
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_autofocus(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_autofocus(_this) {
   try {
     return __dom_wrap(_this.$dom.autofocus);
   } catch (e) {
@@ -14070,7 +14070,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement_autofocus(_this, value) {
+function native__HTMLKeygenElementWrappingImplementation__set_autofocus(_this, value) {
   try {
     _this.$dom.autofocus = __dom_unwrap(value);
   } catch (e) {
@@ -14078,7 +14078,7 @@ function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_challenge(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_challenge(_this) {
   try {
     return __dom_wrap(_this.$dom.challenge);
   } catch (e) {
@@ -14086,7 +14086,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement_challenge(_this, value) {
+function native__HTMLKeygenElementWrappingImplementation__set_challenge(_this, value) {
   try {
     _this.$dom.challenge = __dom_unwrap(value);
   } catch (e) {
@@ -14094,7 +14094,7 @@ function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_disabled(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -14102,7 +14102,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement_disabled(_this, value) {
+function native__HTMLKeygenElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -14110,7 +14110,7 @@ function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_form(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -14118,7 +14118,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_keytype(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_keytype(_this) {
   try {
     return __dom_wrap(_this.$dom.keytype);
   } catch (e) {
@@ -14126,7 +14126,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement_keytype(_this, value) {
+function native__HTMLKeygenElementWrappingImplementation__set_keytype(_this, value) {
   try {
     _this.$dom.keytype = __dom_unwrap(value);
   } catch (e) {
@@ -14134,7 +14134,7 @@ function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_labels(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -14142,7 +14142,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_name(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -14150,7 +14150,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement_name(_this, value) {
+function native__HTMLKeygenElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -14158,7 +14158,7 @@ function native__HTMLKeygenElementWrappingImplementation__set__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_type(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -14166,7 +14166,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_validationMessage(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -14174,7 +14174,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_validity(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -14182,7 +14182,7 @@ function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement
   }
 }
 
-function native__HTMLKeygenElementWrappingImplementation__get__HTMLKeygenElement_willValidate(_this) {
+function native__HTMLKeygenElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -14206,7 +14206,7 @@ function native__HTMLKeygenElementWrappingImplementation__setCustomValidity(_thi
   }
 }
 
-function native__HTMLLIElementWrappingImplementation__get__HTMLLIElement_type(_this) {
+function native__HTMLLIElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -14214,7 +14214,7 @@ function native__HTMLLIElementWrappingImplementation__get__HTMLLIElement_type(_t
   }
 }
 
-function native__HTMLLIElementWrappingImplementation__set__HTMLLIElement_type(_this, value) {
+function native__HTMLLIElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -14222,7 +14222,7 @@ function native__HTMLLIElementWrappingImplementation__set__HTMLLIElement_type(_t
   }
 }
 
-function native__HTMLLIElementWrappingImplementation__get__HTMLLIElement_value(_this) {
+function native__HTMLLIElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -14230,7 +14230,7 @@ function native__HTMLLIElementWrappingImplementation__get__HTMLLIElement_value(_
   }
 }
 
-function native__HTMLLIElementWrappingImplementation__set__HTMLLIElement_value(_this, value) {
+function native__HTMLLIElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -14238,7 +14238,7 @@ function native__HTMLLIElementWrappingImplementation__set__HTMLLIElement_value(_
   }
 }
 
-function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_accessKey(_this) {
+function native__HTMLLabelElementWrappingImplementation__get_accessKey(_this) {
   try {
     return __dom_wrap(_this.$dom.accessKey);
   } catch (e) {
@@ -14246,7 +14246,7 @@ function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_a
   }
 }
 
-function native__HTMLLabelElementWrappingImplementation__set__HTMLLabelElement_accessKey(_this, value) {
+function native__HTMLLabelElementWrappingImplementation__set_accessKey(_this, value) {
   try {
     _this.$dom.accessKey = __dom_unwrap(value);
   } catch (e) {
@@ -14254,7 +14254,7 @@ function native__HTMLLabelElementWrappingImplementation__set__HTMLLabelElement_a
   }
 }
 
-function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_control(_this) {
+function native__HTMLLabelElementWrappingImplementation__get_control(_this) {
   try {
     return __dom_wrap(_this.$dom.control);
   } catch (e) {
@@ -14262,7 +14262,7 @@ function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_c
   }
 }
 
-function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_form(_this) {
+function native__HTMLLabelElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -14270,7 +14270,7 @@ function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_f
   }
 }
 
-function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_htmlFor(_this) {
+function native__HTMLLabelElementWrappingImplementation__get_htmlFor(_this) {
   try {
     return __dom_wrap(_this.$dom.htmlFor);
   } catch (e) {
@@ -14278,7 +14278,7 @@ function native__HTMLLabelElementWrappingImplementation__get__HTMLLabelElement_h
   }
 }
 
-function native__HTMLLabelElementWrappingImplementation__set__HTMLLabelElement_htmlFor(_this, value) {
+function native__HTMLLabelElementWrappingImplementation__set_htmlFor(_this, value) {
   try {
     _this.$dom.htmlFor = __dom_unwrap(value);
   } catch (e) {
@@ -14286,7 +14286,7 @@ function native__HTMLLabelElementWrappingImplementation__set__HTMLLabelElement_h
   }
 }
 
-function native__HTMLLegendElementWrappingImplementation__get__HTMLLegendElement_accessKey(_this) {
+function native__HTMLLegendElementWrappingImplementation__get_accessKey(_this) {
   try {
     return __dom_wrap(_this.$dom.accessKey);
   } catch (e) {
@@ -14294,7 +14294,7 @@ function native__HTMLLegendElementWrappingImplementation__get__HTMLLegendElement
   }
 }
 
-function native__HTMLLegendElementWrappingImplementation__set__HTMLLegendElement_accessKey(_this, value) {
+function native__HTMLLegendElementWrappingImplementation__set_accessKey(_this, value) {
   try {
     _this.$dom.accessKey = __dom_unwrap(value);
   } catch (e) {
@@ -14302,7 +14302,7 @@ function native__HTMLLegendElementWrappingImplementation__set__HTMLLegendElement
   }
 }
 
-function native__HTMLLegendElementWrappingImplementation__get__HTMLLegendElement_align(_this) {
+function native__HTMLLegendElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -14310,7 +14310,7 @@ function native__HTMLLegendElementWrappingImplementation__get__HTMLLegendElement
   }
 }
 
-function native__HTMLLegendElementWrappingImplementation__set__HTMLLegendElement_align(_this, value) {
+function native__HTMLLegendElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -14318,7 +14318,7 @@ function native__HTMLLegendElementWrappingImplementation__set__HTMLLegendElement
   }
 }
 
-function native__HTMLLegendElementWrappingImplementation__get__HTMLLegendElement_form(_this) {
+function native__HTMLLegendElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -14326,7 +14326,7 @@ function native__HTMLLegendElementWrappingImplementation__get__HTMLLegendElement
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_charset(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_charset(_this) {
   try {
     return __dom_wrap(_this.$dom.charset);
   } catch (e) {
@@ -14334,7 +14334,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_cha
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_charset(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_charset(_this, value) {
   try {
     _this.$dom.charset = __dom_unwrap(value);
   } catch (e) {
@@ -14342,7 +14342,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_cha
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_disabled(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -14350,7 +14350,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_dis
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_disabled(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -14358,7 +14358,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_dis
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_href(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -14366,7 +14366,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_hre
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_href(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_href(_this, value) {
   try {
     _this.$dom.href = __dom_unwrap(value);
   } catch (e) {
@@ -14374,7 +14374,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_hre
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_hreflang(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_hreflang(_this) {
   try {
     return __dom_wrap(_this.$dom.hreflang);
   } catch (e) {
@@ -14382,7 +14382,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_hre
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_hreflang(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_hreflang(_this, value) {
   try {
     _this.$dom.hreflang = __dom_unwrap(value);
   } catch (e) {
@@ -14390,7 +14390,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_hre
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_media(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_media(_this) {
   try {
     return __dom_wrap(_this.$dom.media);
   } catch (e) {
@@ -14398,7 +14398,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_med
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_media(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_media(_this, value) {
   try {
     _this.$dom.media = __dom_unwrap(value);
   } catch (e) {
@@ -14406,7 +14406,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_med
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_rel(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_rel(_this) {
   try {
     return __dom_wrap(_this.$dom.rel);
   } catch (e) {
@@ -14414,7 +14414,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_rel
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_rel(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_rel(_this, value) {
   try {
     _this.$dom.rel = __dom_unwrap(value);
   } catch (e) {
@@ -14422,7 +14422,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_rel
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_rev(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_rev(_this) {
   try {
     return __dom_wrap(_this.$dom.rev);
   } catch (e) {
@@ -14430,7 +14430,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_rev
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_rev(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_rev(_this, value) {
   try {
     _this.$dom.rev = __dom_unwrap(value);
   } catch (e) {
@@ -14438,7 +14438,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_rev
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_sheet(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_sheet(_this) {
   try {
     return __dom_wrap(_this.$dom.sheet);
   } catch (e) {
@@ -14446,7 +14446,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_she
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_sizes(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_sizes(_this) {
   try {
     return __dom_wrap(_this.$dom.sizes);
   } catch (e) {
@@ -14454,7 +14454,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_siz
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_sizes(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_sizes(_this, value) {
   try {
     _this.$dom.sizes = __dom_unwrap(value);
   } catch (e) {
@@ -14462,7 +14462,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_siz
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_target(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -14470,7 +14470,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_tar
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_target(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_target(_this, value) {
   try {
     _this.$dom.target = __dom_unwrap(value);
   } catch (e) {
@@ -14478,7 +14478,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_tar
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_type(_this) {
+function native__HTMLLinkElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -14486,7 +14486,7 @@ function native__HTMLLinkElementWrappingImplementation__get__HTMLLinkElement_typ
   }
 }
 
-function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_type(_this, value) {
+function native__HTMLLinkElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -14494,7 +14494,7 @@ function native__HTMLLinkElementWrappingImplementation__set__HTMLLinkElement_typ
   }
 }
 
-function native__HTMLMapElementWrappingImplementation__get__HTMLMapElement_areas(_this) {
+function native__HTMLMapElementWrappingImplementation__get_areas(_this) {
   try {
     return __dom_wrap(_this.$dom.areas);
   } catch (e) {
@@ -14502,7 +14502,7 @@ function native__HTMLMapElementWrappingImplementation__get__HTMLMapElement_areas
   }
 }
 
-function native__HTMLMapElementWrappingImplementation__get__HTMLMapElement_name(_this) {
+function native__HTMLMapElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -14510,7 +14510,7 @@ function native__HTMLMapElementWrappingImplementation__get__HTMLMapElement_name(
   }
 }
 
-function native__HTMLMapElementWrappingImplementation__set__HTMLMapElement_name(_this, value) {
+function native__HTMLMapElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -14518,7 +14518,7 @@ function native__HTMLMapElementWrappingImplementation__set__HTMLMapElement_name(
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_behavior(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_behavior(_this) {
   try {
     return __dom_wrap(_this.$dom.behavior);
   } catch (e) {
@@ -14526,7 +14526,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_behavior(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_behavior(_this, value) {
   try {
     _this.$dom.behavior = __dom_unwrap(value);
   } catch (e) {
@@ -14534,7 +14534,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_bgColor(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_bgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.bgColor);
   } catch (e) {
@@ -14542,7 +14542,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_bgColor(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_bgColor(_this, value) {
   try {
     _this.$dom.bgColor = __dom_unwrap(value);
   } catch (e) {
@@ -14550,7 +14550,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_direction(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_direction(_this) {
   try {
     return __dom_wrap(_this.$dom.direction);
   } catch (e) {
@@ -14558,7 +14558,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_direction(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_direction(_this, value) {
   try {
     _this.$dom.direction = __dom_unwrap(value);
   } catch (e) {
@@ -14566,7 +14566,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_height(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -14574,7 +14574,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_height(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -14582,7 +14582,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_hspace(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_hspace(_this) {
   try {
     return __dom_wrap(_this.$dom.hspace);
   } catch (e) {
@@ -14590,7 +14590,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_hspace(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_hspace(_this, value) {
   try {
     _this.$dom.hspace = __dom_unwrap(value);
   } catch (e) {
@@ -14598,7 +14598,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_loop(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_loop(_this) {
   try {
     return __dom_wrap(_this.$dom.loop);
   } catch (e) {
@@ -14606,7 +14606,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_loop(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_loop(_this, value) {
   try {
     _this.$dom.loop = __dom_unwrap(value);
   } catch (e) {
@@ -14614,7 +14614,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_scrollAmount(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_scrollAmount(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollAmount);
   } catch (e) {
@@ -14622,7 +14622,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_scrollAmount(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_scrollAmount(_this, value) {
   try {
     _this.$dom.scrollAmount = __dom_unwrap(value);
   } catch (e) {
@@ -14630,7 +14630,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_scrollDelay(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_scrollDelay(_this) {
   try {
     return __dom_wrap(_this.$dom.scrollDelay);
   } catch (e) {
@@ -14638,7 +14638,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_scrollDelay(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_scrollDelay(_this, value) {
   try {
     _this.$dom.scrollDelay = __dom_unwrap(value);
   } catch (e) {
@@ -14646,7 +14646,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_trueSpeed(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_trueSpeed(_this) {
   try {
     return __dom_wrap(_this.$dom.trueSpeed);
   } catch (e) {
@@ -14654,7 +14654,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_trueSpeed(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_trueSpeed(_this, value) {
   try {
     _this.$dom.trueSpeed = __dom_unwrap(value);
   } catch (e) {
@@ -14662,7 +14662,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_vspace(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_vspace(_this) {
   try {
     return __dom_wrap(_this.$dom.vspace);
   } catch (e) {
@@ -14670,7 +14670,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_vspace(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_vspace(_this, value) {
   try {
     _this.$dom.vspace = __dom_unwrap(value);
   } catch (e) {
@@ -14678,7 +14678,7 @@ function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeElement_width(_this) {
+function native__HTMLMarqueeElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -14686,7 +14686,7 @@ function native__HTMLMarqueeElementWrappingImplementation__get__HTMLMarqueeEleme
   }
 }
 
-function native__HTMLMarqueeElementWrappingImplementation__set__HTMLMarqueeElement_width(_this, value) {
+function native__HTMLMarqueeElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -14710,7 +14710,7 @@ function native__HTMLMarqueeElementWrappingImplementation__stop(_this) {
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_autoplay(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_autoplay(_this) {
   try {
     return __dom_wrap(_this.$dom.autoplay);
   } catch (e) {
@@ -14718,7 +14718,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_a
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_autoplay(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_autoplay(_this, value) {
   try {
     _this.$dom.autoplay = __dom_unwrap(value);
   } catch (e) {
@@ -14726,7 +14726,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_a
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_buffered(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_buffered(_this) {
   try {
     return __dom_wrap(_this.$dom.buffered);
   } catch (e) {
@@ -14734,7 +14734,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_b
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_controls(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_controls(_this) {
   try {
     return __dom_wrap(_this.$dom.controls);
   } catch (e) {
@@ -14742,7 +14742,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_c
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_controls(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_controls(_this, value) {
   try {
     _this.$dom.controls = __dom_unwrap(value);
   } catch (e) {
@@ -14750,7 +14750,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_c
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_currentSrc(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_currentSrc(_this) {
   try {
     return __dom_wrap(_this.$dom.currentSrc);
   } catch (e) {
@@ -14758,7 +14758,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_c
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_currentTime(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_currentTime(_this) {
   try {
     return __dom_wrap(_this.$dom.currentTime);
   } catch (e) {
@@ -14766,7 +14766,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_c
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_currentTime(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_currentTime(_this, value) {
   try {
     _this.$dom.currentTime = __dom_unwrap(value);
   } catch (e) {
@@ -14774,7 +14774,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_c
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_defaultMuted(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_defaultMuted(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultMuted);
   } catch (e) {
@@ -14782,7 +14782,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_d
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_defaultMuted(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_defaultMuted(_this, value) {
   try {
     _this.$dom.defaultMuted = __dom_unwrap(value);
   } catch (e) {
@@ -14790,7 +14790,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_d
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_defaultPlaybackRate(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_defaultPlaybackRate(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultPlaybackRate);
   } catch (e) {
@@ -14798,7 +14798,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_d
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_defaultPlaybackRate(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_defaultPlaybackRate(_this, value) {
   try {
     _this.$dom.defaultPlaybackRate = __dom_unwrap(value);
   } catch (e) {
@@ -14806,7 +14806,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_d
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_duration(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_duration(_this) {
   try {
     return __dom_wrap(_this.$dom.duration);
   } catch (e) {
@@ -14814,7 +14814,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_d
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_ended(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_ended(_this) {
   try {
     return __dom_wrap(_this.$dom.ended);
   } catch (e) {
@@ -14822,7 +14822,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_e
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_error(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_error(_this) {
   try {
     return __dom_wrap(_this.$dom.error);
   } catch (e) {
@@ -14830,7 +14830,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_e
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_initialTime(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_initialTime(_this) {
   try {
     return __dom_wrap(_this.$dom.initialTime);
   } catch (e) {
@@ -14838,7 +14838,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_i
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_loop(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_loop(_this) {
   try {
     return __dom_wrap(_this.$dom.loop);
   } catch (e) {
@@ -14846,7 +14846,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_l
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_loop(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_loop(_this, value) {
   try {
     _this.$dom.loop = __dom_unwrap(value);
   } catch (e) {
@@ -14854,7 +14854,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_l
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_muted(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_muted(_this) {
   try {
     return __dom_wrap(_this.$dom.muted);
   } catch (e) {
@@ -14862,7 +14862,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_m
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_muted(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_muted(_this, value) {
   try {
     _this.$dom.muted = __dom_unwrap(value);
   } catch (e) {
@@ -14870,7 +14870,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_m
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_networkState(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_networkState(_this) {
   try {
     return __dom_wrap(_this.$dom.networkState);
   } catch (e) {
@@ -14878,7 +14878,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_n
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_paused(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_paused(_this) {
   try {
     return __dom_wrap(_this.$dom.paused);
   } catch (e) {
@@ -14886,7 +14886,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_p
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_playbackRate(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_playbackRate(_this) {
   try {
     return __dom_wrap(_this.$dom.playbackRate);
   } catch (e) {
@@ -14894,7 +14894,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_p
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_playbackRate(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_playbackRate(_this, value) {
   try {
     _this.$dom.playbackRate = __dom_unwrap(value);
   } catch (e) {
@@ -14902,7 +14902,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_p
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_played(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_played(_this) {
   try {
     return __dom_wrap(_this.$dom.played);
   } catch (e) {
@@ -14910,7 +14910,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_p
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_preload(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_preload(_this) {
   try {
     return __dom_wrap(_this.$dom.preload);
   } catch (e) {
@@ -14918,7 +14918,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_p
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_preload(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_preload(_this, value) {
   try {
     _this.$dom.preload = __dom_unwrap(value);
   } catch (e) {
@@ -14926,7 +14926,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_p
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_readyState(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -14934,7 +14934,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_r
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_seekable(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_seekable(_this) {
   try {
     return __dom_wrap(_this.$dom.seekable);
   } catch (e) {
@@ -14942,7 +14942,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_s
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_seeking(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_seeking(_this) {
   try {
     return __dom_wrap(_this.$dom.seeking);
   } catch (e) {
@@ -14950,7 +14950,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_s
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_src(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -14958,7 +14958,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_s
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_src(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -14966,7 +14966,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_s
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_startTime(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_startTime(_this) {
   try {
     return __dom_wrap(_this.$dom.startTime);
   } catch (e) {
@@ -14974,7 +14974,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_s
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_volume(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_volume(_this) {
   try {
     return __dom_wrap(_this.$dom.volume);
   } catch (e) {
@@ -14982,7 +14982,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_v
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_volume(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_volume(_this, value) {
   try {
     _this.$dom.volume = __dom_unwrap(value);
   } catch (e) {
@@ -14990,7 +14990,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_v
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_webkitAudioDecodedByteCount(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_webkitAudioDecodedByteCount(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitAudioDecodedByteCount);
   } catch (e) {
@@ -14998,7 +14998,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_w
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_webkitClosedCaptionsVisible(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_webkitClosedCaptionsVisible(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitClosedCaptionsVisible);
   } catch (e) {
@@ -15006,7 +15006,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_w
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_webkitClosedCaptionsVisible(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_webkitClosedCaptionsVisible(_this, value) {
   try {
     _this.$dom.webkitClosedCaptionsVisible = __dom_unwrap(value);
   } catch (e) {
@@ -15014,7 +15014,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_w
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_webkitHasClosedCaptions(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_webkitHasClosedCaptions(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitHasClosedCaptions);
   } catch (e) {
@@ -15022,7 +15022,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_w
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_webkitPreservesPitch(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_webkitPreservesPitch(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitPreservesPitch);
   } catch (e) {
@@ -15030,7 +15030,7 @@ function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_w
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_webkitPreservesPitch(_this, value) {
+function native__HTMLMediaElementWrappingImplementation__set_webkitPreservesPitch(_this, value) {
   try {
     _this.$dom.webkitPreservesPitch = __dom_unwrap(value);
   } catch (e) {
@@ -15038,7 +15038,7 @@ function native__HTMLMediaElementWrappingImplementation__set__HTMLMediaElement_w
   }
 }
 
-function native__HTMLMediaElementWrappingImplementation__get__HTMLMediaElement_webkitVideoDecodedByteCount(_this) {
+function native__HTMLMediaElementWrappingImplementation__get_webkitVideoDecodedByteCount(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitVideoDecodedByteCount);
   } catch (e) {
@@ -15078,7 +15078,7 @@ function native__HTMLMediaElementWrappingImplementation__play(_this) {
   }
 }
 
-function native__HTMLMenuElementWrappingImplementation__get__HTMLMenuElement_compact(_this) {
+function native__HTMLMenuElementWrappingImplementation__get_compact(_this) {
   try {
     return __dom_wrap(_this.$dom.compact);
   } catch (e) {
@@ -15086,7 +15086,7 @@ function native__HTMLMenuElementWrappingImplementation__get__HTMLMenuElement_com
   }
 }
 
-function native__HTMLMenuElementWrappingImplementation__set__HTMLMenuElement_compact(_this, value) {
+function native__HTMLMenuElementWrappingImplementation__set_compact(_this, value) {
   try {
     _this.$dom.compact = __dom_unwrap(value);
   } catch (e) {
@@ -15094,7 +15094,7 @@ function native__HTMLMenuElementWrappingImplementation__set__HTMLMenuElement_com
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_content(_this) {
+function native__HTMLMetaElementWrappingImplementation__get_content(_this) {
   try {
     return __dom_wrap(_this.$dom.content);
   } catch (e) {
@@ -15102,7 +15102,7 @@ function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_con
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_content(_this, value) {
+function native__HTMLMetaElementWrappingImplementation__set_content(_this, value) {
   try {
     _this.$dom.content = __dom_unwrap(value);
   } catch (e) {
@@ -15110,7 +15110,7 @@ function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_con
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_httpEquiv(_this) {
+function native__HTMLMetaElementWrappingImplementation__get_httpEquiv(_this) {
   try {
     return __dom_wrap(_this.$dom.httpEquiv);
   } catch (e) {
@@ -15118,7 +15118,7 @@ function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_htt
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_httpEquiv(_this, value) {
+function native__HTMLMetaElementWrappingImplementation__set_httpEquiv(_this, value) {
   try {
     _this.$dom.httpEquiv = __dom_unwrap(value);
   } catch (e) {
@@ -15126,7 +15126,7 @@ function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_htt
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_name(_this) {
+function native__HTMLMetaElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -15134,7 +15134,7 @@ function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_nam
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_name(_this, value) {
+function native__HTMLMetaElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -15142,7 +15142,7 @@ function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_nam
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_scheme(_this) {
+function native__HTMLMetaElementWrappingImplementation__get_scheme(_this) {
   try {
     return __dom_wrap(_this.$dom.scheme);
   } catch (e) {
@@ -15150,7 +15150,7 @@ function native__HTMLMetaElementWrappingImplementation__get__HTMLMetaElement_sch
   }
 }
 
-function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_scheme(_this, value) {
+function native__HTMLMetaElementWrappingImplementation__set_scheme(_this, value) {
   try {
     _this.$dom.scheme = __dom_unwrap(value);
   } catch (e) {
@@ -15158,7 +15158,7 @@ function native__HTMLMetaElementWrappingImplementation__set__HTMLMetaElement_sch
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_form(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -15166,7 +15166,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_f
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_high(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_high(_this) {
   try {
     return __dom_wrap(_this.$dom.high);
   } catch (e) {
@@ -15174,7 +15174,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_h
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_high(_this, value) {
+function native__HTMLMeterElementWrappingImplementation__set_high(_this, value) {
   try {
     _this.$dom.high = __dom_unwrap(value);
   } catch (e) {
@@ -15182,7 +15182,7 @@ function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_h
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_labels(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -15190,7 +15190,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_l
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_low(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_low(_this) {
   try {
     return __dom_wrap(_this.$dom.low);
   } catch (e) {
@@ -15198,7 +15198,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_l
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_low(_this, value) {
+function native__HTMLMeterElementWrappingImplementation__set_low(_this, value) {
   try {
     _this.$dom.low = __dom_unwrap(value);
   } catch (e) {
@@ -15206,7 +15206,7 @@ function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_l
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_max(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_max(_this) {
   try {
     return __dom_wrap(_this.$dom.max);
   } catch (e) {
@@ -15214,7 +15214,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_m
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_max(_this, value) {
+function native__HTMLMeterElementWrappingImplementation__set_max(_this, value) {
   try {
     _this.$dom.max = __dom_unwrap(value);
   } catch (e) {
@@ -15222,7 +15222,7 @@ function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_m
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_min(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_min(_this) {
   try {
     return __dom_wrap(_this.$dom.min);
   } catch (e) {
@@ -15230,7 +15230,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_m
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_min(_this, value) {
+function native__HTMLMeterElementWrappingImplementation__set_min(_this, value) {
   try {
     _this.$dom.min = __dom_unwrap(value);
   } catch (e) {
@@ -15238,7 +15238,7 @@ function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_m
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_optimum(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_optimum(_this) {
   try {
     return __dom_wrap(_this.$dom.optimum);
   } catch (e) {
@@ -15246,7 +15246,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_o
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_optimum(_this, value) {
+function native__HTMLMeterElementWrappingImplementation__set_optimum(_this, value) {
   try {
     _this.$dom.optimum = __dom_unwrap(value);
   } catch (e) {
@@ -15254,7 +15254,7 @@ function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_o
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_value(_this) {
+function native__HTMLMeterElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -15262,7 +15262,7 @@ function native__HTMLMeterElementWrappingImplementation__get__HTMLMeterElement_v
   }
 }
 
-function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_value(_this, value) {
+function native__HTMLMeterElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -15270,7 +15270,7 @@ function native__HTMLMeterElementWrappingImplementation__set__HTMLMeterElement_v
   }
 }
 
-function native__HTMLModElementWrappingImplementation__get__HTMLModElement_cite(_this) {
+function native__HTMLModElementWrappingImplementation__get_cite(_this) {
   try {
     return __dom_wrap(_this.$dom.cite);
   } catch (e) {
@@ -15278,7 +15278,7 @@ function native__HTMLModElementWrappingImplementation__get__HTMLModElement_cite(
   }
 }
 
-function native__HTMLModElementWrappingImplementation__set__HTMLModElement_cite(_this, value) {
+function native__HTMLModElementWrappingImplementation__set_cite(_this, value) {
   try {
     _this.$dom.cite = __dom_unwrap(value);
   } catch (e) {
@@ -15286,7 +15286,7 @@ function native__HTMLModElementWrappingImplementation__set__HTMLModElement_cite(
   }
 }
 
-function native__HTMLModElementWrappingImplementation__get__HTMLModElement_dateTime(_this) {
+function native__HTMLModElementWrappingImplementation__get_dateTime(_this) {
   try {
     return __dom_wrap(_this.$dom.dateTime);
   } catch (e) {
@@ -15294,7 +15294,7 @@ function native__HTMLModElementWrappingImplementation__get__HTMLModElement_dateT
   }
 }
 
-function native__HTMLModElementWrappingImplementation__set__HTMLModElement_dateTime(_this, value) {
+function native__HTMLModElementWrappingImplementation__set_dateTime(_this, value) {
   try {
     _this.$dom.dateTime = __dom_unwrap(value);
   } catch (e) {
@@ -15302,7 +15302,7 @@ function native__HTMLModElementWrappingImplementation__set__HTMLModElement_dateT
   }
 }
 
-function native__HTMLOListElementWrappingImplementation__get__HTMLOListElement_compact(_this) {
+function native__HTMLOListElementWrappingImplementation__get_compact(_this) {
   try {
     return __dom_wrap(_this.$dom.compact);
   } catch (e) {
@@ -15310,7 +15310,7 @@ function native__HTMLOListElementWrappingImplementation__get__HTMLOListElement_c
   }
 }
 
-function native__HTMLOListElementWrappingImplementation__set__HTMLOListElement_compact(_this, value) {
+function native__HTMLOListElementWrappingImplementation__set_compact(_this, value) {
   try {
     _this.$dom.compact = __dom_unwrap(value);
   } catch (e) {
@@ -15318,7 +15318,7 @@ function native__HTMLOListElementWrappingImplementation__set__HTMLOListElement_c
   }
 }
 
-function native__HTMLOListElementWrappingImplementation__get__HTMLOListElement_start(_this) {
+function native__HTMLOListElementWrappingImplementation__get_start(_this) {
   try {
     return __dom_wrap(_this.$dom.start);
   } catch (e) {
@@ -15326,7 +15326,7 @@ function native__HTMLOListElementWrappingImplementation__get__HTMLOListElement_s
   }
 }
 
-function native__HTMLOListElementWrappingImplementation__set__HTMLOListElement_start(_this, value) {
+function native__HTMLOListElementWrappingImplementation__set_start(_this, value) {
   try {
     _this.$dom.start = __dom_unwrap(value);
   } catch (e) {
@@ -15334,7 +15334,7 @@ function native__HTMLOListElementWrappingImplementation__set__HTMLOListElement_s
   }
 }
 
-function native__HTMLOListElementWrappingImplementation__get__HTMLOListElement_type(_this) {
+function native__HTMLOListElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -15342,7 +15342,7 @@ function native__HTMLOListElementWrappingImplementation__get__HTMLOListElement_t
   }
 }
 
-function native__HTMLOListElementWrappingImplementation__set__HTMLOListElement_type(_this, value) {
+function native__HTMLOListElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -15350,7 +15350,7 @@ function native__HTMLOListElementWrappingImplementation__set__HTMLOListElement_t
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_align(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -15358,7 +15358,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_align(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -15366,7 +15366,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_archive(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_archive(_this) {
   try {
     return __dom_wrap(_this.$dom.archive);
   } catch (e) {
@@ -15374,7 +15374,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_archive(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_archive(_this, value) {
   try {
     _this.$dom.archive = __dom_unwrap(value);
   } catch (e) {
@@ -15382,7 +15382,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_border(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_border(_this) {
   try {
     return __dom_wrap(_this.$dom.border);
   } catch (e) {
@@ -15390,7 +15390,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_border(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_border(_this, value) {
   try {
     _this.$dom.border = __dom_unwrap(value);
   } catch (e) {
@@ -15398,7 +15398,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_code(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -15406,7 +15406,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_code(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_code(_this, value) {
   try {
     _this.$dom.code = __dom_unwrap(value);
   } catch (e) {
@@ -15414,7 +15414,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_codeBase(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_codeBase(_this) {
   try {
     return __dom_wrap(_this.$dom.codeBase);
   } catch (e) {
@@ -15422,7 +15422,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_codeBase(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_codeBase(_this, value) {
   try {
     _this.$dom.codeBase = __dom_unwrap(value);
   } catch (e) {
@@ -15430,7 +15430,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_codeType(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_codeType(_this) {
   try {
     return __dom_wrap(_this.$dom.codeType);
   } catch (e) {
@@ -15438,7 +15438,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_codeType(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_codeType(_this, value) {
   try {
     _this.$dom.codeType = __dom_unwrap(value);
   } catch (e) {
@@ -15446,7 +15446,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_contentDocument(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_contentDocument(_this) {
   try {
     return __dom_wrap(_this.$dom.contentDocument);
   } catch (e) {
@@ -15454,7 +15454,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_data(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
   } catch (e) {
@@ -15462,7 +15462,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_data(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_data(_this, value) {
   try {
     _this.$dom.data = __dom_unwrap(value);
   } catch (e) {
@@ -15470,7 +15470,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_declare(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_declare(_this) {
   try {
     return __dom_wrap(_this.$dom.declare);
   } catch (e) {
@@ -15478,7 +15478,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_declare(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_declare(_this, value) {
   try {
     _this.$dom.declare = __dom_unwrap(value);
   } catch (e) {
@@ -15486,7 +15486,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_form(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -15494,7 +15494,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_height(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -15502,7 +15502,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_height(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -15510,7 +15510,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_hspace(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_hspace(_this) {
   try {
     return __dom_wrap(_this.$dom.hspace);
   } catch (e) {
@@ -15518,7 +15518,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_hspace(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_hspace(_this, value) {
   try {
     _this.$dom.hspace = __dom_unwrap(value);
   } catch (e) {
@@ -15526,7 +15526,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_name(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -15534,7 +15534,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_name(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -15542,7 +15542,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_standby(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_standby(_this) {
   try {
     return __dom_wrap(_this.$dom.standby);
   } catch (e) {
@@ -15550,7 +15550,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_standby(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_standby(_this, value) {
   try {
     _this.$dom.standby = __dom_unwrap(value);
   } catch (e) {
@@ -15558,7 +15558,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_type(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -15566,7 +15566,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_type(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -15574,7 +15574,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_useMap(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_useMap(_this) {
   try {
     return __dom_wrap(_this.$dom.useMap);
   } catch (e) {
@@ -15582,7 +15582,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_useMap(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_useMap(_this, value) {
   try {
     _this.$dom.useMap = __dom_unwrap(value);
   } catch (e) {
@@ -15590,7 +15590,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_validationMessage(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -15598,7 +15598,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_validity(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -15606,7 +15606,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_vspace(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_vspace(_this) {
   try {
     return __dom_wrap(_this.$dom.vspace);
   } catch (e) {
@@ -15614,7 +15614,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_vspace(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_vspace(_this, value) {
   try {
     _this.$dom.vspace = __dom_unwrap(value);
   } catch (e) {
@@ -15622,7 +15622,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_width(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -15630,7 +15630,7 @@ function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement_width(_this, value) {
+function native__HTMLObjectElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -15638,7 +15638,7 @@ function native__HTMLObjectElementWrappingImplementation__set__HTMLObjectElement
   }
 }
 
-function native__HTMLObjectElementWrappingImplementation__get__HTMLObjectElement_willValidate(_this) {
+function native__HTMLObjectElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -15662,7 +15662,7 @@ function native__HTMLObjectElementWrappingImplementation__setCustomValidity(_thi
   }
 }
 
-function native__HTMLOptGroupElementWrappingImplementation__get__HTMLOptGroupElement_disabled(_this) {
+function native__HTMLOptGroupElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -15670,7 +15670,7 @@ function native__HTMLOptGroupElementWrappingImplementation__get__HTMLOptGroupEle
   }
 }
 
-function native__HTMLOptGroupElementWrappingImplementation__set__HTMLOptGroupElement_disabled(_this, value) {
+function native__HTMLOptGroupElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -15678,7 +15678,7 @@ function native__HTMLOptGroupElementWrappingImplementation__set__HTMLOptGroupEle
   }
 }
 
-function native__HTMLOptGroupElementWrappingImplementation__get__HTMLOptGroupElement_label(_this) {
+function native__HTMLOptGroupElementWrappingImplementation__get_label(_this) {
   try {
     return __dom_wrap(_this.$dom.label);
   } catch (e) {
@@ -15686,7 +15686,7 @@ function native__HTMLOptGroupElementWrappingImplementation__get__HTMLOptGroupEle
   }
 }
 
-function native__HTMLOptGroupElementWrappingImplementation__set__HTMLOptGroupElement_label(_this, value) {
+function native__HTMLOptGroupElementWrappingImplementation__set_label(_this, value) {
   try {
     _this.$dom.label = __dom_unwrap(value);
   } catch (e) {
@@ -15694,7 +15694,7 @@ function native__HTMLOptGroupElementWrappingImplementation__set__HTMLOptGroupEle
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_defaultSelected(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_defaultSelected(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultSelected);
   } catch (e) {
@@ -15702,7 +15702,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement_defaultSelected(_this, value) {
+function native__HTMLOptionElementWrappingImplementation__set_defaultSelected(_this, value) {
   try {
     _this.$dom.defaultSelected = __dom_unwrap(value);
   } catch (e) {
@@ -15710,7 +15710,7 @@ function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_disabled(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -15718,7 +15718,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement_disabled(_this, value) {
+function native__HTMLOptionElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -15726,7 +15726,7 @@ function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_form(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -15734,7 +15734,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_index(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_index(_this) {
   try {
     return __dom_wrap(_this.$dom.index);
   } catch (e) {
@@ -15742,7 +15742,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_label(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_label(_this) {
   try {
     return __dom_wrap(_this.$dom.label);
   } catch (e) {
@@ -15750,7 +15750,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement_label(_this, value) {
+function native__HTMLOptionElementWrappingImplementation__set_label(_this, value) {
   try {
     _this.$dom.label = __dom_unwrap(value);
   } catch (e) {
@@ -15758,7 +15758,7 @@ function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_selected(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_selected(_this) {
   try {
     return __dom_wrap(_this.$dom.selected);
   } catch (e) {
@@ -15766,7 +15766,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement_selected(_this, value) {
+function native__HTMLOptionElementWrappingImplementation__set_selected(_this, value) {
   try {
     _this.$dom.selected = __dom_unwrap(value);
   } catch (e) {
@@ -15774,7 +15774,7 @@ function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_text(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_text(_this) {
   try {
     return __dom_wrap(_this.$dom.text);
   } catch (e) {
@@ -15782,7 +15782,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement_text(_this, value) {
+function native__HTMLOptionElementWrappingImplementation__set_text(_this, value) {
   try {
     _this.$dom.text = __dom_unwrap(value);
   } catch (e) {
@@ -15790,7 +15790,7 @@ function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement_value(_this) {
+function native__HTMLOptionElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -15798,7 +15798,7 @@ function native__HTMLOptionElementWrappingImplementation__get__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement_value(_this, value) {
+function native__HTMLOptionElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -15806,7 +15806,7 @@ function native__HTMLOptionElementWrappingImplementation__set__HTMLOptionElement
   }
 }
 
-function native__HTMLOptionsCollectionWrappingImplementation__get__HTMLOptionsCollection_length(_this) {
+function native__HTMLOptionsCollectionWrappingImplementation__get_length_HTMLOptionsCollection(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -15814,7 +15814,7 @@ function native__HTMLOptionsCollectionWrappingImplementation__get__HTMLOptionsCo
   }
 }
 
-function native__HTMLOptionsCollectionWrappingImplementation__set__HTMLOptionsCollection_length(_this, value) {
+function native__HTMLOptionsCollectionWrappingImplementation__set_length_HTMLOptionsCollection(_this, value) {
   try {
     _this.$dom.length = __dom_unwrap(value);
   } catch (e) {
@@ -15822,7 +15822,7 @@ function native__HTMLOptionsCollectionWrappingImplementation__set__HTMLOptionsCo
   }
 }
 
-function native__HTMLOptionsCollectionWrappingImplementation__get__HTMLOptionsCollection_selectedIndex(_this) {
+function native__HTMLOptionsCollectionWrappingImplementation__get_selectedIndex(_this) {
   try {
     return __dom_wrap(_this.$dom.selectedIndex);
   } catch (e) {
@@ -15830,7 +15830,7 @@ function native__HTMLOptionsCollectionWrappingImplementation__get__HTMLOptionsCo
   }
 }
 
-function native__HTMLOptionsCollectionWrappingImplementation__set__HTMLOptionsCollection_selectedIndex(_this, value) {
+function native__HTMLOptionsCollectionWrappingImplementation__set_selectedIndex(_this, value) {
   try {
     _this.$dom.selectedIndex = __dom_unwrap(value);
   } catch (e) {
@@ -15846,7 +15846,7 @@ function native__HTMLOptionsCollectionWrappingImplementation__remove(_this, inde
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_defaultValue(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_defaultValue(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultValue);
   } catch (e) {
@@ -15854,7 +15854,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement_defaultValue(_this, value) {
+function native__HTMLOutputElementWrappingImplementation__set_defaultValue(_this, value) {
   try {
     _this.$dom.defaultValue = __dom_unwrap(value);
   } catch (e) {
@@ -15862,7 +15862,7 @@ function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_form(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -15870,7 +15870,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_htmlFor(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_htmlFor(_this) {
   try {
     return __dom_wrap(_this.$dom.htmlFor);
   } catch (e) {
@@ -15878,7 +15878,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement_htmlFor(_this, value) {
+function native__HTMLOutputElementWrappingImplementation__set_htmlFor(_this, value) {
   try {
     _this.$dom.htmlFor = __dom_unwrap(value);
   } catch (e) {
@@ -15886,7 +15886,7 @@ function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_labels(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -15894,7 +15894,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_name(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -15902,7 +15902,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement_name(_this, value) {
+function native__HTMLOutputElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -15910,7 +15910,7 @@ function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_type(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -15918,7 +15918,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_validationMessage(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -15926,7 +15926,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_validity(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -15934,7 +15934,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_value(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -15942,7 +15942,7 @@ function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement_value(_this, value) {
+function native__HTMLOutputElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -15950,7 +15950,7 @@ function native__HTMLOutputElementWrappingImplementation__set__HTMLOutputElement
   }
 }
 
-function native__HTMLOutputElementWrappingImplementation__get__HTMLOutputElement_willValidate(_this) {
+function native__HTMLOutputElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -15974,7 +15974,7 @@ function native__HTMLOutputElementWrappingImplementation__setCustomValidity(_thi
   }
 }
 
-function native__HTMLParagraphElementWrappingImplementation__get__HTMLParagraphElement_align(_this) {
+function native__HTMLParagraphElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -15982,7 +15982,7 @@ function native__HTMLParagraphElementWrappingImplementation__get__HTMLParagraphE
   }
 }
 
-function native__HTMLParagraphElementWrappingImplementation__set__HTMLParagraphElement_align(_this, value) {
+function native__HTMLParagraphElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -15990,7 +15990,7 @@ function native__HTMLParagraphElementWrappingImplementation__set__HTMLParagraphE
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_name(_this) {
+function native__HTMLParamElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -15998,7 +15998,7 @@ function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_n
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_name(_this, value) {
+function native__HTMLParamElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -16006,7 +16006,7 @@ function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_n
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_type(_this) {
+function native__HTMLParamElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -16014,7 +16014,7 @@ function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_t
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_type(_this, value) {
+function native__HTMLParamElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -16022,7 +16022,7 @@ function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_t
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_value(_this) {
+function native__HTMLParamElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -16030,7 +16030,7 @@ function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_v
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_value(_this, value) {
+function native__HTMLParamElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -16038,7 +16038,7 @@ function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_v
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_valueType(_this) {
+function native__HTMLParamElementWrappingImplementation__get_valueType(_this) {
   try {
     return __dom_wrap(_this.$dom.valueType);
   } catch (e) {
@@ -16046,7 +16046,7 @@ function native__HTMLParamElementWrappingImplementation__get__HTMLParamElement_v
   }
 }
 
-function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_valueType(_this, value) {
+function native__HTMLParamElementWrappingImplementation__set_valueType(_this, value) {
   try {
     _this.$dom.valueType = __dom_unwrap(value);
   } catch (e) {
@@ -16054,7 +16054,7 @@ function native__HTMLParamElementWrappingImplementation__set__HTMLParamElement_v
   }
 }
 
-function native__HTMLPreElementWrappingImplementation__get__HTMLPreElement_width(_this) {
+function native__HTMLPreElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -16062,7 +16062,7 @@ function native__HTMLPreElementWrappingImplementation__get__HTMLPreElement_width
   }
 }
 
-function native__HTMLPreElementWrappingImplementation__set__HTMLPreElement_width(_this, value) {
+function native__HTMLPreElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -16070,7 +16070,7 @@ function native__HTMLPreElementWrappingImplementation__set__HTMLPreElement_width
   }
 }
 
-function native__HTMLPreElementWrappingImplementation__get__HTMLPreElement_wrap(_this) {
+function native__HTMLPreElementWrappingImplementation__get_wrap(_this) {
   try {
     return __dom_wrap(_this.$dom.wrap);
   } catch (e) {
@@ -16078,7 +16078,7 @@ function native__HTMLPreElementWrappingImplementation__get__HTMLPreElement_wrap(
   }
 }
 
-function native__HTMLPreElementWrappingImplementation__set__HTMLPreElement_wrap(_this, value) {
+function native__HTMLPreElementWrappingImplementation__set_wrap(_this, value) {
   try {
     _this.$dom.wrap = __dom_unwrap(value);
   } catch (e) {
@@ -16086,7 +16086,7 @@ function native__HTMLPreElementWrappingImplementation__set__HTMLPreElement_wrap(
   }
 }
 
-function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressElement_form(_this) {
+function native__HTMLProgressElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -16094,7 +16094,7 @@ function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressEle
   }
 }
 
-function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressElement_labels(_this) {
+function native__HTMLProgressElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -16102,7 +16102,7 @@ function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressEle
   }
 }
 
-function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressElement_max(_this) {
+function native__HTMLProgressElementWrappingImplementation__get_max(_this) {
   try {
     return __dom_wrap(_this.$dom.max);
   } catch (e) {
@@ -16110,7 +16110,7 @@ function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressEle
   }
 }
 
-function native__HTMLProgressElementWrappingImplementation__set__HTMLProgressElement_max(_this, value) {
+function native__HTMLProgressElementWrappingImplementation__set_max(_this, value) {
   try {
     _this.$dom.max = __dom_unwrap(value);
   } catch (e) {
@@ -16118,7 +16118,7 @@ function native__HTMLProgressElementWrappingImplementation__set__HTMLProgressEle
   }
 }
 
-function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressElement_position(_this) {
+function native__HTMLProgressElementWrappingImplementation__get_position(_this) {
   try {
     return __dom_wrap(_this.$dom.position);
   } catch (e) {
@@ -16126,7 +16126,7 @@ function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressEle
   }
 }
 
-function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressElement_value(_this) {
+function native__HTMLProgressElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -16134,7 +16134,7 @@ function native__HTMLProgressElementWrappingImplementation__get__HTMLProgressEle
   }
 }
 
-function native__HTMLProgressElementWrappingImplementation__set__HTMLProgressElement_value(_this, value) {
+function native__HTMLProgressElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -16142,7 +16142,7 @@ function native__HTMLProgressElementWrappingImplementation__set__HTMLProgressEle
   }
 }
 
-function native__HTMLQuoteElementWrappingImplementation__get__HTMLQuoteElement_cite(_this) {
+function native__HTMLQuoteElementWrappingImplementation__get_cite(_this) {
   try {
     return __dom_wrap(_this.$dom.cite);
   } catch (e) {
@@ -16150,7 +16150,7 @@ function native__HTMLQuoteElementWrappingImplementation__get__HTMLQuoteElement_c
   }
 }
 
-function native__HTMLQuoteElementWrappingImplementation__set__HTMLQuoteElement_cite(_this, value) {
+function native__HTMLQuoteElementWrappingImplementation__set_cite(_this, value) {
   try {
     _this.$dom.cite = __dom_unwrap(value);
   } catch (e) {
@@ -16158,7 +16158,7 @@ function native__HTMLQuoteElementWrappingImplementation__set__HTMLQuoteElement_c
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_async(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_async(_this) {
   try {
     return __dom_wrap(_this.$dom.async);
   } catch (e) {
@@ -16166,7 +16166,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_async(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_async(_this, value) {
   try {
     _this.$dom.async = __dom_unwrap(value);
   } catch (e) {
@@ -16174,7 +16174,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_charset(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_charset(_this) {
   try {
     return __dom_wrap(_this.$dom.charset);
   } catch (e) {
@@ -16182,7 +16182,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_charset(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_charset(_this, value) {
   try {
     _this.$dom.charset = __dom_unwrap(value);
   } catch (e) {
@@ -16190,7 +16190,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_defer(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_defer(_this) {
   try {
     return __dom_wrap(_this.$dom.defer);
   } catch (e) {
@@ -16198,7 +16198,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_defer(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_defer(_this, value) {
   try {
     _this.$dom.defer = __dom_unwrap(value);
   } catch (e) {
@@ -16206,7 +16206,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_event(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_event(_this) {
   try {
     return __dom_wrap(_this.$dom.event);
   } catch (e) {
@@ -16214,7 +16214,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_event(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_event(_this, value) {
   try {
     _this.$dom.event = __dom_unwrap(value);
   } catch (e) {
@@ -16222,7 +16222,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_htmlFor(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_htmlFor(_this) {
   try {
     return __dom_wrap(_this.$dom.htmlFor);
   } catch (e) {
@@ -16230,7 +16230,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_htmlFor(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_htmlFor(_this, value) {
   try {
     _this.$dom.htmlFor = __dom_unwrap(value);
   } catch (e) {
@@ -16238,7 +16238,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_src(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -16246,7 +16246,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_src(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -16254,7 +16254,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_text(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_text(_this) {
   try {
     return __dom_wrap(_this.$dom.text);
   } catch (e) {
@@ -16262,7 +16262,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_text(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_text(_this, value) {
   try {
     _this.$dom.text = __dom_unwrap(value);
   } catch (e) {
@@ -16270,7 +16270,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement_type(_this) {
+function native__HTMLScriptElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -16278,7 +16278,7 @@ function native__HTMLScriptElementWrappingImplementation__get__HTMLScriptElement
   }
 }
 
-function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement_type(_this, value) {
+function native__HTMLScriptElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -16286,7 +16286,7 @@ function native__HTMLScriptElementWrappingImplementation__set__HTMLScriptElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_autofocus(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_autofocus(_this) {
   try {
     return __dom_wrap(_this.$dom.autofocus);
   } catch (e) {
@@ -16294,7 +16294,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_autofocus(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_autofocus(_this, value) {
   try {
     _this.$dom.autofocus = __dom_unwrap(value);
   } catch (e) {
@@ -16302,7 +16302,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_disabled(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -16310,7 +16310,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_disabled(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -16318,7 +16318,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_form(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -16326,7 +16326,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_labels(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -16334,7 +16334,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_length(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -16342,7 +16342,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_length(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_length(_this, value) {
   try {
     _this.$dom.length = __dom_unwrap(value);
   } catch (e) {
@@ -16350,7 +16350,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_multiple(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_multiple(_this) {
   try {
     return __dom_wrap(_this.$dom.multiple);
   } catch (e) {
@@ -16358,7 +16358,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_multiple(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_multiple(_this, value) {
   try {
     _this.$dom.multiple = __dom_unwrap(value);
   } catch (e) {
@@ -16366,7 +16366,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_name(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -16374,7 +16374,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_name(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -16382,7 +16382,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_options(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_options(_this) {
   try {
     return __dom_wrap(_this.$dom.options);
   } catch (e) {
@@ -16390,7 +16390,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_required(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_required(_this) {
   try {
     return __dom_wrap(_this.$dom.required);
   } catch (e) {
@@ -16398,7 +16398,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_required(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_required(_this, value) {
   try {
     _this.$dom.required = __dom_unwrap(value);
   } catch (e) {
@@ -16406,7 +16406,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_selectedIndex(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_selectedIndex(_this) {
   try {
     return __dom_wrap(_this.$dom.selectedIndex);
   } catch (e) {
@@ -16414,7 +16414,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_selectedIndex(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_selectedIndex(_this, value) {
   try {
     _this.$dom.selectedIndex = __dom_unwrap(value);
   } catch (e) {
@@ -16422,7 +16422,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_size(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -16430,7 +16430,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_size(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_size(_this, value) {
   try {
     _this.$dom.size = __dom_unwrap(value);
   } catch (e) {
@@ -16438,7 +16438,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_type(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -16446,7 +16446,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_validationMessage(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -16454,7 +16454,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_validity(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -16462,7 +16462,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_value(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -16470,7 +16470,7 @@ function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement_value(_this, value) {
+function native__HTMLSelectElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -16478,7 +16478,7 @@ function native__HTMLSelectElementWrappingImplementation__set__HTMLSelectElement
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__get__HTMLSelectElement_willValidate(_this) {
+function native__HTMLSelectElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -16542,7 +16542,7 @@ function native__HTMLSelectElementWrappingImplementation__setCustomValidity(_thi
   }
 }
 
-function native__HTMLSourceElementWrappingImplementation__get__HTMLSourceElement_media(_this) {
+function native__HTMLSourceElementWrappingImplementation__get_media(_this) {
   try {
     return __dom_wrap(_this.$dom.media);
   } catch (e) {
@@ -16550,7 +16550,7 @@ function native__HTMLSourceElementWrappingImplementation__get__HTMLSourceElement
   }
 }
 
-function native__HTMLSourceElementWrappingImplementation__set__HTMLSourceElement_media(_this, value) {
+function native__HTMLSourceElementWrappingImplementation__set_media(_this, value) {
   try {
     _this.$dom.media = __dom_unwrap(value);
   } catch (e) {
@@ -16558,7 +16558,7 @@ function native__HTMLSourceElementWrappingImplementation__set__HTMLSourceElement
   }
 }
 
-function native__HTMLSourceElementWrappingImplementation__get__HTMLSourceElement_src(_this) {
+function native__HTMLSourceElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -16566,7 +16566,7 @@ function native__HTMLSourceElementWrappingImplementation__get__HTMLSourceElement
   }
 }
 
-function native__HTMLSourceElementWrappingImplementation__set__HTMLSourceElement_src(_this, value) {
+function native__HTMLSourceElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -16574,7 +16574,7 @@ function native__HTMLSourceElementWrappingImplementation__set__HTMLSourceElement
   }
 }
 
-function native__HTMLSourceElementWrappingImplementation__get__HTMLSourceElement_type(_this) {
+function native__HTMLSourceElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -16582,7 +16582,7 @@ function native__HTMLSourceElementWrappingImplementation__get__HTMLSourceElement
   }
 }
 
-function native__HTMLSourceElementWrappingImplementation__set__HTMLSourceElement_type(_this, value) {
+function native__HTMLSourceElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -16590,7 +16590,7 @@ function native__HTMLSourceElementWrappingImplementation__set__HTMLSourceElement
   }
 }
 
-function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_disabled(_this) {
+function native__HTMLStyleElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -16598,7 +16598,7 @@ function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_d
   }
 }
 
-function native__HTMLStyleElementWrappingImplementation__set__HTMLStyleElement_disabled(_this, value) {
+function native__HTMLStyleElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -16606,7 +16606,7 @@ function native__HTMLStyleElementWrappingImplementation__set__HTMLStyleElement_d
   }
 }
 
-function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_media(_this) {
+function native__HTMLStyleElementWrappingImplementation__get_media(_this) {
   try {
     return __dom_wrap(_this.$dom.media);
   } catch (e) {
@@ -16614,7 +16614,7 @@ function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_m
   }
 }
 
-function native__HTMLStyleElementWrappingImplementation__set__HTMLStyleElement_media(_this, value) {
+function native__HTMLStyleElementWrappingImplementation__set_media(_this, value) {
   try {
     _this.$dom.media = __dom_unwrap(value);
   } catch (e) {
@@ -16622,7 +16622,7 @@ function native__HTMLStyleElementWrappingImplementation__set__HTMLStyleElement_m
   }
 }
 
-function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_sheet(_this) {
+function native__HTMLStyleElementWrappingImplementation__get_sheet(_this) {
   try {
     return __dom_wrap(_this.$dom.sheet);
   } catch (e) {
@@ -16630,7 +16630,7 @@ function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_s
   }
 }
 
-function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_type(_this) {
+function native__HTMLStyleElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -16638,7 +16638,7 @@ function native__HTMLStyleElementWrappingImplementation__get__HTMLStyleElement_t
   }
 }
 
-function native__HTMLStyleElementWrappingImplementation__set__HTMLStyleElement_type(_this, value) {
+function native__HTMLStyleElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -16646,7 +16646,7 @@ function native__HTMLStyleElementWrappingImplementation__set__HTMLStyleElement_t
   }
 }
 
-function native__HTMLTableCaptionElementWrappingImplementation__get__HTMLTableCaptionElement_align(_this) {
+function native__HTMLTableCaptionElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -16654,7 +16654,7 @@ function native__HTMLTableCaptionElementWrappingImplementation__get__HTMLTableCa
   }
 }
 
-function native__HTMLTableCaptionElementWrappingImplementation__set__HTMLTableCaptionElement_align(_this, value) {
+function native__HTMLTableCaptionElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -16662,7 +16662,7 @@ function native__HTMLTableCaptionElementWrappingImplementation__set__HTMLTableCa
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_abbr(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_abbr(_this) {
   try {
     return __dom_wrap(_this.$dom.abbr);
   } catch (e) {
@@ -16670,7 +16670,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_abbr(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_abbr(_this, value) {
   try {
     _this.$dom.abbr = __dom_unwrap(value);
   } catch (e) {
@@ -16678,7 +16678,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_align(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -16686,7 +16686,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_align(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -16694,7 +16694,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_axis(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_axis(_this) {
   try {
     return __dom_wrap(_this.$dom.axis);
   } catch (e) {
@@ -16702,7 +16702,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_axis(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_axis(_this, value) {
   try {
     _this.$dom.axis = __dom_unwrap(value);
   } catch (e) {
@@ -16710,7 +16710,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_bgColor(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_bgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.bgColor);
   } catch (e) {
@@ -16718,7 +16718,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_bgColor(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_bgColor(_this, value) {
   try {
     _this.$dom.bgColor = __dom_unwrap(value);
   } catch (e) {
@@ -16726,7 +16726,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_cellIndex(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_cellIndex(_this) {
   try {
     return __dom_wrap(_this.$dom.cellIndex);
   } catch (e) {
@@ -16734,7 +16734,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_ch(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_ch(_this) {
   try {
     return __dom_wrap(_this.$dom.ch);
   } catch (e) {
@@ -16742,7 +16742,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_ch(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_ch(_this, value) {
   try {
     _this.$dom.ch = __dom_unwrap(value);
   } catch (e) {
@@ -16750,7 +16750,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_chOff(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_chOff(_this) {
   try {
     return __dom_wrap(_this.$dom.chOff);
   } catch (e) {
@@ -16758,7 +16758,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_chOff(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_chOff(_this, value) {
   try {
     _this.$dom.chOff = __dom_unwrap(value);
   } catch (e) {
@@ -16766,7 +16766,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_colSpan(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_colSpan(_this) {
   try {
     return __dom_wrap(_this.$dom.colSpan);
   } catch (e) {
@@ -16774,7 +16774,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_colSpan(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_colSpan(_this, value) {
   try {
     _this.$dom.colSpan = __dom_unwrap(value);
   } catch (e) {
@@ -16782,7 +16782,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_headers(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_headers(_this) {
   try {
     return __dom_wrap(_this.$dom.headers);
   } catch (e) {
@@ -16790,7 +16790,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_headers(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_headers(_this, value) {
   try {
     _this.$dom.headers = __dom_unwrap(value);
   } catch (e) {
@@ -16798,7 +16798,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_height(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -16806,7 +16806,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_height(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -16814,7 +16814,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_noWrap(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_noWrap(_this) {
   try {
     return __dom_wrap(_this.$dom.noWrap);
   } catch (e) {
@@ -16822,7 +16822,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_noWrap(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_noWrap(_this, value) {
   try {
     _this.$dom.noWrap = __dom_unwrap(value);
   } catch (e) {
@@ -16830,7 +16830,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_rowSpan(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_rowSpan(_this) {
   try {
     return __dom_wrap(_this.$dom.rowSpan);
   } catch (e) {
@@ -16838,7 +16838,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_rowSpan(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_rowSpan(_this, value) {
   try {
     _this.$dom.rowSpan = __dom_unwrap(value);
   } catch (e) {
@@ -16846,7 +16846,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_scope(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_scope(_this) {
   try {
     return __dom_wrap(_this.$dom.scope);
   } catch (e) {
@@ -16854,7 +16854,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_scope(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_scope(_this, value) {
   try {
     _this.$dom.scope = __dom_unwrap(value);
   } catch (e) {
@@ -16862,7 +16862,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_vAlign(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_vAlign(_this) {
   try {
     return __dom_wrap(_this.$dom.vAlign);
   } catch (e) {
@@ -16870,7 +16870,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_vAlign(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_vAlign(_this, value) {
   try {
     _this.$dom.vAlign = __dom_unwrap(value);
   } catch (e) {
@@ -16878,7 +16878,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellElement_width(_this) {
+function native__HTMLTableCellElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -16886,7 +16886,7 @@ function native__HTMLTableCellElementWrappingImplementation__get__HTMLTableCellE
   }
 }
 
-function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellElement_width(_this, value) {
+function native__HTMLTableCellElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -16894,7 +16894,7 @@ function native__HTMLTableCellElementWrappingImplementation__set__HTMLTableCellE
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColElement_align(_this) {
+function native__HTMLTableColElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -16902,7 +16902,7 @@ function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColElement_align(_this, value) {
+function native__HTMLTableColElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -16910,7 +16910,7 @@ function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColElement_ch(_this) {
+function native__HTMLTableColElementWrappingImplementation__get_ch(_this) {
   try {
     return __dom_wrap(_this.$dom.ch);
   } catch (e) {
@@ -16918,7 +16918,7 @@ function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColElement_ch(_this, value) {
+function native__HTMLTableColElementWrappingImplementation__set_ch(_this, value) {
   try {
     _this.$dom.ch = __dom_unwrap(value);
   } catch (e) {
@@ -16926,7 +16926,7 @@ function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColElement_chOff(_this) {
+function native__HTMLTableColElementWrappingImplementation__get_chOff(_this) {
   try {
     return __dom_wrap(_this.$dom.chOff);
   } catch (e) {
@@ -16934,7 +16934,7 @@ function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColElement_chOff(_this, value) {
+function native__HTMLTableColElementWrappingImplementation__set_chOff(_this, value) {
   try {
     _this.$dom.chOff = __dom_unwrap(value);
   } catch (e) {
@@ -16942,7 +16942,7 @@ function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColElement_span(_this) {
+function native__HTMLTableColElementWrappingImplementation__get_span(_this) {
   try {
     return __dom_wrap(_this.$dom.span);
   } catch (e) {
@@ -16950,7 +16950,7 @@ function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColElement_span(_this, value) {
+function native__HTMLTableColElementWrappingImplementation__set_span(_this, value) {
   try {
     _this.$dom.span = __dom_unwrap(value);
   } catch (e) {
@@ -16958,7 +16958,7 @@ function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColElement_vAlign(_this) {
+function native__HTMLTableColElementWrappingImplementation__get_vAlign(_this) {
   try {
     return __dom_wrap(_this.$dom.vAlign);
   } catch (e) {
@@ -16966,7 +16966,7 @@ function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColElement_vAlign(_this, value) {
+function native__HTMLTableColElementWrappingImplementation__set_vAlign(_this, value) {
   try {
     _this.$dom.vAlign = __dom_unwrap(value);
   } catch (e) {
@@ -16974,7 +16974,7 @@ function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColElement_width(_this) {
+function native__HTMLTableColElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -16982,7 +16982,7 @@ function native__HTMLTableColElementWrappingImplementation__get__HTMLTableColEle
   }
 }
 
-function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColElement_width(_this, value) {
+function native__HTMLTableColElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -16990,7 +16990,7 @@ function native__HTMLTableColElementWrappingImplementation__set__HTMLTableColEle
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_align(_this) {
+function native__HTMLTableElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -16998,7 +16998,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_a
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_align(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -17006,7 +17006,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_a
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_bgColor(_this) {
+function native__HTMLTableElementWrappingImplementation__get_bgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.bgColor);
   } catch (e) {
@@ -17014,7 +17014,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_b
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_bgColor(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_bgColor(_this, value) {
   try {
     _this.$dom.bgColor = __dom_unwrap(value);
   } catch (e) {
@@ -17022,7 +17022,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_b
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_border(_this) {
+function native__HTMLTableElementWrappingImplementation__get_border(_this) {
   try {
     return __dom_wrap(_this.$dom.border);
   } catch (e) {
@@ -17030,7 +17030,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_b
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_border(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_border(_this, value) {
   try {
     _this.$dom.border = __dom_unwrap(value);
   } catch (e) {
@@ -17038,7 +17038,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_b
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_caption(_this) {
+function native__HTMLTableElementWrappingImplementation__get_caption(_this) {
   try {
     return __dom_wrap(_this.$dom.caption);
   } catch (e) {
@@ -17046,7 +17046,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_c
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_caption(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_caption(_this, value) {
   try {
     _this.$dom.caption = __dom_unwrap(value);
   } catch (e) {
@@ -17054,7 +17054,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_c
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_cellPadding(_this) {
+function native__HTMLTableElementWrappingImplementation__get_cellPadding(_this) {
   try {
     return __dom_wrap(_this.$dom.cellPadding);
   } catch (e) {
@@ -17062,7 +17062,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_c
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_cellPadding(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_cellPadding(_this, value) {
   try {
     _this.$dom.cellPadding = __dom_unwrap(value);
   } catch (e) {
@@ -17070,7 +17070,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_c
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_cellSpacing(_this) {
+function native__HTMLTableElementWrappingImplementation__get_cellSpacing(_this) {
   try {
     return __dom_wrap(_this.$dom.cellSpacing);
   } catch (e) {
@@ -17078,7 +17078,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_c
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_cellSpacing(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_cellSpacing(_this, value) {
   try {
     _this.$dom.cellSpacing = __dom_unwrap(value);
   } catch (e) {
@@ -17086,7 +17086,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_c
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_frame(_this) {
+function native__HTMLTableElementWrappingImplementation__get_frame(_this) {
   try {
     return __dom_wrap(_this.$dom.frame);
   } catch (e) {
@@ -17094,7 +17094,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_f
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_frame(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_frame(_this, value) {
   try {
     _this.$dom.frame = __dom_unwrap(value);
   } catch (e) {
@@ -17102,7 +17102,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_f
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_rows(_this) {
+function native__HTMLTableElementWrappingImplementation__get_rows(_this) {
   try {
     return __dom_wrap(_this.$dom.rows);
   } catch (e) {
@@ -17110,7 +17110,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_r
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_rules(_this) {
+function native__HTMLTableElementWrappingImplementation__get_rules(_this) {
   try {
     return __dom_wrap(_this.$dom.rules);
   } catch (e) {
@@ -17118,7 +17118,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_r
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_rules(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_rules(_this, value) {
   try {
     _this.$dom.rules = __dom_unwrap(value);
   } catch (e) {
@@ -17126,7 +17126,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_r
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_summary(_this) {
+function native__HTMLTableElementWrappingImplementation__get_summary(_this) {
   try {
     return __dom_wrap(_this.$dom.summary);
   } catch (e) {
@@ -17134,7 +17134,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_s
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_summary(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_summary(_this, value) {
   try {
     _this.$dom.summary = __dom_unwrap(value);
   } catch (e) {
@@ -17142,7 +17142,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_s
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_tBodies(_this) {
+function native__HTMLTableElementWrappingImplementation__get_tBodies(_this) {
   try {
     return __dom_wrap(_this.$dom.tBodies);
   } catch (e) {
@@ -17150,7 +17150,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_t
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_tFoot(_this) {
+function native__HTMLTableElementWrappingImplementation__get_tFoot(_this) {
   try {
     return __dom_wrap(_this.$dom.tFoot);
   } catch (e) {
@@ -17158,7 +17158,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_t
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_tFoot(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_tFoot(_this, value) {
   try {
     _this.$dom.tFoot = __dom_unwrap(value);
   } catch (e) {
@@ -17166,7 +17166,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_t
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_tHead(_this) {
+function native__HTMLTableElementWrappingImplementation__get_tHead(_this) {
   try {
     return __dom_wrap(_this.$dom.tHead);
   } catch (e) {
@@ -17174,7 +17174,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_t
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_tHead(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_tHead(_this, value) {
   try {
     _this.$dom.tHead = __dom_unwrap(value);
   } catch (e) {
@@ -17182,7 +17182,7 @@ function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_t
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_width(_this) {
+function native__HTMLTableElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -17190,7 +17190,7 @@ function native__HTMLTableElementWrappingImplementation__get__HTMLTableElement_w
   }
 }
 
-function native__HTMLTableElementWrappingImplementation__set__HTMLTableElement_width(_this, value) {
+function native__HTMLTableElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -17262,7 +17262,7 @@ function native__HTMLTableElementWrappingImplementation__insertRow(_this, index)
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_align(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -17270,7 +17270,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowElement_align(_this, value) {
+function native__HTMLTableRowElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -17278,7 +17278,7 @@ function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_bgColor(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_bgColor(_this) {
   try {
     return __dom_wrap(_this.$dom.bgColor);
   } catch (e) {
@@ -17286,7 +17286,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowElement_bgColor(_this, value) {
+function native__HTMLTableRowElementWrappingImplementation__set_bgColor(_this, value) {
   try {
     _this.$dom.bgColor = __dom_unwrap(value);
   } catch (e) {
@@ -17294,7 +17294,7 @@ function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_cells(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_cells(_this) {
   try {
     return __dom_wrap(_this.$dom.cells);
   } catch (e) {
@@ -17302,7 +17302,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_ch(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_ch(_this) {
   try {
     return __dom_wrap(_this.$dom.ch);
   } catch (e) {
@@ -17310,7 +17310,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowElement_ch(_this, value) {
+function native__HTMLTableRowElementWrappingImplementation__set_ch(_this, value) {
   try {
     _this.$dom.ch = __dom_unwrap(value);
   } catch (e) {
@@ -17318,7 +17318,7 @@ function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_chOff(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_chOff(_this) {
   try {
     return __dom_wrap(_this.$dom.chOff);
   } catch (e) {
@@ -17326,7 +17326,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowElement_chOff(_this, value) {
+function native__HTMLTableRowElementWrappingImplementation__set_chOff(_this, value) {
   try {
     _this.$dom.chOff = __dom_unwrap(value);
   } catch (e) {
@@ -17334,7 +17334,7 @@ function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_rowIndex(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_rowIndex(_this) {
   try {
     return __dom_wrap(_this.$dom.rowIndex);
   } catch (e) {
@@ -17342,7 +17342,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_sectionRowIndex(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_sectionRowIndex(_this) {
   try {
     return __dom_wrap(_this.$dom.sectionRowIndex);
   } catch (e) {
@@ -17350,7 +17350,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowElement_vAlign(_this) {
+function native__HTMLTableRowElementWrappingImplementation__get_vAlign(_this) {
   try {
     return __dom_wrap(_this.$dom.vAlign);
   } catch (e) {
@@ -17358,7 +17358,7 @@ function native__HTMLTableRowElementWrappingImplementation__get__HTMLTableRowEle
   }
 }
 
-function native__HTMLTableRowElementWrappingImplementation__set__HTMLTableRowElement_vAlign(_this, value) {
+function native__HTMLTableRowElementWrappingImplementation__set_vAlign(_this, value) {
   try {
     _this.$dom.vAlign = __dom_unwrap(value);
   } catch (e) {
@@ -17382,7 +17382,7 @@ function native__HTMLTableRowElementWrappingImplementation__insertCell(_this, in
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSectionElement_align(_this) {
+function native__HTMLTableSectionElementWrappingImplementation__get_align(_this) {
   try {
     return __dom_wrap(_this.$dom.align);
   } catch (e) {
@@ -17390,7 +17390,7 @@ function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__set__HTMLTableSectionElement_align(_this, value) {
+function native__HTMLTableSectionElementWrappingImplementation__set_align(_this, value) {
   try {
     _this.$dom.align = __dom_unwrap(value);
   } catch (e) {
@@ -17398,7 +17398,7 @@ function native__HTMLTableSectionElementWrappingImplementation__set__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSectionElement_ch(_this) {
+function native__HTMLTableSectionElementWrappingImplementation__get_ch(_this) {
   try {
     return __dom_wrap(_this.$dom.ch);
   } catch (e) {
@@ -17406,7 +17406,7 @@ function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__set__HTMLTableSectionElement_ch(_this, value) {
+function native__HTMLTableSectionElementWrappingImplementation__set_ch(_this, value) {
   try {
     _this.$dom.ch = __dom_unwrap(value);
   } catch (e) {
@@ -17414,7 +17414,7 @@ function native__HTMLTableSectionElementWrappingImplementation__set__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSectionElement_chOff(_this) {
+function native__HTMLTableSectionElementWrappingImplementation__get_chOff(_this) {
   try {
     return __dom_wrap(_this.$dom.chOff);
   } catch (e) {
@@ -17422,7 +17422,7 @@ function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__set__HTMLTableSectionElement_chOff(_this, value) {
+function native__HTMLTableSectionElementWrappingImplementation__set_chOff(_this, value) {
   try {
     _this.$dom.chOff = __dom_unwrap(value);
   } catch (e) {
@@ -17430,7 +17430,7 @@ function native__HTMLTableSectionElementWrappingImplementation__set__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSectionElement_rows(_this) {
+function native__HTMLTableSectionElementWrappingImplementation__get_rows(_this) {
   try {
     return __dom_wrap(_this.$dom.rows);
   } catch (e) {
@@ -17438,7 +17438,7 @@ function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSectionElement_vAlign(_this) {
+function native__HTMLTableSectionElementWrappingImplementation__get_vAlign(_this) {
   try {
     return __dom_wrap(_this.$dom.vAlign);
   } catch (e) {
@@ -17446,7 +17446,7 @@ function native__HTMLTableSectionElementWrappingImplementation__get__HTMLTableSe
   }
 }
 
-function native__HTMLTableSectionElementWrappingImplementation__set__HTMLTableSectionElement_vAlign(_this, value) {
+function native__HTMLTableSectionElementWrappingImplementation__set_vAlign(_this, value) {
   try {
     _this.$dom.vAlign = __dom_unwrap(value);
   } catch (e) {
@@ -17470,7 +17470,7 @@ function native__HTMLTableSectionElementWrappingImplementation__insertRow(_this,
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_accessKey(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_accessKey(_this) {
   try {
     return __dom_wrap(_this.$dom.accessKey);
   } catch (e) {
@@ -17478,7 +17478,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_accessKey(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_accessKey(_this, value) {
   try {
     _this.$dom.accessKey = __dom_unwrap(value);
   } catch (e) {
@@ -17486,7 +17486,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_autofocus(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_autofocus(_this) {
   try {
     return __dom_wrap(_this.$dom.autofocus);
   } catch (e) {
@@ -17494,7 +17494,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_autofocus(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_autofocus(_this, value) {
   try {
     _this.$dom.autofocus = __dom_unwrap(value);
   } catch (e) {
@@ -17502,7 +17502,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_cols(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_cols(_this) {
   try {
     return __dom_wrap(_this.$dom.cols);
   } catch (e) {
@@ -17510,7 +17510,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_cols(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_cols(_this, value) {
   try {
     _this.$dom.cols = __dom_unwrap(value);
   } catch (e) {
@@ -17518,7 +17518,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_defaultValue(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_defaultValue(_this) {
   try {
     return __dom_wrap(_this.$dom.defaultValue);
   } catch (e) {
@@ -17526,7 +17526,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_defaultValue(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_defaultValue(_this, value) {
   try {
     _this.$dom.defaultValue = __dom_unwrap(value);
   } catch (e) {
@@ -17534,7 +17534,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_disabled(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -17542,7 +17542,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_disabled(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -17550,7 +17550,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_form(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
   } catch (e) {
@@ -17558,7 +17558,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_labels(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_labels(_this) {
   try {
     return __dom_wrap(_this.$dom.labels);
   } catch (e) {
@@ -17566,7 +17566,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_maxLength(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_maxLength(_this) {
   try {
     return __dom_wrap(_this.$dom.maxLength);
   } catch (e) {
@@ -17574,7 +17574,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_maxLength(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_maxLength(_this, value) {
   try {
     _this.$dom.maxLength = __dom_unwrap(value);
   } catch (e) {
@@ -17582,7 +17582,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_name(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -17590,7 +17590,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_name(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -17598,7 +17598,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_placeholder(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_placeholder(_this) {
   try {
     return __dom_wrap(_this.$dom.placeholder);
   } catch (e) {
@@ -17606,7 +17606,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_placeholder(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_placeholder(_this, value) {
   try {
     _this.$dom.placeholder = __dom_unwrap(value);
   } catch (e) {
@@ -17614,7 +17614,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_readOnly(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_readOnly(_this) {
   try {
     return __dom_wrap(_this.$dom.readOnly);
   } catch (e) {
@@ -17622,7 +17622,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_readOnly(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_readOnly(_this, value) {
   try {
     _this.$dom.readOnly = __dom_unwrap(value);
   } catch (e) {
@@ -17630,7 +17630,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_required(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_required(_this) {
   try {
     return __dom_wrap(_this.$dom.required);
   } catch (e) {
@@ -17638,7 +17638,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_required(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_required(_this, value) {
   try {
     _this.$dom.required = __dom_unwrap(value);
   } catch (e) {
@@ -17646,7 +17646,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_rows(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_rows(_this) {
   try {
     return __dom_wrap(_this.$dom.rows);
   } catch (e) {
@@ -17654,7 +17654,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_rows(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_rows(_this, value) {
   try {
     _this.$dom.rows = __dom_unwrap(value);
   } catch (e) {
@@ -17662,7 +17662,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_selectionDirection(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_selectionDirection(_this) {
   try {
     return __dom_wrap(_this.$dom.selectionDirection);
   } catch (e) {
@@ -17670,7 +17670,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_selectionDirection(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_selectionDirection(_this, value) {
   try {
     _this.$dom.selectionDirection = __dom_unwrap(value);
   } catch (e) {
@@ -17678,7 +17678,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_selectionEnd(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_selectionEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.selectionEnd);
   } catch (e) {
@@ -17686,7 +17686,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_selectionEnd(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_selectionEnd(_this, value) {
   try {
     _this.$dom.selectionEnd = __dom_unwrap(value);
   } catch (e) {
@@ -17694,7 +17694,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_selectionStart(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_selectionStart(_this) {
   try {
     return __dom_wrap(_this.$dom.selectionStart);
   } catch (e) {
@@ -17702,7 +17702,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_selectionStart(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_selectionStart(_this, value) {
   try {
     _this.$dom.selectionStart = __dom_unwrap(value);
   } catch (e) {
@@ -17710,7 +17710,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_textLength(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_textLength(_this) {
   try {
     return __dom_wrap(_this.$dom.textLength);
   } catch (e) {
@@ -17718,7 +17718,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_type(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -17726,7 +17726,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_validationMessage(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_validationMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.validationMessage);
   } catch (e) {
@@ -17734,7 +17734,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_validity(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_validity(_this) {
   try {
     return __dom_wrap(_this.$dom.validity);
   } catch (e) {
@@ -17742,7 +17742,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_value(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -17750,7 +17750,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_value(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_value(_this, value) {
   try {
     _this.$dom.value = __dom_unwrap(value);
   } catch (e) {
@@ -17758,7 +17758,7 @@ function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_willValidate(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_willValidate(_this) {
   try {
     return __dom_wrap(_this.$dom.willValidate);
   } catch (e) {
@@ -17766,7 +17766,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaElement_wrap(_this) {
+function native__HTMLTextAreaElementWrappingImplementation__get_wrap(_this) {
   try {
     return __dom_wrap(_this.$dom.wrap);
   } catch (e) {
@@ -17774,7 +17774,7 @@ function native__HTMLTextAreaElementWrappingImplementation__get__HTMLTextAreaEle
   }
 }
 
-function native__HTMLTextAreaElementWrappingImplementation__set__HTMLTextAreaElement_wrap(_this, value) {
+function native__HTMLTextAreaElementWrappingImplementation__set_wrap(_this, value) {
   try {
     _this.$dom.wrap = __dom_unwrap(value);
   } catch (e) {
@@ -17822,7 +17822,7 @@ function native__HTMLTextAreaElementWrappingImplementation__setSelectionRange_2(
   }
 }
 
-function native__HTMLTitleElementWrappingImplementation__get__HTMLTitleElement_text(_this) {
+function native__HTMLTitleElementWrappingImplementation__get_text(_this) {
   try {
     return __dom_wrap(_this.$dom.text);
   } catch (e) {
@@ -17830,7 +17830,7 @@ function native__HTMLTitleElementWrappingImplementation__get__HTMLTitleElement_t
   }
 }
 
-function native__HTMLTitleElementWrappingImplementation__set__HTMLTitleElement_text(_this, value) {
+function native__HTMLTitleElementWrappingImplementation__set_text(_this, value) {
   try {
     _this.$dom.text = __dom_unwrap(value);
   } catch (e) {
@@ -17838,7 +17838,7 @@ function native__HTMLTitleElementWrappingImplementation__set__HTMLTitleElement_t
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_isDefault(_this) {
+function native__HTMLTrackElementWrappingImplementation__get_isDefault(_this) {
   try {
     return __dom_wrap(_this.$dom.isDefault);
   } catch (e) {
@@ -17846,7 +17846,7 @@ function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_i
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_isDefault(_this, value) {
+function native__HTMLTrackElementWrappingImplementation__set_isDefault(_this, value) {
   try {
     _this.$dom.isDefault = __dom_unwrap(value);
   } catch (e) {
@@ -17854,7 +17854,7 @@ function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_i
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_kind(_this) {
+function native__HTMLTrackElementWrappingImplementation__get_kind(_this) {
   try {
     return __dom_wrap(_this.$dom.kind);
   } catch (e) {
@@ -17862,7 +17862,7 @@ function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_k
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_kind(_this, value) {
+function native__HTMLTrackElementWrappingImplementation__set_kind(_this, value) {
   try {
     _this.$dom.kind = __dom_unwrap(value);
   } catch (e) {
@@ -17870,7 +17870,7 @@ function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_k
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_label(_this) {
+function native__HTMLTrackElementWrappingImplementation__get_label(_this) {
   try {
     return __dom_wrap(_this.$dom.label);
   } catch (e) {
@@ -17878,7 +17878,7 @@ function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_l
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_label(_this, value) {
+function native__HTMLTrackElementWrappingImplementation__set_label(_this, value) {
   try {
     _this.$dom.label = __dom_unwrap(value);
   } catch (e) {
@@ -17886,7 +17886,7 @@ function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_l
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_src(_this) {
+function native__HTMLTrackElementWrappingImplementation__get_src(_this) {
   try {
     return __dom_wrap(_this.$dom.src);
   } catch (e) {
@@ -17894,7 +17894,7 @@ function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_s
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_src(_this, value) {
+function native__HTMLTrackElementWrappingImplementation__set_src(_this, value) {
   try {
     _this.$dom.src = __dom_unwrap(value);
   } catch (e) {
@@ -17902,7 +17902,7 @@ function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_s
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_srclang(_this) {
+function native__HTMLTrackElementWrappingImplementation__get_srclang(_this) {
   try {
     return __dom_wrap(_this.$dom.srclang);
   } catch (e) {
@@ -17910,7 +17910,7 @@ function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_s
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_srclang(_this, value) {
+function native__HTMLTrackElementWrappingImplementation__set_srclang(_this, value) {
   try {
     _this.$dom.srclang = __dom_unwrap(value);
   } catch (e) {
@@ -17918,7 +17918,7 @@ function native__HTMLTrackElementWrappingImplementation__set__HTMLTrackElement_s
   }
 }
 
-function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_track(_this) {
+function native__HTMLTrackElementWrappingImplementation__get_track(_this) {
   try {
     return __dom_wrap(_this.$dom.track);
   } catch (e) {
@@ -17926,7 +17926,7 @@ function native__HTMLTrackElementWrappingImplementation__get__HTMLTrackElement_t
   }
 }
 
-function native__HTMLUListElementWrappingImplementation__get__HTMLUListElement_compact(_this) {
+function native__HTMLUListElementWrappingImplementation__get_compact(_this) {
   try {
     return __dom_wrap(_this.$dom.compact);
   } catch (e) {
@@ -17934,7 +17934,7 @@ function native__HTMLUListElementWrappingImplementation__get__HTMLUListElement_c
   }
 }
 
-function native__HTMLUListElementWrappingImplementation__set__HTMLUListElement_compact(_this, value) {
+function native__HTMLUListElementWrappingImplementation__set_compact(_this, value) {
   try {
     _this.$dom.compact = __dom_unwrap(value);
   } catch (e) {
@@ -17942,7 +17942,7 @@ function native__HTMLUListElementWrappingImplementation__set__HTMLUListElement_c
   }
 }
 
-function native__HTMLUListElementWrappingImplementation__get__HTMLUListElement_type(_this) {
+function native__HTMLUListElementWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -17950,7 +17950,7 @@ function native__HTMLUListElementWrappingImplementation__get__HTMLUListElement_t
   }
 }
 
-function native__HTMLUListElementWrappingImplementation__set__HTMLUListElement_type(_this, value) {
+function native__HTMLUListElementWrappingImplementation__set_type(_this, value) {
   try {
     _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
@@ -17958,7 +17958,7 @@ function native__HTMLUListElementWrappingImplementation__set__HTMLUListElement_t
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_height(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -17966,7 +17966,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_h
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__set__HTMLVideoElement_height(_this, value) {
+function native__HTMLVideoElementWrappingImplementation__set_height(_this, value) {
   try {
     _this.$dom.height = __dom_unwrap(value);
   } catch (e) {
@@ -17974,7 +17974,7 @@ function native__HTMLVideoElementWrappingImplementation__set__HTMLVideoElement_h
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_poster(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_poster(_this) {
   try {
     return __dom_wrap(_this.$dom.poster);
   } catch (e) {
@@ -17982,7 +17982,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_p
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__set__HTMLVideoElement_poster(_this, value) {
+function native__HTMLVideoElementWrappingImplementation__set_poster(_this, value) {
   try {
     _this.$dom.poster = __dom_unwrap(value);
   } catch (e) {
@@ -17990,7 +17990,7 @@ function native__HTMLVideoElementWrappingImplementation__set__HTMLVideoElement_p
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_videoHeight(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_videoHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.videoHeight);
   } catch (e) {
@@ -17998,7 +17998,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_v
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_videoWidth(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_videoWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.videoWidth);
   } catch (e) {
@@ -18006,7 +18006,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_v
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_webkitDecodedFrameCount(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_webkitDecodedFrameCount(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitDecodedFrameCount);
   } catch (e) {
@@ -18014,7 +18014,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_w
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_webkitDisplayingFullscreen(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_webkitDisplayingFullscreen(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitDisplayingFullscreen);
   } catch (e) {
@@ -18022,7 +18022,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_w
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_webkitDroppedFrameCount(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_webkitDroppedFrameCount(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitDroppedFrameCount);
   } catch (e) {
@@ -18030,7 +18030,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_w
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_webkitSupportsFullscreen(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_webkitSupportsFullscreen(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitSupportsFullscreen);
   } catch (e) {
@@ -18038,7 +18038,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_w
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_width(_this) {
+function native__HTMLVideoElementWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -18046,7 +18046,7 @@ function native__HTMLVideoElementWrappingImplementation__get__HTMLVideoElement_w
   }
 }
 
-function native__HTMLVideoElementWrappingImplementation__set__HTMLVideoElement_width(_this, value) {
+function native__HTMLVideoElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
   } catch (e) {
@@ -18086,7 +18086,7 @@ function native__HTMLVideoElementWrappingImplementation__webkitExitFullscreen(_t
   }
 }
 
-function native__HashChangeEventWrappingImplementation__get__HashChangeEvent_newURL(_this) {
+function native__HashChangeEventWrappingImplementation__get_newURL(_this) {
   try {
     return __dom_wrap(_this.$dom.newURL);
   } catch (e) {
@@ -18094,7 +18094,7 @@ function native__HashChangeEventWrappingImplementation__get__HashChangeEvent_new
   }
 }
 
-function native__HashChangeEventWrappingImplementation__get__HashChangeEvent_oldURL(_this) {
+function native__HashChangeEventWrappingImplementation__get_oldURL(_this) {
   try {
     return __dom_wrap(_this.$dom.oldURL);
   } catch (e) {
@@ -18110,7 +18110,7 @@ function native__HashChangeEventWrappingImplementation__initHashChangeEvent(_thi
   }
 }
 
-function native__HistoryWrappingImplementation__get__History_length(_this) {
+function native__HistoryWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -18174,7 +18174,7 @@ function native__HistoryWrappingImplementation__replaceState_2(_this, data, titl
   }
 }
 
-function native__IDBCursorWrappingImplementation__get__IDBCursor_direction(_this) {
+function native__IDBCursorWrappingImplementation__get_direction(_this) {
   try {
     return __dom_wrap(_this.$dom.direction);
   } catch (e) {
@@ -18182,7 +18182,7 @@ function native__IDBCursorWrappingImplementation__get__IDBCursor_direction(_this
   }
 }
 
-function native__IDBCursorWrappingImplementation__get__IDBCursor_key(_this) {
+function native__IDBCursorWrappingImplementation__get_key(_this) {
   try {
     return __dom_wrap(_this.$dom.key);
   } catch (e) {
@@ -18190,7 +18190,7 @@ function native__IDBCursorWrappingImplementation__get__IDBCursor_key(_this) {
   }
 }
 
-function native__IDBCursorWrappingImplementation__get__IDBCursor_primaryKey(_this) {
+function native__IDBCursorWrappingImplementation__get_primaryKey(_this) {
   try {
     return __dom_wrap(_this.$dom.primaryKey);
   } catch (e) {
@@ -18198,7 +18198,7 @@ function native__IDBCursorWrappingImplementation__get__IDBCursor_primaryKey(_thi
   }
 }
 
-function native__IDBCursorWrappingImplementation__get__IDBCursor_source(_this) {
+function native__IDBCursorWrappingImplementation__get_source(_this) {
   try {
     return __dom_wrap(_this.$dom.source);
   } catch (e) {
@@ -18238,7 +18238,7 @@ function native__IDBCursorWrappingImplementation__update(_this, value) {
   }
 }
 
-function native__IDBCursorWithValueWrappingImplementation__get__IDBCursorWithValue_value(_this) {
+function native__IDBCursorWithValueWrappingImplementation__get_value(_this) {
   try {
     return __dom_wrap(_this.$dom.value);
   } catch (e) {
@@ -18246,7 +18246,7 @@ function native__IDBCursorWithValueWrappingImplementation__get__IDBCursorWithVal
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_name(_this) {
+function native__IDBDatabaseWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -18254,7 +18254,7 @@ function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_name(_this)
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_onabort(_this) {
+function native__IDBDatabaseWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -18262,7 +18262,7 @@ function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_onabort(_th
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__set__IDBDatabase_onabort(_this, value) {
+function native__IDBDatabaseWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -18270,7 +18270,7 @@ function native__IDBDatabaseWrappingImplementation__set__IDBDatabase_onabort(_th
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_onerror(_this) {
+function native__IDBDatabaseWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -18278,7 +18278,7 @@ function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_onerror(_th
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__set__IDBDatabase_onerror(_this, value) {
+function native__IDBDatabaseWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -18286,7 +18286,7 @@ function native__IDBDatabaseWrappingImplementation__set__IDBDatabase_onerror(_th
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_onversionchange(_this) {
+function native__IDBDatabaseWrappingImplementation__get_onversionchange(_this) {
   try {
     return __dom_wrap(_this.$dom.onversionchange);
   } catch (e) {
@@ -18294,7 +18294,7 @@ function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_onversionch
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__set__IDBDatabase_onversionchange(_this, value) {
+function native__IDBDatabaseWrappingImplementation__set_onversionchange(_this, value) {
   try {
     _this.$dom.onversionchange = __dom_unwrap(value);
   } catch (e) {
@@ -18302,7 +18302,7 @@ function native__IDBDatabaseWrappingImplementation__set__IDBDatabase_onversionch
   }
 }
 
-function native__IDBDatabaseWrappingImplementation__get__IDBDatabase_version(_this) {
+function native__IDBDatabaseWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
   } catch (e) {
@@ -18390,7 +18390,7 @@ function native__IDBDatabaseWrappingImplementation__transaction(_this, storeName
   }
 }
 
-function native__IDBDatabaseErrorWrappingImplementation__get__IDBDatabaseError_code(_this) {
+function native__IDBDatabaseErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -18398,7 +18398,7 @@ function native__IDBDatabaseErrorWrappingImplementation__get__IDBDatabaseError_c
   }
 }
 
-function native__IDBDatabaseErrorWrappingImplementation__set__IDBDatabaseError_code(_this, value) {
+function native__IDBDatabaseErrorWrappingImplementation__set_code(_this, value) {
   try {
     _this.$dom.code = __dom_unwrap(value);
   } catch (e) {
@@ -18406,7 +18406,7 @@ function native__IDBDatabaseErrorWrappingImplementation__set__IDBDatabaseError_c
   }
 }
 
-function native__IDBDatabaseErrorWrappingImplementation__get__IDBDatabaseError_message(_this) {
+function native__IDBDatabaseErrorWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -18414,7 +18414,7 @@ function native__IDBDatabaseErrorWrappingImplementation__get__IDBDatabaseError_m
   }
 }
 
-function native__IDBDatabaseErrorWrappingImplementation__set__IDBDatabaseError_message(_this, value) {
+function native__IDBDatabaseErrorWrappingImplementation__set_message(_this, value) {
   try {
     _this.$dom.message = __dom_unwrap(value);
   } catch (e) {
@@ -18422,7 +18422,7 @@ function native__IDBDatabaseErrorWrappingImplementation__set__IDBDatabaseError_m
   }
 }
 
-function native__IDBDatabaseExceptionWrappingImplementation__get__IDBDatabaseException_code(_this) {
+function native__IDBDatabaseExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -18430,7 +18430,7 @@ function native__IDBDatabaseExceptionWrappingImplementation__get__IDBDatabaseExc
   }
 }
 
-function native__IDBDatabaseExceptionWrappingImplementation__get__IDBDatabaseException_message(_this) {
+function native__IDBDatabaseExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -18438,7 +18438,7 @@ function native__IDBDatabaseExceptionWrappingImplementation__get__IDBDatabaseExc
   }
 }
 
-function native__IDBDatabaseExceptionWrappingImplementation__get__IDBDatabaseException_name(_this) {
+function native__IDBDatabaseExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -18486,7 +18486,7 @@ function native__IDBFactoryWrappingImplementation__open(_this, name) {
   }
 }
 
-function native__IDBIndexWrappingImplementation__get__IDBIndex_keyPath(_this) {
+function native__IDBIndexWrappingImplementation__get_keyPath(_this) {
   try {
     return __dom_wrap(_this.$dom.keyPath);
   } catch (e) {
@@ -18494,7 +18494,7 @@ function native__IDBIndexWrappingImplementation__get__IDBIndex_keyPath(_this) {
   }
 }
 
-function native__IDBIndexWrappingImplementation__get__IDBIndex_name(_this) {
+function native__IDBIndexWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -18502,7 +18502,7 @@ function native__IDBIndexWrappingImplementation__get__IDBIndex_name(_this) {
   }
 }
 
-function native__IDBIndexWrappingImplementation__get__IDBIndex_objectStore(_this) {
+function native__IDBIndexWrappingImplementation__get_objectStore(_this) {
   try {
     return __dom_wrap(_this.$dom.objectStore);
   } catch (e) {
@@ -18510,7 +18510,7 @@ function native__IDBIndexWrappingImplementation__get__IDBIndex_objectStore(_this
   }
 }
 
-function native__IDBIndexWrappingImplementation__get__IDBIndex_unique(_this) {
+function native__IDBIndexWrappingImplementation__get_unique(_this) {
   try {
     return __dom_wrap(_this.$dom.unique);
   } catch (e) {
@@ -18582,7 +18582,7 @@ function native__IDBIndexWrappingImplementation__openKeyCursor_3(_this, range, d
   }
 }
 
-function native__IDBKeyRangeWrappingImplementation__get__IDBKeyRange_lower(_this) {
+function native__IDBKeyRangeWrappingImplementation__get_lower(_this) {
   try {
     return __dom_wrap(_this.$dom.lower);
   } catch (e) {
@@ -18590,7 +18590,7 @@ function native__IDBKeyRangeWrappingImplementation__get__IDBKeyRange_lower(_this
   }
 }
 
-function native__IDBKeyRangeWrappingImplementation__get__IDBKeyRange_lowerOpen(_this) {
+function native__IDBKeyRangeWrappingImplementation__get_lowerOpen(_this) {
   try {
     return __dom_wrap(_this.$dom.lowerOpen);
   } catch (e) {
@@ -18598,7 +18598,7 @@ function native__IDBKeyRangeWrappingImplementation__get__IDBKeyRange_lowerOpen(_
   }
 }
 
-function native__IDBKeyRangeWrappingImplementation__get__IDBKeyRange_upper(_this) {
+function native__IDBKeyRangeWrappingImplementation__get_upper(_this) {
   try {
     return __dom_wrap(_this.$dom.upper);
   } catch (e) {
@@ -18606,7 +18606,7 @@ function native__IDBKeyRangeWrappingImplementation__get__IDBKeyRange_upper(_this
   }
 }
 
-function native__IDBKeyRangeWrappingImplementation__get__IDBKeyRange_upperOpen(_this) {
+function native__IDBKeyRangeWrappingImplementation__get_upperOpen(_this) {
   try {
     return __dom_wrap(_this.$dom.upperOpen);
   } catch (e) {
@@ -18678,7 +18678,7 @@ function native__IDBKeyRangeWrappingImplementation__upperBound_2(_this, bound, o
   }
 }
 
-function native__IDBObjectStoreWrappingImplementation__get__IDBObjectStore_keyPath(_this) {
+function native__IDBObjectStoreWrappingImplementation__get_keyPath(_this) {
   try {
     return __dom_wrap(_this.$dom.keyPath);
   } catch (e) {
@@ -18686,7 +18686,7 @@ function native__IDBObjectStoreWrappingImplementation__get__IDBObjectStore_keyPa
   }
 }
 
-function native__IDBObjectStoreWrappingImplementation__get__IDBObjectStore_name(_this) {
+function native__IDBObjectStoreWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -18694,7 +18694,7 @@ function native__IDBObjectStoreWrappingImplementation__get__IDBObjectStore_name(
   }
 }
 
-function native__IDBObjectStoreWrappingImplementation__get__IDBObjectStore_transaction(_this) {
+function native__IDBObjectStoreWrappingImplementation__get_transaction(_this) {
   try {
     return __dom_wrap(_this.$dom.transaction);
   } catch (e) {
@@ -18806,7 +18806,7 @@ function native__IDBObjectStoreWrappingImplementation__put_2(_this, value, key) 
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_errorCode(_this) {
+function native__IDBRequestWrappingImplementation__get_errorCode(_this) {
   try {
     return __dom_wrap(_this.$dom.errorCode);
   } catch (e) {
@@ -18814,7 +18814,7 @@ function native__IDBRequestWrappingImplementation__get__IDBRequest_errorCode(_th
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_onerror(_this) {
+function native__IDBRequestWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -18822,7 +18822,7 @@ function native__IDBRequestWrappingImplementation__get__IDBRequest_onerror(_this
   }
 }
 
-function native__IDBRequestWrappingImplementation__set__IDBRequest_onerror(_this, value) {
+function native__IDBRequestWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -18830,7 +18830,7 @@ function native__IDBRequestWrappingImplementation__set__IDBRequest_onerror(_this
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_onsuccess(_this) {
+function native__IDBRequestWrappingImplementation__get_onsuccess(_this) {
   try {
     return __dom_wrap(_this.$dom.onsuccess);
   } catch (e) {
@@ -18838,7 +18838,7 @@ function native__IDBRequestWrappingImplementation__get__IDBRequest_onsuccess(_th
   }
 }
 
-function native__IDBRequestWrappingImplementation__set__IDBRequest_onsuccess(_this, value) {
+function native__IDBRequestWrappingImplementation__set_onsuccess(_this, value) {
   try {
     _this.$dom.onsuccess = __dom_unwrap(value);
   } catch (e) {
@@ -18846,7 +18846,7 @@ function native__IDBRequestWrappingImplementation__set__IDBRequest_onsuccess(_th
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_readyState(_this) {
+function native__IDBRequestWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -18854,7 +18854,7 @@ function native__IDBRequestWrappingImplementation__get__IDBRequest_readyState(_t
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_result(_this) {
+function native__IDBRequestWrappingImplementation__get_result(_this) {
   try {
     return __dom_wrap(_this.$dom.result);
   } catch (e) {
@@ -18862,7 +18862,7 @@ function native__IDBRequestWrappingImplementation__get__IDBRequest_result(_this)
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_source(_this) {
+function native__IDBRequestWrappingImplementation__get_source(_this) {
   try {
     return __dom_wrap(_this.$dom.source);
   } catch (e) {
@@ -18870,7 +18870,7 @@ function native__IDBRequestWrappingImplementation__get__IDBRequest_source(_this)
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_transaction(_this) {
+function native__IDBRequestWrappingImplementation__get_transaction(_this) {
   try {
     return __dom_wrap(_this.$dom.transaction);
   } catch (e) {
@@ -18878,7 +18878,7 @@ function native__IDBRequestWrappingImplementation__get__IDBRequest_transaction(_
   }
 }
 
-function native__IDBRequestWrappingImplementation__get__IDBRequest_webkitErrorMessage(_this) {
+function native__IDBRequestWrappingImplementation__get_webkitErrorMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitErrorMessage);
   } catch (e) {
@@ -18926,7 +18926,7 @@ function native__IDBRequestWrappingImplementation__removeEventListener_2(_this, 
   }
 }
 
-function native__IDBTransactionWrappingImplementation__get__IDBTransaction_db(_this) {
+function native__IDBTransactionWrappingImplementation__get_db(_this) {
   try {
     return __dom_wrap(_this.$dom.db);
   } catch (e) {
@@ -18934,7 +18934,7 @@ function native__IDBTransactionWrappingImplementation__get__IDBTransaction_db(_t
   }
 }
 
-function native__IDBTransactionWrappingImplementation__get__IDBTransaction_mode(_this) {
+function native__IDBTransactionWrappingImplementation__get_mode(_this) {
   try {
     return __dom_wrap(_this.$dom.mode);
   } catch (e) {
@@ -18942,7 +18942,7 @@ function native__IDBTransactionWrappingImplementation__get__IDBTransaction_mode(
   }
 }
 
-function native__IDBTransactionWrappingImplementation__get__IDBTransaction_onabort(_this) {
+function native__IDBTransactionWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -18950,7 +18950,7 @@ function native__IDBTransactionWrappingImplementation__get__IDBTransaction_onabo
   }
 }
 
-function native__IDBTransactionWrappingImplementation__set__IDBTransaction_onabort(_this, value) {
+function native__IDBTransactionWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -18958,7 +18958,7 @@ function native__IDBTransactionWrappingImplementation__set__IDBTransaction_onabo
   }
 }
 
-function native__IDBTransactionWrappingImplementation__get__IDBTransaction_oncomplete(_this) {
+function native__IDBTransactionWrappingImplementation__get_oncomplete(_this) {
   try {
     return __dom_wrap(_this.$dom.oncomplete);
   } catch (e) {
@@ -18966,7 +18966,7 @@ function native__IDBTransactionWrappingImplementation__get__IDBTransaction_oncom
   }
 }
 
-function native__IDBTransactionWrappingImplementation__set__IDBTransaction_oncomplete(_this, value) {
+function native__IDBTransactionWrappingImplementation__set_oncomplete(_this, value) {
   try {
     _this.$dom.oncomplete = __dom_unwrap(value);
   } catch (e) {
@@ -18974,7 +18974,7 @@ function native__IDBTransactionWrappingImplementation__set__IDBTransaction_oncom
   }
 }
 
-function native__IDBTransactionWrappingImplementation__get__IDBTransaction_onerror(_this) {
+function native__IDBTransactionWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -18982,7 +18982,7 @@ function native__IDBTransactionWrappingImplementation__get__IDBTransaction_onerr
   }
 }
 
-function native__IDBTransactionWrappingImplementation__set__IDBTransaction_onerror(_this, value) {
+function native__IDBTransactionWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -19046,7 +19046,7 @@ function native__IDBTransactionWrappingImplementation__removeEventListener_2(_th
   }
 }
 
-function native__IDBVersionChangeEventWrappingImplementation__get__IDBVersionChangeEvent_version(_this) {
+function native__IDBVersionChangeEventWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
   } catch (e) {
@@ -19054,7 +19054,7 @@ function native__IDBVersionChangeEventWrappingImplementation__get__IDBVersionCha
   }
 }
 
-function native__IDBVersionChangeRequestWrappingImplementation__get__IDBVersionChangeRequest_onblocked(_this) {
+function native__IDBVersionChangeRequestWrappingImplementation__get_onblocked(_this) {
   try {
     return __dom_wrap(_this.$dom.onblocked);
   } catch (e) {
@@ -19062,7 +19062,7 @@ function native__IDBVersionChangeRequestWrappingImplementation__get__IDBVersionC
   }
 }
 
-function native__IDBVersionChangeRequestWrappingImplementation__set__IDBVersionChangeRequest_onblocked(_this, value) {
+function native__IDBVersionChangeRequestWrappingImplementation__set_onblocked(_this, value) {
   try {
     _this.$dom.onblocked = __dom_unwrap(value);
   } catch (e) {
@@ -19070,7 +19070,7 @@ function native__IDBVersionChangeRequestWrappingImplementation__set__IDBVersionC
   }
 }
 
-function native__ImageDataWrappingImplementation__get__ImageData_data(_this) {
+function native__ImageDataWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
   } catch (e) {
@@ -19078,7 +19078,7 @@ function native__ImageDataWrappingImplementation__get__ImageData_data(_this) {
   }
 }
 
-function native__ImageDataWrappingImplementation__get__ImageData_height(_this) {
+function native__ImageDataWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -19086,7 +19086,7 @@ function native__ImageDataWrappingImplementation__get__ImageData_height(_this) {
   }
 }
 
-function native__ImageDataWrappingImplementation__get__ImageData_width(_this) {
+function native__ImageDataWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -19342,7 +19342,7 @@ function native__InspectorFrontendHostWrappingImplementation__showContextMenu(_t
   }
 }
 
-function native__Int16ArrayWrappingImplementation__get__Int16Array_length(_this) {
+function native__Int16ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -19366,7 +19366,7 @@ function native__Int16ArrayWrappingImplementation__subarray_2(_this, start, end)
   }
 }
 
-function native__Int32ArrayWrappingImplementation__get__Int32Array_length(_this) {
+function native__Int32ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -19390,7 +19390,7 @@ function native__Int32ArrayWrappingImplementation__subarray_2(_this, start, end)
   }
 }
 
-function native__Int8ArrayWrappingImplementation__get__Int8Array_length(_this) {
+function native__Int8ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -19414,7 +19414,7 @@ function native__Int8ArrayWrappingImplementation__subarray_2(_this, start, end) 
   }
 }
 
-function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_caller(_this) {
+function native__JavaScriptCallFrameWrappingImplementation__get_caller(_this) {
   try {
     return __dom_wrap(_this.$dom.caller);
   } catch (e) {
@@ -19422,7 +19422,7 @@ function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallF
   }
 }
 
-function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_column(_this) {
+function native__JavaScriptCallFrameWrappingImplementation__get_column(_this) {
   try {
     return __dom_wrap(_this.$dom.column);
   } catch (e) {
@@ -19430,7 +19430,7 @@ function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallF
   }
 }
 
-function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_functionName(_this) {
+function native__JavaScriptCallFrameWrappingImplementation__get_functionName(_this) {
   try {
     return __dom_wrap(_this.$dom.functionName);
   } catch (e) {
@@ -19438,7 +19438,7 @@ function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallF
   }
 }
 
-function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_line(_this) {
+function native__JavaScriptCallFrameWrappingImplementation__get_line(_this) {
   try {
     return __dom_wrap(_this.$dom.line);
   } catch (e) {
@@ -19446,7 +19446,7 @@ function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallF
   }
 }
 
-function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_scopeChain(_this) {
+function native__JavaScriptCallFrameWrappingImplementation__get_scopeChain(_this) {
   try {
     return __dom_wrap(_this.$dom.scopeChain);
   } catch (e) {
@@ -19454,7 +19454,7 @@ function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallF
   }
 }
 
-function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_sourceID(_this) {
+function native__JavaScriptCallFrameWrappingImplementation__get_sourceID(_this) {
   try {
     return __dom_wrap(_this.$dom.sourceID);
   } catch (e) {
@@ -19462,7 +19462,7 @@ function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallF
   }
 }
 
-function native__JavaScriptCallFrameWrappingImplementation__get__JavaScriptCallFrame_type(_this) {
+function native__JavaScriptCallFrameWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -19486,7 +19486,7 @@ function native__JavaScriptCallFrameWrappingImplementation__scopeType(_this, sco
   }
 }
 
-function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_altGraphKey(_this) {
+function native__KeyboardEventWrappingImplementation__get_altGraphKey(_this) {
   try {
     return __dom_wrap(_this.$dom.altGraphKey);
   } catch (e) {
@@ -19494,7 +19494,7 @@ function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_altGrap
   }
 }
 
-function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_altKey(_this) {
+function native__KeyboardEventWrappingImplementation__get_altKey(_this) {
   try {
     return __dom_wrap(_this.$dom.altKey);
   } catch (e) {
@@ -19502,7 +19502,7 @@ function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_altKey(
   }
 }
 
-function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_ctrlKey(_this) {
+function native__KeyboardEventWrappingImplementation__get_ctrlKey(_this) {
   try {
     return __dom_wrap(_this.$dom.ctrlKey);
   } catch (e) {
@@ -19510,7 +19510,7 @@ function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_ctrlKey
   }
 }
 
-function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_keyIdentifier(_this) {
+function native__KeyboardEventWrappingImplementation__get_keyIdentifier(_this) {
   try {
     return __dom_wrap(_this.$dom.keyIdentifier);
   } catch (e) {
@@ -19518,7 +19518,7 @@ function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_keyIden
   }
 }
 
-function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_keyLocation(_this) {
+function native__KeyboardEventWrappingImplementation__get_keyLocation(_this) {
   try {
     return __dom_wrap(_this.$dom.keyLocation);
   } catch (e) {
@@ -19526,7 +19526,7 @@ function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_keyLoca
   }
 }
 
-function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_metaKey(_this) {
+function native__KeyboardEventWrappingImplementation__get_metaKey(_this) {
   try {
     return __dom_wrap(_this.$dom.metaKey);
   } catch (e) {
@@ -19534,7 +19534,7 @@ function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_metaKey
   }
 }
 
-function native__KeyboardEventWrappingImplementation__get__KeyboardEvent_shiftKey(_this) {
+function native__KeyboardEventWrappingImplementation__get_shiftKey(_this) {
   try {
     return __dom_wrap(_this.$dom.shiftKey);
   } catch (e) {
@@ -19550,7 +19550,7 @@ function native__KeyboardEventWrappingImplementation__initKeyboardEvent(_this, t
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_hash(_this) {
+function native__LocationWrappingImplementation__get_hash(_this) {
   try {
     return __dom_wrap(_this.$dom.hash);
   } catch (e) {
@@ -19558,7 +19558,7 @@ function native__LocationWrappingImplementation__get__Location_hash(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_hash(_this, value) {
+function native__LocationWrappingImplementation__set_hash(_this, value) {
   try {
     _this.$dom.hash = __dom_unwrap(value);
   } catch (e) {
@@ -19566,7 +19566,7 @@ function native__LocationWrappingImplementation__set__Location_hash(_this, value
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_host(_this) {
+function native__LocationWrappingImplementation__get_host(_this) {
   try {
     return __dom_wrap(_this.$dom.host);
   } catch (e) {
@@ -19574,7 +19574,7 @@ function native__LocationWrappingImplementation__get__Location_host(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_host(_this, value) {
+function native__LocationWrappingImplementation__set_host(_this, value) {
   try {
     _this.$dom.host = __dom_unwrap(value);
   } catch (e) {
@@ -19582,7 +19582,7 @@ function native__LocationWrappingImplementation__set__Location_host(_this, value
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_hostname(_this) {
+function native__LocationWrappingImplementation__get_hostname(_this) {
   try {
     return __dom_wrap(_this.$dom.hostname);
   } catch (e) {
@@ -19590,7 +19590,7 @@ function native__LocationWrappingImplementation__get__Location_hostname(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_hostname(_this, value) {
+function native__LocationWrappingImplementation__set_hostname(_this, value) {
   try {
     _this.$dom.hostname = __dom_unwrap(value);
   } catch (e) {
@@ -19598,7 +19598,7 @@ function native__LocationWrappingImplementation__set__Location_hostname(_this, v
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_href(_this) {
+function native__LocationWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -19606,7 +19606,7 @@ function native__LocationWrappingImplementation__get__Location_href(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_href(_this, value) {
+function native__LocationWrappingImplementation__set_href(_this, value) {
   try {
     _this.$dom.href = __dom_unwrap(value);
   } catch (e) {
@@ -19614,7 +19614,7 @@ function native__LocationWrappingImplementation__set__Location_href(_this, value
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_origin(_this) {
+function native__LocationWrappingImplementation__get_origin(_this) {
   try {
     return __dom_wrap(_this.$dom.origin);
   } catch (e) {
@@ -19622,7 +19622,7 @@ function native__LocationWrappingImplementation__get__Location_origin(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_pathname(_this) {
+function native__LocationWrappingImplementation__get_pathname(_this) {
   try {
     return __dom_wrap(_this.$dom.pathname);
   } catch (e) {
@@ -19630,7 +19630,7 @@ function native__LocationWrappingImplementation__get__Location_pathname(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_pathname(_this, value) {
+function native__LocationWrappingImplementation__set_pathname(_this, value) {
   try {
     _this.$dom.pathname = __dom_unwrap(value);
   } catch (e) {
@@ -19638,7 +19638,7 @@ function native__LocationWrappingImplementation__set__Location_pathname(_this, v
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_port(_this) {
+function native__LocationWrappingImplementation__get_port(_this) {
   try {
     return __dom_wrap(_this.$dom.port);
   } catch (e) {
@@ -19646,7 +19646,7 @@ function native__LocationWrappingImplementation__get__Location_port(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_port(_this, value) {
+function native__LocationWrappingImplementation__set_port(_this, value) {
   try {
     _this.$dom.port = __dom_unwrap(value);
   } catch (e) {
@@ -19654,7 +19654,7 @@ function native__LocationWrappingImplementation__set__Location_port(_this, value
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_protocol(_this) {
+function native__LocationWrappingImplementation__get_protocol(_this) {
   try {
     return __dom_wrap(_this.$dom.protocol);
   } catch (e) {
@@ -19662,7 +19662,7 @@ function native__LocationWrappingImplementation__get__Location_protocol(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_protocol(_this, value) {
+function native__LocationWrappingImplementation__set_protocol(_this, value) {
   try {
     _this.$dom.protocol = __dom_unwrap(value);
   } catch (e) {
@@ -19670,7 +19670,7 @@ function native__LocationWrappingImplementation__set__Location_protocol(_this, v
   }
 }
 
-function native__LocationWrappingImplementation__get__Location_search(_this) {
+function native__LocationWrappingImplementation__get_search(_this) {
   try {
     return __dom_wrap(_this.$dom.search);
   } catch (e) {
@@ -19678,7 +19678,7 @@ function native__LocationWrappingImplementation__get__Location_search(_this) {
   }
 }
 
-function native__LocationWrappingImplementation__set__Location_search(_this, value) {
+function native__LocationWrappingImplementation__set_search(_this, value) {
   try {
     _this.$dom.search = __dom_unwrap(value);
   } catch (e) {
@@ -19726,7 +19726,7 @@ function native__LocationWrappingImplementation__toString(_this) {
   }
 }
 
-function native__MediaErrorWrappingImplementation__get__MediaError_code(_this) {
+function native__MediaErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -19734,7 +19734,7 @@ function native__MediaErrorWrappingImplementation__get__MediaError_code(_this) {
   }
 }
 
-function native__MediaListWrappingImplementation__get__MediaList_length(_this) {
+function native__MediaListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -19742,7 +19742,7 @@ function native__MediaListWrappingImplementation__get__MediaList_length(_this) {
   }
 }
 
-function native__MediaListWrappingImplementation__get__MediaList_mediaText(_this) {
+function native__MediaListWrappingImplementation__get_mediaText(_this) {
   try {
     return __dom_wrap(_this.$dom.mediaText);
   } catch (e) {
@@ -19750,7 +19750,7 @@ function native__MediaListWrappingImplementation__get__MediaList_mediaText(_this
   }
 }
 
-function native__MediaListWrappingImplementation__set__MediaList_mediaText(_this, value) {
+function native__MediaListWrappingImplementation__set_mediaText(_this, value) {
   try {
     _this.$dom.mediaText = __dom_unwrap(value);
   } catch (e) {
@@ -19782,7 +19782,7 @@ function native__MediaListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__MediaQueryListWrappingImplementation__get__MediaQueryList_matches(_this) {
+function native__MediaQueryListWrappingImplementation__get_matches(_this) {
   try {
     return __dom_wrap(_this.$dom.matches);
   } catch (e) {
@@ -19790,7 +19790,7 @@ function native__MediaQueryListWrappingImplementation__get__MediaQueryList_match
   }
 }
 
-function native__MediaQueryListWrappingImplementation__get__MediaQueryList_media(_this) {
+function native__MediaQueryListWrappingImplementation__get_media(_this) {
   try {
     return __dom_wrap(_this.$dom.media);
   } catch (e) {
@@ -19822,7 +19822,7 @@ function native__MediaQueryListListenerWrappingImplementation__queryChanged(_thi
   }
 }
 
-function native__MemoryInfoWrappingImplementation__get__MemoryInfo_jsHeapSizeLimit(_this) {
+function native__MemoryInfoWrappingImplementation__get_jsHeapSizeLimit(_this) {
   try {
     return __dom_wrap(_this.$dom.jsHeapSizeLimit);
   } catch (e) {
@@ -19830,7 +19830,7 @@ function native__MemoryInfoWrappingImplementation__get__MemoryInfo_jsHeapSizeLim
   }
 }
 
-function native__MemoryInfoWrappingImplementation__get__MemoryInfo_totalJSHeapSize(_this) {
+function native__MemoryInfoWrappingImplementation__get_totalJSHeapSize(_this) {
   try {
     return __dom_wrap(_this.$dom.totalJSHeapSize);
   } catch (e) {
@@ -19838,7 +19838,7 @@ function native__MemoryInfoWrappingImplementation__get__MemoryInfo_totalJSHeapSi
   }
 }
 
-function native__MemoryInfoWrappingImplementation__get__MemoryInfo_usedJSHeapSize(_this) {
+function native__MemoryInfoWrappingImplementation__get_usedJSHeapSize(_this) {
   try {
     return __dom_wrap(_this.$dom.usedJSHeapSize);
   } catch (e) {
@@ -19846,7 +19846,7 @@ function native__MemoryInfoWrappingImplementation__get__MemoryInfo_usedJSHeapSiz
   }
 }
 
-function native__MessageChannelWrappingImplementation__get__MessageChannel_port1(_this) {
+function native__MessageChannelWrappingImplementation__get_port1(_this) {
   try {
     return __dom_wrap(_this.$dom.port1);
   } catch (e) {
@@ -19854,7 +19854,7 @@ function native__MessageChannelWrappingImplementation__get__MessageChannel_port1
   }
 }
 
-function native__MessageChannelWrappingImplementation__get__MessageChannel_port2(_this) {
+function native__MessageChannelWrappingImplementation__get_port2(_this) {
   try {
     return __dom_wrap(_this.$dom.port2);
   } catch (e) {
@@ -19862,7 +19862,7 @@ function native__MessageChannelWrappingImplementation__get__MessageChannel_port2
   }
 }
 
-function native__MessageEventWrappingImplementation__get__MessageEvent_data(_this) {
+function native__MessageEventWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
   } catch (e) {
@@ -19870,7 +19870,7 @@ function native__MessageEventWrappingImplementation__get__MessageEvent_data(_thi
   }
 }
 
-function native__MessageEventWrappingImplementation__get__MessageEvent_lastEventId(_this) {
+function native__MessageEventWrappingImplementation__get_lastEventId(_this) {
   try {
     return __dom_wrap(_this.$dom.lastEventId);
   } catch (e) {
@@ -19878,7 +19878,7 @@ function native__MessageEventWrappingImplementation__get__MessageEvent_lastEvent
   }
 }
 
-function native__MessageEventWrappingImplementation__get__MessageEvent_origin(_this) {
+function native__MessageEventWrappingImplementation__get_origin(_this) {
   try {
     return __dom_wrap(_this.$dom.origin);
   } catch (e) {
@@ -19886,7 +19886,7 @@ function native__MessageEventWrappingImplementation__get__MessageEvent_origin(_t
   }
 }
 
-function native__MessageEventWrappingImplementation__get__MessageEvent_ports(_this) {
+function native__MessageEventWrappingImplementation__get_ports(_this) {
   try {
     return __dom_wrap(_this.$dom.ports);
   } catch (e) {
@@ -19894,7 +19894,7 @@ function native__MessageEventWrappingImplementation__get__MessageEvent_ports(_th
   }
 }
 
-function native__MessageEventWrappingImplementation__get__MessageEvent_source(_this) {
+function native__MessageEventWrappingImplementation__get_source(_this) {
   try {
     return __dom_wrap(_this.$dom.source);
   } catch (e) {
@@ -19918,7 +19918,7 @@ function native__MessageEventWrappingImplementation__webkitInitMessageEvent(_thi
   }
 }
 
-function native__MessagePortWrappingImplementation__get__MessagePort_onmessage(_this) {
+function native__MessagePortWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -19926,7 +19926,7 @@ function native__MessagePortWrappingImplementation__get__MessagePort_onmessage(_
   }
 }
 
-function native__MessagePortWrappingImplementation__set__MessagePort_onmessage(_this, value) {
+function native__MessagePortWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -19934,7 +19934,7 @@ function native__MessagePortWrappingImplementation__set__MessagePort_onmessage(_
   }
 }
 
-function native__MessagePortWrappingImplementation__addEventListener(_this, type, listener) {
+function native__MessagePortWrappingImplementation__addEventListener_MessagePort(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -19942,7 +19942,7 @@ function native__MessagePortWrappingImplementation__addEventListener(_this, type
   }
 }
 
-function native__MessagePortWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__MessagePortWrappingImplementation__addEventListener_MessagePort_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -19958,7 +19958,7 @@ function native__MessagePortWrappingImplementation__close(_this) {
   }
 }
 
-function native__MessagePortWrappingImplementation__dispatchEvent(_this, evt) {
+function native__MessagePortWrappingImplementation__dispatchEvent_MessagePort(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -19982,7 +19982,7 @@ function native__MessagePortWrappingImplementation__postMessage_2(_this, message
   }
 }
 
-function native__MessagePortWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__MessagePortWrappingImplementation__removeEventListener_MessagePort(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -19990,7 +19990,7 @@ function native__MessagePortWrappingImplementation__removeEventListener(_this, t
   }
 }
 
-function native__MessagePortWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__MessagePortWrappingImplementation__removeEventListener_MessagePort_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -20022,7 +20022,7 @@ function native__MessagePortWrappingImplementation__webkitPostMessage_2(_this, m
   }
 }
 
-function native__MetadataWrappingImplementation__get__Metadata_modificationTime(_this) {
+function native__MetadataWrappingImplementation__get_modificationTime(_this) {
   try {
     return __dom_wrap(_this.$dom.modificationTime);
   } catch (e) {
@@ -20038,7 +20038,7 @@ function native__MetadataCallbackWrappingImplementation__handleEvent(_this, meta
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_altKey(_this) {
+function native__MouseEventWrappingImplementation__get_altKey(_this) {
   try {
     return __dom_wrap(_this.$dom.altKey);
   } catch (e) {
@@ -20046,7 +20046,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_altKey(_this)
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_button(_this) {
+function native__MouseEventWrappingImplementation__get_button(_this) {
   try {
     return __dom_wrap(_this.$dom.button);
   } catch (e) {
@@ -20054,7 +20054,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_button(_this)
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_clientX(_this) {
+function native__MouseEventWrappingImplementation__get_clientX(_this) {
   try {
     return __dom_wrap(_this.$dom.clientX);
   } catch (e) {
@@ -20062,7 +20062,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_clientX(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_clientY(_this) {
+function native__MouseEventWrappingImplementation__get_clientY(_this) {
   try {
     return __dom_wrap(_this.$dom.clientY);
   } catch (e) {
@@ -20070,7 +20070,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_clientY(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_ctrlKey(_this) {
+function native__MouseEventWrappingImplementation__get_ctrlKey(_this) {
   try {
     return __dom_wrap(_this.$dom.ctrlKey);
   } catch (e) {
@@ -20078,7 +20078,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_ctrlKey(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_dataTransfer(_this) {
+function native__MouseEventWrappingImplementation__get_dataTransfer(_this) {
   try {
     return __dom_wrap(_this.$dom.dataTransfer);
   } catch (e) {
@@ -20086,7 +20086,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_dataTransfer(
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_fromElement(_this) {
+function native__MouseEventWrappingImplementation__get_fromElement(_this) {
   try {
     return __dom_wrap(_this.$dom.fromElement);
   } catch (e) {
@@ -20094,7 +20094,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_fromElement(_
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_metaKey(_this) {
+function native__MouseEventWrappingImplementation__get_metaKey(_this) {
   try {
     return __dom_wrap(_this.$dom.metaKey);
   } catch (e) {
@@ -20102,7 +20102,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_metaKey(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_offsetX(_this) {
+function native__MouseEventWrappingImplementation__get_offsetX(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetX);
   } catch (e) {
@@ -20110,7 +20110,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_offsetX(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_offsetY(_this) {
+function native__MouseEventWrappingImplementation__get_offsetY(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetY);
   } catch (e) {
@@ -20118,7 +20118,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_offsetY(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_relatedTarget(_this) {
+function native__MouseEventWrappingImplementation__get_relatedTarget(_this) {
   try {
     return __dom_wrap(_this.$dom.relatedTarget);
   } catch (e) {
@@ -20126,7 +20126,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_relatedTarget
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_screenX(_this) {
+function native__MouseEventWrappingImplementation__get_screenX(_this) {
   try {
     return __dom_wrap(_this.$dom.screenX);
   } catch (e) {
@@ -20134,7 +20134,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_screenX(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_screenY(_this) {
+function native__MouseEventWrappingImplementation__get_screenY(_this) {
   try {
     return __dom_wrap(_this.$dom.screenY);
   } catch (e) {
@@ -20142,7 +20142,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_screenY(_this
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_shiftKey(_this) {
+function native__MouseEventWrappingImplementation__get_shiftKey(_this) {
   try {
     return __dom_wrap(_this.$dom.shiftKey);
   } catch (e) {
@@ -20150,7 +20150,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_shiftKey(_thi
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_toElement(_this) {
+function native__MouseEventWrappingImplementation__get_toElement(_this) {
   try {
     return __dom_wrap(_this.$dom.toElement);
   } catch (e) {
@@ -20158,7 +20158,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_toElement(_th
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_x(_this) {
+function native__MouseEventWrappingImplementation__get_x(_this) {
   try {
     return __dom_wrap(_this.$dom.x);
   } catch (e) {
@@ -20166,7 +20166,7 @@ function native__MouseEventWrappingImplementation__get__MouseEvent_x(_this) {
   }
 }
 
-function native__MouseEventWrappingImplementation__get__MouseEvent_y(_this) {
+function native__MouseEventWrappingImplementation__get_y(_this) {
   try {
     return __dom_wrap(_this.$dom.y);
   } catch (e) {
@@ -20182,7 +20182,7 @@ function native__MouseEventWrappingImplementation__initMouseEvent(_this, type, c
   }
 }
 
-function native__MutationEventWrappingImplementation__get__MutationEvent_attrChange(_this) {
+function native__MutationEventWrappingImplementation__get_attrChange(_this) {
   try {
     return __dom_wrap(_this.$dom.attrChange);
   } catch (e) {
@@ -20190,7 +20190,7 @@ function native__MutationEventWrappingImplementation__get__MutationEvent_attrCha
   }
 }
 
-function native__MutationEventWrappingImplementation__get__MutationEvent_attrName(_this) {
+function native__MutationEventWrappingImplementation__get_attrName(_this) {
   try {
     return __dom_wrap(_this.$dom.attrName);
   } catch (e) {
@@ -20198,7 +20198,7 @@ function native__MutationEventWrappingImplementation__get__MutationEvent_attrNam
   }
 }
 
-function native__MutationEventWrappingImplementation__get__MutationEvent_newValue(_this) {
+function native__MutationEventWrappingImplementation__get_newValue(_this) {
   try {
     return __dom_wrap(_this.$dom.newValue);
   } catch (e) {
@@ -20206,7 +20206,7 @@ function native__MutationEventWrappingImplementation__get__MutationEvent_newValu
   }
 }
 
-function native__MutationEventWrappingImplementation__get__MutationEvent_prevValue(_this) {
+function native__MutationEventWrappingImplementation__get_prevValue(_this) {
   try {
     return __dom_wrap(_this.$dom.prevValue);
   } catch (e) {
@@ -20214,7 +20214,7 @@ function native__MutationEventWrappingImplementation__get__MutationEvent_prevVal
   }
 }
 
-function native__MutationEventWrappingImplementation__get__MutationEvent_relatedNode(_this) {
+function native__MutationEventWrappingImplementation__get_relatedNode(_this) {
   try {
     return __dom_wrap(_this.$dom.relatedNode);
   } catch (e) {
@@ -20230,7 +20230,7 @@ function native__MutationEventWrappingImplementation__initMutationEvent(_this, t
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_addedNodes(_this) {
+function native__MutationRecordWrappingImplementation__get_addedNodes(_this) {
   try {
     return __dom_wrap(_this.$dom.addedNodes);
   } catch (e) {
@@ -20238,7 +20238,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_added
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_attributeName(_this) {
+function native__MutationRecordWrappingImplementation__get_attributeName(_this) {
   try {
     return __dom_wrap(_this.$dom.attributeName);
   } catch (e) {
@@ -20246,7 +20246,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_attri
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_attributeNamespace(_this) {
+function native__MutationRecordWrappingImplementation__get_attributeNamespace(_this) {
   try {
     return __dom_wrap(_this.$dom.attributeNamespace);
   } catch (e) {
@@ -20254,7 +20254,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_attri
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_nextSibling(_this) {
+function native__MutationRecordWrappingImplementation__get_nextSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.nextSibling);
   } catch (e) {
@@ -20262,7 +20262,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_nextS
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_oldValue(_this) {
+function native__MutationRecordWrappingImplementation__get_oldValue(_this) {
   try {
     return __dom_wrap(_this.$dom.oldValue);
   } catch (e) {
@@ -20270,7 +20270,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_oldVa
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_previousSibling(_this) {
+function native__MutationRecordWrappingImplementation__get_previousSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.previousSibling);
   } catch (e) {
@@ -20278,7 +20278,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_previ
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_removedNodes(_this) {
+function native__MutationRecordWrappingImplementation__get_removedNodes(_this) {
   try {
     return __dom_wrap(_this.$dom.removedNodes);
   } catch (e) {
@@ -20286,7 +20286,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_remov
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_target(_this) {
+function native__MutationRecordWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -20294,7 +20294,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_targe
   }
 }
 
-function native__MutationRecordWrappingImplementation__get__MutationRecord_type(_this) {
+function native__MutationRecordWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -20302,7 +20302,7 @@ function native__MutationRecordWrappingImplementation__get__MutationRecord_type(
   }
 }
 
-function native__NamedNodeMapWrappingImplementation__get__NamedNodeMap_length(_this) {
+function native__NamedNodeMapWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -20366,7 +20366,7 @@ function native__NamedNodeMapWrappingImplementation__setNamedItemNS(_this, node)
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_appCodeName(_this) {
+function native__NavigatorWrappingImplementation__get_appCodeName(_this) {
   try {
     return __dom_wrap(_this.$dom.appCodeName);
   } catch (e) {
@@ -20374,7 +20374,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_appCodeName(_th
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_appName(_this) {
+function native__NavigatorWrappingImplementation__get_appName(_this) {
   try {
     return __dom_wrap(_this.$dom.appName);
   } catch (e) {
@@ -20382,7 +20382,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_appName(_this) 
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_appVersion(_this) {
+function native__NavigatorWrappingImplementation__get_appVersion(_this) {
   try {
     return __dom_wrap(_this.$dom.appVersion);
   } catch (e) {
@@ -20390,7 +20390,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_appVersion(_thi
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_cookieEnabled(_this) {
+function native__NavigatorWrappingImplementation__get_cookieEnabled(_this) {
   try {
     return __dom_wrap(_this.$dom.cookieEnabled);
   } catch (e) {
@@ -20398,7 +20398,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_cookieEnabled(_
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_language(_this) {
+function native__NavigatorWrappingImplementation__get_language(_this) {
   try {
     return __dom_wrap(_this.$dom.language);
   } catch (e) {
@@ -20406,7 +20406,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_language(_this)
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_mimeTypes(_this) {
+function native__NavigatorWrappingImplementation__get_mimeTypes(_this) {
   try {
     return __dom_wrap(_this.$dom.mimeTypes);
   } catch (e) {
@@ -20414,7 +20414,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_mimeTypes(_this
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_onLine(_this) {
+function native__NavigatorWrappingImplementation__get_onLine(_this) {
   try {
     return __dom_wrap(_this.$dom.onLine);
   } catch (e) {
@@ -20422,7 +20422,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_onLine(_this) {
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_platform(_this) {
+function native__NavigatorWrappingImplementation__get_platform(_this) {
   try {
     return __dom_wrap(_this.$dom.platform);
   } catch (e) {
@@ -20430,7 +20430,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_platform(_this)
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_plugins(_this) {
+function native__NavigatorWrappingImplementation__get_plugins(_this) {
   try {
     return __dom_wrap(_this.$dom.plugins);
   } catch (e) {
@@ -20438,7 +20438,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_plugins(_this) 
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_product(_this) {
+function native__NavigatorWrappingImplementation__get_product(_this) {
   try {
     return __dom_wrap(_this.$dom.product);
   } catch (e) {
@@ -20446,7 +20446,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_product(_this) 
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_productSub(_this) {
+function native__NavigatorWrappingImplementation__get_productSub(_this) {
   try {
     return __dom_wrap(_this.$dom.productSub);
   } catch (e) {
@@ -20454,7 +20454,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_productSub(_thi
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_userAgent(_this) {
+function native__NavigatorWrappingImplementation__get_userAgent(_this) {
   try {
     return __dom_wrap(_this.$dom.userAgent);
   } catch (e) {
@@ -20462,7 +20462,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_userAgent(_this
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_vendor(_this) {
+function native__NavigatorWrappingImplementation__get_vendor(_this) {
   try {
     return __dom_wrap(_this.$dom.vendor);
   } catch (e) {
@@ -20470,7 +20470,7 @@ function native__NavigatorWrappingImplementation__get__Navigator_vendor(_this) {
   }
 }
 
-function native__NavigatorWrappingImplementation__get__Navigator_vendorSub(_this) {
+function native__NavigatorWrappingImplementation__get_vendorSub(_this) {
   try {
     return __dom_wrap(_this.$dom.vendorSub);
   } catch (e) {
@@ -20494,7 +20494,7 @@ function native__NavigatorWrappingImplementation__javaEnabled(_this) {
   }
 }
 
-function native__NavigatorUserMediaErrorWrappingImplementation__get__NavigatorUserMediaError_code(_this) {
+function native__NavigatorUserMediaErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -20510,7 +20510,7 @@ function native__NavigatorUserMediaErrorCallbackWrappingImplementation__handleEv
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_attributes(_this) {
+function native__NodeWrappingImplementation__get_attributes(_this) {
   try {
     return __dom_wrap(_this.$dom.attributes);
   } catch (e) {
@@ -20518,7 +20518,7 @@ function native__NodeWrappingImplementation__get__Node_attributes(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_baseURI(_this) {
+function native__NodeWrappingImplementation__get_baseURI(_this) {
   try {
     return __dom_wrap(_this.$dom.baseURI);
   } catch (e) {
@@ -20526,7 +20526,7 @@ function native__NodeWrappingImplementation__get__Node_baseURI(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_childNodes(_this) {
+function native__NodeWrappingImplementation__get_childNodes(_this) {
   try {
     return __dom_wrap(_this.$dom.childNodes);
   } catch (e) {
@@ -20534,7 +20534,7 @@ function native__NodeWrappingImplementation__get__Node_childNodes(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_firstChild(_this) {
+function native__NodeWrappingImplementation__get_firstChild(_this) {
   try {
     return __dom_wrap(_this.$dom.firstChild);
   } catch (e) {
@@ -20542,7 +20542,7 @@ function native__NodeWrappingImplementation__get__Node_firstChild(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_lastChild(_this) {
+function native__NodeWrappingImplementation__get_lastChild(_this) {
   try {
     return __dom_wrap(_this.$dom.lastChild);
   } catch (e) {
@@ -20550,7 +20550,7 @@ function native__NodeWrappingImplementation__get__Node_lastChild(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_localName(_this) {
+function native__NodeWrappingImplementation__get_localName(_this) {
   try {
     return __dom_wrap(_this.$dom.localName);
   } catch (e) {
@@ -20558,7 +20558,7 @@ function native__NodeWrappingImplementation__get__Node_localName(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_namespaceURI(_this) {
+function native__NodeWrappingImplementation__get_namespaceURI(_this) {
   try {
     return __dom_wrap(_this.$dom.namespaceURI);
   } catch (e) {
@@ -20566,7 +20566,7 @@ function native__NodeWrappingImplementation__get__Node_namespaceURI(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_nextSibling(_this) {
+function native__NodeWrappingImplementation__get_nextSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.nextSibling);
   } catch (e) {
@@ -20574,7 +20574,7 @@ function native__NodeWrappingImplementation__get__Node_nextSibling(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_nodeName(_this) {
+function native__NodeWrappingImplementation__get_nodeName(_this) {
   try {
     return __dom_wrap(_this.$dom.nodeName);
   } catch (e) {
@@ -20582,7 +20582,7 @@ function native__NodeWrappingImplementation__get__Node_nodeName(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_nodeType(_this) {
+function native__NodeWrappingImplementation__get_nodeType(_this) {
   try {
     return __dom_wrap(_this.$dom.nodeType);
   } catch (e) {
@@ -20590,7 +20590,7 @@ function native__NodeWrappingImplementation__get__Node_nodeType(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_nodeValue(_this) {
+function native__NodeWrappingImplementation__get_nodeValue(_this) {
   try {
     return __dom_wrap(_this.$dom.nodeValue);
   } catch (e) {
@@ -20598,7 +20598,7 @@ function native__NodeWrappingImplementation__get__Node_nodeValue(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__set__Node_nodeValue(_this, value) {
+function native__NodeWrappingImplementation__set_nodeValue(_this, value) {
   try {
     _this.$dom.nodeValue = __dom_unwrap(value);
   } catch (e) {
@@ -20606,7 +20606,7 @@ function native__NodeWrappingImplementation__set__Node_nodeValue(_this, value) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_ownerDocument(_this) {
+function native__NodeWrappingImplementation__get_ownerDocument(_this) {
   try {
     return __dom_wrap(_this.$dom.ownerDocument);
   } catch (e) {
@@ -20614,7 +20614,7 @@ function native__NodeWrappingImplementation__get__Node_ownerDocument(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_parentElement(_this) {
+function native__NodeWrappingImplementation__get_parentElement(_this) {
   try {
     return __dom_wrap(_this.$dom.parentElement);
   } catch (e) {
@@ -20622,7 +20622,7 @@ function native__NodeWrappingImplementation__get__Node_parentElement(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_parentNode(_this) {
+function native__NodeWrappingImplementation__get_parentNode(_this) {
   try {
     return __dom_wrap(_this.$dom.parentNode);
   } catch (e) {
@@ -20630,7 +20630,7 @@ function native__NodeWrappingImplementation__get__Node_parentNode(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_prefix(_this) {
+function native__NodeWrappingImplementation__get_prefix(_this) {
   try {
     return __dom_wrap(_this.$dom.prefix);
   } catch (e) {
@@ -20638,7 +20638,7 @@ function native__NodeWrappingImplementation__get__Node_prefix(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__set__Node_prefix(_this, value) {
+function native__NodeWrappingImplementation__set_prefix(_this, value) {
   try {
     _this.$dom.prefix = __dom_unwrap(value);
   } catch (e) {
@@ -20646,7 +20646,7 @@ function native__NodeWrappingImplementation__set__Node_prefix(_this, value) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_previousSibling(_this) {
+function native__NodeWrappingImplementation__get_previousSibling(_this) {
   try {
     return __dom_wrap(_this.$dom.previousSibling);
   } catch (e) {
@@ -20654,7 +20654,7 @@ function native__NodeWrappingImplementation__get__Node_previousSibling(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__get__Node_textContent(_this) {
+function native__NodeWrappingImplementation__get_textContent(_this) {
   try {
     return __dom_wrap(_this.$dom.textContent);
   } catch (e) {
@@ -20662,7 +20662,7 @@ function native__NodeWrappingImplementation__get__Node_textContent(_this) {
   }
 }
 
-function native__NodeWrappingImplementation__set__Node_textContent(_this, value) {
+function native__NodeWrappingImplementation__set_textContent(_this, value) {
   try {
     _this.$dom.textContent = __dom_unwrap(value);
   } catch (e) {
@@ -20670,7 +20670,7 @@ function native__NodeWrappingImplementation__set__Node_textContent(_this, value)
   }
 }
 
-function native__NodeWrappingImplementation__addEventListener(_this, type, listener) {
+function native__NodeWrappingImplementation__addEventListener_Node(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -20678,7 +20678,7 @@ function native__NodeWrappingImplementation__addEventListener(_this, type, liste
   }
 }
 
-function native__NodeWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__NodeWrappingImplementation__addEventListener_Node_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -20718,7 +20718,7 @@ function native__NodeWrappingImplementation__contains(_this, other) {
   }
 }
 
-function native__NodeWrappingImplementation__dispatchEvent(_this, event) {
+function native__NodeWrappingImplementation__dispatchEvent_Node(_this, event) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(event)));
   } catch (e) {
@@ -20814,7 +20814,7 @@ function native__NodeWrappingImplementation__removeChild(_this, oldChild) {
   }
 }
 
-function native__NodeWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__NodeWrappingImplementation__removeEventListener_Node(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -20822,7 +20822,7 @@ function native__NodeWrappingImplementation__removeEventListener(_this, type, li
   }
 }
 
-function native__NodeWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__NodeWrappingImplementation__removeEventListener_Node_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -20846,7 +20846,7 @@ function native__NodeFilterWrappingImplementation__acceptNode(_this, n) {
   }
 }
 
-function native__NodeIteratorWrappingImplementation__get__NodeIterator_expandEntityReferences(_this) {
+function native__NodeIteratorWrappingImplementation__get_expandEntityReferences(_this) {
   try {
     return __dom_wrap(_this.$dom.expandEntityReferences);
   } catch (e) {
@@ -20854,7 +20854,7 @@ function native__NodeIteratorWrappingImplementation__get__NodeIterator_expandEnt
   }
 }
 
-function native__NodeIteratorWrappingImplementation__get__NodeIterator_filter(_this) {
+function native__NodeIteratorWrappingImplementation__get_filter(_this) {
   try {
     return __dom_wrap(_this.$dom.filter);
   } catch (e) {
@@ -20862,7 +20862,7 @@ function native__NodeIteratorWrappingImplementation__get__NodeIterator_filter(_t
   }
 }
 
-function native__NodeIteratorWrappingImplementation__get__NodeIterator_pointerBeforeReferenceNode(_this) {
+function native__NodeIteratorWrappingImplementation__get_pointerBeforeReferenceNode(_this) {
   try {
     return __dom_wrap(_this.$dom.pointerBeforeReferenceNode);
   } catch (e) {
@@ -20870,7 +20870,7 @@ function native__NodeIteratorWrappingImplementation__get__NodeIterator_pointerBe
   }
 }
 
-function native__NodeIteratorWrappingImplementation__get__NodeIterator_referenceNode(_this) {
+function native__NodeIteratorWrappingImplementation__get_referenceNode(_this) {
   try {
     return __dom_wrap(_this.$dom.referenceNode);
   } catch (e) {
@@ -20878,7 +20878,7 @@ function native__NodeIteratorWrappingImplementation__get__NodeIterator_reference
   }
 }
 
-function native__NodeIteratorWrappingImplementation__get__NodeIterator_root(_this) {
+function native__NodeIteratorWrappingImplementation__get_root(_this) {
   try {
     return __dom_wrap(_this.$dom.root);
   } catch (e) {
@@ -20886,7 +20886,7 @@ function native__NodeIteratorWrappingImplementation__get__NodeIterator_root(_thi
   }
 }
 
-function native__NodeIteratorWrappingImplementation__get__NodeIterator_whatToShow(_this) {
+function native__NodeIteratorWrappingImplementation__get_whatToShow(_this) {
   try {
     return __dom_wrap(_this.$dom.whatToShow);
   } catch (e) {
@@ -20918,7 +20918,7 @@ function native__NodeIteratorWrappingImplementation__previousNode(_this) {
   }
 }
 
-function native__NodeListWrappingImplementation__get__NodeList_length(_this) {
+function native__NodeListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -20950,7 +20950,7 @@ function native__NodeSelectorWrappingImplementation__querySelectorAll(_this, sel
   }
 }
 
-function native__NotationWrappingImplementation__get__Notation_publicId(_this) {
+function native__NotationWrappingImplementation__get_publicId(_this) {
   try {
     return __dom_wrap(_this.$dom.publicId);
   } catch (e) {
@@ -20958,7 +20958,7 @@ function native__NotationWrappingImplementation__get__Notation_publicId(_this) {
   }
 }
 
-function native__NotationWrappingImplementation__get__Notation_systemId(_this) {
+function native__NotationWrappingImplementation__get_systemId(_this) {
   try {
     return __dom_wrap(_this.$dom.systemId);
   } catch (e) {
@@ -20966,7 +20966,7 @@ function native__NotationWrappingImplementation__get__Notation_systemId(_this) {
   }
 }
 
-function native__NotificationWrappingImplementation__get__Notification_dir(_this) {
+function native__NotificationWrappingImplementation__get_dir(_this) {
   try {
     return __dom_wrap(_this.$dom.dir);
   } catch (e) {
@@ -20974,7 +20974,7 @@ function native__NotificationWrappingImplementation__get__Notification_dir(_this
   }
 }
 
-function native__NotificationWrappingImplementation__set__Notification_dir(_this, value) {
+function native__NotificationWrappingImplementation__set_dir(_this, value) {
   try {
     _this.$dom.dir = __dom_unwrap(value);
   } catch (e) {
@@ -20982,7 +20982,7 @@ function native__NotificationWrappingImplementation__set__Notification_dir(_this
   }
 }
 
-function native__NotificationWrappingImplementation__get__Notification_onclick(_this) {
+function native__NotificationWrappingImplementation__get_onclick(_this) {
   try {
     return __dom_wrap(_this.$dom.onclick);
   } catch (e) {
@@ -20990,7 +20990,7 @@ function native__NotificationWrappingImplementation__get__Notification_onclick(_
   }
 }
 
-function native__NotificationWrappingImplementation__set__Notification_onclick(_this, value) {
+function native__NotificationWrappingImplementation__set_onclick(_this, value) {
   try {
     _this.$dom.onclick = __dom_unwrap(value);
   } catch (e) {
@@ -20998,7 +20998,7 @@ function native__NotificationWrappingImplementation__set__Notification_onclick(_
   }
 }
 
-function native__NotificationWrappingImplementation__get__Notification_onclose(_this) {
+function native__NotificationWrappingImplementation__get_onclose(_this) {
   try {
     return __dom_wrap(_this.$dom.onclose);
   } catch (e) {
@@ -21006,7 +21006,7 @@ function native__NotificationWrappingImplementation__get__Notification_onclose(_
   }
 }
 
-function native__NotificationWrappingImplementation__set__Notification_onclose(_this, value) {
+function native__NotificationWrappingImplementation__set_onclose(_this, value) {
   try {
     _this.$dom.onclose = __dom_unwrap(value);
   } catch (e) {
@@ -21014,7 +21014,7 @@ function native__NotificationWrappingImplementation__set__Notification_onclose(_
   }
 }
 
-function native__NotificationWrappingImplementation__get__Notification_ondisplay(_this) {
+function native__NotificationWrappingImplementation__get_ondisplay(_this) {
   try {
     return __dom_wrap(_this.$dom.ondisplay);
   } catch (e) {
@@ -21022,7 +21022,7 @@ function native__NotificationWrappingImplementation__get__Notification_ondisplay
   }
 }
 
-function native__NotificationWrappingImplementation__set__Notification_ondisplay(_this, value) {
+function native__NotificationWrappingImplementation__set_ondisplay(_this, value) {
   try {
     _this.$dom.ondisplay = __dom_unwrap(value);
   } catch (e) {
@@ -21030,7 +21030,7 @@ function native__NotificationWrappingImplementation__set__Notification_ondisplay
   }
 }
 
-function native__NotificationWrappingImplementation__get__Notification_onerror(_this) {
+function native__NotificationWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -21038,7 +21038,7 @@ function native__NotificationWrappingImplementation__get__Notification_onerror(_
   }
 }
 
-function native__NotificationWrappingImplementation__set__Notification_onerror(_this, value) {
+function native__NotificationWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -21046,7 +21046,7 @@ function native__NotificationWrappingImplementation__set__Notification_onerror(_
   }
 }
 
-function native__NotificationWrappingImplementation__get__Notification_replaceId(_this) {
+function native__NotificationWrappingImplementation__get_replaceId(_this) {
   try {
     return __dom_wrap(_this.$dom.replaceId);
   } catch (e) {
@@ -21054,7 +21054,7 @@ function native__NotificationWrappingImplementation__get__Notification_replaceId
   }
 }
 
-function native__NotificationWrappingImplementation__set__Notification_replaceId(_this, value) {
+function native__NotificationWrappingImplementation__set_replaceId(_this, value) {
   try {
     _this.$dom.replaceId = __dom_unwrap(value);
   } catch (e) {
@@ -21062,7 +21062,7 @@ function native__NotificationWrappingImplementation__set__Notification_replaceId
   }
 }
 
-function native__NotificationWrappingImplementation__addEventListener(_this, type, listener) {
+function native__NotificationWrappingImplementation__addEventListener_Notification(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -21070,7 +21070,7 @@ function native__NotificationWrappingImplementation__addEventListener(_this, typ
   }
 }
 
-function native__NotificationWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__NotificationWrappingImplementation__addEventListener_Notification_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -21086,7 +21086,7 @@ function native__NotificationWrappingImplementation__cancel(_this) {
   }
 }
 
-function native__NotificationWrappingImplementation__dispatchEvent(_this, evt) {
+function native__NotificationWrappingImplementation__dispatchEvent_Notification(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -21094,7 +21094,7 @@ function native__NotificationWrappingImplementation__dispatchEvent(_this, evt) {
   }
 }
 
-function native__NotificationWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__NotificationWrappingImplementation__removeEventListener_Notification(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -21102,7 +21102,7 @@ function native__NotificationWrappingImplementation__removeEventListener(_this, 
   }
 }
 
-function native__NotificationWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__NotificationWrappingImplementation__removeEventListener_Notification_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -21182,7 +21182,7 @@ function native__OESVertexArrayObjectWrappingImplementation__isVertexArrayOES(_t
   }
 }
 
-function native__OperationNotAllowedExceptionWrappingImplementation__get__OperationNotAllowedException_code(_this) {
+function native__OperationNotAllowedExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -21190,7 +21190,7 @@ function native__OperationNotAllowedExceptionWrappingImplementation__get__Operat
   }
 }
 
-function native__OperationNotAllowedExceptionWrappingImplementation__get__OperationNotAllowedException_message(_this) {
+function native__OperationNotAllowedExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -21198,7 +21198,7 @@ function native__OperationNotAllowedExceptionWrappingImplementation__get__Operat
   }
 }
 
-function native__OperationNotAllowedExceptionWrappingImplementation__get__OperationNotAllowedException_name(_this) {
+function native__OperationNotAllowedExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -21214,7 +21214,7 @@ function native__OperationNotAllowedExceptionWrappingImplementation__toString(_t
   }
 }
 
-function native__OverflowEventWrappingImplementation__get__OverflowEvent_horizontalOverflow(_this) {
+function native__OverflowEventWrappingImplementation__get_horizontalOverflow(_this) {
   try {
     return __dom_wrap(_this.$dom.horizontalOverflow);
   } catch (e) {
@@ -21222,7 +21222,7 @@ function native__OverflowEventWrappingImplementation__get__OverflowEvent_horizon
   }
 }
 
-function native__OverflowEventWrappingImplementation__get__OverflowEvent_orient(_this) {
+function native__OverflowEventWrappingImplementation__get_orient(_this) {
   try {
     return __dom_wrap(_this.$dom.orient);
   } catch (e) {
@@ -21230,7 +21230,7 @@ function native__OverflowEventWrappingImplementation__get__OverflowEvent_orient(
   }
 }
 
-function native__OverflowEventWrappingImplementation__get__OverflowEvent_verticalOverflow(_this) {
+function native__OverflowEventWrappingImplementation__get_verticalOverflow(_this) {
   try {
     return __dom_wrap(_this.$dom.verticalOverflow);
   } catch (e) {
@@ -21246,7 +21246,7 @@ function native__OverflowEventWrappingImplementation__initOverflowEvent(_this, o
   }
 }
 
-function native__PageTransitionEventWrappingImplementation__get__PageTransitionEvent_persisted(_this) {
+function native__PageTransitionEventWrappingImplementation__get_persisted(_this) {
   try {
     return __dom_wrap(_this.$dom.persisted);
   } catch (e) {
@@ -21262,7 +21262,7 @@ function native__PageTransitionEventWrappingImplementation__initPageTransitionEv
   }
 }
 
-function native__PerformanceWrappingImplementation__get__Performance_memory(_this) {
+function native__PerformanceWrappingImplementation__get_memory(_this) {
   try {
     return __dom_wrap(_this.$dom.memory);
   } catch (e) {
@@ -21270,7 +21270,7 @@ function native__PerformanceWrappingImplementation__get__Performance_memory(_thi
   }
 }
 
-function native__PerformanceWrappingImplementation__get__Performance_navigation(_this) {
+function native__PerformanceWrappingImplementation__get_navigation(_this) {
   try {
     return __dom_wrap(_this.$dom.navigation);
   } catch (e) {
@@ -21278,7 +21278,7 @@ function native__PerformanceWrappingImplementation__get__Performance_navigation(
   }
 }
 
-function native__PerformanceWrappingImplementation__get__Performance_timing(_this) {
+function native__PerformanceWrappingImplementation__get_timing(_this) {
   try {
     return __dom_wrap(_this.$dom.timing);
   } catch (e) {
@@ -21286,7 +21286,7 @@ function native__PerformanceWrappingImplementation__get__Performance_timing(_thi
   }
 }
 
-function native__PerformanceNavigationWrappingImplementation__get__PerformanceNavigation_redirectCount(_this) {
+function native__PerformanceNavigationWrappingImplementation__get_redirectCount(_this) {
   try {
     return __dom_wrap(_this.$dom.redirectCount);
   } catch (e) {
@@ -21294,7 +21294,7 @@ function native__PerformanceNavigationWrappingImplementation__get__PerformanceNa
   }
 }
 
-function native__PerformanceNavigationWrappingImplementation__get__PerformanceNavigation_type(_this) {
+function native__PerformanceNavigationWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -21302,7 +21302,7 @@ function native__PerformanceNavigationWrappingImplementation__get__PerformanceNa
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_connectEnd(_this) {
+function native__PerformanceTimingWrappingImplementation__get_connectEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.connectEnd);
   } catch (e) {
@@ -21310,7 +21310,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_connectStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_connectStart(_this) {
   try {
     return __dom_wrap(_this.$dom.connectStart);
   } catch (e) {
@@ -21318,7 +21318,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_domComplete(_this) {
+function native__PerformanceTimingWrappingImplementation__get_domComplete(_this) {
   try {
     return __dom_wrap(_this.$dom.domComplete);
   } catch (e) {
@@ -21326,7 +21326,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_domContentLoadedEventEnd(_this) {
+function native__PerformanceTimingWrappingImplementation__get_domContentLoadedEventEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.domContentLoadedEventEnd);
   } catch (e) {
@@ -21334,7 +21334,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_domContentLoadedEventStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_domContentLoadedEventStart(_this) {
   try {
     return __dom_wrap(_this.$dom.domContentLoadedEventStart);
   } catch (e) {
@@ -21342,7 +21342,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_domInteractive(_this) {
+function native__PerformanceTimingWrappingImplementation__get_domInteractive(_this) {
   try {
     return __dom_wrap(_this.$dom.domInteractive);
   } catch (e) {
@@ -21350,7 +21350,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_domLoading(_this) {
+function native__PerformanceTimingWrappingImplementation__get_domLoading(_this) {
   try {
     return __dom_wrap(_this.$dom.domLoading);
   } catch (e) {
@@ -21358,7 +21358,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_domainLookupEnd(_this) {
+function native__PerformanceTimingWrappingImplementation__get_domainLookupEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.domainLookupEnd);
   } catch (e) {
@@ -21366,7 +21366,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_domainLookupStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_domainLookupStart(_this) {
   try {
     return __dom_wrap(_this.$dom.domainLookupStart);
   } catch (e) {
@@ -21374,7 +21374,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_fetchStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_fetchStart(_this) {
   try {
     return __dom_wrap(_this.$dom.fetchStart);
   } catch (e) {
@@ -21382,7 +21382,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_loadEventEnd(_this) {
+function native__PerformanceTimingWrappingImplementation__get_loadEventEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.loadEventEnd);
   } catch (e) {
@@ -21390,7 +21390,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_loadEventStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_loadEventStart(_this) {
   try {
     return __dom_wrap(_this.$dom.loadEventStart);
   } catch (e) {
@@ -21398,7 +21398,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_navigationStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_navigationStart(_this) {
   try {
     return __dom_wrap(_this.$dom.navigationStart);
   } catch (e) {
@@ -21406,7 +21406,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_redirectEnd(_this) {
+function native__PerformanceTimingWrappingImplementation__get_redirectEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.redirectEnd);
   } catch (e) {
@@ -21414,7 +21414,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_redirectStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_redirectStart(_this) {
   try {
     return __dom_wrap(_this.$dom.redirectStart);
   } catch (e) {
@@ -21422,7 +21422,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_requestStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_requestStart(_this) {
   try {
     return __dom_wrap(_this.$dom.requestStart);
   } catch (e) {
@@ -21430,7 +21430,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_responseEnd(_this) {
+function native__PerformanceTimingWrappingImplementation__get_responseEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.responseEnd);
   } catch (e) {
@@ -21438,7 +21438,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_responseStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_responseStart(_this) {
   try {
     return __dom_wrap(_this.$dom.responseStart);
   } catch (e) {
@@ -21446,7 +21446,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_secureConnectionStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_secureConnectionStart(_this) {
   try {
     return __dom_wrap(_this.$dom.secureConnectionStart);
   } catch (e) {
@@ -21454,7 +21454,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_unloadEventEnd(_this) {
+function native__PerformanceTimingWrappingImplementation__get_unloadEventEnd(_this) {
   try {
     return __dom_wrap(_this.$dom.unloadEventEnd);
   } catch (e) {
@@ -21462,7 +21462,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming_unloadEventStart(_this) {
+function native__PerformanceTimingWrappingImplementation__get_unloadEventStart(_this) {
   try {
     return __dom_wrap(_this.$dom.unloadEventStart);
   } catch (e) {
@@ -21470,7 +21470,7 @@ function native__PerformanceTimingWrappingImplementation__get__PerformanceTiming
   }
 }
 
-function native__PopStateEventWrappingImplementation__get__PopStateEvent_state(_this) {
+function native__PopStateEventWrappingImplementation__get_state(_this) {
   try {
     return __dom_wrap(_this.$dom.state);
   } catch (e) {
@@ -21494,7 +21494,7 @@ function native__PositionCallbackWrappingImplementation__handleEvent(_this, posi
   }
 }
 
-function native__PositionErrorWrappingImplementation__get__PositionError_code(_this) {
+function native__PositionErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -21502,7 +21502,7 @@ function native__PositionErrorWrappingImplementation__get__PositionError_code(_t
   }
 }
 
-function native__PositionErrorWrappingImplementation__get__PositionError_message(_this) {
+function native__PositionErrorWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -21518,7 +21518,7 @@ function native__PositionErrorCallbackWrappingImplementation__handleEvent(_this,
   }
 }
 
-function native__ProcessingInstructionWrappingImplementation__get__ProcessingInstruction_data(_this) {
+function native__ProcessingInstructionWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
   } catch (e) {
@@ -21526,7 +21526,7 @@ function native__ProcessingInstructionWrappingImplementation__get__ProcessingIns
   }
 }
 
-function native__ProcessingInstructionWrappingImplementation__set__ProcessingInstruction_data(_this, value) {
+function native__ProcessingInstructionWrappingImplementation__set_data(_this, value) {
   try {
     _this.$dom.data = __dom_unwrap(value);
   } catch (e) {
@@ -21534,7 +21534,7 @@ function native__ProcessingInstructionWrappingImplementation__set__ProcessingIns
   }
 }
 
-function native__ProcessingInstructionWrappingImplementation__get__ProcessingInstruction_sheet(_this) {
+function native__ProcessingInstructionWrappingImplementation__get_sheet(_this) {
   try {
     return __dom_wrap(_this.$dom.sheet);
   } catch (e) {
@@ -21542,7 +21542,7 @@ function native__ProcessingInstructionWrappingImplementation__get__ProcessingIns
   }
 }
 
-function native__ProcessingInstructionWrappingImplementation__get__ProcessingInstruction_target(_this) {
+function native__ProcessingInstructionWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -21550,7 +21550,7 @@ function native__ProcessingInstructionWrappingImplementation__get__ProcessingIns
   }
 }
 
-function native__ProgressEventWrappingImplementation__get__ProgressEvent_lengthComputable(_this) {
+function native__ProgressEventWrappingImplementation__get_lengthComputable(_this) {
   try {
     return __dom_wrap(_this.$dom.lengthComputable);
   } catch (e) {
@@ -21558,7 +21558,7 @@ function native__ProgressEventWrappingImplementation__get__ProgressEvent_lengthC
   }
 }
 
-function native__ProgressEventWrappingImplementation__get__ProgressEvent_loaded(_this) {
+function native__ProgressEventWrappingImplementation__get_loaded(_this) {
   try {
     return __dom_wrap(_this.$dom.loaded);
   } catch (e) {
@@ -21566,7 +21566,7 @@ function native__ProgressEventWrappingImplementation__get__ProgressEvent_loaded(
   }
 }
 
-function native__ProgressEventWrappingImplementation__get__ProgressEvent_total(_this) {
+function native__ProgressEventWrappingImplementation__get_total(_this) {
   try {
     return __dom_wrap(_this.$dom.total);
   } catch (e) {
@@ -21582,7 +21582,7 @@ function native__ProgressEventWrappingImplementation__initProgressEvent(_this, t
   }
 }
 
-function native__RGBColorWrappingImplementation__get__RGBColor_blue(_this) {
+function native__RGBColorWrappingImplementation__get_blue(_this) {
   try {
     return __dom_wrap(_this.$dom.blue);
   } catch (e) {
@@ -21590,7 +21590,7 @@ function native__RGBColorWrappingImplementation__get__RGBColor_blue(_this) {
   }
 }
 
-function native__RGBColorWrappingImplementation__get__RGBColor_green(_this) {
+function native__RGBColorWrappingImplementation__get_green(_this) {
   try {
     return __dom_wrap(_this.$dom.green);
   } catch (e) {
@@ -21598,7 +21598,7 @@ function native__RGBColorWrappingImplementation__get__RGBColor_green(_this) {
   }
 }
 
-function native__RGBColorWrappingImplementation__get__RGBColor_red(_this) {
+function native__RGBColorWrappingImplementation__get_red(_this) {
   try {
     return __dom_wrap(_this.$dom.red);
   } catch (e) {
@@ -21606,7 +21606,7 @@ function native__RGBColorWrappingImplementation__get__RGBColor_red(_this) {
   }
 }
 
-function native__RangeWrappingImplementation__get__Range_collapsed(_this) {
+function native__RangeWrappingImplementation__get_collapsed(_this) {
   try {
     return __dom_wrap(_this.$dom.collapsed);
   } catch (e) {
@@ -21614,7 +21614,7 @@ function native__RangeWrappingImplementation__get__Range_collapsed(_this) {
   }
 }
 
-function native__RangeWrappingImplementation__get__Range_commonAncestorContainer(_this) {
+function native__RangeWrappingImplementation__get_commonAncestorContainer(_this) {
   try {
     return __dom_wrap(_this.$dom.commonAncestorContainer);
   } catch (e) {
@@ -21622,7 +21622,7 @@ function native__RangeWrappingImplementation__get__Range_commonAncestorContainer
   }
 }
 
-function native__RangeWrappingImplementation__get__Range_endContainer(_this) {
+function native__RangeWrappingImplementation__get_endContainer(_this) {
   try {
     return __dom_wrap(_this.$dom.endContainer);
   } catch (e) {
@@ -21630,7 +21630,7 @@ function native__RangeWrappingImplementation__get__Range_endContainer(_this) {
   }
 }
 
-function native__RangeWrappingImplementation__get__Range_endOffset(_this) {
+function native__RangeWrappingImplementation__get_endOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.endOffset);
   } catch (e) {
@@ -21638,7 +21638,7 @@ function native__RangeWrappingImplementation__get__Range_endOffset(_this) {
   }
 }
 
-function native__RangeWrappingImplementation__get__Range_startContainer(_this) {
+function native__RangeWrappingImplementation__get_startContainer(_this) {
   try {
     return __dom_wrap(_this.$dom.startContainer);
   } catch (e) {
@@ -21646,7 +21646,7 @@ function native__RangeWrappingImplementation__get__Range_startContainer(_this) {
   }
 }
 
-function native__RangeWrappingImplementation__get__Range_startOffset(_this) {
+function native__RangeWrappingImplementation__get_startOffset(_this) {
   try {
     return __dom_wrap(_this.$dom.startOffset);
   } catch (e) {
@@ -21854,7 +21854,7 @@ function native__RangeWrappingImplementation__toString(_this) {
   }
 }
 
-function native__RangeExceptionWrappingImplementation__get__RangeException_code(_this) {
+function native__RangeExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -21862,7 +21862,7 @@ function native__RangeExceptionWrappingImplementation__get__RangeException_code(
   }
 }
 
-function native__RangeExceptionWrappingImplementation__get__RangeException_message(_this) {
+function native__RangeExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -21870,7 +21870,7 @@ function native__RangeExceptionWrappingImplementation__get__RangeException_messa
   }
 }
 
-function native__RangeExceptionWrappingImplementation__get__RangeException_name(_this) {
+function native__RangeExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -21886,7 +21886,7 @@ function native__RangeExceptionWrappingImplementation__toString(_this) {
   }
 }
 
-function native__RectWrappingImplementation__get__Rect_bottom(_this) {
+function native__RectWrappingImplementation__get_bottom(_this) {
   try {
     return __dom_wrap(_this.$dom.bottom);
   } catch (e) {
@@ -21894,7 +21894,7 @@ function native__RectWrappingImplementation__get__Rect_bottom(_this) {
   }
 }
 
-function native__RectWrappingImplementation__get__Rect_left(_this) {
+function native__RectWrappingImplementation__get_left(_this) {
   try {
     return __dom_wrap(_this.$dom.left);
   } catch (e) {
@@ -21902,7 +21902,7 @@ function native__RectWrappingImplementation__get__Rect_left(_this) {
   }
 }
 
-function native__RectWrappingImplementation__get__Rect_right(_this) {
+function native__RectWrappingImplementation__get_right(_this) {
   try {
     return __dom_wrap(_this.$dom.right);
   } catch (e) {
@@ -21910,7 +21910,7 @@ function native__RectWrappingImplementation__get__Rect_right(_this) {
   }
 }
 
-function native__RectWrappingImplementation__get__Rect_top(_this) {
+function native__RectWrappingImplementation__get_top(_this) {
   try {
     return __dom_wrap(_this.$dom.top);
   } catch (e) {
@@ -21918,7 +21918,7 @@ function native__RectWrappingImplementation__get__Rect_top(_this) {
   }
 }
 
-function native__SQLErrorWrappingImplementation__get__SQLError_code(_this) {
+function native__SQLErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -21926,7 +21926,7 @@ function native__SQLErrorWrappingImplementation__get__SQLError_code(_this) {
   }
 }
 
-function native__SQLErrorWrappingImplementation__get__SQLError_message(_this) {
+function native__SQLErrorWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -21934,7 +21934,7 @@ function native__SQLErrorWrappingImplementation__get__SQLError_message(_this) {
   }
 }
 
-function native__SQLExceptionWrappingImplementation__get__SQLException_code(_this) {
+function native__SQLExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -21942,7 +21942,7 @@ function native__SQLExceptionWrappingImplementation__get__SQLException_code(_thi
   }
 }
 
-function native__SQLExceptionWrappingImplementation__get__SQLException_message(_this) {
+function native__SQLExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -21950,7 +21950,7 @@ function native__SQLExceptionWrappingImplementation__get__SQLException_message(_
   }
 }
 
-function native__SQLResultSetWrappingImplementation__get__SQLResultSet_insertId(_this) {
+function native__SQLResultSetWrappingImplementation__get_insertId(_this) {
   try {
     return __dom_wrap(_this.$dom.insertId);
   } catch (e) {
@@ -21958,7 +21958,7 @@ function native__SQLResultSetWrappingImplementation__get__SQLResultSet_insertId(
   }
 }
 
-function native__SQLResultSetWrappingImplementation__get__SQLResultSet_rows(_this) {
+function native__SQLResultSetWrappingImplementation__get_rows(_this) {
   try {
     return __dom_wrap(_this.$dom.rows);
   } catch (e) {
@@ -21966,7 +21966,7 @@ function native__SQLResultSetWrappingImplementation__get__SQLResultSet_rows(_thi
   }
 }
 
-function native__SQLResultSetWrappingImplementation__get__SQLResultSet_rowsAffected(_this) {
+function native__SQLResultSetWrappingImplementation__get_rowsAffected(_this) {
   try {
     return __dom_wrap(_this.$dom.rowsAffected);
   } catch (e) {
@@ -21974,7 +21974,7 @@ function native__SQLResultSetWrappingImplementation__get__SQLResultSet_rowsAffec
   }
 }
 
-function native__SQLResultSetRowListWrappingImplementation__get__SQLResultSetRowList_length(_this) {
+function native__SQLResultSetRowListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -22030,7 +22030,7 @@ function native__SQLTransactionSyncCallbackWrappingImplementation__handleEvent(_
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_availHeight(_this) {
+function native__ScreenWrappingImplementation__get_availHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.availHeight);
   } catch (e) {
@@ -22038,7 +22038,7 @@ function native__ScreenWrappingImplementation__get__Screen_availHeight(_this) {
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_availLeft(_this) {
+function native__ScreenWrappingImplementation__get_availLeft(_this) {
   try {
     return __dom_wrap(_this.$dom.availLeft);
   } catch (e) {
@@ -22046,7 +22046,7 @@ function native__ScreenWrappingImplementation__get__Screen_availLeft(_this) {
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_availTop(_this) {
+function native__ScreenWrappingImplementation__get_availTop(_this) {
   try {
     return __dom_wrap(_this.$dom.availTop);
   } catch (e) {
@@ -22054,7 +22054,7 @@ function native__ScreenWrappingImplementation__get__Screen_availTop(_this) {
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_availWidth(_this) {
+function native__ScreenWrappingImplementation__get_availWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.availWidth);
   } catch (e) {
@@ -22062,7 +22062,7 @@ function native__ScreenWrappingImplementation__get__Screen_availWidth(_this) {
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_colorDepth(_this) {
+function native__ScreenWrappingImplementation__get_colorDepth(_this) {
   try {
     return __dom_wrap(_this.$dom.colorDepth);
   } catch (e) {
@@ -22070,7 +22070,7 @@ function native__ScreenWrappingImplementation__get__Screen_colorDepth(_this) {
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_height(_this) {
+function native__ScreenWrappingImplementation__get_height(_this) {
   try {
     return __dom_wrap(_this.$dom.height);
   } catch (e) {
@@ -22078,7 +22078,7 @@ function native__ScreenWrappingImplementation__get__Screen_height(_this) {
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_pixelDepth(_this) {
+function native__ScreenWrappingImplementation__get_pixelDepth(_this) {
   try {
     return __dom_wrap(_this.$dom.pixelDepth);
   } catch (e) {
@@ -22086,7 +22086,7 @@ function native__ScreenWrappingImplementation__get__Screen_pixelDepth(_this) {
   }
 }
 
-function native__ScreenWrappingImplementation__get__Screen_width(_this) {
+function native__ScreenWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -22094,7 +22094,7 @@ function native__ScreenWrappingImplementation__get__Screen_width(_this) {
   }
 }
 
-function native__ScriptProfileWrappingImplementation__get__ScriptProfile_head(_this) {
+function native__ScriptProfileWrappingImplementation__get_head(_this) {
   try {
     return __dom_wrap(_this.$dom.head);
   } catch (e) {
@@ -22102,7 +22102,7 @@ function native__ScriptProfileWrappingImplementation__get__ScriptProfile_head(_t
   }
 }
 
-function native__ScriptProfileWrappingImplementation__get__ScriptProfile_title(_this) {
+function native__ScriptProfileWrappingImplementation__get_title(_this) {
   try {
     return __dom_wrap(_this.$dom.title);
   } catch (e) {
@@ -22110,7 +22110,7 @@ function native__ScriptProfileWrappingImplementation__get__ScriptProfile_title(_
   }
 }
 
-function native__ScriptProfileWrappingImplementation__get__ScriptProfile_uid(_this) {
+function native__ScriptProfileWrappingImplementation__get_uid(_this) {
   try {
     return __dom_wrap(_this.$dom.uid);
   } catch (e) {
@@ -22118,7 +22118,7 @@ function native__ScriptProfileWrappingImplementation__get__ScriptProfile_uid(_th
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_callUID(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_callUID(_this) {
   try {
     return __dom_wrap(_this.$dom.callUID);
   } catch (e) {
@@ -22126,7 +22126,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_children(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_children(_this) {
   try {
     return __dom_wrap(_this.$dom.children);
   } catch (e) {
@@ -22134,7 +22134,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_functionName(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_functionName(_this) {
   try {
     return __dom_wrap(_this.$dom.functionName);
   } catch (e) {
@@ -22142,7 +22142,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_lineNumber(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_lineNumber(_this) {
   try {
     return __dom_wrap(_this.$dom.lineNumber);
   } catch (e) {
@@ -22150,7 +22150,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_numberOfCalls(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_numberOfCalls(_this) {
   try {
     return __dom_wrap(_this.$dom.numberOfCalls);
   } catch (e) {
@@ -22158,7 +22158,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_selfTime(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_selfTime(_this) {
   try {
     return __dom_wrap(_this.$dom.selfTime);
   } catch (e) {
@@ -22166,7 +22166,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_totalTime(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_totalTime(_this) {
   try {
     return __dom_wrap(_this.$dom.totalTime);
   } catch (e) {
@@ -22174,7 +22174,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_url(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_url(_this) {
   try {
     return __dom_wrap(_this.$dom.url);
   } catch (e) {
@@ -22182,7 +22182,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode_visible(_this) {
+function native__ScriptProfileNodeWrappingImplementation__get_visible(_this) {
   try {
     return __dom_wrap(_this.$dom.visible);
   } catch (e) {
@@ -22190,7 +22190,7 @@ function native__ScriptProfileNodeWrappingImplementation__get__ScriptProfileNode
   }
 }
 
-function native__SharedWorkerWrappingImplementation__get__SharedWorker_port(_this) {
+function native__SharedWorkerWrappingImplementation__get_port(_this) {
   try {
     return __dom_wrap(_this.$dom.port);
   } catch (e) {
@@ -22198,7 +22198,7 @@ function native__SharedWorkerWrappingImplementation__get__SharedWorker_port(_thi
   }
 }
 
-function native__SharedWorkercontextWrappingImplementation__get__SharedWorkercontext_name(_this) {
+function native__SharedWorkercontextWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -22206,7 +22206,7 @@ function native__SharedWorkercontextWrappingImplementation__get__SharedWorkercon
   }
 }
 
-function native__SharedWorkercontextWrappingImplementation__get__SharedWorkercontext_onconnect(_this) {
+function native__SharedWorkercontextWrappingImplementation__get_onconnect(_this) {
   try {
     return __dom_wrap(_this.$dom.onconnect);
   } catch (e) {
@@ -22214,7 +22214,7 @@ function native__SharedWorkercontextWrappingImplementation__get__SharedWorkercon
   }
 }
 
-function native__SharedWorkercontextWrappingImplementation__set__SharedWorkercontext_onconnect(_this, value) {
+function native__SharedWorkercontextWrappingImplementation__set_onconnect(_this, value) {
   try {
     _this.$dom.onconnect = __dom_unwrap(value);
   } catch (e) {
@@ -22222,7 +22222,7 @@ function native__SharedWorkercontextWrappingImplementation__set__SharedWorkercon
   }
 }
 
-function native__SpeechInputEventWrappingImplementation__get__SpeechInputEvent_results(_this) {
+function native__SpeechInputEventWrappingImplementation__get_results(_this) {
   try {
     return __dom_wrap(_this.$dom.results);
   } catch (e) {
@@ -22230,7 +22230,7 @@ function native__SpeechInputEventWrappingImplementation__get__SpeechInputEvent_r
   }
 }
 
-function native__SpeechInputResultWrappingImplementation__get__SpeechInputResult_confidence(_this) {
+function native__SpeechInputResultWrappingImplementation__get_confidence(_this) {
   try {
     return __dom_wrap(_this.$dom.confidence);
   } catch (e) {
@@ -22238,7 +22238,7 @@ function native__SpeechInputResultWrappingImplementation__get__SpeechInputResult
   }
 }
 
-function native__SpeechInputResultWrappingImplementation__get__SpeechInputResult_utterance(_this) {
+function native__SpeechInputResultWrappingImplementation__get_utterance(_this) {
   try {
     return __dom_wrap(_this.$dom.utterance);
   } catch (e) {
@@ -22246,7 +22246,7 @@ function native__SpeechInputResultWrappingImplementation__get__SpeechInputResult
   }
 }
 
-function native__SpeechInputResultListWrappingImplementation__get__SpeechInputResultList_length(_this) {
+function native__SpeechInputResultListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -22262,7 +22262,7 @@ function native__SpeechInputResultListWrappingImplementation__item(_this, index)
   }
 }
 
-function native__StorageWrappingImplementation__get__Storage_length(_this) {
+function native__StorageWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -22310,7 +22310,7 @@ function native__StorageWrappingImplementation__setItem(_this, key, data) {
   }
 }
 
-function native__StorageEventWrappingImplementation__get__StorageEvent_key(_this) {
+function native__StorageEventWrappingImplementation__get_key(_this) {
   try {
     return __dom_wrap(_this.$dom.key);
   } catch (e) {
@@ -22318,7 +22318,7 @@ function native__StorageEventWrappingImplementation__get__StorageEvent_key(_this
   }
 }
 
-function native__StorageEventWrappingImplementation__get__StorageEvent_newValue(_this) {
+function native__StorageEventWrappingImplementation__get_newValue(_this) {
   try {
     return __dom_wrap(_this.$dom.newValue);
   } catch (e) {
@@ -22326,7 +22326,7 @@ function native__StorageEventWrappingImplementation__get__StorageEvent_newValue(
   }
 }
 
-function native__StorageEventWrappingImplementation__get__StorageEvent_oldValue(_this) {
+function native__StorageEventWrappingImplementation__get_oldValue(_this) {
   try {
     return __dom_wrap(_this.$dom.oldValue);
   } catch (e) {
@@ -22334,7 +22334,7 @@ function native__StorageEventWrappingImplementation__get__StorageEvent_oldValue(
   }
 }
 
-function native__StorageEventWrappingImplementation__get__StorageEvent_storageArea(_this) {
+function native__StorageEventWrappingImplementation__get_storageArea(_this) {
   try {
     return __dom_wrap(_this.$dom.storageArea);
   } catch (e) {
@@ -22342,7 +22342,7 @@ function native__StorageEventWrappingImplementation__get__StorageEvent_storageAr
   }
 }
 
-function native__StorageEventWrappingImplementation__get__StorageEvent_url(_this) {
+function native__StorageEventWrappingImplementation__get_url(_this) {
   try {
     return __dom_wrap(_this.$dom.url);
   } catch (e) {
@@ -22438,7 +22438,7 @@ function native__StringCallbackWrappingImplementation__handleEvent(_this, data) 
   }
 }
 
-function native__StyleMediaWrappingImplementation__get__StyleMedia_type(_this) {
+function native__StyleMediaWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -22454,7 +22454,7 @@ function native__StyleMediaWrappingImplementation__matchMedium(_this, mediaquery
   }
 }
 
-function native__StyleSheetWrappingImplementation__get__StyleSheet_disabled(_this) {
+function native__StyleSheetWrappingImplementation__get_disabled(_this) {
   try {
     return __dom_wrap(_this.$dom.disabled);
   } catch (e) {
@@ -22462,7 +22462,7 @@ function native__StyleSheetWrappingImplementation__get__StyleSheet_disabled(_thi
   }
 }
 
-function native__StyleSheetWrappingImplementation__set__StyleSheet_disabled(_this, value) {
+function native__StyleSheetWrappingImplementation__set_disabled(_this, value) {
   try {
     _this.$dom.disabled = __dom_unwrap(value);
   } catch (e) {
@@ -22470,7 +22470,7 @@ function native__StyleSheetWrappingImplementation__set__StyleSheet_disabled(_thi
   }
 }
 
-function native__StyleSheetWrappingImplementation__get__StyleSheet_href(_this) {
+function native__StyleSheetWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -22478,7 +22478,7 @@ function native__StyleSheetWrappingImplementation__get__StyleSheet_href(_this) {
   }
 }
 
-function native__StyleSheetWrappingImplementation__get__StyleSheet_media(_this) {
+function native__StyleSheetWrappingImplementation__get_media(_this) {
   try {
     return __dom_wrap(_this.$dom.media);
   } catch (e) {
@@ -22486,7 +22486,7 @@ function native__StyleSheetWrappingImplementation__get__StyleSheet_media(_this) 
   }
 }
 
-function native__StyleSheetWrappingImplementation__get__StyleSheet_ownerNode(_this) {
+function native__StyleSheetWrappingImplementation__get_ownerNode(_this) {
   try {
     return __dom_wrap(_this.$dom.ownerNode);
   } catch (e) {
@@ -22494,7 +22494,7 @@ function native__StyleSheetWrappingImplementation__get__StyleSheet_ownerNode(_th
   }
 }
 
-function native__StyleSheetWrappingImplementation__get__StyleSheet_parentStyleSheet(_this) {
+function native__StyleSheetWrappingImplementation__get_parentStyleSheet(_this) {
   try {
     return __dom_wrap(_this.$dom.parentStyleSheet);
   } catch (e) {
@@ -22502,7 +22502,7 @@ function native__StyleSheetWrappingImplementation__get__StyleSheet_parentStyleSh
   }
 }
 
-function native__StyleSheetWrappingImplementation__get__StyleSheet_title(_this) {
+function native__StyleSheetWrappingImplementation__get_title(_this) {
   try {
     return __dom_wrap(_this.$dom.title);
   } catch (e) {
@@ -22510,7 +22510,7 @@ function native__StyleSheetWrappingImplementation__get__StyleSheet_title(_this) 
   }
 }
 
-function native__StyleSheetWrappingImplementation__get__StyleSheet_type(_this) {
+function native__StyleSheetWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -22518,7 +22518,7 @@ function native__StyleSheetWrappingImplementation__get__StyleSheet_type(_this) {
   }
 }
 
-function native__StyleSheetListWrappingImplementation__get__StyleSheetList_length(_this) {
+function native__StyleSheetListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -22534,7 +22534,7 @@ function native__StyleSheetListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__TextWrappingImplementation__get__Text_wholeText(_this) {
+function native__TextWrappingImplementation__get_wholeText(_this) {
   try {
     return __dom_wrap(_this.$dom.wholeText);
   } catch (e) {
@@ -22558,7 +22558,7 @@ function native__TextWrappingImplementation__splitText(_this, offset) {
   }
 }
 
-function native__TextEventWrappingImplementation__get__TextEvent_data(_this) {
+function native__TextEventWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
   } catch (e) {
@@ -22574,7 +22574,7 @@ function native__TextEventWrappingImplementation__initTextEvent(_this, typeArg, 
   }
 }
 
-function native__TextMetricsWrappingImplementation__get__TextMetrics_width(_this) {
+function native__TextMetricsWrappingImplementation__get_width(_this) {
   try {
     return __dom_wrap(_this.$dom.width);
   } catch (e) {
@@ -22582,7 +22582,7 @@ function native__TextMetricsWrappingImplementation__get__TextMetrics_width(_this
   }
 }
 
-function native__TextTrackWrappingImplementation__get__TextTrack_activeCues(_this) {
+function native__TextTrackWrappingImplementation__get_activeCues(_this) {
   try {
     return __dom_wrap(_this.$dom.activeCues);
   } catch (e) {
@@ -22590,7 +22590,7 @@ function native__TextTrackWrappingImplementation__get__TextTrack_activeCues(_thi
   }
 }
 
-function native__TextTrackWrappingImplementation__get__TextTrack_cues(_this) {
+function native__TextTrackWrappingImplementation__get_cues(_this) {
   try {
     return __dom_wrap(_this.$dom.cues);
   } catch (e) {
@@ -22598,7 +22598,7 @@ function native__TextTrackWrappingImplementation__get__TextTrack_cues(_this) {
   }
 }
 
-function native__TextTrackWrappingImplementation__get__TextTrack_kind(_this) {
+function native__TextTrackWrappingImplementation__get_kind(_this) {
   try {
     return __dom_wrap(_this.$dom.kind);
   } catch (e) {
@@ -22606,7 +22606,7 @@ function native__TextTrackWrappingImplementation__get__TextTrack_kind(_this) {
   }
 }
 
-function native__TextTrackWrappingImplementation__get__TextTrack_label(_this) {
+function native__TextTrackWrappingImplementation__get_label(_this) {
   try {
     return __dom_wrap(_this.$dom.label);
   } catch (e) {
@@ -22614,7 +22614,7 @@ function native__TextTrackWrappingImplementation__get__TextTrack_label(_this) {
   }
 }
 
-function native__TextTrackWrappingImplementation__get__TextTrack_language(_this) {
+function native__TextTrackWrappingImplementation__get_language(_this) {
   try {
     return __dom_wrap(_this.$dom.language);
   } catch (e) {
@@ -22622,7 +22622,7 @@ function native__TextTrackWrappingImplementation__get__TextTrack_language(_this)
   }
 }
 
-function native__TextTrackWrappingImplementation__get__TextTrack_mode(_this) {
+function native__TextTrackWrappingImplementation__get_mode(_this) {
   try {
     return __dom_wrap(_this.$dom.mode);
   } catch (e) {
@@ -22630,7 +22630,7 @@ function native__TextTrackWrappingImplementation__get__TextTrack_mode(_this) {
   }
 }
 
-function native__TextTrackWrappingImplementation__set__TextTrack_mode(_this, value) {
+function native__TextTrackWrappingImplementation__set_mode(_this, value) {
   try {
     _this.$dom.mode = __dom_unwrap(value);
   } catch (e) {
@@ -22638,7 +22638,7 @@ function native__TextTrackWrappingImplementation__set__TextTrack_mode(_this, val
   }
 }
 
-function native__TextTrackWrappingImplementation__get__TextTrack_readyState(_this) {
+function native__TextTrackWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -22662,7 +22662,7 @@ function native__TextTrackWrappingImplementation__removeCue(_this, cue) {
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_alignment(_this) {
+function native__TextTrackCueWrappingImplementation__get_alignment(_this) {
   try {
     return __dom_wrap(_this.$dom.alignment);
   } catch (e) {
@@ -22670,7 +22670,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_alignment
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_direction(_this) {
+function native__TextTrackCueWrappingImplementation__get_direction(_this) {
   try {
     return __dom_wrap(_this.$dom.direction);
   } catch (e) {
@@ -22678,7 +22678,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_direction
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_endTime(_this) {
+function native__TextTrackCueWrappingImplementation__get_endTime(_this) {
   try {
     return __dom_wrap(_this.$dom.endTime);
   } catch (e) {
@@ -22686,7 +22686,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_endTime(_
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_id(_this) {
+function native__TextTrackCueWrappingImplementation__get_id(_this) {
   try {
     return __dom_wrap(_this.$dom.id);
   } catch (e) {
@@ -22694,7 +22694,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_id(_this)
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_linePosition(_this) {
+function native__TextTrackCueWrappingImplementation__get_linePosition(_this) {
   try {
     return __dom_wrap(_this.$dom.linePosition);
   } catch (e) {
@@ -22702,7 +22702,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_linePosit
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_pauseOnExit(_this) {
+function native__TextTrackCueWrappingImplementation__get_pauseOnExit(_this) {
   try {
     return __dom_wrap(_this.$dom.pauseOnExit);
   } catch (e) {
@@ -22710,7 +22710,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_pauseOnEx
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_size(_this) {
+function native__TextTrackCueWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -22718,7 +22718,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_size(_thi
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_snapToLines(_this) {
+function native__TextTrackCueWrappingImplementation__get_snapToLines(_this) {
   try {
     return __dom_wrap(_this.$dom.snapToLines);
   } catch (e) {
@@ -22726,7 +22726,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_snapToLin
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_startTime(_this) {
+function native__TextTrackCueWrappingImplementation__get_startTime(_this) {
   try {
     return __dom_wrap(_this.$dom.startTime);
   } catch (e) {
@@ -22734,7 +22734,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_startTime
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_textPosition(_this) {
+function native__TextTrackCueWrappingImplementation__get_textPosition(_this) {
   try {
     return __dom_wrap(_this.$dom.textPosition);
   } catch (e) {
@@ -22742,7 +22742,7 @@ function native__TextTrackCueWrappingImplementation__get__TextTrackCue_textPosit
   }
 }
 
-function native__TextTrackCueWrappingImplementation__get__TextTrackCue_track(_this) {
+function native__TextTrackCueWrappingImplementation__get_track(_this) {
   try {
     return __dom_wrap(_this.$dom.track);
   } catch (e) {
@@ -22766,7 +22766,7 @@ function native__TextTrackCueWrappingImplementation__getCueAsSource(_this) {
   }
 }
 
-function native__TextTrackCueListWrappingImplementation__get__TextTrackCueList_length(_this) {
+function native__TextTrackCueListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -22790,7 +22790,7 @@ function native__TextTrackCueListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__TimeRangesWrappingImplementation__get__TimeRanges_length(_this) {
+function native__TimeRangesWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -22814,7 +22814,7 @@ function native__TimeRangesWrappingImplementation__start(_this, index) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_clientX(_this) {
+function native__TouchWrappingImplementation__get_clientX(_this) {
   try {
     return __dom_wrap(_this.$dom.clientX);
   } catch (e) {
@@ -22822,7 +22822,7 @@ function native__TouchWrappingImplementation__get__Touch_clientX(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_clientY(_this) {
+function native__TouchWrappingImplementation__get_clientY(_this) {
   try {
     return __dom_wrap(_this.$dom.clientY);
   } catch (e) {
@@ -22830,7 +22830,7 @@ function native__TouchWrappingImplementation__get__Touch_clientY(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_identifier(_this) {
+function native__TouchWrappingImplementation__get_identifier(_this) {
   try {
     return __dom_wrap(_this.$dom.identifier);
   } catch (e) {
@@ -22838,7 +22838,7 @@ function native__TouchWrappingImplementation__get__Touch_identifier(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_pageX(_this) {
+function native__TouchWrappingImplementation__get_pageX(_this) {
   try {
     return __dom_wrap(_this.$dom.pageX);
   } catch (e) {
@@ -22846,7 +22846,7 @@ function native__TouchWrappingImplementation__get__Touch_pageX(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_pageY(_this) {
+function native__TouchWrappingImplementation__get_pageY(_this) {
   try {
     return __dom_wrap(_this.$dom.pageY);
   } catch (e) {
@@ -22854,7 +22854,7 @@ function native__TouchWrappingImplementation__get__Touch_pageY(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_screenX(_this) {
+function native__TouchWrappingImplementation__get_screenX(_this) {
   try {
     return __dom_wrap(_this.$dom.screenX);
   } catch (e) {
@@ -22862,7 +22862,7 @@ function native__TouchWrappingImplementation__get__Touch_screenX(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_screenY(_this) {
+function native__TouchWrappingImplementation__get_screenY(_this) {
   try {
     return __dom_wrap(_this.$dom.screenY);
   } catch (e) {
@@ -22870,7 +22870,7 @@ function native__TouchWrappingImplementation__get__Touch_screenY(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_target(_this) {
+function native__TouchWrappingImplementation__get_target(_this) {
   try {
     return __dom_wrap(_this.$dom.target);
   } catch (e) {
@@ -22878,7 +22878,7 @@ function native__TouchWrappingImplementation__get__Touch_target(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_webkitForce(_this) {
+function native__TouchWrappingImplementation__get_webkitForce(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitForce);
   } catch (e) {
@@ -22886,7 +22886,7 @@ function native__TouchWrappingImplementation__get__Touch_webkitForce(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_webkitRadiusX(_this) {
+function native__TouchWrappingImplementation__get_webkitRadiusX(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitRadiusX);
   } catch (e) {
@@ -22894,7 +22894,7 @@ function native__TouchWrappingImplementation__get__Touch_webkitRadiusX(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_webkitRadiusY(_this) {
+function native__TouchWrappingImplementation__get_webkitRadiusY(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitRadiusY);
   } catch (e) {
@@ -22902,7 +22902,7 @@ function native__TouchWrappingImplementation__get__Touch_webkitRadiusY(_this) {
   }
 }
 
-function native__TouchWrappingImplementation__get__Touch_webkitRotationAngle(_this) {
+function native__TouchWrappingImplementation__get_webkitRotationAngle(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitRotationAngle);
   } catch (e) {
@@ -22910,7 +22910,7 @@ function native__TouchWrappingImplementation__get__Touch_webkitRotationAngle(_th
   }
 }
 
-function native__TouchEventWrappingImplementation__get__TouchEvent_altKey(_this) {
+function native__TouchEventWrappingImplementation__get_altKey(_this) {
   try {
     return __dom_wrap(_this.$dom.altKey);
   } catch (e) {
@@ -22918,7 +22918,7 @@ function native__TouchEventWrappingImplementation__get__TouchEvent_altKey(_this)
   }
 }
 
-function native__TouchEventWrappingImplementation__get__TouchEvent_changedTouches(_this) {
+function native__TouchEventWrappingImplementation__get_changedTouches(_this) {
   try {
     return __dom_wrap(_this.$dom.changedTouches);
   } catch (e) {
@@ -22926,7 +22926,7 @@ function native__TouchEventWrappingImplementation__get__TouchEvent_changedTouche
   }
 }
 
-function native__TouchEventWrappingImplementation__get__TouchEvent_ctrlKey(_this) {
+function native__TouchEventWrappingImplementation__get_ctrlKey(_this) {
   try {
     return __dom_wrap(_this.$dom.ctrlKey);
   } catch (e) {
@@ -22934,7 +22934,7 @@ function native__TouchEventWrappingImplementation__get__TouchEvent_ctrlKey(_this
   }
 }
 
-function native__TouchEventWrappingImplementation__get__TouchEvent_metaKey(_this) {
+function native__TouchEventWrappingImplementation__get_metaKey(_this) {
   try {
     return __dom_wrap(_this.$dom.metaKey);
   } catch (e) {
@@ -22942,7 +22942,7 @@ function native__TouchEventWrappingImplementation__get__TouchEvent_metaKey(_this
   }
 }
 
-function native__TouchEventWrappingImplementation__get__TouchEvent_shiftKey(_this) {
+function native__TouchEventWrappingImplementation__get_shiftKey(_this) {
   try {
     return __dom_wrap(_this.$dom.shiftKey);
   } catch (e) {
@@ -22950,7 +22950,7 @@ function native__TouchEventWrappingImplementation__get__TouchEvent_shiftKey(_thi
   }
 }
 
-function native__TouchEventWrappingImplementation__get__TouchEvent_targetTouches(_this) {
+function native__TouchEventWrappingImplementation__get_targetTouches(_this) {
   try {
     return __dom_wrap(_this.$dom.targetTouches);
   } catch (e) {
@@ -22958,7 +22958,7 @@ function native__TouchEventWrappingImplementation__get__TouchEvent_targetTouches
   }
 }
 
-function native__TouchEventWrappingImplementation__get__TouchEvent_touches(_this) {
+function native__TouchEventWrappingImplementation__get_touches(_this) {
   try {
     return __dom_wrap(_this.$dom.touches);
   } catch (e) {
@@ -22974,7 +22974,7 @@ function native__TouchEventWrappingImplementation__initTouchEvent(_this, touches
   }
 }
 
-function native__TouchListWrappingImplementation__get__TouchList_length(_this) {
+function native__TouchListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -22990,7 +22990,7 @@ function native__TouchListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__TreeWalkerWrappingImplementation__get__TreeWalker_currentNode(_this) {
+function native__TreeWalkerWrappingImplementation__get_currentNode(_this) {
   try {
     return __dom_wrap(_this.$dom.currentNode);
   } catch (e) {
@@ -22998,7 +22998,7 @@ function native__TreeWalkerWrappingImplementation__get__TreeWalker_currentNode(_
   }
 }
 
-function native__TreeWalkerWrappingImplementation__set__TreeWalker_currentNode(_this, value) {
+function native__TreeWalkerWrappingImplementation__set_currentNode(_this, value) {
   try {
     _this.$dom.currentNode = __dom_unwrap(value);
   } catch (e) {
@@ -23006,7 +23006,7 @@ function native__TreeWalkerWrappingImplementation__set__TreeWalker_currentNode(_
   }
 }
 
-function native__TreeWalkerWrappingImplementation__get__TreeWalker_expandEntityReferences(_this) {
+function native__TreeWalkerWrappingImplementation__get_expandEntityReferences(_this) {
   try {
     return __dom_wrap(_this.$dom.expandEntityReferences);
   } catch (e) {
@@ -23014,7 +23014,7 @@ function native__TreeWalkerWrappingImplementation__get__TreeWalker_expandEntityR
   }
 }
 
-function native__TreeWalkerWrappingImplementation__get__TreeWalker_filter(_this) {
+function native__TreeWalkerWrappingImplementation__get_filter(_this) {
   try {
     return __dom_wrap(_this.$dom.filter);
   } catch (e) {
@@ -23022,7 +23022,7 @@ function native__TreeWalkerWrappingImplementation__get__TreeWalker_filter(_this)
   }
 }
 
-function native__TreeWalkerWrappingImplementation__get__TreeWalker_root(_this) {
+function native__TreeWalkerWrappingImplementation__get_root(_this) {
   try {
     return __dom_wrap(_this.$dom.root);
   } catch (e) {
@@ -23030,7 +23030,7 @@ function native__TreeWalkerWrappingImplementation__get__TreeWalker_root(_this) {
   }
 }
 
-function native__TreeWalkerWrappingImplementation__get__TreeWalker_whatToShow(_this) {
+function native__TreeWalkerWrappingImplementation__get_whatToShow(_this) {
   try {
     return __dom_wrap(_this.$dom.whatToShow);
   } catch (e) {
@@ -23094,7 +23094,7 @@ function native__TreeWalkerWrappingImplementation__previousSibling(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_charCode(_this) {
+function native__UIEventWrappingImplementation__get_charCode(_this) {
   try {
     return __dom_wrap(_this.$dom.charCode);
   } catch (e) {
@@ -23102,7 +23102,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_charCode(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_detail(_this) {
+function native__UIEventWrappingImplementation__get_detail(_this) {
   try {
     return __dom_wrap(_this.$dom.detail);
   } catch (e) {
@@ -23110,7 +23110,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_detail(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_keyCode(_this) {
+function native__UIEventWrappingImplementation__get_keyCode(_this) {
   try {
     return __dom_wrap(_this.$dom.keyCode);
   } catch (e) {
@@ -23118,7 +23118,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_keyCode(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_layerX(_this) {
+function native__UIEventWrappingImplementation__get_layerX(_this) {
   try {
     return __dom_wrap(_this.$dom.layerX);
   } catch (e) {
@@ -23126,7 +23126,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_layerX(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_layerY(_this) {
+function native__UIEventWrappingImplementation__get_layerY(_this) {
   try {
     return __dom_wrap(_this.$dom.layerY);
   } catch (e) {
@@ -23134,7 +23134,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_layerY(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_pageX(_this) {
+function native__UIEventWrappingImplementation__get_pageX(_this) {
   try {
     return __dom_wrap(_this.$dom.pageX);
   } catch (e) {
@@ -23142,7 +23142,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_pageX(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_pageY(_this) {
+function native__UIEventWrappingImplementation__get_pageY(_this) {
   try {
     return __dom_wrap(_this.$dom.pageY);
   } catch (e) {
@@ -23150,7 +23150,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_pageY(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_view(_this) {
+function native__UIEventWrappingImplementation__get_view(_this) {
   try {
     return __dom_wrap(_this.$dom.view);
   } catch (e) {
@@ -23158,7 +23158,7 @@ function native__UIEventWrappingImplementation__get__UIEvent_view(_this) {
   }
 }
 
-function native__UIEventWrappingImplementation__get__UIEvent_which(_this) {
+function native__UIEventWrappingImplementation__get_which(_this) {
   try {
     return __dom_wrap(_this.$dom.which);
   } catch (e) {
@@ -23174,7 +23174,7 @@ function native__UIEventWrappingImplementation__initUIEvent(_this, type, canBubb
   }
 }
 
-function native__Uint16ArrayWrappingImplementation__get__Uint16Array_length(_this) {
+function native__Uint16ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -23198,7 +23198,7 @@ function native__Uint16ArrayWrappingImplementation__subarray_2(_this, start, end
   }
 }
 
-function native__Uint32ArrayWrappingImplementation__get__Uint32Array_length(_this) {
+function native__Uint32ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -23222,7 +23222,7 @@ function native__Uint32ArrayWrappingImplementation__subarray_2(_this, start, end
   }
 }
 
-function native__Uint8ArrayWrappingImplementation__get__Uint8Array_length(_this) {
+function native__Uint8ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -23246,7 +23246,7 @@ function native__Uint8ArrayWrappingImplementation__subarray_2(_this, start, end)
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_customError(_this) {
+function native__ValidityStateWrappingImplementation__get_customError(_this) {
   try {
     return __dom_wrap(_this.$dom.customError);
   } catch (e) {
@@ -23254,7 +23254,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_customE
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_patternMismatch(_this) {
+function native__ValidityStateWrappingImplementation__get_patternMismatch(_this) {
   try {
     return __dom_wrap(_this.$dom.patternMismatch);
   } catch (e) {
@@ -23262,7 +23262,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_pattern
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_rangeOverflow(_this) {
+function native__ValidityStateWrappingImplementation__get_rangeOverflow(_this) {
   try {
     return __dom_wrap(_this.$dom.rangeOverflow);
   } catch (e) {
@@ -23270,7 +23270,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_rangeOv
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_rangeUnderflow(_this) {
+function native__ValidityStateWrappingImplementation__get_rangeUnderflow(_this) {
   try {
     return __dom_wrap(_this.$dom.rangeUnderflow);
   } catch (e) {
@@ -23278,7 +23278,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_rangeUn
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_stepMismatch(_this) {
+function native__ValidityStateWrappingImplementation__get_stepMismatch(_this) {
   try {
     return __dom_wrap(_this.$dom.stepMismatch);
   } catch (e) {
@@ -23286,7 +23286,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_stepMis
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_tooLong(_this) {
+function native__ValidityStateWrappingImplementation__get_tooLong(_this) {
   try {
     return __dom_wrap(_this.$dom.tooLong);
   } catch (e) {
@@ -23294,7 +23294,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_tooLong
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_typeMismatch(_this) {
+function native__ValidityStateWrappingImplementation__get_typeMismatch(_this) {
   try {
     return __dom_wrap(_this.$dom.typeMismatch);
   } catch (e) {
@@ -23302,7 +23302,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_typeMis
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_valid(_this) {
+function native__ValidityStateWrappingImplementation__get_valid(_this) {
   try {
     return __dom_wrap(_this.$dom.valid);
   } catch (e) {
@@ -23310,7 +23310,7 @@ function native__ValidityStateWrappingImplementation__get__ValidityState_valid(_
   }
 }
 
-function native__ValidityStateWrappingImplementation__get__ValidityState_valueMissing(_this) {
+function native__ValidityStateWrappingImplementation__get_valueMissing(_this) {
   try {
     return __dom_wrap(_this.$dom.valueMissing);
   } catch (e) {
@@ -23326,7 +23326,7 @@ function native__VoidCallbackWrappingImplementation__handleEvent(_this) {
   }
 }
 
-function native__WebGLActiveInfoWrappingImplementation__get__WebGLActiveInfo_name(_this) {
+function native__WebGLActiveInfoWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -23334,7 +23334,7 @@ function native__WebGLActiveInfoWrappingImplementation__get__WebGLActiveInfo_nam
   }
 }
 
-function native__WebGLActiveInfoWrappingImplementation__get__WebGLActiveInfo_size(_this) {
+function native__WebGLActiveInfoWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
   } catch (e) {
@@ -23342,7 +23342,7 @@ function native__WebGLActiveInfoWrappingImplementation__get__WebGLActiveInfo_siz
   }
 }
 
-function native__WebGLActiveInfoWrappingImplementation__get__WebGLActiveInfo_type(_this) {
+function native__WebGLActiveInfoWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
   } catch (e) {
@@ -23350,7 +23350,7 @@ function native__WebGLActiveInfoWrappingImplementation__get__WebGLActiveInfo_typ
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__get__WebGLContextAttributes_alpha(_this) {
+function native__WebGLContextAttributesWrappingImplementation__get_alpha(_this) {
   try {
     return __dom_wrap(_this.$dom.alpha);
   } catch (e) {
@@ -23358,7 +23358,7 @@ function native__WebGLContextAttributesWrappingImplementation__get__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__set__WebGLContextAttributes_alpha(_this, value) {
+function native__WebGLContextAttributesWrappingImplementation__set_alpha(_this, value) {
   try {
     _this.$dom.alpha = __dom_unwrap(value);
   } catch (e) {
@@ -23366,7 +23366,7 @@ function native__WebGLContextAttributesWrappingImplementation__set__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__get__WebGLContextAttributes_antialias(_this) {
+function native__WebGLContextAttributesWrappingImplementation__get_antialias(_this) {
   try {
     return __dom_wrap(_this.$dom.antialias);
   } catch (e) {
@@ -23374,7 +23374,7 @@ function native__WebGLContextAttributesWrappingImplementation__get__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__set__WebGLContextAttributes_antialias(_this, value) {
+function native__WebGLContextAttributesWrappingImplementation__set_antialias(_this, value) {
   try {
     _this.$dom.antialias = __dom_unwrap(value);
   } catch (e) {
@@ -23382,7 +23382,7 @@ function native__WebGLContextAttributesWrappingImplementation__set__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__get__WebGLContextAttributes_depth(_this) {
+function native__WebGLContextAttributesWrappingImplementation__get_depth(_this) {
   try {
     return __dom_wrap(_this.$dom.depth);
   } catch (e) {
@@ -23390,7 +23390,7 @@ function native__WebGLContextAttributesWrappingImplementation__get__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__set__WebGLContextAttributes_depth(_this, value) {
+function native__WebGLContextAttributesWrappingImplementation__set_depth(_this, value) {
   try {
     _this.$dom.depth = __dom_unwrap(value);
   } catch (e) {
@@ -23398,7 +23398,7 @@ function native__WebGLContextAttributesWrappingImplementation__set__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__get__WebGLContextAttributes_premultipliedAlpha(_this) {
+function native__WebGLContextAttributesWrappingImplementation__get_premultipliedAlpha(_this) {
   try {
     return __dom_wrap(_this.$dom.premultipliedAlpha);
   } catch (e) {
@@ -23406,7 +23406,7 @@ function native__WebGLContextAttributesWrappingImplementation__get__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__set__WebGLContextAttributes_premultipliedAlpha(_this, value) {
+function native__WebGLContextAttributesWrappingImplementation__set_premultipliedAlpha(_this, value) {
   try {
     _this.$dom.premultipliedAlpha = __dom_unwrap(value);
   } catch (e) {
@@ -23414,7 +23414,7 @@ function native__WebGLContextAttributesWrappingImplementation__set__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__get__WebGLContextAttributes_preserveDrawingBuffer(_this) {
+function native__WebGLContextAttributesWrappingImplementation__get_preserveDrawingBuffer(_this) {
   try {
     return __dom_wrap(_this.$dom.preserveDrawingBuffer);
   } catch (e) {
@@ -23422,7 +23422,7 @@ function native__WebGLContextAttributesWrappingImplementation__get__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__set__WebGLContextAttributes_preserveDrawingBuffer(_this, value) {
+function native__WebGLContextAttributesWrappingImplementation__set_preserveDrawingBuffer(_this, value) {
   try {
     _this.$dom.preserveDrawingBuffer = __dom_unwrap(value);
   } catch (e) {
@@ -23430,7 +23430,7 @@ function native__WebGLContextAttributesWrappingImplementation__set__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__get__WebGLContextAttributes_stencil(_this) {
+function native__WebGLContextAttributesWrappingImplementation__get_stencil(_this) {
   try {
     return __dom_wrap(_this.$dom.stencil);
   } catch (e) {
@@ -23438,7 +23438,7 @@ function native__WebGLContextAttributesWrappingImplementation__get__WebGLContext
   }
 }
 
-function native__WebGLContextAttributesWrappingImplementation__set__WebGLContextAttributes_stencil(_this, value) {
+function native__WebGLContextAttributesWrappingImplementation__set_stencil(_this, value) {
   try {
     _this.$dom.stencil = __dom_unwrap(value);
   } catch (e) {
@@ -23446,7 +23446,7 @@ function native__WebGLContextAttributesWrappingImplementation__set__WebGLContext
   }
 }
 
-function native__WebGLContextEventWrappingImplementation__get__WebGLContextEvent_statusMessage(_this) {
+function native__WebGLContextEventWrappingImplementation__get_statusMessage(_this) {
   try {
     return __dom_wrap(_this.$dom.statusMessage);
   } catch (e) {
@@ -23462,7 +23462,7 @@ function native__WebGLDebugShadersWrappingImplementation__getTranslatedShaderSou
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__get__WebGLRenderingContext_drawingBufferHeight(_this) {
+function native__WebGLRenderingContextWrappingImplementation__get_drawingBufferHeight(_this) {
   try {
     return __dom_wrap(_this.$dom.drawingBufferHeight);
   } catch (e) {
@@ -23470,7 +23470,7 @@ function native__WebGLRenderingContextWrappingImplementation__get__WebGLRenderin
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__get__WebGLRenderingContext_drawingBufferWidth(_this) {
+function native__WebGLRenderingContextWrappingImplementation__get_drawingBufferWidth(_this) {
   try {
     return __dom_wrap(_this.$dom.drawingBufferWidth);
   } catch (e) {
@@ -24622,7 +24622,7 @@ function native__WebGLRenderingContextWrappingImplementation__viewport(_this, x,
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_delay(_this) {
+function native__WebKitAnimationWrappingImplementation__get_delay(_this) {
   try {
     return __dom_wrap(_this.$dom.delay);
   } catch (e) {
@@ -24630,7 +24630,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_del
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_direction(_this) {
+function native__WebKitAnimationWrappingImplementation__get_direction(_this) {
   try {
     return __dom_wrap(_this.$dom.direction);
   } catch (e) {
@@ -24638,7 +24638,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_dir
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_duration(_this) {
+function native__WebKitAnimationWrappingImplementation__get_duration(_this) {
   try {
     return __dom_wrap(_this.$dom.duration);
   } catch (e) {
@@ -24646,7 +24646,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_dur
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_elapsedTime(_this) {
+function native__WebKitAnimationWrappingImplementation__get_elapsedTime(_this) {
   try {
     return __dom_wrap(_this.$dom.elapsedTime);
   } catch (e) {
@@ -24654,7 +24654,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_ela
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__set__WebKitAnimation_elapsedTime(_this, value) {
+function native__WebKitAnimationWrappingImplementation__set_elapsedTime(_this, value) {
   try {
     _this.$dom.elapsedTime = __dom_unwrap(value);
   } catch (e) {
@@ -24662,7 +24662,7 @@ function native__WebKitAnimationWrappingImplementation__set__WebKitAnimation_ela
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_ended(_this) {
+function native__WebKitAnimationWrappingImplementation__get_ended(_this) {
   try {
     return __dom_wrap(_this.$dom.ended);
   } catch (e) {
@@ -24670,7 +24670,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_end
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_fillMode(_this) {
+function native__WebKitAnimationWrappingImplementation__get_fillMode(_this) {
   try {
     return __dom_wrap(_this.$dom.fillMode);
   } catch (e) {
@@ -24678,7 +24678,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_fil
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_iterationCount(_this) {
+function native__WebKitAnimationWrappingImplementation__get_iterationCount(_this) {
   try {
     return __dom_wrap(_this.$dom.iterationCount);
   } catch (e) {
@@ -24686,7 +24686,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_ite
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_name(_this) {
+function native__WebKitAnimationWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -24694,7 +24694,7 @@ function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_nam
   }
 }
 
-function native__WebKitAnimationWrappingImplementation__get__WebKitAnimation_paused(_this) {
+function native__WebKitAnimationWrappingImplementation__get_paused(_this) {
   try {
     return __dom_wrap(_this.$dom.paused);
   } catch (e) {
@@ -24718,7 +24718,7 @@ function native__WebKitAnimationWrappingImplementation__play(_this) {
   }
 }
 
-function native__WebKitAnimationEventWrappingImplementation__get__WebKitAnimationEvent_animationName(_this) {
+function native__WebKitAnimationEventWrappingImplementation__get_animationName(_this) {
   try {
     return __dom_wrap(_this.$dom.animationName);
   } catch (e) {
@@ -24726,7 +24726,7 @@ function native__WebKitAnimationEventWrappingImplementation__get__WebKitAnimatio
   }
 }
 
-function native__WebKitAnimationEventWrappingImplementation__get__WebKitAnimationEvent_elapsedTime(_this) {
+function native__WebKitAnimationEventWrappingImplementation__get_elapsedTime(_this) {
   try {
     return __dom_wrap(_this.$dom.elapsedTime);
   } catch (e) {
@@ -24742,7 +24742,7 @@ function native__WebKitAnimationEventWrappingImplementation__initWebKitAnimation
   }
 }
 
-function native__WebKitAnimationListWrappingImplementation__get__WebKitAnimationList_length(_this) {
+function native__WebKitAnimationListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
   } catch (e) {
@@ -24798,7 +24798,7 @@ function native__WebKitBlobBuilderWrappingImplementation__getBlob_2(_this, conte
   }
 }
 
-function native__WebKitCSSFilterValueWrappingImplementation__get__WebKitCSSFilterValue_operationType(_this) {
+function native__WebKitCSSFilterValueWrappingImplementation__get_operationType(_this) {
   try {
     return __dom_wrap(_this.$dom.operationType);
   } catch (e) {
@@ -24806,7 +24806,7 @@ function native__WebKitCSSFilterValueWrappingImplementation__get__WebKitCSSFilte
   }
 }
 
-function native__WebKitCSSKeyframeRuleWrappingImplementation__get__WebKitCSSKeyframeRule_keyText(_this) {
+function native__WebKitCSSKeyframeRuleWrappingImplementation__get_keyText(_this) {
   try {
     return __dom_wrap(_this.$dom.keyText);
   } catch (e) {
@@ -24814,7 +24814,7 @@ function native__WebKitCSSKeyframeRuleWrappingImplementation__get__WebKitCSSKeyf
   }
 }
 
-function native__WebKitCSSKeyframeRuleWrappingImplementation__set__WebKitCSSKeyframeRule_keyText(_this, value) {
+function native__WebKitCSSKeyframeRuleWrappingImplementation__set_keyText(_this, value) {
   try {
     _this.$dom.keyText = __dom_unwrap(value);
   } catch (e) {
@@ -24822,7 +24822,7 @@ function native__WebKitCSSKeyframeRuleWrappingImplementation__set__WebKitCSSKeyf
   }
 }
 
-function native__WebKitCSSKeyframeRuleWrappingImplementation__get__WebKitCSSKeyframeRule_style(_this) {
+function native__WebKitCSSKeyframeRuleWrappingImplementation__get_style(_this) {
   try {
     return __dom_wrap(_this.$dom.style);
   } catch (e) {
@@ -24830,7 +24830,7 @@ function native__WebKitCSSKeyframeRuleWrappingImplementation__get__WebKitCSSKeyf
   }
 }
 
-function native__WebKitCSSKeyframesRuleWrappingImplementation__get__WebKitCSSKeyframesRule_cssRules(_this) {
+function native__WebKitCSSKeyframesRuleWrappingImplementation__get_cssRules(_this) {
   try {
     return __dom_wrap(_this.$dom.cssRules);
   } catch (e) {
@@ -24838,7 +24838,7 @@ function native__WebKitCSSKeyframesRuleWrappingImplementation__get__WebKitCSSKey
   }
 }
 
-function native__WebKitCSSKeyframesRuleWrappingImplementation__get__WebKitCSSKeyframesRule_name(_this) {
+function native__WebKitCSSKeyframesRuleWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -24846,7 +24846,7 @@ function native__WebKitCSSKeyframesRuleWrappingImplementation__get__WebKitCSSKey
   }
 }
 
-function native__WebKitCSSKeyframesRuleWrappingImplementation__set__WebKitCSSKeyframesRule_name(_this, value) {
+function native__WebKitCSSKeyframesRuleWrappingImplementation__set_name(_this, value) {
   try {
     _this.$dom.name = __dom_unwrap(value);
   } catch (e) {
@@ -24878,7 +24878,7 @@ function native__WebKitCSSKeyframesRuleWrappingImplementation__insertRule(_this,
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_a(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_a(_this) {
   try {
     return __dom_wrap(_this.$dom.a);
   } catch (e) {
@@ -24886,7 +24886,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_a(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_a(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_a(_this, value) {
   try {
     _this.$dom.a = __dom_unwrap(value);
   } catch (e) {
@@ -24894,7 +24894,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_a(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_b(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_b(_this) {
   try {
     return __dom_wrap(_this.$dom.b);
   } catch (e) {
@@ -24902,7 +24902,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_b(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_b(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_b(_this, value) {
   try {
     _this.$dom.b = __dom_unwrap(value);
   } catch (e) {
@@ -24910,7 +24910,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_b(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_c(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_c(_this) {
   try {
     return __dom_wrap(_this.$dom.c);
   } catch (e) {
@@ -24918,7 +24918,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_c(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_c(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_c(_this, value) {
   try {
     _this.$dom.c = __dom_unwrap(value);
   } catch (e) {
@@ -24926,7 +24926,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_c(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_d(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_d(_this) {
   try {
     return __dom_wrap(_this.$dom.d);
   } catch (e) {
@@ -24934,7 +24934,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_d(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_d(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_d(_this, value) {
   try {
     _this.$dom.d = __dom_unwrap(value);
   } catch (e) {
@@ -24942,7 +24942,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_d(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_e(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_e(_this) {
   try {
     return __dom_wrap(_this.$dom.e);
   } catch (e) {
@@ -24950,7 +24950,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_e(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_e(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_e(_this, value) {
   try {
     _this.$dom.e = __dom_unwrap(value);
   } catch (e) {
@@ -24958,7 +24958,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_e(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_f(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_f(_this) {
   try {
     return __dom_wrap(_this.$dom.f);
   } catch (e) {
@@ -24966,7 +24966,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_f(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_f(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_f(_this, value) {
   try {
     _this.$dom.f = __dom_unwrap(value);
   } catch (e) {
@@ -24974,7 +24974,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_f(_
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m11(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m11(_this) {
   try {
     return __dom_wrap(_this.$dom.m11);
   } catch (e) {
@@ -24982,7 +24982,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m11
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m11(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m11(_this, value) {
   try {
     _this.$dom.m11 = __dom_unwrap(value);
   } catch (e) {
@@ -24990,7 +24990,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m11
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m12(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m12(_this) {
   try {
     return __dom_wrap(_this.$dom.m12);
   } catch (e) {
@@ -24998,7 +24998,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m12
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m12(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m12(_this, value) {
   try {
     _this.$dom.m12 = __dom_unwrap(value);
   } catch (e) {
@@ -25006,7 +25006,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m12
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m13(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m13(_this) {
   try {
     return __dom_wrap(_this.$dom.m13);
   } catch (e) {
@@ -25014,7 +25014,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m13
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m13(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m13(_this, value) {
   try {
     _this.$dom.m13 = __dom_unwrap(value);
   } catch (e) {
@@ -25022,7 +25022,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m13
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m14(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m14(_this) {
   try {
     return __dom_wrap(_this.$dom.m14);
   } catch (e) {
@@ -25030,7 +25030,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m14
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m14(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m14(_this, value) {
   try {
     _this.$dom.m14 = __dom_unwrap(value);
   } catch (e) {
@@ -25038,7 +25038,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m14
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m21(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m21(_this) {
   try {
     return __dom_wrap(_this.$dom.m21);
   } catch (e) {
@@ -25046,7 +25046,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m21
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m21(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m21(_this, value) {
   try {
     _this.$dom.m21 = __dom_unwrap(value);
   } catch (e) {
@@ -25054,7 +25054,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m21
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m22(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m22(_this) {
   try {
     return __dom_wrap(_this.$dom.m22);
   } catch (e) {
@@ -25062,7 +25062,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m22
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m22(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m22(_this, value) {
   try {
     _this.$dom.m22 = __dom_unwrap(value);
   } catch (e) {
@@ -25070,7 +25070,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m22
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m23(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m23(_this) {
   try {
     return __dom_wrap(_this.$dom.m23);
   } catch (e) {
@@ -25078,7 +25078,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m23
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m23(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m23(_this, value) {
   try {
     _this.$dom.m23 = __dom_unwrap(value);
   } catch (e) {
@@ -25086,7 +25086,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m23
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m24(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m24(_this) {
   try {
     return __dom_wrap(_this.$dom.m24);
   } catch (e) {
@@ -25094,7 +25094,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m24
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m24(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m24(_this, value) {
   try {
     _this.$dom.m24 = __dom_unwrap(value);
   } catch (e) {
@@ -25102,7 +25102,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m24
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m31(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m31(_this) {
   try {
     return __dom_wrap(_this.$dom.m31);
   } catch (e) {
@@ -25110,7 +25110,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m31
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m31(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m31(_this, value) {
   try {
     _this.$dom.m31 = __dom_unwrap(value);
   } catch (e) {
@@ -25118,7 +25118,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m31
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m32(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m32(_this) {
   try {
     return __dom_wrap(_this.$dom.m32);
   } catch (e) {
@@ -25126,7 +25126,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m32
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m32(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m32(_this, value) {
   try {
     _this.$dom.m32 = __dom_unwrap(value);
   } catch (e) {
@@ -25134,7 +25134,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m32
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m33(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m33(_this) {
   try {
     return __dom_wrap(_this.$dom.m33);
   } catch (e) {
@@ -25142,7 +25142,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m33
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m33(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m33(_this, value) {
   try {
     _this.$dom.m33 = __dom_unwrap(value);
   } catch (e) {
@@ -25150,7 +25150,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m33
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m34(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m34(_this) {
   try {
     return __dom_wrap(_this.$dom.m34);
   } catch (e) {
@@ -25158,7 +25158,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m34
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m34(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m34(_this, value) {
   try {
     _this.$dom.m34 = __dom_unwrap(value);
   } catch (e) {
@@ -25166,7 +25166,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m34
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m41(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m41(_this) {
   try {
     return __dom_wrap(_this.$dom.m41);
   } catch (e) {
@@ -25174,7 +25174,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m41
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m41(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m41(_this, value) {
   try {
     _this.$dom.m41 = __dom_unwrap(value);
   } catch (e) {
@@ -25182,7 +25182,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m41
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m42(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m42(_this) {
   try {
     return __dom_wrap(_this.$dom.m42);
   } catch (e) {
@@ -25190,7 +25190,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m42
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m42(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m42(_this, value) {
   try {
     _this.$dom.m42 = __dom_unwrap(value);
   } catch (e) {
@@ -25198,7 +25198,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m42
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m43(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m43(_this) {
   try {
     return __dom_wrap(_this.$dom.m43);
   } catch (e) {
@@ -25206,7 +25206,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m43
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m43(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m43(_this, value) {
   try {
     _this.$dom.m43 = __dom_unwrap(value);
   } catch (e) {
@@ -25214,7 +25214,7 @@ function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m43
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m44(_this) {
+function native__WebKitCSSMatrixWrappingImplementation__get_m44(_this) {
   try {
     return __dom_wrap(_this.$dom.m44);
   } catch (e) {
@@ -25222,7 +25222,7 @@ function native__WebKitCSSMatrixWrappingImplementation__get__WebKitCSSMatrix_m44
   }
 }
 
-function native__WebKitCSSMatrixWrappingImplementation__set__WebKitCSSMatrix_m44(_this, value) {
+function native__WebKitCSSMatrixWrappingImplementation__set_m44(_this, value) {
   try {
     _this.$dom.m44 = __dom_unwrap(value);
   } catch (e) {
@@ -25310,7 +25310,7 @@ function native__WebKitCSSMatrixWrappingImplementation__translate(_this, x, y, z
   }
 }
 
-function native__WebKitCSSTransformValueWrappingImplementation__get__WebKitCSSTransformValue_operationType(_this) {
+function native__WebKitCSSTransformValueWrappingImplementation__get_operationType(_this) {
   try {
     return __dom_wrap(_this.$dom.operationType);
   } catch (e) {
@@ -25318,7 +25318,7 @@ function native__WebKitCSSTransformValueWrappingImplementation__get__WebKitCSSTr
   }
 }
 
-function native__WebKitFlagsWrappingImplementation__get__WebKitFlags_create(_this) {
+function native__WebKitFlagsWrappingImplementation__get_create(_this) {
   try {
     return __dom_wrap(_this.$dom.create);
   } catch (e) {
@@ -25326,7 +25326,7 @@ function native__WebKitFlagsWrappingImplementation__get__WebKitFlags_create(_thi
   }
 }
 
-function native__WebKitFlagsWrappingImplementation__set__WebKitFlags_create(_this, value) {
+function native__WebKitFlagsWrappingImplementation__set_create(_this, value) {
   try {
     _this.$dom.create = __dom_unwrap(value);
   } catch (e) {
@@ -25334,7 +25334,7 @@ function native__WebKitFlagsWrappingImplementation__set__WebKitFlags_create(_thi
   }
 }
 
-function native__WebKitFlagsWrappingImplementation__get__WebKitFlags_exclusive(_this) {
+function native__WebKitFlagsWrappingImplementation__get_exclusive(_this) {
   try {
     return __dom_wrap(_this.$dom.exclusive);
   } catch (e) {
@@ -25342,7 +25342,7 @@ function native__WebKitFlagsWrappingImplementation__get__WebKitFlags_exclusive(_
   }
 }
 
-function native__WebKitFlagsWrappingImplementation__set__WebKitFlags_exclusive(_this, value) {
+function native__WebKitFlagsWrappingImplementation__set_exclusive(_this, value) {
   try {
     _this.$dom.exclusive = __dom_unwrap(value);
   } catch (e) {
@@ -25374,7 +25374,7 @@ function native__WebKitMutationObserverWrappingImplementation__disconnect(_this)
   }
 }
 
-function native__WebKitPointWrappingImplementation__get__WebKitPoint_x(_this) {
+function native__WebKitPointWrappingImplementation__get_x(_this) {
   try {
     return __dom_wrap(_this.$dom.x);
   } catch (e) {
@@ -25382,7 +25382,7 @@ function native__WebKitPointWrappingImplementation__get__WebKitPoint_x(_this) {
   }
 }
 
-function native__WebKitPointWrappingImplementation__set__WebKitPoint_x(_this, value) {
+function native__WebKitPointWrappingImplementation__set_x(_this, value) {
   try {
     _this.$dom.x = __dom_unwrap(value);
   } catch (e) {
@@ -25390,7 +25390,7 @@ function native__WebKitPointWrappingImplementation__set__WebKitPoint_x(_this, va
   }
 }
 
-function native__WebKitPointWrappingImplementation__get__WebKitPoint_y(_this) {
+function native__WebKitPointWrappingImplementation__get_y(_this) {
   try {
     return __dom_wrap(_this.$dom.y);
   } catch (e) {
@@ -25398,7 +25398,7 @@ function native__WebKitPointWrappingImplementation__get__WebKitPoint_y(_this) {
   }
 }
 
-function native__WebKitPointWrappingImplementation__set__WebKitPoint_y(_this, value) {
+function native__WebKitPointWrappingImplementation__set_y(_this, value) {
   try {
     _this.$dom.y = __dom_unwrap(value);
   } catch (e) {
@@ -25406,7 +25406,7 @@ function native__WebKitPointWrappingImplementation__set__WebKitPoint_y(_this, va
   }
 }
 
-function native__WebKitTransitionEventWrappingImplementation__get__WebKitTransitionEvent_elapsedTime(_this) {
+function native__WebKitTransitionEventWrappingImplementation__get_elapsedTime(_this) {
   try {
     return __dom_wrap(_this.$dom.elapsedTime);
   } catch (e) {
@@ -25414,7 +25414,7 @@ function native__WebKitTransitionEventWrappingImplementation__get__WebKitTransit
   }
 }
 
-function native__WebKitTransitionEventWrappingImplementation__get__WebKitTransitionEvent_propertyName(_this) {
+function native__WebKitTransitionEventWrappingImplementation__get_propertyName(_this) {
   try {
     return __dom_wrap(_this.$dom.propertyName);
   } catch (e) {
@@ -25430,7 +25430,7 @@ function native__WebKitTransitionEventWrappingImplementation__initWebKitTransiti
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_URL(_this) {
+function native__WebSocketWrappingImplementation__get_URL(_this) {
   try {
     return __dom_wrap(_this.$dom.URL);
   } catch (e) {
@@ -25438,7 +25438,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_URL(_this) {
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_binaryType(_this) {
+function native__WebSocketWrappingImplementation__get_binaryType(_this) {
   try {
     return __dom_wrap(_this.$dom.binaryType);
   } catch (e) {
@@ -25446,7 +25446,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_binaryType(_thi
   }
 }
 
-function native__WebSocketWrappingImplementation__set__WebSocket_binaryType(_this, value) {
+function native__WebSocketWrappingImplementation__set_binaryType(_this, value) {
   try {
     _this.$dom.binaryType = __dom_unwrap(value);
   } catch (e) {
@@ -25454,7 +25454,7 @@ function native__WebSocketWrappingImplementation__set__WebSocket_binaryType(_thi
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_bufferedAmount(_this) {
+function native__WebSocketWrappingImplementation__get_bufferedAmount(_this) {
   try {
     return __dom_wrap(_this.$dom.bufferedAmount);
   } catch (e) {
@@ -25462,7 +25462,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_bufferedAmount(
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_extensions(_this) {
+function native__WebSocketWrappingImplementation__get_extensions(_this) {
   try {
     return __dom_wrap(_this.$dom.extensions);
   } catch (e) {
@@ -25470,7 +25470,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_extensions(_thi
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_onclose(_this) {
+function native__WebSocketWrappingImplementation__get_onclose(_this) {
   try {
     return __dom_wrap(_this.$dom.onclose);
   } catch (e) {
@@ -25478,7 +25478,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_onclose(_this) 
   }
 }
 
-function native__WebSocketWrappingImplementation__set__WebSocket_onclose(_this, value) {
+function native__WebSocketWrappingImplementation__set_onclose(_this, value) {
   try {
     _this.$dom.onclose = __dom_unwrap(value);
   } catch (e) {
@@ -25486,7 +25486,7 @@ function native__WebSocketWrappingImplementation__set__WebSocket_onclose(_this, 
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_onerror(_this) {
+function native__WebSocketWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -25494,7 +25494,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_onerror(_this) 
   }
 }
 
-function native__WebSocketWrappingImplementation__set__WebSocket_onerror(_this, value) {
+function native__WebSocketWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -25502,7 +25502,7 @@ function native__WebSocketWrappingImplementation__set__WebSocket_onerror(_this, 
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_onmessage(_this) {
+function native__WebSocketWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -25510,7 +25510,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_onmessage(_this
   }
 }
 
-function native__WebSocketWrappingImplementation__set__WebSocket_onmessage(_this, value) {
+function native__WebSocketWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -25518,7 +25518,7 @@ function native__WebSocketWrappingImplementation__set__WebSocket_onmessage(_this
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_onopen(_this) {
+function native__WebSocketWrappingImplementation__get_onopen(_this) {
   try {
     return __dom_wrap(_this.$dom.onopen);
   } catch (e) {
@@ -25526,7 +25526,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_onopen(_this) {
   }
 }
 
-function native__WebSocketWrappingImplementation__set__WebSocket_onopen(_this, value) {
+function native__WebSocketWrappingImplementation__set_onopen(_this, value) {
   try {
     _this.$dom.onopen = __dom_unwrap(value);
   } catch (e) {
@@ -25534,7 +25534,7 @@ function native__WebSocketWrappingImplementation__set__WebSocket_onopen(_this, v
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_protocol(_this) {
+function native__WebSocketWrappingImplementation__get_protocol(_this) {
   try {
     return __dom_wrap(_this.$dom.protocol);
   } catch (e) {
@@ -25542,7 +25542,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_protocol(_this)
   }
 }
 
-function native__WebSocketWrappingImplementation__get__WebSocket_readyState(_this) {
+function native__WebSocketWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -25550,7 +25550,7 @@ function native__WebSocketWrappingImplementation__get__WebSocket_readyState(_thi
   }
 }
 
-function native__WebSocketWrappingImplementation__addEventListener(_this, type, listener) {
+function native__WebSocketWrappingImplementation__addEventListener_WebSocket(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -25558,7 +25558,7 @@ function native__WebSocketWrappingImplementation__addEventListener(_this, type, 
   }
 }
 
-function native__WebSocketWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__WebSocketWrappingImplementation__addEventListener_WebSocket_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -25590,7 +25590,7 @@ function native__WebSocketWrappingImplementation__close_3(_this, code, reason) {
   }
 }
 
-function native__WebSocketWrappingImplementation__dispatchEvent(_this, evt) {
+function native__WebSocketWrappingImplementation__dispatchEvent_WebSocket(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -25598,7 +25598,7 @@ function native__WebSocketWrappingImplementation__dispatchEvent(_this, evt) {
   }
 }
 
-function native__WebSocketWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__WebSocketWrappingImplementation__removeEventListener_WebSocket(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -25606,7 +25606,7 @@ function native__WebSocketWrappingImplementation__removeEventListener(_this, typ
   }
 }
 
-function native__WebSocketWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__WebSocketWrappingImplementation__removeEventListener_WebSocket_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -25622,7 +25622,7 @@ function native__WebSocketWrappingImplementation__send(_this, data) {
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_altKey(_this) {
+function native__WheelEventWrappingImplementation__get_altKey(_this) {
   try {
     return __dom_wrap(_this.$dom.altKey);
   } catch (e) {
@@ -25630,7 +25630,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_altKey(_this)
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_clientX(_this) {
+function native__WheelEventWrappingImplementation__get_clientX(_this) {
   try {
     return __dom_wrap(_this.$dom.clientX);
   } catch (e) {
@@ -25638,7 +25638,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_clientX(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_clientY(_this) {
+function native__WheelEventWrappingImplementation__get_clientY(_this) {
   try {
     return __dom_wrap(_this.$dom.clientY);
   } catch (e) {
@@ -25646,7 +25646,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_clientY(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_ctrlKey(_this) {
+function native__WheelEventWrappingImplementation__get_ctrlKey(_this) {
   try {
     return __dom_wrap(_this.$dom.ctrlKey);
   } catch (e) {
@@ -25654,7 +25654,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_ctrlKey(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_metaKey(_this) {
+function native__WheelEventWrappingImplementation__get_metaKey(_this) {
   try {
     return __dom_wrap(_this.$dom.metaKey);
   } catch (e) {
@@ -25662,7 +25662,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_metaKey(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_offsetX(_this) {
+function native__WheelEventWrappingImplementation__get_offsetX(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetX);
   } catch (e) {
@@ -25670,7 +25670,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_offsetX(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_offsetY(_this) {
+function native__WheelEventWrappingImplementation__get_offsetY(_this) {
   try {
     return __dom_wrap(_this.$dom.offsetY);
   } catch (e) {
@@ -25678,7 +25678,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_offsetY(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_screenX(_this) {
+function native__WheelEventWrappingImplementation__get_screenX(_this) {
   try {
     return __dom_wrap(_this.$dom.screenX);
   } catch (e) {
@@ -25686,7 +25686,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_screenX(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_screenY(_this) {
+function native__WheelEventWrappingImplementation__get_screenY(_this) {
   try {
     return __dom_wrap(_this.$dom.screenY);
   } catch (e) {
@@ -25694,7 +25694,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_screenY(_this
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_shiftKey(_this) {
+function native__WheelEventWrappingImplementation__get_shiftKey(_this) {
   try {
     return __dom_wrap(_this.$dom.shiftKey);
   } catch (e) {
@@ -25702,7 +25702,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_shiftKey(_thi
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_webkitDirectionInvertedFromDevice(_this) {
+function native__WheelEventWrappingImplementation__get_webkitDirectionInvertedFromDevice(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitDirectionInvertedFromDevice);
   } catch (e) {
@@ -25710,7 +25710,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_webkitDirecti
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_wheelDelta(_this) {
+function native__WheelEventWrappingImplementation__get_wheelDelta(_this) {
   try {
     return __dom_wrap(_this.$dom.wheelDelta);
   } catch (e) {
@@ -25718,7 +25718,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_wheelDelta(_t
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_wheelDeltaX(_this) {
+function native__WheelEventWrappingImplementation__get_wheelDeltaX(_this) {
   try {
     return __dom_wrap(_this.$dom.wheelDeltaX);
   } catch (e) {
@@ -25726,7 +25726,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_wheelDeltaX(_
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_wheelDeltaY(_this) {
+function native__WheelEventWrappingImplementation__get_wheelDeltaY(_this) {
   try {
     return __dom_wrap(_this.$dom.wheelDeltaY);
   } catch (e) {
@@ -25734,7 +25734,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_wheelDeltaY(_
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_x(_this) {
+function native__WheelEventWrappingImplementation__get_x(_this) {
   try {
     return __dom_wrap(_this.$dom.x);
   } catch (e) {
@@ -25742,7 +25742,7 @@ function native__WheelEventWrappingImplementation__get__WheelEvent_x(_this) {
   }
 }
 
-function native__WheelEventWrappingImplementation__get__WheelEvent_y(_this) {
+function native__WheelEventWrappingImplementation__get_y(_this) {
   try {
     return __dom_wrap(_this.$dom.y);
   } catch (e) {
@@ -25758,7 +25758,7 @@ function native__WheelEventWrappingImplementation__initWebKitWheelEvent(_this, w
   }
 }
 
-function native__WorkerWrappingImplementation__get__Worker_onmessage(_this) {
+function native__WorkerWrappingImplementation__get_onmessage(_this) {
   try {
     return __dom_wrap(_this.$dom.onmessage);
   } catch (e) {
@@ -25766,7 +25766,7 @@ function native__WorkerWrappingImplementation__get__Worker_onmessage(_this) {
   }
 }
 
-function native__WorkerWrappingImplementation__set__Worker_onmessage(_this, value) {
+function native__WorkerWrappingImplementation__set_onmessage(_this, value) {
   try {
     _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
@@ -25814,7 +25814,7 @@ function native__WorkerWrappingImplementation__webkitPostMessage_2(_this, messag
   }
 }
 
-function native__WorkerContextWrappingImplementation__get__WorkerContext_location(_this) {
+function native__WorkerContextWrappingImplementation__get_location(_this) {
   try {
     return __dom_wrap(_this.$dom.location);
   } catch (e) {
@@ -25822,7 +25822,7 @@ function native__WorkerContextWrappingImplementation__get__WorkerContext_locatio
   }
 }
 
-function native__WorkerContextWrappingImplementation__set__WorkerContext_location(_this, value) {
+function native__WorkerContextWrappingImplementation__set_location(_this, value) {
   try {
     _this.$dom.location = __dom_unwrap(value);
   } catch (e) {
@@ -25830,7 +25830,7 @@ function native__WorkerContextWrappingImplementation__set__WorkerContext_locatio
   }
 }
 
-function native__WorkerContextWrappingImplementation__get__WorkerContext_navigator(_this) {
+function native__WorkerContextWrappingImplementation__get_navigator(_this) {
   try {
     return __dom_wrap(_this.$dom.navigator);
   } catch (e) {
@@ -25838,7 +25838,7 @@ function native__WorkerContextWrappingImplementation__get__WorkerContext_navigat
   }
 }
 
-function native__WorkerContextWrappingImplementation__set__WorkerContext_navigator(_this, value) {
+function native__WorkerContextWrappingImplementation__set_navigator(_this, value) {
   try {
     _this.$dom.navigator = __dom_unwrap(value);
   } catch (e) {
@@ -25846,7 +25846,7 @@ function native__WorkerContextWrappingImplementation__set__WorkerContext_navigat
   }
 }
 
-function native__WorkerContextWrappingImplementation__get__WorkerContext_onerror(_this) {
+function native__WorkerContextWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -25854,7 +25854,7 @@ function native__WorkerContextWrappingImplementation__get__WorkerContext_onerror
   }
 }
 
-function native__WorkerContextWrappingImplementation__set__WorkerContext_onerror(_this, value) {
+function native__WorkerContextWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -25862,7 +25862,7 @@ function native__WorkerContextWrappingImplementation__set__WorkerContext_onerror
   }
 }
 
-function native__WorkerContextWrappingImplementation__get__WorkerContext_self(_this) {
+function native__WorkerContextWrappingImplementation__get_self(_this) {
   try {
     return __dom_wrap(_this.$dom.self);
   } catch (e) {
@@ -25870,7 +25870,7 @@ function native__WorkerContextWrappingImplementation__get__WorkerContext_self(_t
   }
 }
 
-function native__WorkerContextWrappingImplementation__set__WorkerContext_self(_this, value) {
+function native__WorkerContextWrappingImplementation__set_self(_this, value) {
   try {
     _this.$dom.self = __dom_unwrap(value);
   } catch (e) {
@@ -25878,7 +25878,7 @@ function native__WorkerContextWrappingImplementation__set__WorkerContext_self(_t
   }
 }
 
-function native__WorkerContextWrappingImplementation__get__WorkerContext_webkitNotifications(_this) {
+function native__WorkerContextWrappingImplementation__get_webkitNotifications(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitNotifications);
   } catch (e) {
@@ -25886,7 +25886,7 @@ function native__WorkerContextWrappingImplementation__get__WorkerContext_webkitN
   }
 }
 
-function native__WorkerContextWrappingImplementation__get__WorkerContext_webkitURL(_this) {
+function native__WorkerContextWrappingImplementation__get_webkitURL(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitURL);
   } catch (e) {
@@ -25966,7 +25966,7 @@ function native__WorkerContextWrappingImplementation__removeEventListener_2(_thi
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_hash(_this) {
+function native__WorkerLocationWrappingImplementation__get_hash(_this) {
   try {
     return __dom_wrap(_this.$dom.hash);
   } catch (e) {
@@ -25974,7 +25974,7 @@ function native__WorkerLocationWrappingImplementation__get__WorkerLocation_hash(
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_host(_this) {
+function native__WorkerLocationWrappingImplementation__get_host(_this) {
   try {
     return __dom_wrap(_this.$dom.host);
   } catch (e) {
@@ -25982,7 +25982,7 @@ function native__WorkerLocationWrappingImplementation__get__WorkerLocation_host(
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_hostname(_this) {
+function native__WorkerLocationWrappingImplementation__get_hostname(_this) {
   try {
     return __dom_wrap(_this.$dom.hostname);
   } catch (e) {
@@ -25990,7 +25990,7 @@ function native__WorkerLocationWrappingImplementation__get__WorkerLocation_hostn
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_href(_this) {
+function native__WorkerLocationWrappingImplementation__get_href(_this) {
   try {
     return __dom_wrap(_this.$dom.href);
   } catch (e) {
@@ -25998,7 +25998,7 @@ function native__WorkerLocationWrappingImplementation__get__WorkerLocation_href(
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_pathname(_this) {
+function native__WorkerLocationWrappingImplementation__get_pathname(_this) {
   try {
     return __dom_wrap(_this.$dom.pathname);
   } catch (e) {
@@ -26006,7 +26006,7 @@ function native__WorkerLocationWrappingImplementation__get__WorkerLocation_pathn
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_port(_this) {
+function native__WorkerLocationWrappingImplementation__get_port(_this) {
   try {
     return __dom_wrap(_this.$dom.port);
   } catch (e) {
@@ -26014,7 +26014,7 @@ function native__WorkerLocationWrappingImplementation__get__WorkerLocation_port(
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_protocol(_this) {
+function native__WorkerLocationWrappingImplementation__get_protocol(_this) {
   try {
     return __dom_wrap(_this.$dom.protocol);
   } catch (e) {
@@ -26022,7 +26022,7 @@ function native__WorkerLocationWrappingImplementation__get__WorkerLocation_proto
   }
 }
 
-function native__WorkerLocationWrappingImplementation__get__WorkerLocation_search(_this) {
+function native__WorkerLocationWrappingImplementation__get_search(_this) {
   try {
     return __dom_wrap(_this.$dom.search);
   } catch (e) {
@@ -26038,7 +26038,7 @@ function native__WorkerLocationWrappingImplementation__toString(_this) {
   }
 }
 
-function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_appName(_this) {
+function native__WorkerNavigatorWrappingImplementation__get_appName(_this) {
   try {
     return __dom_wrap(_this.$dom.appName);
   } catch (e) {
@@ -26046,7 +26046,7 @@ function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_app
   }
 }
 
-function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_appVersion(_this) {
+function native__WorkerNavigatorWrappingImplementation__get_appVersion(_this) {
   try {
     return __dom_wrap(_this.$dom.appVersion);
   } catch (e) {
@@ -26054,7 +26054,7 @@ function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_app
   }
 }
 
-function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_onLine(_this) {
+function native__WorkerNavigatorWrappingImplementation__get_onLine(_this) {
   try {
     return __dom_wrap(_this.$dom.onLine);
   } catch (e) {
@@ -26062,7 +26062,7 @@ function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_onL
   }
 }
 
-function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_platform(_this) {
+function native__WorkerNavigatorWrappingImplementation__get_platform(_this) {
   try {
     return __dom_wrap(_this.$dom.platform);
   } catch (e) {
@@ -26070,7 +26070,7 @@ function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_pla
   }
 }
 
-function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_userAgent(_this) {
+function native__WorkerNavigatorWrappingImplementation__get_userAgent(_this) {
   try {
     return __dom_wrap(_this.$dom.userAgent);
   } catch (e) {
@@ -26078,7 +26078,7 @@ function native__WorkerNavigatorWrappingImplementation__get__WorkerNavigator_use
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_asBlob(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_asBlob(_this) {
   try {
     return __dom_wrap(_this.$dom.asBlob);
   } catch (e) {
@@ -26086,7 +26086,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_asBlo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_asBlob(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_asBlob(_this, value) {
   try {
     _this.$dom.asBlob = __dom_unwrap(value);
   } catch (e) {
@@ -26094,7 +26094,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_asBlo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onabort(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -26102,7 +26102,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onabo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onabort(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -26110,7 +26110,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onabo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onerror(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -26118,7 +26118,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onerr
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onerror(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -26126,7 +26126,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onerr
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onload(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_onload(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -26134,7 +26134,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onloa
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onload(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_onload(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -26142,7 +26142,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onloa
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onloadstart(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_onloadstart(_this) {
   try {
     return __dom_wrap(_this.$dom.onloadstart);
   } catch (e) {
@@ -26150,7 +26150,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onloa
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onloadstart(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_onloadstart(_this, value) {
   try {
     _this.$dom.onloadstart = __dom_unwrap(value);
   } catch (e) {
@@ -26158,7 +26158,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onloa
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onprogress(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_onprogress(_this) {
   try {
     return __dom_wrap(_this.$dom.onprogress);
   } catch (e) {
@@ -26166,7 +26166,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onpro
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onprogress(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_onprogress(_this, value) {
   try {
     _this.$dom.onprogress = __dom_unwrap(value);
   } catch (e) {
@@ -26174,7 +26174,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onpro
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onreadystatechange(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_onreadystatechange(_this) {
   try {
     return __dom_wrap(_this.$dom.onreadystatechange);
   } catch (e) {
@@ -26182,7 +26182,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_onrea
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onreadystatechange(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_onreadystatechange(_this, value) {
   try {
     _this.$dom.onreadystatechange = __dom_unwrap(value);
   } catch (e) {
@@ -26190,7 +26190,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_onrea
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_readyState(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
   } catch (e) {
@@ -26198,7 +26198,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_ready
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_responseBlob(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_responseBlob(_this) {
   try {
     return __dom_wrap(_this.$dom.responseBlob);
   } catch (e) {
@@ -26206,7 +26206,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_respo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_responseText(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_responseText(_this) {
   try {
     return __dom_wrap(_this.$dom.responseText);
   } catch (e) {
@@ -26214,7 +26214,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_respo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_responseType(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_responseType(_this) {
   try {
     return __dom_wrap(_this.$dom.responseType);
   } catch (e) {
@@ -26222,7 +26222,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_respo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_responseType(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_responseType(_this, value) {
   try {
     _this.$dom.responseType = __dom_unwrap(value);
   } catch (e) {
@@ -26230,7 +26230,7 @@ function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_respo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_responseXML(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_responseXML(_this) {
   try {
     return __dom_wrap(_this.$dom.responseXML);
   } catch (e) {
@@ -26238,7 +26238,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_respo
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_status(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_status(_this) {
   try {
     return __dom_wrap(_this.$dom.status);
   } catch (e) {
@@ -26246,7 +26246,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_statu
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_statusText(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_statusText(_this) {
   try {
     return __dom_wrap(_this.$dom.statusText);
   } catch (e) {
@@ -26254,7 +26254,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_statu
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_upload(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_upload(_this) {
   try {
     return __dom_wrap(_this.$dom.upload);
   } catch (e) {
@@ -26262,7 +26262,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_uploa
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_withCredentials(_this) {
+function native__XMLHttpRequestWrappingImplementation__get_withCredentials(_this) {
   try {
     return __dom_wrap(_this.$dom.withCredentials);
   } catch (e) {
@@ -26270,7 +26270,7 @@ function native__XMLHttpRequestWrappingImplementation__get__XMLHttpRequest_withC
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__set__XMLHttpRequest_withCredentials(_this, value) {
+function native__XMLHttpRequestWrappingImplementation__set_withCredentials(_this, value) {
   try {
     _this.$dom.withCredentials = __dom_unwrap(value);
   } catch (e) {
@@ -26286,7 +26286,7 @@ function native__XMLHttpRequestWrappingImplementation__abort(_this) {
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__addEventListener(_this, type, listener) {
+function native__XMLHttpRequestWrappingImplementation__addEventListener_XMLHttpRequest(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -26294,7 +26294,7 @@ function native__XMLHttpRequestWrappingImplementation__addEventListener(_this, t
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__XMLHttpRequestWrappingImplementation__addEventListener_XMLHttpRequest_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -26302,7 +26302,7 @@ function native__XMLHttpRequestWrappingImplementation__addEventListener_2(_this,
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__dispatchEvent(_this, evt) {
+function native__XMLHttpRequestWrappingImplementation__dispatchEvent_XMLHttpRequest(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -26366,7 +26366,7 @@ function native__XMLHttpRequestWrappingImplementation__overrideMimeType(_this, o
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__XMLHttpRequestWrappingImplementation__removeEventListener_XMLHttpRequest(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -26374,7 +26374,7 @@ function native__XMLHttpRequestWrappingImplementation__removeEventListener(_this
   }
 }
 
-function native__XMLHttpRequestWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__XMLHttpRequestWrappingImplementation__removeEventListener_XMLHttpRequest_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -26438,7 +26438,7 @@ function native__XMLHttpRequestWrappingImplementation__setRequestHeader(_this, h
   }
 }
 
-function native__XMLHttpRequestExceptionWrappingImplementation__get__XMLHttpRequestException_code(_this) {
+function native__XMLHttpRequestExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -26446,7 +26446,7 @@ function native__XMLHttpRequestExceptionWrappingImplementation__get__XMLHttpRequ
   }
 }
 
-function native__XMLHttpRequestExceptionWrappingImplementation__get__XMLHttpRequestException_message(_this) {
+function native__XMLHttpRequestExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -26454,7 +26454,7 @@ function native__XMLHttpRequestExceptionWrappingImplementation__get__XMLHttpRequ
   }
 }
 
-function native__XMLHttpRequestExceptionWrappingImplementation__get__XMLHttpRequestException_name(_this) {
+function native__XMLHttpRequestExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -26470,7 +26470,7 @@ function native__XMLHttpRequestExceptionWrappingImplementation__toString(_this) 
   }
 }
 
-function native__XMLHttpRequestProgressEventWrappingImplementation__get__XMLHttpRequestProgressEvent_position(_this) {
+function native__XMLHttpRequestProgressEventWrappingImplementation__get_position(_this) {
   try {
     return __dom_wrap(_this.$dom.position);
   } catch (e) {
@@ -26478,7 +26478,7 @@ function native__XMLHttpRequestProgressEventWrappingImplementation__get__XMLHttp
   }
 }
 
-function native__XMLHttpRequestProgressEventWrappingImplementation__get__XMLHttpRequestProgressEvent_totalSize(_this) {
+function native__XMLHttpRequestProgressEventWrappingImplementation__get_totalSize(_this) {
   try {
     return __dom_wrap(_this.$dom.totalSize);
   } catch (e) {
@@ -26486,7 +26486,7 @@ function native__XMLHttpRequestProgressEventWrappingImplementation__get__XMLHttp
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequestUpload_onabort(_this) {
+function native__XMLHttpRequestUploadWrappingImplementation__get_onabort(_this) {
   try {
     return __dom_wrap(_this.$dom.onabort);
   } catch (e) {
@@ -26494,7 +26494,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequestUpload_onabort(_this, value) {
+function native__XMLHttpRequestUploadWrappingImplementation__set_onabort(_this, value) {
   try {
     _this.$dom.onabort = __dom_unwrap(value);
   } catch (e) {
@@ -26502,7 +26502,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequestUpload_onerror(_this) {
+function native__XMLHttpRequestUploadWrappingImplementation__get_onerror(_this) {
   try {
     return __dom_wrap(_this.$dom.onerror);
   } catch (e) {
@@ -26510,7 +26510,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequestUpload_onerror(_this, value) {
+function native__XMLHttpRequestUploadWrappingImplementation__set_onerror(_this, value) {
   try {
     _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
@@ -26518,7 +26518,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequestUpload_onload(_this) {
+function native__XMLHttpRequestUploadWrappingImplementation__get_onload(_this) {
   try {
     return __dom_wrap(_this.$dom.onload);
   } catch (e) {
@@ -26526,7 +26526,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequestUpload_onload(_this, value) {
+function native__XMLHttpRequestUploadWrappingImplementation__set_onload(_this, value) {
   try {
     _this.$dom.onload = __dom_unwrap(value);
   } catch (e) {
@@ -26534,7 +26534,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequestUpload_onloadstart(_this) {
+function native__XMLHttpRequestUploadWrappingImplementation__get_onloadstart(_this) {
   try {
     return __dom_wrap(_this.$dom.onloadstart);
   } catch (e) {
@@ -26542,7 +26542,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequestUpload_onloadstart(_this, value) {
+function native__XMLHttpRequestUploadWrappingImplementation__set_onloadstart(_this, value) {
   try {
     _this.$dom.onloadstart = __dom_unwrap(value);
   } catch (e) {
@@ -26550,7 +26550,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequestUpload_onprogress(_this) {
+function native__XMLHttpRequestUploadWrappingImplementation__get_onprogress(_this) {
   try {
     return __dom_wrap(_this.$dom.onprogress);
   } catch (e) {
@@ -26558,7 +26558,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__get__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequestUpload_onprogress(_this, value) {
+function native__XMLHttpRequestUploadWrappingImplementation__set_onprogress(_this, value) {
   try {
     _this.$dom.onprogress = __dom_unwrap(value);
   } catch (e) {
@@ -26566,7 +26566,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__set__XMLHttpRequest
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__addEventListener(_this, type, listener) {
+function native__XMLHttpRequestUploadWrappingImplementation__addEventListener_XMLHttpRequestUpload(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -26574,7 +26574,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__addEventListener(_t
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__XMLHttpRequestUploadWrappingImplementation__addEventListener_XMLHttpRequestUpload_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -26582,7 +26582,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__addEventListener_2(
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__dispatchEvent(_this, evt) {
+function native__XMLHttpRequestUploadWrappingImplementation__dispatchEvent_XMLHttpRequestUpload(_this, evt) {
   try {
     return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
   } catch (e) {
@@ -26590,7 +26590,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__dispatchEvent(_this
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__removeEventListener(_this, type, listener) {
+function native__XMLHttpRequestUploadWrappingImplementation__removeEventListener_XMLHttpRequestUpload(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
   } catch (e) {
@@ -26598,7 +26598,7 @@ function native__XMLHttpRequestUploadWrappingImplementation__removeEventListener
   }
 }
 
-function native__XMLHttpRequestUploadWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+function native__XMLHttpRequestUploadWrappingImplementation__removeEventListener_XMLHttpRequestUpload_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
@@ -26638,7 +26638,7 @@ function native__XPathEvaluatorWrappingImplementation__evaluate(_this, expressio
   }
 }
 
-function native__XPathExceptionWrappingImplementation__get__XPathException_code(_this) {
+function native__XPathExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
   } catch (e) {
@@ -26646,7 +26646,7 @@ function native__XPathExceptionWrappingImplementation__get__XPathException_code(
   }
 }
 
-function native__XPathExceptionWrappingImplementation__get__XPathException_message(_this) {
+function native__XPathExceptionWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
   } catch (e) {
@@ -26654,7 +26654,7 @@ function native__XPathExceptionWrappingImplementation__get__XPathException_messa
   }
 }
 
-function native__XPathExceptionWrappingImplementation__get__XPathException_name(_this) {
+function native__XPathExceptionWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -26686,7 +26686,7 @@ function native__XPathNSResolverWrappingImplementation__lookupNamespaceURI(_this
   }
 }
 
-function native__XPathResultWrappingImplementation__get__XPathResult_booleanValue(_this) {
+function native__XPathResultWrappingImplementation__get_booleanValue(_this) {
   try {
     return __dom_wrap(_this.$dom.booleanValue);
   } catch (e) {
@@ -26694,7 +26694,7 @@ function native__XPathResultWrappingImplementation__get__XPathResult_booleanValu
   }
 }
 
-function native__XPathResultWrappingImplementation__get__XPathResult_invalidIteratorState(_this) {
+function native__XPathResultWrappingImplementation__get_invalidIteratorState(_this) {
   try {
     return __dom_wrap(_this.$dom.invalidIteratorState);
   } catch (e) {
@@ -26702,7 +26702,7 @@ function native__XPathResultWrappingImplementation__get__XPathResult_invalidIter
   }
 }
 
-function native__XPathResultWrappingImplementation__get__XPathResult_numberValue(_this) {
+function native__XPathResultWrappingImplementation__get_numberValue(_this) {
   try {
     return __dom_wrap(_this.$dom.numberValue);
   } catch (e) {
@@ -26710,7 +26710,7 @@ function native__XPathResultWrappingImplementation__get__XPathResult_numberValue
   }
 }
 
-function native__XPathResultWrappingImplementation__get__XPathResult_resultType(_this) {
+function native__XPathResultWrappingImplementation__get_resultType(_this) {
   try {
     return __dom_wrap(_this.$dom.resultType);
   } catch (e) {
@@ -26718,7 +26718,7 @@ function native__XPathResultWrappingImplementation__get__XPathResult_resultType(
   }
 }
 
-function native__XPathResultWrappingImplementation__get__XPathResult_singleNodeValue(_this) {
+function native__XPathResultWrappingImplementation__get_singleNodeValue(_this) {
   try {
     return __dom_wrap(_this.$dom.singleNodeValue);
   } catch (e) {
@@ -26726,7 +26726,7 @@ function native__XPathResultWrappingImplementation__get__XPathResult_singleNodeV
   }
 }
 
-function native__XPathResultWrappingImplementation__get__XPathResult_snapshotLength(_this) {
+function native__XPathResultWrappingImplementation__get_snapshotLength(_this) {
   try {
     return __dom_wrap(_this.$dom.snapshotLength);
   } catch (e) {
@@ -26734,7 +26734,7 @@ function native__XPathResultWrappingImplementation__get__XPathResult_snapshotLen
   }
 }
 
-function native__XPathResultWrappingImplementation__get__XPathResult_stringValue(_this) {
+function native__XPathResultWrappingImplementation__get_stringValue(_this) {
   try {
     return __dom_wrap(_this.$dom.stringValue);
   } catch (e) {
@@ -26896,7 +26896,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__setStrokeStyle_
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_localStorage(_this) {
+function native__DOMWindowWrappingImplementation__get_localStorage(_this) {
   var domWindow = _this.$dom;
   try {
     var isolatetoken = __dom_isolate_token();

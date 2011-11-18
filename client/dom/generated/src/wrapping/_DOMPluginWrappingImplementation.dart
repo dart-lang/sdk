@@ -11,17 +11,17 @@ class _DOMPluginWrappingImplementation extends DOMWrapperBase implements DOMPlug
     return new _DOMPluginWrappingImplementation();
   }
 
-  String get description() { return _get__DOMPlugin_description(this); }
-  static String _get__DOMPlugin_description(var _this) native;
+  String get description() { return _get_description(this); }
+  static String _get_description(var _this) native;
 
-  String get filename() { return _get__DOMPlugin_filename(this); }
-  static String _get__DOMPlugin_filename(var _this) native;
+  String get filename() { return _get_filename(this); }
+  static String _get_filename(var _this) native;
 
-  int get length() { return _get__DOMPlugin_length(this); }
-  static int _get__DOMPlugin_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
-  String get name() { return _get__DOMPlugin_name(this); }
-  static String _get__DOMPlugin_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
   DOMMimeType item(int index) {
     return _item(this, index);

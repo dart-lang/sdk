@@ -11,11 +11,11 @@ class _DOMFileSystemSyncWrappingImplementation extends DOMWrapperBase implements
     return new _DOMFileSystemSyncWrappingImplementation();
   }
 
-  String get name() { return _get__DOMFileSystemSync_name(this); }
-  static String _get__DOMFileSystemSync_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  DirectoryEntrySync get root() { return _get__DOMFileSystemSync_root(this); }
-  static DirectoryEntrySync _get__DOMFileSystemSync_root(var _this) native;
+  DirectoryEntrySync get root() { return _get_root(this); }
+  static DirectoryEntrySync _get_root(var _this) native;
 
   String get typeName() { return "DOMFileSystemSync"; }
 }

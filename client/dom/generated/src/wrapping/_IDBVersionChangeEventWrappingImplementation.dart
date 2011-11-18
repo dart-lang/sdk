@@ -11,8 +11,8 @@ class _IDBVersionChangeEventWrappingImplementation extends _EventWrappingImpleme
     return new _IDBVersionChangeEventWrappingImplementation();
   }
 
-  String get version() { return _get__IDBVersionChangeEvent_version(this); }
-  static String _get__IDBVersionChangeEvent_version(var _this) native;
+  String get version() { return _get_version(this); }
+  static String _get_version(var _this) native;
 
   String get typeName() { return "IDBVersionChangeEvent"; }
 }

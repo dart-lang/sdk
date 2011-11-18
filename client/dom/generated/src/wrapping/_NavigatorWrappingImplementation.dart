@@ -11,47 +11,47 @@ class _NavigatorWrappingImplementation extends DOMWrapperBase implements Navigat
     return new _NavigatorWrappingImplementation();
   }
 
-  String get appCodeName() { return _get__Navigator_appCodeName(this); }
-  static String _get__Navigator_appCodeName(var _this) native;
+  String get appCodeName() { return _get_appCodeName(this); }
+  static String _get_appCodeName(var _this) native;
 
-  String get appName() { return _get__Navigator_appName(this); }
-  static String _get__Navigator_appName(var _this) native;
+  String get appName() { return _get_appName(this); }
+  static String _get_appName(var _this) native;
 
-  String get appVersion() { return _get__Navigator_appVersion(this); }
-  static String _get__Navigator_appVersion(var _this) native;
+  String get appVersion() { return _get_appVersion(this); }
+  static String _get_appVersion(var _this) native;
 
-  bool get cookieEnabled() { return _get__Navigator_cookieEnabled(this); }
-  static bool _get__Navigator_cookieEnabled(var _this) native;
+  bool get cookieEnabled() { return _get_cookieEnabled(this); }
+  static bool _get_cookieEnabled(var _this) native;
 
-  String get language() { return _get__Navigator_language(this); }
-  static String _get__Navigator_language(var _this) native;
+  String get language() { return _get_language(this); }
+  static String _get_language(var _this) native;
 
-  DOMMimeTypeArray get mimeTypes() { return _get__Navigator_mimeTypes(this); }
-  static DOMMimeTypeArray _get__Navigator_mimeTypes(var _this) native;
+  DOMMimeTypeArray get mimeTypes() { return _get_mimeTypes(this); }
+  static DOMMimeTypeArray _get_mimeTypes(var _this) native;
 
-  bool get onLine() { return _get__Navigator_onLine(this); }
-  static bool _get__Navigator_onLine(var _this) native;
+  bool get onLine() { return _get_onLine(this); }
+  static bool _get_onLine(var _this) native;
 
-  String get platform() { return _get__Navigator_platform(this); }
-  static String _get__Navigator_platform(var _this) native;
+  String get platform() { return _get_platform(this); }
+  static String _get_platform(var _this) native;
 
-  DOMPluginArray get plugins() { return _get__Navigator_plugins(this); }
-  static DOMPluginArray _get__Navigator_plugins(var _this) native;
+  DOMPluginArray get plugins() { return _get_plugins(this); }
+  static DOMPluginArray _get_plugins(var _this) native;
 
-  String get product() { return _get__Navigator_product(this); }
-  static String _get__Navigator_product(var _this) native;
+  String get product() { return _get_product(this); }
+  static String _get_product(var _this) native;
 
-  String get productSub() { return _get__Navigator_productSub(this); }
-  static String _get__Navigator_productSub(var _this) native;
+  String get productSub() { return _get_productSub(this); }
+  static String _get_productSub(var _this) native;
 
-  String get userAgent() { return _get__Navigator_userAgent(this); }
-  static String _get__Navigator_userAgent(var _this) native;
+  String get userAgent() { return _get_userAgent(this); }
+  static String _get_userAgent(var _this) native;
 
-  String get vendor() { return _get__Navigator_vendor(this); }
-  static String _get__Navigator_vendor(var _this) native;
+  String get vendor() { return _get_vendor(this); }
+  static String _get_vendor(var _this) native;
 
-  String get vendorSub() { return _get__Navigator_vendorSub(this); }
-  static String _get__Navigator_vendorSub(var _this) native;
+  String get vendorSub() { return _get_vendorSub(this); }
+  static String _get_vendorSub(var _this) native;
 
   void getStorageUpdates() {
     _getStorageUpdates(this);

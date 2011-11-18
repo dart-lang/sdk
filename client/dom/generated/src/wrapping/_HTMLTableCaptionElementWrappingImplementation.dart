@@ -11,11 +11,11 @@ class _HTMLTableCaptionElementWrappingImplementation extends _HTMLElementWrappin
     return new _HTMLTableCaptionElementWrappingImplementation();
   }
 
-  String get align() { return _get__HTMLTableCaptionElement_align(this); }
-  static String _get__HTMLTableCaptionElement_align(var _this) native;
+  String get align() { return _get_align(this); }
+  static String _get_align(var _this) native;
 
-  void set align(String value) { _set__HTMLTableCaptionElement_align(this, value); }
-  static void _set__HTMLTableCaptionElement_align(var _this, String value) native;
+  void set align(String value) { _set_align(this, value); }
+  static void _set_align(var _this, String value) native;
 
   String get typeName() { return "HTMLTableCaptionElement"; }
 }

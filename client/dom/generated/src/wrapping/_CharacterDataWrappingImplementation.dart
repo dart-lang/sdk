@@ -11,14 +11,14 @@ class _CharacterDataWrappingImplementation extends _NodeWrappingImplementation i
     return new _CharacterDataWrappingImplementation();
   }
 
-  String get data() { return _get__CharacterData_data(this); }
-  static String _get__CharacterData_data(var _this) native;
+  String get data() { return _get_data(this); }
+  static String _get_data(var _this) native;
 
-  void set data(String value) { _set__CharacterData_data(this, value); }
-  static void _set__CharacterData_data(var _this, String value) native;
+  void set data(String value) { _set_data(this, value); }
+  static void _set_data(var _this, String value) native;
 
-  int get length() { return _get__CharacterData_length(this); }
-  static int _get__CharacterData_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   void appendData(String data) {
     _appendData(this, data);

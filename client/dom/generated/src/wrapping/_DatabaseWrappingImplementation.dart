@@ -11,8 +11,8 @@ class _DatabaseWrappingImplementation extends DOMWrapperBase implements Database
     return new _DatabaseWrappingImplementation();
   }
 
-  String get version() { return _get__Database_version(this); }
-  static String _get__Database_version(var _this) native;
+  String get version() { return _get_version(this); }
+  static String _get_version(var _this) native;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) {
     if (callback === null) {

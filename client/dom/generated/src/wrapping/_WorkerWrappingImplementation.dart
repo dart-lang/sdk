@@ -11,11 +11,11 @@ class _WorkerWrappingImplementation extends _AbstractWorkerWrappingImplementatio
     return new _WorkerWrappingImplementation();
   }
 
-  EventListener get onmessage() { return _get__Worker_onmessage(this); }
-  static EventListener _get__Worker_onmessage(var _this) native;
+  EventListener get onmessage() { return _get_onmessage(this); }
+  static EventListener _get_onmessage(var _this) native;
 
-  void set onmessage(EventListener value) { _set__Worker_onmessage(this, value); }
-  static void _set__Worker_onmessage(var _this, EventListener value) native;
+  void set onmessage(EventListener value) { _set_onmessage(this, value); }
+  static void _set_onmessage(var _this, EventListener value) native;
 
   void postMessage(String message, [List messagePorts = null]) {
     if (messagePorts === null) {

@@ -11,14 +11,14 @@ class _MemoryInfoWrappingImplementation extends DOMWrapperBase implements Memory
     return new _MemoryInfoWrappingImplementation();
   }
 
-  int get jsHeapSizeLimit() { return _get__MemoryInfo_jsHeapSizeLimit(this); }
-  static int _get__MemoryInfo_jsHeapSizeLimit(var _this) native;
+  int get jsHeapSizeLimit() { return _get_jsHeapSizeLimit(this); }
+  static int _get_jsHeapSizeLimit(var _this) native;
 
-  int get totalJSHeapSize() { return _get__MemoryInfo_totalJSHeapSize(this); }
-  static int _get__MemoryInfo_totalJSHeapSize(var _this) native;
+  int get totalJSHeapSize() { return _get_totalJSHeapSize(this); }
+  static int _get_totalJSHeapSize(var _this) native;
 
-  int get usedJSHeapSize() { return _get__MemoryInfo_usedJSHeapSize(this); }
-  static int _get__MemoryInfo_usedJSHeapSize(var _this) native;
+  int get usedJSHeapSize() { return _get_usedJSHeapSize(this); }
+  static int _get_usedJSHeapSize(var _this) native;
 
   String get typeName() { return "MemoryInfo"; }
 }

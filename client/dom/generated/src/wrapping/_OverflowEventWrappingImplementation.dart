@@ -11,14 +11,14 @@ class _OverflowEventWrappingImplementation extends _EventWrappingImplementation 
     return new _OverflowEventWrappingImplementation();
   }
 
-  bool get horizontalOverflow() { return _get__OverflowEvent_horizontalOverflow(this); }
-  static bool _get__OverflowEvent_horizontalOverflow(var _this) native;
+  bool get horizontalOverflow() { return _get_horizontalOverflow(this); }
+  static bool _get_horizontalOverflow(var _this) native;
 
-  int get orient() { return _get__OverflowEvent_orient(this); }
-  static int _get__OverflowEvent_orient(var _this) native;
+  int get orient() { return _get_orient(this); }
+  static int _get_orient(var _this) native;
 
-  bool get verticalOverflow() { return _get__OverflowEvent_verticalOverflow(this); }
-  static bool _get__OverflowEvent_verticalOverflow(var _this) native;
+  bool get verticalOverflow() { return _get_verticalOverflow(this); }
+  static bool _get_verticalOverflow(var _this) native;
 
   void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) {
     _initOverflowEvent(this, orient, horizontalOverflow, verticalOverflow);

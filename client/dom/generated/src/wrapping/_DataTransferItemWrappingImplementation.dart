@@ -11,11 +11,11 @@ class _DataTransferItemWrappingImplementation extends DOMWrapperBase implements 
     return new _DataTransferItemWrappingImplementation();
   }
 
-  String get kind() { return _get__DataTransferItem_kind(this); }
-  static String _get__DataTransferItem_kind(var _this) native;
+  String get kind() { return _get_kind(this); }
+  static String _get_kind(var _this) native;
 
-  String get type() { return _get__DataTransferItem_type(this); }
-  static String _get__DataTransferItem_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
   Blob getAsFile() {
     return _getAsFile(this);

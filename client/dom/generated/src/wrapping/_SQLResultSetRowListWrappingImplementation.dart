@@ -11,8 +11,8 @@ class _SQLResultSetRowListWrappingImplementation extends DOMWrapperBase implemen
     return new _SQLResultSetRowListWrappingImplementation();
   }
 
-  int get length() { return _get__SQLResultSetRowList_length(this); }
-  static int _get__SQLResultSetRowList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Object item(int index) {
     return _item(this, index);

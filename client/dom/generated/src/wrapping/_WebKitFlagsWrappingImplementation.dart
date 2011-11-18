@@ -11,17 +11,17 @@ class _WebKitFlagsWrappingImplementation extends DOMWrapperBase implements WebKi
     return new _WebKitFlagsWrappingImplementation();
   }
 
-  bool get create() { return _get__WebKitFlags_create(this); }
-  static bool _get__WebKitFlags_create(var _this) native;
+  bool get create() { return _get_create(this); }
+  static bool _get_create(var _this) native;
 
-  void set create(bool value) { _set__WebKitFlags_create(this, value); }
-  static void _set__WebKitFlags_create(var _this, bool value) native;
+  void set create(bool value) { _set_create(this, value); }
+  static void _set_create(var _this, bool value) native;
 
-  bool get exclusive() { return _get__WebKitFlags_exclusive(this); }
-  static bool _get__WebKitFlags_exclusive(var _this) native;
+  bool get exclusive() { return _get_exclusive(this); }
+  static bool _get_exclusive(var _this) native;
 
-  void set exclusive(bool value) { _set__WebKitFlags_exclusive(this, value); }
-  static void _set__WebKitFlags_exclusive(var _this, bool value) native;
+  void set exclusive(bool value) { _set_exclusive(this, value); }
+  static void _set_exclusive(var _this, bool value) native;
 
   String get typeName() { return "WebKitFlags"; }
 }

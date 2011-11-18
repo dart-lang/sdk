@@ -11,14 +11,14 @@ class _CSSPageRuleWrappingImplementation extends _CSSRuleWrappingImplementation 
     return new _CSSPageRuleWrappingImplementation();
   }
 
-  String get selectorText() { return _get__CSSPageRule_selectorText(this); }
-  static String _get__CSSPageRule_selectorText(var _this) native;
+  String get selectorText() { return _get_selectorText(this); }
+  static String _get_selectorText(var _this) native;
 
-  void set selectorText(String value) { _set__CSSPageRule_selectorText(this, value); }
-  static void _set__CSSPageRule_selectorText(var _this, String value) native;
+  void set selectorText(String value) { _set_selectorText(this, value); }
+  static void _set_selectorText(var _this, String value) native;
 
-  CSSStyleDeclaration get style() { return _get__CSSPageRule_style(this); }
-  static CSSStyleDeclaration _get__CSSPageRule_style(var _this) native;
+  CSSStyleDeclaration get style() { return _get_style(this); }
+  static CSSStyleDeclaration _get_style(var _this) native;
 
   String get typeName() { return "CSSPageRule"; }
 }

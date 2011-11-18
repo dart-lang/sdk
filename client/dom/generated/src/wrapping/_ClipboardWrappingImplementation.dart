@@ -11,26 +11,26 @@ class _ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboa
     return new _ClipboardWrappingImplementation();
   }
 
-  String get dropEffect() { return _get__Clipboard_dropEffect(this); }
-  static String _get__Clipboard_dropEffect(var _this) native;
+  String get dropEffect() { return _get_dropEffect(this); }
+  static String _get_dropEffect(var _this) native;
 
-  void set dropEffect(String value) { _set__Clipboard_dropEffect(this, value); }
-  static void _set__Clipboard_dropEffect(var _this, String value) native;
+  void set dropEffect(String value) { _set_dropEffect(this, value); }
+  static void _set_dropEffect(var _this, String value) native;
 
-  String get effectAllowed() { return _get__Clipboard_effectAllowed(this); }
-  static String _get__Clipboard_effectAllowed(var _this) native;
+  String get effectAllowed() { return _get_effectAllowed(this); }
+  static String _get_effectAllowed(var _this) native;
 
-  void set effectAllowed(String value) { _set__Clipboard_effectAllowed(this, value); }
-  static void _set__Clipboard_effectAllowed(var _this, String value) native;
+  void set effectAllowed(String value) { _set_effectAllowed(this, value); }
+  static void _set_effectAllowed(var _this, String value) native;
 
-  FileList get files() { return _get__Clipboard_files(this); }
-  static FileList _get__Clipboard_files(var _this) native;
+  FileList get files() { return _get_files(this); }
+  static FileList _get_files(var _this) native;
 
-  DataTransferItemList get items() { return _get__Clipboard_items(this); }
-  static DataTransferItemList _get__Clipboard_items(var _this) native;
+  DataTransferItemList get items() { return _get_items(this); }
+  static DataTransferItemList _get_items(var _this) native;
 
-  List get types() { return _get__Clipboard_types(this); }
-  static List _get__Clipboard_types(var _this) native;
+  List get types() { return _get_types(this); }
+  static List _get_types(var _this) native;
 
   void clearData([String type = null]) {
     if (type === null) {

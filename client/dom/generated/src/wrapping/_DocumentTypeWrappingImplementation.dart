@@ -11,23 +11,23 @@ class _DocumentTypeWrappingImplementation extends _NodeWrappingImplementation im
     return new _DocumentTypeWrappingImplementation();
   }
 
-  NamedNodeMap get entities() { return _get__DocumentType_entities(this); }
-  static NamedNodeMap _get__DocumentType_entities(var _this) native;
+  NamedNodeMap get entities() { return _get_entities(this); }
+  static NamedNodeMap _get_entities(var _this) native;
 
-  String get internalSubset() { return _get__DocumentType_internalSubset(this); }
-  static String _get__DocumentType_internalSubset(var _this) native;
+  String get internalSubset() { return _get_internalSubset(this); }
+  static String _get_internalSubset(var _this) native;
 
-  String get name() { return _get__DocumentType_name(this); }
-  static String _get__DocumentType_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  NamedNodeMap get notations() { return _get__DocumentType_notations(this); }
-  static NamedNodeMap _get__DocumentType_notations(var _this) native;
+  NamedNodeMap get notations() { return _get_notations(this); }
+  static NamedNodeMap _get_notations(var _this) native;
 
-  String get publicId() { return _get__DocumentType_publicId(this); }
-  static String _get__DocumentType_publicId(var _this) native;
+  String get publicId() { return _get_publicId(this); }
+  static String _get_publicId(var _this) native;
 
-  String get systemId() { return _get__DocumentType_systemId(this); }
-  static String _get__DocumentType_systemId(var _this) native;
+  String get systemId() { return _get_systemId(this); }
+  static String _get_systemId(var _this) native;
 
   String get typeName() { return "DocumentType"; }
 }

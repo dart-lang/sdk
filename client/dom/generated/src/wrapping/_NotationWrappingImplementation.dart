@@ -11,11 +11,11 @@ class _NotationWrappingImplementation extends _NodeWrappingImplementation implem
     return new _NotationWrappingImplementation();
   }
 
-  String get publicId() { return _get__Notation_publicId(this); }
-  static String _get__Notation_publicId(var _this) native;
+  String get publicId() { return _get_publicId(this); }
+  static String _get_publicId(var _this) native;
 
-  String get systemId() { return _get__Notation_systemId(this); }
-  static String _get__Notation_systemId(var _this) native;
+  String get systemId() { return _get_systemId(this); }
+  static String _get_systemId(var _this) native;
 
   String get typeName() { return "Notation"; }
 }

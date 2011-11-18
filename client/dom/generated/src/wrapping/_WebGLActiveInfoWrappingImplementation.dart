@@ -11,14 +11,14 @@ class _WebGLActiveInfoWrappingImplementation extends DOMWrapperBase implements W
     return new _WebGLActiveInfoWrappingImplementation();
   }
 
-  String get name() { return _get__WebGLActiveInfo_name(this); }
-  static String _get__WebGLActiveInfo_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  int get size() { return _get__WebGLActiveInfo_size(this); }
-  static int _get__WebGLActiveInfo_size(var _this) native;
+  int get size() { return _get_size(this); }
+  static int _get_size(var _this) native;
 
-  int get type() { return _get__WebGLActiveInfo_type(this); }
-  static int _get__WebGLActiveInfo_type(var _this) native;
+  int get type() { return _get_type(this); }
+  static int _get_type(var _this) native;
 
   String get typeName() { return "WebGLActiveInfo"; }
 }

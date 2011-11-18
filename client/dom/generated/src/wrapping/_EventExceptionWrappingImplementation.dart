@@ -11,14 +11,14 @@ class _EventExceptionWrappingImplementation extends DOMWrapperBase implements Ev
     return new _EventExceptionWrappingImplementation();
   }
 
-  int get code() { return _get__EventException_code(this); }
-  static int _get__EventException_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
-  String get message() { return _get__EventException_message(this); }
-  static String _get__EventException_message(var _this) native;
+  String get message() { return _get_message(this); }
+  static String _get_message(var _this) native;
 
-  String get name() { return _get__EventException_name(this); }
-  static String _get__EventException_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
   String toString() {
     return _toString(this);

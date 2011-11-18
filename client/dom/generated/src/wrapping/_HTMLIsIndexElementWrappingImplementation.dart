@@ -11,14 +11,14 @@ class _HTMLIsIndexElementWrappingImplementation extends _HTMLInputElementWrappin
     return new _HTMLIsIndexElementWrappingImplementation();
   }
 
-  HTMLFormElement get form() { return _get__HTMLIsIndexElement_form(this); }
-  static HTMLFormElement _get__HTMLIsIndexElement_form(var _this) native;
+  HTMLFormElement get form() { return _get_form_HTMLIsIndexElement(this); }
+  static HTMLFormElement _get_form_HTMLIsIndexElement(var _this) native;
 
-  String get prompt() { return _get__HTMLIsIndexElement_prompt(this); }
-  static String _get__HTMLIsIndexElement_prompt(var _this) native;
+  String get prompt() { return _get_prompt(this); }
+  static String _get_prompt(var _this) native;
 
-  void set prompt(String value) { _set__HTMLIsIndexElement_prompt(this, value); }
-  static void _set__HTMLIsIndexElement_prompt(var _this, String value) native;
+  void set prompt(String value) { _set_prompt(this, value); }
+  static void _set_prompt(var _this, String value) native;
 
   String get typeName() { return "HTMLIsIndexElement"; }
 }

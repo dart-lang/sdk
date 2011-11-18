@@ -11,14 +11,14 @@ class _ScriptProfileWrappingImplementation extends DOMWrapperBase implements Scr
     return new _ScriptProfileWrappingImplementation();
   }
 
-  ScriptProfileNode get head() { return _get__ScriptProfile_head(this); }
-  static ScriptProfileNode _get__ScriptProfile_head(var _this) native;
+  ScriptProfileNode get head() { return _get_head(this); }
+  static ScriptProfileNode _get_head(var _this) native;
 
-  String get title() { return _get__ScriptProfile_title(this); }
-  static String _get__ScriptProfile_title(var _this) native;
+  String get title() { return _get_title(this); }
+  static String _get_title(var _this) native;
 
-  int get uid() { return _get__ScriptProfile_uid(this); }
-  static int _get__ScriptProfile_uid(var _this) native;
+  int get uid() { return _get_uid(this); }
+  static int _get_uid(var _this) native;
 
   String get typeName() { return "ScriptProfile"; }
 }

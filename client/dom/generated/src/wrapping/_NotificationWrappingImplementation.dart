@@ -11,53 +11,53 @@ class _NotificationWrappingImplementation extends DOMWrapperBase implements Noti
     return new _NotificationWrappingImplementation();
   }
 
-  String get dir() { return _get__Notification_dir(this); }
-  static String _get__Notification_dir(var _this) native;
+  String get dir() { return _get_dir(this); }
+  static String _get_dir(var _this) native;
 
-  void set dir(String value) { _set__Notification_dir(this, value); }
-  static void _set__Notification_dir(var _this, String value) native;
+  void set dir(String value) { _set_dir(this, value); }
+  static void _set_dir(var _this, String value) native;
 
-  EventListener get onclick() { return _get__Notification_onclick(this); }
-  static EventListener _get__Notification_onclick(var _this) native;
+  EventListener get onclick() { return _get_onclick(this); }
+  static EventListener _get_onclick(var _this) native;
 
-  void set onclick(EventListener value) { _set__Notification_onclick(this, value); }
-  static void _set__Notification_onclick(var _this, EventListener value) native;
+  void set onclick(EventListener value) { _set_onclick(this, value); }
+  static void _set_onclick(var _this, EventListener value) native;
 
-  EventListener get onclose() { return _get__Notification_onclose(this); }
-  static EventListener _get__Notification_onclose(var _this) native;
+  EventListener get onclose() { return _get_onclose(this); }
+  static EventListener _get_onclose(var _this) native;
 
-  void set onclose(EventListener value) { _set__Notification_onclose(this, value); }
-  static void _set__Notification_onclose(var _this, EventListener value) native;
+  void set onclose(EventListener value) { _set_onclose(this, value); }
+  static void _set_onclose(var _this, EventListener value) native;
 
-  EventListener get ondisplay() { return _get__Notification_ondisplay(this); }
-  static EventListener _get__Notification_ondisplay(var _this) native;
+  EventListener get ondisplay() { return _get_ondisplay(this); }
+  static EventListener _get_ondisplay(var _this) native;
 
-  void set ondisplay(EventListener value) { _set__Notification_ondisplay(this, value); }
-  static void _set__Notification_ondisplay(var _this, EventListener value) native;
+  void set ondisplay(EventListener value) { _set_ondisplay(this, value); }
+  static void _set_ondisplay(var _this, EventListener value) native;
 
-  EventListener get onerror() { return _get__Notification_onerror(this); }
-  static EventListener _get__Notification_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__Notification_onerror(this, value); }
-  static void _set__Notification_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
-  String get replaceId() { return _get__Notification_replaceId(this); }
-  static String _get__Notification_replaceId(var _this) native;
+  String get replaceId() { return _get_replaceId(this); }
+  static String _get_replaceId(var _this) native;
 
-  void set replaceId(String value) { _set__Notification_replaceId(this, value); }
-  static void _set__Notification_replaceId(var _this, String value) native;
+  void set replaceId(String value) { _set_replaceId(this, value); }
+  static void _set_replaceId(var _this, String value) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _addEventListener(this, type, listener);
+      _addEventListener_Notification(this, type, listener);
       return;
     } else {
-      _addEventListener_2(this, type, listener, useCapture);
+      _addEventListener_Notification_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+  static void _addEventListener_Notification(receiver, type, listener) native;
+  static void _addEventListener_Notification_2(receiver, type, listener, useCapture) native;
 
   void cancel() {
     _cancel(this);
@@ -66,21 +66,21 @@ class _NotificationWrappingImplementation extends DOMWrapperBase implements Noti
   static void _cancel(receiver) native;
 
   bool dispatchEvent(Event evt) {
-    return _dispatchEvent(this, evt);
+    return _dispatchEvent_Notification(this, evt);
   }
-  static bool _dispatchEvent(receiver, evt) native;
+  static bool _dispatchEvent_Notification(receiver, evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _removeEventListener(this, type, listener);
+      _removeEventListener_Notification(this, type, listener);
       return;
     } else {
-      _removeEventListener_2(this, type, listener, useCapture);
+      _removeEventListener_Notification_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
+  static void _removeEventListener_Notification(receiver, type, listener) native;
+  static void _removeEventListener_Notification_2(receiver, type, listener, useCapture) native;
 
   void show() {
     _show(this);

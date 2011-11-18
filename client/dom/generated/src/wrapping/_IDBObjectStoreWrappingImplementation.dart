@@ -11,14 +11,14 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
     return new _IDBObjectStoreWrappingImplementation();
   }
 
-  String get keyPath() { return _get__IDBObjectStore_keyPath(this); }
-  static String _get__IDBObjectStore_keyPath(var _this) native;
+  String get keyPath() { return _get_keyPath(this); }
+  static String _get_keyPath(var _this) native;
 
-  String get name() { return _get__IDBObjectStore_name(this); }
-  static String _get__IDBObjectStore_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  IDBTransaction get transaction() { return _get__IDBObjectStore_transaction(this); }
-  static IDBTransaction _get__IDBObjectStore_transaction(var _this) native;
+  IDBTransaction get transaction() { return _get_transaction(this); }
+  static IDBTransaction _get_transaction(var _this) native;
 
   IDBRequest add(String value, [IDBKey key = null]) {
     if (key === null) {

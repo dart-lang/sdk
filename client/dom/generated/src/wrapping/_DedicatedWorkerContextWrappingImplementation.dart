@@ -11,11 +11,11 @@ class _DedicatedWorkerContextWrappingImplementation extends _WorkerContextWrappi
     return new _DedicatedWorkerContextWrappingImplementation();
   }
 
-  EventListener get onmessage() { return _get__DedicatedWorkerContext_onmessage(this); }
-  static EventListener _get__DedicatedWorkerContext_onmessage(var _this) native;
+  EventListener get onmessage() { return _get_onmessage(this); }
+  static EventListener _get_onmessage(var _this) native;
 
-  void set onmessage(EventListener value) { _set__DedicatedWorkerContext_onmessage(this, value); }
-  static void _set__DedicatedWorkerContext_onmessage(var _this, EventListener value) native;
+  void set onmessage(EventListener value) { _set_onmessage(this, value); }
+  static void _set_onmessage(var _this, EventListener value) native;
 
   void postMessage(Object message, [List messagePorts = null]) {
     if (messagePorts === null) {

@@ -11,8 +11,8 @@ class _WebGLContextEventWrappingImplementation extends _EventWrappingImplementat
     return new _WebGLContextEventWrappingImplementation();
   }
 
-  String get statusMessage() { return _get__WebGLContextEvent_statusMessage(this); }
-  static String _get__WebGLContextEvent_statusMessage(var _this) native;
+  String get statusMessage() { return _get_statusMessage(this); }
+  static String _get_statusMessage(var _this) native;
 
   String get typeName() { return "WebGLContextEvent"; }
 }

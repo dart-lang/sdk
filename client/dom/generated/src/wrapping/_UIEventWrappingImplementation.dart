@@ -11,32 +11,32 @@ class _UIEventWrappingImplementation extends _EventWrappingImplementation implem
     return new _UIEventWrappingImplementation();
   }
 
-  int get charCode() { return _get__UIEvent_charCode(this); }
-  static int _get__UIEvent_charCode(var _this) native;
+  int get charCode() { return _get_charCode(this); }
+  static int _get_charCode(var _this) native;
 
-  int get detail() { return _get__UIEvent_detail(this); }
-  static int _get__UIEvent_detail(var _this) native;
+  int get detail() { return _get_detail(this); }
+  static int _get_detail(var _this) native;
 
-  int get keyCode() { return _get__UIEvent_keyCode(this); }
-  static int _get__UIEvent_keyCode(var _this) native;
+  int get keyCode() { return _get_keyCode(this); }
+  static int _get_keyCode(var _this) native;
 
-  int get layerX() { return _get__UIEvent_layerX(this); }
-  static int _get__UIEvent_layerX(var _this) native;
+  int get layerX() { return _get_layerX(this); }
+  static int _get_layerX(var _this) native;
 
-  int get layerY() { return _get__UIEvent_layerY(this); }
-  static int _get__UIEvent_layerY(var _this) native;
+  int get layerY() { return _get_layerY(this); }
+  static int _get_layerY(var _this) native;
 
-  int get pageX() { return _get__UIEvent_pageX(this); }
-  static int _get__UIEvent_pageX(var _this) native;
+  int get pageX() { return _get_pageX(this); }
+  static int _get_pageX(var _this) native;
 
-  int get pageY() { return _get__UIEvent_pageY(this); }
-  static int _get__UIEvent_pageY(var _this) native;
+  int get pageY() { return _get_pageY(this); }
+  static int _get_pageY(var _this) native;
 
-  DOMWindow get view() { return _get__UIEvent_view(this); }
-  static DOMWindow _get__UIEvent_view(var _this) native;
+  DOMWindow get view() { return _get_view(this); }
+  static DOMWindow _get_view(var _this) native;
 
-  int get which() { return _get__UIEvent_which(this); }
-  static int _get__UIEvent_which(var _this) native;
+  int get which() { return _get_which(this); }
+  static int _get_which(var _this) native;
 
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) {
     _initUIEvent(this, type, canBubble, cancelable, view, detail);

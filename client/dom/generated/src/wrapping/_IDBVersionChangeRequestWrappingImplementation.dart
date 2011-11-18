@@ -11,11 +11,11 @@ class _IDBVersionChangeRequestWrappingImplementation extends _IDBRequestWrapping
     return new _IDBVersionChangeRequestWrappingImplementation();
   }
 
-  EventListener get onblocked() { return _get__IDBVersionChangeRequest_onblocked(this); }
-  static EventListener _get__IDBVersionChangeRequest_onblocked(var _this) native;
+  EventListener get onblocked() { return _get_onblocked(this); }
+  static EventListener _get_onblocked(var _this) native;
 
-  void set onblocked(EventListener value) { _set__IDBVersionChangeRequest_onblocked(this, value); }
-  static void _set__IDBVersionChangeRequest_onblocked(var _this, EventListener value) native;
+  void set onblocked(EventListener value) { _set_onblocked(this, value); }
+  static void _set_onblocked(var _this, EventListener value) native;
 
   String get typeName() { return "IDBVersionChangeRequest"; }
 }

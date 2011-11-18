@@ -11,17 +11,17 @@ class _WebKitPointWrappingImplementation extends DOMWrapperBase implements WebKi
     return new _WebKitPointWrappingImplementation();
   }
 
-  num get x() { return _get__WebKitPoint_x(this); }
-  static num _get__WebKitPoint_x(var _this) native;
+  num get x() { return _get_x(this); }
+  static num _get_x(var _this) native;
 
-  void set x(num value) { _set__WebKitPoint_x(this, value); }
-  static void _set__WebKitPoint_x(var _this, num value) native;
+  void set x(num value) { _set_x(this, value); }
+  static void _set_x(var _this, num value) native;
 
-  num get y() { return _get__WebKitPoint_y(this); }
-  static num _get__WebKitPoint_y(var _this) native;
+  num get y() { return _get_y(this); }
+  static num _get_y(var _this) native;
 
-  void set y(num value) { _set__WebKitPoint_y(this, value); }
-  static void _set__WebKitPoint_y(var _this, num value) native;
+  void set y(num value) { _set_y(this, value); }
+  static void _set_y(var _this, num value) native;
 
   String get typeName() { return "WebKitPoint"; }
 }

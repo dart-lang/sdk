@@ -11,8 +11,8 @@ class _HTMLDataListElementWrappingImplementation extends _HTMLElementWrappingImp
     return new _HTMLDataListElementWrappingImplementation();
   }
 
-  HTMLCollection get options() { return _get__HTMLDataListElement_options(this); }
-  static HTMLCollection _get__HTMLDataListElement_options(var _this) native;
+  HTMLCollection get options() { return _get_options(this); }
+  static HTMLCollection _get_options(var _this) native;
 
   String get typeName() { return "HTMLDataListElement"; }
 }

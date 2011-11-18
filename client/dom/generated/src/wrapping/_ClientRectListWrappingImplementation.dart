@@ -11,8 +11,8 @@ class _ClientRectListWrappingImplementation extends DOMWrapperBase implements Cl
     return new _ClientRectListWrappingImplementation();
   }
 
-  int get length() { return _get__ClientRectList_length(this); }
-  static int _get__ClientRectList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   ClientRect item(int index) {
     return _item(this, index);

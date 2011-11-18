@@ -11,47 +11,47 @@ class _EventWrappingImplementation extends DOMWrapperBase implements Event {
     return new _EventWrappingImplementation();
   }
 
-  bool get bubbles() { return _get__Event_bubbles(this); }
-  static bool _get__Event_bubbles(var _this) native;
+  bool get bubbles() { return _get_bubbles(this); }
+  static bool _get_bubbles(var _this) native;
 
-  bool get cancelBubble() { return _get__Event_cancelBubble(this); }
-  static bool _get__Event_cancelBubble(var _this) native;
+  bool get cancelBubble() { return _get_cancelBubble(this); }
+  static bool _get_cancelBubble(var _this) native;
 
-  void set cancelBubble(bool value) { _set__Event_cancelBubble(this, value); }
-  static void _set__Event_cancelBubble(var _this, bool value) native;
+  void set cancelBubble(bool value) { _set_cancelBubble(this, value); }
+  static void _set_cancelBubble(var _this, bool value) native;
 
-  bool get cancelable() { return _get__Event_cancelable(this); }
-  static bool _get__Event_cancelable(var _this) native;
+  bool get cancelable() { return _get_cancelable(this); }
+  static bool _get_cancelable(var _this) native;
 
-  Clipboard get clipboardData() { return _get__Event_clipboardData(this); }
-  static Clipboard _get__Event_clipboardData(var _this) native;
+  Clipboard get clipboardData() { return _get_clipboardData(this); }
+  static Clipboard _get_clipboardData(var _this) native;
 
-  EventTarget get currentTarget() { return _get__Event_currentTarget(this); }
-  static EventTarget _get__Event_currentTarget(var _this) native;
+  EventTarget get currentTarget() { return _get_currentTarget(this); }
+  static EventTarget _get_currentTarget(var _this) native;
 
-  bool get defaultPrevented() { return _get__Event_defaultPrevented(this); }
-  static bool _get__Event_defaultPrevented(var _this) native;
+  bool get defaultPrevented() { return _get_defaultPrevented(this); }
+  static bool _get_defaultPrevented(var _this) native;
 
-  int get eventPhase() { return _get__Event_eventPhase(this); }
-  static int _get__Event_eventPhase(var _this) native;
+  int get eventPhase() { return _get_eventPhase(this); }
+  static int _get_eventPhase(var _this) native;
 
-  bool get returnValue() { return _get__Event_returnValue(this); }
-  static bool _get__Event_returnValue(var _this) native;
+  bool get returnValue() { return _get_returnValue(this); }
+  static bool _get_returnValue(var _this) native;
 
-  void set returnValue(bool value) { _set__Event_returnValue(this, value); }
-  static void _set__Event_returnValue(var _this, bool value) native;
+  void set returnValue(bool value) { _set_returnValue(this, value); }
+  static void _set_returnValue(var _this, bool value) native;
 
-  EventTarget get srcElement() { return _get__Event_srcElement(this); }
-  static EventTarget _get__Event_srcElement(var _this) native;
+  EventTarget get srcElement() { return _get_srcElement(this); }
+  static EventTarget _get_srcElement(var _this) native;
 
-  EventTarget get target() { return _get__Event_target(this); }
-  static EventTarget _get__Event_target(var _this) native;
+  EventTarget get target() { return _get_target(this); }
+  static EventTarget _get_target(var _this) native;
 
-  int get timeStamp() { return _get__Event_timeStamp(this); }
-  static int _get__Event_timeStamp(var _this) native;
+  int get timeStamp() { return _get_timeStamp(this); }
+  static int _get_timeStamp(var _this) native;
 
-  String get type() { return _get__Event_type(this); }
-  static String _get__Event_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
   void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
     _initEvent(this, eventTypeArg, canBubbleArg, cancelableArg);

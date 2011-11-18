@@ -11,11 +11,11 @@ class _HTMLDirectoryElementWrappingImplementation extends _HTMLElementWrappingIm
     return new _HTMLDirectoryElementWrappingImplementation();
   }
 
-  bool get compact() { return _get__HTMLDirectoryElement_compact(this); }
-  static bool _get__HTMLDirectoryElement_compact(var _this) native;
+  bool get compact() { return _get_compact(this); }
+  static bool _get_compact(var _this) native;
 
-  void set compact(bool value) { _set__HTMLDirectoryElement_compact(this, value); }
-  static void _set__HTMLDirectoryElement_compact(var _this, bool value) native;
+  void set compact(bool value) { _set_compact(this, value); }
+  static void _set_compact(var _this, bool value) native;
 
   String get typeName() { return "HTMLDirectoryElement"; }
 }

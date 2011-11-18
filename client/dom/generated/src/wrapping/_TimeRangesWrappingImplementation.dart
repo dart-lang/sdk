@@ -11,8 +11,8 @@ class _TimeRangesWrappingImplementation extends DOMWrapperBase implements TimeRa
     return new _TimeRangesWrappingImplementation();
   }
 
-  int get length() { return _get__TimeRanges_length(this); }
-  static int _get__TimeRanges_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   num end(int index) {
     return _end(this, index);

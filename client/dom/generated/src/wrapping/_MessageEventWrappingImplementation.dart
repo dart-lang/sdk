@@ -11,20 +11,20 @@ class _MessageEventWrappingImplementation extends _EventWrappingImplementation i
     return new _MessageEventWrappingImplementation();
   }
 
-  Object get data() { return _get__MessageEvent_data(this); }
-  static Object _get__MessageEvent_data(var _this) native;
+  Object get data() { return _get_data(this); }
+  static Object _get_data(var _this) native;
 
-  String get lastEventId() { return _get__MessageEvent_lastEventId(this); }
-  static String _get__MessageEvent_lastEventId(var _this) native;
+  String get lastEventId() { return _get_lastEventId(this); }
+  static String _get_lastEventId(var _this) native;
 
-  String get origin() { return _get__MessageEvent_origin(this); }
-  static String _get__MessageEvent_origin(var _this) native;
+  String get origin() { return _get_origin(this); }
+  static String _get_origin(var _this) native;
 
-  List get ports() { return _get__MessageEvent_ports(this); }
-  static List _get__MessageEvent_ports(var _this) native;
+  List get ports() { return _get_ports(this); }
+  static List _get_ports(var _this) native;
 
-  DOMWindow get source() { return _get__MessageEvent_source(this); }
-  static DOMWindow _get__MessageEvent_source(var _this) native;
+  DOMWindow get source() { return _get_source(this); }
+  static DOMWindow _get_source(var _this) native;
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List messagePorts) {
     _initMessageEvent(this, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts);

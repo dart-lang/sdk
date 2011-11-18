@@ -11,8 +11,8 @@ class _DOMTokenListWrappingImplementation extends DOMWrapperBase implements DOMT
     return new _DOMTokenListWrappingImplementation();
   }
 
-  int get length() { return _get__DOMTokenList_length(this); }
-  static int _get__DOMTokenList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   void add(String token) {
     _add(this, token);

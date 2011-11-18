@@ -11,11 +11,11 @@ class _HTMLHeadElementWrappingImplementation extends _HTMLElementWrappingImpleme
     return new _HTMLHeadElementWrappingImplementation();
   }
 
-  String get profile() { return _get__HTMLHeadElement_profile(this); }
-  static String _get__HTMLHeadElement_profile(var _this) native;
+  String get profile() { return _get_profile(this); }
+  static String _get_profile(var _this) native;
 
-  void set profile(String value) { _set__HTMLHeadElement_profile(this, value); }
-  static void _set__HTMLHeadElement_profile(var _this, String value) native;
+  void set profile(String value) { _set_profile(this, value); }
+  static void _set_profile(var _this, String value) native;
 
   String get typeName() { return "HTMLHeadElement"; }
 }

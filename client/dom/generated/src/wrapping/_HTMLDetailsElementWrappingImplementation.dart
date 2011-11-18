@@ -11,11 +11,11 @@ class _HTMLDetailsElementWrappingImplementation extends _HTMLElementWrappingImpl
     return new _HTMLDetailsElementWrappingImplementation();
   }
 
-  bool get open() { return _get__HTMLDetailsElement_open(this); }
-  static bool _get__HTMLDetailsElement_open(var _this) native;
+  bool get open() { return _get_open(this); }
+  static bool _get_open(var _this) native;
 
-  void set open(bool value) { _set__HTMLDetailsElement_open(this, value); }
-  static void _set__HTMLDetailsElement_open(var _this, bool value) native;
+  void set open(bool value) { _set_open(this, value); }
+  static void _set_open(var _this, bool value) native;
 
   String get typeName() { return "HTMLDetailsElement"; }
 }

@@ -11,32 +11,32 @@ class _ValidityStateWrappingImplementation extends DOMWrapperBase implements Val
     return new _ValidityStateWrappingImplementation();
   }
 
-  bool get customError() { return _get__ValidityState_customError(this); }
-  static bool _get__ValidityState_customError(var _this) native;
+  bool get customError() { return _get_customError(this); }
+  static bool _get_customError(var _this) native;
 
-  bool get patternMismatch() { return _get__ValidityState_patternMismatch(this); }
-  static bool _get__ValidityState_patternMismatch(var _this) native;
+  bool get patternMismatch() { return _get_patternMismatch(this); }
+  static bool _get_patternMismatch(var _this) native;
 
-  bool get rangeOverflow() { return _get__ValidityState_rangeOverflow(this); }
-  static bool _get__ValidityState_rangeOverflow(var _this) native;
+  bool get rangeOverflow() { return _get_rangeOverflow(this); }
+  static bool _get_rangeOverflow(var _this) native;
 
-  bool get rangeUnderflow() { return _get__ValidityState_rangeUnderflow(this); }
-  static bool _get__ValidityState_rangeUnderflow(var _this) native;
+  bool get rangeUnderflow() { return _get_rangeUnderflow(this); }
+  static bool _get_rangeUnderflow(var _this) native;
 
-  bool get stepMismatch() { return _get__ValidityState_stepMismatch(this); }
-  static bool _get__ValidityState_stepMismatch(var _this) native;
+  bool get stepMismatch() { return _get_stepMismatch(this); }
+  static bool _get_stepMismatch(var _this) native;
 
-  bool get tooLong() { return _get__ValidityState_tooLong(this); }
-  static bool _get__ValidityState_tooLong(var _this) native;
+  bool get tooLong() { return _get_tooLong(this); }
+  static bool _get_tooLong(var _this) native;
 
-  bool get typeMismatch() { return _get__ValidityState_typeMismatch(this); }
-  static bool _get__ValidityState_typeMismatch(var _this) native;
+  bool get typeMismatch() { return _get_typeMismatch(this); }
+  static bool _get_typeMismatch(var _this) native;
 
-  bool get valid() { return _get__ValidityState_valid(this); }
-  static bool _get__ValidityState_valid(var _this) native;
+  bool get valid() { return _get_valid(this); }
+  static bool _get_valid(var _this) native;
 
-  bool get valueMissing() { return _get__ValidityState_valueMissing(this); }
-  static bool _get__ValidityState_valueMissing(var _this) native;
+  bool get valueMissing() { return _get_valueMissing(this); }
+  static bool _get_valueMissing(var _this) native;
 
   String get typeName() { return "ValidityState"; }
 }

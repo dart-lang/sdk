@@ -11,17 +11,17 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
     return new _CSSStyleDeclarationWrappingImplementation();
   }
 
-  String get cssText() { return _get__CSSStyleDeclaration_cssText(this); }
-  static String _get__CSSStyleDeclaration_cssText(var _this) native;
+  String get cssText() { return _get_cssText(this); }
+  static String _get_cssText(var _this) native;
 
-  void set cssText(String value) { _set__CSSStyleDeclaration_cssText(this, value); }
-  static void _set__CSSStyleDeclaration_cssText(var _this, String value) native;
+  void set cssText(String value) { _set_cssText(this, value); }
+  static void _set_cssText(var _this, String value) native;
 
-  int get length() { return _get__CSSStyleDeclaration_length(this); }
-  static int _get__CSSStyleDeclaration_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
-  CSSRule get parentRule() { return _get__CSSStyleDeclaration_parentRule(this); }
-  static CSSRule _get__CSSStyleDeclaration_parentRule(var _this) native;
+  CSSRule get parentRule() { return _get_parentRule(this); }
+  static CSSRule _get_parentRule(var _this) native;
 
   CSSValue getPropertyCSSValue(String propertyName) {
     return _getPropertyCSSValue(this, propertyName);

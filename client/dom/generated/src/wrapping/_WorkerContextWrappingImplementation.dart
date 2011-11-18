@@ -11,35 +11,35 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
     return new _WorkerContextWrappingImplementation();
   }
 
-  WorkerLocation get location() { return _get__WorkerContext_location(this); }
-  static WorkerLocation _get__WorkerContext_location(var _this) native;
+  WorkerLocation get location() { return _get_location(this); }
+  static WorkerLocation _get_location(var _this) native;
 
-  void set location(WorkerLocation value) { _set__WorkerContext_location(this, value); }
-  static void _set__WorkerContext_location(var _this, WorkerLocation value) native;
+  void set location(WorkerLocation value) { _set_location(this, value); }
+  static void _set_location(var _this, WorkerLocation value) native;
 
-  WorkerNavigator get navigator() { return _get__WorkerContext_navigator(this); }
-  static WorkerNavigator _get__WorkerContext_navigator(var _this) native;
+  WorkerNavigator get navigator() { return _get_navigator(this); }
+  static WorkerNavigator _get_navigator(var _this) native;
 
-  void set navigator(WorkerNavigator value) { _set__WorkerContext_navigator(this, value); }
-  static void _set__WorkerContext_navigator(var _this, WorkerNavigator value) native;
+  void set navigator(WorkerNavigator value) { _set_navigator(this, value); }
+  static void _set_navigator(var _this, WorkerNavigator value) native;
 
-  EventListener get onerror() { return _get__WorkerContext_onerror(this); }
-  static EventListener _get__WorkerContext_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__WorkerContext_onerror(this, value); }
-  static void _set__WorkerContext_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
-  WorkerContext get self() { return _get__WorkerContext_self(this); }
-  static WorkerContext _get__WorkerContext_self(var _this) native;
+  WorkerContext get self() { return _get_self(this); }
+  static WorkerContext _get_self(var _this) native;
 
-  void set self(WorkerContext value) { _set__WorkerContext_self(this, value); }
-  static void _set__WorkerContext_self(var _this, WorkerContext value) native;
+  void set self(WorkerContext value) { _set_self(this, value); }
+  static void _set_self(var _this, WorkerContext value) native;
 
-  NotificationCenter get webkitNotifications() { return _get__WorkerContext_webkitNotifications(this); }
-  static NotificationCenter _get__WorkerContext_webkitNotifications(var _this) native;
+  NotificationCenter get webkitNotifications() { return _get_webkitNotifications(this); }
+  static NotificationCenter _get_webkitNotifications(var _this) native;
 
-  DOMURL get webkitURL() { return _get__WorkerContext_webkitURL(this); }
-  static DOMURL _get__WorkerContext_webkitURL(var _this) native;
+  DOMURL get webkitURL() { return _get_webkitURL(this); }
+  static DOMURL _get_webkitURL(var _this) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

@@ -11,77 +11,77 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
     return new _NodeWrappingImplementation();
   }
 
-  NamedNodeMap get attributes() { return _get__Node_attributes(this); }
-  static NamedNodeMap _get__Node_attributes(var _this) native;
+  NamedNodeMap get attributes() { return _get_attributes(this); }
+  static NamedNodeMap _get_attributes(var _this) native;
 
-  String get baseURI() { return _get__Node_baseURI(this); }
-  static String _get__Node_baseURI(var _this) native;
+  String get baseURI() { return _get_baseURI(this); }
+  static String _get_baseURI(var _this) native;
 
-  NodeList get childNodes() { return _get__Node_childNodes(this); }
-  static NodeList _get__Node_childNodes(var _this) native;
+  NodeList get childNodes() { return _get_childNodes(this); }
+  static NodeList _get_childNodes(var _this) native;
 
-  Node get firstChild() { return _get__Node_firstChild(this); }
-  static Node _get__Node_firstChild(var _this) native;
+  Node get firstChild() { return _get_firstChild(this); }
+  static Node _get_firstChild(var _this) native;
 
-  Node get lastChild() { return _get__Node_lastChild(this); }
-  static Node _get__Node_lastChild(var _this) native;
+  Node get lastChild() { return _get_lastChild(this); }
+  static Node _get_lastChild(var _this) native;
 
-  String get localName() { return _get__Node_localName(this); }
-  static String _get__Node_localName(var _this) native;
+  String get localName() { return _get_localName(this); }
+  static String _get_localName(var _this) native;
 
-  String get namespaceURI() { return _get__Node_namespaceURI(this); }
-  static String _get__Node_namespaceURI(var _this) native;
+  String get namespaceURI() { return _get_namespaceURI(this); }
+  static String _get_namespaceURI(var _this) native;
 
-  Node get nextSibling() { return _get__Node_nextSibling(this); }
-  static Node _get__Node_nextSibling(var _this) native;
+  Node get nextSibling() { return _get_nextSibling(this); }
+  static Node _get_nextSibling(var _this) native;
 
-  String get nodeName() { return _get__Node_nodeName(this); }
-  static String _get__Node_nodeName(var _this) native;
+  String get nodeName() { return _get_nodeName(this); }
+  static String _get_nodeName(var _this) native;
 
-  int get nodeType() { return _get__Node_nodeType(this); }
-  static int _get__Node_nodeType(var _this) native;
+  int get nodeType() { return _get_nodeType(this); }
+  static int _get_nodeType(var _this) native;
 
-  String get nodeValue() { return _get__Node_nodeValue(this); }
-  static String _get__Node_nodeValue(var _this) native;
+  String get nodeValue() { return _get_nodeValue(this); }
+  static String _get_nodeValue(var _this) native;
 
-  void set nodeValue(String value) { _set__Node_nodeValue(this, value); }
-  static void _set__Node_nodeValue(var _this, String value) native;
+  void set nodeValue(String value) { _set_nodeValue(this, value); }
+  static void _set_nodeValue(var _this, String value) native;
 
-  Document get ownerDocument() { return _get__Node_ownerDocument(this); }
-  static Document _get__Node_ownerDocument(var _this) native;
+  Document get ownerDocument() { return _get_ownerDocument(this); }
+  static Document _get_ownerDocument(var _this) native;
 
-  Element get parentElement() { return _get__Node_parentElement(this); }
-  static Element _get__Node_parentElement(var _this) native;
+  Element get parentElement() { return _get_parentElement(this); }
+  static Element _get_parentElement(var _this) native;
 
-  Node get parentNode() { return _get__Node_parentNode(this); }
-  static Node _get__Node_parentNode(var _this) native;
+  Node get parentNode() { return _get_parentNode(this); }
+  static Node _get_parentNode(var _this) native;
 
-  String get prefix() { return _get__Node_prefix(this); }
-  static String _get__Node_prefix(var _this) native;
+  String get prefix() { return _get_prefix(this); }
+  static String _get_prefix(var _this) native;
 
-  void set prefix(String value) { _set__Node_prefix(this, value); }
-  static void _set__Node_prefix(var _this, String value) native;
+  void set prefix(String value) { _set_prefix(this, value); }
+  static void _set_prefix(var _this, String value) native;
 
-  Node get previousSibling() { return _get__Node_previousSibling(this); }
-  static Node _get__Node_previousSibling(var _this) native;
+  Node get previousSibling() { return _get_previousSibling(this); }
+  static Node _get_previousSibling(var _this) native;
 
-  String get textContent() { return _get__Node_textContent(this); }
-  static String _get__Node_textContent(var _this) native;
+  String get textContent() { return _get_textContent(this); }
+  static String _get_textContent(var _this) native;
 
-  void set textContent(String value) { _set__Node_textContent(this, value); }
-  static void _set__Node_textContent(var _this, String value) native;
+  void set textContent(String value) { _set_textContent(this, value); }
+  static void _set_textContent(var _this, String value) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _addEventListener(this, type, listener);
+      _addEventListener_Node(this, type, listener);
       return;
     } else {
-      _addEventListener_2(this, type, listener, useCapture);
+      _addEventListener_Node_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+  static void _addEventListener_Node(receiver, type, listener) native;
+  static void _addEventListener_Node_2(receiver, type, listener, useCapture) native;
 
   Node appendChild(Node newChild) {
     return _appendChild(this, newChild);
@@ -104,9 +104,9 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
   static bool _contains(receiver, other) native;
 
   bool dispatchEvent(Event event) {
-    return _dispatchEvent(this, event);
+    return _dispatchEvent_Node(this, event);
   }
-  static bool _dispatchEvent(receiver, event) native;
+  static bool _dispatchEvent_Node(receiver, event) native;
 
   bool hasAttributes() {
     return _hasAttributes(this);
@@ -166,15 +166,15 @@ class _NodeWrappingImplementation extends DOMWrapperBase implements Node {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _removeEventListener(this, type, listener);
+      _removeEventListener_Node(this, type, listener);
       return;
     } else {
-      _removeEventListener_2(this, type, listener, useCapture);
+      _removeEventListener_Node_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
+  static void _removeEventListener_Node(receiver, type, listener) native;
+  static void _removeEventListener_Node_2(receiver, type, listener, useCapture) native;
 
   Node replaceChild(Node newChild, Node oldChild) {
     return _replaceChild(this, newChild, oldChild);

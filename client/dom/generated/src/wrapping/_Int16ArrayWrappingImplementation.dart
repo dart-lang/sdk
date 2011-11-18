@@ -11,8 +11,8 @@ class _Int16ArrayWrappingImplementation extends _ArrayBufferViewWrappingImplemen
     return new _Int16ArrayWrappingImplementation();
   }
 
-  int get length() { return _get__Int16Array_length(this); }
-  static int _get__Int16Array_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Int16Array subarray(int start, [int end = null]) {
     if (end === null) {

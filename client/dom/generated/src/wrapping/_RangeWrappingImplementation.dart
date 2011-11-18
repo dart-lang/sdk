@@ -11,23 +11,23 @@ class _RangeWrappingImplementation extends DOMWrapperBase implements Range {
     return new _RangeWrappingImplementation();
   }
 
-  bool get collapsed() { return _get__Range_collapsed(this); }
-  static bool _get__Range_collapsed(var _this) native;
+  bool get collapsed() { return _get_collapsed(this); }
+  static bool _get_collapsed(var _this) native;
 
-  Node get commonAncestorContainer() { return _get__Range_commonAncestorContainer(this); }
-  static Node _get__Range_commonAncestorContainer(var _this) native;
+  Node get commonAncestorContainer() { return _get_commonAncestorContainer(this); }
+  static Node _get_commonAncestorContainer(var _this) native;
 
-  Node get endContainer() { return _get__Range_endContainer(this); }
-  static Node _get__Range_endContainer(var _this) native;
+  Node get endContainer() { return _get_endContainer(this); }
+  static Node _get_endContainer(var _this) native;
 
-  int get endOffset() { return _get__Range_endOffset(this); }
-  static int _get__Range_endOffset(var _this) native;
+  int get endOffset() { return _get_endOffset(this); }
+  static int _get_endOffset(var _this) native;
 
-  Node get startContainer() { return _get__Range_startContainer(this); }
-  static Node _get__Range_startContainer(var _this) native;
+  Node get startContainer() { return _get_startContainer(this); }
+  static Node _get_startContainer(var _this) native;
 
-  int get startOffset() { return _get__Range_startOffset(this); }
-  static int _get__Range_startOffset(var _this) native;
+  int get startOffset() { return _get_startOffset(this); }
+  static int _get_startOffset(var _this) native;
 
   DocumentFragment cloneContents() {
     return _cloneContents(this);

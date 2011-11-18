@@ -11,29 +11,29 @@ class _HTMLMetaElementWrappingImplementation extends _HTMLElementWrappingImpleme
     return new _HTMLMetaElementWrappingImplementation();
   }
 
-  String get content() { return _get__HTMLMetaElement_content(this); }
-  static String _get__HTMLMetaElement_content(var _this) native;
+  String get content() { return _get_content(this); }
+  static String _get_content(var _this) native;
 
-  void set content(String value) { _set__HTMLMetaElement_content(this, value); }
-  static void _set__HTMLMetaElement_content(var _this, String value) native;
+  void set content(String value) { _set_content(this, value); }
+  static void _set_content(var _this, String value) native;
 
-  String get httpEquiv() { return _get__HTMLMetaElement_httpEquiv(this); }
-  static String _get__HTMLMetaElement_httpEquiv(var _this) native;
+  String get httpEquiv() { return _get_httpEquiv(this); }
+  static String _get_httpEquiv(var _this) native;
 
-  void set httpEquiv(String value) { _set__HTMLMetaElement_httpEquiv(this, value); }
-  static void _set__HTMLMetaElement_httpEquiv(var _this, String value) native;
+  void set httpEquiv(String value) { _set_httpEquiv(this, value); }
+  static void _set_httpEquiv(var _this, String value) native;
 
-  String get name() { return _get__HTMLMetaElement_name(this); }
-  static String _get__HTMLMetaElement_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  void set name(String value) { _set__HTMLMetaElement_name(this, value); }
-  static void _set__HTMLMetaElement_name(var _this, String value) native;
+  void set name(String value) { _set_name(this, value); }
+  static void _set_name(var _this, String value) native;
 
-  String get scheme() { return _get__HTMLMetaElement_scheme(this); }
-  static String _get__HTMLMetaElement_scheme(var _this) native;
+  String get scheme() { return _get_scheme(this); }
+  static String _get_scheme(var _this) native;
 
-  void set scheme(String value) { _set__HTMLMetaElement_scheme(this, value); }
-  static void _set__HTMLMetaElement_scheme(var _this, String value) native;
+  void set scheme(String value) { _set_scheme(this, value); }
+  static void _set_scheme(var _this, String value) native;
 
   String get typeName() { return "HTMLMetaElement"; }
 }

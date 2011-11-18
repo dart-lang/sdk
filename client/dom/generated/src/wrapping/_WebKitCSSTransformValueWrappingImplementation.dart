@@ -11,8 +11,8 @@ class _WebKitCSSTransformValueWrappingImplementation extends _CSSValueListWrappi
     return new _WebKitCSSTransformValueWrappingImplementation();
   }
 
-  int get operationType() { return _get__WebKitCSSTransformValue_operationType(this); }
-  static int _get__WebKitCSSTransformValue_operationType(var _this) native;
+  int get operationType() { return _get_operationType(this); }
+  static int _get_operationType(var _this) native;
 
   String get typeName() { return "WebKitCSSTransformValue"; }
 }

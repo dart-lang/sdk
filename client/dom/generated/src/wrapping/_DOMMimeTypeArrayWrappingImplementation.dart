@@ -11,8 +11,8 @@ class _DOMMimeTypeArrayWrappingImplementation extends DOMWrapperBase implements 
     return new _DOMMimeTypeArrayWrappingImplementation();
   }
 
-  int get length() { return _get__DOMMimeTypeArray_length(this); }
-  static int _get__DOMMimeTypeArray_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   DOMMimeType item(int index) {
     return _item(this, index);

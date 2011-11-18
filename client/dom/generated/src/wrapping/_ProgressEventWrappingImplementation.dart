@@ -11,14 +11,14 @@ class _ProgressEventWrappingImplementation extends _EventWrappingImplementation 
     return new _ProgressEventWrappingImplementation();
   }
 
-  bool get lengthComputable() { return _get__ProgressEvent_lengthComputable(this); }
-  static bool _get__ProgressEvent_lengthComputable(var _this) native;
+  bool get lengthComputable() { return _get_lengthComputable(this); }
+  static bool _get_lengthComputable(var _this) native;
 
-  int get loaded() { return _get__ProgressEvent_loaded(this); }
-  static int _get__ProgressEvent_loaded(var _this) native;
+  int get loaded() { return _get_loaded(this); }
+  static int _get_loaded(var _this) native;
 
-  int get total() { return _get__ProgressEvent_total(this); }
-  static int _get__ProgressEvent_total(var _this) native;
+  int get total() { return _get_total(this); }
+  static int _get_total(var _this) native;
 
   void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg) {
     _initProgressEvent(this, typeArg, canBubbleArg, cancelableArg, lengthComputableArg, loadedArg, totalArg);

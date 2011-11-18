@@ -11,26 +11,26 @@ class _HTMLStyleElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLStyleElementWrappingImplementation();
   }
 
-  bool get disabled() { return _get__HTMLStyleElement_disabled(this); }
-  static bool _get__HTMLStyleElement_disabled(var _this) native;
+  bool get disabled() { return _get_disabled(this); }
+  static bool _get_disabled(var _this) native;
 
-  void set disabled(bool value) { _set__HTMLStyleElement_disabled(this, value); }
-  static void _set__HTMLStyleElement_disabled(var _this, bool value) native;
+  void set disabled(bool value) { _set_disabled(this, value); }
+  static void _set_disabled(var _this, bool value) native;
 
-  String get media() { return _get__HTMLStyleElement_media(this); }
-  static String _get__HTMLStyleElement_media(var _this) native;
+  String get media() { return _get_media(this); }
+  static String _get_media(var _this) native;
 
-  void set media(String value) { _set__HTMLStyleElement_media(this, value); }
-  static void _set__HTMLStyleElement_media(var _this, String value) native;
+  void set media(String value) { _set_media(this, value); }
+  static void _set_media(var _this, String value) native;
 
-  StyleSheet get sheet() { return _get__HTMLStyleElement_sheet(this); }
-  static StyleSheet _get__HTMLStyleElement_sheet(var _this) native;
+  StyleSheet get sheet() { return _get_sheet(this); }
+  static StyleSheet _get_sheet(var _this) native;
 
-  String get type() { return _get__HTMLStyleElement_type(this); }
-  static String _get__HTMLStyleElement_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
-  void set type(String value) { _set__HTMLStyleElement_type(this, value); }
-  static void _set__HTMLStyleElement_type(var _this, String value) native;
+  void set type(String value) { _set_type(this, value); }
+  static void _set_type(var _this, String value) native;
 
   String get typeName() { return "HTMLStyleElement"; }
 }

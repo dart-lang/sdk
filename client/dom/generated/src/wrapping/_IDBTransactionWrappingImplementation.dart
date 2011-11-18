@@ -11,29 +11,29 @@ class _IDBTransactionWrappingImplementation extends DOMWrapperBase implements ID
     return new _IDBTransactionWrappingImplementation();
   }
 
-  IDBDatabase get db() { return _get__IDBTransaction_db(this); }
-  static IDBDatabase _get__IDBTransaction_db(var _this) native;
+  IDBDatabase get db() { return _get_db(this); }
+  static IDBDatabase _get_db(var _this) native;
 
-  int get mode() { return _get__IDBTransaction_mode(this); }
-  static int _get__IDBTransaction_mode(var _this) native;
+  int get mode() { return _get_mode(this); }
+  static int _get_mode(var _this) native;
 
-  EventListener get onabort() { return _get__IDBTransaction_onabort(this); }
-  static EventListener _get__IDBTransaction_onabort(var _this) native;
+  EventListener get onabort() { return _get_onabort(this); }
+  static EventListener _get_onabort(var _this) native;
 
-  void set onabort(EventListener value) { _set__IDBTransaction_onabort(this, value); }
-  static void _set__IDBTransaction_onabort(var _this, EventListener value) native;
+  void set onabort(EventListener value) { _set_onabort(this, value); }
+  static void _set_onabort(var _this, EventListener value) native;
 
-  EventListener get oncomplete() { return _get__IDBTransaction_oncomplete(this); }
-  static EventListener _get__IDBTransaction_oncomplete(var _this) native;
+  EventListener get oncomplete() { return _get_oncomplete(this); }
+  static EventListener _get_oncomplete(var _this) native;
 
-  void set oncomplete(EventListener value) { _set__IDBTransaction_oncomplete(this, value); }
-  static void _set__IDBTransaction_oncomplete(var _this, EventListener value) native;
+  void set oncomplete(EventListener value) { _set_oncomplete(this, value); }
+  static void _set_oncomplete(var _this, EventListener value) native;
 
-  EventListener get onerror() { return _get__IDBTransaction_onerror(this); }
-  static EventListener _get__IDBTransaction_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__IDBTransaction_onerror(this, value); }
-  static void _set__IDBTransaction_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
   void abort() {
     _abort(this);

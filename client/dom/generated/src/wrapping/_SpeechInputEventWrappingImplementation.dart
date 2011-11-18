@@ -11,8 +11,8 @@ class _SpeechInputEventWrappingImplementation extends _EventWrappingImplementati
     return new _SpeechInputEventWrappingImplementation();
   }
 
-  SpeechInputResultList get results() { return _get__SpeechInputEvent_results(this); }
-  static SpeechInputResultList _get__SpeechInputEvent_results(var _this) native;
+  SpeechInputResultList get results() { return _get_results(this); }
+  static SpeechInputResultList _get_results(var _this) native;
 
   String get typeName() { return "SpeechInputEvent"; }
 }

@@ -11,23 +11,23 @@ class _ClientRectWrappingImplementation extends DOMWrapperBase implements Client
     return new _ClientRectWrappingImplementation();
   }
 
-  num get bottom() { return _get__ClientRect_bottom(this); }
-  static num _get__ClientRect_bottom(var _this) native;
+  num get bottom() { return _get_bottom(this); }
+  static num _get_bottom(var _this) native;
 
-  num get height() { return _get__ClientRect_height(this); }
-  static num _get__ClientRect_height(var _this) native;
+  num get height() { return _get_height(this); }
+  static num _get_height(var _this) native;
 
-  num get left() { return _get__ClientRect_left(this); }
-  static num _get__ClientRect_left(var _this) native;
+  num get left() { return _get_left(this); }
+  static num _get_left(var _this) native;
 
-  num get right() { return _get__ClientRect_right(this); }
-  static num _get__ClientRect_right(var _this) native;
+  num get right() { return _get_right(this); }
+  static num _get_right(var _this) native;
 
-  num get top() { return _get__ClientRect_top(this); }
-  static num _get__ClientRect_top(var _this) native;
+  num get top() { return _get_top(this); }
+  static num _get_top(var _this) native;
 
-  num get width() { return _get__ClientRect_width(this); }
-  static num _get__ClientRect_width(var _this) native;
+  num get width() { return _get_width(this); }
+  static num _get_width(var _this) native;
 
   String get typeName() { return "ClientRect"; }
 }

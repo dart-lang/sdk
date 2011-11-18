@@ -11,11 +11,11 @@ class _PerformanceNavigationWrappingImplementation extends DOMWrapperBase implem
     return new _PerformanceNavigationWrappingImplementation();
   }
 
-  int get redirectCount() { return _get__PerformanceNavigation_redirectCount(this); }
-  static int _get__PerformanceNavigation_redirectCount(var _this) native;
+  int get redirectCount() { return _get_redirectCount(this); }
+  static int _get_redirectCount(var _this) native;
 
-  int get type() { return _get__PerformanceNavigation_type(this); }
-  static int _get__PerformanceNavigation_type(var _this) native;
+  int get type() { return _get_type(this); }
+  static int _get_type(var _this) native;
 
   String get typeName() { return "PerformanceNavigation"; }
 }

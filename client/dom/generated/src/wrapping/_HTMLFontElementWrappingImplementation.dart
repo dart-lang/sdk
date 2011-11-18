@@ -11,23 +11,23 @@ class _HTMLFontElementWrappingImplementation extends _HTMLElementWrappingImpleme
     return new _HTMLFontElementWrappingImplementation();
   }
 
-  String get color() { return _get__HTMLFontElement_color(this); }
-  static String _get__HTMLFontElement_color(var _this) native;
+  String get color() { return _get_color(this); }
+  static String _get_color(var _this) native;
 
-  void set color(String value) { _set__HTMLFontElement_color(this, value); }
-  static void _set__HTMLFontElement_color(var _this, String value) native;
+  void set color(String value) { _set_color(this, value); }
+  static void _set_color(var _this, String value) native;
 
-  String get face() { return _get__HTMLFontElement_face(this); }
-  static String _get__HTMLFontElement_face(var _this) native;
+  String get face() { return _get_face(this); }
+  static String _get_face(var _this) native;
 
-  void set face(String value) { _set__HTMLFontElement_face(this, value); }
-  static void _set__HTMLFontElement_face(var _this, String value) native;
+  void set face(String value) { _set_face(this, value); }
+  static void _set_face(var _this, String value) native;
 
-  String get size() { return _get__HTMLFontElement_size(this); }
-  static String _get__HTMLFontElement_size(var _this) native;
+  String get size() { return _get_size(this); }
+  static String _get_size(var _this) native;
 
-  void set size(String value) { _set__HTMLFontElement_size(this, value); }
-  static void _set__HTMLFontElement_size(var _this, String value) native;
+  void set size(String value) { _set_size(this, value); }
+  static void _set_size(var _this, String value) native;
 
   String get typeName() { return "HTMLFontElement"; }
 }

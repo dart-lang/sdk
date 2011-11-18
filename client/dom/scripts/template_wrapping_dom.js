@@ -80,7 +80,7 @@ function native__CanvasRenderingContext2DWrappingImplementation__setStrokeStyle_
   }
 }
 
-function native__DOMWindowWrappingImplementation__get__DOMWindow_localStorage(_this) {
+function native__DOMWindowWrappingImplementation__get_localStorage(_this) {
   var domWindow = _this.$dom;
   try {
     var isolatetoken = __dom_isolate_token();

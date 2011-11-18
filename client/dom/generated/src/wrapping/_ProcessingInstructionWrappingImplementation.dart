@@ -11,17 +11,17 @@ class _ProcessingInstructionWrappingImplementation extends _NodeWrappingImplemen
     return new _ProcessingInstructionWrappingImplementation();
   }
 
-  String get data() { return _get__ProcessingInstruction_data(this); }
-  static String _get__ProcessingInstruction_data(var _this) native;
+  String get data() { return _get_data(this); }
+  static String _get_data(var _this) native;
 
-  void set data(String value) { _set__ProcessingInstruction_data(this, value); }
-  static void _set__ProcessingInstruction_data(var _this, String value) native;
+  void set data(String value) { _set_data(this, value); }
+  static void _set_data(var _this, String value) native;
 
-  StyleSheet get sheet() { return _get__ProcessingInstruction_sheet(this); }
-  static StyleSheet _get__ProcessingInstruction_sheet(var _this) native;
+  StyleSheet get sheet() { return _get_sheet(this); }
+  static StyleSheet _get_sheet(var _this) native;
 
-  String get target() { return _get__ProcessingInstruction_target(this); }
-  static String _get__ProcessingInstruction_target(var _this) native;
+  String get target() { return _get_target(this); }
+  static String _get_target(var _this) native;
 
   String get typeName() { return "ProcessingInstruction"; }
 }

@@ -11,8 +11,8 @@ class _TextTrackCueListWrappingImplementation extends DOMWrapperBase implements 
     return new _TextTrackCueListWrappingImplementation();
   }
 
-  int get length() { return _get__TextTrackCueList_length(this); }
-  static int _get__TextTrackCueList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   TextTrackCue getCueById(String id) {
     return _getCueById(this, id);

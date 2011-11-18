@@ -11,41 +11,41 @@ class _TouchWrappingImplementation extends DOMWrapperBase implements Touch {
     return new _TouchWrappingImplementation();
   }
 
-  int get clientX() { return _get__Touch_clientX(this); }
-  static int _get__Touch_clientX(var _this) native;
+  int get clientX() { return _get_clientX(this); }
+  static int _get_clientX(var _this) native;
 
-  int get clientY() { return _get__Touch_clientY(this); }
-  static int _get__Touch_clientY(var _this) native;
+  int get clientY() { return _get_clientY(this); }
+  static int _get_clientY(var _this) native;
 
-  int get identifier() { return _get__Touch_identifier(this); }
-  static int _get__Touch_identifier(var _this) native;
+  int get identifier() { return _get_identifier(this); }
+  static int _get_identifier(var _this) native;
 
-  int get pageX() { return _get__Touch_pageX(this); }
-  static int _get__Touch_pageX(var _this) native;
+  int get pageX() { return _get_pageX(this); }
+  static int _get_pageX(var _this) native;
 
-  int get pageY() { return _get__Touch_pageY(this); }
-  static int _get__Touch_pageY(var _this) native;
+  int get pageY() { return _get_pageY(this); }
+  static int _get_pageY(var _this) native;
 
-  int get screenX() { return _get__Touch_screenX(this); }
-  static int _get__Touch_screenX(var _this) native;
+  int get screenX() { return _get_screenX(this); }
+  static int _get_screenX(var _this) native;
 
-  int get screenY() { return _get__Touch_screenY(this); }
-  static int _get__Touch_screenY(var _this) native;
+  int get screenY() { return _get_screenY(this); }
+  static int _get_screenY(var _this) native;
 
-  EventTarget get target() { return _get__Touch_target(this); }
-  static EventTarget _get__Touch_target(var _this) native;
+  EventTarget get target() { return _get_target(this); }
+  static EventTarget _get_target(var _this) native;
 
-  num get webkitForce() { return _get__Touch_webkitForce(this); }
-  static num _get__Touch_webkitForce(var _this) native;
+  num get webkitForce() { return _get_webkitForce(this); }
+  static num _get_webkitForce(var _this) native;
 
-  int get webkitRadiusX() { return _get__Touch_webkitRadiusX(this); }
-  static int _get__Touch_webkitRadiusX(var _this) native;
+  int get webkitRadiusX() { return _get_webkitRadiusX(this); }
+  static int _get_webkitRadiusX(var _this) native;
 
-  int get webkitRadiusY() { return _get__Touch_webkitRadiusY(this); }
-  static int _get__Touch_webkitRadiusY(var _this) native;
+  int get webkitRadiusY() { return _get_webkitRadiusY(this); }
+  static int _get_webkitRadiusY(var _this) native;
 
-  num get webkitRotationAngle() { return _get__Touch_webkitRotationAngle(this); }
-  static num _get__Touch_webkitRotationAngle(var _this) native;
+  num get webkitRotationAngle() { return _get_webkitRotationAngle(this); }
+  static num _get_webkitRotationAngle(var _this) native;
 
   String get typeName() { return "Touch"; }
 }

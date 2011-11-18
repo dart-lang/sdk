@@ -11,11 +11,11 @@ class _CSSCharsetRuleWrappingImplementation extends _CSSRuleWrappingImplementati
     return new _CSSCharsetRuleWrappingImplementation();
   }
 
-  String get encoding() { return _get__CSSCharsetRule_encoding(this); }
-  static String _get__CSSCharsetRule_encoding(var _this) native;
+  String get encoding() { return _get_encoding(this); }
+  static String _get_encoding(var _this) native;
 
-  void set encoding(String value) { _set__CSSCharsetRule_encoding(this, value); }
-  static void _set__CSSCharsetRule_encoding(var _this, String value) native;
+  void set encoding(String value) { _set_encoding(this, value); }
+  static void _set_encoding(var _this, String value) native;
 
   String get typeName() { return "CSSCharsetRule"; }
 }

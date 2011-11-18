@@ -11,8 +11,8 @@ class _SharedWorkerWrappingImplementation extends _AbstractWorkerWrappingImpleme
     return new _SharedWorkerWrappingImplementation();
   }
 
-  MessagePort get port() { return _get__SharedWorker_port(this); }
-  static MessagePort _get__SharedWorker_port(var _this) native;
+  MessagePort get port() { return _get_port(this); }
+  static MessagePort _get_port(var _this) native;
 
   String get typeName() { return "SharedWorker"; }
 }

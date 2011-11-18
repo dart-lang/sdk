@@ -11,8 +11,8 @@ class _FileListWrappingImplementation extends DOMWrapperBase implements FileList
     return new _FileListWrappingImplementation();
   }
 
-  int get length() { return _get__FileList_length(this); }
-  static int _get__FileList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   File item(int index) {
     return _item(this, index);

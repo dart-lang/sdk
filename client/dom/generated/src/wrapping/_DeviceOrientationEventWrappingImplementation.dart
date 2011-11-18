@@ -11,14 +11,14 @@ class _DeviceOrientationEventWrappingImplementation extends _EventWrappingImplem
     return new _DeviceOrientationEventWrappingImplementation();
   }
 
-  num get alpha() { return _get__DeviceOrientationEvent_alpha(this); }
-  static num _get__DeviceOrientationEvent_alpha(var _this) native;
+  num get alpha() { return _get_alpha(this); }
+  static num _get_alpha(var _this) native;
 
-  num get beta() { return _get__DeviceOrientationEvent_beta(this); }
-  static num _get__DeviceOrientationEvent_beta(var _this) native;
+  num get beta() { return _get_beta(this); }
+  static num _get_beta(var _this) native;
 
-  num get gamma() { return _get__DeviceOrientationEvent_gamma(this); }
-  static num _get__DeviceOrientationEvent_gamma(var _this) native;
+  num get gamma() { return _get_gamma(this); }
+  static num _get_gamma(var _this) native;
 
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) {
     _initDeviceOrientationEvent(this, type, bubbles, cancelable, alpha, beta, gamma);

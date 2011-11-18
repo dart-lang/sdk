@@ -11,17 +11,17 @@ class _HTMLLIElementWrappingImplementation extends _HTMLElementWrappingImplement
     return new _HTMLLIElementWrappingImplementation();
   }
 
-  String get type() { return _get__HTMLLIElement_type(this); }
-  static String _get__HTMLLIElement_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
-  void set type(String value) { _set__HTMLLIElement_type(this, value); }
-  static void _set__HTMLLIElement_type(var _this, String value) native;
+  void set type(String value) { _set_type(this, value); }
+  static void _set_type(var _this, String value) native;
 
-  int get value() { return _get__HTMLLIElement_value(this); }
-  static int _get__HTMLLIElement_value(var _this) native;
+  int get value() { return _get_value(this); }
+  static int _get_value(var _this) native;
 
-  void set value(int value) { _set__HTMLLIElement_value(this, value); }
-  static void _set__HTMLLIElement_value(var _this, int value) native;
+  void set value(int value) { _set_value(this, value); }
+  static void _set_value(var _this, int value) native;
 
   String get typeName() { return "HTMLLIElement"; }
 }

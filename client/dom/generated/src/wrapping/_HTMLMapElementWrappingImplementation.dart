@@ -11,14 +11,14 @@ class _HTMLMapElementWrappingImplementation extends _HTMLElementWrappingImplemen
     return new _HTMLMapElementWrappingImplementation();
   }
 
-  HTMLCollection get areas() { return _get__HTMLMapElement_areas(this); }
-  static HTMLCollection _get__HTMLMapElement_areas(var _this) native;
+  HTMLCollection get areas() { return _get_areas(this); }
+  static HTMLCollection _get_areas(var _this) native;
 
-  String get name() { return _get__HTMLMapElement_name(this); }
-  static String _get__HTMLMapElement_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  void set name(String value) { _set__HTMLMapElement_name(this, value); }
-  static void _set__HTMLMapElement_name(var _this, String value) native;
+  void set name(String value) { _set_name(this, value); }
+  static void _set_name(var _this, String value) native;
 
   String get typeName() { return "HTMLMapElement"; }
 }

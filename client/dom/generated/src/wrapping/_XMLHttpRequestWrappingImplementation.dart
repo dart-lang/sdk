@@ -11,80 +11,80 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
     return new _XMLHttpRequestWrappingImplementation();
   }
 
-  bool get asBlob() { return _get__XMLHttpRequest_asBlob(this); }
-  static bool _get__XMLHttpRequest_asBlob(var _this) native;
+  bool get asBlob() { return _get_asBlob(this); }
+  static bool _get_asBlob(var _this) native;
 
-  void set asBlob(bool value) { _set__XMLHttpRequest_asBlob(this, value); }
-  static void _set__XMLHttpRequest_asBlob(var _this, bool value) native;
+  void set asBlob(bool value) { _set_asBlob(this, value); }
+  static void _set_asBlob(var _this, bool value) native;
 
-  EventListener get onabort() { return _get__XMLHttpRequest_onabort(this); }
-  static EventListener _get__XMLHttpRequest_onabort(var _this) native;
+  EventListener get onabort() { return _get_onabort(this); }
+  static EventListener _get_onabort(var _this) native;
 
-  void set onabort(EventListener value) { _set__XMLHttpRequest_onabort(this, value); }
-  static void _set__XMLHttpRequest_onabort(var _this, EventListener value) native;
+  void set onabort(EventListener value) { _set_onabort(this, value); }
+  static void _set_onabort(var _this, EventListener value) native;
 
-  EventListener get onerror() { return _get__XMLHttpRequest_onerror(this); }
-  static EventListener _get__XMLHttpRequest_onerror(var _this) native;
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
 
-  void set onerror(EventListener value) { _set__XMLHttpRequest_onerror(this, value); }
-  static void _set__XMLHttpRequest_onerror(var _this, EventListener value) native;
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
 
-  EventListener get onload() { return _get__XMLHttpRequest_onload(this); }
-  static EventListener _get__XMLHttpRequest_onload(var _this) native;
+  EventListener get onload() { return _get_onload(this); }
+  static EventListener _get_onload(var _this) native;
 
-  void set onload(EventListener value) { _set__XMLHttpRequest_onload(this, value); }
-  static void _set__XMLHttpRequest_onload(var _this, EventListener value) native;
+  void set onload(EventListener value) { _set_onload(this, value); }
+  static void _set_onload(var _this, EventListener value) native;
 
-  EventListener get onloadstart() { return _get__XMLHttpRequest_onloadstart(this); }
-  static EventListener _get__XMLHttpRequest_onloadstart(var _this) native;
+  EventListener get onloadstart() { return _get_onloadstart(this); }
+  static EventListener _get_onloadstart(var _this) native;
 
-  void set onloadstart(EventListener value) { _set__XMLHttpRequest_onloadstart(this, value); }
-  static void _set__XMLHttpRequest_onloadstart(var _this, EventListener value) native;
+  void set onloadstart(EventListener value) { _set_onloadstart(this, value); }
+  static void _set_onloadstart(var _this, EventListener value) native;
 
-  EventListener get onprogress() { return _get__XMLHttpRequest_onprogress(this); }
-  static EventListener _get__XMLHttpRequest_onprogress(var _this) native;
+  EventListener get onprogress() { return _get_onprogress(this); }
+  static EventListener _get_onprogress(var _this) native;
 
-  void set onprogress(EventListener value) { _set__XMLHttpRequest_onprogress(this, value); }
-  static void _set__XMLHttpRequest_onprogress(var _this, EventListener value) native;
+  void set onprogress(EventListener value) { _set_onprogress(this, value); }
+  static void _set_onprogress(var _this, EventListener value) native;
 
-  EventListener get onreadystatechange() { return _get__XMLHttpRequest_onreadystatechange(this); }
-  static EventListener _get__XMLHttpRequest_onreadystatechange(var _this) native;
+  EventListener get onreadystatechange() { return _get_onreadystatechange(this); }
+  static EventListener _get_onreadystatechange(var _this) native;
 
-  void set onreadystatechange(EventListener value) { _set__XMLHttpRequest_onreadystatechange(this, value); }
-  static void _set__XMLHttpRequest_onreadystatechange(var _this, EventListener value) native;
+  void set onreadystatechange(EventListener value) { _set_onreadystatechange(this, value); }
+  static void _set_onreadystatechange(var _this, EventListener value) native;
 
-  int get readyState() { return _get__XMLHttpRequest_readyState(this); }
-  static int _get__XMLHttpRequest_readyState(var _this) native;
+  int get readyState() { return _get_readyState(this); }
+  static int _get_readyState(var _this) native;
 
-  Blob get responseBlob() { return _get__XMLHttpRequest_responseBlob(this); }
-  static Blob _get__XMLHttpRequest_responseBlob(var _this) native;
+  Blob get responseBlob() { return _get_responseBlob(this); }
+  static Blob _get_responseBlob(var _this) native;
 
-  String get responseText() { return _get__XMLHttpRequest_responseText(this); }
-  static String _get__XMLHttpRequest_responseText(var _this) native;
+  String get responseText() { return _get_responseText(this); }
+  static String _get_responseText(var _this) native;
 
-  String get responseType() { return _get__XMLHttpRequest_responseType(this); }
-  static String _get__XMLHttpRequest_responseType(var _this) native;
+  String get responseType() { return _get_responseType(this); }
+  static String _get_responseType(var _this) native;
 
-  void set responseType(String value) { _set__XMLHttpRequest_responseType(this, value); }
-  static void _set__XMLHttpRequest_responseType(var _this, String value) native;
+  void set responseType(String value) { _set_responseType(this, value); }
+  static void _set_responseType(var _this, String value) native;
 
-  Document get responseXML() { return _get__XMLHttpRequest_responseXML(this); }
-  static Document _get__XMLHttpRequest_responseXML(var _this) native;
+  Document get responseXML() { return _get_responseXML(this); }
+  static Document _get_responseXML(var _this) native;
 
-  int get status() { return _get__XMLHttpRequest_status(this); }
-  static int _get__XMLHttpRequest_status(var _this) native;
+  int get status() { return _get_status(this); }
+  static int _get_status(var _this) native;
 
-  String get statusText() { return _get__XMLHttpRequest_statusText(this); }
-  static String _get__XMLHttpRequest_statusText(var _this) native;
+  String get statusText() { return _get_statusText(this); }
+  static String _get_statusText(var _this) native;
 
-  XMLHttpRequestUpload get upload() { return _get__XMLHttpRequest_upload(this); }
-  static XMLHttpRequestUpload _get__XMLHttpRequest_upload(var _this) native;
+  XMLHttpRequestUpload get upload() { return _get_upload(this); }
+  static XMLHttpRequestUpload _get_upload(var _this) native;
 
-  bool get withCredentials() { return _get__XMLHttpRequest_withCredentials(this); }
-  static bool _get__XMLHttpRequest_withCredentials(var _this) native;
+  bool get withCredentials() { return _get_withCredentials(this); }
+  static bool _get_withCredentials(var _this) native;
 
-  void set withCredentials(bool value) { _set__XMLHttpRequest_withCredentials(this, value); }
-  static void _set__XMLHttpRequest_withCredentials(var _this, bool value) native;
+  void set withCredentials(bool value) { _set_withCredentials(this, value); }
+  static void _set_withCredentials(var _this, bool value) native;
 
   void abort() {
     _abort(this);
@@ -94,20 +94,20 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _addEventListener(this, type, listener);
+      _addEventListener_XMLHttpRequest(this, type, listener);
       return;
     } else {
-      _addEventListener_2(this, type, listener, useCapture);
+      _addEventListener_XMLHttpRequest_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+  static void _addEventListener_XMLHttpRequest(receiver, type, listener) native;
+  static void _addEventListener_XMLHttpRequest_2(receiver, type, listener, useCapture) native;
 
   bool dispatchEvent(Event evt) {
-    return _dispatchEvent(this, evt);
+    return _dispatchEvent_XMLHttpRequest(this, evt);
   }
-  static bool _dispatchEvent(receiver, evt) native;
+  static bool _dispatchEvent_XMLHttpRequest(receiver, evt) native;
 
   String getAllResponseHeaders() {
     return _getAllResponseHeaders(this);
@@ -158,15 +158,15 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _removeEventListener(this, type, listener);
+      _removeEventListener_XMLHttpRequest(this, type, listener);
       return;
     } else {
-      _removeEventListener_2(this, type, listener, useCapture);
+      _removeEventListener_XMLHttpRequest_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
+  static void _removeEventListener_XMLHttpRequest(receiver, type, listener) native;
+  static void _removeEventListener_XMLHttpRequest_2(receiver, type, listener, useCapture) native;
 
   void send([var data = null]) {
     if (data === null) {

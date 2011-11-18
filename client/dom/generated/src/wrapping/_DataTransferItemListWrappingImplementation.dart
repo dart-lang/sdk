@@ -11,8 +11,8 @@ class _DataTransferItemListWrappingImplementation extends DOMWrapperBase impleme
     return new _DataTransferItemListWrappingImplementation();
   }
 
-  int get length() { return _get__DataTransferItemList_length(this); }
-  static int _get__DataTransferItemList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   void add(String data, String type) {
     _add(this, data, type);

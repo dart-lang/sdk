@@ -11,8 +11,8 @@ class _StyleMediaWrappingImplementation extends DOMWrapperBase implements StyleM
     return new _StyleMediaWrappingImplementation();
   }
 
-  String get type() { return _get__StyleMedia_type(this); }
-  static String _get__StyleMedia_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
   bool matchMedium(String mediaquery) {
     return _matchMedium(this, mediaquery);

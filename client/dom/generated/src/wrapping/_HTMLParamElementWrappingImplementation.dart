@@ -11,29 +11,29 @@ class _HTMLParamElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLParamElementWrappingImplementation();
   }
 
-  String get name() { return _get__HTMLParamElement_name(this); }
-  static String _get__HTMLParamElement_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  void set name(String value) { _set__HTMLParamElement_name(this, value); }
-  static void _set__HTMLParamElement_name(var _this, String value) native;
+  void set name(String value) { _set_name(this, value); }
+  static void _set_name(var _this, String value) native;
 
-  String get type() { return _get__HTMLParamElement_type(this); }
-  static String _get__HTMLParamElement_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
-  void set type(String value) { _set__HTMLParamElement_type(this, value); }
-  static void _set__HTMLParamElement_type(var _this, String value) native;
+  void set type(String value) { _set_type(this, value); }
+  static void _set_type(var _this, String value) native;
 
-  String get value() { return _get__HTMLParamElement_value(this); }
-  static String _get__HTMLParamElement_value(var _this) native;
+  String get value() { return _get_value(this); }
+  static String _get_value(var _this) native;
 
-  void set value(String value) { _set__HTMLParamElement_value(this, value); }
-  static void _set__HTMLParamElement_value(var _this, String value) native;
+  void set value(String value) { _set_value(this, value); }
+  static void _set_value(var _this, String value) native;
 
-  String get valueType() { return _get__HTMLParamElement_valueType(this); }
-  static String _get__HTMLParamElement_valueType(var _this) native;
+  String get valueType() { return _get_valueType(this); }
+  static String _get_valueType(var _this) native;
 
-  void set valueType(String value) { _set__HTMLParamElement_valueType(this, value); }
-  static void _set__HTMLParamElement_valueType(var _this, String value) native;
+  void set valueType(String value) { _set_valueType(this, value); }
+  static void _set_valueType(var _this, String value) native;
 
   String get typeName() { return "HTMLParamElement"; }
 }

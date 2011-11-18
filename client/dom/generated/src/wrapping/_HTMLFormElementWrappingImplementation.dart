@@ -11,65 +11,65 @@ class _HTMLFormElementWrappingImplementation extends _HTMLElementWrappingImpleme
     return new _HTMLFormElementWrappingImplementation();
   }
 
-  String get acceptCharset() { return _get__HTMLFormElement_acceptCharset(this); }
-  static String _get__HTMLFormElement_acceptCharset(var _this) native;
+  String get acceptCharset() { return _get_acceptCharset(this); }
+  static String _get_acceptCharset(var _this) native;
 
-  void set acceptCharset(String value) { _set__HTMLFormElement_acceptCharset(this, value); }
-  static void _set__HTMLFormElement_acceptCharset(var _this, String value) native;
+  void set acceptCharset(String value) { _set_acceptCharset(this, value); }
+  static void _set_acceptCharset(var _this, String value) native;
 
-  String get action() { return _get__HTMLFormElement_action(this); }
-  static String _get__HTMLFormElement_action(var _this) native;
+  String get action() { return _get_action(this); }
+  static String _get_action(var _this) native;
 
-  void set action(String value) { _set__HTMLFormElement_action(this, value); }
-  static void _set__HTMLFormElement_action(var _this, String value) native;
+  void set action(String value) { _set_action(this, value); }
+  static void _set_action(var _this, String value) native;
 
-  String get autocomplete() { return _get__HTMLFormElement_autocomplete(this); }
-  static String _get__HTMLFormElement_autocomplete(var _this) native;
+  String get autocomplete() { return _get_autocomplete(this); }
+  static String _get_autocomplete(var _this) native;
 
-  void set autocomplete(String value) { _set__HTMLFormElement_autocomplete(this, value); }
-  static void _set__HTMLFormElement_autocomplete(var _this, String value) native;
+  void set autocomplete(String value) { _set_autocomplete(this, value); }
+  static void _set_autocomplete(var _this, String value) native;
 
-  HTMLCollection get elements() { return _get__HTMLFormElement_elements(this); }
-  static HTMLCollection _get__HTMLFormElement_elements(var _this) native;
+  HTMLCollection get elements() { return _get_elements(this); }
+  static HTMLCollection _get_elements(var _this) native;
 
-  String get encoding() { return _get__HTMLFormElement_encoding(this); }
-  static String _get__HTMLFormElement_encoding(var _this) native;
+  String get encoding() { return _get_encoding(this); }
+  static String _get_encoding(var _this) native;
 
-  void set encoding(String value) { _set__HTMLFormElement_encoding(this, value); }
-  static void _set__HTMLFormElement_encoding(var _this, String value) native;
+  void set encoding(String value) { _set_encoding(this, value); }
+  static void _set_encoding(var _this, String value) native;
 
-  String get enctype() { return _get__HTMLFormElement_enctype(this); }
-  static String _get__HTMLFormElement_enctype(var _this) native;
+  String get enctype() { return _get_enctype(this); }
+  static String _get_enctype(var _this) native;
 
-  void set enctype(String value) { _set__HTMLFormElement_enctype(this, value); }
-  static void _set__HTMLFormElement_enctype(var _this, String value) native;
+  void set enctype(String value) { _set_enctype(this, value); }
+  static void _set_enctype(var _this, String value) native;
 
-  int get length() { return _get__HTMLFormElement_length(this); }
-  static int _get__HTMLFormElement_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
-  String get method() { return _get__HTMLFormElement_method(this); }
-  static String _get__HTMLFormElement_method(var _this) native;
+  String get method() { return _get_method(this); }
+  static String _get_method(var _this) native;
 
-  void set method(String value) { _set__HTMLFormElement_method(this, value); }
-  static void _set__HTMLFormElement_method(var _this, String value) native;
+  void set method(String value) { _set_method(this, value); }
+  static void _set_method(var _this, String value) native;
 
-  String get name() { return _get__HTMLFormElement_name(this); }
-  static String _get__HTMLFormElement_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  void set name(String value) { _set__HTMLFormElement_name(this, value); }
-  static void _set__HTMLFormElement_name(var _this, String value) native;
+  void set name(String value) { _set_name(this, value); }
+  static void _set_name(var _this, String value) native;
 
-  bool get noValidate() { return _get__HTMLFormElement_noValidate(this); }
-  static bool _get__HTMLFormElement_noValidate(var _this) native;
+  bool get noValidate() { return _get_noValidate(this); }
+  static bool _get_noValidate(var _this) native;
 
-  void set noValidate(bool value) { _set__HTMLFormElement_noValidate(this, value); }
-  static void _set__HTMLFormElement_noValidate(var _this, bool value) native;
+  void set noValidate(bool value) { _set_noValidate(this, value); }
+  static void _set_noValidate(var _this, bool value) native;
 
-  String get target() { return _get__HTMLFormElement_target(this); }
-  static String _get__HTMLFormElement_target(var _this) native;
+  String get target() { return _get_target(this); }
+  static String _get_target(var _this) native;
 
-  void set target(String value) { _set__HTMLFormElement_target(this, value); }
-  static void _set__HTMLFormElement_target(var _this, String value) native;
+  void set target(String value) { _set_target(this, value); }
+  static void _set_target(var _this, String value) native;
 
   bool checkValidity() {
     return _checkValidity(this);

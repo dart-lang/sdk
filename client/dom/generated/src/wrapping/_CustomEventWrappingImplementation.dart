@@ -11,8 +11,8 @@ class _CustomEventWrappingImplementation extends _EventWrappingImplementation im
     return new _CustomEventWrappingImplementation();
   }
 
-  Object get detail() { return _get__CustomEvent_detail(this); }
-  static Object _get__CustomEvent_detail(var _this) native;
+  Object get detail() { return _get_detail(this); }
+  static Object _get_detail(var _this) native;
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) {
     _initCustomEvent(this, typeArg, canBubbleArg, cancelableArg, detailArg);

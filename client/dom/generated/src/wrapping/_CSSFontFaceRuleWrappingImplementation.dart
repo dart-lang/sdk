@@ -11,8 +11,8 @@ class _CSSFontFaceRuleWrappingImplementation extends _CSSRuleWrappingImplementat
     return new _CSSFontFaceRuleWrappingImplementation();
   }
 
-  CSSStyleDeclaration get style() { return _get__CSSFontFaceRule_style(this); }
-  static CSSStyleDeclaration _get__CSSFontFaceRule_style(var _this) native;
+  CSSStyleDeclaration get style() { return _get_style(this); }
+  static CSSStyleDeclaration _get_style(var _this) native;
 
   String get typeName() { return "CSSFontFaceRule"; }
 }

@@ -11,11 +11,11 @@ class _HashChangeEventWrappingImplementation extends _EventWrappingImplementatio
     return new _HashChangeEventWrappingImplementation();
   }
 
-  String get newURL() { return _get__HashChangeEvent_newURL(this); }
-  static String _get__HashChangeEvent_newURL(var _this) native;
+  String get newURL() { return _get_newURL(this); }
+  static String _get_newURL(var _this) native;
 
-  String get oldURL() { return _get__HashChangeEvent_oldURL(this); }
-  static String _get__HashChangeEvent_oldURL(var _this) native;
+  String get oldURL() { return _get_oldURL(this); }
+  static String _get_oldURL(var _this) native;
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) {
     _initHashChangeEvent(this, type, canBubble, cancelable, oldURL, newURL);

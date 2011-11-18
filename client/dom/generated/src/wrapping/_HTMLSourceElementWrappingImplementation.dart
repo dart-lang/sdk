@@ -11,23 +11,23 @@ class _HTMLSourceElementWrappingImplementation extends _HTMLElementWrappingImple
     return new _HTMLSourceElementWrappingImplementation();
   }
 
-  String get media() { return _get__HTMLSourceElement_media(this); }
-  static String _get__HTMLSourceElement_media(var _this) native;
+  String get media() { return _get_media(this); }
+  static String _get_media(var _this) native;
 
-  void set media(String value) { _set__HTMLSourceElement_media(this, value); }
-  static void _set__HTMLSourceElement_media(var _this, String value) native;
+  void set media(String value) { _set_media(this, value); }
+  static void _set_media(var _this, String value) native;
 
-  String get src() { return _get__HTMLSourceElement_src(this); }
-  static String _get__HTMLSourceElement_src(var _this) native;
+  String get src() { return _get_src(this); }
+  static String _get_src(var _this) native;
 
-  void set src(String value) { _set__HTMLSourceElement_src(this, value); }
-  static void _set__HTMLSourceElement_src(var _this, String value) native;
+  void set src(String value) { _set_src(this, value); }
+  static void _set_src(var _this, String value) native;
 
-  String get type() { return _get__HTMLSourceElement_type(this); }
-  static String _get__HTMLSourceElement_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
-  void set type(String value) { _set__HTMLSourceElement_type(this, value); }
-  static void _set__HTMLSourceElement_type(var _this, String value) native;
+  void set type(String value) { _set_type(this, value); }
+  static void _set_type(var _this, String value) native;
 
   String get typeName() { return "HTMLSourceElement"; }
 }

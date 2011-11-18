@@ -11,8 +11,8 @@ class _DeviceMotionEventWrappingImplementation extends _EventWrappingImplementat
     return new _DeviceMotionEventWrappingImplementation();
   }
 
-  num get interval() { return _get__DeviceMotionEvent_interval(this); }
-  static num _get__DeviceMotionEvent_interval(var _this) native;
+  num get interval() { return _get_interval(this); }
+  static num _get_interval(var _this) native;
 
   String get typeName() { return "DeviceMotionEvent"; }
 }

@@ -11,11 +11,11 @@ class _SpeechInputResultWrappingImplementation extends DOMWrapperBase implements
     return new _SpeechInputResultWrappingImplementation();
   }
 
-  num get confidence() { return _get__SpeechInputResult_confidence(this); }
-  static num _get__SpeechInputResult_confidence(var _this) native;
+  num get confidence() { return _get_confidence(this); }
+  static num _get_confidence(var _this) native;
 
-  String get utterance() { return _get__SpeechInputResult_utterance(this); }
-  static String _get__SpeechInputResult_utterance(var _this) native;
+  String get utterance() { return _get_utterance(this); }
+  static String _get_utterance(var _this) native;
 
   String get typeName() { return "SpeechInputResult"; }
 }

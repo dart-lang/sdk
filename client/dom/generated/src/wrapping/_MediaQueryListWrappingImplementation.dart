@@ -11,11 +11,11 @@ class _MediaQueryListWrappingImplementation extends DOMWrapperBase implements Me
     return new _MediaQueryListWrappingImplementation();
   }
 
-  bool get matches() { return _get__MediaQueryList_matches(this); }
-  static bool _get__MediaQueryList_matches(var _this) native;
+  bool get matches() { return _get_matches(this); }
+  static bool _get_matches(var _this) native;
 
-  String get media() { return _get__MediaQueryList_media(this); }
-  static String _get__MediaQueryList_media(var _this) native;
+  String get media() { return _get_media(this); }
+  static String _get_media(var _this) native;
 
   void addListener(MediaQueryListListener listener) {
     _addListener(this, listener);

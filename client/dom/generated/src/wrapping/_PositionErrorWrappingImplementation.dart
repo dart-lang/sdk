@@ -11,11 +11,11 @@ class _PositionErrorWrappingImplementation extends DOMWrapperBase implements Pos
     return new _PositionErrorWrappingImplementation();
   }
 
-  int get code() { return _get__PositionError_code(this); }
-  static int _get__PositionError_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
-  String get message() { return _get__PositionError_message(this); }
-  static String _get__PositionError_message(var _this) native;
+  String get message() { return _get_message(this); }
+  static String _get_message(var _this) native;
 
   String get typeName() { return "PositionError"; }
 }

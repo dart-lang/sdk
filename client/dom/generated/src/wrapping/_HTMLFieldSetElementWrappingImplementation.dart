@@ -11,17 +11,17 @@ class _HTMLFieldSetElementWrappingImplementation extends _HTMLElementWrappingImp
     return new _HTMLFieldSetElementWrappingImplementation();
   }
 
-  HTMLFormElement get form() { return _get__HTMLFieldSetElement_form(this); }
-  static HTMLFormElement _get__HTMLFieldSetElement_form(var _this) native;
+  HTMLFormElement get form() { return _get_form(this); }
+  static HTMLFormElement _get_form(var _this) native;
 
-  String get validationMessage() { return _get__HTMLFieldSetElement_validationMessage(this); }
-  static String _get__HTMLFieldSetElement_validationMessage(var _this) native;
+  String get validationMessage() { return _get_validationMessage(this); }
+  static String _get_validationMessage(var _this) native;
 
-  ValidityState get validity() { return _get__HTMLFieldSetElement_validity(this); }
-  static ValidityState _get__HTMLFieldSetElement_validity(var _this) native;
+  ValidityState get validity() { return _get_validity(this); }
+  static ValidityState _get_validity(var _this) native;
 
-  bool get willValidate() { return _get__HTMLFieldSetElement_willValidate(this); }
-  static bool _get__HTMLFieldSetElement_willValidate(var _this) native;
+  bool get willValidate() { return _get_willValidate(this); }
+  static bool _get_willValidate(var _this) native;
 
   bool checkValidity() {
     return _checkValidity(this);
