@@ -120,8 +120,11 @@ LibTest/core/Expect/setEquals/Expect/setEquals/A01/t01: Fail # Issue co19 - 41
 LibTest/core/Expect/setEquals/Expect/setEquals/A01/t02: Fail # Issue co19 - 41
 LibTest/core/Expect/throws/Expect/throws/A02/t01: Fail # Issue co19 - 42
 LibTest/core/Expect/throws/Expect/throws/A03/t01: Fail # Issue co19 - 42
-LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t01: Fail  # Issue co19 - 43.
-LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t02: Fail  # Issue co19 - 43.
+LibTest/core/FallThroughError/line/FallThroughError/line/A01/t01: Fail  # Issue co19 - 55
+LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t02: Fail  # Issue co19 - 55
+LibTest/core/FallThroughError/throwNew/FallThroughError/throwNew/A01/t01: Fail  # Issue co19 - 55
+LibTest/core/FallThroughError/toString/FallThroughError/toString/A01/t01: Fail  # Issue co19 - 55
+LibTest/core/FallThroughError/url/FallThroughError/url/A01/t02: Fail  # Issue co19 - 55
 LibTest/core/Isolate/spawn/Isolate/spawn/A01/t07: Skip # Issue co19 - 13
 LibTest/core/Isolate/spawn/Isolate/spawn/A01/t09: Skip # Issue co19 - 13
 LibTest/core/List/getRange/List/getRange/A01/t01: Fail # Issue co19 - 39

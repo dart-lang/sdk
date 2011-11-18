@@ -30,7 +30,7 @@ DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 // All references to Dart names are listed here.
 static const char* kAssertionErrorName = "AssertionError";
 static const char* kFallThroughErrorName = "FallThroughError";
-static const char* kThrowNewName = "throwNew";
+static const char* kThrowNewName = "_throwNew";
 static const char* kGrowableObjectArrayFromArrayName =
     "GrowableObjectArray._usingArray";
 static const char* kGrowableObjectArrayName = "GrowableObjectArray";

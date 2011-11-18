@@ -9,7 +9,7 @@ class AssertionError {
     throw const UnsupportedOperationException(
         "AssertionError can only be allocated by the VM");
   }
-  static throwNew(int assertionStart, int assertionEnd)
+  static _throwNew(int assertionStart, int assertionEnd)
       native "AssertionError_throwNew";
   String toString() {
     return "Failed assertion: '$failedAssertion' is not true " +
@@ -41,7 +41,7 @@ class FallThroughError {
     throw const UnsupportedOperationException(
         "FallThroughError can only be allocated by the VM");
   }
-  static throwNew(int case_clause_pos) native "FallThroughError_throwNew";
+  static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
   String toString() {
     return "Switch case fall-through in $url at line $line.";
   }
