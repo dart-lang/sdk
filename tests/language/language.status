@@ -57,101 +57,22 @@ Prefix20NegativeTest: Fail # Issue 307
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]
-MethodInvocationTest: Fail               # Bug  5392266
-Label2NegativeTest: Crash                # Bug 5318228
-NullPointerExceptionTest: Fail           # Bug 5391976
-CallThroughNullGetterTest: Fail          # Bug 5391976
-Private3Test: Fail                       # Bug 5391976
-Switch3NegativeTest: Crash               # Bug 5318228
 BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not throwing NSME
 CTConst2Test: Fail                       # Codesite issue 124
+CallThroughNullGetterTest: Fail          # Bug 5391976
+Label2NegativeTest: Crash                # Bug 5318228
+MethodInvocationTest: Fail               # Bug  5392266
+NullPointerExceptionTest: Fail           # Bug 5391976
+Private3Test: Fail                       # Bug 5391976
+Switch3NegativeTest: Crash               # Bug 5318228
 
 # Problems specific to dartc debug mode
 [ ($component == dartc || $component == chromium) && $mode == debug ]
 
 
 [ $component == dartc || $component == chromium ]
-CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
-
-Library4NegativeTest: Fail               # Bug 5406175
-Prefix3NegativeTest: Fail                # Bug 5406175
-Prefix11NegativeTest: Fail               # Bug 5406175
-Prefix12NegativeTest: Fail               # Bug 5406175
-Prefix14Test: Fail                       # Bug 5406175
-Prefix15Test: Skip                       # Bug 5406175
-Prefix16NegativeTest: Fail               # Bug 5532534
-ConstConstructor1NegativeTest: FAIL      # Bug 5142545
-ConstConstructor2NegativeTest: FAIL      # Bug 5142545
-FactoryNegativeTest: Fail                # Issue 417
-TypeVariableBoundsTest/none: Fail        # Issue 417
-TypeVariableScopeTest/none: Fail         # Issue 417
-StringConcatTest: FAIL                   # Bug 5196164
-NamedParametersTypeTest: Fail            # Implementation in progress.
-NamedParametersNegativeTest: Fail    # Implementation in progress.
-NamedParameters2NegativeTest: Fail   # Implementation in progress.
-NamedParameters3NegativeTest: Fail   # Implementation in progress.
-NamedParameters4NegativeTest: Fail   # Implementation in progress.
-RegExp3Test: Fail                    # 5299683
-InterfaceFactory3NegativeTest: Fail      # Bug 5387405
-GenericParameterizedExtendsTest: Skip  # Bug 5392297
-ConstObjectsAreImmutableTest: Fail  # Bug 5202940
-NullToStringTest: Fail       # Bug 5421978
-FunctionTypeAliasTest: Crash # Bug 4519208.
-
-# Other bugs (or unimplemented features) in dartc.
-For2Test: Fail               # Bug 4995208.
-SuperOperatorTest: Fail      # Bug 4995463.
-GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
-Throw7NegativeTest: Fail     # Bug 4208459.
-SwitchLabelTest: Fail        # Bug 4208467.
-Switch7NegativeTest: Fail    # Bug 4208467.
-StackOverflowTest: Fail      # Bug 4591172.
-ScopeNegativeTest: Fail      # Bug 4207538.
-PseudoKWNegativeTest: Fail   # Bug 4979760.
-OverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-NoSuchMethodTest: Fail       # Bug 4202974.
-NumbersTest: Fail            # Fails because numbers are mapped to doubles.
-LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
-LocalFunction3Test: Fail     # Bug 4202974.
-MethodOverrideTest: Crash    # Bug 5516001.
-DynamicTest: Crash            # Bug 5527899.
-
-FieldNegativeTest: Fail      # Bug 4207626.
-FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
-ExampleConstructorTest: Fail # Bug 4205742.
-CTConstTest: Fail            # Bug 4510015.
-Constructor2NegativeTest: Fail  # Bug 4208594.
-Constructor2Test: Fail       # Issue 255
-Constructor3Test: Fail       # Issue 257
-Constructor4Test: Fail       # Issue 286
-Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
-Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
-ClassOverrideNegativeTest: Fail  # Bug 4205768.
+AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
-ListLiteral3Test: Fail      # Bug 4510015.
-ListTest: Fail              # Bug 5146975.
-StackTraceTest: Fail         # Bug 4971920.
-ExpectTest: Fail             # Missing extensions to class Expect.
-DivByZeroTest: Fail          # Bug 5184183
-OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
-FieldOverrideTest/01: Fail       # Bug 5215249
-FieldOverrideTest/02: Fail       # Bug 5215249
-OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
-OverrideFieldTest/04: Fail       # Bug 5215249
-CharEscapeTest: Fail
-GetterClosureExecutionOrderTest: Fail # Bug 5481595
-
-# The following tests use missing error classes. Bug 4385894.
-AssertTest: Fail             # Uses AssertError class.
-
-ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
-
 BlackListedTest/01: Fail # Bug 5469684
 BlackListedTest/02: Fail # Bug 5469684
 BlackListedTest/03: Fail # Bug 5469684
@@ -166,10 +87,79 @@ BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
 BlackListedTest/13: Crash # Bug 5469684
 BlackListedTest/14: Crash # Bug 5469684
-
+CTConstTest: Fail            # Bug 4510015.
+CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+CharEscapeTest: Fail
+ClassOverrideNegativeTest: Fail  # Bug 4205768.
+ConstConstructor1NegativeTest: FAIL      # Bug 5142545
+ConstConstructor2NegativeTest: FAIL      # Bug 5142545
+ConstObjectsAreImmutableTest: Fail  # Bug 5202940
+Constructor2NegativeTest: Fail  # Bug 4208594.
+Constructor2Test: Fail       # Issue 255
+Constructor3Test: Fail       # Issue 257
+Constructor4Test: Fail       # Issue 286
+Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+DivByZeroTest: Fail          # Bug 5184183
+DynamicTest: Crash            # Bug 5527899.
+ExampleConstructorTest: Fail # Bug 4205742.
+ExpectTest: Fail             # Missing extensions to class Expect.
+FactoryNegativeTest: Fail                # Issue 417
+FieldNegativeTest: Fail      # Bug 4207626.
+FieldOverrideTest/01: Fail       # Bug 5215249
+FieldOverrideTest/02: Fail       # Bug 5215249
+For2Test: Fail               # Bug 4995208.
+FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
+FunctionTypeAliasTest: Crash # Bug 4519208.
+GenericParameterizedExtendsTest: Skip  # Bug 5392297
+GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
+GetterClosureExecutionOrderTest: Fail # Bug 5481595
 ImplicitThisTest/none: Fail # Issue 375
-
+InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 IsObjectTest: Skip # Hasn't be tested on DartC yet
+Library4NegativeTest: Fail               # Bug 5406175
+ListLiteral3Test: Fail      # Bug 4510015.
+ListTest: Fail              # Bug 5146975.
+LocalFunction3Test: Fail     # Bug 4202974.
+LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
+ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
+MethodOverrideTest: Crash    # Bug 5516001.
+NamedParameters2NegativeTest: Fail   # Implementation in progress.
+NamedParameters3NegativeTest: Fail   # Implementation in progress.
+NamedParameters4NegativeTest: Fail   # Implementation in progress.
+NamedParametersNegativeTest: Fail    # Implementation in progress.
+NamedParametersTypeTest: Fail            # Implementation in progress.
+NoSuchMethodTest: Fail       # Bug 4202974.
+NullToStringTest: Fail       # Bug 5421978
+NumbersTest: Fail            # Fails because numbers are mapped to doubles.
+OverriddenNoSuchMethodTest: Fail  # Bug 4202974.
+OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
+OverrideFieldTest/04: Fail       # Bug 5215249
+OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
+Prefix11NegativeTest: Fail               # Bug 5406175
+Prefix12NegativeTest: Fail               # Bug 5406175
+Prefix14Test: Fail                       # Bug 5406175
+Prefix15Test: Skip                       # Bug 5406175
+Prefix16NegativeTest: Fail               # Bug 5532534
+Prefix3NegativeTest: Fail                # Bug 5406175
+PseudoKWNegativeTest: Fail   # Bug 4979760.
+RegExp3Test: Fail                    # 5299683
+ScopeNegativeTest: Fail      # Bug 4207538.
+StackOverflowTest: Fail      # Bug 4591172.
+StackTraceTest: Fail         # Bug 4971920.
+StringConcatTest: FAIL                   # Bug 5196164
+SuperOperatorTest: Fail      # Bug 4995463.
+Switch7NegativeTest: Fail    # Bug 4208467.
+SwitchLabelTest: Fail        # Bug 4208467.
+ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
+Throw7NegativeTest: Fail     # Bug 4208459.
+TypeVariableBoundsTest/none: Fail        # Issue 417
+TypeVariableScopeTest/none: Fail         # Issue 417
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -186,7 +176,6 @@ RichardsTest: Fail
 UnboundGetterTest: Fail
 Private2Test: Fail
 Private3Test: Fail
-
 TypedMessageTest: Fail # Bug 5246195
 
 
