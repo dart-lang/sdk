@@ -16,10 +16,10 @@ touch/touch_tests: Skip  # Issue 157.
 [ $component == frogium ]
 touch/touch_tests: Fail  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
-html/html_tests: Fail
+html/html_tests: Fail # Looks like parser issue
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
-samples/swarm/swarm_tests: Skip
 json/json_tests: Fail
+samples/swarm/swarm_tests: Skip # until we get the 2-arg WebKitPoint ctor back
 
 [ $component == chromium && $mode == release ]
 samples/dartcombat/dartcombat_tests: Timeout
