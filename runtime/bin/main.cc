@@ -9,9 +9,9 @@
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/globals.h"
-#include "bin/process_script.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
@@ -154,6 +154,52 @@ static void DumpPprofSymbolInfo() {
     delete pprof_file;  // Closes the file.
     Dart_ExitScope();
   }
+}
+
+
+static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+                                     Dart_Handle library,
+                                     Dart_Handle url) {
+  if (!Dart_IsLibrary(library)) {
+    return Dart_Error("not a library");
+  }
+  if (!Dart_IsString8(url)) {
+    return Dart_Error("url is not a string");
+  }
+  const char* url_string = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_string);
+  if (Dart_IsError(result)) {
+    return Dart_Error("accessing url characters failed");
+  }
+  bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
+  if (tag == kCanonicalizeUrl) {
+    // If this is a Dart Scheme URL then it is not modified as it will be
+    // handled by the VM internally.
+    if (is_dart_scheme_url) {
+      return url;
+    }
+    // Create a canonical path based on the including library and current url.
+    return DartUtils::CanonicalizeURL(NULL, library, url_string);
+  }
+  if (is_dart_scheme_url) {
+    return Dart_Error("Do not know how to load '%s'", url_string);
+  }
+  result = DartUtils::LoadSource(NULL, library, url, tag, url_string);
+  if (!Dart_IsError(result) && (tag == kImportTag)) {
+    Builtin_ImportLibrary(result);
+  }
+  return result;
+}
+
+
+static Dart_Handle LoadScript(const char* script_name) {
+  Dart_Handle source = DartUtils::ReadStringFromFile(script_name);
+  if (Dart_IsError(source)) {
+    return source;
+  }
+  Dart_Handle url = Dart_NewString(script_name);
+
+  return Dart_LoadScript(url, source, LibraryTagHandler);
 }
 
 

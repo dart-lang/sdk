@@ -15,7 +15,6 @@
 #include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/globals.h"
-#include "bin/process_script.h"
 
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
@@ -109,29 +108,6 @@ static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
 }
 
 
-static bool MapLibraryUrl(const char* url_chars,
-                          const char** mapped_url_chars) {
-  *mapped_url_chars = url_chars;
-  if (url_mapping != NULL) {
-    // We need to check if the passed in url is found in the url_mapping array,
-    // in that case use the mapped entry.
-    int len = strlen(url_chars);
-    for (int idx = 0; idx < url_mapping->count(); idx++) {
-      const char* url_name = url_mapping->GetArgument(idx);
-      if (!strncmp(url_chars, url_name, len) &&
-          (url_name[len] == ',')) {
-        const char* url_mapped_name = url_name + len + 1;
-        if (strlen(url_mapped_name) != 0) {
-          *mapped_url_chars = url_mapped_name;
-          return true;  // Found a mapping for this URL.
-        }
-      }
-    }
-  }
-  return false;  // Did not find any mapping for this URL.
-}
-
-
 static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                                    Dart_Handle library,
                                                    Dart_Handle url) {
@@ -141,72 +117,26 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (!Dart_IsString8(url)) {
     return Dart_Error("url is not a string");
   }
-  const char* url_chars = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_chars);
+  const char* url_string = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
     return Dart_Error("accessing url characters failed");
   }
 
   // If the URL starts with "dart:" then it is handled specially.
-  static const char* kDartScheme = "dart:";
-  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
-  bool is_dart_scheme_url =
-      (strncmp(url_chars, kDartScheme, kDartSchemeLen) == 0);
-
+  bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
   if (tag == kCanonicalizeUrl) {
     if (is_dart_scheme_url) {
       return url;
     }
-    // Get the url of the calling library.
-    Dart_Handle library_url = Dart_LibraryUrl(library);
-    if (Dart_IsError(library_url)) {
-      return Dart_Error("accessing library url failed");
-    }
-    if (!Dart_IsString8(library_url)) {
-      return Dart_Error("library url is not a string");
-    }
-    const char* library_url_chars = NULL;
-    result = Dart_StringToCString(library_url, &library_url_chars);
-    if (Dart_IsError(result)) {
-      return Dart_Error("accessing library url characters failed");
-    }
-    const char* mapped_library_url_chars;
-    MapLibraryUrl(library_url_chars, &mapped_library_url_chars);
-    const char* canon_url_chars = GetCanonicalPath(mapped_library_url_chars,
-                                                   url_chars);
-    Dart_Handle canon_url = Dart_NewString(canon_url_chars);
-    free(const_cast<char*>(canon_url_chars));
-
-    return canon_url;  // canon_url has error string in case of errors.
+    return DartUtils::CanonicalizeURL(url_mapping, library, url_string);
   }
-  if (is_dart_scheme_url) {
-    const char* mapped_url_chars;
-    bool url_is_mapped = MapLibraryUrl(url_chars, &mapped_url_chars);
-    if (url_is_mapped) {
-      // We have a URL mapping specified, just read the file that the
-      // URL mapping specifies and load it.
-      url_chars = mapped_url_chars;
-    } else {
-      return Dart_Error("Do not know how to load %s", url_chars);
-    }
-  }
-  // The tag is either an import or a source tag. Read the file pointed to by
-  // url_chars and load it.
-  Dart_Handle source = ReadStringFromFile(url_chars);
-  if (Dart_IsError(source)) {
-    return source;  // source contains the error string.
-  }
-  if (tag == kImportTag) {
-    return Dart_LoadLibrary(url, source);
-  } else if (tag == kSourceTag) {
-    return Dart_LoadSource(library, url, source);
-  }
-  return Dart_Error("wrong tag");
+  return DartUtils::LoadSource(url_mapping, library, url, tag, url_string);
 }
 
 
 static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
-  Dart_Handle source = ReadStringFromFile(script_name);
+  Dart_Handle source = DartUtils::ReadStringFromFile(script_name);
   if (Dart_IsError(source)) {
     return source;  // source contains the error string.
   }
@@ -216,30 +146,28 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
 }
 
 
-static Dart_Handle BuiltinSnapshotLibraryTagHandler(Dart_LibraryTag tag,
-                                                    Dart_Handle library,
-                                                    Dart_Handle url) {
+static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
+                                            Dart_Handle library,
+                                            Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
   if (!Dart_IsString8(url)) {
     return Dart_Error("url is not a string");
   }
-  const char* url_chars = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_chars);
+  const char* url_string = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
     return Dart_Error("accessing url characters failed");
   }
   // We only support canonicalization of "dart:".
-  static const char* kDartScheme = "dart:";
-  static const intptr_t kDartSchemeLen = strlen(kDartScheme);
-  if (strncmp(url_chars, kDartScheme, kDartSchemeLen) == 0) {
+  if (DartUtils::IsDartSchemeURL(url_string)) {
     if (tag == kCanonicalizeUrl) {
       return url;
     }
-    return Dart_Error("unexpected tag encountered %d", tag);
+    return Dart_Error("unsupported url encountered %s", url_string);
   }
-  return Dart_Error("unsupported url encountered %s", url_chars);
+  return Dart_Error("unexpected tag encountered %d", tag);
 }
 
 
@@ -249,9 +177,7 @@ static Dart_Handle LoadGenericSnapshotCreationScript() {
     return source;  // source contains the error string.
   }
   Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
-  Dart_Handle lib = Dart_LoadScript(url,
-                                    source,
-                                    BuiltinSnapshotLibraryTagHandler);
+  Dart_Handle lib = Dart_LoadScript(url, source, BuiltinLibraryTagHandler);
   if (!Dart_IsError(lib)) {
     Builtin_SetupLibrary(lib);
   }

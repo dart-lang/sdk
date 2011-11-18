@@ -135,8 +135,6 @@
       ],
       'sources': [
         'main.cc',
-        'process_script.cc',
-        'process_script.h',
         'snapshot_empty.cc',
       ],
       'conditions': [
@@ -162,8 +160,6 @@
       ],
       'sources': [
         'main.cc',
-        'process_script.cc',
-        'process_script.h',
         'snapshot_empty.cc',
       ],
       'conditions': [
@@ -189,8 +185,6 @@
       ],
       'sources': [
         'gen_snapshot.cc',
-        'process_script.cc',
-        'process_script.h',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -249,8 +243,6 @@
       ],
       'sources': [
         'main.cc',
-        'process_script.cc',
-        'process_script.h',
         '<(snapshot_cc_file)',
       ],
       'conditions': [
@@ -278,8 +270,6 @@
       ],
       'sources': [
         'main.cc',
-        'process_script.cc',
-        'process_script.h',
         '<(snapshot_cc_file)',
       ],
       'conditions': [
