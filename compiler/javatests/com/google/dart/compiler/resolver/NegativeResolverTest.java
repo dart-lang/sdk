@@ -89,7 +89,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "}"),
         errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5, 14));
   }
-  
+
   public void testMapLiteralNegativeTest() {
     checkSourceErrors(
         makeCode(
@@ -100,7 +100,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "}"),
             errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5, 21));
   }
-  
+
   public void testCall1() {
     checkNumErrors("StaticInstanceCallNegativeTest.dart", 1);
   }

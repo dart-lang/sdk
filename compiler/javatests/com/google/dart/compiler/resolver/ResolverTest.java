@@ -297,8 +297,6 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.CYCLIC_CLASS,
         ResolverErrorCode.CYCLIC_CLASS
     );
-
-
   }
 
   public void testBadFactory() {
@@ -308,6 +306,44 @@ public class ResolverTest extends ResolverTestCase {
         "  factory foo() {}",
         "}"),
         ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR);
+  }
+
+  public void testBadGenerativeConstructor() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object { }",
+        "class B { }",
+        "class A {",
+        "  var val; ",
+        "  B.foo() : this.val = 1;",
+        "}"),
+        ResolverErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
+
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object { }",
+        "class A {",
+        "  var val; ",
+        "  A.foo.bar() : this.val = 1;",
+        "}"),
+        ResolverErrorCode.TOO_MANY_QUALIFIERS_FOR_METHOD);
+
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object { }",
+        "interface B { }",
+        "class A extends B {",
+        "  var val; ",
+        "  B.foo() : this.val = 1;",
+        "}"),
+        ResolverErrorCode.NOT_A_CLASS,
+        ResolverErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
+  }
+
+  public void testGenerativeConstructor() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  var val; ",
+        "  A.foo(arg) : this.val = arg;",
+        "}"));
   }
 
   /**

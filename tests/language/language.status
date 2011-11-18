@@ -27,6 +27,7 @@ TypeVariableBoundsTest/05: Skip # Issue 483
 TypeVariableBoundsTest/06: Skip # Issue 483
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
+DefaultFactoryLibraryTest: Fail  # Issue 514
 
 ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
 ImplicitThisTest/02: Fail # Issue 374
@@ -93,6 +94,7 @@ CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
 ConstConstructor1NegativeTest: FAIL      # Bug 5142545
 ConstConstructor2NegativeTest: FAIL      # Bug 5142545
+DefaultFactoryLibraryTest: Fail          # Issue 514
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 Constructor2NegativeTest: Fail  # Bug 4208594.
 Constructor2Test: Fail       # Issue 255
@@ -208,6 +210,7 @@ ClosuresWithComplexParamsTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
+DefaultFactoryLibraryTest: Fail    # Issue 514
 DynamicTest: Fail
 ExampleConstructorTest: Fail
 Constructor2Test: Fail
