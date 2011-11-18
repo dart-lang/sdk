@@ -21,10 +21,6 @@ MintMakerTest: Fail           # Bug 5401734
 RequestReplyTest: Fail        # Bug 5401734
 StaticStateTest: Fail         # Bug 5401734
 
-[ $component == frog || $component == frogsh || $component == leg || $component == frogium ]
-MessageTest: Fail
-StaticStateTest: Fail
-
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
 

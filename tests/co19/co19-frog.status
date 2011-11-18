@@ -194,7 +194,6 @@ LibTest/core/Proxy/Proxy.forReply/Proxy/Proxy.forReply/A01/t01: Fail
 LibTest/core/Proxy/Proxy.forPort/Proxy/Proxy.forPort/A01/t01: Fail
 LibTest/core/Proxy/call/Proxy/call/A01/t01: Fail
 LibTest/core/Duration/Duration/Duration/A03/t01: Fail
-LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t09: Fail
 LibTest/core/double/operatorLT/double/operatorLT/A01/t03: Fail
 LibTest/core/double/A01/t01: Fail
 LibTest/core/double/operatorLT/double/operatorLT/A02/t01: Fail
