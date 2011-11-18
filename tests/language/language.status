@@ -72,6 +72,8 @@ Switch3NegativeTest: Crash               # Bug 5318228
 
 
 [ $component == dartc || $component == chromium ]
+FactoryImplementationTest: Fail # Issue 521
+
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
 BlackListedTest/01: Fail # Bug 5469684
@@ -189,6 +191,8 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 # (by flag option) to specify which tests pass.
 FactoryNegativeTest: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+
+FactoryImplementationTest: Fail # Issue 523
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
