@@ -1532,6 +1532,16 @@ class Library : public Object {
 
   RawString* url() const { return raw_ptr()->url_; }
   RawString* private_key() const { return raw_ptr()->private_key_; }
+  bool LoadInProgress() const {
+    return raw_ptr()->load_state_ == RawLibrary::kLoadInProgress;
+  }
+  void SetLoadInProgress() const;
+  bool Loaded() const { return raw_ptr()->load_state_ == RawLibrary::kLoaded; }
+  void SetLoaded() const;
+  bool LoadError() const {
+    return raw_ptr()->load_state_ == RawLibrary::kLoadError;
+  }
+  void SetLoadError() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));

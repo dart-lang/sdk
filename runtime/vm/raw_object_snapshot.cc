@@ -589,6 +589,8 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   library.raw_ptr()->num_imports_ = reader->Read<intptr_t>();
   library.raw_ptr()->num_imported_into_ = reader->Read<intptr_t>();
   library.raw_ptr()->num_anonymous_ = reader->Read<intptr_t>();
+  library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
+  library.raw_ptr()->load_state_ = reader->Read<int8_t>();
   // The native resolver is not serialized.
   Dart_NativeEntryResolver resolver = reader->Read<Dart_NativeEntryResolver>();
   ASSERT(resolver == NULL);
@@ -621,6 +623,8 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   writer->Write<intptr_t>(ptr()->num_imports_);
   writer->Write<intptr_t>(ptr()->num_imported_into_);
   writer->Write<intptr_t>(ptr()->num_anonymous_);
+  writer->Write<bool>(ptr()->corelib_imported_);
+  writer->Write<int8_t>(ptr()->load_state_);
   // We do not serialize the native resolver over, this needs to be explicitly
   // set after deserialization.
   writer->Write<Dart_NativeEntryResolver>(NULL);

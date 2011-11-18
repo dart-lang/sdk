@@ -442,6 +442,13 @@ class RawScript : public RawObject {
 
 
 class RawLibrary : public RawObject {
+  enum LibraryState {
+    kAllocated,       // Initial state.
+    kLoadInProgress,  // Library is in the process of being loaded.
+    kLoaded,          // Library is loaded.
+    kLoadError,       // Error occurred during load of the Library.
+  };
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
@@ -464,7 +471,7 @@ class RawLibrary : public RawObject {
   intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   bool corelib_imported_;
-  bool loaded_;
+  int8_t load_state_;            // Of type LibraryState.
 };
 
 

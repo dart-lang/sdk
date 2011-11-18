@@ -361,6 +361,11 @@ static void CompileSource(Isolate* isolate,
                           const String& source,
                           RawScript::Kind kind,
                           Dart_Handle* result) {
+  bool update_lib_status = (kind == RawScript::kScript ||
+                            kind == RawScript::kLibrary);
+  if (update_lib_status) {
+    lib.SetLoadInProgress();
+  }
   const Script& script = Script::Handle(Script::New(url, source, kind));
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -369,8 +374,14 @@ static void CompileSource(Isolate* isolate,
   if (setjmp(*jump.Set()) == 0) {
     Compiler::Compile(lib, script);
     *result = Api::NewLocalHandle(lib);
+    if (update_lib_status) {
+      lib.SetLoaded();
+    }
   } else {
     SetupErrorResult(result);
+    if (update_lib_status) {
+      lib.SetLoadError();
+    }
   }
   isolate->set_long_jump_base(base);
 }

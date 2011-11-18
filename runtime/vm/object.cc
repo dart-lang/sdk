@@ -3717,9 +3717,30 @@ void ClassDictionaryIterator::MoveToNextClass() {
 
 void Library::SetName(const String& name) const {
   // Only set name once.
-  ASSERT(raw_ptr()->name_ == raw_ptr()->url_);
+  ASSERT(!Loaded());
   ASSERT(name.IsSymbol());
   StorePointer(&raw_ptr()->name_, name.raw());
+}
+
+
+void Library::SetLoadInProgress() const {
+  // Should not be already loaded.
+  ASSERT(raw_ptr()->load_state_ == RawLibrary::kAllocated);
+  raw_ptr()->load_state_ = RawLibrary::kLoadInProgress;
+}
+
+
+void Library::SetLoaded() const {
+  // Should not be already loaded or just allocated.
+  ASSERT(LoadInProgress());
+  raw_ptr()->load_state_ = RawLibrary::kLoaded;
+}
+
+
+void Library::SetLoadError() const {
+  // Should not be already loaded or just allocated.
+  ASSERT(LoadInProgress());
+  raw_ptr()->load_state_ = RawLibrary::kLoadError;
 }
 
 
@@ -4108,7 +4129,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->next_registered_ = Library::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
-  result.raw_ptr()->loaded_ = false;
+  result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
   result.InitClassDictionary();
   result.InitImportList();
   result.InitImportedIntoList();
