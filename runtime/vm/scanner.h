@@ -100,6 +100,9 @@ class Scanner : ValueObject {
   // Reads next lookahead character.
   void ReadChar();
 
+  // Read and discard characters up to end of line.
+  void SkipLine();
+
   // Recognizes token 'kind' and reads next character in input.
   void Recognize(Token::Kind kind) {
     ReadChar();

@@ -313,15 +313,25 @@ RawString* Scanner::ConsumeIdentChars(bool allow_dollar) {
 }
 
 
+void Scanner::SkipLine() {
+  while (c0_ != '\n' && c0_ != '\0') {
+    ReadChar();
+  }
+}
+
+
 void Scanner::ScanLibraryTag() {
   ReadChar();
   if (c0_ == '!') {
+    Recognize(Token::kSCRIPTTAG);
     // The script tag extends to the end of the line. Just treat this
     // similar to a line comment.
-    while (c0_ != '\n' && c0_ != '\0') {
-      ReadChar();
-    }
-    Recognize(Token::kSCRIPTTAG);
+    SkipLine();
+    return;
+  }
+  if (!IsIdentStartChar(c0_)) {
+    ErrorMsg("Unrecognized library tag");
+    SkipLine();
     return;
   }
   const String& kLibrary = String::Handle(String::NewSymbol("library"));
@@ -341,6 +351,7 @@ void Scanner::ScanLibraryTag() {
     return;
   }
   ErrorMsg("Unrecognized library token");
+  SkipLine();
 }
 
 
