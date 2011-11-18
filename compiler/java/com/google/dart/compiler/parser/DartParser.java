@@ -249,25 +249,48 @@ public class DartParser extends CompletionHooksParserBase {
     parseDirectives(unit);
 
     while (!EOS()) {
-      DartNode node = null;
-      beginTopLevelElement();
-      isParsingInterface = false;
-      if (optionalPseudoKeyword(CLASS_KEYWORD)) {
-        node = done(parseClass());
-      } else if (optionalPseudoKeyword(INTERFACE_KEYWORD)) {
-        isParsingInterface = true;
-        node = done(parseClass());
-      } else if (optionalPseudoKeyword(TYPEDEF_KEYWORD)) {
-        node = done(parseFunctionTypeAlias());
-      } else {
-        node = done(parseFieldOrMethod(false));
-      }
-      if (node != null) {
-        unit.addTopLevelNode(node);
+      try {
+        DartNode node = null;
+        beginTopLevelElement();
+        isParsingInterface = false;
+        if (optionalPseudoKeyword(CLASS_KEYWORD)) {
+          node = done(parseClass());
+        } else if (optionalPseudoKeyword(INTERFACE_KEYWORD)) {
+          isParsingInterface = true;
+          node = done(parseClass());
+        } else if (optionalPseudoKeyword(TYPEDEF_KEYWORD)) {
+          node = done(parseFunctionTypeAlias());
+        } else {
+          node = done(parseFieldOrMethod(false));
+        }
+        if (node != null) {
+          unit.addTopLevelNode(node);
+        }
+      } catch (ParserException e) {
+        Location beginLocation = ctx.getTokenLocation();
+        // Find known top level element to restart parsing.
+        while (peek(0) != Token.EOS && !peekTopLevelKeyword(0)) {
+          next();
+        }
+        // Report skipped source.
+        Location endLocation = ctx.getTokenLocation();
+        reportError(new DartCompilationError(ctx.getSource(),
+            new Location(beginLocation.getBegin(), endLocation.getEnd()),
+            ParserErrorCode.SKIPPED_SOURCE));
       }
     }
     expect(Token.EOS);
     return done(unit);
+  }
+
+  /**
+   * @return <code>true</code> if token at given position is keyword which can be used only on top
+   *         level.
+   */
+  private boolean peekTopLevelKeyword(int n) {
+    return peekPseudoKeyword(n, CLASS_KEYWORD)
+        || peekPseudoKeyword(n, INTERFACE_KEYWORD)
+        || peekPseudoKeyword(n, TYPEDEF_KEYWORD);
   }
 
   /**
@@ -435,16 +458,54 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeParameter> types = new ArrayList<DartTypeParameter>();
     expect(Token.LT);
     do {
-      beginTypeParameter();
-      DartIdentifier name = parseIdentifier();
-      DartTypeNode bound = null;
-      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
-        bound = parseTypeAnnotation();
-      }
-      types.add(done(new DartTypeParameter(name, bound)));
+      DartTypeParameter typeParameter = parseTypeParameter();
+      types.add(typeParameter);
     } while (optional(Token.COMMA));
     expect(Token.GT);
     return types;
+  }
+
+  /**
+   * Parses single {@link DartTypeParameter} for {@link #parseTypeParameters()}.
+   */
+  private DartTypeParameter parseTypeParameter() {
+    beginTypeParameter();
+    DartIdentifier name = parseIdentifier();
+    // Try to parse bound.
+    DartTypeNode bound = null;
+    if (peek(0) != Token.EOS && peek(0) != Token.COMMA && peek(0) != Token.GT) {
+      if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
+        // OK, this is EXTENDS_KEYWORD, parse type.
+        bound = parseTypeAnnotation();
+      } else if (peekTopLevelKeyword(0)) {
+        // class Foo<T{cursor}   class Bar {}
+        // User is typing type parameters now, next is top level element.
+        // Stop parsing of current top level element and restart from the next one.
+        throw new ParserException();
+      } else if (peek(0) == Token.IDENTIFIER && (peek(1) == Token.COMMA || peek(1) == Token.GT)) {
+        // <X exte{cursor}>
+        // User tries to type "extends", but it is not finished yet.
+        // Report problem and try to continue.
+        next();
+        reportError(position(), ParserErrorCode.EXPECTED_EXTENDS);
+      } else if (peek(0) == Token.IDENTIFIER
+          && peek(1) == Token.IDENTIFIER
+          && (peek(2) == Token.COMMA || peek(2) == Token.GT)) {
+        // <X somethingLikeExtends Type>
+        // User mistyped word "extends" or it is not finished yet.
+        // Report problem and try to continue.
+        next();
+        reportError(position(), ParserErrorCode.EXPECTED_EXTENDS);
+        bound = parseTypeAnnotation();
+      } else {
+        // Something else, restart parsing from next top level element.
+        next();
+        reportError(position(), ParserErrorCode.EXPECTED_EXTENDS);
+        throw new ParserException();
+      }
+    }
+    // Ready to create DartTypeParameter.
+    return done(new DartTypeParameter(name, bound));
   }
 
   private List<DartTypeParameter> parseTypeParametersOpt() {

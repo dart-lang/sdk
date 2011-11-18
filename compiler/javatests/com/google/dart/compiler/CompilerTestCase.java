@@ -9,6 +9,7 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.ParserContext;
 
@@ -272,6 +273,22 @@ public abstract class CompilerTestCase extends TestCase {
   protected ParserContext makeParserContext(Source src, String sourceCode,
       DartCompilerListener listener) {
     return new DartScannerParserContext(src, sourceCode, listener);
+  }
+
+  /**
+   * @return the {@link DartParserRunner} with parsed source. It can be used to request
+   *         {@link DartUnit} or compilation problems.
+   */
+  protected final DartParserRunner parseSource(String code) {
+    return DartParserRunner.parse(getName(), code, Integer.MAX_VALUE, false);
+  }
+
+  /**
+   * Parses given source and checks parsing problems.
+   */
+  protected final void parseExpectErrors(String code, ErrorExpectation... expectedErrors) {
+    List<DartCompilationError> errors = parseSource(code).getErrors();
+    assertErrors(errors, expectedErrors);
   }
 
   protected static class ErrorExpectation {
