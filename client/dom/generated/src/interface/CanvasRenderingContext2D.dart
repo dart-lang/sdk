@@ -6,6 +6,10 @@
 
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
+  Dynamic get fillStyle();
+
+  void set fillStyle(Dynamic value);
+
   String get font();
 
   void set font(String value);
@@ -49,6 +53,10 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   num get shadowOffsetY();
 
   void set shadowOffsetY(num value);
+
+  Dynamic get strokeStyle();
+
+  void set strokeStyle(Dynamic value);
 
   String get textAlign();
 
@@ -130,8 +138,6 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
-  void setFillStyle(var color_OR_gradient_OR_pattern);
-
   void setLineCap(String cap);
 
   void setLineJoin(String join);
@@ -143,8 +149,6 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
-
-  void setStrokeStyle(var color_OR_gradient_OR_pattern);
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
 

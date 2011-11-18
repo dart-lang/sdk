@@ -107,11 +107,20 @@ class _HTMLSelectElementWrappingImplementation extends _HTMLElementWrappingImple
   }
   static Node _namedItem(receiver, name) native;
 
-  void remove() {
-    _remove(this);
-    return;
+  void remove(var index_OR_option) {
+    if (index_OR_option is int) {
+      _remove(this, index_OR_option);
+      return;
+    } else {
+      if (index_OR_option is HTMLOptionElement) {
+        _remove_2(this, index_OR_option);
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _remove(receiver) native;
+  static void _remove(receiver, index_OR_option) native;
+  static void _remove_2(receiver, index_OR_option) native;
 
   void setCustomValidity(String error) {
     _setCustomValidity(this, error);

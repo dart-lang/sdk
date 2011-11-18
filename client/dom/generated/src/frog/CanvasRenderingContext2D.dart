@@ -1,6 +1,8 @@
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRenderingContext2D" {
 
+  Dynamic fillStyle;
+
   String font;
 
   num globalAlpha;
@@ -22,6 +24,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   num shadowOffsetX;
 
   num shadowOffsetY;
+
+  Dynamic strokeStyle;
 
   String textAlign;
 
@@ -95,8 +99,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
   void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
-  void setFillStyle(var color_OR_gradient_OR_pattern) native;
-
   void setLineCap(String cap) native;
 
   void setLineJoin(String join) native;
@@ -108,8 +110,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
   void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
-
-  void setStrokeStyle(var color_OR_gradient_OR_pattern) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 

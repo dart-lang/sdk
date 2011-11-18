@@ -431,6 +431,7 @@ dom_externs.filesystem;                 // attribute Entry.filesystem, attribute
 dom_externs.fill;                       // operation CanvasRenderingContext2D.fill
 dom_externs.fillMode;                   // attribute WebKitAnimation.fillMode
 dom_externs.fillRect;                   // operation CanvasRenderingContext2D.fillRect
+dom_externs.fillStyle;                  // attribute CanvasRenderingContext2D.fillStyle
 dom_externs.fillText;                   // operation CanvasRenderingContext2D.fillText
 dom_externs.filter;                     // attribute NodeIterator.filter, attribute TreeWalker.filter
 dom_externs.find;                       // operation DOMWindow.find
@@ -1165,7 +1166,6 @@ dom_externs.setEndAfter;                // operation Range.setEndAfter
 dom_externs.setEndBefore;               // operation Range.setEndBefore
 dom_externs.setExtensionAPI;            // operation InspectorFrontendHost.setExtensionAPI
 dom_externs.setFillColor;               // operation CanvasRenderingContext2D.setFillColor
-dom_externs.setFillStyle;               // operation CanvasRenderingContext2D.setFillStyle
 dom_externs.setFloat32;                 // operation DataView.setFloat32
 dom_externs.setFloat64;                 // operation DataView.setFloat64
 dom_externs.setFloatValue;              // operation CSSPrimitiveValue.setFloatValue
@@ -1192,7 +1192,6 @@ dom_externs.setStartAfter;              // operation Range.setStartAfter
 dom_externs.setStartBefore;             // operation Range.setStartBefore
 dom_externs.setStringValue;             // operation CSSPrimitiveValue.setStringValue
 dom_externs.setStrokeColor;             // operation CanvasRenderingContext2D.setStrokeColor
-dom_externs.setStrokeStyle;             // operation CanvasRenderingContext2D.setStrokeStyle
 dom_externs.setTimeout;                 // operation DOMWindow.setTimeout, operation WorkerContext.setTimeout
 dom_externs.setTransform;               // operation CanvasRenderingContext2D.setTransform
 dom_externs.setUint16;                  // operation DataView.setUint16
@@ -1258,6 +1257,7 @@ dom_externs.storageId;                  // operation InjectedScriptHost.storageI
 dom_externs.stringValue;                // attribute XPathResult.stringValue
 dom_externs.stroke;                     // operation CanvasRenderingContext2D.stroke
 dom_externs.strokeRect;                 // operation CanvasRenderingContext2D.strokeRect
+dom_externs.strokeStyle;                // attribute CanvasRenderingContext2D.strokeStyle
 dom_externs.strokeText;                 // operation CanvasRenderingContext2D.strokeText
 dom_externs.style;                      // attribute CSSFontFaceRule.style, attribute CSSPageRule.style, attribute CSSStyleRule.style, attribute Element.style, attribute WebKitCSSKeyframeRule.style
 dom_externs.styleMedia;                 // attribute DOMWindow.styleMedia

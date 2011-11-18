@@ -354,5 +354,6 @@
 #source('src/TimeoutHandler.dart');
 
 class Window extends DOMWindow {}
-Window window;
-HTMLDocument get document() => window.document;
+DOMWindow get window() native "return window;";
+// TODO(vsm): Revert to Dart method when 508 is fixed.
+HTMLDocument get document() native "return window.document;";

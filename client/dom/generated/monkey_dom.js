@@ -318,6 +318,8 @@ function DOM$fixClass$CanvasRenderingContext(c) {
 }
 function DOM$fixClass$CanvasRenderingContext2D(c) {
   if (c.prototype) {
+    c.prototype.fillStyle$getter = function() { return DOM$EnsureDartNull(this.fillStyle); };
+    c.prototype.fillStyle$setter = function(value) { this.fillStyle = value; };
     c.prototype.font$getter = function() { return DOM$EnsureDartNull(this.font); };
     c.prototype.font$setter = function(value) { this.font = value; };
     c.prototype.globalAlpha$getter = function() { return DOM$EnsureDartNull(this.globalAlpha); };
@@ -340,6 +342,8 @@ function DOM$fixClass$CanvasRenderingContext2D(c) {
     c.prototype.shadowOffsetX$setter = function(value) { this.shadowOffsetX = value; };
     c.prototype.shadowOffsetY$getter = function() { return DOM$EnsureDartNull(this.shadowOffsetY); };
     c.prototype.shadowOffsetY$setter = function(value) { this.shadowOffsetY = value; };
+    c.prototype.strokeStyle$getter = function() { return DOM$EnsureDartNull(this.strokeStyle); };
+    c.prototype.strokeStyle$setter = function(value) { this.strokeStyle = value; };
     c.prototype.textAlign$getter = function() { return DOM$EnsureDartNull(this.textAlign); };
     c.prototype.textAlign$setter = function(value) { this.textAlign = value; };
     c.prototype.textBaseline$getter = function() { return DOM$EnsureDartNull(this.textBaseline); };
@@ -380,14 +384,12 @@ function DOM$fixClass$CanvasRenderingContext2D(c) {
     'setAlpha',
     'setCompositeOperation',
     'setFillColor',
-    'setFillStyle',
     'setLineCap',
     'setLineJoin',
     'setLineWidth',
     'setMiterLimit',
     'setShadow',
     'setStrokeColor',
-    'setStrokeStyle',
     'setTransform',
     'stroke',
     'strokeRect',

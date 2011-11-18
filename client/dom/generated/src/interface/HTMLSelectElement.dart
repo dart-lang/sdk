@@ -64,7 +64,7 @@ interface HTMLSelectElement extends HTMLElement {
 
   Node namedItem(String name);
 
-  void remove();
+  void remove(var index_OR_option);
 
   void setCustomValidity(String error);
 }

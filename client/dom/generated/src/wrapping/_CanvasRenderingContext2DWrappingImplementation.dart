@@ -11,6 +11,12 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
     return new _CanvasRenderingContext2DWrappingImplementation();
   }
 
+  Dynamic get fillStyle() { return _get__CanvasRenderingContext2D_fillStyle(this); }
+  static Dynamic _get__CanvasRenderingContext2D_fillStyle(var _this) native;
+
+  void set fillStyle(Dynamic value) { _set__CanvasRenderingContext2D_fillStyle(this, value); }
+  static void _set__CanvasRenderingContext2D_fillStyle(var _this, Dynamic value) native;
+
   String get font() { return _get__CanvasRenderingContext2D_font(this); }
   static String _get__CanvasRenderingContext2D_font(var _this) native;
 
@@ -76,6 +82,12 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
 
   void set shadowOffsetY(num value) { _set__CanvasRenderingContext2D_shadowOffsetY(this, value); }
   static void _set__CanvasRenderingContext2D_shadowOffsetY(var _this, num value) native;
+
+  Dynamic get strokeStyle() { return _get__CanvasRenderingContext2D_strokeStyle(this); }
+  static Dynamic _get__CanvasRenderingContext2D_strokeStyle(var _this) native;
+
+  void set strokeStyle(Dynamic value) { _set__CanvasRenderingContext2D_strokeStyle(this, value); }
+  static void _set__CanvasRenderingContext2D_strokeStyle(var _this, Dynamic value) native;
 
   String get textAlign() { return _get__CanvasRenderingContext2D_textAlign(this); }
   static String _get__CanvasRenderingContext2D_textAlign(var _this) native;
@@ -570,27 +582,6 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   static void _setFillColor_5(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native;
   static void _setFillColor_6(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native;
 
-  void setFillStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _setFillStyle(this, color_OR_gradient_OR_pattern);
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _setFillStyle_2(this, color_OR_gradient_OR_pattern);
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _setFillStyle_3(this, color_OR_gradient_OR_pattern);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-  static void _setFillStyle(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setFillStyle_2(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setFillStyle_3(receiver, color_OR_gradient_OR_pattern) native;
-
   void setLineCap(String cap) {
     _setLineCap(this, cap);
     return;
@@ -750,27 +741,6 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   static void _setStrokeColor_4(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native;
   static void _setStrokeColor_5(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native;
   static void _setStrokeColor_6(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native;
-
-  void setStrokeStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _setStrokeStyle(this, color_OR_gradient_OR_pattern);
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _setStrokeStyle_2(this, color_OR_gradient_OR_pattern);
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _setStrokeStyle_3(this, color_OR_gradient_OR_pattern);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-  static void _setStrokeStyle(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setStrokeStyle_2(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setStrokeStyle_3(receiver, color_OR_gradient_OR_pattern) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) {
     _setTransform(this, m11, m12, m21, m22, dx, dy);

@@ -41,7 +41,7 @@ class HTMLSelectElement extends HTMLElement native "HTMLSelectElement" {
 
   Node namedItem(String name) native;
 
-  void remove() native;
+  void remove(var index_OR_option) native;
 
   void setCustomValidity(String error) native;
 }

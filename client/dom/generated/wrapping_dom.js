@@ -686,6 +686,22 @@ function native__CanvasRenderingContextWrappingImplementation__get__CanvasRender
   }
 }
 
+function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_fillStyle(_this) {
+  try {
+    return __dom_wrap(_this.$dom.fillStyle);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_fillStyle(_this, value) {
+  try {
+    _this.$dom.fillStyle = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_font(_this) {
   try {
     return __dom_wrap(_this.$dom.font);
@@ -857,6 +873,22 @@ function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRend
 function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_shadowOffsetY(_this, value) {
   try {
     _this.$dom.shadowOffsetY = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__get__CanvasRenderingContext2D_strokeStyle(_this) {
+  try {
+    return __dom_wrap(_this.$dom.strokeStyle);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__set__CanvasRenderingContext2D_strokeStyle(_this, value) {
+  try {
+    _this.$dom.strokeStyle = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16486,9 +16518,17 @@ function native__HTMLSelectElementWrappingImplementation__namedItem(_this, name)
   }
 }
 
-function native__HTMLSelectElementWrappingImplementation__remove(_this) {
+function native__HTMLSelectElementWrappingImplementation__remove(_this, index_OR_option) {
   try {
-    return __dom_wrap(_this.$dom.remove());
+    return __dom_wrap(_this.$dom.remove(__dom_unwrap(index_OR_option)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLSelectElementWrappingImplementation__remove_2(_this, index_OR_option) {
+  try {
+    return __dom_wrap(_this.$dom.remove(__dom_unwrap(index_OR_option)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

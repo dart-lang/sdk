@@ -19,6 +19,7 @@ _logger = logging.getLogger('dartgenerator')
 # IDL->Dart primitive types conversion.
 _idl_to_dart_type_conversions = {
     'any': 'Object',
+    'custom': 'Dynamic',
     'boolean': 'bool',
     'DOMObject': 'Object',
     'DOMString': 'String',
