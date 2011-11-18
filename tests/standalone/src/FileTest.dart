@@ -45,14 +45,15 @@ class FileTest {
     input.close();
     // Write the contents of the file just read into another file.
     String outFilenameBase = getFilename("tests/vm/data/fixed_length_file");
-    file = new File(outFilenameBase + "_out");
+    String outFilename = outFilenameBase + "_out_read_write_stream";
+    file = new File(outFilename);
     OutputStream output = file.openOutputStream();
     bool writeDone = output.writeFrom(buffer1, 0, 42);
     Expect.equals(true, writeDone);
     output.close();
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(42);
-    file = new File(outFilenameBase + "_out");
+    file = new File(outFilename);
     input = file.openInputStream();
     bytesRead = input.readInto(buffer2, 0, 42);
     input.close();
@@ -141,8 +142,9 @@ class FileTest {
         file.closeHandler = () {
           // Write the contents of the file just read into another file.
           String outFilenameBase =
-          getFilename("tests/vm/data/fixed_length_file");
-          file = new File(outFilenameBase + "_out");
+              getFilename("tests/vm/data/fixed_length_file");
+          String outFilename = outFilenameBase + "_out_read_write";
+          file = new File(outFilename);
           file.errorHandler = (s) {
             Expect.fail("No errors expected");
           };
@@ -157,7 +159,7 @@ class FileTest {
                   file.closeHandler = () {
                     // Now read the contents of the file just written.
                     List<int> buffer2 = new List<int>(bytes_read);
-                    file = new File(getFilename(outFilenameBase + "_out"));
+                    file = new File(outFilename);
                     file.errorHandler = (s) {
                       Expect.fail("No errors expected");
                     };
@@ -218,7 +220,8 @@ class FileTest {
     file.closeSync();
     // Write the contents of the file just read into another file.
     String outFilenameBase = getFilename("tests/vm/data/fixed_length_file");
-    file = new File(outFilenameBase + "_out");
+    String outFilename = outFilenameBase + "_out_read_write_sync";
+    file = new File(outFilename);
     file.createSync();
     String path = file.fullPathSync();
     if (path[0] != '/' && path[0] != '\\' && path[1] != ':') {
@@ -230,7 +233,7 @@ class FileTest {
     file.closeSync();
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(bytes_read);
-    file = new File(getFilename(outFilenameBase + "_out"));
+    file = new File(outFilename);
     file.openSync();
     bytes_read = file.readListSync(buffer2, 0, 42);
     Expect.equals(42, bytes_read);
@@ -329,7 +332,7 @@ class FileTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    File input = new File(filename + "_out");
+    File input = new File(filename + "_out_close_exception");
     input.openSync(true);
     input.closeSync();
     try {
@@ -413,6 +416,7 @@ class FileTest {
     }
     Expect.equals(true, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
+    input.deleteSync();
     return 1;
   }
 
@@ -421,7 +425,8 @@ class FileTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    File file = new File(filename + "_out");
+    File file = new File(filename + "_out_close_exception_stream");
+    file.createSync();
     FileInputStream input = file.openInputStream();
     input.close();
     try {
@@ -447,6 +452,7 @@ class FileTest {
     }
     Expect.equals(true, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
+    file.deleteSync();
     return 1;
   }
 
@@ -455,7 +461,7 @@ class FileTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    File file = new File(filename + "_out");
+    File file = new File(filename + "_out_buffer_out_of_bounds");
     file.openSync(true);
     try {
       List<int> buffer = new List<int>(10);
@@ -545,6 +551,7 @@ class FileTest {
     Expect.equals(true, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
     file.closeSync();
+    file.deleteSync();
     return 1;
   }
 
