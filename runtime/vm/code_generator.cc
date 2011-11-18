@@ -328,15 +328,21 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
       Bool::True() : Bool::False());
   if (FLAG_trace_type_checks) {
     const Type& instance_type = Type::Handle(instance.GetType());
-    Type& instantiated_type = Type::Handle(type.raw());
-    if (!type.IsInstantiated()) {
+    if (type.IsInstantiated()) {
+      OS::Print("InstanceOf: '%s' %s '%s'\n",
+                String::Handle(instance_type.Name()).ToCString(),
+                (result.raw() == Bool::True()) ? "is" : "is !",
+                String::Handle(type.Name()).ToCString());
+    } else {
       // Instantiate type before printing.
-      instantiated_type = type.InstantiateFrom(type_instantiator, 0);
+      const Type& instantiated_type =
+          Type::Handle(type.InstantiateFrom(type_instantiator, 0));
+      OS::Print("InstanceOf: '%s' %s '%s' instantiated from '%s'\n",
+                String::Handle(instance_type.Name()).ToCString(),
+                (result.raw() == Bool::True()) ? "is" : "is !",
+                String::Handle(instantiated_type.Name()).ToCString(),
+                String::Handle(type.Name()).ToCString());
     }
-    OS::Print("InstanceOf: '%s' %s '%s'\n",
-              String::Handle(instance_type.Name()).ToCString(),
-              (result.raw() == Bool::True()) ? "is" : "is !",
-              String::Handle(instantiated_type.Name()).ToCString());
   }
   arguments.SetReturn(result);
 }
