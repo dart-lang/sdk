@@ -210,6 +210,7 @@ CallThroughGetterTest: Fail
 CanonicalConstTest: Fail # type in const array allocation is erased
 CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
+ClosureSharedStateTest: Fail
 ClosuresWithComplexParamsTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
