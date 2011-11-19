@@ -411,9 +411,6 @@ class DartGenerator(object):
     """."""
     _logger.info('Generating %s' % interface.id)
 
-
-    self._overloaded_types = set()
-
     dart_interface_generator = self._MakeDartInterfaceGenerator(
         interface,
         common_prefix,
@@ -434,25 +431,25 @@ class DartGenerator(object):
         super_interface_name,
         source_filter)
 
-    dart_interface_generator.StartInterface()
-    monkey_interface_generator.StartInterface()
-    wrapping_interface_generator.StartInterface()
-    frog_interface_generator.StartInterface()
+    generators = [dart_interface_generator,
+                  monkey_interface_generator,
+                  wrapping_interface_generator,
+                  frog_interface_generator]
+
+    for generator in generators:
+      generator.StartInterface()
 
     for const in sorted(interface.constants, ConstantOutputOrder):
-      dart_interface_generator.AddConstant(const)
+      for generator in generators:
+        generator.AddConstant(const)
 
     for attr in sorted(interface.attributes, AttributeOutputOrder):
       if attr.is_fc_getter:
-        dart_interface_generator.AddGetter(attr)
-        monkey_interface_generator.AddGetter(attr)
-        wrapping_interface_generator.AddGetter(attr)
-        frog_interface_generator.AddGetter(attr)
+        for generator in generators:
+          generator.AddGetter(attr)
       elif attr.is_fc_setter:
-        dart_interface_generator.AddSetter(attr)
-        monkey_interface_generator.AddSetter(attr)
-        wrapping_interface_generator.AddSetter(attr)
-        frog_interface_generator.AddSetter(attr)
+        for generator in generators:
+          generator.AddSetter(attr)
 
     # The implementation should define an indexer if the interface directly
     # extends List.
@@ -460,9 +457,8 @@ class DartGenerator(object):
       match = re.match(r'List<(\w*)>$', parent.type.id)
       if match:
         element_type = match.group(1)
-        monkey_interface_generator.AddIndexer(element_type)
-        wrapping_interface_generator.AddListImplementation(element_type)
-        frog_interface_generator.AddListImplementation(element_type)
+        for generator in generators:
+          generator.AddIndexer(element_type)
         break
 
     # Group overloaded operations by id
@@ -476,10 +472,8 @@ class DartGenerator(object):
     for id in sorted(operationsById.keys()):
       operations = operationsById[id]
       info = self._AnalyzeOperation(interface, operations)
-      dart_interface_generator.AddOperation(info)
-      monkey_interface_generator.AddOperation(info)
-      wrapping_interface_generator.AddOperation(info)
-      frog_interface_generator.AddOperation(info)
+      for generator in generators:
+        generator.AddOperation(info)
 
     # With multiple inheritance, attributes and operations of non-first
     # interfaces need to be added.  Sometimes the attribute or operation is
@@ -494,19 +488,11 @@ class DartGenerator(object):
       for attr in attributes:
         if not self._DefinesSameAttribute(interface, attr):
           if attr.is_fc_getter:
-            monkey_interface_generator.AddSecondaryGetter(
-                parent_interface, attr)
-            wrapping_interface_generator.AddSecondaryGetter(
-                parent_interface, attr)
-            frog_interface_generator.AddSecondaryGetter(
-                parent_interface, attr)
+            for generator in generators:
+              generator.AddSecondaryGetter(parent_interface, attr)
           elif attr.is_fc_setter:
-            monkey_interface_generator.AddSecondarySetter(
-                parent_interface, attr)
-            wrapping_interface_generator.AddSecondarySetter(
-                parent_interface, attr)
-            frog_interface_generator.AddSecondarySetter(
-                parent_interface, attr)
+            for generator in generators:
+              generator.AddSecondarySetter(parent_interface, attr)
 
       # Group overloaded operations by id
       operationsById = {}
@@ -520,17 +506,11 @@ class DartGenerator(object):
         if not any(op.id == id for op in interface.operations):
           operations = operationsById[id]
           info = self._AnalyzeOperation(interface, operations)
-          monkey_interface_generator.AddSecondaryOperation(
-              parent_interface, info)
-          wrapping_interface_generator.AddSecondaryOperation(
-              parent_interface, info)
-          frog_interface_generator.AddSecondaryOperation(
-              parent_interface, info)
+          for generator in generators:
+            generator.AddSecondaryOperation(parent_interface, info)
 
-    dart_interface_generator.FinishInterface(self._overloaded_types)
-    monkey_interface_generator.FinishInterface()
-    wrapping_interface_generator.FinishInterface()
-    frog_interface_generator.FinishInterface()
+    for generator in generators:
+      generator.FinishInterface()
     return
 
   def _DefinesSameAttribute(self, interface, attr1):
@@ -578,7 +558,6 @@ class DartGenerator(object):
       if len(typeIds) == 1:
         return typeIds[0]
       else:
-        self._overloaded_types.add(tuple(typeIds))
         return TypeName(typeIds, interface)
 
     # Given a list of overloaded arguments, render a dart argument.
@@ -1108,7 +1087,7 @@ class DartInterfaceGenerator(object):
                            COMMENT=comment,
                            SUPERS=', '.join(suppressed_extends))
 
-  def FinishInterface(self, overloaded_types):
+  def FinishInterface(self):
     # Write snippet text that was inlined in the IDL.
     for snippet in self._interface.snippets:
       self._members_emitter.Emit('\n$LINES',
@@ -1157,6 +1136,10 @@ class DartInterfaceGenerator(object):
     self._members_emitter.Emit('\n  void set $NAME($TYPE value);\n',
                                NAME=attr.id, TYPE=attr.type.id)
 
+  def AddIndexer(self, element_type):
+    # Interface inherits all operations from List<element_type>.
+    pass
+
   def AddOperation(self, info):
     """
     Arguments:
@@ -1168,6 +1151,14 @@ class DartInterfaceGenerator(object):
                                TYPE=info.type_name,
                                NAME=info.name,
                                ARGS=info.arg_interface_declaration)
+
+  # Interfaces get secondary members directly via the superinterfaces.
+  def AddSecondaryGetter(self, attr):
+    pass
+  def AddSecondarySetter(self, attr):
+    pass
+  def AddSecondaryOperation(self, attr):
+    pass
 
 
 # Given a sorted sequence of type identifiers, return an appropriate type
@@ -1231,7 +1222,7 @@ class WrappingInterfaceGenerator(object):
           not supertype == 'EventTarget'):
         base = self._ImplClassName(supertype)
       if _IsDartCollectionType(supertype):
-        # List methods are injected in AddListImplementation.
+        # List methods are injected in AddIndexer.
         pass
       elif supertype == 'EventTarget':
         # Most implementors of EventTarget specify the EventListener operations
@@ -1268,6 +1259,7 @@ class WrappingInterfaceGenerator(object):
     pass
 
   def AddConstant(self, constant):
+    # Constants are already defined on the interface.
     pass
 
   def _MethodName(self, prefix, name):
@@ -1336,8 +1328,7 @@ class WrappingInterfaceGenerator(object):
       self._current_secondary_parent = interface
       self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
 
-
-  def AddListImplementation(self, element_type):
+  def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
     # get length(), [], and maybe []=.  It is possible to extend from a base
@@ -1775,6 +1766,8 @@ class MonkeyInterfaceGenerator(object):
       prefix = temp
     return "%s && (%s = {prototype: %s})" % (' && '.join(steps), temp, temp)
 
+  def AddConstant(self, constant):
+    pass
 
   def AddGetter(self, attr):
     """Emits code to initialize an attribute getter."""
@@ -1895,7 +1888,7 @@ class FrogInterfaceGenerator(object):
           not supertype == 'EventTarget'):
         base = self._ImplClassName(supertype)
       if _IsDartCollectionType(supertype):
-        # List methods are injected in AddListImplementation.
+        # List methods are injected in AddIndexer.
         pass
       elif supertype == 'EventTarget':
         # Most implementors of EventTarget specify the EventListener operations
@@ -1968,8 +1961,7 @@ class FrogInterfaceGenerator(object):
       self._current_secondary_parent = interface
       self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
 
-
-  def AddListImplementation(self, element_type):
+  def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
     # get length(), [], and maybe []=.  It is possible to extend from a base
