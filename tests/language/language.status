@@ -211,7 +211,6 @@ CanonicalConstTest: Fail # type in const array allocation is erased
 CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
 ClosureSharedStateTest: Fail
-ClosuresWithComplexParamsTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
@@ -256,7 +255,6 @@ InstanceofTest: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail
-LibraryPrefixesTest: Fail
 Library1NegativeTest: Fail # issue with test see #354
 Library4NegativeTest: Fail # issue with test see #354
 Library5NegativeTest: Fail # issue with test see #354

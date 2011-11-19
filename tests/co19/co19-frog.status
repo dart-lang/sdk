@@ -11,7 +11,6 @@ LangSpecTest/13_Types/13_4_Interface_Types/A12/t09: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A01/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t11: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A05/t04: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A02/t01: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t16: Fail
@@ -28,16 +27,12 @@ LangSpecTest/13_Types/13_5_Function_Types/A01/t03: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t11: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t05: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t15: Fail
-LangSpecTest/13_Types/13_5_Function_Types/A02/t02: Fail
-LangSpecTest/13_Types/13_5_Function_Types/A02/t04: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t09: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t07: Fail
-LangSpecTest/13_Types/13_5_Function_Types/A02/t03: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t14: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t10: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t13: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t02: Fail
-LangSpecTest/13_Types/13_5_Function_Types/A02/t01: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t06: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A02/t01: Fail
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A04/t01: Fail
