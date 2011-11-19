@@ -18,7 +18,7 @@ touch/touch_tests: Fail  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
 html/html_tests: Skip # mostly passing, an issue with DocumentFragment elements
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
-json/json_tests: Fail
+json/json_tests: Pass
 samples/swarm/swarm_tests: Skip # until we get the 2-arg WebKitPoint ctor back
 
 [ $component == chromium && $mode == release ]
