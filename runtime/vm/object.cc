@@ -465,6 +465,21 @@ void Object::Init(Isolate* isolate) {
   RegisterClass(cls, "FourByteString", impl_script, core_impl_lib);
   pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
+  cls = Class::New<ExternalOneByteString>();
+  object_store->set_external_one_byte_string_class(cls);
+  RegisterClass(cls, "ExternalOneByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
+  cls = Class::New<ExternalTwoByteString>();
+  object_store->set_external_two_byte_string_class(cls);
+  RegisterClass(cls, "ExternalTwoByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
+  cls = Class::New<ExternalFourByteString>();
+  object_store->set_external_four_byte_string_class(cls);
+  RegisterClass(cls, "ExternalFourByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
   cls = Class::New<UnhandledException>();
   object_store->set_unhandled_exception_class(cls);
   RegisterClass(cls, "UnhandledException", impl_script, core_impl_lib);
@@ -639,6 +654,15 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
+
+  cls = Class::New<ExternalOneByteString>();
+  object_store->set_external_one_byte_string_class(cls);
+
+  cls = Class::New<ExternalTwoByteString>();
+  object_store->set_external_two_byte_string_class(cls);
+
+  cls = Class::New<ExternalFourByteString>();
+  object_store->set_external_four_byte_string_class(cls);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
@@ -1138,6 +1162,15 @@ RawClass* Class::GetClass(ObjectKind kind) {
     case kFourByteString:
       ASSERT(object_store->four_byte_string_class() != Class::null());
       return object_store->four_byte_string_class();
+    case kExternalOneByteString:
+      ASSERT(object_store->external_one_byte_string_class() != Class::null());
+      return object_store->external_one_byte_string_class();
+    case kExternalTwoByteString:
+      ASSERT(object_store->external_two_byte_string_class() != Class::null());
+      return object_store->external_two_byte_string_class();
+    case kExternalFourByteString:
+      ASSERT(object_store->external_four_byte_string_class() != Class::null());
+      return object_store->external_four_byte_string_class();
     case kBool:
       ASSERT(object_store->bool_class() != Class::null());
       return object_store->bool_class();
@@ -5591,6 +5624,13 @@ int32_t String::CharAt(intptr_t index) const {
 }
 
 
+intptr_t String::CharSize() const {
+  // String is an abstract class.
+  UNREACHABLE();
+  return 0;
+}
+
+
 bool String::Equals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     // Both handles point to the same raw instance.
@@ -5854,19 +5894,46 @@ RawString* String::New(const String& str, Heap::Space space) {
   // Once we have external string support, this will also create a heap copy of
   // the string if necessary. Some optimizations are possible, such as not
   // copying internal strings into the same space.
-  if (str.IsOneByteString()) {
-    OneByteString& one_byte_str = OneByteString::Handle();
-    one_byte_str ^= str.raw();
-    return OneByteString::New(one_byte_str, space);
-  } else if (str.IsTwoByteString()) {
-    TwoByteString& two_byte_str = TwoByteString::Handle();
-    two_byte_str ^= str.raw();
-    return TwoByteString::New(two_byte_str, space);
+  intptr_t len = str.Length();
+  String& result = String::Handle();
+  intptr_t char_size = str.CharSize();
+  if (char_size == kOneByteChar) {
+    result ^= OneByteString::New(len, space);
+  } else if (char_size == kTwoByteChar) {
+    result ^= TwoByteString::New(len, space);
+  } else {
+    ASSERT(char_size == kFourByteChar);
+    result ^= FourByteString::New(len, space);
   }
-  ASSERT(str.IsFourByteString());
-  FourByteString& four_byte_str = FourByteString::Handle();
-  four_byte_str ^= str.raw();
-  return FourByteString::New(four_byte_str, space);
+  String::Copy(result, 0, str, 0, len);
+  return result.raw();
+}
+
+
+RawString* String::NewExternal(const uint8_t* characters,
+                               intptr_t len,
+                               void* peer,
+                               PeerFinalizer callback,
+                               Heap::Space space) {
+  return ExternalOneByteString::New(characters, len, peer, callback, space);
+}
+
+
+RawString* String::NewExternal(const uint16_t* characters,
+                               intptr_t len,
+                               void* peer,
+                               PeerFinalizer callback,
+                               Heap::Space space) {
+  return ExternalTwoByteString::New(characters, len, peer, callback, space);
+}
+
+
+RawString* String::NewExternal(const uint32_t* characters,
+                               intptr_t len,
+                               void* peer,
+                               PeerFinalizer callback,
+                               Heap::Space space) {
+  return ExternalFourByteString::New(characters, len, peer, callback, space);
 }
 
 
@@ -5978,22 +6045,47 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(len <= (dst.Length() - dst_offset));
   ASSERT(len <= (src.Length() - src_offset));
   if (len > 0) {
-    if (src.IsOneByteString()) {
-      OneByteString& onestr = OneByteString::Handle();
-      onestr ^= src.raw();
-      NoGCScope no_gc;
-      String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
-    } else if (src.IsTwoByteString()) {
-      TwoByteString& twostr = TwoByteString::Handle();
-      twostr ^= src.raw();
-      NoGCScope no_gc;
-      String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+    intptr_t char_size = src.CharSize();
+    if (char_size == kOneByteChar) {
+      if (src.IsOneByteString()) {
+        OneByteString& onestr = OneByteString::Handle();
+        onestr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
+      } else {
+        ASSERT(src.IsExternalOneByteString());
+        ExternalOneByteString& onestr = ExternalOneByteString::Handle();
+        onestr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
+      }
+    } else if (char_size == kTwoByteChar) {
+      if (src.IsTwoByteString()) {
+        TwoByteString& twostr = TwoByteString::Handle();
+        twostr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+      } else {
+        ASSERT(src.IsExternalTwoByteString());
+        ExternalTwoByteString& twostr = ExternalTwoByteString::Handle();
+        twostr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+      }
     } else {
-      ASSERT(src.IsFourByteString());
-      FourByteString& fourstr = FourByteString::Handle();
-      fourstr ^= src.raw();
-      NoGCScope no_gc;
-      String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
+      ASSERT(char_size == kFourByteChar);
+      if (src.IsFourByteString()) {
+        FourByteString& fourstr = FourByteString::Handle();
+        fourstr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
+      } else {
+        ASSERT(src.IsExternalFourByteString());
+        ExternalFourByteString& fourstr = ExternalFourByteString::Handle();
+        fourstr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
+      }
     }
   }
 }
@@ -6155,13 +6247,13 @@ RawString* String::Concat(const String& str1,
                           const String& str2,
                           Heap::Space space) {
   ASSERT(!str1.IsNull() && !str2.IsNull());
-  if (str1.IsFourByteString() || str2.IsFourByteString()) {
+  intptr_t char_size = Utils::Maximum(str1.CharSize(), str2.CharSize());
+  if (char_size == kFourByteChar) {
     return FourByteString::Concat(str1, str2, space);
   }
-  if (str1.IsTwoByteString() || str2.IsTwoByteString()) {
+  if (char_size == kTwoByteChar) {
     return TwoByteString::Concat(str1, str2, space);
   }
-  ASSERT(str1.IsOneByteString() && str2.IsOneByteString());
   return OneByteString::Concat(str1, str2, space);
 }
 
@@ -6169,26 +6261,21 @@ RawString* String::Concat(const String& str1,
 RawString* String::ConcatAll(const Array& strings,
                              Heap::Space space) {
   ASSERT(!strings.IsNull());
-  bool is_one_byte_string = true;
-  bool is_two_byte_string = true;
   intptr_t result_len = 0;
   intptr_t strings_len = strings.Length();
   String& str = String::Handle();
+  intptr_t char_size = kOneByteChar;
   for (intptr_t i = 0; i < strings_len; i++) {
     str ^= strings.At(i);
     result_len += str.Length();
-    if (str.IsFourByteString()) {
-      is_one_byte_string = false;
-      is_two_byte_string = false;
-    } else if (str.IsTwoByteString()) {
-      is_one_byte_string = false;
-    }
+    char_size = Utils::Maximum(char_size, str.CharSize());
   }
-  if (is_one_byte_string) {
+  if (char_size == kOneByteChar) {
     return OneByteString::ConcatAll(strings, result_len, space);
-  } else if (is_two_byte_string) {
+  } else if (char_size == kTwoByteChar) {
     return TwoByteString::ConcatAll(strings, result_len, space);
   }
+  ASSERT(char_size == kFourByteChar);
   return FourByteString::ConcatAll(strings, result_len, space);
 }
 
@@ -6214,19 +6301,37 @@ RawString* String::SubString(const String& str,
   if (begin_index >= str.Length()) {
     return String::null();
   }
-  if (str.IsOneByteString()) {
-    OneByteString& obstr = OneByteString::Handle();
-    obstr ^= str.raw();
-    return OneByteString::SubString(obstr, begin_index, length, space);
-  } else if (str.IsTwoByteString()) {
-    TwoByteString& twostr = TwoByteString::Handle();
-    twostr ^= str.raw();
-    return TwoByteString::SubString(twostr, begin_index, length, space);
+  String& result = String::Handle();
+  bool is_one_byte_string = true;
+  bool is_two_byte_string = true;
+  intptr_t char_size = str.CharSize();
+  if (char_size == kTwoByteChar) {
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+        break;
+      }
+    }
+  } else if (char_size == kFourByteChar) {
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFFFF) {
+        is_one_byte_string = false;
+        is_two_byte_string = false;
+        break;
+      } else if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+      }
+    }
   }
-  ASSERT(str.IsFourByteString());
-  FourByteString& fourstr = FourByteString::Handle();
-  fourstr ^= str.raw();
-  return FourByteString::SubString(fourstr, begin_index, length, space);
+  if (is_one_byte_string) {
+    result ^= OneByteString::New(length, space);
+  } else if (is_two_byte_string) {
+    result ^= TwoByteString::New(length, space);
+  } else {
+    result ^= FourByteString::New(length, space);
+  }
+  String::Copy(result, 0, str, begin_index, length);
+  return result.raw();
 }
 
 
@@ -6374,22 +6479,6 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
 }
 
 
-RawString* OneByteString::SubString(const OneByteString& str,
-                                    intptr_t begin_index,
-                                    intptr_t length,
-                                    Heap::Space space) {
-  ASSERT(!str.IsNull());
-  ASSERT(begin_index < str.Length());
-  OneByteString& result = OneByteString::Handle();
-  if (length <= (str.Length() - begin_index)) {
-    result ^= OneByteString::New(length, space);
-    String::Copy(result, 0, str, begin_index, length);
-  }
-  // TODO(5418937): return a non-null object on error.
-  return result.raw();
-}
-
-
 RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            const String& str,
                                            Heap::Space space) {
@@ -6493,33 +6582,6 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
 }
 
 
-RawString* TwoByteString::SubString(const TwoByteString& str,
-                                    intptr_t begin_index,
-                                    intptr_t length,
-                                    Heap::Space space) {
-  ASSERT(!str.IsNull());
-  ASSERT(begin_index < str.Length());
-  String& result = String::Handle();
-  if (length <= (str.Length() - begin_index)) {
-    bool is_one_byte_string = true;
-    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFF) {
-        is_one_byte_string = false;
-        break;
-      }
-    }
-    if (is_one_byte_string) {
-      result ^= OneByteString::New(length, space);
-    } else {
-      result ^= TwoByteString::New(length, space);
-    }
-    String::Copy(result, 0, str, begin_index, length);
-  }
-  // TODO(5418937): return a non-null object on error.
-  return result.raw();
-}
-
-
 RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            const String& str,
                                            Heap::Space space) {
@@ -6611,39 +6673,6 @@ RawFourByteString* FourByteString::ConcatAll(const Array& strings,
 }
 
 
-RawString* FourByteString::SubString(const FourByteString& str,
-                                     intptr_t begin_index,
-                                     intptr_t length,
-                                     Heap::Space space) {
-  ASSERT(!str.IsNull());
-  ASSERT(begin_index < str.Length());
-  String& result = String::Handle();
-  if (length <= (str.Length() - begin_index)) {
-    bool is_one_byte_string = true;
-    bool is_two_byte_string = true;
-    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFFFF) {
-        is_one_byte_string = false;
-        is_two_byte_string = false;
-        break;
-      } else if (str.CharAt(i) > 0xFF) {
-        is_one_byte_string = false;
-      }
-    }
-    if (is_one_byte_string) {
-      result ^= OneByteString::New(length, space);
-    } else if (is_two_byte_string) {
-      result ^= TwoByteString::New(length, space);
-    } else {
-      result ^= FourByteString::New(length, space);
-    }
-    String::Copy(result, 0, str, begin_index, length);
-  }
-  // TODO(5418937): return a non-null object on error.
-  return result.raw();
-}
-
-
 RawFourByteString* FourByteString::Transform(int32_t (*mapping)(int32_t ch),
                                              const String& str,
                                              Heap::Space space) {
@@ -6661,6 +6690,99 @@ RawFourByteString* FourByteString::Transform(int32_t (*mapping)(int32_t ch),
 
 
 const char* FourByteString::ToCString() const {
+  return String::ToCString();
+}
+
+
+RawExternalOneByteString* ExternalOneByteString::New(const uint8_t* data,
+                                                     intptr_t len,
+                                                     void* peer,
+                                                     PeerFinalizer callback,
+                                                     Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+
+  const Class& cls =
+      Class::Handle(isolate->object_store()->external_one_byte_string_class());
+  ExternalOneByteString& result = ExternalOneByteString::Handle();
+  {
+    ExternalStringData<uint8_t>* external_data =
+        new ExternalStringData<uint8_t>(data, peer, callback);
+    RawObject* raw = Object::Allocate(cls,
+                                      ExternalOneByteString::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetHash(0);
+    result.SetExternalData(external_data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalOneByteString::ToCString() const {
+  return String::ToCString();
+}
+
+
+RawExternalTwoByteString* ExternalTwoByteString::New(const uint16_t* data,
+                                                     intptr_t len,
+                                                     void* peer,
+                                                     PeerFinalizer callback,
+                                                     Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+
+  const Class& cls =
+      Class::Handle(isolate->object_store()->external_two_byte_string_class());
+  ExternalTwoByteString& result = ExternalTwoByteString::Handle();
+  {
+    ExternalStringData<uint16_t>* external_data =
+        new ExternalStringData<uint16_t>(data, peer, callback);
+    RawObject* raw = Object::Allocate(cls,
+                                      ExternalTwoByteString::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetHash(0);
+    result.SetExternalData(external_data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalTwoByteString::ToCString() const {
+  return String::ToCString();
+}
+
+
+RawExternalFourByteString* ExternalFourByteString::New(const uint32_t* data,
+                                                       intptr_t len,
+                                                       void* peer,
+                                                       PeerFinalizer callback,
+                                                       Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+
+  const Class& cls =
+      Class::Handle(isolate->object_store()->external_four_byte_string_class());
+  ExternalFourByteString& result = ExternalFourByteString::Handle();
+  {
+    ExternalStringData<uint32_t>* external_data =
+        new ExternalStringData<uint32_t>(data, peer, callback);
+    RawObject* raw = Object::Allocate(cls,
+                                      ExternalFourByteString::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetHash(0);
+    result.SetExternalData(external_data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalFourByteString::ToCString() const {
   return String::ToCString();
 }
 

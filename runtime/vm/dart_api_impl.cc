@@ -903,17 +903,51 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
 }
 
 
+DART_EXPORT Dart_Handle Dart_NewExternalString8(uint8_t* codepoints,
+                                                intptr_t length,
+                                                void* peer,
+                                                Dart_PeerFinalizer callback) {
+  DARTSCOPE(Isolate::Current());
+  const String& obj =
+      String::Handle(String::NewExternal(codepoints, length, peer, callback));
+  return Api::NewLocalHandle(obj);
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewExternalString16(uint16_t* codepoints,
+                                                 intptr_t length,
+                                                 void* peer,
+                                                 Dart_PeerFinalizer callback) {
+  DARTSCOPE(Isolate::Current());
+  const String& obj =
+      String::Handle(String::NewExternal(codepoints, length, peer, callback));
+  return Api::NewLocalHandle(obj);
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewExternalString32(uint32_t* codepoints,
+                                                 intptr_t length,
+                                                 void* peer,
+                                                 Dart_PeerFinalizer callback) {
+  DARTSCOPE(Isolate::Current());
+  const String& obj =
+      String::Handle(String::NewExternal(codepoints, length, peer, callback));
+  return Api::NewLocalHandle(obj);
+}
+
+
 DART_EXPORT bool Dart_IsString8(Dart_Handle object) {
   DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
-  return obj.IsOneByteString();
+  return obj.IsOneByteString() || obj.IsExternalOneByteString();
 }
 
 
 DART_EXPORT bool Dart_IsString16(Dart_Handle object) {
   DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(object));
-  return obj.IsOneByteString() || obj.IsTwoByteString();
+  return (obj.IsOneByteString() || obj.IsExternalOneByteString() ||
+          obj.IsTwoByteString() || obj.IsExternalTwoByteString());
 }
 
 
@@ -922,16 +956,18 @@ DART_EXPORT Dart_Handle Dart_StringGet8(Dart_Handle str,
                                         intptr_t* length) {
   DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
-  if (obj.IsOneByteString()) {
-    OneByteString& string_obj = OneByteString::Handle();
+  if (obj.IsString()) {
+    String& string_obj = String::Handle();
     string_obj ^= obj.raw();
-    intptr_t str_len = string_obj.Length();
-    intptr_t copy_len = (str_len > *length) ? *length : str_len;
-    for (intptr_t i = 0; i < copy_len; i++) {
-      codepoints[i] = static_cast<uint8_t>(string_obj.CharAt(i));
+    if (string_obj.CharSize() == String::kOneByteChar) {
+      intptr_t str_len = string_obj.Length();
+      intptr_t copy_len = (str_len > *length) ? *length : str_len;
+      for (intptr_t i = 0; i < copy_len; i++) {
+        codepoints[i] = static_cast<uint8_t>(string_obj.CharAt(i));
+      }
+      *length= copy_len;
+      return Api::Success();
     }
-    *length= copy_len;
-    return Api::Success();
   }
   return Api::Error(obj.IsString()
                     ? "Object is not a String8"
@@ -944,16 +980,18 @@ DART_EXPORT Dart_Handle Dart_StringGet16(Dart_Handle str,
                                          intptr_t* length) {
   DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(str));
-  if (obj.IsOneByteString() || obj.IsTwoByteString()) {
+  if (obj.IsString()) {
     String& string_obj = String::Handle();
     string_obj ^= obj.raw();
-    intptr_t str_len = string_obj.Length();
-    intptr_t copy_len = (str_len > *length) ? *length : str_len;
-    for (intptr_t i = 0; i < copy_len; i++) {
-      codepoints[i] = static_cast<uint16_t>(string_obj.CharAt(i));
+    if (string_obj.CharSize() <= String::kTwoByteChar) {
+      intptr_t str_len = string_obj.Length();
+      intptr_t copy_len = (str_len > *length) ? *length : str_len;
+      for (intptr_t i = 0; i < copy_len; i++) {
+        codepoints[i] = static_cast<uint16_t>(string_obj.CharAt(i));
+      }
+      *length = copy_len;
+      return Api::Success();
     }
-    *length = copy_len;
-    return Api::Success();
   }
   return Api::Error(obj.IsString()
                     ? "Object is not a String16"

@@ -2421,9 +2421,15 @@ class Double : public Number {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
+  typedef void (*PeerFinalizer)(void *peer);
+
   // We use 30 bits for the hash code so that we consistently use a
   // 32bit Smi representation for the hash code on all architectures.
   static const intptr_t kHashBits = 30;
+
+  static const intptr_t kOneByteChar = 1;
+  static const intptr_t kTwoByteChar = 2;
+  static const intptr_t kFourByteChar = 4;
 
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
@@ -2436,6 +2442,8 @@ class String : public Instance {
   static intptr_t Hash(const uint32_t* characters, intptr_t len);
 
   virtual int32_t CharAt(intptr_t index) const;
+
+  virtual intptr_t CharSize() const;
 
   bool Equals(const String& str, intptr_t begin_index, intptr_t len) const;
   bool Equals(const char* str) const;
@@ -2464,6 +2472,22 @@ class String : public Instance {
                         intptr_t len,
                         Heap::Space space = Heap::kNew);
   static RawString* New(const String& str, Heap::Space space = Heap::kNew);
+
+  static RawString* NewExternal(const uint8_t* characters,
+                                intptr_t len,
+                                void* peer,
+                                PeerFinalizer callback,
+                                Heap::Space = Heap::kNew);
+  static RawString* NewExternal(const uint16_t* characters,
+                                intptr_t len,
+                                void* peer,
+                                PeerFinalizer callback,
+                                Heap::Space = Heap::kNew);
+  static RawString* NewExternal(const uint32_t* characters,
+                                intptr_t len,
+                                void* peer,
+                                PeerFinalizer callback,
+                                Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
                    intptr_t dst_offset,
@@ -2547,6 +2571,10 @@ class OneByteString : public String {
     return *CharAddr(index);
   }
 
+  virtual intptr_t CharSize() const {
+    return kOneByteChar;
+  }
+
   static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
 
   static intptr_t InstanceSize() {
@@ -2579,11 +2607,6 @@ class OneByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawString* SubString(const OneByteString& str,
-                              intptr_t begin_index,
-                              intptr_t length,
-                              Heap::Space space);
-
   static RawOneByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
                                      Heap::Space space);
@@ -2605,6 +2628,10 @@ class TwoByteString : public String {
  public:
   virtual int32_t CharAt(intptr_t index) const {
     return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kTwoByteChar;
   }
 
   static intptr_t InstanceSize() {
@@ -2634,11 +2661,6 @@ class TwoByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawString* SubString(const TwoByteString& str,
-                              intptr_t begin_index,
-                              intptr_t length,
-                              Heap::Space space);
-
   static RawTwoByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
                                      Heap::Space space);
@@ -2659,6 +2681,10 @@ class FourByteString : public String {
  public:
   virtual int32_t CharAt(intptr_t index) const {
     return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kFourByteChar;
   }
 
   static intptr_t InstanceSize() {
@@ -2685,11 +2711,6 @@ class FourByteString : public String {
                                       intptr_t len,
                                       Heap::Space space);
 
-  static RawString* SubString(const FourByteString& str,
-                              intptr_t begin_index,
-                              intptr_t length,
-                              Heap::Space space);
-
   static RawFourByteString* Transform(int32_t (*mapping)(int32_t ch),
                                       const String& str,
                                       Heap::Space space);
@@ -2701,6 +2722,117 @@ class FourByteString : public String {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(FourByteString, String);
+  friend class Class;
+  friend class String;
+};
+
+
+class ExternalOneByteString : public String {
+ public:
+  virtual int32_t CharAt(intptr_t index) const {
+    return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kOneByteChar;
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalOneByteString));
+  }
+
+  static RawExternalOneByteString* New(const uint8_t* characters,
+                                       intptr_t len,
+                                       void* peer,
+                                       PeerFinalizer callback,
+                                       Heap::Space space);
+
+ private:
+  const uint8_t* CharAddr(intptr_t index) const {
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((index >= 0) && (index < Length()));
+    return &(raw_ptr()->external_data_->data_[index]);
+  }
+
+  void SetExternalData(ExternalStringData<uint8_t>* data) {
+    raw_ptr()->external_data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString, String);
+  friend class Class;
+  friend class String;
+};
+
+
+class ExternalTwoByteString : public String {
+ public:
+  virtual int32_t CharAt(intptr_t index) const {
+    return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kTwoByteChar;
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalTwoByteString));
+  }
+
+  static RawExternalTwoByteString* New(const uint16_t* characters,
+                                       intptr_t len,
+                                       void* peer,
+                                       PeerFinalizer callback,
+                                       Heap::Space space = Heap::kNew);
+
+ private:
+  const uint16_t* CharAddr(intptr_t index) const {
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((index >= 0) && (index < Length()));
+    return &(raw_ptr()->external_data_->data_[index]);
+  }
+
+  void SetExternalData(ExternalStringData<uint16_t>* data) {
+    raw_ptr()->external_data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString, String);
+  friend class Class;
+  friend class String;
+};
+
+
+class ExternalFourByteString : public String {
+ public:
+  virtual int32_t CharAt(intptr_t index) const {
+    return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kFourByteChar;
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalFourByteString));
+  }
+
+  static RawExternalFourByteString* New(const uint32_t* characters,
+                                        intptr_t len,
+                                        void* peer,
+                                        PeerFinalizer callback,
+                                        Heap::Space space = Heap::kNew);
+
+ private:
+  const uint32_t* CharAddr(intptr_t index) const {
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((index >= 0) && (index < Length()));
+    return &(raw_ptr()->external_data_->data_[index]);
+  }
+
+  void SetExternalData(ExternalStringData<uint32_t>* data) {
+    raw_ptr()->external_data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString, String);
   friend class Class;
   friend class String;
 };

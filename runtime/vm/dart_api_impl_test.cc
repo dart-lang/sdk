@@ -399,6 +399,60 @@ UNIT_TEST_CASE(ArrayValues) {
 }
 
 
+UNIT_TEST_CASE(IsString) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
+
+  Dart_Handle str8 = Dart_NewString8(data8, ARRAY_SIZE(data8));
+  EXPECT_VALID(str8);
+  EXPECT(Dart_IsString(str8));
+  EXPECT(Dart_IsString8(str8));
+  EXPECT(Dart_IsString16(str8));
+
+  Dart_Handle ext8 = Dart_NewExternalString8(data8, ARRAY_SIZE(data8),
+                                             NULL, NULL);
+  EXPECT_VALID(ext8);
+  EXPECT(Dart_IsString(ext8));
+  EXPECT(Dart_IsString8(ext8));
+  EXPECT(Dart_IsString16(ext8));
+
+  uint16_t data16[] = { 't', 'w', 'o', 0xFFFF };
+
+  Dart_Handle str16 = Dart_NewString16(data16, ARRAY_SIZE(data16));
+  EXPECT_VALID(str16);
+  EXPECT(Dart_IsString(str16));
+  EXPECT(!Dart_IsString8(str16));
+  EXPECT(Dart_IsString16(str16));
+
+  Dart_Handle ext16 = Dart_NewExternalString16(data16, ARRAY_SIZE(data16),
+                                               NULL, NULL);
+  EXPECT_VALID(ext16);
+  EXPECT(Dart_IsString(ext16));
+  EXPECT(!Dart_IsString8(ext16));
+  EXPECT(Dart_IsString16(ext16));
+
+  uint32_t data32[] = { 'f', 'o', 'u', 'r', 0x10FFFF };
+
+  Dart_Handle str32 = Dart_NewString32(data32, ARRAY_SIZE(data32));
+  EXPECT_VALID(str32);
+  EXPECT(Dart_IsString(str32));
+  EXPECT(!Dart_IsString8(str32));
+  EXPECT(!Dart_IsString16(str32));
+
+  Dart_Handle ext32 = Dart_NewExternalString32(data32, ARRAY_SIZE(data32),
+                                               NULL, NULL);
+  EXPECT_VALID(ext32);
+  EXPECT(Dart_IsString(ext32));
+  EXPECT(!Dart_IsString8(ext32));
+  EXPECT(!Dart_IsString16(ext32));
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
 #if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
 
 UNIT_TEST_CASE(ListAccess) {

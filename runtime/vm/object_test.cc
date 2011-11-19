@@ -1488,6 +1488,107 @@ TEST_CASE(StringFromUtf8Literal) {
 }
 
 
+TEST_CASE(ExternalOneByteString) {
+  uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(!str.IsOneByteString());
+  EXPECT(str.IsExternalOneByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("\xC3\xB6\xC3\xB1\xC3\xA9"));
+
+  const String& copy = String::Handle(String::SubString(str, 0, len));
+  EXPECT(!copy.IsExternalOneByteString());
+  EXPECT(copy.IsOneByteString());
+  EXPECT_EQ(len, copy.Length());
+  EXPECT(copy.Equals(str));
+
+  const String& concat = String::Handle(String::Concat(str, str));
+  EXPECT(!concat.IsExternalOneByteString());
+  EXPECT(concat.IsOneByteString());
+  EXPECT_EQ(len * 2, concat.Length());
+  EXPECT(concat.Equals("\xC3\xB6\xC3\xB1\xC3\xA9\xC3\xB6\xC3\xB1\xC3\xA9"));
+
+  const String& substr = String::Handle(String::SubString(str, 1, 1));
+  EXPECT(!substr.IsExternalOneByteString());
+  EXPECT(substr.IsOneByteString());
+  EXPECT_EQ(1, substr.Length());
+  EXPECT(substr.Equals("\xC3\xB1"));
+}
+
+
+TEST_CASE(ExternalTwoByteString) {
+  uint16_t characters[] = { 0x1E6B, 0x1E85, 0x1E53 };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(!str.IsTwoByteString());
+  EXPECT(str.IsExternalTwoByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
+
+  const String& copy = String::Handle(String::SubString(str, 0, len));
+  EXPECT(!copy.IsExternalTwoByteString());
+  EXPECT(copy.IsTwoByteString());
+  EXPECT_EQ(len, copy.Length());
+  EXPECT(copy.Equals(str));
+
+  const String& concat = String::Handle(String::Concat(str, str));
+  EXPECT(!concat.IsExternalTwoByteString());
+  EXPECT(concat.IsTwoByteString());
+  EXPECT_EQ(len * 2, concat.Length());
+  EXPECT(concat.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"
+                       "\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
+
+  const String& substr = String::Handle(String::SubString(str, 1, 1));
+  EXPECT(!substr.IsExternalTwoByteString());
+  EXPECT(substr.IsTwoByteString());
+  EXPECT_EQ(1, substr.Length());
+  EXPECT(substr.Equals("\xE1\xBA\x85"));
+}
+
+
+TEST_CASE(ExternalFourByteString) {
+  uint32_t characters[] = { 0x1D5BF, 0x1D5C8, 0x1D5CE, 0x1D5CB };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalFourByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(!str.IsFourByteString());
+  EXPECT(str.IsExternalFourByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("\xF0\x9D\x96\xBF\xF0\x9D\x97\x88"
+                    "\xF0\x9D\x97\x8E\xF0\x9D\x97\x8B"));
+
+  const String& copy = String::Handle(String::SubString(str, 0, len));
+  EXPECT(!copy.IsExternalFourByteString());
+  EXPECT(copy.IsFourByteString());
+  EXPECT_EQ(len, copy.Length());
+  EXPECT(copy.Equals(str));
+
+  const String& concat = String::Handle(String::Concat(str, str));
+  EXPECT(!concat.IsExternalFourByteString());
+  EXPECT(concat.IsFourByteString());
+  EXPECT_EQ(len * 2, concat.Length());
+  EXPECT(concat.Equals("\xF0\x9D\x96\xBF\xF0\x9D\x97\x88"
+                       "\xF0\x9D\x97\x8E\xF0\x9D\x97\x8B"
+                       "\xF0\x9D\x96\xBF\xF0\x9D\x97\x88"
+                       "\xF0\x9D\x97\x8E\xF0\x9D\x97\x8B"));
+
+  const String& substr = String::Handle(String::SubString(str, 1, 2));
+  EXPECT(!substr.IsExternalFourByteString());
+  EXPECT(substr.IsFourByteString());
+  EXPECT_EQ(2, substr.Length());
+  EXPECT(substr.Equals("\xF0\x9D\x97\x88\xF0\x9D\x97\x8E"));
+}
+
+
 TEST_CASE(Symbol) {
   const String& one = String::Handle(String::NewSymbol("Eins"));
   EXPECT(one.IsSymbol());

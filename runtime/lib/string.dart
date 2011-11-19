@@ -420,6 +420,43 @@ class FourByteString extends StringBase implements String {
   }
 }
 
+
+class ExternalOneByteString extends StringBase implements String {
+  // Checks for one-byte whitespaces only.
+  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
+  // whitespaces for one byte strings.
+  bool _isWhitespace(int codePoint) {
+    return
+      (codePoint === 32) || // Space.
+      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+  }
+}
+
+
+class ExternalTwoByteString extends StringBase implements String {
+  // Checks for one-byte whitespaces only.
+  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
+  // whitespaces. Add checking for multi-byte whitespace codepoints.
+  bool _isWhitespace(int codePoint) {
+    return
+      (codePoint === 32) || // Space.
+      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+  }
+}
+
+
+class ExternalFourByteString extends StringBase implements String {
+  // Checks for one-byte whitespaces only.
+  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
+  // whitespaces. Add checking for multi-byte whitespace codepoints.
+  bool _isWhitespace(int codePoint) {
+    return
+      (codePoint === 32) || // Space.
+      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+  }
+}
+
+
 class _StringMatch implements Match {
   const _StringMatch(int this._start,
                      String this.str,

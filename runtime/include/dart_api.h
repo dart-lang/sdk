@@ -762,6 +762,24 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
 DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length);
 
+
+typedef void (*Dart_PeerFinalizer)(void* peer);
+
+DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
+                                                intptr_t length,
+                                                void* peer,
+                                                Dart_PeerFinalizer callback);
+
+DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
+                                                 intptr_t length,
+                                                 void* peer,
+                                                 Dart_PeerFinalizer callback);
+
+DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
+                                                 intptr_t length,
+                                                 void* peer,
+                                                 Dart_PeerFinalizer callback);
+
 /**
  * Gets the codepoints from a String.
  *

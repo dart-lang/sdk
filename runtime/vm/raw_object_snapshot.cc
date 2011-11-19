@@ -1113,6 +1113,75 @@ void RawFourByteString::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawExternalOneByteString* ExternalOneByteString::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    bool classes_serialized) {
+  UNREACHABLE();
+  return ExternalOneByteString::null();
+}
+
+
+RawExternalTwoByteString* ExternalTwoByteString::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    bool classes_serialized) {
+  UNREACHABLE();
+  return ExternalTwoByteString::null();
+}
+
+
+RawExternalFourByteString* ExternalFourByteString::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    bool classes_serialized) {
+  UNREACHABLE();
+  return ExternalFourByteString::null();
+}
+
+
+void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
+                                       intptr_t object_id,
+                                       bool serialize_classes) {
+  // Serialize as a non-external one byte string.
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kOneByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->external_data_->data_);
+}
+
+
+void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
+                                       intptr_t object_id,
+                                       bool serialize_classes) {
+  // Serialize as a non-external two byte string.
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kTwoByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->external_data_->data_);
+}
+
+
+void RawExternalFourByteString::WriteTo(SnapshotWriter* writer,
+                                        intptr_t object_id,
+                                        bool serialize_classes) {
+  // Serialize as a non-external four byte string.
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kFourByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->external_data_->data_);
+}
+
+
 RawBool* Bool::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
                           bool classes_serialized) {

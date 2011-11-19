@@ -455,6 +455,33 @@ intptr_t RawFourByteString::VisitFourByteStringPointers(
 }
 
 
+intptr_t RawExternalOneByteString::VisitExternalOneByteStringPointers(
+    RawExternalOneByteString* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ExternalOneByteString::InstanceSize();
+}
+
+
+intptr_t RawExternalTwoByteString::VisitExternalTwoByteStringPointers(
+    RawExternalTwoByteString* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ExternalTwoByteString::InstanceSize();
+}
+
+
+intptr_t RawExternalFourByteString::VisitExternalFourByteStringPointers(
+    RawExternalFourByteString* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ExternalFourByteString::InstanceSize();
+}
+
+
 intptr_t RawBool::VisitBoolPointers(RawBool* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.

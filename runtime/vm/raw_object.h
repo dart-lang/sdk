@@ -49,6 +49,9 @@ namespace dart {
       V(OneByteString)                                                         \
       V(TwoByteString)                                                         \
       V(FourByteString)                                                        \
+      V(ExternalOneByteString)                                                 \
+      V(ExternalTwoByteString)                                                 \
+      V(ExternalFourByteString)                                                \
     V(Bool)                                                                    \
     V(Array)                                                                   \
       V(ImmutableArray)                                                        \
@@ -693,6 +696,40 @@ class RawFourByteString : public RawString {
 
   // Variable length data follows here.
   uint32_t data_[0];
+};
+
+
+template<typename T>
+class ExternalStringData {
+ public:
+  typedef void Callback(void* peer);
+  ExternalStringData(const T* data, void* peer, Callback* callback) :
+      data_(data), peer_(peer), callback_(callback) {
+  }
+  const T* data_;
+  void* peer_;
+  Callback* callback_;
+};
+
+
+class RawExternalOneByteString : public RawString {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
+
+  ExternalStringData<uint8_t>* external_data_;
+};
+
+
+class RawExternalTwoByteString : public RawString {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
+
+  ExternalStringData<uint16_t>* external_data_;
+};
+
+
+class RawExternalFourByteString : public RawString {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString);
+
+  ExternalStringData<uint32_t>* external_data_;
 };
 
 
