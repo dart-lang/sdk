@@ -931,7 +931,7 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalString8(uint8_t* codepoints,
+DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
                                                 intptr_t length,
                                                 void* peer,
                                                 Dart_PeerFinalizer callback) {
@@ -942,7 +942,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString8(uint8_t* codepoints,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalString16(uint16_t* codepoints,
+DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
                                                  intptr_t length,
                                                  void* peer,
                                                  Dart_PeerFinalizer callback) {
@@ -953,7 +953,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString16(uint16_t* codepoints,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalString32(uint32_t* codepoints,
+DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
                                                  intptr_t length,
                                                  void* peer,
                                                  Dart_PeerFinalizer callback) {
