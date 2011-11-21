@@ -322,7 +322,6 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
   const TypeArguments& type_instantiator =
       TypeArguments::CheckedHandle(arguments.At(2));
   ASSERT(type.IsFinalized());
-  ASSERT(!instance.IsNull());
   const Bool& result = Bool::Handle(
       instance.IsInstanceOf(type, type_instantiator) ?
       Bool::True() : Bool::False());

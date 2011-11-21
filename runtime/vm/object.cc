@@ -5038,14 +5038,19 @@ bool Instance::TestType(TypeTestKind test,
   ASSERT(!other.IsVoidType());
   if (IsNull()) {
     if (test == Type::kIsSubtypeOf) {
-      const Type& object_type =
-          Type::Handle(Isolate::Current()->object_store()->object_type());
-      if (other.IsInstantiated() && object_type.IsSubtypeOf(other)) {
-        ASSERT(other_instantiator.IsNull());
-        // null is an instance of the Object class.
-        return true;
+      Class& other_class = Class::Handle();
+      if (other.IsTypeParameter()) {
+        if (other_instantiator.IsNull()) {
+          return true;  // Other type is uninstantiated, i.e. Dynamic.
+        }
+        const Type& instantiated_other =
+            Type::Handle(other_instantiator.TypeAt(other.Index()));
+        ASSERT(instantiated_other.IsInstantiated());
+        other_class = instantiated_other.type_class();
+      } else {
+        other_class = other.type_class();
       }
-      return false;
+      return other_class.IsObjectClass() || other_class.IsDynamicClass();
     } else {
       ASSERT(test == Type::kIsAssignableTo);
       return true;

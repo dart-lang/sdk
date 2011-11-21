@@ -86,7 +86,6 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegE
 LibTest/core/List/List.fromList/*: Fail # Issue co19 - 32
 
 [ $component == vm ]
-LangSpecTest/13_Types/13_4_Interface_Types/A07/t02: Fail # Issue 443
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail # Issue 444
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t06: Fail # Issue 444
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t07: Fail # Issue 444

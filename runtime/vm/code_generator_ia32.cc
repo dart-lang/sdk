@@ -1399,20 +1399,25 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     return;
   }
 
-  // A NULL object always returns false for all types other than Object
-  // (and Null).
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label non_null, done;
-  __ cmpl(EAX, raw_null);
-  __ j(NOT_EQUAL, &non_null, Assembler::kNearJump);
-  __ PushObject(negate_result ? bool_true : bool_false);
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&non_null);
+  Label done;
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
+    // A null object is not an instance of any type, except of Object, Dynamic,
+    // and Null type.
+    // We can only inline this null check if the type is instantiated at compile
+    // time, since an uninstantiated type at compile time could be Object or
+    // Dynamic at run time.
+    Label non_null;
+    __ cmpl(EAX, raw_null);
+    __ j(NOT_EQUAL, &non_null, Assembler::kNearJump);
+    __ PushObject(negate_result ? bool_true : bool_false);
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&non_null);
+
     const Class& type_class = Class::ZoneHandle(type.type_class());
     const bool requires_type_arguments = type_class.HasTypeArguments();
     // A Smi object cannot be the instance of a parameterized class.
