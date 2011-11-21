@@ -151,10 +151,12 @@ class ProcessQueue {
   ProgressIndicator progress;
   var onDone;
 
-  ProcessQueue(Map configuration, this.onDone)
+  ProcessQueue(int this.maxProcesses,
+               String progress,
+               Date start_time,
+               this.onDone)
       : tests = new Queue<TestCase>(),
-        maxProcesses = configuration['tasks'],
-        progress = new ProgressIndicator.fromName(configuration['progress']);
+        progress = new ProgressIndicator.fromName(progress, start_time);
 
   tryRunTest() {
     if (tests.isEmpty() && numProcesses == 0) {

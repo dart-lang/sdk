@@ -46,10 +46,11 @@ class Error(Exception):
 class ProgressIndicator(object):
   """Base class for displaying the progress of the test run."""
 
-  def __init__(self, cases, context):
+  def __init__(self, cases, context, start_time):
     self.abort = False
     self.terminate = False
     self.cases = cases
+    self.start_time = start_time
     self.queue = Queue.Queue(len(cases))
     self.batch_queues = {}
     self.context = context
@@ -318,11 +319,10 @@ class OneLineProgressIndicatorForBuildBot(OneLineProgressIndicator):
 class CompactProgressIndicator(ProgressIndicator):
   """Continuously updates a single line w/ a summary of progress of the run."""
 
-  def __init__(self, cases, context, templates):
-    super(CompactProgressIndicator, self).__init__(cases, context)
+  def __init__(self, cases, context, start_time, templates):
+    super(CompactProgressIndicator, self).__init__(cases, context, start_time)
     self.templates = templates
     self.last_status_length = 0
-    self.start_time = time.time()
 
   def Starting(self):
     """Called at the beginning before any tests are run."""
@@ -385,7 +385,7 @@ class CompactProgressIndicator(ProgressIndicator):
 class MonochromeProgressIndicator(CompactProgressIndicator):
   """A CompactProgressIndicator with no color."""
 
-  def __init__(self, cases, context):
+  def __init__(self, cases, context, start_time):
     templates = {
         'status_line': '[%(mins)02i:%(secs)02i|%%%(percent) '
         '4d|+%(passed) 4d|-%(failed) 4d]: %(test)s',
@@ -396,13 +396,14 @@ class MonochromeProgressIndicator(CompactProgressIndicator):
     }
     super(MonochromeProgressIndicator, self).__init__(cases,
                                                       context,
+                                                      start_time,
                                                       templates)
 
 
 class ColorProgressIndicator(CompactProgressIndicator):
   """A CompactProgressIndicator with pretty colors."""
 
-  def __init__(self, cases, context):
+  def __init__(self, cases, context, start_time):
     templates = {
         'status_line': ('[%(mins)02i:%(secs)02i|%%%(percent) 4d|'
                         '\033[32m+%(passed) 4d'
@@ -412,7 +413,10 @@ class ColorProgressIndicator(CompactProgressIndicator):
         'clear': lambda last_line_len: self.ClearLine(last_line_len),
         'max_length': 78
     }
-    super(ColorProgressIndicator, self).__init__(cases, context, templates)
+    super(ColorProgressIndicator, self).__init__(cases,
+                                                 context,
+                                                 start_time,
+                                                 templates)
 
 
 PROGRESS_INDICATORS = {
@@ -646,9 +650,9 @@ class Context(object):
     return [self.GetExecutable(mode, arch, path)]
 
 
-def RunTestCases(cases_to_run, progress, tasks, context):
+def RunTestCases(cases_to_run, progress, tasks, context, start_time):
   """Chooses a progress indicator and then starts the tests."""
-  progress = PROGRESS_INDICATORS[progress](cases_to_run, context)
+  progress = PROGRESS_INDICATORS[progress](cases_to_run, context, start_time)
   return progress.Run(tasks)
 
 
@@ -1402,6 +1406,7 @@ def FormatTime(d):
 
 def Main():
   """Main loop."""
+  script_start_time = time.time();
   utils.ConfigureJava()
   parser = BuildOptions()
   (options, args) = parser.parse_args()
@@ -1501,7 +1506,7 @@ def Main():
     try:
       start = time.time()
       if RunTestCases(cases_to_run, options.progress, options.tasks,
-                      context):
+                      context, script_start_time):
         result = 0
       else:
         result = 1

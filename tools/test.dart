@@ -36,11 +36,17 @@ void exitIfLastActivity() {
 }
 
 main() {
+  var start_time = new Date.now();
   var optionsParser = new TestOptionsParser();
   var configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
   activityStarted();
-  var queue = new ProcessQueue(configurations[0], exitIfLastActivity);
+  // Extract global options from first configuration.
+  var firstConf = configurations[0];
+  var queue = new ProcessQueue(firstConf['tasks'],
+                               firstConf['progress'],
+                               start_time,
+                               exitIfLastActivity);
   for (var conf in configurations) {
     activityStarted();
     new StandaloneTestSuite(conf).forEachTest(queue.runTest, activityCompleted);

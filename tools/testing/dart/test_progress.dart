@@ -7,20 +7,20 @@
 #import("test_runner.dart");
 
 class ProgressIndicator {
-  ProgressIndicator() : _startTime = new Date.now();
+  ProgressIndicator(this._startTime);
 
-  factory ProgressIndicator.fromName(String name) {
+  factory ProgressIndicator.fromName(String name, Date startTime) {
     switch (name) {
       case 'compact':
-        return new CompactProgressIndicator();
+        return new CompactProgressIndicator(startTime);
       case 'line':
-        return new LineProgressIndicator();
+        return new LineProgressIndicator(startTime);
       case 'verbose':
-        return new VerboseProgressIndicator();
+        return new VerboseProgressIndicator(startTime);
       case 'status':
-        return new StatusProgressIndicator();
+        return new StatusProgressIndicator(startTime);
       case 'buildbot':
-        return new BuildbotProgressIndicator();
+        return new BuildbotProgressIndicator(startTime);
       default:
         assert(false);
         break;
@@ -116,6 +116,8 @@ class ProgressIndicator {
 
 
 class CompactProgressIndicator extends ProgressIndicator {
+  CompactProgressIndicator(Date start_time) : super(start_time);
+
   void allDone() {
   }
 
@@ -136,6 +138,8 @@ class CompactProgressIndicator extends ProgressIndicator {
 
 
 class LineProgressIndicator extends ProgressIndicator {
+  LineProgressIndicator(Date start_time) : super(start_time);
+
   void allDone() {
     _printStatus();
   }
@@ -154,6 +158,8 @@ class LineProgressIndicator extends ProgressIndicator {
 
 
 class VerboseProgressIndicator extends ProgressIndicator {
+  VerboseProgressIndicator(Date start_time) : super(start_time);
+
   void allDone() {
     _printStatus();
   }
@@ -173,6 +179,8 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
 
 class StatusProgressIndicator extends ProgressIndicator {
+  StatusProgressIndicator(Date start_time) : super(start_time);
+
   void allDone() {
     _printStatus();
   }
@@ -186,6 +194,8 @@ class StatusProgressIndicator extends ProgressIndicator {
 
 
 class BuildbotProgressIndicator extends ProgressIndicator {
+  BuildbotProgressIndicator(Date start_time) : super(start_time);
+
   void allDone() {
     _printStatus();
   }
