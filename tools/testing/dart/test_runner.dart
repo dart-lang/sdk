@@ -18,46 +18,6 @@
 final int NO_TIMEOUT = 0;
 
 
-String getBuildDir(Map configuration) {
-  var buildDir = '';
-  var system = configuration['system'];
-  if (system == 'linux') {
-    buildDir = 'out/';
-  } else if (system == 'macos') {
-    buildDir = 'xcodebuild/';
-  }
-  buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-  buildDir += configuration['architecture'] + '/';
-  return buildDir;
-}
-
-
-String getExecutableName(Map configuration) {
-  switch (configuration['component']) {
-    case 'vm':
-      return 'dart_bin';
-    case 'dartc':
-      return 'compiler/bin/dartc_test';
-    case 'frog':
-    case 'leg':
-      return 'frog/bin/frog';
-    case 'frogsh':
-      return 'frog/bin/frogsh';
-    default:
-      throw "Unknown executable for: ${configuration['component']}";
-  }
-}
-
-
-String getDartShellFileName(Map configuration) {
-  var name = getBuildDir(configuration) + getExecutableName(configuration);
-  if (!(new File(name)).existsSync()) {
-    throw "Executable '$name' does not exist";
-  }
-  return name;
-}
-
-
 class TestCase {
   String executablePath;
   List<String> arguments;

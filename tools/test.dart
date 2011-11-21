@@ -14,6 +14,7 @@
 #import("../tests/language/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/stub-generator/test_config.dart");
+#import("../runtime/tests/vm/test_config.dart");
 
 // TODO(ager): This activity tracking is temporary until stdout is
 // closed implicitly when nothing more can happen.
@@ -53,5 +54,9 @@ main() {
     new IsolateTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
     activityStarted();
     new StubGeneratorTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
+    if (conf["component"] == "vm") {
+      activityStarted();
+      new VMTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
+    }
   }
 }

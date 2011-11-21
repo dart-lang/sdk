@@ -12,6 +12,102 @@ interface TestSuite {
 }
 
 
+class CCTestListerIsolate extends Isolate {
+  CCTestListerIsolate() : super.heavy();
+
+  void main() {
+    port.receive((String runnerPath, SendPort replyTo) {
+      var p = new Process(runnerPath, ["--list"]);
+      StringInputStream stdoutStream = new StringInputStream(p.stdout);
+      List<String> tests = new List<String>();
+      stdoutStream.dataHandler = () {
+        String line = stdoutStream.readLine();
+        while (line != null) {
+          tests.add(line);
+          line = stdoutStream.readLine();
+        }
+      };
+      p.exitHandler = (code) {
+        if (code < 0) {
+          print("Failed to list tests: $runnerPath --list");
+          replyTo.send("");
+        }
+        for (String test in tests) {
+          replyTo.send(test);
+        }
+        replyTo.send("");
+      };
+      p.start();
+    });
+  }
+}
+
+
+class CCTestSuite implements TestSuite {
+  Map configuration;
+  String runnerPath;
+  List<String> statusFilePaths;
+  Function doTest;
+  Function doDone;
+  ReceivePort receiveTestName;
+  TestExpectations testExpectations;
+
+  CCTestSuite(Map this.configuration,
+              String runnerName,
+              List<String> this.statusFilePaths) {
+    runnerPath = TestUtils.getBuildDir(configuration) + runnerName;
+  }
+
+  void complexStatusMatching() => false;
+
+  void testNameHandler(String testName, ignore) {
+    if (testName == "") {
+      receiveTestName.close();
+      doDone(true);
+    } else {
+      var timeout = configuration['timeout'];
+      var expectations = testExpectations.expectations(testName);
+
+      if (expectations.contains(SKIP)) return;
+
+      // TODO(ager): Pass extra options to the tests.
+
+      // TODO(ager): Actually filter out the tests that we don't want
+      // to run based on the patterns.
+      doTest(new TestCase(testName,
+                          runnerPath,
+                          [testName],
+                          timeout,
+                          completeHandler,
+                          expectations));
+      receiveTestName.receive(testNameHandler);
+    }
+  }
+
+  void forEachTest(Function onTest, [Function onDone]) {
+    doTest = onTest;
+    doDone = (ignore) => (onDone != null) ? onDone() : null;
+
+    testExpectations =
+        new TestExpectations(complexMatching: complexStatusMatching());
+    for (var statusFilePath in statusFilePaths) {
+      ReadTestExpectationsInto(testExpectations,
+                               statusFilePath,
+                               configuration);
+    }
+
+    receiveTestName = new ReceivePort();
+    new CCTestListerIsolate().spawn().then((port) {
+        port.send(runnerPath, receiveTestName);
+        receiveTestName.receive(testNameHandler);
+    });
+  }
+
+  void completeHandler(TestCase testCase) {
+  }
+}
+
+
 class StandardTestSuite implements TestSuite {
   Map configuration;
   String directoryPath;
@@ -24,7 +120,7 @@ class StandardTestSuite implements TestSuite {
   StandardTestSuite(Map this.configuration,
                     String this.directoryPath,
                     List<String> this.statusFilePaths) {
-    shellPath = getDartShellFileName(configuration) ;
+    shellPath = TestUtils.getDartShellFileName(configuration) ;
   }
 
 
@@ -99,6 +195,7 @@ class StandardTestSuite implements TestSuite {
   List<List<String>> argumentLists(String filename, Map optionsFromFile) {
     List args = ["--ignore-unrecognized-flags"];
     if (configuration["checked"]) {
+      args.add('--enable_asserts');
       args.add("--enable_type_checks");
     }
     if (configuration["component"] == "leg") {
@@ -175,5 +272,46 @@ class StandardTestSuite implements TestSuite {
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "isNegative" : isNegative };
+  }
+}
+
+
+class TestUtils {
+  static String getExecutableName(Map configuration) {
+    switch (configuration['component']) {
+      case 'vm':
+        return 'dart_bin';
+      case 'dartc':
+        return 'compiler/bin/dartc_test';
+      case 'frog':
+      case 'leg':
+          return 'frog/bin/frog';
+      case 'frogsh':
+        return 'frog/bin/frogsh';
+      default:
+        throw "Unknown executable for: ${configuration['component']}";
+    }
+  }
+
+
+  static String getDartShellFileName(Map configuration) {
+    var name = getBuildDir(configuration) + getExecutableName(configuration);
+    if (!(new File(name)).existsSync()) {
+      throw "Executable '$name' does not exist";
+    }
+    return name;
+  }
+
+  static String getBuildDir(Map configuration) {
+    var buildDir = '';
+    var system = configuration['system'];
+    if (system == 'linux') {
+      buildDir = 'out/';
+    } else if (system == 'macos') {
+      buildDir = 'xcodebuild/';
+    }
+    buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+    buildDir += configuration['architecture'] + '/';
+    return buildDir;
   }
 }
