@@ -102,9 +102,9 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     _sentinel = new _DoubleLinkedQueueEntrySentinel<E>();
   }
 
-  // See bug 5257789.
-  factory DoubleLinkedQueue/* <E> */.from(Iterable/* <E> */ other) {
-    Queue/* <E> */ list = new DoubleLinkedQueue();
+  // See issue 417. Works in the vm, fails in dartc and frog.
+  factory DoubleLinkedQueue/*<E>*/.from(Iterable/*<E>*/ other) {
+    Queue/*<E>*/ list = new DoubleLinkedQueue();
     for (final e in other) {
       list.addLast(e);
     }

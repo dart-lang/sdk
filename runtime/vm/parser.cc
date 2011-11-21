@@ -5016,59 +5016,112 @@ AstNode* Parser::ParseStatement() {
 
 
 // Static.
-void Parser::ReportMsg(const Script& script,
-                       intptr_t token_index,
-                       const char* msg_type,
-                       char* message,
-                       const char* format, va_list args) {
-  const String& script_url = String::CheckedHandle(script.url());
-  const int buf_size = 256;
-  static char text_buffer[buf_size];
-
-  intptr_t line, column;
-  script.GetTokenLocation(token_index, &line, &column);
-  OS::VSNPrint(text_buffer, buf_size, format, args);
-  intptr_t msg_len =
-      OS::SNPrint(message, Parser::kErrorBuflen,
-                  "'%s': %s: line %d pos %d: %s\n",
-                  script_url.ToCString(), msg_type, line, column, text_buffer);
-  const String& text = String::Handle(script.GetLine(line));
-  ASSERT(!text.IsNull());
-  if (text.Length() < buf_size) {
-    OS::SNPrint(message + msg_len, Parser::kErrorBuflen - msg_len,
-                "%s\n%*s\n", text.ToCString(), column, "^");
+void Parser::FormatMessage(const Script& script,
+                           intptr_t token_index,
+                           const char* message_header,
+                           char* message_buffer,
+                           intptr_t message_buffer_size,
+                           const char* format, va_list args) {
+  intptr_t msg_len = 0;
+  if (!script.IsNull()) {
+    const String& script_url = String::CheckedHandle(script.url());
+    if (token_index >= 0) {
+      intptr_t line, column;
+      script.GetTokenLocation(token_index, &line, &column);
+      msg_len += OS::SNPrint(message_buffer + msg_len,
+                             message_buffer_size - msg_len,
+                             "'%s': %s: line %d pos %d: ",
+                             script_url.ToCString(),
+                             message_header,
+                             line,
+                             column);
+      if (msg_len < message_buffer_size) {
+        // Append the formatted error or warning message.
+        msg_len += OS::VSNPrint(message_buffer + msg_len,
+                                message_buffer_size - msg_len,
+                                format,
+                                args);
+        if (msg_len < message_buffer_size) {
+          // Append the source line.
+          const String& script_line = String::Handle(script.GetLine(line));
+          ASSERT(!script_line.IsNull());
+          msg_len += OS::SNPrint(message_buffer + msg_len,
+                                 message_buffer_size - msg_len,
+                                 "\n%s\n%*s\n",
+                                 script_line.ToCString(),
+                                 column,
+                                 "^");
+        }
+      }
+    } else {
+      // Token position is unknown.
+      msg_len += OS::SNPrint(message_buffer + msg_len,
+                             message_buffer_size - msg_len,
+                             "'%s': %s: ",
+                             script_url.ToCString(),
+                             message_header);
+      if (msg_len < message_buffer_size) {
+        // Append the formatted error or warning message.
+        msg_len += OS::VSNPrint(message_buffer + msg_len,
+                                message_buffer_size - msg_len,
+                                format,
+                                args);
+      }
+    }
+  } else {
+    // Script is unknown.
+    // Append the formatted error or warning message.
+    msg_len += OS::VSNPrint(message_buffer + msg_len,
+                            message_buffer_size - msg_len,
+                            format,
+                            args);
   }
 }
 
 
 void Parser::ErrorMsg(intptr_t token_index, const char* format, ...) {
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
-  ReportMsg(script_, token_index, "Error", error_msg_, format, args);
-  Isolate::Current()->long_jump_base()->Jump(1, error_msg_);
+  FormatMessage(script_, token_index, "Error",
+                message_buffer, kMessageBufferSize,
+                format, args);
+  va_end(args);
+  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
   UNREACHABLE();
 }
 
 
 void Parser::ErrorMsg(const char* format, ...) {
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
-  ReportMsg(script_, token_index_, "Error", error_msg_, format, args);
-  Isolate::Current()->long_jump_base()->Jump(1, error_msg_);
+  FormatMessage(script_, token_index_, "Error",
+                message_buffer, kMessageBufferSize,
+                format, args);
+  va_end(args);
+  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
   UNREACHABLE();
 }
 
 
 void Parser::Warning(const char* format, ...) {
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
   if (FLAG_silent_warnings) return;
   va_list args;
   va_start(args, format);
-  ReportMsg(script_, token_index_, "Warning", error_msg_, format, args);
+  FormatMessage(script_, token_index_, "Warning",
+                message_buffer, kMessageBufferSize,
+                format, args);
+  va_end(args);
   if (FLAG_warning_as_error) {
-    Isolate::Current()->long_jump_base()->Jump(1, error_msg_);
+    Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
     UNREACHABLE();
   } else {
-    OS::Print(error_msg_);
+    OS::Print(message_buffer);
   }
 }
 

@@ -82,7 +82,9 @@ class ClassFinalizer : public AllStatic {
                           intptr_t token_index,
                           const char* format, ...);
   static void ReportError(const char* format, ...);
-  static void ReportWarning(const char* format, ...);
+  static void ReportWarning(const Script& script,
+                            intptr_t token_index,
+                            const char* format, ...);
 };
 
 }  // namespace dart

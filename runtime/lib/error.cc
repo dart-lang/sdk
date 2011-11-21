@@ -142,7 +142,12 @@ static void ThrowTypeError(intptr_t location,
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
   if (FLAG_print_stack_trace_at_throw) {
-    OS::Print("Type %s is not assignable to type %s of %s.\n",
+    intptr_t line, column;
+    script.GetTokenLocation(location, &line, &column);
+    OS::Print("'%s': Failed type check: line %d pos %d: "
+              "type '%s' is not assignable to type '%s' of '%s'.\n",
+              String::Handle(script.url()).ToCString(),
+              line, column,
               src_type_name.ToCString(),
               dst_type_name.ToCString(),
               dst_name.ToCString());

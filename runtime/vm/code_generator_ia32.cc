@@ -2744,13 +2744,17 @@ void CodeGenerator::AddCurrentDescriptor(PcDescriptors::Kind kind,
 
 
 void CodeGenerator::ErrorMsg(intptr_t token_index, const char* format, ...) {
-  char error_msg[Parser::kErrorBuflen];
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
   const Class& cls = Class::Handle(parsed_function_.function().owner());
   const Script& script = Script::Handle(cls.script());
-  Parser::ReportMsg(script, token_index, "Error", error_msg, format, args);
-  Isolate::Current()->long_jump_base()->Jump(1, error_msg);
+  Parser::FormatMessage(script, token_index, "Error",
+                        message_buffer, kMessageBufferSize,
+                        format, args);
+  va_end(args);
+  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
   UNREACHABLE();
 }
 

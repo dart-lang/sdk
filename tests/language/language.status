@@ -190,6 +190,7 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 # TODO(efortuna): Distinguish between specific browser being run for webdriver
 # (by flag option) to specify which tests pass.
 FactoryNegativeTest: Fail # Issue 417
+Factory3Test: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 
 FactoryImplementationTest: Fail # Issue 523

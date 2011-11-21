@@ -1240,13 +1240,12 @@ UNIT_TEST_CASE(InjectNativeFields4) {
                                Dart_NewString("testMain"),
                                0,
                                NULL);
-    // We expect the test script to fail finalization with the error :
-    // "class 'NativeFields' is trying to extend a native fields class,"
-    // "but library 'TestCase::url()' has no native resolvers".
+    // We expect the test script to fail finalization with the error below:
     EXPECT(Dart_IsError(result));
     Dart_Handle expected_error = Dart_Error(
-        "class 'NativeFields' is trying to extend a native fields class,"
-        "but library '%s' has no native resolvers", TestCase::url());
+        "'dart:test-lib': Error: class 'NativeFields' is trying to extend a "
+        "native fields class, but library '%s' has no native resolvers",
+        TestCase::url());
     EXPECT_STREQ(Dart_GetError(expected_error), Dart_GetError(result));
     Dart_ExitScope();  // Exit the Dart API scope.
   }
