@@ -123,36 +123,11 @@
       ],
     },
     {
-      # Standalone executable using the shared libdart library.
-      'target_name': 'dart_no_snapshot',
-      'type': 'executable',
-      'dependencies': [
-        'libdart',
-        'libdart_builtin',
-      ],
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        'main.cc',
-        'snapshot_empty.cc',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
-          },
-       }]],
-    },
-    {
       # Completely statically linked dart binary.
       'target_name': 'dart_no_snapshot_bin',
       'type': 'executable',
       'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
+        'libdart',
         'libdart_builtin',
       ],
       'include_dirs': [
@@ -174,10 +149,7 @@
       'target_name': 'gen_snapshot_bin',
       'type': 'executable',
       'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
+        'libdart',
         'libdart_builtin',
       ],
       'include_dirs': [
@@ -229,9 +201,7 @@
       ]
     },
     {
-      # Standalone executable using the shared libdart library with a snapshot
-      # of the core and builtin libraries linked in.
-      'target_name': 'dart',
+      'target_name': 'dart_bin',
       'type': 'executable',
       'dependencies': [
         'libdart',
@@ -253,15 +223,10 @@
        }]],
     },
     {
-      # Completely statically linked dart binary with a snapshot of the core
-      # and builtin libraries linked in.
-      'target_name': 'dart_bin',
+      'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
+        'libdart',
         'libdart_builtin',
         'generate_snapshot_file',
       ],
@@ -289,14 +254,8 @@
     {
       'target_name': 'run_vm_tests',
       'type': 'executable',
-      # The unittest framework needs to be able to call the unexported symbols,
-      # which is why it links against the static libraries. In general binaries
-      # should depend on the shared library.
       'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
+        'libdart',
         'generate_snapshot_test_dat_file',
       ],
       'include_dirs': [

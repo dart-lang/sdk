@@ -12,7 +12,7 @@
   'targets': [
     {
       'target_name': 'libdart',
-      'type': 'shared_library',
+      'type': 'static_library',
       'dependencies': [
         'libdart_lib',
         'libdart_vm',
