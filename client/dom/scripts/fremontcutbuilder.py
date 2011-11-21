@@ -38,8 +38,7 @@ def main():
     'page',
     'plugins',
     'storage',
-    # TODO(vsm): Fix generator to deal with multiple
-    # 'svg',
+    'svg',
     # TODO(vsm): Fix parser/idl file to re-enable this.
     #    'webaudio',
     'websockets',

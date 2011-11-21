@@ -1808,6 +1808,21 @@ class Element extends Node native "Element" {
   bool webkitMatchesSelector(String selectors) native;
 }
 
+class ElementTimeControl native "ElementTimeControl" {
+
+  void beginElement() native;
+
+  void beginElementAt(num offset) native;
+
+  void endElement() native;
+
+  void endElementAt(num offset) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
 class ElementTraversal native "ElementTraversal" {
 
   int childElementCount;
@@ -5130,6 +5145,3196 @@ class SQLTransactionSyncCallback native "SQLTransactionSyncCallback" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class SVGAElement extends SVGElement native "SVGAElement" {
+
+  SVGAnimatedString target;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGAltGlyphDefElement extends SVGElement native "SVGAltGlyphDefElement" {
+}
+
+class SVGAltGlyphElement extends SVGTextPositioningElement native "SVGAltGlyphElement" {
+
+  String format;
+
+  String glyphRef;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+}
+
+class SVGAltGlyphItemElement extends SVGElement native "SVGAltGlyphItemElement" {
+}
+
+class SVGAngle native "SVGAngle" {
+
+  int unitType;
+
+  num value;
+
+  String valueAsString;
+
+  num valueInSpecifiedUnits;
+
+  void convertToSpecifiedUnits(int unitType) native;
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimateColorElement extends SVGAnimationElement native "SVGAnimateColorElement" {
+}
+
+class SVGAnimateElement extends SVGAnimationElement native "SVGAnimateElement" {
+}
+
+class SVGAnimateMotionElement extends SVGAnimationElement native "SVGAnimateMotionElement" {
+}
+
+class SVGAnimateTransformElement extends SVGAnimationElement native "SVGAnimateTransformElement" {
+}
+
+class SVGAnimatedAngle native "SVGAnimatedAngle" {
+
+  SVGAngle animVal;
+
+  SVGAngle baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedBoolean native "SVGAnimatedBoolean" {
+
+  bool animVal;
+
+  bool baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedEnumeration native "SVGAnimatedEnumeration" {
+
+  int animVal;
+
+  int baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedInteger native "SVGAnimatedInteger" {
+
+  int animVal;
+
+  int baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedLength native "SVGAnimatedLength" {
+
+  SVGLength animVal;
+
+  SVGLength baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedLengthList native "SVGAnimatedLengthList" {
+
+  SVGLengthList animVal;
+
+  SVGLengthList baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedNumber native "SVGAnimatedNumber" {
+
+  num animVal;
+
+  num baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedNumberList native "SVGAnimatedNumberList" {
+
+  SVGNumberList animVal;
+
+  SVGNumberList baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedPreserveAspectRatio native "SVGAnimatedPreserveAspectRatio" {
+
+  SVGPreserveAspectRatio animVal;
+
+  SVGPreserveAspectRatio baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedRect native "SVGAnimatedRect" {
+
+  SVGRect animVal;
+
+  SVGRect baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedString native "SVGAnimatedString" {
+
+  String animVal;
+
+  String baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimatedTransformList native "SVGAnimatedTransformList" {
+
+  SVGTransformList animVal;
+
+  SVGTransformList baseVal;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGAnimationElement extends SVGElement native "SVGAnimationElement" {
+
+  SVGElement targetElement;
+
+  num getCurrentTime() native;
+
+  num getSimpleDuration() native;
+
+  num getStartTime() native;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From ElementTimeControl
+
+  void beginElement() native;
+
+  void beginElementAt(num offset) native;
+
+  void endElement() native;
+
+  void endElementAt(num offset) native;
+}
+
+class SVGCircleElement extends SVGElement native "SVGCircleElement" {
+
+  SVGAnimatedLength cx;
+
+  SVGAnimatedLength cy;
+
+  SVGAnimatedLength r;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGClipPathElement extends SVGElement native "SVGClipPathElement" {
+
+  SVGAnimatedEnumeration clipPathUnits;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGColor extends CSSValue native "SVGColor" {
+
+  int colorType;
+
+  RGBColor rgbColor;
+
+  void setColor(int colorType, String rgbColor, String iccColor) native;
+
+  void setRGBColor(String rgbColor) native;
+
+  void setRGBColorICCColor(String rgbColor, String iccColor) native;
+}
+
+class SVGComponentTransferFunctionElement extends SVGElement native "SVGComponentTransferFunctionElement" {
+
+  SVGAnimatedNumber amplitude;
+
+  SVGAnimatedNumber exponent;
+
+  SVGAnimatedNumber intercept;
+
+  SVGAnimatedNumber offset;
+
+  SVGAnimatedNumber slope;
+
+  SVGAnimatedNumberList tableValues;
+
+  SVGAnimatedEnumeration type;
+}
+
+class SVGCursorElement extends SVGElement native "SVGCursorElement" {
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+}
+
+class SVGDefsElement extends SVGElement native "SVGDefsElement" {
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGDescElement extends SVGElement native "SVGDescElement" {
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGDocument extends Document native "SVGDocument" {
+
+  SVGSVGElement rootElement;
+
+  Event createEvent(String eventType) native;
+}
+
+class SVGElement extends Element native "SVGElement" {
+
+  String id;
+
+  SVGSVGElement ownerSVGElement;
+
+  SVGElement viewportElement;
+
+  String xmlbase;
+}
+
+class SVGElementInstance native "SVGElementInstance" {
+
+  SVGElementInstanceList childNodes;
+
+  SVGElement correspondingElement;
+
+  SVGUseElement correspondingUseElement;
+
+  SVGElementInstance firstChild;
+
+  SVGElementInstance lastChild;
+
+  SVGElementInstance nextSibling;
+
+  EventListener onabort;
+
+  EventListener onbeforecopy;
+
+  EventListener onbeforecut;
+
+  EventListener onbeforepaste;
+
+  EventListener onblur;
+
+  EventListener onchange;
+
+  EventListener onclick;
+
+  EventListener oncontextmenu;
+
+  EventListener oncopy;
+
+  EventListener oncut;
+
+  EventListener ondblclick;
+
+  EventListener ondrag;
+
+  EventListener ondragend;
+
+  EventListener ondragenter;
+
+  EventListener ondragleave;
+
+  EventListener ondragover;
+
+  EventListener ondragstart;
+
+  EventListener ondrop;
+
+  EventListener onerror;
+
+  EventListener onfocus;
+
+  EventListener oninput;
+
+  EventListener onkeydown;
+
+  EventListener onkeypress;
+
+  EventListener onkeyup;
+
+  EventListener onload;
+
+  EventListener onmousedown;
+
+  EventListener onmousemove;
+
+  EventListener onmouseout;
+
+  EventListener onmouseover;
+
+  EventListener onmouseup;
+
+  EventListener onmousewheel;
+
+  EventListener onpaste;
+
+  EventListener onreset;
+
+  EventListener onresize;
+
+  EventListener onscroll;
+
+  EventListener onsearch;
+
+  EventListener onselect;
+
+  EventListener onselectstart;
+
+  EventListener onsubmit;
+
+  EventListener onunload;
+
+  SVGElementInstance parentNode;
+
+  SVGElementInstance previousSibling;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGElementInstanceList native "SVGElementInstanceList" {
+
+  int length;
+
+  SVGElementInstance item(int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGEllipseElement extends SVGElement native "SVGEllipseElement" {
+
+  SVGAnimatedLength cx;
+
+  SVGAnimatedLength cy;
+
+  SVGAnimatedLength rx;
+
+  SVGAnimatedLength ry;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGException native "SVGException" {
+
+  int code;
+
+  String message;
+
+  String name;
+
+  String toString() native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGExternalResourcesRequired native "SVGExternalResourcesRequired" {
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGFEBlendElement extends SVGElement native "SVGFEBlendElement" {
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedString in2;
+
+  SVGAnimatedEnumeration mode;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEColorMatrixElement extends SVGElement native "SVGFEColorMatrixElement" {
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedEnumeration type;
+
+  SVGAnimatedNumberList values;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEComponentTransferElement extends SVGElement native "SVGFEComponentTransferElement" {
+
+  SVGAnimatedString in1;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFECompositeElement extends SVGElement native "SVGFECompositeElement" {
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedString in2;
+
+  SVGAnimatedNumber k1;
+
+  SVGAnimatedNumber k2;
+
+  SVGAnimatedNumber k3;
+
+  SVGAnimatedNumber k4;
+
+  SVGAnimatedEnumeration operator;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEConvolveMatrixElement extends SVGElement native "SVGFEConvolveMatrixElement" {
+
+  SVGAnimatedNumber bias;
+
+  SVGAnimatedNumber divisor;
+
+  SVGAnimatedEnumeration edgeMode;
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedNumberList kernelMatrix;
+
+  SVGAnimatedNumber kernelUnitLengthX;
+
+  SVGAnimatedNumber kernelUnitLengthY;
+
+  SVGAnimatedInteger orderX;
+
+  SVGAnimatedInteger orderY;
+
+  SVGAnimatedBoolean preserveAlpha;
+
+  SVGAnimatedInteger targetX;
+
+  SVGAnimatedInteger targetY;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEDiffuseLightingElement extends SVGElement native "SVGFEDiffuseLightingElement" {
+
+  SVGAnimatedNumber diffuseConstant;
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedNumber kernelUnitLengthX;
+
+  SVGAnimatedNumber kernelUnitLengthY;
+
+  SVGAnimatedNumber surfaceScale;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEDisplacementMapElement extends SVGElement native "SVGFEDisplacementMapElement" {
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedString in2;
+
+  SVGAnimatedNumber scale;
+
+  SVGAnimatedEnumeration xChannelSelector;
+
+  SVGAnimatedEnumeration yChannelSelector;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEDistantLightElement extends SVGElement native "SVGFEDistantLightElement" {
+
+  SVGAnimatedNumber azimuth;
+
+  SVGAnimatedNumber elevation;
+}
+
+class SVGFEDropShadowElement extends SVGElement native "SVGFEDropShadowElement" {
+
+  SVGAnimatedNumber dx;
+
+  SVGAnimatedNumber dy;
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedNumber stdDeviationX;
+
+  SVGAnimatedNumber stdDeviationY;
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEFloodElement extends SVGElement native "SVGFEFloodElement" {
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "SVGFEFuncAElement" {
+}
+
+class SVGFEFuncBElement extends SVGComponentTransferFunctionElement native "SVGFEFuncBElement" {
+}
+
+class SVGFEFuncGElement extends SVGComponentTransferFunctionElement native "SVGFEFuncGElement" {
+}
+
+class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "SVGFEFuncRElement" {
+}
+
+class SVGFEGaussianBlurElement extends SVGElement native "SVGFEGaussianBlurElement" {
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedNumber stdDeviationX;
+
+  SVGAnimatedNumber stdDeviationY;
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEImageElement extends SVGElement native "SVGFEImageElement" {
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEMergeElement extends SVGElement native "SVGFEMergeElement" {
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEMergeNodeElement extends SVGElement native "SVGFEMergeNodeElement" {
+
+  SVGAnimatedString in1;
+}
+
+class SVGFEMorphologyElement extends SVGElement native "SVGFEMorphologyElement" {
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedEnumeration operator;
+
+  SVGAnimatedNumber radiusX;
+
+  SVGAnimatedNumber radiusY;
+
+  void setRadius(num radiusX, num radiusY) native;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEOffsetElement extends SVGElement native "SVGFEOffsetElement" {
+
+  SVGAnimatedNumber dx;
+
+  SVGAnimatedNumber dy;
+
+  SVGAnimatedString in1;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFEPointLightElement extends SVGElement native "SVGFEPointLightElement" {
+
+  SVGAnimatedNumber x;
+
+  SVGAnimatedNumber y;
+
+  SVGAnimatedNumber z;
+}
+
+class SVGFESpecularLightingElement extends SVGElement native "SVGFESpecularLightingElement" {
+
+  SVGAnimatedString in1;
+
+  SVGAnimatedNumber specularConstant;
+
+  SVGAnimatedNumber specularExponent;
+
+  SVGAnimatedNumber surfaceScale;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFESpotLightElement extends SVGElement native "SVGFESpotLightElement" {
+
+  SVGAnimatedNumber limitingConeAngle;
+
+  SVGAnimatedNumber pointsAtX;
+
+  SVGAnimatedNumber pointsAtY;
+
+  SVGAnimatedNumber pointsAtZ;
+
+  SVGAnimatedNumber specularExponent;
+
+  SVGAnimatedNumber x;
+
+  SVGAnimatedNumber y;
+
+  SVGAnimatedNumber z;
+}
+
+class SVGFETileElement extends SVGElement native "SVGFETileElement" {
+
+  SVGAnimatedString in1;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFETurbulenceElement extends SVGElement native "SVGFETurbulenceElement" {
+
+  SVGAnimatedNumber baseFrequencyX;
+
+  SVGAnimatedNumber baseFrequencyY;
+
+  SVGAnimatedInteger numOctaves;
+
+  SVGAnimatedNumber seed;
+
+  SVGAnimatedEnumeration stitchTiles;
+
+  SVGAnimatedEnumeration type;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFilterElement extends SVGElement native "SVGFilterElement" {
+
+  SVGAnimatedInteger filterResX;
+
+  SVGAnimatedInteger filterResY;
+
+  SVGAnimatedEnumeration filterUnits;
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedEnumeration primitiveUnits;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  void setFilterRes(int filterResX, int filterResY) native;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "SVGFilterPrimitiveStandardAttributes" {
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedString result;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+}
+
+class SVGFitToViewBox native "SVGFitToViewBox" {
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedRect viewBox;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGFontElement extends SVGElement native "SVGFontElement" {
+}
+
+class SVGFontFaceElement extends SVGElement native "SVGFontFaceElement" {
+}
+
+class SVGFontFaceFormatElement extends SVGElement native "SVGFontFaceFormatElement" {
+}
+
+class SVGFontFaceNameElement extends SVGElement native "SVGFontFaceNameElement" {
+}
+
+class SVGFontFaceSrcElement extends SVGElement native "SVGFontFaceSrcElement" {
+}
+
+class SVGFontFaceUriElement extends SVGElement native "SVGFontFaceUriElement" {
+}
+
+class SVGForeignObjectElement extends SVGElement native "SVGForeignObjectElement" {
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGGElement extends SVGElement native "SVGGElement" {
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGGlyphElement extends SVGElement native "SVGGlyphElement" {
+}
+
+class SVGGlyphRefElement extends SVGElement native "SVGGlyphRefElement" {
+
+  num dx;
+
+  num dy;
+
+  String format;
+
+  String glyphRef;
+
+  num x;
+
+  num y;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGGradientElement extends SVGElement native "SVGGradientElement" {
+
+  SVGAnimatedTransformList gradientTransform;
+
+  SVGAnimatedEnumeration gradientUnits;
+
+  SVGAnimatedEnumeration spreadMethod;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGHKernElement extends SVGElement native "SVGHKernElement" {
+}
+
+class SVGImageElement extends SVGElement native "SVGImageElement" {
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGLangSpace native "SVGLangSpace" {
+
+  String xmllang;
+
+  String xmlspace;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGLength native "SVGLength" {
+
+  int unitType;
+
+  num value;
+
+  String valueAsString;
+
+  num valueInSpecifiedUnits;
+
+  void convertToSpecifiedUnits(int unitType) native;
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGLengthList native "SVGLengthList" {
+
+  int numberOfItems;
+
+  SVGLength appendItem(SVGLength item) native;
+
+  void clear() native;
+
+  SVGLength getItem(int index) native;
+
+  SVGLength initialize(SVGLength item) native;
+
+  SVGLength insertItemBefore(SVGLength item, int index) native;
+
+  SVGLength removeItem(int index) native;
+
+  SVGLength replaceItem(SVGLength item, int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGLineElement extends SVGElement native "SVGLineElement" {
+
+  SVGAnimatedLength x1;
+
+  SVGAnimatedLength x2;
+
+  SVGAnimatedLength y1;
+
+  SVGAnimatedLength y2;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGLinearGradientElement extends SVGGradientElement native "SVGLinearGradientElement" {
+
+  SVGAnimatedLength x1;
+
+  SVGAnimatedLength x2;
+
+  SVGAnimatedLength y1;
+
+  SVGAnimatedLength y2;
+}
+
+class SVGLocatable native "SVGLocatable" {
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGMPathElement extends SVGElement native "SVGMPathElement" {
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+}
+
+class SVGMarkerElement extends SVGElement native "SVGMarkerElement" {
+
+  SVGAnimatedLength markerHeight;
+
+  SVGAnimatedEnumeration markerUnits;
+
+  SVGAnimatedLength markerWidth;
+
+  SVGAnimatedAngle orientAngle;
+
+  SVGAnimatedEnumeration orientType;
+
+  SVGAnimatedLength refX;
+
+  SVGAnimatedLength refY;
+
+  void setOrientToAngle(SVGAngle angle) native;
+
+  void setOrientToAuto() native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedRect viewBox;
+}
+
+class SVGMaskElement extends SVGElement native "SVGMaskElement" {
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedEnumeration maskContentUnits;
+
+  SVGAnimatedEnumeration maskUnits;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGMatrix native "SVGMatrix" {
+
+  num a;
+
+  num b;
+
+  num c;
+
+  num d;
+
+  num e;
+
+  num f;
+
+  SVGMatrix flipX() native;
+
+  SVGMatrix flipY() native;
+
+  SVGMatrix inverse() native;
+
+  SVGMatrix multiply(SVGMatrix secondMatrix) native;
+
+  SVGMatrix rotate(num angle) native;
+
+  SVGMatrix rotateFromVector(num x, num y) native;
+
+  SVGMatrix scale(num scaleFactor) native;
+
+  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
+
+  SVGMatrix skewX(num angle) native;
+
+  SVGMatrix skewY(num angle) native;
+
+  SVGMatrix translate(num x, num y) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGMetadataElement extends SVGElement native "SVGMetadataElement" {
+}
+
+class SVGMissingGlyphElement extends SVGElement native "SVGMissingGlyphElement" {
+}
+
+class SVGNumber native "SVGNumber" {
+
+  num value;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGNumberList native "SVGNumberList" {
+
+  int numberOfItems;
+
+  SVGNumber appendItem(SVGNumber item) native;
+
+  void clear() native;
+
+  SVGNumber getItem(int index) native;
+
+  SVGNumber initialize(SVGNumber item) native;
+
+  SVGNumber insertItemBefore(SVGNumber item, int index) native;
+
+  SVGNumber removeItem(int index) native;
+
+  SVGNumber replaceItem(SVGNumber item, int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGPaint extends SVGColor native "SVGPaint" {
+
+  int paintType;
+
+  String uri;
+
+  void setPaint(int paintType, String uri, String rgbColor, String iccColor) native;
+
+  void setUri(String uri) native;
+}
+
+class SVGPathElement extends SVGElement native "SVGPathElement" {
+
+  SVGPathSegList animatedNormalizedPathSegList;
+
+  SVGPathSegList animatedPathSegList;
+
+  SVGPathSegList normalizedPathSegList;
+
+  SVGAnimatedNumber pathLength;
+
+  SVGPathSegList pathSegList;
+
+  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+
+  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+
+  SVGPathSegClosePath createSVGPathSegClosePath() native;
+
+  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
+
+  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
+
+  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
+
+  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
+
+  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
+
+  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
+
+  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
+
+  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
+
+  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) native;
+
+  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) native;
+
+  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) native;
+
+  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) native;
+
+  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) native;
+
+  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) native;
+
+  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) native;
+
+  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) native;
+
+  int getPathSegAtLength(num distance) native;
+
+  SVGPoint getPointAtLength(num distance) native;
+
+  num getTotalLength() native;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGPathSeg native "SVGPathSeg" {
+
+  int pathSegType;
+
+  String pathSegTypeAsLetter;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGPathSegArcAbs extends SVGPathSeg native "SVGPathSegArcAbs" {
+
+  num angle;
+
+  bool largeArcFlag;
+
+  num r1;
+
+  num r2;
+
+  bool sweepFlag;
+
+  num x;
+
+  num y;
+}
+
+class SVGPathSegArcRel extends SVGPathSeg native "SVGPathSegArcRel" {
+
+  num angle;
+
+  bool largeArcFlag;
+
+  num r1;
+
+  num r2;
+
+  bool sweepFlag;
+
+  num x;
+
+  num y;
+}
+
+class SVGPathSegClosePath extends SVGPathSeg native "SVGPathSegClosePath" {
+}
+
+class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "SVGPathSegCurvetoCubicAbs" {
+
+  num x;
+
+  num x1;
+
+  num x2;
+
+  num y;
+
+  num y1;
+
+  num y2;
+}
+
+class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "SVGPathSegCurvetoCubicRel" {
+
+  num x;
+
+  num x1;
+
+  num x2;
+
+  num y;
+
+  num y1;
+
+  num y2;
+}
+
+class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "SVGPathSegCurvetoCubicSmoothAbs" {
+
+  num x;
+
+  num x2;
+
+  num y;
+
+  num y2;
+}
+
+class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "SVGPathSegCurvetoCubicSmoothRel" {
+
+  num x;
+
+  num x2;
+
+  num y;
+
+  num y2;
+}
+
+class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "SVGPathSegCurvetoQuadraticAbs" {
+
+  num x;
+
+  num x1;
+
+  num y;
+
+  num y1;
+}
+
+class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "SVGPathSegCurvetoQuadraticRel" {
+
+  num x;
+
+  num x1;
+
+  num y;
+
+  num y1;
+}
+
+class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "SVGPathSegCurvetoQuadraticSmoothAbs" {
+
+  num x;
+
+  num y;
+}
+
+class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "SVGPathSegCurvetoQuadraticSmoothRel" {
+
+  num x;
+
+  num y;
+}
+
+class SVGPathSegLinetoAbs extends SVGPathSeg native "SVGPathSegLinetoAbs" {
+
+  num x;
+
+  num y;
+}
+
+class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "SVGPathSegLinetoHorizontalAbs" {
+
+  num x;
+}
+
+class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "SVGPathSegLinetoHorizontalRel" {
+
+  num x;
+}
+
+class SVGPathSegLinetoRel extends SVGPathSeg native "SVGPathSegLinetoRel" {
+
+  num x;
+
+  num y;
+}
+
+class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "SVGPathSegLinetoVerticalAbs" {
+
+  num y;
+}
+
+class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "SVGPathSegLinetoVerticalRel" {
+
+  num y;
+}
+
+class SVGPathSegList native "SVGPathSegList" {
+
+  int numberOfItems;
+
+  SVGPathSeg appendItem(SVGPathSeg newItem) native;
+
+  void clear() native;
+
+  SVGPathSeg getItem(int index) native;
+
+  SVGPathSeg initialize(SVGPathSeg newItem) native;
+
+  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) native;
+
+  SVGPathSeg removeItem(int index) native;
+
+  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGPathSegMovetoAbs extends SVGPathSeg native "SVGPathSegMovetoAbs" {
+
+  num x;
+
+  num y;
+}
+
+class SVGPathSegMovetoRel extends SVGPathSeg native "SVGPathSegMovetoRel" {
+
+  num x;
+
+  num y;
+}
+
+class SVGPatternElement extends SVGElement native "SVGPatternElement" {
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedEnumeration patternContentUnits;
+
+  SVGAnimatedTransformList patternTransform;
+
+  SVGAnimatedEnumeration patternUnits;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedRect viewBox;
+}
+
+class SVGPoint native "SVGPoint" {
+
+  num x;
+
+  num y;
+
+  SVGPoint matrixTransform(SVGMatrix matrix) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGPointList native "SVGPointList" {
+
+  int numberOfItems;
+
+  SVGPoint appendItem(SVGPoint item) native;
+
+  void clear() native;
+
+  SVGPoint getItem(int index) native;
+
+  SVGPoint initialize(SVGPoint item) native;
+
+  SVGPoint insertItemBefore(SVGPoint item, int index) native;
+
+  SVGPoint removeItem(int index) native;
+
+  SVGPoint replaceItem(SVGPoint item, int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGPolygonElement extends SVGElement native "SVGPolygonElement" {
+
+  SVGPointList animatedPoints;
+
+  SVGPointList points;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGPolylineElement extends SVGElement native "SVGPolylineElement" {
+
+  SVGPointList animatedPoints;
+
+  SVGPointList points;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGPreserveAspectRatio native "SVGPreserveAspectRatio" {
+
+  int align;
+
+  int meetOrSlice;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGRadialGradientElement extends SVGGradientElement native "SVGRadialGradientElement" {
+
+  SVGAnimatedLength cx;
+
+  SVGAnimatedLength cy;
+
+  SVGAnimatedLength fx;
+
+  SVGAnimatedLength fy;
+
+  SVGAnimatedLength r;
+}
+
+class SVGRect native "SVGRect" {
+
+  num height;
+
+  num width;
+
+  num x;
+
+  num y;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGRectElement extends SVGElement native "SVGRectElement" {
+
+  SVGAnimatedLength height;
+
+  SVGAnimatedLength rx;
+
+  SVGAnimatedLength ry;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGRenderingIntent native "SVGRenderingIntent" {
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGSVGElement extends SVGElement native "SVGSVGElement" {
+
+  String contentScriptType;
+
+  String contentStyleType;
+
+  num currentScale;
+
+  SVGPoint currentTranslate;
+
+  SVGAnimatedLength height;
+
+  num pixelUnitToMillimeterX;
+
+  num pixelUnitToMillimeterY;
+
+  num screenPixelToMillimeterX;
+
+  num screenPixelToMillimeterY;
+
+  bool useCurrentView;
+
+  SVGRect viewport;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  bool animationsPaused() native;
+
+  bool checkEnclosure(SVGElement element, SVGRect rect) native;
+
+  bool checkIntersection(SVGElement element, SVGRect rect) native;
+
+  SVGAngle createSVGAngle() native;
+
+  SVGLength createSVGLength() native;
+
+  SVGMatrix createSVGMatrix() native;
+
+  SVGNumber createSVGNumber() native;
+
+  SVGPoint createSVGPoint() native;
+
+  SVGRect createSVGRect() native;
+
+  SVGTransform createSVGTransform() native;
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) native;
+
+  void deselectAll() native;
+
+  void forceRedraw() native;
+
+  num getCurrentTime() native;
+
+  Element getElementById(String elementId) native;
+
+  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement) native;
+
+  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement) native;
+
+  void pauseAnimations() native;
+
+  void setCurrentTime(num seconds) native;
+
+  int suspendRedraw(int maxWaitMilliseconds) native;
+
+  void unpauseAnimations() native;
+
+  void unsuspendRedraw(int suspendHandleId) native;
+
+  void unsuspendRedrawAll() native;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedRect viewBox;
+
+  // From SVGZoomAndPan
+
+  int zoomAndPan;
+}
+
+class SVGScriptElement extends SVGElement native "SVGScriptElement" {
+
+  String type;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+}
+
+class SVGSetElement extends SVGAnimationElement native "SVGSetElement" {
+}
+
+class SVGStopElement extends SVGElement native "SVGStopElement" {
+
+  SVGAnimatedNumber offset;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGStringList native "SVGStringList" {
+
+  int numberOfItems;
+
+  String appendItem(String item) native;
+
+  void clear() native;
+
+  String getItem(int index) native;
+
+  String initialize(String item) native;
+
+  String insertItemBefore(String item, int index) native;
+
+  String removeItem(int index) native;
+
+  String replaceItem(String item, int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGStylable native "SVGStylable" {
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGStyleElement extends SVGElement native "SVGStyleElement" {
+
+  String media;
+
+  String title;
+
+  String type;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+}
+
+class SVGSwitchElement extends SVGElement native "SVGSwitchElement" {
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGSymbolElement extends SVGElement native "SVGSymbolElement" {
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedRect viewBox;
+}
+
+class SVGTRefElement extends SVGTextPositioningElement native "SVGTRefElement" {
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+}
+
+class SVGTSpanElement extends SVGTextPositioningElement native "SVGTSpanElement" {
+}
+
+class SVGTests native "SVGTests" {
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGTextContentElement extends SVGElement native "SVGTextContentElement" {
+
+  SVGAnimatedEnumeration lengthAdjust;
+
+  SVGAnimatedLength textLength;
+
+  int getCharNumAtPosition(SVGPoint point) native;
+
+  num getComputedTextLength() native;
+
+  SVGPoint getEndPositionOfChar(int offset) native;
+
+  SVGRect getExtentOfChar(int offset) native;
+
+  int getNumberOfChars() native;
+
+  num getRotationOfChar(int offset) native;
+
+  SVGPoint getStartPositionOfChar(int offset) native;
+
+  num getSubStringLength(int offset, int length) native;
+
+  void selectSubString(int offset, int length) native;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGTextElement extends SVGTextPositioningElement native "SVGTextElement" {
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGTextPathElement extends SVGTextContentElement native "SVGTextPathElement" {
+
+  SVGAnimatedEnumeration method;
+
+  SVGAnimatedEnumeration spacing;
+
+  SVGAnimatedLength startOffset;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+}
+
+class SVGTextPositioningElement extends SVGTextContentElement native "SVGTextPositioningElement" {
+
+  SVGAnimatedLengthList dx;
+
+  SVGAnimatedLengthList dy;
+
+  SVGAnimatedNumberList rotate;
+
+  SVGAnimatedLengthList x;
+
+  SVGAnimatedLengthList y;
+}
+
+class SVGTitleElement extends SVGElement native "SVGTitleElement" {
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+}
+
+class SVGTransform native "SVGTransform" {
+
+  num angle;
+
+  SVGMatrix matrix;
+
+  int type;
+
+  void setMatrix(SVGMatrix matrix) native;
+
+  void setRotate(num angle, num cx, num cy) native;
+
+  void setScale(num sx, num sy) native;
+
+  void setSkewX(num angle) native;
+
+  void setSkewY(num angle) native;
+
+  void setTranslate(num tx, num ty) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGTransformList native "SVGTransformList" {
+
+  int numberOfItems;
+
+  SVGTransform appendItem(SVGTransform item) native;
+
+  void clear() native;
+
+  SVGTransform consolidate() native;
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) native;
+
+  SVGTransform getItem(int index) native;
+
+  SVGTransform initialize(SVGTransform item) native;
+
+  SVGTransform insertItemBefore(SVGTransform item, int index) native;
+
+  SVGTransform removeItem(int index) native;
+
+  SVGTransform replaceItem(SVGTransform item, int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGTransformable extends SVGLocatable native "SVGTransformable" {
+
+  SVGAnimatedTransformList transform;
+}
+
+class SVGURIReference native "SVGURIReference" {
+
+  SVGAnimatedString href;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGUnitTypes native "SVGUnitTypes" {
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGUseElement extends SVGElement native "SVGUseElement" {
+
+  SVGElementInstance animatedInstanceRoot;
+
+  SVGAnimatedLength height;
+
+  SVGElementInstance instanceRoot;
+
+  SVGAnimatedLength width;
+
+  SVGAnimatedLength x;
+
+  SVGAnimatedLength y;
+
+  // From SVGURIReference
+
+  SVGAnimatedString href;
+
+  // From SVGTests
+
+  SVGStringList requiredExtensions;
+
+  SVGStringList requiredFeatures;
+
+  SVGStringList systemLanguage;
+
+  bool hasExtension(String extension) native;
+
+  // From SVGLangSpace
+
+  String xmllang;
+
+  String xmlspace;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGStylable
+
+  SVGAnimatedString className;
+
+  CSSStyleDeclaration style;
+
+  CSSValue getPresentationAttribute(String name) native;
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList transform;
+
+  // From SVGLocatable
+
+  SVGElement farthestViewportElement;
+
+  SVGElement nearestViewportElement;
+
+  SVGRect getBBox() native;
+
+  SVGMatrix getCTM() native;
+
+  SVGMatrix getScreenCTM() native;
+
+  SVGMatrix getTransformToElement(SVGElement element) native;
+}
+
+class SVGVKernElement extends SVGElement native "SVGVKernElement" {
+}
+
+class SVGViewElement extends SVGElement native "SVGViewElement" {
+
+  SVGStringList viewTarget;
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean externalResourcesRequired;
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedRect viewBox;
+
+  // From SVGZoomAndPan
+
+  int zoomAndPan;
+}
+
+class SVGViewSpec extends SVGZoomAndPan native "SVGViewSpec" {
+
+  String preserveAspectRatioString;
+
+  SVGTransformList transform;
+
+  String transformString;
+
+  String viewBoxString;
+
+  SVGElement viewTarget;
+
+  String viewTargetString;
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+
+  SVGAnimatedRect viewBox;
+}
+
+class SVGZoomAndPan native "SVGZoomAndPan" {
+
+  int zoomAndPan;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class SVGZoomEvent extends UIEvent native "SVGZoomEvent" {
+
+  num newScale;
+
+  SVGPoint newTranslate;
+
+  num previousScale;
+
+  SVGPoint previousTranslate;
+
+  SVGRect zoomRectScreen;
 }
 
 class Screen native "Screen" {

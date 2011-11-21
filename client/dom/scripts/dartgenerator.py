@@ -1168,11 +1168,11 @@ class DartInterfaceGenerator(object):
                                ARGS=info.arg_interface_declaration)
 
   # Interfaces get secondary members directly via the superinterfaces.
-  def AddSecondaryGetter(self, attr):
+  def AddSecondaryGetter(self, interface, attr):
     pass
-  def AddSecondarySetter(self, attr):
+  def AddSecondarySetter(self, interface, attr):
     pass
-  def AddSecondaryOperation(self, attr):
+  def AddSecondaryOperation(self, interface, attr):
     pass
 
 
