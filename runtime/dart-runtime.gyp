@@ -21,9 +21,6 @@
       'include_dirs': [
         '.',
       ],
-      'defines': [
-        'DART_SHARED_LIB',
-      ],
       'sources': [
         'include/dart_api.h',
         'vm/dart_api_impl.cc',
