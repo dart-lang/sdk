@@ -117,7 +117,7 @@ def GetDartRunner(mode, arch, component):
   elif component == 'frogsh':
     return os.path.join(build_root, 'frog', 'bin', 'frogsh')
   else:
-    return os.path.join(build_root, 'dart_bin')
+    return os.path.join(build_root, 'dart')
 
 
 # Mapping table between build mode and build configuration.

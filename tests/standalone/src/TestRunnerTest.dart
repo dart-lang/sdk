@@ -56,12 +56,12 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 
 
 String getDartBinName() {
-  var names = ["out/Debug_ia32/dart_bin",
-               "out/Release_ia32/dart_bin",
-               "xcodebuild/Debug_ia32/dart_bin",
-               "xcodebuild/Release_ia32/dart_bin",
-               "Debug_ia32/dart_bin.exe",
-               "Release_ia32/dart_bin.exe"];
+  var names = ["out/Debug_ia32/dart",
+               "out/Release_ia32/dart",
+               "xcodebuild/Debug_ia32/dart",
+               "xcodebuild/Release_ia32/dart",
+               "Debug_ia32/dart.exe",
+               "Release_ia32/dart.exe"];
   for (var name in names) {
     if (new File(name).existsSync()) {
       return name;

@@ -283,7 +283,7 @@ class TestUtils {
   static String executableName(Map configuration) {
     switch (configuration['component']) {
       case 'vm':
-        return 'dart_bin';
+        return 'dart';
       case 'dartc':
         return 'compiler/bin/dartc_test';
       case 'frog':

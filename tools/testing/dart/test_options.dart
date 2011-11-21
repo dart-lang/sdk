@@ -291,7 +291,7 @@ class TestOptionsParser {
    * Print out usage information.
    */
   void _printHelp() {
-    print('usage: dart_bin test.dart [options]\n');
+    print('usage: dart test.dart [options]\n');
     print('Options:\n');
     for (var option in _options) {
       print('${option.name}: ${option.description}.');
