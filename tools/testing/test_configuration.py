@@ -181,7 +181,8 @@ class StandardTestConfiguration(test.TestConfiguration):
       return {}
     # Prepare directory for generated tests.
     tests = {}
-    generated_test_dir = os.path.join(self.context.workspace, 'generated_tests')
+    generated_test_dir = os.path.join(utils.GetBuildRoot(utils.GuessOS()),
+                                      'generated_tests')
     generated_test_dir = os.path.join(generated_test_dir, *test_path[:-1])
     if not os.path.exists(generated_test_dir):
       os.makedirs(generated_test_dir)
