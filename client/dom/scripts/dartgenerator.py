@@ -65,6 +65,22 @@ _evasive_types = set(['CanvasPixelArray',
                       ])
 
 #
+# Types with user-invocable constructors.  We do not have enough
+# information in IDL to create the signature.
+#
+# Each entry is of the form:
+#   type name: constructor parameters
+_constructable_types = {
+    'FileReader': '',
+    'XMLHttpRequest': '',
+    'WebKitCSSMatrix': '[String spec]',
+    'WebKitPoint': 'num x, num y',
+    # dart:html types
+    'CSSMatrix': '[String spec]',
+    'Point': 'num x, num y',
+}
+
+#
 # Custom methods that must be implemented by hand.
 #
 _custom_methods = set([
@@ -72,6 +88,9 @@ _custom_methods = set([
     ('DOMWindow', 'setTimeout'),
     ('WorkerContext', 'setInterval'),
     ('WorkerContext', 'setTimeout'),
+    ('CanvasRenderingContext2D', 'setFillStyle'),
+    ('CanvasRenderingContext2D', 'setStrokeStyle'),
+    ('CanvasRenderingContext2D', 'setFillStyle'),
     ])
 
 #
@@ -92,7 +111,6 @@ _custom_getters = set([
 _alternate_methods = {
     ('WheelEvent', 'initWheelEvent'): ['initWebKitWheelEvent', 'initWheelEvent']
 }
-
 
 def _MatchSourceFilter(filter, thing):
   if not filter:
@@ -1903,13 +1921,20 @@ class FrogInterfaceGenerator(object):
     else:
       extends = ""
 
+    if interface_name in _constructable_types.keys():
+      parameters = _constructable_types[interface_name]
+      constructor = '  %s(%s) native;\n\n' % (interface_name, parameters)
+    else:
+      constructor = ''
+
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
         'class $CLASS$BASE native "$CLASS" {\n'
-        '$!MEMBERS'
+        '$CONSTRUCTOR$!MEMBERS'
         '$!ADDITIONS'
         '}\n',
-        CLASS=self._class_name, BASE=extends, INTERFACE=interface_name)
+        CLASS=self._class_name, BASE=extends,
+        INTERFACE=interface_name, CONSTRUCTOR=constructor)
 
     if not base:
       # Emit shared base functionality here as we have no common base type.

@@ -1,5 +1,7 @@
 
 class WebKitCSSMatrix native "WebKitCSSMatrix" {
+  WebKitCSSMatrix([String spec]) native;
+
 
   num a;
 

@@ -1,5 +1,7 @@
 
 class FileReader native "FileReader" {
+  FileReader() native;
+
 
   FileError error;
 

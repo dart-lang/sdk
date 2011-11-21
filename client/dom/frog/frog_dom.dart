@@ -2117,6 +2117,8 @@ class FileList native "FileList" {
 }
 
 class FileReader native "FileReader" {
+  FileReader() native;
+
 
   FileError error;
 
@@ -6107,6 +6109,8 @@ class WebKitCSSKeyframesRule extends CSSRule native "WebKitCSSKeyframesRule" {
 }
 
 class WebKitCSSMatrix native "WebKitCSSMatrix" {
+  WebKitCSSMatrix([String spec]) native;
+
 
   num a;
 
@@ -6214,6 +6218,8 @@ class WebKitMutationObserver native "WebKitMutationObserver" {
 }
 
 class WebKitPoint native "WebKitPoint" {
+  WebKitPoint(num x, num y) native;
+
 
   num x;
 
@@ -6398,6 +6404,8 @@ class WorkerNavigator native "WorkerNavigator" {
 }
 
 class XMLHttpRequest native "XMLHttpRequest" {
+  XMLHttpRequest() native;
+
 
   bool asBlob;
 

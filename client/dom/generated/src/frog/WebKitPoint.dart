@@ -1,5 +1,7 @@
 
 class WebKitPoint native "WebKitPoint" {
+  WebKitPoint(num x, num y) native;
+
 
   num x;
 

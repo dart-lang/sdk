@@ -1,5 +1,7 @@
 
 class XMLHttpRequest native "XMLHttpRequest" {
+  XMLHttpRequest() native;
+
 
   bool asBlob;
 
