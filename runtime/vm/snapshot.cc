@@ -33,7 +33,7 @@ static bool IsObjectStoreClassId(intptr_t index) {
 static bool IsObjectStoreTypeId(intptr_t index) {
   // Check if this is a type which is stored in the object store.
   return (index >= ObjectStore::kObjectType &&
-          index <= ObjectStore::kBoolInterface);
+          index <= ObjectStore::kListInterface);
 }
 
 
