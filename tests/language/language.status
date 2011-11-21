@@ -42,8 +42,6 @@ Constructor6Test: Fail          # (Discussion ongoing)
 # Regular bugs which should be fixed.
 
 WrongNumberTypeArgumentsTest: Fail # Issue 441
-Prefix18NegativeTest: Fail # Issue 307
-Prefix20NegativeTest: Fail # Issue 307
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
