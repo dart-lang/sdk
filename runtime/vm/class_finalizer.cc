@@ -1226,7 +1226,7 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
 
 
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
-  HANDLESCOPE();
+  HANDLESCOPE(Isolate::Current());
   const String& class_name = String::Handle(cls.Name());
   OS::Print("%s '%s'",
             cls.is_interface() ? "interface" : "class",

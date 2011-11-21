@@ -67,7 +67,7 @@ static void ExtractTypeFeedback(const Code& code,
 
 void Compiler::Compile(const Library& library, const Script& script) {
   if (FLAG_trace_compiler) {
-    HANDLESCOPE();
+    HANDLESCOPE(Isolate::Current());
     const String& script_url = String::Handle(script.url());
     // TODO(iposva): Extract script kind.
     OS::Print("Compiling %s '%s'\n", "", script_url.ToCString());

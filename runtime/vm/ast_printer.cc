@@ -418,7 +418,7 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
 
 
 void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
-  HANDLESCOPE();
+  HANDLESCOPE(Isolate::Current());
   const Function& function = parsed_function.function();
   const Array& default_parameter_values =
       parsed_function.default_parameter_values();
@@ -463,7 +463,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
 
 
 void AstPrinter::PrintFunctionNodes(const ParsedFunction& parsed_function) {
-  HANDLESCOPE();
+  HANDLESCOPE(Isolate::Current());
   SequenceNode* node_sequence = parsed_function.node_sequence();
   ASSERT(node_sequence != NULL);
   AstPrinter ast_printer;
