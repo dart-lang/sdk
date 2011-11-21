@@ -50,7 +50,7 @@ class StackResource {
 
   void* operator new(uword size);
 
-  DISALLOW_COPY_AND_ASSIGN(StackResource);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StackResource);
 };
 
 

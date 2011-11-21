@@ -134,7 +134,7 @@ class Zone : public StackResource {
 
   // Used for chaining zones in order to allow unwinding of stacks.
   Zone* previous_;
-  DISALLOW_COPY_AND_ASSIGN(Zone);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Zone);
 };
 
 
