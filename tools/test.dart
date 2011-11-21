@@ -15,6 +15,7 @@
 #import("../tests/standalone/test_config.dart");
 #import("../tests/stub-generator/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
+#import("../samples/tests/samples/test_config.dart");
 
 // TODO(ager): This activity tracking is temporary until stdout is
 // closed implicitly when nothing more can happen.
@@ -36,7 +37,7 @@ void exitIfLastActivity() {
 }
 
 main() {
-  var start_time = new Date.now();
+  var startTime = new Date.now();
   var optionsParser = new TestOptionsParser();
   var configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
@@ -45,9 +46,11 @@ main() {
   var firstConf = configurations[0];
   var queue = new ProcessQueue(firstConf['tasks'],
                                firstConf['progress'],
-                               start_time,
+                               startTime,
                                exitIfLastActivity);
   for (var conf in configurations) {
+    activityStarted();
+    new SamplesTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
     activityStarted();
     new StandaloneTestSuite(conf).forEachTest(queue.runTest, activityCompleted);
     activityStarted();

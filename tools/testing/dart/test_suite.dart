@@ -45,6 +45,7 @@ class CCTestListerIsolate extends Isolate {
 
 class CCTestSuite implements TestSuite {
   Map configuration;
+  String suiteName;
   String runnerPath;
   List<String> statusFilePaths;
   Function doTest;
@@ -53,9 +54,10 @@ class CCTestSuite implements TestSuite {
   TestExpectations testExpectations;
 
   CCTestSuite(Map this.configuration,
+              String this.suiteName,
               String runnerName,
               List<String> this.statusFilePaths) {
-    runnerPath = TestUtils.getBuildDir(configuration) + runnerName;
+    runnerPath = TestUtils.buildDir(configuration) + runnerName;
   }
 
   void complexStatusMatching() => false;
@@ -65,21 +67,31 @@ class CCTestSuite implements TestSuite {
       receiveTestName.close();
       doDone(true);
     } else {
-      var timeout = configuration['timeout'];
+      // If patterns are given only list the files that match one of the
+      // patterns. Use the name "suiteName/testName" for cc tests.
+      var patterns = configuration['patterns'];
+      if (!patterns.isEmpty()) {
+        var constructedName = '$suiteName/$testName';
+        if (!patterns.some((re) => re.hasMatch(constructedName))) return;
+      }
+
       var expectations = testExpectations.expectations(testName);
 
       if (expectations.contains(SKIP)) return;
 
-      // TODO(ager): Pass extra options to the tests.
+      // The cc test runner takes options after the name of the test
+      // to run.
+      var args = [testName];
+      args.addAll(TestUtils.standardOptions(configuration));
+      var timeout = configuration['timeout'];
 
-      // TODO(ager): Actually filter out the tests that we don't want
-      // to run based on the patterns.
       doTest(new TestCase(testName,
                           runnerPath,
-                          [testName],
+                          args,
                           timeout,
                           completeHandler,
                           expectations));
+
       receiveTestName.receive(testNameHandler);
     }
   }
@@ -120,7 +132,7 @@ class StandardTestSuite implements TestSuite {
   StandardTestSuite(Map this.configuration,
                     String this.directoryPath,
                     List<String> this.statusFilePaths) {
-    shellPath = TestUtils.getDartShellFileName(configuration) ;
+    shellPath = TestUtils.dartShellFileName(configuration) ;
   }
 
 
@@ -175,10 +187,11 @@ class StandardTestSuite implements TestSuite {
     if (expectations.contains(SKIP)) return;
 
     var optionsFromFile = optionsFromFile(filename);
-    var argumentLists = argumentLists(filename, optionsFromFile);
+    var isNegative = optionsFromFile['isNegative'];
+    var argumentLists = argumentListsFromFile(filename, optionsFromFile);
+    var timeout = configuration['timeout'];
+
     for (var args in argumentLists) {
-      var timeout = configuration['timeout'];
-      var isNegative = optionsFromFile['isNegative'];
       doTest(new TestCase(testName,
                           shellPath,
                           args,
@@ -192,20 +205,10 @@ class StandardTestSuite implements TestSuite {
   void completeHandler(TestCase testCase) {
   }
 
-  List<List<String>> argumentLists(String filename, Map optionsFromFile) {
-    List args = ["--ignore-unrecognized-flags"];
-    if (configuration["checked"]) {
-      args.add('--enable_asserts');
-      args.add("--enable_type_checks");
-    }
-    if (configuration["component"] == "leg") {
-      args.add("--enable_leg");
-    }
-    if (configuration["component"] == "dartc") {
-      if (configuration["mode"] == "release") {
-        args.add("--optimize");
-      }
-    }
+
+  List<List<String>> argumentListsFromFile(String filename,
+                                           Map optionsFromFile) {
+    List args = TestUtils.standardOptions(configuration);
 
     List<String> dartOptions = optionsFromFile["dartOptions"];
     args.addAll(dartOptions == null ? [filename] : dartOptions);
@@ -277,7 +280,7 @@ class StandardTestSuite implements TestSuite {
 
 
 class TestUtils {
-  static String getExecutableName(Map configuration) {
+  static String executableName(Map configuration) {
     switch (configuration['component']) {
       case 'vm':
         return 'dart_bin';
@@ -294,15 +297,15 @@ class TestUtils {
   }
 
 
-  static String getDartShellFileName(Map configuration) {
-    var name = getBuildDir(configuration) + getExecutableName(configuration);
+  static String dartShellFileName(Map configuration) {
+    var name = buildDir(configuration) + executableName(configuration);
     if (!(new File(name)).existsSync()) {
       throw "Executable '$name' does not exist";
     }
     return name;
   }
 
-  static String getBuildDir(Map configuration) {
+  static String buildDir(Map configuration) {
     var buildDir = '';
     var system = configuration['system'];
     if (system == 'linux') {
@@ -313,5 +316,22 @@ class TestUtils {
     buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
     buildDir += configuration['architecture'] + '/';
     return buildDir;
+  }
+
+  static List<String> standardOptions(Map configuration) {
+    List args = ["--ignore-unrecognized-flags"];
+    if (configuration["checked"]) {
+      args.add('--enable_asserts');
+      args.add("--enable_type_checks");
+    }
+    if (configuration["component"] == "leg") {
+      args.add("--enable_leg");
+    }
+    if (configuration["component"] == "dartc") {
+      if (configuration["mode"] == "release") {
+        args.add("--optimize");
+      }
+    }
+    return args;
   }
 }

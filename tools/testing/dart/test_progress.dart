@@ -116,7 +116,7 @@ class ProgressIndicator {
 
 
 class CompactProgressIndicator extends ProgressIndicator {
-  CompactProgressIndicator(Date start_time) : super(start_time);
+  CompactProgressIndicator(Date startTime) : super(startTime);
 
   void allDone() {
   }
@@ -138,7 +138,7 @@ class CompactProgressIndicator extends ProgressIndicator {
 
 
 class LineProgressIndicator extends ProgressIndicator {
-  LineProgressIndicator(Date start_time) : super(start_time);
+  LineProgressIndicator(Date startTime) : super(startTime);
 
   void allDone() {
     _printStatus();
@@ -158,7 +158,7 @@ class LineProgressIndicator extends ProgressIndicator {
 
 
 class VerboseProgressIndicator extends ProgressIndicator {
-  VerboseProgressIndicator(Date start_time) : super(start_time);
+  VerboseProgressIndicator(Date startTime) : super(startTime);
 
   void allDone() {
     _printStatus();
@@ -179,7 +179,7 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
 
 class StatusProgressIndicator extends ProgressIndicator {
-  StatusProgressIndicator(Date start_time) : super(start_time);
+  StatusProgressIndicator(Date startTime) : super(startTime);
 
   void allDone() {
     _printStatus();
@@ -194,7 +194,7 @@ class StatusProgressIndicator extends ProgressIndicator {
 
 
 class BuildbotProgressIndicator extends ProgressIndicator {
-  BuildbotProgressIndicator(Date start_time) : super(start_time);
+  BuildbotProgressIndicator(Date startTime) : super(startTime);
 
   void allDone() {
     _printStatus();
