@@ -1138,6 +1138,7 @@ typedef enum {
   kCanonicalizeUrl,
 } Dart_LibraryTag;
 
+// TODO(turnidge): Document.
 typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle library,
                                               Dart_Handle url);
@@ -1172,17 +1173,21 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
  */
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name);
 
-DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
-
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
-DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
-                                                  Dart_Handle import);
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source);
+
+DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
+
+
+DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
+                                                  Dart_Handle import);
+
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
                                         Dart_Handle source);
+// TODO(turnidge): Rename to Dart_LibraryLoadSource?
 
 /**
  * Sets the callback used to resolve native functions for a library.
@@ -1195,6 +1200,8 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver);
+// TODO(turnidge): Rename to Dart_LibrarySetNativeResolver?
+
 
 // --- Profiling support ----
 

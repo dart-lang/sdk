@@ -1532,6 +1532,9 @@ class Library : public Object {
 
   RawString* url() const { return raw_ptr()->url_; }
   RawString* private_key() const { return raw_ptr()->private_key_; }
+  bool LoadNotStarted() const {
+    return raw_ptr()->load_state_ == RawLibrary::kAllocated;
+  }
   bool LoadInProgress() const {
     return raw_ptr()->load_state_ == RawLibrary::kLoadInProgress;
   }

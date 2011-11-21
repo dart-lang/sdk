@@ -37,12 +37,10 @@ static const char* CanonicalFunction(const char* func) {
 
 #define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
-#define UNWRAP_NONNULL(dart_handle, vm_handle, Type)                          \
+#define RETURN_TYPE_ERROR(dart_handle, Type)                                  \
   do {                                                                        \
     const Object& tmp = Object::Handle(Api::UnwrapHandle((dart_handle)));     \
-    if (tmp.Is##Type()) {                                                     \
-      (vm_handle) ^= tmp.raw();                                               \
-    } else if (tmp.IsNull()) {                                                \
+    if (tmp.IsNull()) {                                                       \
       return Api::Error("%s expects argument '%s' to be non-null.",           \
                         CURRENT_FUNC, #dart_handle);                          \
     } else if (tmp.IsApiError()) {                                            \
@@ -393,11 +391,19 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(time_script_loading);
-  const String& url_str = String::CheckedHandle(Api::UnwrapHandle(url));
-  const String& source_str = String::CheckedHandle(Api::UnwrapHandle(source));
+  const String& url_str = Api::UnwrapStringHandle(url);
+  if (url_str.IsNull()) {
+    RETURN_TYPE_ERROR(url, String);
+  }
+  const String& source_str = Api::UnwrapStringHandle(source);
+  if (source_str.IsNull()) {
+    RETURN_TYPE_ERROR(source, String);
+  }
   Library& library = Library::Handle(isolate->object_store()->root_library());
   if (!library.IsNull()) {
-    return Api::Error("Script already loaded");
+    const String& library_url = String::Handle(library.url());
+    return Api::Error("%s: A script has already been loaded from '%s'.",
+                      CURRENT_FUNC, library_url.ToCString());
   }
   isolate->set_library_tag_handler(handler);
   library = Library::New(url_str);
@@ -473,9 +479,9 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
   DARTSCOPE(Isolate::Current());
-  const Library& lib = Library::CheckedHandle(Api::UnwrapHandle(library));
+  const Library& lib = Api::UnwrapLibraryHandle(library);
   if (lib.IsNull()) {
-    return Api::Error("Null library");
+    RETURN_TYPE_ERROR(library, Library);
   }
   const String& url = String::Handle(lib.url());
   ASSERT(!url.IsNull());
@@ -483,25 +489,28 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library_in,
-                                                  Dart_Handle import_in) {
+DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
+                                                  Dart_Handle import) {
   DARTSCOPE(Isolate::Current());
-  const Library& library =
-      Library::CheckedHandle(Api::UnwrapHandle(library_in));
-  if (library.IsNull()) {
-    return Api::Error("Null library");
+  const Library& library_vm = Api::UnwrapLibraryHandle(library);
+  if (library_vm.IsNull()) {
+    RETURN_TYPE_ERROR(library, Library);
   }
-  const Library& import =
-      Library::CheckedHandle(Api::UnwrapHandle(import_in));
-  library.AddImport(import);
+  const Library& import_vm = Api::UnwrapLibraryHandle(import);
+  if (import_vm.IsNull()) {
+    RETURN_TYPE_ERROR(import, Library);
+  }
+  library_vm.AddImport(import_vm);
   return Api::Success();
 }
 
 
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
   DARTSCOPE(Isolate::Current());
-  String& url_str = String::Handle();
-  UNWRAP_NONNULL(url, url_str, String);
+  const String& url_str = Api::UnwrapStringHandle(url);
+  if (url_str.IsNull()) {
+    RETURN_TYPE_ERROR(url, String);
+  }
   const Library& library = Library::Handle(Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     return Api::Error("%s: library '%s' not found.",
@@ -515,12 +524,23 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& url_str = String::CheckedHandle(Api::UnwrapHandle(url));
-  const String& source_str = String::CheckedHandle(Api::UnwrapHandle(source));
+  const String& url_str = Api::UnwrapStringHandle(url);
+  if (url_str.IsNull()) {
+    RETURN_TYPE_ERROR(url, String);
+  }
+  const String& source_str = Api::UnwrapStringHandle(source);
+  if (source_str.IsNull()) {
+    RETURN_TYPE_ERROR(source, String);
+  }
   Library& library = Library::Handle(Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
     library.Register();
+  } else if (!library.LoadNotStarted()) {
+    // The source for this library has either been loaded or is in the
+    // process of loading.  Return an error.
+    return Api::Error("%s: library '%s' has already been loaded.",
+                      CURRENT_FUNC, url_str.ToCString());
   }
   Dart_Handle result;
   CompileSource(isolate,
@@ -533,17 +553,25 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library_in,
-                                        Dart_Handle url_in,
-                                        Dart_Handle source_in) {
+DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
+                                        Dart_Handle url,
+                                        Dart_Handle source) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& url = String::CheckedHandle(Api::UnwrapHandle(url_in));
-  const String& source = String::CheckedHandle(Api::UnwrapHandle(source_in));
-  const Library& library =
-      Library::CheckedHandle(Api::UnwrapHandle(library_in));
+  const Library& lib = Api::UnwrapLibraryHandle(library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(library, Library);
+  }
+  const String& url_str = Api::UnwrapStringHandle(url);
+  if (url_str.IsNull()) {
+    RETURN_TYPE_ERROR(url, String);
+  }
+  const String& source_str = Api::UnwrapStringHandle(source);
+  if (source_str.IsNull()) {
+    RETURN_TYPE_ERROR(source, String);
+  }
   Dart_Handle result;
-  CompileSource(isolate, library, url, source, RawScript::kSource, &result);
+  CompileSource(isolate, lib, url_str, source_str, RawScript::kSource, &result);
   return result;
 }
 
@@ -552,9 +580,9 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver) {
   DARTSCOPE(Isolate::Current());
-  const Library& lib = Library::CheckedHandle(Api::UnwrapHandle(library));
+  const Library& lib = Api::UnwrapLibraryHandle(library);
   if (lib.IsNull()) {
-    return Api::Error("Invalid parameter, Unknown library specified");
+    RETURN_TYPE_ERROR(library, Library);
   }
   lib.set_native_entry_resolver(resolver);
   return Api::Success();
@@ -2075,7 +2103,6 @@ Dart_Handle Api::NewLocalHandle(const Object& object) {
   return reinterpret_cast<Dart_Handle>(ref);
 }
 
-
 RawObject* Api::UnwrapHandle(Dart_Handle object) {
 #ifdef DEBUG
   Isolate* isolate = Isolate::Current();
@@ -2089,6 +2116,18 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
 #endif
   return *(reinterpret_cast<RawObject**>(object));
 }
+
+#define DEFINE_UNWRAP(Type)                                                   \
+  const Type& Api::Unwrap##Type##Handle(Dart_Handle dart_handle) {            \
+    const Object& tmp = Object::Handle(Api::UnwrapHandle(dart_handle));       \
+    Type& typed_handle = Type::Handle();                                      \
+    if (tmp.Is##Type()) {                                                     \
+      typed_handle ^= tmp.raw();                                              \
+    }                                                                         \
+    return typed_handle;                                                      \
+  }
+CLASS_LIST_NO_OBJECT(DEFINE_UNWRAP)
+#undef DEFINE_UNWRAP
 
 
 LocalHandle* Api::UnwrapAsLocalHandle(const ApiState& state,
