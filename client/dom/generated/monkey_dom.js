@@ -7178,36 +7178,6 @@ var _;
     w.Location = tmpLocation;
   }
 
-  // TODO(vsm): Refactor additional implementation code to a separate file.
-  w.DOMWindow.prototype.createXMLHttpRequest = function() {
-    return new XMLHttpRequest();
-  };
-
-  w.DOMWindow.prototype.createWebKitCSSMatrix = function(opt_value) {
-    if (typeof opt_value === "undefined")
-      return new WebKitCSSMatrix();
-    else
-      return new WebKitCSSMatrix(opt_value);
-  };
-
-  w.DOMWindow.prototype.createWebKitPoint = function(x, y) {
-    return new WebKitPoint(x, y);
-  };
-
-  w.DOMWindow.prototype.createFileReader = function() {
-    return new FileReader();
-  };
-
-  // TODO(vsm): These will eventually be changed to attributes
-  // with a getter and setter (see b/4341558).
-  w.CanvasRenderingContext2D.prototype.setFillStyle = function(value) {
-    this.fillStyle = value;
-  };
-
-  w.CanvasRenderingContext2D.prototype.setStrokeStyle = function(value) {
-    this.strokeStyle = value;
-  };
-
   // Chrome still uses initWebKitWheelEvent.
   if (w && w.WheelEvent && w.WheelEvent.prototype &&
       !w.WheelEvent.prototype.initWheelEvent) {

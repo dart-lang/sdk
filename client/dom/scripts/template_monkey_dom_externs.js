@@ -16,11 +16,4 @@ $!WINDOW_PROPS
 var $NAMESPACE = function(){};
 $!PROPS
 
-$NAMESPACE.prototype.createXMLHttpRequest;
-$NAMESPACE.prototype.createWebKitCSSMatrix;
-$NAMESPACE.prototype.createWebKitPoint;
-$NAMESPACE.prototype.createFileReader;
-$NAMESPACE.prototype.setFillStyle;
-$NAMESPACE.prototype.setStrokeStyle;
-
 }

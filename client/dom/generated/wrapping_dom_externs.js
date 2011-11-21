@@ -1446,12 +1446,5 @@ dom_externs.xmlStandalone;              // attribute Document.xmlStandalone
 dom_externs.xmlVersion;                 // attribute Document.xmlVersion
 dom_externs.y;                          // attribute HTMLImageElement.y, attribute MouseEvent.y, attribute WebKitPoint.y, attribute WheelEvent.y
 
-// Externs referenced in custom attributes or custom operations.
-dom_externs.prototype.createXMLHttpRequest;
-dom_externs.prototype.createWebKitCSSMatrix;
-dom_externs.prototype.createWebKitPoint;
-dom_externs.prototype.createFileReader;
-dom_externs.prototype.setFillStyle;
-dom_externs.prototype.setStrokeStyle;
 
 }

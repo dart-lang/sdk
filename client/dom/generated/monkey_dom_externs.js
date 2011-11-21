@@ -2201,11 +2201,4 @@ dart_externs.prototype.y$getter;
 dart_externs.prototype.y$setter;
 
 
-dart_externs.prototype.createXMLHttpRequest;
-dart_externs.prototype.createWebKitCSSMatrix;
-dart_externs.prototype.createWebKitPoint;
-dart_externs.prototype.createFileReader;
-dart_externs.prototype.setFillStyle;
-dart_externs.prototype.setStrokeStyle;
-
 }

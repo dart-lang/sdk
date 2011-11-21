@@ -31,12 +31,5 @@ Window.prototype.webkitConvertPointFromNodeToPage;
 var $NAMESPACE = function(){};
 
 $!PROPS
-// Externs referenced in custom attributes or custom operations.
-$NAMESPACE.prototype.createXMLHttpRequest;
-$NAMESPACE.prototype.createWebKitCSSMatrix;
-$NAMESPACE.prototype.createWebKitPoint;
-$NAMESPACE.prototype.createFileReader;
-$NAMESPACE.prototype.setFillStyle;
-$NAMESPACE.prototype.setStrokeStyle;
 
 }

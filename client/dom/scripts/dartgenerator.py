@@ -72,9 +72,6 @@ _custom_methods = set([
     ('DOMWindow', 'setTimeout'),
     ('WorkerContext', 'setInterval'),
     ('WorkerContext', 'setTimeout'),
-    ('CanvasRenderingContext2D', 'setFillStyle'),
-    ('CanvasRenderingContext2D', 'setStrokeStyle'),
-    ('CanvasRenderingContext2D', 'setFillStyle'),
     ])
 
 #

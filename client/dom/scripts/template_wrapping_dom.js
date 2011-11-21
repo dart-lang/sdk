@@ -32,54 +32,6 @@ function native__WorkerContextWrappingImplementation__setTimeout(_this, callback
   return __dom_native_TimeoutHander_method(_this, callback, timeout, 'setTimeout');
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__setFillStyle(_this, color_OR_gradient_OR_pattern) {
-  try {
-    _this.$dom.fillStyle = __dom_unwrap(color_OR_gradient_OR_pattern);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__CanvasRenderingContext2DWrappingImplementation__setFillStyle_2(_this, color_OR_gradient_OR_pattern) {
-  try {
-    _this.$dom.fillStyle = __dom_unwrap(color_OR_gradient_OR_pattern);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__CanvasRenderingContext2DWrappingImplementation__setFillStyle_3(_this, color_OR_gradient_OR_pattern) {
-  try {
-    _this.$dom.fillStyle = __dom_unwrap(color_OR_gradient_OR_pattern);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__CanvasRenderingContext2DWrappingImplementation__setStrokeStyle(_this, color_OR_gradient_OR_pattern) {
-  try {
-    _this.$dom.strokeStyle = __dom_unwrap(color_OR_gradient_OR_pattern);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__CanvasRenderingContext2DWrappingImplementation__setStrokeStyle_2(_this, color_OR_gradient_OR_pattern) {
-  try {
-    _this.$dom.strokeStyle = __dom_unwrap(color_OR_gradient_OR_pattern);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__CanvasRenderingContext2DWrappingImplementation__setStrokeStyle_3(_this, color_OR_gradient_OR_pattern) {
-  try {
-    _this.$dom.strokeStyle = __dom_unwrap(color_OR_gradient_OR_pattern);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__DOMWindowWrappingImplementation__get_localStorage(_this) {
   var domWindow = _this.$dom;
   try {
