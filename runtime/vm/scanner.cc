@@ -117,6 +117,22 @@ bool Scanner::IsIdentChar(int32_t c) {
 }
 
 
+bool Scanner::IsIdent(const String& str) {
+  if (!str.IsOneByteString()) {
+    return false;
+  }
+  if (str.Length() == 0 || !IsIdentStartChar(str.CharAt(0))) {
+    return false;
+  }
+  for (int i =  1; i < str.Length(); i++) {
+    if (!IsIdentChar(str.CharAt(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 void Scanner::ReadChar() {
   if (lookahead_pos_ < source_length_) {
     if (c0_ == '\n') {

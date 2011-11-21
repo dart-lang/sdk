@@ -3162,6 +3162,10 @@ void Parser::ParseLibraryImport() {
         ErrorMsg("prefix expected");
       }
       prefix = CurrentLiteral()->raw();
+      // TODO(asiva): Need to also check that prefix is not a reserved keyword.
+      if (!Scanner::IsIdent(prefix)) {
+        ErrorMsg("prefix should be an identifier");
+      }
       ConsumeToken();
     }
     ExpectToken(Token::kRPAREN);
@@ -3186,7 +3190,6 @@ void Parser::ParseLibraryImport() {
       if (library_.LookupLocalObject(prefix) != Object::null()) {
         ErrorMsg(token_index_, "'%s' is already defined", prefix.ToCString());
       }
-      prefix = String::NewSymbol(prefix);
       const LibraryPrefix& library_prefix =
           LibraryPrefix::Handle(LibraryPrefix::New(prefix, library));
       library_.AddObject(library_prefix, prefix);

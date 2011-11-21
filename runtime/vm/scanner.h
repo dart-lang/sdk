@@ -79,6 +79,9 @@ class Scanner : ValueObject {
   // Allocated a private key which is used for name mangling.
   static RawString* AllocatePrivateKey(const Library& library);
 
+  // Return true if str is an identifier.
+  static bool IsIdent(const String& str);
+
  private:
   struct ScanContext {
     ScanContext* next;
