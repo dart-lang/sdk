@@ -22,7 +22,7 @@ except ImportError, e:
   import gyp
 
 if __name__ == '__main__':
-  args = ['--depth', '.']
+  args = ['--depth', '..']
   args += ['dart-runtime.gyp']
 
   # Generate the projects.

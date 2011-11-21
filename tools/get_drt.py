@@ -102,7 +102,7 @@ def main():
   else:
     print >>sys.stderr, ('WARNING: platform "%s" does not support'
         'DumpRenderTree for tests') % system
-    return 1
+    return 0
 
   ensure_config()
 

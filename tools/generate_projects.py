@@ -57,6 +57,7 @@ if __name__ == '__main__':
 
   args += ['--depth', project_src]
   args += ['-I', './tools/gyp/common.gypi']
+
   if platform.system() == 'Linux':
     # We need to fiddle with toplevel-dir to work around a GYP bug
     # that breaks building v8 from compiler/dart.gyp.

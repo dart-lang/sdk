@@ -16,7 +16,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/../third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],
         }],
       ],
       'sources': [
@@ -171,7 +171,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/../third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],
         }],
       ],
       'dependencies': [
