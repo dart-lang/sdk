@@ -1175,10 +1175,10 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name);
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 
+DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
+
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source);
-
-DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 
 
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
@@ -1201,7 +1201,6 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver);
 // TODO(turnidge): Rename to Dart_LibrarySetNativeResolver?
-
 
 // --- Profiling support ----
 
