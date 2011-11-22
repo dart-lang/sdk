@@ -71,8 +71,22 @@ class TestOutput {
   
   // The Java dartc runner exits with code 253 in case of unhandles
   // exceptions.
-  bool get hasCrashed() =>
-      !timedOut && (exitCode != -1) && ((exitCode < 0) || (exitCode == 253));
+  // The VM uses std::abort to terminate on asserts.
+  // std::abort terminates with exit code 3 on Windows.
+  bool get hasCrashed() {
+    if (new Platform().operatingSystem() == 'windows') {
+      if (exitCode == 3) {
+        return !timedOut;
+      }
+      return (!timedOut &&
+              (exitCode != -1) &&
+              (exitCode < 0) &&
+              ((0x3FFFFF00 & exitCode) == 0));
+    }
+    return (!timedOut &&
+            (exitCode != -1) &&
+            ((exitCode < 0) || (exitCode == 253)));
+  }
 
   bool get hasTimedOut() => timedOut;
 

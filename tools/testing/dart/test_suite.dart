@@ -281,16 +281,18 @@ class StandardTestSuite implements TestSuite {
 
 class TestUtils {
   static String executableName(Map configuration) {
+    String postfix =
+        (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
     switch (configuration['component']) {
       case 'vm':
-        return 'dart';
+        return 'dart$postfix';
       case 'dartc':
-        return 'compiler/bin/dartc_test';
+        return 'compiler/bin/dartc_test$postfix';
       case 'frog':
       case 'leg':
-          return 'frog/bin/frog';
+          return 'frog/bin/frog$postfix';
       case 'frogsh':
-        return 'frog/bin/frogsh';
+        return 'frog/bin/frogsh$postfix';
       default:
         throw "Unknown executable for: ${configuration['component']}";
     }

@@ -198,6 +198,14 @@ class TestOptionsParser {
    * into a list of configurations with exactly one value per key.
    */
   List<Map> _expandConfigurations(Map configuration) {
+
+    // TODO(ager): Get rid of this. This is for backwards
+    // compatibility with the python test scripts. They use system
+    // 'win32' for Windows.
+    if (configuration['system'] == 'windows') {
+      configuration['system'] = 'win32';
+    }
+
     // Expand the pseudo-values such as 'all'.
     if (configuration['architecture'] == 'all') {
       configuration['architecture'] = 'ia32,x64,simarm';
