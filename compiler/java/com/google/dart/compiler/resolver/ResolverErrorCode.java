@@ -36,6 +36,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
   CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE("Generative constructors cannot have return type"),
+  CONST_AND_NONCONST_CONSTRUCTOR("cont reference to non-const constructor."),
   CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),

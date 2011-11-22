@@ -11,16 +11,20 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.type.InterfaceType;
 
 import java.util.List;
 
@@ -80,6 +84,34 @@ public class CompileTimeConstantResolver {
 
         Element element = getContext().getScope()
             .findElement(libraryElement, x.getTargetName());
+        if (element != null) {
+          recordElement(x, element);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation x) {
+        x.visitChildren(this);
+
+        String name = x.getName() == null ? "" : x.getName().getTargetName();
+        InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
+        ConstructorElement element = (supertype == null) ?
+            null : Elements.lookupConstructor(supertype.getElement(), name);
+        if (element != null) {
+          recordElement(x, element);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation x) {
+        x.visitChildren(this);
+
+        String name = x.getName() == null ? "" : x.getName().getTargetName();
+        InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
+        ConstructorElement element = (supertype == null) ?
+            null : Elements.lookupConstructor(supertype.getElement(), name);
         if (element != null) {
           recordElement(x, element);
         }
@@ -147,12 +179,25 @@ public class CompileTimeConstantResolver {
 
     @Override
     public Element visitMethodDefinition(DartMethodDefinition node) {
+      MethodElement member = node.getSymbol();
+      ResolutionContext previousContext = context;
+      context = context.extend(member.getName());
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParams();
       for (DartParameter parameter : parameters) {
+        getContext().declare(parameter.getSymbol());
         // Then resolve the default values.
         resolveConstantExpression(parameter.getDefaultExpr());
       }
+      Element element = node.getSymbol();
+      if (ElementKind.of(element) == ElementKind.CONSTRUCTOR &&
+        node.getModifiers().isConstant()) {
+        for (DartInitializer initializer : node.getInitializers()) {
+          DartExpression initializerValue = initializer.getValue();
+          resolveConstantExpression(initializerValue);
+        }
+      }
+      context = previousContext;
       return null;
     }
 

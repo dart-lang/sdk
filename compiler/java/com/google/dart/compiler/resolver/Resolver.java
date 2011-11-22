@@ -935,6 +935,12 @@ public class Resolver {
         constructor = checkIsConstructor(x, element);
       }
 
+      if (constructor != null) {
+        if (x.isConst() && !constructor.getModifiers().isConstant()) {
+          onError(x, ResolverErrorCode.CONST_AND_NONCONST_CONSTRUCTOR);
+        }
+      }
+
       return recordElement(x, constructor);
     }
 

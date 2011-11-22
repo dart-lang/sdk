@@ -92,8 +92,6 @@ CTConstTest: Fail            # Bug 4510015.
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail  # Bug 4205768.
-ConstConstructor1NegativeTest: FAIL      # Bug 5142545
-ConstConstructor2NegativeTest: FAIL      # Bug 5142545
 DefaultFactoryLibraryTest: Fail          # Issue 514
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 Constructor2NegativeTest: Fail  # Bug 4208594.

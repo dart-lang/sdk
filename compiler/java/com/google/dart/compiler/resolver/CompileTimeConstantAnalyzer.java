@@ -35,6 +35,7 @@ import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnaryExpression;
@@ -428,8 +429,9 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitSuperExpression(DartSuperExpression x) {
-      // No need to traverse further - super() expressions are never constant
-      expectedConstant(x);
+      if (!x.getSymbol().getModifiers().isConstant()) {
+        expectedConstant(x);
+      }
       return null;
     }
 
@@ -464,6 +466,12 @@ public class CompileTimeConstantAnalyzer {
         default:
           expectedConstant(x);
       }
+      return null;
+    }
+
+    @Override
+    public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation x) {
+      x.visitChildren(this);
       return null;
     }
 
@@ -518,6 +526,18 @@ public class CompileTimeConstantAnalyzer {
           checkConstantExpression(variable.getValue());
         }
       }
+      return null;
+    }
+
+    @Override
+    public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
+      // Don't evaluate now, wait until it is referenced and evaluate as part of the expression
+      return null;
+    }
+
+    @Override
+    public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
+      // Don't evaluate now, wait until it is referenced and evaluate as part of the expression
       return null;
     }
   }
