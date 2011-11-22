@@ -97,6 +97,7 @@ namespace dart {
   V(DateNatives_getMinutes, 2)                                                 \
   V(DateNatives_getSeconds, 2)                                                 \
   V(AssertionError_throwNew, 2)                                                \
+  V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(Clock_now, 0)                                                              \
   V(Clock_frequency, 0)                                                        \

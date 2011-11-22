@@ -1405,8 +1405,10 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
-    // A null object is not an instance of any type, except of Object, Dynamic,
-    // and Null type.
+    // A null object is only an instance of Object and Dynamic, which has
+    // already been checked above (if the type is instantiated). So we can
+    // return false here if the instance is null (and if the type is
+    // instantiated).
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
     // Dynamic at run time.

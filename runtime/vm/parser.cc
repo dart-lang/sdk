@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DECLARE_FLAG(bool, expose_core_impl);
 
 // All references to Dart names are listed here.
 static const char* kAssertionErrorName = "AssertionError";
@@ -34,8 +35,8 @@ static const char* kThrowNewName = "_throwNew";
 static const char* kGrowableObjectArrayFromArrayName =
     "GrowableObjectArray._usingArray";
 static const char* kGrowableObjectArrayName = "GrowableObjectArray";
-static const char* kMutableMapName = "MutableMap";
-static const char* kMutableMapFromLiteralName = "fromLiteral";
+static const char* kLiteralMapFactoryName = "_LiteralMapFactory";
+static const char* kLiteralMapFactoryFromLiteralName = "Map.fromLiteral";
 static const char* kImmutableMapName = "ImmutableMap";
 static const char* kImmutableMapConstructorName = "ImmutableMap.";
 static const char* kStringClassName = "StringBase";
@@ -4430,6 +4431,21 @@ static RawClass* LookupImplClass(const String& class_name) {
 }
 
 
+// Lookup class in the corelib which also contains various VM
+// helper methods and classes. Allow look up of private classes.
+static RawClass* LookupCoreClass(const String& class_name) {
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  String& name = String::Handle(class_name.raw());
+  if ((class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) &&
+      !FLAG_expose_core_impl) {
+    // Private identifiers are mangled on a per script basis.
+    name = String::Concat(name, String::Handle(core_lib.private_key()));
+    name = String::NewSymbol(name);
+  }
+  return core_lib.LookupClass(name);
+}
+
+
 RawClass* Parser::LookupClass(const String& class_name) {
   return library_.LookupClass(class_name);
 }
@@ -5111,6 +5127,25 @@ void Parser::ErrorMsg(const char* format, ...) {
   va_end(args);
   Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
   UNREACHABLE();
+}
+
+
+void Parser::Warning(intptr_t token_index, const char* format, ...) {
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
+  if (FLAG_silent_warnings) return;
+  va_list args;
+  va_start(args, format);
+  FormatMessage(script_, token_index, "Warning",
+                message_buffer, kMessageBufferSize,
+                format, args);
+  va_end(args);
+  if (FLAG_warning_as_error) {
+    Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+    UNREACHABLE();
+  } else {
+    OS::Print(message_buffer);
+  }
 }
 
 
@@ -6664,26 +6699,48 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                  bool is_const,
                                  const TypeArguments& type_arguments) {
   TRACE_PARSER("ParseMapLiteral");
+  ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACE);
   const intptr_t literal_pos = token_index_;
   ConsumeToken();
 
-  String& map_class_name = String::Handle(
-      String::NewSymbol(is_const ? kImmutableMapName : kMutableMapName));
-  const Class& map_class = Class::Handle(LookupImplClass(map_class_name));
-  ASSERT(!map_class.IsNull());
-
+  Type& value_type_argument = Type::Handle(Type::DynamicType());
   TypeArguments& map_type_arguments =
       TypeArguments::ZoneHandle(type_arguments.raw());
-  // If no type arguments are provided, leave them as null, which is equivalent
-  // to using Map<Dynamic, Dynamic>. See issue 4966724.
+  // If no type argument is provided, leave it as null, which is equivalent
+  // to using Dynamic as the type argument for the value type.
   if (!map_type_arguments.IsNull()) {
-    // For now, only check the number of type arguments. See issue 4975876.
-    if (map_type_arguments.Length() != 2) {
-      ASSERT(type_pos >= 0);
-      ErrorMsg(type_pos, "wrong number of type arguments for Map literal");
+    // Map literals only take one type argument.
+    value_type_argument = map_type_arguments.TypeAt(0);
+    if (map_type_arguments.Length() > 1) {
+      // We temporarily accept two type arguments, as long as the first one is
+      // type String.
+      if (map_type_arguments.Length() != 2) {
+        ErrorMsg(type_pos,
+                 "a map literal takes one type argument specifying "
+                 "the value type");
+      }
+      if (!value_type_argument.IsStringInterface()) {
+        ErrorMsg(type_pos,
+                 "the key type of a map literal is implicitly 'String'");
+      }
+      Warning(type_pos,
+              "a map literal takes one type argument specifying "
+              "the value type");
+      value_type_argument = map_type_arguments.TypeAt(1);
+    } else {
+      TypeArray& type_array = TypeArray::Handle(TypeArray::New(2));
+      type_array.SetTypeAt(0, Type::Handle(Type::StringInterface()));
+      type_array.SetTypeAt(1, value_type_argument);
+      map_type_arguments = type_array.raw();
+    }
+    if (is_const && !value_type_argument.IsInstantiated()) {
+      ErrorMsg(type_pos,
+               "the type argument of a constant map literal cannot include "
+               "a type variable");
     }
   }
+  ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
 
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
@@ -6727,21 +6784,33 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       AstNode* arg = kv_pairs->ElementAt(i);
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
+      if (((i % 2) == 1) &&  // Check values only, not keys.
+          !value_type_argument.IsDynamicType() &&
+          !arg->AsLiteralNode()->literal().Is(value_type_argument)) {
+        ErrorMsg(arg->AsLiteralNode()->token_index(),
+                 "map literal entry value must be a constant of type '%s'",
+                 String::Handle(value_type_argument.Name()).ToCString());
+      }
       key_value_array.SetAt(i, arg->AsLiteralNode()->literal());
     }
     key_value_array ^= key_value_array.Canonicalize();
     key_value_array.MakeImmutable();
 
     // Construct the map object.
+    const String& immutable_map_class_name =
+        String::Handle(String::NewSymbol(kImmutableMapName));
+    const Class& immutable_map_class =
+        Class::Handle(LookupImplClass(immutable_map_class_name));
+    ASSERT(!immutable_map_class.IsNull());
     ArgumentListNode* constr_args = new ArgumentListNode(token_index_);
     constr_args->Add(new LiteralNode(literal_pos, key_value_array));
     const String& constr_name =
         String::Handle(String::NewSymbol(kImmutableMapConstructorName));
     const Function& map_constr = Function::ZoneHandle(
-        map_class.LookupConstructor(constr_name));
+        immutable_map_class.LookupConstructor(constr_name));
     ASSERT(!map_constr.IsNull());
     const Instance& const_instance = Instance::ZoneHandle(
-        EvaluateConstConstructorCall(map_class,
+        EvaluateConstConstructorCall(immutable_map_class,
                                      map_type_arguments,
                                      map_constr,
                                      constr_args));
@@ -6751,12 +6820,17 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       return new LiteralNode(literal_pos, const_instance);
     }
   } else {
-    // Static call at runtime.
-    const String& static_factory_name =
-        String::Handle(String::NewSymbol(kMutableMapFromLiteralName));
-    const Function& static_factory = Function::ZoneHandle(
-        map_class.LookupStaticFunction(static_factory_name));
-    ASSERT(!static_factory.IsNull());
+    // Factory call at runtime.
+    String& literal_map_factory_class_name = String::Handle(
+        String::NewSymbol(kLiteralMapFactoryName));
+    const Class& literal_map_factory_class =
+        Class::Handle(LookupCoreClass(literal_map_factory_class_name));
+    ASSERT(!literal_map_factory_class.IsNull());
+    const String& literal_map_factory_name =
+        String::Handle(String::NewSymbol(kLiteralMapFactoryFromLiteralName));
+    const Function& literal_map_factory = Function::ZoneHandle(
+        literal_map_factory_class.LookupFactory(literal_map_factory_name));
+    ASSERT(!literal_map_factory.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
@@ -6764,9 +6838,14 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       CaptureReceiver();
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
+    factory_param->Add(
+        new LiteralNode(literal_pos, Smi::ZoneHandle(Smi::New(literal_pos))));
+    factory_param->Add(
+        new LiteralNode(literal_pos,
+                        String::ZoneHandle(value_type_argument.Name())));
     factory_param->Add(kv_pairs);
-    return new StaticCallNode(
-        literal_pos, static_factory, factory_param);
+    return new ConstructorCallNode(
+        literal_pos, map_type_arguments, literal_map_factory, factory_param);
   }
 }
 

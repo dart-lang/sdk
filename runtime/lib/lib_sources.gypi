@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Sources visible to via default library.
+# Sources visible via default library.
 
 {
   'sources': [
@@ -13,6 +13,7 @@
     'error.cc',
     'error.dart',
     'error.h',
+    'literal_map_factory.dart',
     'object.cc',
     'object.dart',
   ],

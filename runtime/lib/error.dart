@@ -26,6 +26,11 @@ class TypeError extends AssertionError {
     throw const UnsupportedOperationException(
         "TypeError can only be allocated by the VM");
   }
+  static _throwNew(int location,
+                   Object src_value,
+                   String dst_type_name,
+                   String dst_name)
+      native "TypeError_throwNew";
   String toString() {
     return "'$url': Failed type check: line $line pos $column: " +
         "type '$srcType' is not assignable to type '$dstType' of '$dstName'.";

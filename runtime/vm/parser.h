@@ -173,6 +173,7 @@ class Parser : ValueObject {
   void ErrorMsg(const char* msg, ...);
   void ErrorMsg(intptr_t token_index, const char* msg, ...);
   void Warning(const char* msg, ...);
+  void Warning(intptr_t token_index, const char* msg, ...);
   void Unimplemented(const char* msg);
 
   const Instance& EvaluateConstExpr(AstNode* expr);

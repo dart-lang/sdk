@@ -122,6 +122,8 @@ ListLiteral3Test: Fail      # Bug 4510015.
 ListTest: Fail              # Bug 5146975.
 LocalFunction3Test: Fail     # Bug 4202974.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
+MapLiteral3Test: Fail # Issue 221
+MapLiteral4Test: Fail # Issue 221
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
 MethodOverrideTest: Crash    # Bug 5516001.
 NamedParameters2NegativeTest: Fail   # Implementation in progress.
@@ -261,6 +263,9 @@ ListTest: Fail         # array bound checks not implemented
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
+MapLiteral1NegativeTest: Fail # Issue 221
+MapLiteral2NegativeTest: Fail # Issue 221
+MapLiteral4Test: Fail # Issue 221
 MathTest: Fail
 MethodBindingTest: Fail
 MethodOverrideTest: Fail
