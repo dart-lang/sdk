@@ -71,7 +71,7 @@ class ObjectNotClosureException implements Exception {
 
 
 class IllegalArgumentException implements Exception {
-  const IllegalArgumentException([this._args = ""]);
+  const IllegalArgumentException([args = ""]) : _args = args;
   String toString() => "Illegal argument(s): $_args";
   final String _args;
 }

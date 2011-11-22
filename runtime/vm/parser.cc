@@ -840,6 +840,10 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   parameter.name_pos = token_index_;
   ConsumeToken();
   if (parameter.is_field_initializer) {
+    if (params->has_named_optional_parameters) {
+      ErrorMsg(parameter.name_pos,
+               "initializing formal parameter cannot be optional");
+    }
     params->has_field_initializer = true;
   }
 

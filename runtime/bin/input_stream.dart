@@ -106,7 +106,7 @@ interface StringInputStream factory _StringInputStream {
 
 
 class StreamException implements Exception {
-  const StreamException([String this.message = ""]);
+  const StreamException([String msg = ""]) : message = msg;
   String toString() => "StreamException: $message";
   final String message;
 }

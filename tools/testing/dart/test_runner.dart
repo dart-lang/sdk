@@ -35,7 +35,8 @@ class TestCase {
            this.timeout,
            this.completedHandler,
            this.expectedOutcomes,
-           [this.isNegative = false]) {
+           [isNegative = false])
+      : this.isNegative = isNegative {
     if (!isNegative) {
       isNegative = displayName.contains("NegativeTest");
     }
@@ -45,7 +46,7 @@ class TestCase {
     }
   }
 
-  void completed() { completedHandler(this); }    
+  void completed() { completedHandler(this); }
 }
 
 
@@ -58,7 +59,7 @@ class TestOutput {
   List<String> stdout;
   List<String> stderr;
   Duration time;
-  
+
   TestOutput(this.testCase, this.exitCode, this.timedOut, this.stdout,
              this.stderr, this.time) {
     testCase.output = this;
@@ -68,7 +69,7 @@ class TestOutput {
       hasCrashed ? CRASH : (hasTimedOut ? TIMEOUT : (hasFailed ? FAIL : PASS));
 
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
-  
+
   // The Java dartc runner exits with code 253 in case of unhandles
   // exceptions.
   // The VM uses std::abort to terminate on asserts.
@@ -108,7 +109,8 @@ class RunningProcess {
   List<String> stderr;
   List<Function> handlers;
 
-  RunningProcess(this.testCase, [this.timeout = NO_TIMEOUT]);
+  RunningProcess(this.testCase, [timeout = NO_TIMEOUT])
+      : this.timeout = timeout;
 
   void exitHandler(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
@@ -135,7 +137,7 @@ class RunningProcess {
     process.exitHandler = exitHandler;
     startTime = new Date.now();
     process.start();
-    
+
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
     stdout = new List<String>();

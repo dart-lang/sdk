@@ -17,7 +17,7 @@ interface _Decoder<T> {
 
 
 class DecoderException implements Exception {
-  const DecoderException([String this.message]);
+  const DecoderException([String msg]) : message = msg;
   String toString() => "DecoderException: $message";
   final String message;
 }
@@ -138,7 +138,8 @@ class _UTF8Decoder extends _StringDecoderBase {
 
 
 class _StringInputStream implements StringInputStream {
-  _StringInputStream(InputStream this._input, [String this._encoding]) {
+  _StringInputStream(InputStream this._input, [String encoding])
+      : _encoding = encoding {
     if (_encoding === null) {
       _encoding = "UTF-8";
     }
