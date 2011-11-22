@@ -5,6 +5,7 @@
 class OverflowEventWrappingImplementation extends EventWrappingImplementation implements OverflowEvent {
   OverflowEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
+  /** @domName OverflowEvent.initOverflowEvent */
   factory OverflowEventWrappingImplementation(int orient,
       bool horizontalOverflow, bool verticalOverflow) {
     final e = dom.document.createEvent("OverflowEvent");

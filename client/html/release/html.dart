@@ -16827,6 +16827,7 @@ class _CSSMatrixFactoryProvider {
 
 class _PointFactoryProvider {
 
+  /** @domName Window.createWebKitPoint */
   factory Point(num x, num y) {
     return new PointWrappingImplementation._wrap(new dom.WebKitPoint(x, y));
   }
@@ -22452,6 +22453,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
 
   DocumentFragmentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
+  /** @domName Document.createDocumentFragment */
   factory DocumentFragmentWrappingImplementation() {
     return new DocumentFragmentWrappingImplementation._wrap(
 	    dom.document.createDocumentFragment());
@@ -22695,91 +22697,121 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
     _documentPtr.dartObjectLocalStorage = this;
   }
 
+  /** @domName HTMLDocument.activeElement */
   Element get activeElement() => LevelDom.wrapElement(_documentPtr.activeElement);
 
   Node get parent() => null;
 
+  /** @domName Document.body */
   Element get body() => LevelDom.wrapElement(_documentPtr.body);
 
+  /** @domName Document.body */
   void set body(Element value) { _documentPtr.body = LevelDom.unwrap(value); }
 
+  /** @domName Document.charset */
   String get charset() => _documentPtr.charset;
 
+  /** @domName Document.charset */
   void set charset(String value) { _documentPtr.charset = value; }
 
+  /** @domName Document.cookie */
   String get cookie() => _documentPtr.cookie;
 
+  /** @domName Document.cookie */
   void set cookie(String value) { _documentPtr.cookie = value; }
 
+  /** @domName Document.defaultView */
   Window get window() => LevelDom.wrapWindow(_documentPtr.defaultView);
 
+  /** @domName HTMLDocument.designMode */
   void set designMode(String value) { _documentPtr.designMode = value; }
 
+  /** @domName Document.domain */
   String get domain() => _documentPtr.domain;
 
+  /** @domName Document.head */
   HeadElement get head() => LevelDom.wrapHeadElement(_documentPtr.head);
 
+  /** @domName Document.lastModified */
   String get lastModified() => _documentPtr.lastModified;
 
+  /** @domName Document.readyState */
   String get readyState() => _documentPtr.readyState;
 
+  /** @domName Document.referrer */
   String get referrer() => _documentPtr.referrer;
 
+  /** @domName Document.styleSheets */
   StyleSheetList get styleSheets() => LevelDom.wrapStyleSheetList(_documentPtr.styleSheets);
 
+  /** @domName Document.title */
   String get title() => _documentPtr.title;
 
+  /** @domName Document.title */
   void set title(String value) { _documentPtr.title = value; }
 
+  /** @domName Document.webkitHidden */
   bool get webkitHidden() => _documentPtr.webkitHidden;
 
+  /** @domName Document.webkitVisibilityState */
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
+  /** @domName Document.caretRangeFromPoint */
   Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
     return _createMeasurementFuture(
         () => LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y)),
         new Completer<Range>());
   }
 
+  /** @domName Document.createElement */
   Element createElement([String tagName = null]) {
     return LevelDom.wrapElement(_documentPtr.createElement(tagName));
   }
 
+  /** @domName Document.createEvent */
   Event createEvent([String eventType = null]) {
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 
+  /** @domName Document.elementFromPoint */
   Future<Element> elementFromPoint([int x = null, int y = null]) {
     return _createMeasurementFuture(
         () => LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y)),
         new Completer<Element>());
   }
 
+  /** @domName Document.execCommand */
   bool execCommand([String command = null, bool userInterface = null, String value = null]) {
     return _documentPtr.execCommand(command, userInterface, value);
   }
 
+  /** @domName Document.getCSSCanvasContext */
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name,
                                              int width, int height) {
     return LevelDom.wrapCanvasRenderingContext(_documentPtr.getCSSCanvasContext(contextId, name, width, height));
   }
 
+  /** @domName Document.queryCommandEnabled */
   bool queryCommandEnabled([String command = null]) {
     return _documentPtr.queryCommandEnabled(command);
   }
 
+  /** @domName Document.queryCommandIndeterm */
   bool queryCommandIndeterm([String command = null]) {
     return _documentPtr.queryCommandIndeterm(command);
   }
 
+  /** @domName Document.queryCommandState */
   bool queryCommandState([String command = null]) {
     return _documentPtr.queryCommandState(command);
   }
 
+  /** @domName Document.queryCommandSupported */
   bool queryCommandSupported([String command = null]) {
     return _documentPtr.queryCommandSupported(command);
   }
 
+  /** @domName Document.queryCommandValue */
   String queryCommandValue([String command = null]) {
     return _documentPtr.queryCommandValue(command);
   }
@@ -23384,14 +23416,17 @@ class ElementAttributeMap implements Map<String, String> {
     return false;
   }
 
+  /** @domName Element.hasAttribute */
   bool containsKey(String key) {
     return _element.hasAttribute(key);
   }
 
+  /** @domName Element.getAttribute */
   String operator [](String key) {
     return _element.getAttribute(key);
   }
 
+  /** @domName Element.setAttribute */
   void operator []=(String key, String value) {
     _element.setAttribute(key, value);
   }
@@ -23402,6 +23437,7 @@ class ElementAttributeMap implements Map<String, String> {
     }
   }
 
+  /** @domName Element.removeAttribute */
   String remove(String key) {
     _element.removeAttribute(key);
   }
@@ -23530,6 +23566,7 @@ class SimpleClientRect implements ClientRect {
 // triggering unneeded layouts.
 /**
  * All your element measurement needs in one place
+ * @domName none
  */
 class ElementRectWrappingImplementation implements ElementRect {
   final ClientRect client;
@@ -23763,14 +23800,17 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _ptr.focus();
   }
 
+  /** @domName HTMLElement.insertAdjacentElement */
   Element insertAdjacentElement([String where = null, Element element = null]) {
     return LevelDom.wrapElement(_ptr.insertAdjacentElement(where, LevelDom.unwrap(element)));
   }
 
+  /** @domName HTMLElement.insertAdjacentHTML */
   void insertAdjacentHTML([String position_OR_where = null, String text = null]) {
     _ptr.insertAdjacentHTML(position_OR_where, text);
   }
 
+  /** @domName HTMLElement.insertAdjacentText */
   void insertAdjacentText([String where = null, String text = null]) {
     _ptr.insertAdjacentText(where, text);
   }
@@ -23805,6 +23845,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
  
   void set scrollTop(int value) { _ptr.scrollTop = value; }
 
+  /** @domName getClientRects */
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(
         () => new ElementRectWrappingImplementation(_ptr),
@@ -23816,6 +23857,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
      return getComputedStyle('');
   }
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(() =>
         LevelDom.wrapCSSStyleDeclaration(
@@ -25290,6 +25332,7 @@ class _ChildrenNodeList implements NodeList {
     return false;
   }
 
+  /** @domName Node.hasChildNodes */
   bool isEmpty() {
     return _node.hasChildNodes();
   }
@@ -25310,6 +25353,7 @@ class _ChildrenNodeList implements NodeList {
      throw new UnsupportedOperationException('');
    }
 
+  /** @domName Node.appendChild */
   Node add(Node value) {
     _node.appendChild(LevelDom.unwrap(value));
     return value;
@@ -25429,6 +25473,7 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
     return this;
   }
 
+  /** @domName Node.contains */
   bool contains(Node otherNode) {
     // TODO: Feature detect and use built in.
     while (otherNode != null && otherNode != this) {
@@ -25554,6 +25599,7 @@ interface OverflowEvent extends Event factory OverflowEventWrappingImplementatio
 class OverflowEventWrappingImplementation extends EventWrappingImplementation implements OverflowEvent {
   OverflowEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
+  /** @domName OverflowEvent.initOverflowEvent */
   factory OverflowEventWrappingImplementation(int orient,
       bool horizontalOverflow, bool verticalOverflow) {
     final e = dom.document.createEvent("OverflowEvent");
@@ -25772,6 +25818,7 @@ class TextEventWrappingImplementation extends UIEventWrappingImplementation impl
 // BSD-style license that can be found in the LICENSE file.
 
 class TextWrappingImplementation extends CharacterDataWrappingImplementation implements Text {
+  /** @domName Document.createTextNode */
   factory TextWrappingImplementation(String content) {
     return new TextWrappingImplementation._wrap(
         dom.document.createTextNode(content));
@@ -25834,7 +25881,7 @@ interface TouchEvent extends UIEvent factory TouchEventWrappingImplementation {
 class TouchEventWrappingImplementation extends UIEventWrappingImplementation implements TouchEvent {
   TouchEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
-  TouchEvent(TouchList touches, TouchList targetTouches,
+  factory TouchEvent(TouchList touches, TouchList targetTouches,
       TouchList changedTouches, String type, Window view, int screenX,
       int screenY, int clientX, int clientY, [bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false]) {
@@ -26551,6 +26598,7 @@ class WindowEventsImplementation extends EventsImplementation
   EventListenerList get contentLoaded() => _get('DOMContentLoaded');
 }
 
+/** @domName Window */
 class WindowWrappingImplementation extends EventTargetWrappingImplementation implements Window {
   WindowWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
@@ -27529,6 +27577,7 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
   XMLHttpRequestWrappingImplementation._wrap(
       dom.XMLHttpRequest ptr) : super._wrap(ptr);
 
+  /** @domName Window.createXMLHttpRequest */
   factory XMLHttpRequestWrappingImplementation() {
     return new XMLHttpRequestWrappingImplementation._wrap(
         new dom.XMLHttpRequest());

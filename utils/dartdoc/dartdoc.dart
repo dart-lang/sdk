@@ -51,7 +51,7 @@ void main() {
   parseOptions('../../frog', [] /* args */, files);
 
   final elapsed = time(() {
-    _comments = <String, Map<int, String>>{};
+    initializeDartDoc();
 
     initializeWorld(files);
 
@@ -79,6 +79,10 @@ void main() {
 
   print('Documented $_totalLibraries libraries, $_totalTypes types, and ' +
         '$_totalMembers members in ${elapsed}msec.');
+}
+
+void initializeDartDoc() {
+  _comments = <String, Map<int, String>>{};
 }
 
 /** Copies the static file at 'static/file' to the output directory. */

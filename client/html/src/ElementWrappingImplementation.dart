@@ -292,14 +292,17 @@ class ElementAttributeMap implements Map<String, String> {
     return false;
   }
 
+  /** @domName Element.hasAttribute */
   bool containsKey(String key) {
     return _element.hasAttribute(key);
   }
 
+  /** @domName Element.getAttribute */
   String operator [](String key) {
     return _element.getAttribute(key);
   }
 
+  /** @domName Element.setAttribute */
   void operator []=(String key, String value) {
     _element.setAttribute(key, value);
   }
@@ -310,6 +313,7 @@ class ElementAttributeMap implements Map<String, String> {
     }
   }
 
+  /** @domName Element.removeAttribute */
   String remove(String key) {
     _element.removeAttribute(key);
   }
@@ -438,6 +442,7 @@ class SimpleClientRect implements ClientRect {
 // triggering unneeded layouts.
 /**
  * All your element measurement needs in one place
+ * @domName none
  */
 class ElementRectWrappingImplementation implements ElementRect {
   final ClientRect client;
@@ -671,14 +676,17 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _ptr.focus();
   }
 
+  /** @domName HTMLElement.insertAdjacentElement */
   Element insertAdjacentElement([String where = null, Element element = null]) {
     return LevelDom.wrapElement(_ptr.insertAdjacentElement(where, LevelDom.unwrap(element)));
   }
 
+  /** @domName HTMLElement.insertAdjacentHTML */
   void insertAdjacentHTML([String position_OR_where = null, String text = null]) {
     _ptr.insertAdjacentHTML(position_OR_where, text);
   }
 
+  /** @domName HTMLElement.insertAdjacentText */
   void insertAdjacentText([String where = null, String text = null]) {
     _ptr.insertAdjacentText(where, text);
   }
@@ -713,6 +721,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
  
   void set scrollTop(int value) { _ptr.scrollTop = value; }
 
+  /** @domName getClientRects */
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(
         () => new ElementRectWrappingImplementation(_ptr),
@@ -724,6 +733,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
      return getComputedStyle('');
   }
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(() =>
         LevelDom.wrapCSSStyleDeclaration(

@@ -23,6 +23,7 @@ class _CSSMatrixFactoryProvider {
 
 class _PointFactoryProvider {
 
+  /** @domName Window.createWebKitPoint */
   factory Point(num x, num y) {
     return new PointWrappingImplementation._wrap(new dom.WebKitPoint(x, y));
   }

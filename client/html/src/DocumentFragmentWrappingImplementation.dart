@@ -151,6 +151,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
 
   DocumentFragmentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
+  /** @domName Document.createDocumentFragment */
   factory DocumentFragmentWrappingImplementation() {
     return new DocumentFragmentWrappingImplementation._wrap(
 	    dom.document.createDocumentFragment());

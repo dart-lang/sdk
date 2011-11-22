@@ -5,7 +5,7 @@
 class TouchEventWrappingImplementation extends UIEventWrappingImplementation implements TouchEvent {
   TouchEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
-  TouchEvent(TouchList touches, TouchList targetTouches,
+  factory TouchEvent(TouchList touches, TouchList targetTouches,
       TouchList changedTouches, String type, Window view, int screenX,
       int screenY, int clientX, int clientY, [bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false]) {

@@ -84,6 +84,7 @@ class WindowEventsImplementation extends EventsImplementation
   EventListenerList get contentLoaded() => _get('DOMContentLoaded');
 }
 
+/** @domName Window */
 class WindowWrappingImplementation extends EventTargetWrappingImplementation implements Window {
   WindowWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
