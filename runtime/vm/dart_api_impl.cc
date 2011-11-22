@@ -441,8 +441,13 @@ static void CompileAll(Isolate* isolate, Dart_Handle* result) {
 
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
-static const char* CheckIsolateState(Isolate* isolate) {
-  if (!ClassFinalizer::FinalizePendingClasses()) {
+static const char* CheckIsolateState(
+    Isolate* isolate,
+    bool generating_snapshot = ClassFinalizer::kNotGeneratingSnapshot) {
+  bool result = (generating_snapshot) ?
+      ClassFinalizer::FinalizePendingClassesForSnapshotCreation() :
+      ClassFinalizer::FinalizePendingClasses();
+  if (!result) {
     // Make a copy of the error message as the original message string
     // may get deallocated when we return back from the Dart API call.
     const String& err =
@@ -2010,7 +2015,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
   if (snapshot_buffer == NULL || snapshot_size == NULL) {
     return Api::Error("Invalid input parameters to Dart_CreateSnapshot");
   }
-  const char* msg = CheckIsolateState(isolate);
+  const char* msg = CheckIsolateState(isolate,
+                                      ClassFinalizer::kGeneratingSnapshot);
   if (msg != NULL) {
     return Api::Error(msg);
   }

@@ -49,7 +49,7 @@ bool ClassFinalizer::AllClassesFinalized() {
 // Class finalization occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
-bool ClassFinalizer::FinalizePendingClasses() {
+bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
   bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -79,7 +79,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
     // Finalize all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      FinalizeClass(cls);
+      FinalizeClass(cls, generating_snapshot);
     }
     if (FLAG_print_classes) {
       for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -984,7 +984,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
 }
 
 
-void ClassFinalizer::FinalizeClass(const Class& cls) {
+void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   if (cls.is_finalized()) {
     return;
   }
@@ -1006,7 +1006,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (!super_type.IsNull()) {
     const Class& super_class = Class::Handle(super_type.type_class());
     // Finalize super class and super type.
-    FinalizeClass(super_class);
+    FinalizeClass(super_class, generating_snapshot);
     super_type = FinalizeType(super_type);
     cls.set_super_type(super_type);
   }
@@ -1015,7 +1015,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
       const Class& factory_class = Class::Handle(cls.FactoryClass());
       // Finalize factory class.
       if (!factory_class.is_finalized()) {
-        FinalizeClass(factory_class);
+        FinalizeClass(factory_class, generating_snapshot);
         // Finalizing the factory class may indirectly finalize this interface.
         if (cls.is_finalized()) {
           return;
@@ -1042,7 +1042,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Check to ensure we don't have classes with native fields in libraries
   // which do not have a native resolver.
-  if (cls.num_native_fields() != 0) {
+  if (!generating_snapshot && cls.num_native_fields() != 0) {
     const Library& lib = Library::Handle(cls.library());
     if (lib.native_entry_resolver() == NULL) {
       const String& cls_name = String::Handle(cls.Name());
