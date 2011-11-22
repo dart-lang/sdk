@@ -238,6 +238,45 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
+char* Directory::CreateTemp(const char* const_template, int64_t number) {
+  // Returns a new, unused directory name, modifying the contents of
+  // dir_template.  Creates this directory, with a default security
+  // descriptor inherited from its parent directory.
+  // The return value must be freed by the caller.
+  char* path = static_cast<char*>(malloc(MAX_PATH));
+  int path_length;
+  if (0 == strncmp(const_template, "", 1)) {
+    path_length = GetTempPath(MAX_PATH, path);
+  } else {
+    snprintf(path, MAX_PATH, "%s", const_template);
+    path_length = strlen(path);
+  }
+  if (path_length > MAX_PATH - 14) {
+    path[0] = '\0';
+    return path;
+  }
+  if (path[path_length - 1] == '\\') {
+    // No base name for the directory - use "tempdir"
+    snprintf(path + path_length, MAX_PATH - path_length, "tempdir");
+    path_length = strlen(path);
+  }
+
+  int tries = 0;
+  int numeric_part = number % 1000000;
+  while (true) {
+    snprintf(path + path_length, MAX_PATH - path_length, "%.6d", numeric_part);
+    if (CreateDirectory(path, NULL)) break;
+    numeric_part++;
+    tries++;
+    if (tries > 100) {
+      path[0] = '\0';
+      break;
+    }
+  }
+  return path;
+}
+
+
 bool Directory::Delete(const char* dir_name) {
   return (RemoveDirectory(dir_name) != 0);
 }

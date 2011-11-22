@@ -27,6 +27,8 @@ class Directory {
 
   static bool Create(const char* path);
 
+  static char* CreateTemp(const char* const_template, int64_t number);
+
   static bool Delete(const char* path);
 
   DISALLOW_ALLOCATION();

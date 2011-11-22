@@ -25,6 +25,7 @@ static const char Builtin_source_[] = {
   V(Directory_List, 7)                                                         \
   V(Directory_Exists, 2)                                                       \
   V(Directory_Create, 2)                                                       \
+  V(Directory_CreateTemp, 3)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \

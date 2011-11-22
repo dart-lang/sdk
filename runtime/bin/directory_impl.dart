@@ -29,6 +29,22 @@ class _DirectoryListingIsolate extends Isolate {
 }
 
 
+class _DirectoryCreateTempIsolate extends Isolate {
+
+  _DirectoryCreateTempIsolate() : super.heavy();
+
+  void main() {
+    port.receive((path, replyTo) {
+      // Call function to get file name
+      replyTo.send(_createTemp(path, (Math.random() * 0x8000000).toInt()));
+      port.close();
+    });
+  }
+
+  String _createTemp(String template, int num) native "Directory_CreateTemp";
+}
+
+
 class _Directory implements Directory {
 
   _Directory(String this._path);
@@ -45,6 +61,23 @@ class _Directory implements Directory {
     if (!_create(_path)) {
       throw new DirectoryException("Directory creation failed: $_path");
     }
+  }
+
+  void createTemp() {
+    new _DirectoryCreateTempIsolate().spawn().then((port) {
+      port.call(_path).receive((result, ignored) {
+        if (result != '') {
+          _path = result;
+          if (_createTempHandler !== null) {
+            _createTempHandler();
+          }
+        } else {
+          if (_errorHandler !== null) {
+            _errorHandler("Could not create temporary directory: $_path");
+          }
+        }
+      });
+    });
   }
 
   void deleteSync() {
@@ -129,6 +162,10 @@ class _Directory implements Directory {
     _doneHandler = doneHandler;
   }
 
+  void set createTempHandler(void createTempHandler()) {
+    _createTempHandler = createTempHandler;
+  }
+
   void set errorHandler(void errorHandler(String error)) {
     _errorHandler = errorHandler;
   }
@@ -148,6 +185,7 @@ class _Directory implements Directory {
   var _dirHandler;
   var _fileHandler;
   var _doneHandler;
+  var _createTempHandler;
   var _errorHandler;
 
   String _path;
