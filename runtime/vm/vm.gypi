@@ -11,6 +11,7 @@
     'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
+    'cygwin_dir': '../../third_party/cygwin',
   },
   'targets': [
     {
@@ -89,7 +90,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
       'includes': [
@@ -132,7 +133,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
       'includes': [
@@ -175,7 +176,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
       'actions': [

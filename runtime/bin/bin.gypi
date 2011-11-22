@@ -9,6 +9,7 @@
     'snapshot_in_cc_file': 'snapshot_in.cc',
     'snapshot_bin_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.bin',
     'snapshot_cc_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.cc',
+    'cygwin_dir': '../../third_party/cygwin',
   },
   'targets': [
     {
@@ -16,7 +17,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
       'sources': [
@@ -171,7 +172,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
       'dependencies': [
