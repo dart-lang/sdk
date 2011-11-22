@@ -170,7 +170,6 @@ LibTest/core/StopWatch/start/StopWatch/start/A01/t02: Fail # Issue co19 - 30
 LibTest/core/StopWatch/stop/StopWatch/stop/A01/t01: Fail # Issue co19 - 30
 LibTest/core/String/replaceFirst/String/replaceFirst/A01/t01: Fail # Issue 429
 LibTest/core/TypeError/srcType/TypeError/srcType/A01/t01: Fail # Issue co19 - 46
-LibTest/core/double/isOdd/double/isOdd/A01/t02: Fail # Issue 465
 LibTest/core/double/toRadixString/double/toRadixString/A01/t01: Fail # Issue 463
 LibTest/core/double/toStringAsExponential/double/toStringAsExponential/A01/t01: Fail # Issue 463
 LibTest/core/double/toStringAsPrecision/double/toStringAsPrecision/A01/t01: Fail # Issue 463
@@ -184,6 +183,10 @@ LibTest/core/int/toRadixString/int/toRadixString/A01/t01: Fail # Issue 461
 LibTest/core/int/toStringAsExponential/int/toStringAsExponential/A01/t01: Fail # Issue 460
 LibTest/core/int/toStringAsFixed/int/toStringAsFixed/A01/t01: Fail # Issue 460
 LibTest/core/int/toStringAsPrecision/int/toStringAsPrecision/A01/t01: Fail # Issue 460
+
+LibTest/core/double/isEven/* : Fail # Issue 465
+LibTest/core/double/isOdd/* : Fail # Issue 465
+
 [ $component == vm && $system == macos ]
 LibTest/core/Math/acos/Math/acos/A01/t01: Fail # Issue co19 - 44
 LibTest/core/Math/asin/Math/asin/A01/t01: Fail # Issue co19 - 44
