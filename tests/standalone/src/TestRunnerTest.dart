@@ -23,7 +23,7 @@ class TestController {
     for (var line in output.stdout) print(line);
     print("stderr: ");
     for (var line in output.stderr) print(line);
-    
+
     print("Time: ${output.time}");
     print("Exit code: ${output.exitCode}");
 
@@ -45,34 +45,13 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 
   var timeout = 2;
   return new TestCase(testName,
-                      getDartBinName(),
+                      getDartFileName(),
                       <String>["--ignore-unrecognized-flags",
                                "--enable_type_checks",
                                test_path],
                       timeout,
                       TestController.processCompletedTest,
                       new Set<String>.from(expectations));
-}
-
-
-String getDartBinName() {
-  var os = new Platform().operatingSystem();
-
-  var outDir = '';
-  if (os == 'linux') {
-    outDir = 'out';
-  } else if (os == 'macos') {
-    outDir = 'xcodebuild';
-  }
-
-  var names = ['$outDir/Debug_ia32/dart',
-               '$outDir/Release_ia32/dart'];
-
-  for (var name in names) {
-    if (new File(name).existsSync()) {
-      return name;
-    }
-  }
 }
 
 

@@ -266,7 +266,8 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       }
     }
 
-    // On pipes POLLHUP is reported without POLLIN.
+    // On pipes POLLHUP is reported without POLLIN when there is no
+    // more data to read.
     if (sd->IsPipe()) {
       if (((pollfd->revents & POLLIN) == 0) &&
           ((pollfd->revents & POLLHUP) != 0)) {
@@ -275,7 +276,14 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       }
     }
 
-    if ((pollfd->revents & POLLOUT) != 0) event_mask |= (1 << kOutEvent);
+    if ((pollfd->revents & POLLOUT) != 0) {
+      if ((pollfd->revents & POLLERR) != 0) {
+        event_mask = (1 << kErrorEvent);
+        sd->MarkClosedWrite();
+      } else {
+        event_mask |= (1 << kOutEvent);
+      }
+    }
   }
 
   return event_mask;

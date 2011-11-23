@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-String getProcessTestFileName() {
+String getPlatformOutDir() {
   var os = new Platform().operatingSystem();
+  if (os == 'linux') return 'out';
+  if (os == 'macos') 'xcodebuild';
+  return '';  // Windows.
+}
 
-  var outDir = '';
-  if (os == 'linux') {
-    outDir = 'out';
-  } else if (os == 'macos') {
-    outDir = 'xcodebuild';
-  }
-
+String getProcessTestFileName() {
+  var outDir = getPlatformOutDir();
   var names = ['$outDir/Release_ia32/process_test',
                '$outDir/Debug_ia32/process_test'];
 
@@ -20,6 +19,18 @@ String getProcessTestFileName() {
       return name;
     }
   }
+  Expect.fail('Could not find the process_test executable.');
+}
 
-  Expect.fail('Could not find the process_test program.');
+String getDartFileName() {
+  var outDir = getPlatformOutDir();
+  var names = ['$outDir/Release_ia32/dart',
+               '$outDir/Debug_ia32/dart'];
+
+  for (var name in names) {
+    if (new File(name).existsSync()) {
+      return name;
+    }
+  }
+  Expect.fail('Could not find the dart executable.');
 }

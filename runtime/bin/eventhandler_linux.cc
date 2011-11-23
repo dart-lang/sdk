@@ -215,6 +215,7 @@ static void PrintEventMask(struct pollfd* pollfd) {
 
 intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
 #ifdef DEBUG_POLL
+  printf("Poll events:\n");
   if (pollfd->fd != interrupt_fds_[0]) PrintEventMask(pollfd);
 #endif
   intptr_t event_mask = 0;
@@ -266,7 +267,8 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       }
     }
 
-    // On pipes POLLHUP is reported without POLLIN.
+    // On pipes POLLHUP is reported without POLLIN when there is no
+    // more data to read.
     if (sd->IsPipe()) {
       if (((pollfd->revents & POLLIN) == 0) &&
           ((pollfd->revents & POLLHUP) != 0)) {
@@ -275,7 +277,14 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       }
     }
 
-    if ((pollfd->revents & POLLOUT) != 0) event_mask |= (1 << kOutEvent);
+    if ((pollfd->revents & POLLOUT) != 0) {
+      if ((pollfd->revents & POLLERR) != 0) {
+        event_mask = (1 << kErrorEvent);
+        sd->MarkClosedWrite();
+      } else {
+        event_mask |= (1 << kOutEvent);
+      }
+    }
   }
 
   return event_mask;

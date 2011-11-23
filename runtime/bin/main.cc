@@ -12,6 +12,7 @@
 #include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/globals.h"
+#include "bin/platform.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
@@ -250,6 +251,11 @@ int main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
+
+  // Perform platform specific initialization.
+  if (!Platform::Initialize()) {
+    fprintf(stderr, "Initialization failed\n");
+  }
 
   // Parse command line arguments.
   if (ParseArguments(argc,

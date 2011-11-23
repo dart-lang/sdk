@@ -106,7 +106,7 @@ void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
       int message[3] = { pid, exit_code, negative };
       intptr_t result =
           FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
-      if (result != sizeof(message)) {
+      if (result != sizeof(message) && errno != EPIPE) {
         perror("ExitHandler notification failed");
       }
       close(process->fd());

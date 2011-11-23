@@ -60,18 +60,17 @@ intptr_t Socket::Available(intptr_t fd) {
 }
 
 
-intptr_t Socket::Read(intptr_t fd,
-                      void* buffer,
-                      intptr_t num_bytes) {
+int Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
-  intptr_t read_bytes = read(fd, buffer, num_bytes);
+  ssize_t read_bytes = read(fd, buffer, num_bytes);
   return read_bytes;
 }
 
 
-intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
+int Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
-  return write(fd, buffer, num_bytes);
+  ssize_t written_bytes = write(fd, buffer, num_bytes);
+  return written_bytes;
 }
 
 

@@ -18,7 +18,7 @@ void exit(int status) {
 }
 
 Socket _stdin;
-OutputStream get stdin() {
+InputStream get stdin() {
   if (_stdin == null) {
     _stdin = new _Socket._internalReadOnly();
     _getStdioHandle(_stdin, 0);

@@ -4,8 +4,24 @@
 
 #include "bin/platform.h"
 
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
+
+
+bool Platform::Initialize() {
+  // Turn off the signal handler for SIGPIPE as it causes the process
+  // to terminate on writing to a closed pipe. Without the signal
+  // handler error EPIPE is set instead.
+  struct sigaction act;
+  bzero(&act, sizeof(act));
+  act.sa_handler = SIG_IGN;
+  if (sigaction(SIGPIPE, &act, 0) != 0) {
+    perror("Setting signal handler failed");
+    return false;
+  }
+  return true;
+}
 
 
 int Platform::NumberOfProcessors() {

@@ -125,6 +125,7 @@ class SocketOutputStream implements OutputStream {
       _pendingWrites.add(buffer, notWrittenOffset);
     }
     _socket.writeHandler = _writeHandler;
+    return false;
   }
 
   void _writeHandler() {
