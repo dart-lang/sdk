@@ -6640,8 +6640,10 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       AstNode* elem = list->ElementAt(i);
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
-      if (!element_type.IsDynamicType() &&
-          !elem->AsLiteralNode()->literal().Is(element_type)) {
+      if (FLAG_enable_type_checks &&
+          !element_type.IsDynamicType() &&
+          !elem->AsLiteralNode()->literal().
+              IsAssignableTo(element_type, TypeArguments::Handle())) {
         ErrorMsg(elem->AsLiteralNode()->token_index(),
                  "list literal element at index %d must be "
                  "a constant of type '%s'",
@@ -6798,9 +6800,11 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       AstNode* arg = kv_pairs->ElementAt(i);
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
-      if (((i % 2) == 1) &&  // Check values only, not keys.
+      if (FLAG_enable_type_checks &&
+          ((i % 2) == 1) &&  // Check values only, not keys.
           !value_type.IsDynamicType() &&
-          !arg->AsLiteralNode()->literal().Is(value_type)) {
+          !arg->AsLiteralNode()->literal().
+              IsAssignableTo(value_type, TypeArguments::Handle())) {
         ErrorMsg(arg->AsLiteralNode()->token_index(),
                  "map literal value at index %d must be "
                  "a constant of type '%s'",

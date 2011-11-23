@@ -119,7 +119,6 @@ InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 IsObjectTest: Skip # Hasn't be tested on DartC yet
 Library4NegativeTest: Fail               # Bug 5406175
 ListLiteral1NegativeTest: Skip # Issue 220
-ListLiteral2NegativeTest: Fail # Issue 220
 ListLiteral3Test: Fail # Issue 220
 ListLiteral4Test: Fail # Issue 220
 ListTest: Fail              # Bug 5146975.
