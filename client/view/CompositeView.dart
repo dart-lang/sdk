@@ -23,10 +23,14 @@ class CompositeView extends View {
   final bool _nestedContainer;
   final bool _showScrollbar;
 
-  CompositeView(String this._cssName, [this._nestedContainer = false,
-                this._scrollable = false, this._vertical = false,
-                this._showScrollbar = false])
+  CompositeView(String this._cssName, [nestedContainer = false,
+                scrollable = false, vertical = false,
+                showScrollbar = false])
   : super(),
+    _nestedContainer = nestedContainer,
+    _scrollable = scrollable,
+    _vertical = vertical,
+    _showScrollbar = showScrollbar,
     childViews = new List<View>() {
   }
 

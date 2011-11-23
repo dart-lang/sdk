@@ -39,8 +39,8 @@ class FixedSizing extends SizingFunction {
   // we need to correctly track whether we're content sized during a layout
   bool _contentSized;
 
-  FixedSizing(this.length, [this.units = 'px'])
-    : super(),
+  FixedSizing(this.length, [units = 'px'])
+    : super(), this.units = units,
       _contentSized = false {
     if (units != 'px' && units != '%') {
       // TODO(jmesserly): support other unit types

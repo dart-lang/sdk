@@ -55,7 +55,8 @@ class Scrollbar implements ScrollListener {
   bool _displayOnHover;
   bool _hovering = false;
 
-  Scrollbar(Scroller scroller, [this._displayOnHover = true]) :
+  Scrollbar(Scroller scroller, [displayOnHover = true]) :
+      _displayOnHover = displayOnHover,
       _scroller = scroller,
       _frame = scroller.getFrame(),
       _cachedSize = new Map<String, num>() {
