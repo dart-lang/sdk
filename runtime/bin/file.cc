@@ -218,7 +218,7 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t return_value = -1;
+  bool return_value = false;
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
@@ -227,7 +227,23 @@ void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
     return_value = file->SetPosition(position);
   }
-  Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+  Dart_SetReturnValue(args, Dart_NewBoolean(return_value));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  bool return_value = false;
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
+  if (file != NULL) {
+    int64_t length =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+    return_value = file->Truncate(length);
+  }
+  Dart_SetReturnValue(args, Dart_NewBoolean(return_value));
   Dart_ExitScope();
 }
 

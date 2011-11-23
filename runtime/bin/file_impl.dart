@@ -292,6 +292,18 @@ class _SetPositionOperation extends _FileOperation {
 }
 
 
+class _TruncateOperation extends _FileOperation {
+  _TruncateOperation(int this._id, int this._length);
+
+  void execute(ReceivePort port) {
+    _replyPort.send(_File._truncate(_id, _length), port.toSendPort());
+  }
+
+  int _id;
+  int _length;
+}
+
+
 class _LengthOperation extends _FileOperation {
   _LengthOperation(int this._id);
 
@@ -435,7 +447,8 @@ class _File implements File {
       native "File_WriteList";
   static int _writeString(int id, String string) native "File_WriteString";
   static int _position(int id) native "File_Position";
-  static int _setPosition(int id, int position) native "File_SetPosition";
+  static bool _setPosition(int id, int position) native "File_SetPosition";
+  static bool _truncate(int id, int length) native "File_Truncate";
   static int _length(int id) native "File_Length";
   static int _flush(int id) native "File_Flush";
   static bool _create(String name) native "File_Create";
@@ -819,11 +832,11 @@ class _File implements File {
     var handler =
         (_setPositionHandler != null) ? _setPositionHandler : () => null;
     var handleSetPositionResult = (result, ignored) {
-      if (result == -1 && _errorHandler != null) {
+      if (result == false && _errorHandler != null) {
         _errorHandler("setPosition failed");
         return;
       }
-      handler(result);
+      handler();
     };
     var operation = new _SetPositionOperation(_id, position);
     _scheduler.enqueue(operation, handleSetPositionResult);
@@ -834,12 +847,36 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    int result = _setPosition(_id, position);
-    if (result == -1) {
+    bool result = _setPosition(_id, position);
+    if (result == false) {
       throw new FileIOException("setPosition failed");
     }
   }
   
+  void truncate(int length) {
+    _asyncUsed = true;
+    var handler = (_truncateHandler != null) ? _truncateHandler : () => null;
+    var handleTruncateResult = (result, ignored) {
+      if (result == false && _errorHandler != null) {
+        _errorHandler("truncate failed");
+        return;
+      }
+      handler();
+    };
+    var operation = new _TruncateOperation(_id, length);
+    _scheduler.enqueue(operation, handleTruncateResult);
+  }
+
+  void truncateSync(int length) {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    bool result = _truncate(_id, length);
+    if (result == false) {
+      throw new FileIOException("truncate failed");
+    }
+  }
 
   void length() {
     _asyncUsed = true;
@@ -971,6 +1008,10 @@ class _File implements File {
     _setPositionHandler = handler;
   }
 
+  void set truncateHandler(void handler()) {
+    _truncateHandler = handler;
+  }
+
   void set lengthHandler(void handler(int length)) {
     _lengthHandler = handler;
   }
@@ -1003,6 +1044,7 @@ class _File implements File {
   var _noPendingWriteHandler;
   var _positionHandler;
   var _setPositionHandler;
+  var _truncateHandler;
   var _lengthHandler;
   var _flushHandler;
   var _fullPathHandler;

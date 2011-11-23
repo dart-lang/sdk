@@ -160,6 +160,17 @@ interface File factory _File {
   void setPositionSync(int position);
 
   /**
+   * Truncate (or extend) the file to [length] bytes. When the
+   * operation completes successfully the [truncateHandler] is called.
+   */
+  void truncate(int length);
+
+  /**
+   * Synchronously truncate (or extend) the file to [length] bytes.
+   */
+  void truncateSync(int length);
+
+  /**
    * Get the length of the file. When the operation completes the
    * [lengthHandler] is called with the length.
    */
@@ -222,6 +233,7 @@ interface File factory _File {
   void set noPendingWriteHandler(void handler());
   void set positionHandler(void handler(int position));
   void set setPositionHandler(void handler());
+  void set truncateHandler(void handler());
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
   void set fullPathHandler(void handler(String path));

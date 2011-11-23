@@ -327,6 +327,58 @@ class FileTest {
     return 1;
   }
 
+  static int testTruncate() {
+    String filename = getFilename("tests/vm/data/fixed_length_file");
+    File file = new File("${filename}_out_truncate");
+    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    file.errorHandler = (error) {
+      Expect.fail("testTruncate: No errors expected");
+    };
+    file.openHandler = () {
+      file.noPendingWriteHandler = () {
+        file.lengthHandler = (length) {
+          Expect.equals(10, length);
+          file.truncateHandler = () {
+            file.lengthHandler = (length) {
+              Expect.equals(5, length);
+              file.closeHandler = () {
+                file.deleteHandler = () {
+                  file.existsHandler = (exists) {
+                    Expect.isFalse(exists);
+                  };
+                  file.exists();
+                };
+                file.delete();
+              };
+              file.close();
+            };
+            file.length();
+          };
+          file.truncate(5);
+        };
+        file.length();
+      };
+      file.writeList(buffer, 0, 10);
+    };
+    file.open(true);
+    return 1;
+  }
+
+  static int testTruncateSync() {
+    String filename = getFilename("tests/vm/data/fixed_length_file");
+    File file = new File("${filename}_out_truncate_sync");
+    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    file.openSync(true);
+    file.writeListSync(buffer, 0, 10);
+    Expect.equals(10, file.lengthSync());
+    file.truncateSync(5);
+    Expect.equals(5, file.lengthSync());
+    file.closeSync();
+    file.deleteSync();
+    Expect.isFalse(file.existsSync());
+    return 1;
+  }
+
   // Tests exception handling after file was closed.
   static int testCloseException() {
     bool exceptionCaught = false;
@@ -590,6 +642,8 @@ class FileTest {
     Expect.equals(1, testLengthSync());
     Expect.equals(1, testPosition());
     Expect.equals(1, testPositionSync());
+    Expect.equals(1, testTruncate());
+    Expect.equals(1, testTruncateSync());
     Expect.equals(1, testCloseException());
     Expect.equals(1, testCloseExceptionStream());
     Expect.equals(1, testBufferOutOfBoundsException());

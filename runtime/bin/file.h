@@ -46,7 +46,12 @@ class File {
   // Get the current position in the file.
   // Returns a negative value if position cannot be determined.
   off_t Position();
-  off_t SetPosition(int64_t position);
+
+  // Set the byte position in the file.
+  bool SetPosition(int64_t position);
+
+  // Truncate (or extend) the file to the given length in bytes.
+  bool Truncate(int64_t length);
 
   // Flush contents of file.
   void Flush();

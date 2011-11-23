@@ -72,9 +72,15 @@ off_t File::Position() {
 }
 
 
-off_t File::SetPosition(int64_t position) {
+bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
-  return lseek(handle_->fd(), position, SEEK_SET);
+  return (lseek(handle_->fd(), position, SEEK_SET) != -1);
+}
+
+
+bool File::Truncate(int64_t length) {
+  ASSERT(handle_->fd() >= 0);
+  return (ftruncate(handle_->fd(), length) != -1);
 }
 
 
