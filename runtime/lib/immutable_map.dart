@@ -6,7 +6,7 @@
 class ImmutableMap<K, V> implements Map<K, V> {
   final ImmutableArray kvPairs_;
 
-  const ImmutableMap(ImmutableArray keyValuePairs)
+  const ImmutableMap._create(ImmutableArray keyValuePairs)
       : kvPairs_ = keyValuePairs;
 
 

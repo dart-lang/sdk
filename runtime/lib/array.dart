@@ -161,6 +161,11 @@ class ObjectArray<T> implements List<T> {
 // the inline cache misses.
 class ImmutableArray<T> implements List<T> {
 
+  factory ImmutableArray._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "ImmutableArray can only be allocated by the VM");
+  }
+
   T operator [](int index) native "ObjectArray_getIndexed";
 
   void operator []=(int index, T value) {

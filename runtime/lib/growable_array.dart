@@ -5,6 +5,11 @@
 class GrowableObjectArray<T> implements List<T> {
   ObjectArray<T> backingArray;
 
+  factory GrowableObjectArray._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "GrowableObjectArray can only be allocated by the VM");
+  }
+
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
     Arrays.copy(src, srcStart, this, dstStart, count);
   }

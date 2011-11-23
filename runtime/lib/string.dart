@@ -8,6 +8,11 @@
  */
 class StringBase {
 
+  factory StringBase._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "StringBase can't be instaniated");
+  }
+
   int hashCode() native "String_hashCode";
 
   /**
@@ -385,6 +390,11 @@ class StringBase {
 
 
 class OneByteString extends StringBase implements String {
+  factory OneByteString._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "OneByteString can only be allocated by the VM");
+  }
+
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces for one byte strings.
@@ -398,6 +408,11 @@ class OneByteString extends StringBase implements String {
 
 
 class TwoByteString extends StringBase implements String {
+  factory TwoByteString._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "TwoByteString can only be allocated by the VM");
+  }
+  
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.
@@ -410,6 +425,11 @@ class TwoByteString extends StringBase implements String {
 
 
 class FourByteString extends StringBase implements String {
+  factory FourByteString._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "FourByteString can only be allocated by the VM");
+  }
+  
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.
@@ -422,6 +442,11 @@ class FourByteString extends StringBase implements String {
 
 
 class ExternalOneByteString extends StringBase implements String {
+  factory ExternalOneByteString._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "ExternalOneByteString can only be allocated by the VM");
+  }
+  
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces for one byte strings.
@@ -434,6 +459,11 @@ class ExternalOneByteString extends StringBase implements String {
 
 
 class ExternalTwoByteString extends StringBase implements String {
+  factory ExternalTwoByteString._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "ExternalTwoByteString can only be allocated by the VM");
+  }
+  
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.
@@ -446,6 +476,11 @@ class ExternalTwoByteString extends StringBase implements String {
 
 
 class ExternalFourByteString extends StringBase implements String {
+  factory ExternalFourByteString._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "ExternalFourByteString can only be allocated by the VM");
+  }
+  
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.

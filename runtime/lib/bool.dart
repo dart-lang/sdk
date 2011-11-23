@@ -3,4 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Bool implements bool {
+  factory Bool._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "Bool can only be allocated by the VM");
+  }
 }
