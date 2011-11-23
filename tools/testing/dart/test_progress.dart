@@ -119,6 +119,7 @@ class CompactProgressIndicator extends ProgressIndicator {
   CompactProgressIndicator(Date startTime) : super(startTime);
 
   void allDone() {
+    stdout.write('\n'.charCodes());
   }
 
   void _printProgress() {

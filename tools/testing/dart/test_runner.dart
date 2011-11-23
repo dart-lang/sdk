@@ -6,6 +6,7 @@
 
 #import("status_file_parser.dart");
 #import("test_progress.dart");
+#import("test_suite.dart");
 
 /**
  * Classes and methods for executing tests.
@@ -161,43 +162,55 @@ class RunningProcess {
 
 
 class ProcessQueue {
-  int numProcesses = 0;
-  final int maxProcesses;
-  Queue<TestCase> tests;
-  ProgressIndicator progress;
-  var onDone;
+  int _numProcesses = 0;
+  int _activeTestListers = 0;
+  final int _maxProcesses;
+  Queue<TestCase> _tests;
+  ProgressIndicator _progress;
 
-  ProcessQueue(int this.maxProcesses,
+  ProcessQueue(int this._maxProcesses,
                String progress,
-               Date start_time,
-               this.onDone)
-      : tests = new Queue<TestCase>(),
-        progress = new ProgressIndicator.fromName(progress, start_time);
+               Date start_time)
+      : _tests = new Queue<TestCase>(),
+        _progress = new ProgressIndicator.fromName(progress, start_time);
 
-  tryRunTest() {
-    if (tests.isEmpty() && numProcesses == 0) {
-      progress.allDone();
-      onDone();
+  addTestSuite(TestSuite testSuite) {
+    _activeTestListers++;
+    testSuite.forEachTest(_runTest, _testListerDone);
+  }
+
+  _testListerDone() {
+    _activeTestListers--;
+    _checkDone();
+  }
+
+  _checkDone() {
+    if (_activeTestListers == 0 && _tests.isEmpty() && _numProcesses == 0) {
+      _progress.allDone();
     }
-    if (numProcesses < maxProcesses && !tests.isEmpty()) {
-      TestCase test = tests.removeFirst();
-      progress.start(test);
+  }
+
+  _runTest(TestCase test) {
+    _progress.testAdded();
+    _tests.add(test);
+    _tryRunTest();
+  }
+
+  _tryRunTest() {
+    _checkDone();
+    if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
+      TestCase test = _tests.removeFirst();
+      _progress.start(test);
       Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {
-        numProcesses--;
-        progress.done(test_arg);
-        tryRunTest();
+        _numProcesses--;
+        _progress.done(test_arg);
+        _tryRunTest();
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
       new RunningProcess(test, test.timeout).start();
-      numProcesses++;
+      _numProcesses++;
     }
-  }
-
-  runTest(TestCase test) {
-    progress.testAdded();
-    tests.add(test);
-    tryRunTest();
   }
 }
