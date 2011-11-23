@@ -50,8 +50,7 @@ interface Process factory _Process {
 
 
 class ProcessException implements Exception {
-  const ProcessException([String message, int errorCode = 0])
-      : this.message = message, this.errorCode = errorCode;
+  const ProcessException([String this.message, int this.errorCode = 0]);
   String toString() => "ProcessException: $message";
 
   /*

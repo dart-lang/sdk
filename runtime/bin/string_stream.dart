@@ -17,7 +17,7 @@ interface _Decoder<T> {
 
 
 class DecoderException implements Exception {
-  const DecoderException([String msg]) : message = msg;
+  const DecoderException([String this.message]);
   String toString() => "DecoderException: $message";
   final String message;
 }

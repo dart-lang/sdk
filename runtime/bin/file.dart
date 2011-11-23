@@ -251,7 +251,7 @@ interface FileOutputStream extends OutputStream {
 
 
 class FileIOException implements Exception {
-  const FileIOException([String msg = ""]) : message = msg;
+  const FileIOException([String this.message = ""]);
   String toString() => "FileIOException: $message";
   final String message;
 }

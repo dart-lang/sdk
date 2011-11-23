@@ -123,8 +123,7 @@ interface Socket factory _Socket {
 
 
 class SocketIOException implements Exception {
-  const SocketIOException([String message = ""])
-      : this.message = message;
+  const SocketIOException([String this.message = ""]);
   String toString() => "SocketIOException: $message";
 
   /*

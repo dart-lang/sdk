@@ -36,8 +36,7 @@ class TestCase {
            this.timeout,
            this.completedHandler,
            this.expectedOutcomes,
-           [isNegative = false])
-      : this.isNegative = isNegative {
+           [this.isNegative = false]) {
     if (!isNegative) {
       this.isNegative = displayName.contains("NegativeTest");
     }
@@ -110,8 +109,7 @@ class RunningProcess {
   List<String> stderr;
   List<Function> handlers;
 
-  RunningProcess(this.testCase, [timeout = NO_TIMEOUT])
-      : this.timeout = timeout;
+  RunningProcess(this.testCase, [this.timeout = NO_TIMEOUT]);
 
   void exitHandler(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
