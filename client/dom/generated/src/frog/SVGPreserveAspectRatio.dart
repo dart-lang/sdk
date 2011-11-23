@@ -1,5 +1,5 @@
 
-class SVGPreserveAspectRatio native "SVGPreserveAspectRatio" {
+class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   int align;
 

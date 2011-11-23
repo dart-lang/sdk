@@ -1,5 +1,5 @@
 
-class SVGFEDropShadowElement extends SVGElement native "SVGFEDropShadowElement" {
+class SVGFEDropShadowElement extends SVGElement native "*SVGFEDropShadowElement" {
 
   SVGAnimatedNumber dx;
 

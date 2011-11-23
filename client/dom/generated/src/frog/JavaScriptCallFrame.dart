@@ -1,5 +1,5 @@
 
-class JavaScriptCallFrame native "JavaScriptCallFrame" {
+class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   JavaScriptCallFrame caller;
 

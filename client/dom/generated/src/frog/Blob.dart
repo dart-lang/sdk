@@ -1,5 +1,5 @@
 
-class Blob native "Blob" {
+class Blob native "*Blob" {
 
   int size;
 

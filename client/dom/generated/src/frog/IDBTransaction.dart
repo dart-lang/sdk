@@ -1,5 +1,5 @@
 
-class IDBTransaction native "IDBTransaction" {
+class IDBTransaction native "*IDBTransaction" {
 
   IDBDatabase db;
 

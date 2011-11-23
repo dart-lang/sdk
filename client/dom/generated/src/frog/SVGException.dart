@@ -1,5 +1,5 @@
 
-class SVGException native "SVGException" {
+class SVGException native "*SVGException" {
 
   int code;
 

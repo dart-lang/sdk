@@ -1,5 +1,5 @@
 
-class HTMLHeadElement extends HTMLElement native "HTMLHeadElement" {
+class HTMLHeadElement extends HTMLElement native "*HTMLHeadElement" {
 
   String profile;
 }

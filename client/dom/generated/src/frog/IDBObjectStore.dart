@@ -1,5 +1,5 @@
 
-class IDBObjectStore native "IDBObjectStore" {
+class IDBObjectStore native "*IDBObjectStore" {
 
   String keyPath;
 

@@ -1,5 +1,5 @@
 
-class DocumentFragment extends Node native "DocumentFragment" {
+class DocumentFragment extends Node native "*DocumentFragment" {
 
   Element querySelector(String selectors) native;
 

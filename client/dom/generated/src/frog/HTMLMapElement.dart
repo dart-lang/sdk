@@ -1,5 +1,5 @@
 
-class HTMLMapElement extends HTMLElement native "HTMLMapElement" {
+class HTMLMapElement extends HTMLElement native "*HTMLMapElement" {
 
   HTMLCollection areas;
 

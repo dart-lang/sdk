@@ -1,5 +1,5 @@
 
-class CSSRuleList native "CSSRuleList" {
+class CSSRuleList native "*CSSRuleList" {
 
   int length;
 

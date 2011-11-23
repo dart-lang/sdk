@@ -1,5 +1,5 @@
 
-class FileCallback native "FileCallback" {
+class FileCallback native "*FileCallback" {
 
   bool handleEvent(File file) native;
 

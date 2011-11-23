@@ -1,5 +1,5 @@
 
-class EventTarget native "EventTarget" {
+class EventTarget native "*EventTarget" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

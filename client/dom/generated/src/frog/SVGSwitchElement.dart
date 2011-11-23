@@ -1,5 +1,5 @@
 
-class SVGSwitchElement extends SVGElement native "SVGSwitchElement" {
+class SVGSwitchElement extends SVGElement native "*SVGSwitchElement" {
 
   // From SVGTests
 

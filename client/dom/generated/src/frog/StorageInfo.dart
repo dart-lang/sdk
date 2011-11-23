@@ -1,5 +1,5 @@
 
-class StorageInfo native "StorageInfo" {
+class StorageInfo native "*StorageInfo" {
 
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) native;
 

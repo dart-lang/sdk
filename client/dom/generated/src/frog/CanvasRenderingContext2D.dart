@@ -1,5 +1,5 @@
 
-class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRenderingContext2D" {
+class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
   Object fillStyle;
 

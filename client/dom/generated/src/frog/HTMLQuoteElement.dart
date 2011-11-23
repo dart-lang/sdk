@@ -1,5 +1,5 @@
 
-class HTMLQuoteElement extends HTMLElement native "HTMLQuoteElement" {
+class HTMLQuoteElement extends HTMLElement native "*HTMLQuoteElement" {
 
   String cite;
 }

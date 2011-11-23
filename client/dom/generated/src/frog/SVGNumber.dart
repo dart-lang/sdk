@@ -1,5 +1,5 @@
 
-class SVGNumber native "SVGNumber" {
+class SVGNumber native "*SVGNumber" {
 
   num value;
 

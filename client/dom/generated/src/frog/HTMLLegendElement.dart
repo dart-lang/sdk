@@ -1,5 +1,5 @@
 
-class HTMLLegendElement extends HTMLElement native "HTMLLegendElement" {
+class HTMLLegendElement extends HTMLElement native "*HTMLLegendElement" {
 
   String accessKey;
 

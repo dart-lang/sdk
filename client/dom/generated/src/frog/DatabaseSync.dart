@@ -1,5 +1,5 @@
 
-class DatabaseSync native "DatabaseSync" {
+class DatabaseSync native "*DatabaseSync" {
 
   String version;
 

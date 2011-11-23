@@ -1,5 +1,5 @@
 
-class RangeException native "RangeException" {
+class RangeException native "*RangeException" {
 
   int code;
 

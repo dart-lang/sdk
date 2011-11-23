@@ -1,5 +1,5 @@
 
-class MessagePort native "MessagePort" {
+class MessagePort native "*MessagePort" {
 
   EventListener onmessage;
 

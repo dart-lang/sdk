@@ -1,5 +1,5 @@
 
-class NamedNodeMap native "NamedNodeMap" {
+class NamedNodeMap native "*NamedNodeMap" {
 
   int length;
 

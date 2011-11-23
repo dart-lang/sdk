@@ -1,5 +1,5 @@
 
-class WebGLRenderingContext extends CanvasRenderingContext native "WebGLRenderingContext" {
+class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
 
   int drawingBufferHeight;
 

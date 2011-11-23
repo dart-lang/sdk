@@ -1,5 +1,5 @@
 
-class Navigator native "Navigator" {
+class Navigator native "*Navigator" {
 
   String appCodeName;
 

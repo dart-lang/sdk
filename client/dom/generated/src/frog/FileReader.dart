@@ -1,5 +1,5 @@
 
-class FileReader native "FileReader" {
+class FileReader native "*FileReader" {
   FileReader() native;
 
 

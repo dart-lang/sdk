@@ -1,5 +1,5 @@
 
-class EntriesCallback native "EntriesCallback" {
+class EntriesCallback native "*EntriesCallback" {
 
   bool handleEvent(EntryArray entries) native;
 

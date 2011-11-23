@@ -1,5 +1,5 @@
 
-class DOMException native "DOMException" {
+class DOMException native "*DOMException" {
 
   int code;
 

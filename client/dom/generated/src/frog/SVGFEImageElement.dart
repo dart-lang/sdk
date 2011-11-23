@@ -1,5 +1,5 @@
 
-class SVGFEImageElement extends SVGElement native "SVGFEImageElement" {
+class SVGFEImageElement extends SVGElement native "*SVGFEImageElement" {
 
   SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 

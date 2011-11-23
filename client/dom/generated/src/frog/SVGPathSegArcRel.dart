@@ -1,5 +1,5 @@
 
-class SVGPathSegArcRel extends SVGPathSeg native "SVGPathSegArcRel" {
+class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
 
   num angle;
 

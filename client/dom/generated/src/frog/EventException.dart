@@ -1,5 +1,5 @@
 
-class EventException native "EventException" {
+class EventException native "*EventException" {
 
   int code;
 

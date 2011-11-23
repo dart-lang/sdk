@@ -1,5 +1,5 @@
 
-class SVGLengthList native "SVGLengthList" {
+class SVGLengthList native "*SVGLengthList" {
 
   int numberOfItems;
 

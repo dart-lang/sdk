@@ -1,5 +1,5 @@
 
-class ProcessingInstruction extends Node native "ProcessingInstruction" {
+class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
   String data;
 

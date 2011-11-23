@@ -1,5 +1,5 @@
 
-class HTMLAppletElement extends HTMLElement native "HTMLAppletElement" {
+class HTMLAppletElement extends HTMLElement native "*HTMLAppletElement" {
 
   String align;
 

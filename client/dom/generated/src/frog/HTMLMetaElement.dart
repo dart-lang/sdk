@@ -1,5 +1,5 @@
 
-class HTMLMetaElement extends HTMLElement native "HTMLMetaElement" {
+class HTMLMetaElement extends HTMLElement native "*HTMLMetaElement" {
 
   String content;
 

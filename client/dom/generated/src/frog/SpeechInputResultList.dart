@@ -1,5 +1,5 @@
 
-class SpeechInputResultList native "SpeechInputResultList" {
+class SpeechInputResultList native "*SpeechInputResultList" {
 
   int length;
 

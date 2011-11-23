@@ -1,5 +1,5 @@
 
-class WheelEvent extends UIEvent native "WheelEvent" {
+class WheelEvent extends UIEvent native "*WheelEvent" {
 
   bool altKey;
 

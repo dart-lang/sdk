@@ -1,5 +1,5 @@
 
-class HTMLSelectElement extends HTMLElement native "HTMLSelectElement" {
+class HTMLSelectElement extends HTMLElement native "*HTMLSelectElement" {
 
   bool autofocus;
 

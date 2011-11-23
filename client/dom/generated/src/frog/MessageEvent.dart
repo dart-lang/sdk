@@ -1,5 +1,5 @@
 
-class MessageEvent extends Event native "MessageEvent" {
+class MessageEvent extends Event native "*MessageEvent" {
 
   Object data;
 

@@ -1,5 +1,5 @@
 
-class WebKitAnimationList native "WebKitAnimationList" {
+class WebKitAnimationList native "*WebKitAnimationList" {
 
   int length;
 

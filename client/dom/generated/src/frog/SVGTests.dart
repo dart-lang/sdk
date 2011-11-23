@@ -1,5 +1,5 @@
 
-class SVGTests native "SVGTests" {
+class SVGTests native "*SVGTests" {
 
   SVGStringList requiredExtensions;
 

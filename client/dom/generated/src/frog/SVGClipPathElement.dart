@@ -1,5 +1,5 @@
 
-class SVGClipPathElement extends SVGElement native "SVGClipPathElement" {
+class SVGClipPathElement extends SVGElement native "*SVGClipPathElement" {
 
   SVGAnimatedEnumeration clipPathUnits;
 

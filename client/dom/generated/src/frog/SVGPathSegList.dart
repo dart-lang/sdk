@@ -1,5 +1,5 @@
 
-class SVGPathSegList native "SVGPathSegList" {
+class SVGPathSegList native "*SVGPathSegList" {
 
   int numberOfItems;
 

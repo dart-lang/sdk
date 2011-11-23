@@ -1,5 +1,5 @@
 
-class SVGLineElement extends SVGElement native "SVGLineElement" {
+class SVGLineElement extends SVGElement native "*SVGLineElement" {
 
   SVGAnimatedLength x1;
 

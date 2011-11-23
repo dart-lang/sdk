@@ -1,5 +1,5 @@
 
-class SVGFETileElement extends SVGElement native "SVGFETileElement" {
+class SVGFETileElement extends SVGElement native "*SVGFETileElement" {
 
   SVGAnimatedString in1;
 

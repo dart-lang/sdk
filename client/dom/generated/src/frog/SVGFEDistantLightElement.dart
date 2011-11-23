@@ -1,5 +1,5 @@
 
-class SVGFEDistantLightElement extends SVGElement native "SVGFEDistantLightElement" {
+class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
 
   SVGAnimatedNumber azimuth;
 

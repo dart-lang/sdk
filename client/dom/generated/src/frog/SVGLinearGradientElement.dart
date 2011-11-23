@@ -1,5 +1,5 @@
 
-class SVGLinearGradientElement extends SVGGradientElement native "SVGLinearGradientElement" {
+class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGradientElement" {
 
   SVGAnimatedLength x1;
 

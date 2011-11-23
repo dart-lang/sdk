@@ -1,5 +1,5 @@
 
-class SVGTextElement extends SVGTextPositioningElement native "SVGTextElement" {
+class SVGTextElement extends SVGTextPositioningElement native "*SVGTextElement" {
 
   // From SVGTransformable
 

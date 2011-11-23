@@ -1,5 +1,5 @@
 
-class Metadata native "Metadata" {
+class Metadata native "*Metadata" {
 
   Date modificationTime;
 

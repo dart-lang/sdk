@@ -1,5 +1,5 @@
 
-class SVGLength native "SVGLength" {
+class SVGLength native "*SVGLength" {
 
   int unitType;
 

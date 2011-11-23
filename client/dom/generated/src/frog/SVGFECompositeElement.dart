@@ -1,5 +1,5 @@
 
-class SVGFECompositeElement extends SVGElement native "SVGFECompositeElement" {
+class SVGFECompositeElement extends SVGElement native "*SVGFECompositeElement" {
 
   SVGAnimatedString in1;
 

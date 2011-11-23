@@ -1,5 +1,5 @@
 
-class SVGAElement extends SVGElement native "SVGAElement" {
+class SVGAElement extends SVGElement native "*SVGAElement" {
 
   SVGAnimatedString target;
 

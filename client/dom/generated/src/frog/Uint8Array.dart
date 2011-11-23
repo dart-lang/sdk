@@ -1,5 +1,5 @@
 
-class Uint8Array extends ArrayBufferView native "Uint8Array" {
+class Uint8Array extends ArrayBufferView native "*Uint8Array" {
 
   int length;
 

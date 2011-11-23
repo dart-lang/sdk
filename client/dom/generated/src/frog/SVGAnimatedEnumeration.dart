@@ -1,5 +1,5 @@
 
-class SVGAnimatedEnumeration native "SVGAnimatedEnumeration" {
+class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
   int animVal;
 

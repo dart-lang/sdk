@@ -1,5 +1,5 @@
 
-class SQLError native "SQLError" {
+class SQLError native "*SQLError" {
 
   int code;
 

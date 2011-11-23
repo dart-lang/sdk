@@ -1,5 +1,5 @@
 
-class WebGLDebugShaders native "WebGLDebugShaders" {
+class WebGLDebugShaders native "*WebGLDebugShaders" {
 
   String getTranslatedShaderSource(WebGLShader shader) native;
 

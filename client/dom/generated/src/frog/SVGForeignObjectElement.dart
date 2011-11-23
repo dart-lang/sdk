@@ -1,5 +1,5 @@
 
-class SVGForeignObjectElement extends SVGElement native "SVGForeignObjectElement" {
+class SVGForeignObjectElement extends SVGElement native "*SVGForeignObjectElement" {
 
   SVGAnimatedLength height;
 

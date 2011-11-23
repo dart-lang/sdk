@@ -1,5 +1,5 @@
 
-class SVGPaint extends SVGColor native "SVGPaint" {
+class SVGPaint extends SVGColor native "*SVGPaint" {
 
   int paintType;
 

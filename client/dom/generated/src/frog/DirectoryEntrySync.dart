@@ -1,5 +1,5 @@
 
-class DirectoryEntrySync extends EntrySync native "DirectoryEntrySync" {
+class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   DirectoryReaderSync createReader() native;
 

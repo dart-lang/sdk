@@ -1,5 +1,5 @@
 
-class XPathResult native "XPathResult" {
+class XPathResult native "*XPathResult" {
 
   bool booleanValue;
 

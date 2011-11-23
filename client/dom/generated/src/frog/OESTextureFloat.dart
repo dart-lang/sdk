@@ -1,5 +1,5 @@
 
-class OESTextureFloat native "OESTextureFloat" {
+class OESTextureFloat native "*OESTextureFloat" {
 
   var dartObjectLocalStorage;
 

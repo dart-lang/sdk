@@ -1,5 +1,5 @@
 
-class TextTrackCueList native "TextTrackCueList" {
+class TextTrackCueList native "*TextTrackCueList" {
 
   int length;
 

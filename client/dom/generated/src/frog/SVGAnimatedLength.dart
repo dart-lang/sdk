@@ -1,5 +1,5 @@
 
-class SVGAnimatedLength native "SVGAnimatedLength" {
+class SVGAnimatedLength native "*SVGAnimatedLength" {
 
   SVGLength animVal;
 

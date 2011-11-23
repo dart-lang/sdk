@@ -1,5 +1,5 @@
 
-class InjectedScriptHost native "InjectedScriptHost" {
+class InjectedScriptHost native "*InjectedScriptHost" {
 
   void clearConsoleMessages() native;
 

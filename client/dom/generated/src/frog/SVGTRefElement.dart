@@ -1,5 +1,5 @@
 
-class SVGTRefElement extends SVGTextPositioningElement native "SVGTRefElement" {
+class SVGTRefElement extends SVGTextPositioningElement native "*SVGTRefElement" {
 
   // From SVGURIReference
 

@@ -1,5 +1,5 @@
 
-class HTMLEmbedElement extends HTMLElement native "HTMLEmbedElement" {
+class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
 
   String align;
 

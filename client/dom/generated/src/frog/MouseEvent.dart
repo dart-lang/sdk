@@ -1,5 +1,5 @@
 
-class MouseEvent extends UIEvent native "MouseEvent" {
+class MouseEvent extends UIEvent native "*MouseEvent" {
 
   bool altKey;
 

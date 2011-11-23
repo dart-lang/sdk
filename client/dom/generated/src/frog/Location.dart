@@ -1,5 +1,5 @@
 
-class Location native "Location" {
+class Location native "*Location" {
 
   String hash;
 

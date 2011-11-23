@@ -1,5 +1,5 @@
 
-class Notification native "Notification" {
+class Notification native "*Notification" {
 
   String dir;
 

@@ -1,5 +1,5 @@
 
-class AbstractWorker native "AbstractWorker" {
+class AbstractWorker native "*AbstractWorker" {
 
   EventListener onerror;
 

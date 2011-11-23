@@ -1,5 +1,5 @@
 
-class SVGTransformList native "SVGTransformList" {
+class SVGTransformList native "*SVGTransformList" {
 
   int numberOfItems;
 

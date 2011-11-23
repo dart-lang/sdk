@@ -1,5 +1,5 @@
 
-class SVGRenderingIntent native "SVGRenderingIntent" {
+class SVGRenderingIntent native "*SVGRenderingIntent" {
 
   var dartObjectLocalStorage;
 

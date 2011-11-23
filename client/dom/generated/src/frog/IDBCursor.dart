@@ -1,5 +1,5 @@
 
-class IDBCursor native "IDBCursor" {
+class IDBCursor native "*IDBCursor" {
 
   int direction;
 

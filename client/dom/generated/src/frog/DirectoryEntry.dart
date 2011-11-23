@@ -1,5 +1,5 @@
 
-class DirectoryEntry extends Entry native "DirectoryEntry" {
+class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   DirectoryReader createReader() native;
 

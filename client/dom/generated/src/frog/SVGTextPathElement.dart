@@ -1,5 +1,5 @@
 
-class SVGTextPathElement extends SVGTextContentElement native "SVGTextPathElement" {
+class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathElement" {
 
   SVGAnimatedEnumeration method;
 

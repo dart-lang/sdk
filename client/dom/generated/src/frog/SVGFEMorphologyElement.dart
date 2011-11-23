@@ -1,5 +1,5 @@
 
-class SVGFEMorphologyElement extends SVGElement native "SVGFEMorphologyElement" {
+class SVGFEMorphologyElement extends SVGElement native "*SVGFEMorphologyElement" {
 
   SVGAnimatedString in1;
 

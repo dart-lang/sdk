@@ -1,5 +1,5 @@
 
-class ProgressEvent extends Event native "ProgressEvent" {
+class ProgressEvent extends Event native "*ProgressEvent" {
 
   bool lengthComputable;
 

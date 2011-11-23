@@ -1,3 +1,3 @@
 
-class SVGPathSegClosePath extends SVGPathSeg native "SVGPathSegClosePath" {
+class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
 }

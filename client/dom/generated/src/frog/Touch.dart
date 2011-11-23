@@ -1,5 +1,5 @@
 
-class Touch native "Touch" {
+class Touch native "*Touch" {
 
   int clientX;
 

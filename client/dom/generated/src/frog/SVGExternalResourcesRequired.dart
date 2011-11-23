@@ -1,5 +1,5 @@
 
-class SVGExternalResourcesRequired native "SVGExternalResourcesRequired" {
+class SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
 
   SVGAnimatedBoolean externalResourcesRequired;
 

@@ -1,5 +1,5 @@
 
-class EntryCallback native "EntryCallback" {
+class EntryCallback native "*EntryCallback" {
 
   bool handleEvent(Entry entry) native;
 

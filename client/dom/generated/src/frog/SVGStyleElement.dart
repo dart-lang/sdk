@@ -1,5 +1,5 @@
 
-class SVGStyleElement extends SVGElement native "SVGStyleElement" {
+class SVGStyleElement extends SVGElement native "*SVGStyleElement" {
 
   String media;
 

@@ -1,5 +1,5 @@
 
-class HTMLDocument extends Document native "HTMLDocument" {
+class HTMLDocument extends Document native "*HTMLDocument" {
 
   Element activeElement;
 

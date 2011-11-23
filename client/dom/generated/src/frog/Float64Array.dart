@@ -1,5 +1,5 @@
 
-class Float64Array extends ArrayBufferView native "Float64Array" {
+class Float64Array extends ArrayBufferView native "*Float64Array" {
 
   int length;
 

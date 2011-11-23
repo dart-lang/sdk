@@ -1,5 +1,5 @@
 
-class SVGColor extends CSSValue native "SVGColor" {
+class SVGColor extends CSSValue native "*SVGColor" {
 
   int colorType;
 

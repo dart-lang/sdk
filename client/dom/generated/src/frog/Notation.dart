@@ -1,5 +1,5 @@
 
-class Notation extends Node native "Notation" {
+class Notation extends Node native "*Notation" {
 
   String publicId;
 

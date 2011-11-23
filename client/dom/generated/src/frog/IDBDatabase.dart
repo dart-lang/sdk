@@ -1,5 +1,5 @@
 
-class IDBDatabase native "IDBDatabase" {
+class IDBDatabase native "*IDBDatabase" {
 
   String name;
 

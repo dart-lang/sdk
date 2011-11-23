@@ -1,5 +1,5 @@
 
-class WebGLVertexArrayObjectOES native "WebGLVertexArrayObjectOES" {
+class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 
   var dartObjectLocalStorage;
 

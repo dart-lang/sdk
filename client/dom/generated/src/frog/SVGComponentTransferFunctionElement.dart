@@ -1,5 +1,5 @@
 
-class SVGComponentTransferFunctionElement extends SVGElement native "SVGComponentTransferFunctionElement" {
+class SVGComponentTransferFunctionElement extends SVGElement native "*SVGComponentTransferFunctionElement" {
 
   SVGAnimatedNumber amplitude;
 

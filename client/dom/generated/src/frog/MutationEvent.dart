@@ -1,5 +1,5 @@
 
-class MutationEvent extends Event native "MutationEvent" {
+class MutationEvent extends Event native "*MutationEvent" {
 
   int attrChange;
 

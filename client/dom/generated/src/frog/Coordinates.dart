@@ -1,5 +1,5 @@
 
-class Coordinates native "Coordinates" {
+class Coordinates native "*Coordinates" {
 
   num accuracy;
 

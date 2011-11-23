@@ -1,5 +1,5 @@
 
-class SVGScriptElement extends SVGElement native "SVGScriptElement" {
+class SVGScriptElement extends SVGElement native "*SVGScriptElement" {
 
   String type;
 

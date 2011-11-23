@@ -1,5 +1,5 @@
 
-class HTMLFieldSetElement extends HTMLElement native "HTMLFieldSetElement" {
+class HTMLFieldSetElement extends HTMLElement native "*HTMLFieldSetElement" {
 
   HTMLFormElement form;
 

@@ -1,5 +1,5 @@
 
-class ArrayBuffer native "ArrayBuffer" {
+class ArrayBuffer native "*ArrayBuffer" {
 
   int byteLength;
 

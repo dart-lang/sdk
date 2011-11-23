@@ -1,5 +1,5 @@
 
-class DOMURL native "DOMURL" {
+class DOMURL native "*DOMURL" {
 
   String createObjectURL(Blob blob) native;
 

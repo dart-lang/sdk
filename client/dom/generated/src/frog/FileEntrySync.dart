@@ -1,5 +1,5 @@
 
-class FileEntrySync extends EntrySync native "FileEntrySync" {
+class FileEntrySync extends EntrySync native "*FileEntrySync" {
 
   FileWriterSync createWriter() native;
 

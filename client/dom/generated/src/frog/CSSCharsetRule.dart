@@ -1,5 +1,5 @@
 
-class CSSCharsetRule extends CSSRule native "CSSCharsetRule" {
+class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 
   String encoding;
 }

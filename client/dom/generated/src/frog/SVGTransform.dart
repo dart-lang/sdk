@@ -1,5 +1,5 @@
 
-class SVGTransform native "SVGTransform" {
+class SVGTransform native "*SVGTransform" {
 
   num angle;
 

@@ -1,5 +1,5 @@
 
-class SVGImageElement extends SVGElement native "SVGImageElement" {
+class SVGImageElement extends SVGElement native "*SVGImageElement" {
 
   SVGAnimatedLength height;
 

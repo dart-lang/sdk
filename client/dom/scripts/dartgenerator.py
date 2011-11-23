@@ -1929,7 +1929,7 @@ class FrogInterfaceGenerator(object):
 
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
-        'class $CLASS$BASE native "$CLASS" {\n'
+        'class $CLASS$BASE native "*$CLASS" {\n'
         '$CONSTRUCTOR$!MEMBERS'
         '$!ADDITIONS'
         '}\n',

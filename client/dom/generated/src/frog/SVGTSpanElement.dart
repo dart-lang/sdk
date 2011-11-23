@@ -1,3 +1,3 @@
 
-class SVGTSpanElement extends SVGTextPositioningElement native "SVGTSpanElement" {
+class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement" {
 }

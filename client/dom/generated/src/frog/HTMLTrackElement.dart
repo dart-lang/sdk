@@ -1,5 +1,5 @@
 
-class HTMLTrackElement extends HTMLElement native "HTMLTrackElement" {
+class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
 
   bool isDefault;
 

@@ -1,5 +1,5 @@
 
-class NavigatorUserMediaSuccessCallback native "NavigatorUserMediaSuccessCallback" {
+class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallback" {
 
   var dartObjectLocalStorage;
 

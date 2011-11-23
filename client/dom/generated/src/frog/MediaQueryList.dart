@@ -1,5 +1,5 @@
 
-class MediaQueryList native "MediaQueryList" {
+class MediaQueryList native "*MediaQueryList" {
 
   bool matches;
 

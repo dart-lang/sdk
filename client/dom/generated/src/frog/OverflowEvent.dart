@@ -1,5 +1,5 @@
 
-class OverflowEvent extends Event native "OverflowEvent" {
+class OverflowEvent extends Event native "*OverflowEvent" {
 
   bool horizontalOverflow;
 

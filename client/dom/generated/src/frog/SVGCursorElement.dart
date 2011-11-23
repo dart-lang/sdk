@@ -1,5 +1,5 @@
 
-class SVGCursorElement extends SVGElement native "SVGCursorElement" {
+class SVGCursorElement extends SVGElement native "*SVGCursorElement" {
 
   SVGAnimatedLength x;
 

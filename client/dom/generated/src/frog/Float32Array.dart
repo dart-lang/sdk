@@ -1,5 +1,5 @@
 
-class Float32Array extends ArrayBufferView native "Float32Array" {
+class Float32Array extends ArrayBufferView native "*Float32Array" {
 
   int length;
 

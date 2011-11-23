@@ -1,5 +1,5 @@
 
-class HTMLOutputElement extends HTMLElement native "HTMLOutputElement" {
+class HTMLOutputElement extends HTMLElement native "*HTMLOutputElement" {
 
   String defaultValue;
 

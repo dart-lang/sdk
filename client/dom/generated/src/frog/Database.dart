@@ -1,5 +1,5 @@
 
-class Database native "Database" {
+class Database native "*Database" {
 
   String version;
 

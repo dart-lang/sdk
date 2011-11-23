@@ -1,5 +1,5 @@
 
-class DedicatedWorkerContext extends WorkerContext native "DedicatedWorkerContext" {
+class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
   EventListener onmessage;
 

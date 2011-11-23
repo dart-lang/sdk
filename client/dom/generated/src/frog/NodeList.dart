@@ -1,5 +1,5 @@
 
-class NodeList native "NodeList" {
+class NodeList native "*NodeList" {
 
   int length;
 

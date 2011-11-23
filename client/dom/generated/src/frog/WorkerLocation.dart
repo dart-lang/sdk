@@ -1,5 +1,5 @@
 
-class WorkerLocation native "WorkerLocation" {
+class WorkerLocation native "*WorkerLocation" {
 
   String hash;
 

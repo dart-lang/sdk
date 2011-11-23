@@ -1,5 +1,5 @@
 
-class SVGFEConvolveMatrixElement extends SVGElement native "SVGFEConvolveMatrixElement" {
+class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrixElement" {
 
   SVGAnimatedNumber bias;
 

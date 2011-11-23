@@ -1,5 +1,5 @@
 
-class IDBCursorWithValue extends IDBCursor native "IDBCursorWithValue" {
+class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 
   IDBAny value;
 }

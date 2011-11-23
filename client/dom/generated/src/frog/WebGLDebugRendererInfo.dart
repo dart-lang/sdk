@@ -1,5 +1,5 @@
 
-class WebGLDebugRendererInfo native "WebGLDebugRendererInfo" {
+class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   var dartObjectLocalStorage;
 

@@ -1,5 +1,5 @@
 
-class CloseEvent extends Event native "CloseEvent" {
+class CloseEvent extends Event native "*CloseEvent" {
 
   int code;
 

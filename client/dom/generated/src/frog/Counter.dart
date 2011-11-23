@@ -1,5 +1,5 @@
 
-class Counter native "Counter" {
+class Counter native "*Counter" {
 
   String identifier;
 

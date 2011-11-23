@@ -1,5 +1,5 @@
 
-class SVGAnimatedAngle native "SVGAnimatedAngle" {
+class SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
   SVGAngle animVal;
 

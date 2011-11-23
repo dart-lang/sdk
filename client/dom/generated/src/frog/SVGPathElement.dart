@@ -1,5 +1,5 @@
 
-class SVGPathElement extends SVGElement native "SVGPathElement" {
+class SVGPathElement extends SVGElement native "*SVGPathElement" {
 
   SVGPathSegList animatedNormalizedPathSegList;
 

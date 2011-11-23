@@ -1,5 +1,5 @@
 
-class MediaQueryListListener native "MediaQueryListListener" {
+class MediaQueryListListener native "*MediaQueryListListener" {
 
   void queryChanged(MediaQueryList list) native;
 

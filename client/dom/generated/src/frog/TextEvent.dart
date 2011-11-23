@@ -1,5 +1,5 @@
 
-class TextEvent extends UIEvent native "TextEvent" {
+class TextEvent extends UIEvent native "*TextEvent" {
 
   String data;
 

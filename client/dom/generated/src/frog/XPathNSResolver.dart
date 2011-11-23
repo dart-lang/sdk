@@ -1,5 +1,5 @@
 
-class XPathNSResolver native "XPathNSResolver" {
+class XPathNSResolver native "*XPathNSResolver" {
 
   String lookupNamespaceURI(String prefix) native;
 

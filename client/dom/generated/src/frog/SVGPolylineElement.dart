@@ -1,5 +1,5 @@
 
-class SVGPolylineElement extends SVGElement native "SVGPolylineElement" {
+class SVGPolylineElement extends SVGElement native "*SVGPolylineElement" {
 
   SVGPointList animatedPoints;
 

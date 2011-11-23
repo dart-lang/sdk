@@ -1,5 +1,5 @@
 
-class Clipboard native "Clipboard" {
+class Clipboard native "*Clipboard" {
 
   String dropEffect;
 

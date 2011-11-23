@@ -1,5 +1,5 @@
 
-class SVGFEBlendElement extends SVGElement native "SVGFEBlendElement" {
+class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
 
   SVGAnimatedString in1;
 

@@ -1,5 +1,5 @@
 
-class SVGFEGaussianBlurElement extends SVGElement native "SVGFEGaussianBlurElement" {
+class SVGFEGaussianBlurElement extends SVGElement native "*SVGFEGaussianBlurElement" {
 
   SVGAnimatedString in1;
 

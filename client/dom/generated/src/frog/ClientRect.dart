@@ -1,5 +1,5 @@
 
-class ClientRect native "ClientRect" {
+class ClientRect native "*ClientRect" {
 
   num bottom;
 

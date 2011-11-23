@@ -1,5 +1,5 @@
 
-class SVGElementInstanceList native "SVGElementInstanceList" {
+class SVGElementInstanceList native "*SVGElementInstanceList" {
 
   int length;
 

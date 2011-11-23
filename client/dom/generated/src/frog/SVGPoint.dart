@@ -1,5 +1,5 @@
 
-class SVGPoint native "SVGPoint" {
+class SVGPoint native "*SVGPoint" {
 
   num x;
 

@@ -1,5 +1,5 @@
 
-class SVGDescElement extends SVGElement native "SVGDescElement" {
+class SVGDescElement extends SVGElement native "*SVGDescElement" {
 
   // From SVGLangSpace
 

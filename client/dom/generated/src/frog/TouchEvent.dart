@@ -1,5 +1,5 @@
 
-class TouchEvent extends UIEvent native "TouchEvent" {
+class TouchEvent extends UIEvent native "*TouchEvent" {
 
   bool altKey;
 

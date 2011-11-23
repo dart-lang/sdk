@@ -1,5 +1,5 @@
 
-class PerformanceNavigation native "PerformanceNavigation" {
+class PerformanceNavigation native "*PerformanceNavigation" {
 
   int redirectCount;
 

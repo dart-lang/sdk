@@ -1,5 +1,5 @@
 
-class SVGPointList native "SVGPointList" {
+class SVGPointList native "*SVGPointList" {
 
   int numberOfItems;
 

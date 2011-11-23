@@ -1,5 +1,5 @@
 
-class IDBRequest native "IDBRequest" {
+class IDBRequest native "*IDBRequest" {
 
   int errorCode;
 

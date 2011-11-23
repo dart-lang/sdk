@@ -1,5 +1,5 @@
 
-class FileException native "FileException" {
+class FileException native "*FileException" {
 
   int code;
 

@@ -1,5 +1,5 @@
 
-class NodeFilter native "NodeFilter" {
+class NodeFilter native "*NodeFilter" {
 
   int acceptNode(Node n) native;
 

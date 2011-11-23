@@ -1,5 +1,5 @@
 
-class DataView extends ArrayBufferView native "DataView" {
+class DataView extends ArrayBufferView native "*DataView" {
 
   num getFloat32(int byteOffset, [bool littleEndian = null]) native;
 

@@ -1,5 +1,5 @@
 
-class SVGGElement extends SVGElement native "SVGGElement" {
+class SVGGElement extends SVGElement native "*SVGGElement" {
 
   // From SVGTests
 

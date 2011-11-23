@@ -1,5 +1,5 @@
 
-class DOMMimeTypeArray native "DOMMimeTypeArray" {
+class DOMMimeTypeArray native "*DOMMimeTypeArray" {
 
   int length;
 

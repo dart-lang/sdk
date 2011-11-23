@@ -1,5 +1,5 @@
 
-class HTMLFontElement extends HTMLElement native "HTMLFontElement" {
+class HTMLFontElement extends HTMLElement native "*HTMLFontElement" {
 
   String color;
 

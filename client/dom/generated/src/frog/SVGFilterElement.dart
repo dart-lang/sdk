@@ -1,5 +1,5 @@
 
-class SVGFilterElement extends SVGElement native "SVGFilterElement" {
+class SVGFilterElement extends SVGElement native "*SVGFilterElement" {
 
   SVGAnimatedInteger filterResX;
 

@@ -1,5 +1,5 @@
 
-class SVGRadialGradientElement extends SVGGradientElement native "SVGRadialGradientElement" {
+class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
 
   SVGAnimatedLength cx;
 

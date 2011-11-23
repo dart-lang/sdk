@@ -1,5 +1,5 @@
 
-class XMLSerializer native "XMLSerializer" {
+class XMLSerializer native "*XMLSerializer" {
 
   String serializeToString(Node node) native;
 

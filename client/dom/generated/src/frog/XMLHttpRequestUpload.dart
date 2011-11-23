@@ -1,5 +1,5 @@
 
-class XMLHttpRequestUpload native "XMLHttpRequestUpload" {
+class XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
 
   EventListener onabort;
 

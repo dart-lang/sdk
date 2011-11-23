@@ -1,5 +1,5 @@
 
-class SVGAnimatedPreserveAspectRatio native "SVGAnimatedPreserveAspectRatio" {
+class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
   SVGPreserveAspectRatio animVal;
 

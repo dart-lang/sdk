@@ -1,5 +1,5 @@
 
-class VoidCallback native "VoidCallback" {
+class VoidCallback native "*VoidCallback" {
 
   void handleEvent() native;
 

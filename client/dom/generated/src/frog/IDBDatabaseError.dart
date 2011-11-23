@@ -1,5 +1,5 @@
 
-class IDBDatabaseError native "IDBDatabaseError" {
+class IDBDatabaseError native "*IDBDatabaseError" {
 
   int code;
 

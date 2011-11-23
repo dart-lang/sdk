@@ -1,5 +1,5 @@
 
-class NotificationCenter native "NotificationCenter" {
+class NotificationCenter native "*NotificationCenter" {
 
   int checkPermission() native;
 

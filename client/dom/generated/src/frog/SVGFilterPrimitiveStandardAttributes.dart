@@ -1,5 +1,5 @@
 
-class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "SVGFilterPrimitiveStandardAttributes" {
+class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "*SVGFilterPrimitiveStandardAttributes" {
 
   SVGAnimatedLength height;
 

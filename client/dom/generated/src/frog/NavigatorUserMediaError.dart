@@ -1,5 +1,5 @@
 
-class NavigatorUserMediaError native "NavigatorUserMediaError" {
+class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
   int code;
 

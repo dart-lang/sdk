@@ -16,7 +16,7 @@ DOMWindow get window() native "return window;";
 // TODO(vsm): Revert to Dart method when 508 is fixed.
 HTMLDocument get document() native "return window.document;";
 
-class AbstractWorker native "AbstractWorker" {
+class AbstractWorker native "*AbstractWorker" {
 
   EventListener onerror;
 
@@ -31,7 +31,7 @@ class AbstractWorker native "AbstractWorker" {
   String get typeName() native;
 }
 
-class ArrayBuffer native "ArrayBuffer" {
+class ArrayBuffer native "*ArrayBuffer" {
 
   int byteLength;
 
@@ -42,7 +42,7 @@ class ArrayBuffer native "ArrayBuffer" {
   String get typeName() native;
 }
 
-class ArrayBufferView native "ArrayBufferView" {
+class ArrayBufferView native "*ArrayBufferView" {
 
   ArrayBuffer buffer;
 
@@ -55,7 +55,7 @@ class ArrayBufferView native "ArrayBufferView" {
   String get typeName() native;
 }
 
-class Attr extends Node native "Attr" {
+class Attr extends Node native "*Attr" {
 
   bool isId;
 
@@ -68,7 +68,7 @@ class Attr extends Node native "Attr" {
   String value;
 }
 
-class BarInfo native "BarInfo" {
+class BarInfo native "*BarInfo" {
 
   bool visible;
 
@@ -77,14 +77,14 @@ class BarInfo native "BarInfo" {
   String get typeName() native;
 }
 
-class BeforeLoadEvent extends Event native "BeforeLoadEvent" {
+class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
   String url;
 
   void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url) native;
 }
 
-class Blob native "Blob" {
+class Blob native "*Blob" {
 
   int size;
 
@@ -95,20 +95,20 @@ class Blob native "Blob" {
   String get typeName() native;
 }
 
-class CDATASection extends Text native "CDATASection" {
+class CDATASection extends Text native "*CDATASection" {
 }
 
-class CSSCharsetRule extends CSSRule native "CSSCharsetRule" {
+class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 
   String encoding;
 }
 
-class CSSFontFaceRule extends CSSRule native "CSSFontFaceRule" {
+class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 
   CSSStyleDeclaration style;
 }
 
-class CSSImportRule extends CSSRule native "CSSImportRule" {
+class CSSImportRule extends CSSRule native "*CSSImportRule" {
 
   String href;
 
@@ -117,7 +117,7 @@ class CSSImportRule extends CSSRule native "CSSImportRule" {
   CSSStyleSheet styleSheet;
 }
 
-class CSSMediaRule extends CSSRule native "CSSMediaRule" {
+class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
   CSSRuleList cssRules;
 
@@ -128,14 +128,14 @@ class CSSMediaRule extends CSSRule native "CSSMediaRule" {
   int insertRule(String rule, int index) native;
 }
 
-class CSSPageRule extends CSSRule native "CSSPageRule" {
+class CSSPageRule extends CSSRule native "*CSSPageRule" {
 
   String selectorText;
 
   CSSStyleDeclaration style;
 }
 
-class CSSPrimitiveValue extends CSSValue native "CSSPrimitiveValue" {
+class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   int primitiveType;
 
@@ -154,7 +154,7 @@ class CSSPrimitiveValue extends CSSValue native "CSSPrimitiveValue" {
   void setStringValue(int stringType, String stringValue) native;
 }
 
-class CSSRule native "CSSRule" {
+class CSSRule native "*CSSRule" {
 
   String cssText;
 
@@ -169,7 +169,7 @@ class CSSRule native "CSSRule" {
   String get typeName() native;
 }
 
-class CSSRuleList native "CSSRuleList" {
+class CSSRuleList native "*CSSRuleList" {
 
   int length;
 
@@ -180,7 +180,7 @@ class CSSRuleList native "CSSRuleList" {
   String get typeName() native;
 }
 
-class CSSStyleDeclaration native "CSSStyleDeclaration" {
+class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
   String cssText;
 
@@ -209,14 +209,14 @@ class CSSStyleDeclaration native "CSSStyleDeclaration" {
   String get typeName() native;
 }
 
-class CSSStyleRule extends CSSRule native "CSSStyleRule" {
+class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 
   String selectorText;
 
   CSSStyleDeclaration style;
 }
 
-class CSSStyleSheet extends StyleSheet native "CSSStyleSheet" {
+class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
   CSSRuleList cssRules;
 
@@ -233,10 +233,10 @@ class CSSStyleSheet extends StyleSheet native "CSSStyleSheet" {
   void removeRule(int index) native;
 }
 
-class CSSUnknownRule extends CSSRule native "CSSUnknownRule" {
+class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 }
 
-class CSSValue native "CSSValue" {
+class CSSValue native "*CSSValue" {
 
   String cssText;
 
@@ -247,14 +247,14 @@ class CSSValue native "CSSValue" {
   String get typeName() native;
 }
 
-class CSSValueList extends CSSValue native "CSSValueList" {
+class CSSValueList extends CSSValue native "*CSSValueList" {
 
   int length;
 
   CSSValue item(int index) native;
 }
 
-class CanvasGradient native "CanvasGradient" {
+class CanvasGradient native "*CanvasGradient" {
 
   void addColorStop(num offset, String color) native;
 
@@ -263,14 +263,14 @@ class CanvasGradient native "CanvasGradient" {
   String get typeName() native;
 }
 
-class CanvasPattern native "CanvasPattern" {
+class CanvasPattern native "*CanvasPattern" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class CanvasPixelArray native "CanvasPixelArray" {
+class CanvasPixelArray native "*CanvasPixelArray" {
 
   int length;
 
@@ -283,7 +283,7 @@ class CanvasPixelArray native "CanvasPixelArray" {
   String get typeName() native;
 }
 
-class CanvasRenderingContext native "CanvasRenderingContext" {
+class CanvasRenderingContext native "*CanvasRenderingContext" {
 
   HTMLCanvasElement canvas;
 
@@ -292,7 +292,7 @@ class CanvasRenderingContext native "CanvasRenderingContext" {
   String get typeName() native;
 }
 
-class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRenderingContext2D" {
+class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
   Object fillStyle;
 
@@ -417,7 +417,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   void translate(num tx, num ty) native;
 }
 
-class CharacterData extends Node native "CharacterData" {
+class CharacterData extends Node native "*CharacterData" {
 
   String data;
 
@@ -434,7 +434,7 @@ class CharacterData extends Node native "CharacterData" {
   String substringData(int offset, int length) native;
 }
 
-class ClientRect native "ClientRect" {
+class ClientRect native "*ClientRect" {
 
   num bottom;
 
@@ -453,7 +453,7 @@ class ClientRect native "ClientRect" {
   String get typeName() native;
 }
 
-class ClientRectList native "ClientRectList" {
+class ClientRectList native "*ClientRectList" {
 
   int length;
 
@@ -464,7 +464,7 @@ class ClientRectList native "ClientRectList" {
   String get typeName() native;
 }
 
-class Clipboard native "Clipboard" {
+class Clipboard native "*Clipboard" {
 
   String dropEffect;
 
@@ -489,7 +489,7 @@ class Clipboard native "Clipboard" {
   String get typeName() native;
 }
 
-class CloseEvent extends Event native "CloseEvent" {
+class CloseEvent extends Event native "*CloseEvent" {
 
   int code;
 
@@ -500,17 +500,17 @@ class CloseEvent extends Event native "CloseEvent" {
   void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg) native;
 }
 
-class Comment extends CharacterData native "Comment" {
+class Comment extends CharacterData native "*Comment" {
 }
 
-class CompositionEvent extends UIEvent native "CompositionEvent" {
+class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
   String data;
 
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg) native;
 }
 
-class Console native "Console" {
+class Console native "*Console" {
 
   MemoryInfo memory;
 
@@ -553,7 +553,7 @@ class Console native "Console" {
   String get typeName() native;
 }
 
-class Coordinates native "Coordinates" {
+class Coordinates native "*Coordinates" {
 
   num accuracy;
 
@@ -574,7 +574,7 @@ class Coordinates native "Coordinates" {
   String get typeName() native;
 }
 
-class Counter native "Counter" {
+class Counter native "*Counter" {
 
   String identifier;
 
@@ -587,7 +587,7 @@ class Counter native "Counter" {
   String get typeName() native;
 }
 
-class Crypto native "Crypto" {
+class Crypto native "*Crypto" {
 
   void getRandomValues(ArrayBufferView array) native;
 
@@ -596,14 +596,14 @@ class Crypto native "Crypto" {
   String get typeName() native;
 }
 
-class CustomEvent extends Event native "CustomEvent" {
+class CustomEvent extends Event native "*CustomEvent" {
 
   Object detail;
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 }
 
-class DOMApplicationCache native "DOMApplicationCache" {
+class DOMApplicationCache native "*DOMApplicationCache" {
 
   EventListener oncached;
 
@@ -638,7 +638,7 @@ class DOMApplicationCache native "DOMApplicationCache" {
   String get typeName() native;
 }
 
-class DOMException native "DOMException" {
+class DOMException native "*DOMException" {
 
   int code;
 
@@ -653,7 +653,7 @@ class DOMException native "DOMException" {
   String get typeName() native;
 }
 
-class DOMFileSystem native "DOMFileSystem" {
+class DOMFileSystem native "*DOMFileSystem" {
 
   String name;
 
@@ -664,7 +664,7 @@ class DOMFileSystem native "DOMFileSystem" {
   String get typeName() native;
 }
 
-class DOMFileSystemSync native "DOMFileSystemSync" {
+class DOMFileSystemSync native "*DOMFileSystemSync" {
 
   String name;
 
@@ -675,7 +675,7 @@ class DOMFileSystemSync native "DOMFileSystemSync" {
   String get typeName() native;
 }
 
-class DOMFormData native "DOMFormData" {
+class DOMFormData native "*DOMFormData" {
 
   void append(String name, String value, String filename) native;
 
@@ -684,7 +684,7 @@ class DOMFormData native "DOMFormData" {
   String get typeName() native;
 }
 
-class DOMImplementation native "DOMImplementation" {
+class DOMImplementation native "*DOMImplementation" {
 
   CSSStyleSheet createCSSStyleSheet(String title, String media) native;
 
@@ -701,7 +701,7 @@ class DOMImplementation native "DOMImplementation" {
   String get typeName() native;
 }
 
-class DOMMimeType native "DOMMimeType" {
+class DOMMimeType native "*DOMMimeType" {
 
   String description;
 
@@ -716,7 +716,7 @@ class DOMMimeType native "DOMMimeType" {
   String get typeName() native;
 }
 
-class DOMMimeTypeArray native "DOMMimeTypeArray" {
+class DOMMimeTypeArray native "*DOMMimeTypeArray" {
 
   int length;
 
@@ -729,7 +729,7 @@ class DOMMimeTypeArray native "DOMMimeTypeArray" {
   String get typeName() native;
 }
 
-class DOMParser native "DOMParser" {
+class DOMParser native "*DOMParser" {
 
   Document parseFromString(String str, String contentType) native;
 
@@ -738,7 +738,7 @@ class DOMParser native "DOMParser" {
   String get typeName() native;
 }
 
-class DOMPlugin native "DOMPlugin" {
+class DOMPlugin native "*DOMPlugin" {
 
   String description;
 
@@ -757,7 +757,7 @@ class DOMPlugin native "DOMPlugin" {
   String get typeName() native;
 }
 
-class DOMPluginArray native "DOMPluginArray" {
+class DOMPluginArray native "*DOMPluginArray" {
 
   int length;
 
@@ -772,7 +772,7 @@ class DOMPluginArray native "DOMPluginArray" {
   String get typeName() native;
 }
 
-class DOMSelection native "DOMSelection" {
+class DOMSelection native "*DOMSelection" {
 
   Node anchorNode;
 
@@ -831,12 +831,12 @@ class DOMSelection native "DOMSelection" {
   String get typeName() native;
 }
 
-class DOMSettableTokenList extends DOMTokenList native "DOMSettableTokenList" {
+class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
 
   String value;
 }
 
-class DOMTokenList native "DOMTokenList" {
+class DOMTokenList native "*DOMTokenList" {
 
   int length;
 
@@ -857,7 +857,7 @@ class DOMTokenList native "DOMTokenList" {
   String get typeName() native;
 }
 
-class DOMURL native "DOMURL" {
+class DOMURL native "*DOMURL" {
 
   String createObjectURL(Blob blob) native;
 
@@ -868,7 +868,7 @@ class DOMURL native "DOMURL" {
   String get typeName() native;
 }
 
-class DOMWindow native "DOMWindow" {
+class DOMWindow native "*DOMWindow" {
 
   DOMApplicationCache applicationCache;
 
@@ -1197,7 +1197,7 @@ class DOMWindow native "DOMWindow" {
   String get typeName() native;
 }
 
-class DataTransferItem native "DataTransferItem" {
+class DataTransferItem native "*DataTransferItem" {
 
   String kind;
 
@@ -1212,7 +1212,7 @@ class DataTransferItem native "DataTransferItem" {
   String get typeName() native;
 }
 
-class DataTransferItemList native "DataTransferItemList" {
+class DataTransferItemList native "*DataTransferItemList" {
 
   int length;
 
@@ -1227,7 +1227,7 @@ class DataTransferItemList native "DataTransferItemList" {
   String get typeName() native;
 }
 
-class DataView extends ArrayBufferView native "DataView" {
+class DataView extends ArrayBufferView native "*DataView" {
 
   num getFloat32(int byteOffset, [bool littleEndian = null]) native;
 
@@ -1262,7 +1262,7 @@ class DataView extends ArrayBufferView native "DataView" {
   void setUint8() native;
 }
 
-class Database native "Database" {
+class Database native "*Database" {
 
   String version;
 
@@ -1277,7 +1277,7 @@ class Database native "Database" {
   String get typeName() native;
 }
 
-class DatabaseCallback native "DatabaseCallback" {
+class DatabaseCallback native "*DatabaseCallback" {
 
   bool handleEvent(var database) native;
 
@@ -1286,7 +1286,7 @@ class DatabaseCallback native "DatabaseCallback" {
   String get typeName() native;
 }
 
-class DatabaseSync native "DatabaseSync" {
+class DatabaseSync native "*DatabaseSync" {
 
   String version;
 
@@ -1301,7 +1301,7 @@ class DatabaseSync native "DatabaseSync" {
   String get typeName() native;
 }
 
-class DedicatedWorkerContext extends WorkerContext native "DedicatedWorkerContext" {
+class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
   EventListener onmessage;
 
@@ -1310,12 +1310,12 @@ class DedicatedWorkerContext extends WorkerContext native "DedicatedWorkerContex
   void webkitPostMessage(Object message, [List transferList = null]) native;
 }
 
-class DeviceMotionEvent extends Event native "DeviceMotionEvent" {
+class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
   num interval;
 }
 
-class DeviceOrientationEvent extends Event native "DeviceOrientationEvent" {
+class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
   num alpha;
 
@@ -1326,7 +1326,7 @@ class DeviceOrientationEvent extends Event native "DeviceOrientationEvent" {
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) native;
 }
 
-class DirectoryEntry extends Entry native "DirectoryEntry" {
+class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   DirectoryReader createReader() native;
 
@@ -1337,7 +1337,7 @@ class DirectoryEntry extends Entry native "DirectoryEntry" {
   void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 }
 
-class DirectoryEntrySync extends EntrySync native "DirectoryEntrySync" {
+class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   DirectoryReaderSync createReader() native;
 
@@ -1348,7 +1348,7 @@ class DirectoryEntrySync extends EntrySync native "DirectoryEntrySync" {
   void removeRecursively() native;
 }
 
-class DirectoryReader native "DirectoryReader" {
+class DirectoryReader native "*DirectoryReader" {
 
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
@@ -1357,7 +1357,7 @@ class DirectoryReader native "DirectoryReader" {
   String get typeName() native;
 }
 
-class DirectoryReaderSync native "DirectoryReaderSync" {
+class DirectoryReaderSync native "*DirectoryReaderSync" {
 
   EntryArraySync readEntries() native;
 
@@ -1366,7 +1366,7 @@ class DirectoryReaderSync native "DirectoryReaderSync" {
   String get typeName() native;
 }
 
-class Document extends Node native "Document" {
+class Document extends Node native "*Document" {
 
   String URL;
 
@@ -1601,14 +1601,14 @@ class Document extends Node native "Document" {
   NodeList querySelectorAll(String selectors) native;
 }
 
-class DocumentFragment extends Node native "DocumentFragment" {
+class DocumentFragment extends Node native "*DocumentFragment" {
 
   Element querySelector(String selectors) native;
 
   NodeList querySelectorAll(String selectors) native;
 }
 
-class DocumentType extends Node native "DocumentType" {
+class DocumentType extends Node native "*DocumentType" {
 
   NamedNodeMap entities;
 
@@ -1623,7 +1623,7 @@ class DocumentType extends Node native "DocumentType" {
   String systemId;
 }
 
-class Element extends Node native "Element" {
+class Element extends Node native "*Element" {
 
   int childElementCount;
 
@@ -1808,7 +1808,7 @@ class Element extends Node native "Element" {
   bool webkitMatchesSelector(String selectors) native;
 }
 
-class ElementTimeControl native "ElementTimeControl" {
+class ElementTimeControl native "*ElementTimeControl" {
 
   void beginElement() native;
 
@@ -1823,7 +1823,7 @@ class ElementTimeControl native "ElementTimeControl" {
   String get typeName() native;
 }
 
-class ElementTraversal native "ElementTraversal" {
+class ElementTraversal native "*ElementTraversal" {
 
   int childElementCount;
 
@@ -1840,7 +1840,7 @@ class ElementTraversal native "ElementTraversal" {
   String get typeName() native;
 }
 
-class Entity extends Node native "Entity" {
+class Entity extends Node native "*Entity" {
 
   String notationName;
 
@@ -1849,10 +1849,10 @@ class Entity extends Node native "Entity" {
   String systemId;
 }
 
-class EntityReference extends Node native "EntityReference" {
+class EntityReference extends Node native "*EntityReference" {
 }
 
-class EntriesCallback native "EntriesCallback" {
+class EntriesCallback native "*EntriesCallback" {
 
   bool handleEvent(EntryArray entries) native;
 
@@ -1861,7 +1861,7 @@ class EntriesCallback native "EntriesCallback" {
   String get typeName() native;
 }
 
-class Entry native "Entry" {
+class Entry native "*Entry" {
 
   DOMFileSystem filesystem;
 
@@ -1890,7 +1890,7 @@ class Entry native "Entry" {
   String get typeName() native;
 }
 
-class EntryArray native "EntryArray" {
+class EntryArray native "*EntryArray" {
 
   int length;
 
@@ -1901,7 +1901,7 @@ class EntryArray native "EntryArray" {
   String get typeName() native;
 }
 
-class EntryArraySync native "EntryArraySync" {
+class EntryArraySync native "*EntryArraySync" {
 
   int length;
 
@@ -1912,7 +1912,7 @@ class EntryArraySync native "EntryArraySync" {
   String get typeName() native;
 }
 
-class EntryCallback native "EntryCallback" {
+class EntryCallback native "*EntryCallback" {
 
   bool handleEvent(Entry entry) native;
 
@@ -1921,7 +1921,7 @@ class EntryCallback native "EntryCallback" {
   String get typeName() native;
 }
 
-class EntrySync native "EntrySync" {
+class EntrySync native "*EntrySync" {
 
   DOMFileSystemSync filesystem;
 
@@ -1950,7 +1950,7 @@ class EntrySync native "EntrySync" {
   String get typeName() native;
 }
 
-class ErrorCallback native "ErrorCallback" {
+class ErrorCallback native "*ErrorCallback" {
 
   bool handleEvent(FileError error) native;
 
@@ -1959,7 +1959,7 @@ class ErrorCallback native "ErrorCallback" {
   String get typeName() native;
 }
 
-class ErrorEvent extends Event native "ErrorEvent" {
+class ErrorEvent extends Event native "*ErrorEvent" {
 
   String filename;
 
@@ -1970,7 +1970,7 @@ class ErrorEvent extends Event native "ErrorEvent" {
   void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg) native;
 }
 
-class Event native "Event" {
+class Event native "*Event" {
 
   bool bubbles;
 
@@ -2009,7 +2009,7 @@ class Event native "Event" {
   String get typeName() native;
 }
 
-class EventException native "EventException" {
+class EventException native "*EventException" {
 
   int code;
 
@@ -2024,7 +2024,7 @@ class EventException native "EventException" {
   String get typeName() native;
 }
 
-class EventSource native "EventSource" {
+class EventSource native "*EventSource" {
 
   String URL;
 
@@ -2049,7 +2049,7 @@ class EventSource native "EventSource" {
   String get typeName() native;
 }
 
-class EventTarget native "EventTarget" {
+class EventTarget native "*EventTarget" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -2062,7 +2062,7 @@ class EventTarget native "EventTarget" {
   String get typeName() native;
 }
 
-class File extends Blob native "File" {
+class File extends Blob native "*File" {
 
   String fileName;
 
@@ -2073,7 +2073,7 @@ class File extends Blob native "File" {
   String name;
 }
 
-class FileCallback native "FileCallback" {
+class FileCallback native "*FileCallback" {
 
   bool handleEvent(File file) native;
 
@@ -2082,21 +2082,21 @@ class FileCallback native "FileCallback" {
   String get typeName() native;
 }
 
-class FileEntry extends Entry native "FileEntry" {
+class FileEntry extends Entry native "*FileEntry" {
 
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) native;
 }
 
-class FileEntrySync extends EntrySync native "FileEntrySync" {
+class FileEntrySync extends EntrySync native "*FileEntrySync" {
 
   FileWriterSync createWriter() native;
 
   File file() native;
 }
 
-class FileError native "FileError" {
+class FileError native "*FileError" {
 
   int code;
 
@@ -2105,7 +2105,7 @@ class FileError native "FileError" {
   String get typeName() native;
 }
 
-class FileException native "FileException" {
+class FileException native "*FileException" {
 
   int code;
 
@@ -2120,7 +2120,7 @@ class FileException native "FileException" {
   String get typeName() native;
 }
 
-class FileList native "FileList" {
+class FileList native "*FileList" {
 
   int length;
 
@@ -2131,7 +2131,7 @@ class FileList native "FileList" {
   String get typeName() native;
 }
 
-class FileReader native "FileReader" {
+class FileReader native "*FileReader" {
   FileReader() native;
 
 
@@ -2168,7 +2168,7 @@ class FileReader native "FileReader" {
   String get typeName() native;
 }
 
-class FileReaderSync native "FileReaderSync" {
+class FileReaderSync native "*FileReaderSync" {
 
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
 
@@ -2183,7 +2183,7 @@ class FileReaderSync native "FileReaderSync" {
   String get typeName() native;
 }
 
-class FileSystemCallback native "FileSystemCallback" {
+class FileSystemCallback native "*FileSystemCallback" {
 
   bool handleEvent(DOMFileSystem fileSystem) native;
 
@@ -2192,7 +2192,7 @@ class FileSystemCallback native "FileSystemCallback" {
   String get typeName() native;
 }
 
-class FileWriter native "FileWriter" {
+class FileWriter native "*FileWriter" {
 
   FileError error;
 
@@ -2227,7 +2227,7 @@ class FileWriter native "FileWriter" {
   String get typeName() native;
 }
 
-class FileWriterCallback native "FileWriterCallback" {
+class FileWriterCallback native "*FileWriterCallback" {
 
   bool handleEvent(FileWriter fileWriter) native;
 
@@ -2236,7 +2236,7 @@ class FileWriterCallback native "FileWriterCallback" {
   String get typeName() native;
 }
 
-class FileWriterSync native "FileWriterSync" {
+class FileWriterSync native "*FileWriterSync" {
 
   int length;
 
@@ -2253,21 +2253,21 @@ class FileWriterSync native "FileWriterSync" {
   String get typeName() native;
 }
 
-class Float32Array extends ArrayBufferView native "Float32Array" {
+class Float32Array extends ArrayBufferView native "*Float32Array" {
 
   int length;
 
   Float32Array subarray(int start, [int end = null]) native;
 }
 
-class Float64Array extends ArrayBufferView native "Float64Array" {
+class Float64Array extends ArrayBufferView native "*Float64Array" {
 
   int length;
 
   Float64Array subarray(int start, [int end = null]) native;
 }
 
-class Geolocation native "Geolocation" {
+class Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
 
@@ -2280,7 +2280,7 @@ class Geolocation native "Geolocation" {
   String get typeName() native;
 }
 
-class Geoposition native "Geoposition" {
+class Geoposition native "*Geoposition" {
 
   Coordinates coords;
 
@@ -2291,7 +2291,7 @@ class Geoposition native "Geoposition" {
   String get typeName() native;
 }
 
-class HTMLAllCollection native "HTMLAllCollection" {
+class HTMLAllCollection native "*HTMLAllCollection" {
 
   int length;
 
@@ -2306,7 +2306,7 @@ class HTMLAllCollection native "HTMLAllCollection" {
   String get typeName() native;
 }
 
-class HTMLAnchorElement extends HTMLElement native "HTMLAnchorElement" {
+class HTMLAnchorElement extends HTMLElement native "*HTMLAnchorElement" {
 
   String accessKey;
 
@@ -2357,7 +2357,7 @@ class HTMLAnchorElement extends HTMLElement native "HTMLAnchorElement" {
   String toString() native;
 }
 
-class HTMLAppletElement extends HTMLElement native "HTMLAppletElement" {
+class HTMLAppletElement extends HTMLElement native "*HTMLAppletElement" {
 
   String align;
 
@@ -2382,7 +2382,7 @@ class HTMLAppletElement extends HTMLElement native "HTMLAppletElement" {
   String width;
 }
 
-class HTMLAreaElement extends HTMLElement native "HTMLAreaElement" {
+class HTMLAreaElement extends HTMLElement native "*HTMLAreaElement" {
 
   String accessKey;
 
@@ -2415,22 +2415,22 @@ class HTMLAreaElement extends HTMLElement native "HTMLAreaElement" {
   String target;
 }
 
-class HTMLAudioElement extends HTMLMediaElement native "HTMLAudioElement" {
+class HTMLAudioElement extends HTMLMediaElement native "*HTMLAudioElement" {
 }
 
-class HTMLBRElement extends HTMLElement native "HTMLBRElement" {
+class HTMLBRElement extends HTMLElement native "*HTMLBRElement" {
 
   String clear;
 }
 
-class HTMLBaseElement extends HTMLElement native "HTMLBaseElement" {
+class HTMLBaseElement extends HTMLElement native "*HTMLBaseElement" {
 
   String href;
 
   String target;
 }
 
-class HTMLBaseFontElement extends HTMLElement native "HTMLBaseFontElement" {
+class HTMLBaseFontElement extends HTMLElement native "*HTMLBaseFontElement" {
 
   String color;
 
@@ -2439,7 +2439,7 @@ class HTMLBaseFontElement extends HTMLElement native "HTMLBaseFontElement" {
   int size;
 }
 
-class HTMLBodyElement extends HTMLElement native "HTMLBodyElement" {
+class HTMLBodyElement extends HTMLElement native "*HTMLBodyElement" {
 
   String aLink;
 
@@ -2482,7 +2482,7 @@ class HTMLBodyElement extends HTMLElement native "HTMLBodyElement" {
   String vLink;
 }
 
-class HTMLButtonElement extends HTMLElement native "HTMLButtonElement" {
+class HTMLButtonElement extends HTMLElement native "*HTMLButtonElement" {
 
   String accessKey;
 
@@ -2523,7 +2523,7 @@ class HTMLButtonElement extends HTMLElement native "HTMLButtonElement" {
   void setCustomValidity(String error) native;
 }
 
-class HTMLCanvasElement extends HTMLElement native "HTMLCanvasElement" {
+class HTMLCanvasElement extends HTMLElement native "*HTMLCanvasElement" {
 
   int height;
 
@@ -2534,7 +2534,7 @@ class HTMLCanvasElement extends HTMLElement native "HTMLCanvasElement" {
   String toDataURL(String type) native;
 }
 
-class HTMLCollection native "HTMLCollection" {
+class HTMLCollection native "*HTMLCollection" {
 
   int length;
 
@@ -2549,32 +2549,32 @@ class HTMLCollection native "HTMLCollection" {
   String get typeName() native;
 }
 
-class HTMLDListElement extends HTMLElement native "HTMLDListElement" {
+class HTMLDListElement extends HTMLElement native "*HTMLDListElement" {
 
   bool compact;
 }
 
-class HTMLDataListElement extends HTMLElement native "HTMLDataListElement" {
+class HTMLDataListElement extends HTMLElement native "*HTMLDataListElement" {
 
   HTMLCollection options;
 }
 
-class HTMLDetailsElement extends HTMLElement native "HTMLDetailsElement" {
+class HTMLDetailsElement extends HTMLElement native "*HTMLDetailsElement" {
 
   bool open;
 }
 
-class HTMLDirectoryElement extends HTMLElement native "HTMLDirectoryElement" {
+class HTMLDirectoryElement extends HTMLElement native "*HTMLDirectoryElement" {
 
   bool compact;
 }
 
-class HTMLDivElement extends HTMLElement native "HTMLDivElement" {
+class HTMLDivElement extends HTMLElement native "*HTMLDivElement" {
 
   String align;
 }
 
-class HTMLDocument extends Document native "HTMLDocument" {
+class HTMLDocument extends Document native "*HTMLDocument" {
 
   Element activeElement;
 
@@ -2623,7 +2623,7 @@ class HTMLDocument extends Document native "HTMLDocument" {
   void writeln(String text) native;
 }
 
-class HTMLElement extends Element native "HTMLElement" {
+class HTMLElement extends Element native "*HTMLElement" {
 
   HTMLCollection children;
 
@@ -2680,7 +2680,7 @@ class HTMLElement extends Element native "HTMLElement" {
   void insertAdjacentText(String where, String text) native;
 }
 
-class HTMLEmbedElement extends HTMLElement native "HTMLEmbedElement" {
+class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
 
   String align;
 
@@ -2695,7 +2695,7 @@ class HTMLEmbedElement extends HTMLElement native "HTMLEmbedElement" {
   String width;
 }
 
-class HTMLFieldSetElement extends HTMLElement native "HTMLFieldSetElement" {
+class HTMLFieldSetElement extends HTMLElement native "*HTMLFieldSetElement" {
 
   HTMLFormElement form;
 
@@ -2710,7 +2710,7 @@ class HTMLFieldSetElement extends HTMLElement native "HTMLFieldSetElement" {
   void setCustomValidity(String error) native;
 }
 
-class HTMLFontElement extends HTMLElement native "HTMLFontElement" {
+class HTMLFontElement extends HTMLElement native "*HTMLFontElement" {
 
   String color;
 
@@ -2719,7 +2719,7 @@ class HTMLFontElement extends HTMLElement native "HTMLFontElement" {
   String size;
 }
 
-class HTMLFormElement extends HTMLElement native "HTMLFormElement" {
+class HTMLFormElement extends HTMLElement native "*HTMLFormElement" {
 
   String acceptCharset;
 
@@ -2750,7 +2750,7 @@ class HTMLFormElement extends HTMLElement native "HTMLFormElement" {
   void submit() native;
 }
 
-class HTMLFrameElement extends HTMLElement native "HTMLFrameElement" {
+class HTMLFrameElement extends HTMLElement native "*HTMLFrameElement" {
 
   Document contentDocument;
 
@@ -2779,7 +2779,7 @@ class HTMLFrameElement extends HTMLElement native "HTMLFrameElement" {
   int width;
 }
 
-class HTMLFrameSetElement extends HTMLElement native "HTMLFrameSetElement" {
+class HTMLFrameSetElement extends HTMLElement native "*HTMLFrameSetElement" {
 
   String cols;
 
@@ -2814,7 +2814,7 @@ class HTMLFrameSetElement extends HTMLElement native "HTMLFrameSetElement" {
   String rows;
 }
 
-class HTMLHRElement extends HTMLElement native "HTMLHRElement" {
+class HTMLHRElement extends HTMLElement native "*HTMLHRElement" {
 
   String align;
 
@@ -2825,24 +2825,24 @@ class HTMLHRElement extends HTMLElement native "HTMLHRElement" {
   String width;
 }
 
-class HTMLHeadElement extends HTMLElement native "HTMLHeadElement" {
+class HTMLHeadElement extends HTMLElement native "*HTMLHeadElement" {
 
   String profile;
 }
 
-class HTMLHeadingElement extends HTMLElement native "HTMLHeadingElement" {
+class HTMLHeadingElement extends HTMLElement native "*HTMLHeadingElement" {
 
   String align;
 }
 
-class HTMLHtmlElement extends HTMLElement native "HTMLHtmlElement" {
+class HTMLHtmlElement extends HTMLElement native "*HTMLHtmlElement" {
 
   String manifest;
 
   String version;
 }
 
-class HTMLIFrameElement extends HTMLElement native "HTMLIFrameElement" {
+class HTMLIFrameElement extends HTMLElement native "*HTMLIFrameElement" {
 
   String align;
 
@@ -2871,7 +2871,7 @@ class HTMLIFrameElement extends HTMLElement native "HTMLIFrameElement" {
   String width;
 }
 
-class HTMLImageElement extends HTMLElement native "HTMLImageElement" {
+class HTMLImageElement extends HTMLElement native "*HTMLImageElement" {
 
   String align;
 
@@ -2912,7 +2912,7 @@ class HTMLImageElement extends HTMLElement native "HTMLImageElement" {
   int y;
 }
 
-class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
+class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
 
   String accept;
 
@@ -3027,14 +3027,14 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
   void stepUp([int n = null]) native;
 }
 
-class HTMLIsIndexElement extends HTMLInputElement native "HTMLIsIndexElement" {
+class HTMLIsIndexElement extends HTMLInputElement native "*HTMLIsIndexElement" {
 
   HTMLFormElement form;
 
   String prompt;
 }
 
-class HTMLKeygenElement extends HTMLElement native "HTMLKeygenElement" {
+class HTMLKeygenElement extends HTMLElement native "*HTMLKeygenElement" {
 
   bool autofocus;
 
@@ -3063,14 +3063,14 @@ class HTMLKeygenElement extends HTMLElement native "HTMLKeygenElement" {
   void setCustomValidity(String error) native;
 }
 
-class HTMLLIElement extends HTMLElement native "HTMLLIElement" {
+class HTMLLIElement extends HTMLElement native "*HTMLLIElement" {
 
   String type;
 
   int value;
 }
 
-class HTMLLabelElement extends HTMLElement native "HTMLLabelElement" {
+class HTMLLabelElement extends HTMLElement native "*HTMLLabelElement" {
 
   String accessKey;
 
@@ -3081,7 +3081,7 @@ class HTMLLabelElement extends HTMLElement native "HTMLLabelElement" {
   String htmlFor;
 }
 
-class HTMLLegendElement extends HTMLElement native "HTMLLegendElement" {
+class HTMLLegendElement extends HTMLElement native "*HTMLLegendElement" {
 
   String accessKey;
 
@@ -3090,7 +3090,7 @@ class HTMLLegendElement extends HTMLElement native "HTMLLegendElement" {
   HTMLFormElement form;
 }
 
-class HTMLLinkElement extends HTMLElement native "HTMLLinkElement" {
+class HTMLLinkElement extends HTMLElement native "*HTMLLinkElement" {
 
   String charset;
 
@@ -3115,14 +3115,14 @@ class HTMLLinkElement extends HTMLElement native "HTMLLinkElement" {
   String type;
 }
 
-class HTMLMapElement extends HTMLElement native "HTMLMapElement" {
+class HTMLMapElement extends HTMLElement native "*HTMLMapElement" {
 
   HTMLCollection areas;
 
   String name;
 }
 
-class HTMLMarqueeElement extends HTMLElement native "HTMLMarqueeElement" {
+class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
 
   String behavior;
 
@@ -3151,7 +3151,7 @@ class HTMLMarqueeElement extends HTMLElement native "HTMLMarqueeElement" {
   void stop() native;
 }
 
-class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
+class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
 
   bool autoplay;
 
@@ -3220,12 +3220,12 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   void play() native;
 }
 
-class HTMLMenuElement extends HTMLElement native "HTMLMenuElement" {
+class HTMLMenuElement extends HTMLElement native "*HTMLMenuElement" {
 
   bool compact;
 }
 
-class HTMLMetaElement extends HTMLElement native "HTMLMetaElement" {
+class HTMLMetaElement extends HTMLElement native "*HTMLMetaElement" {
 
   String content;
 
@@ -3236,7 +3236,7 @@ class HTMLMetaElement extends HTMLElement native "HTMLMetaElement" {
   String scheme;
 }
 
-class HTMLMeterElement extends HTMLElement native "HTMLMeterElement" {
+class HTMLMeterElement extends HTMLElement native "*HTMLMeterElement" {
 
   HTMLFormElement form;
 
@@ -3255,14 +3255,14 @@ class HTMLMeterElement extends HTMLElement native "HTMLMeterElement" {
   num value;
 }
 
-class HTMLModElement extends HTMLElement native "HTMLModElement" {
+class HTMLModElement extends HTMLElement native "*HTMLModElement" {
 
   String cite;
 
   String dateTime;
 }
 
-class HTMLOListElement extends HTMLElement native "HTMLOListElement" {
+class HTMLOListElement extends HTMLElement native "*HTMLOListElement" {
 
   bool compact;
 
@@ -3271,7 +3271,7 @@ class HTMLOListElement extends HTMLElement native "HTMLOListElement" {
   String type;
 }
 
-class HTMLObjectElement extends HTMLElement native "HTMLObjectElement" {
+class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
   String align;
 
@@ -3320,14 +3320,14 @@ class HTMLObjectElement extends HTMLElement native "HTMLObjectElement" {
   void setCustomValidity(String error) native;
 }
 
-class HTMLOptGroupElement extends HTMLElement native "HTMLOptGroupElement" {
+class HTMLOptGroupElement extends HTMLElement native "*HTMLOptGroupElement" {
 
   bool disabled;
 
   String label;
 }
 
-class HTMLOptionElement extends HTMLElement native "HTMLOptionElement" {
+class HTMLOptionElement extends HTMLElement native "*HTMLOptionElement" {
 
   bool defaultSelected;
 
@@ -3346,7 +3346,7 @@ class HTMLOptionElement extends HTMLElement native "HTMLOptionElement" {
   String value;
 }
 
-class HTMLOptionsCollection extends HTMLCollection native "HTMLOptionsCollection" {
+class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
 
   int length;
 
@@ -3355,7 +3355,7 @@ class HTMLOptionsCollection extends HTMLCollection native "HTMLOptionsCollection
   void remove(int index) native;
 }
 
-class HTMLOutputElement extends HTMLElement native "HTMLOutputElement" {
+class HTMLOutputElement extends HTMLElement native "*HTMLOutputElement" {
 
   String defaultValue;
 
@@ -3382,12 +3382,12 @@ class HTMLOutputElement extends HTMLElement native "HTMLOutputElement" {
   void setCustomValidity(String error) native;
 }
 
-class HTMLParagraphElement extends HTMLElement native "HTMLParagraphElement" {
+class HTMLParagraphElement extends HTMLElement native "*HTMLParagraphElement" {
 
   String align;
 }
 
-class HTMLParamElement extends HTMLElement native "HTMLParamElement" {
+class HTMLParamElement extends HTMLElement native "*HTMLParamElement" {
 
   String name;
 
@@ -3398,14 +3398,14 @@ class HTMLParamElement extends HTMLElement native "HTMLParamElement" {
   String valueType;
 }
 
-class HTMLPreElement extends HTMLElement native "HTMLPreElement" {
+class HTMLPreElement extends HTMLElement native "*HTMLPreElement" {
 
   int width;
 
   bool wrap;
 }
 
-class HTMLProgressElement extends HTMLElement native "HTMLProgressElement" {
+class HTMLProgressElement extends HTMLElement native "*HTMLProgressElement" {
 
   HTMLFormElement form;
 
@@ -3418,12 +3418,12 @@ class HTMLProgressElement extends HTMLElement native "HTMLProgressElement" {
   num value;
 }
 
-class HTMLQuoteElement extends HTMLElement native "HTMLQuoteElement" {
+class HTMLQuoteElement extends HTMLElement native "*HTMLQuoteElement" {
 
   String cite;
 }
 
-class HTMLScriptElement extends HTMLElement native "HTMLScriptElement" {
+class HTMLScriptElement extends HTMLElement native "*HTMLScriptElement" {
 
   bool async;
 
@@ -3442,7 +3442,7 @@ class HTMLScriptElement extends HTMLElement native "HTMLScriptElement" {
   String type;
 }
 
-class HTMLSelectElement extends HTMLElement native "HTMLSelectElement" {
+class HTMLSelectElement extends HTMLElement native "*HTMLSelectElement" {
 
   bool autofocus;
 
@@ -3489,7 +3489,7 @@ class HTMLSelectElement extends HTMLElement native "HTMLSelectElement" {
   void setCustomValidity(String error) native;
 }
 
-class HTMLSourceElement extends HTMLElement native "HTMLSourceElement" {
+class HTMLSourceElement extends HTMLElement native "*HTMLSourceElement" {
 
   String media;
 
@@ -3498,10 +3498,10 @@ class HTMLSourceElement extends HTMLElement native "HTMLSourceElement" {
   String type;
 }
 
-class HTMLSpanElement extends HTMLElement native "HTMLSpanElement" {
+class HTMLSpanElement extends HTMLElement native "*HTMLSpanElement" {
 }
 
-class HTMLStyleElement extends HTMLElement native "HTMLStyleElement" {
+class HTMLStyleElement extends HTMLElement native "*HTMLStyleElement" {
 
   bool disabled;
 
@@ -3512,12 +3512,12 @@ class HTMLStyleElement extends HTMLElement native "HTMLStyleElement" {
   String type;
 }
 
-class HTMLTableCaptionElement extends HTMLElement native "HTMLTableCaptionElement" {
+class HTMLTableCaptionElement extends HTMLElement native "*HTMLTableCaptionElement" {
 
   String align;
 }
 
-class HTMLTableCellElement extends HTMLElement native "HTMLTableCellElement" {
+class HTMLTableCellElement extends HTMLElement native "*HTMLTableCellElement" {
 
   String abbr;
 
@@ -3550,7 +3550,7 @@ class HTMLTableCellElement extends HTMLElement native "HTMLTableCellElement" {
   String width;
 }
 
-class HTMLTableColElement extends HTMLElement native "HTMLTableColElement" {
+class HTMLTableColElement extends HTMLElement native "*HTMLTableColElement" {
 
   String align;
 
@@ -3565,7 +3565,7 @@ class HTMLTableColElement extends HTMLElement native "HTMLTableColElement" {
   String width;
 }
 
-class HTMLTableElement extends HTMLElement native "HTMLTableElement" {
+class HTMLTableElement extends HTMLElement native "*HTMLTableElement" {
 
   String align;
 
@@ -3612,7 +3612,7 @@ class HTMLTableElement extends HTMLElement native "HTMLTableElement" {
   HTMLElement insertRow(int index) native;
 }
 
-class HTMLTableRowElement extends HTMLElement native "HTMLTableRowElement" {
+class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
 
   String align;
 
@@ -3635,7 +3635,7 @@ class HTMLTableRowElement extends HTMLElement native "HTMLTableRowElement" {
   HTMLElement insertCell(int index) native;
 }
 
-class HTMLTableSectionElement extends HTMLElement native "HTMLTableSectionElement" {
+class HTMLTableSectionElement extends HTMLElement native "*HTMLTableSectionElement" {
 
   String align;
 
@@ -3652,7 +3652,7 @@ class HTMLTableSectionElement extends HTMLElement native "HTMLTableSectionElemen
   HTMLElement insertRow(int index) native;
 }
 
-class HTMLTextAreaElement extends HTMLElement native "HTMLTextAreaElement" {
+class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
   String accessKey;
 
@@ -3709,12 +3709,12 @@ class HTMLTextAreaElement extends HTMLElement native "HTMLTextAreaElement" {
   void setSelectionRange(int start, int end, [String direction = null]) native;
 }
 
-class HTMLTitleElement extends HTMLElement native "HTMLTitleElement" {
+class HTMLTitleElement extends HTMLElement native "*HTMLTitleElement" {
 
   String text;
 }
 
-class HTMLTrackElement extends HTMLElement native "HTMLTrackElement" {
+class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
 
   bool isDefault;
 
@@ -3729,17 +3729,17 @@ class HTMLTrackElement extends HTMLElement native "HTMLTrackElement" {
   TextTrack track;
 }
 
-class HTMLUListElement extends HTMLElement native "HTMLUListElement" {
+class HTMLUListElement extends HTMLElement native "*HTMLUListElement" {
 
   bool compact;
 
   String type;
 }
 
-class HTMLUnknownElement extends HTMLElement native "HTMLUnknownElement" {
+class HTMLUnknownElement extends HTMLElement native "*HTMLUnknownElement" {
 }
 
-class HTMLVideoElement extends HTMLMediaElement native "HTMLVideoElement" {
+class HTMLVideoElement extends HTMLMediaElement native "*HTMLVideoElement" {
 
   int height;
 
@@ -3768,7 +3768,7 @@ class HTMLVideoElement extends HTMLMediaElement native "HTMLVideoElement" {
   void webkitExitFullscreen() native;
 }
 
-class HashChangeEvent extends Event native "HashChangeEvent" {
+class HashChangeEvent extends Event native "*HashChangeEvent" {
 
   String newURL;
 
@@ -3777,7 +3777,7 @@ class HashChangeEvent extends Event native "HashChangeEvent" {
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 
-class History native "History" {
+class History native "*History" {
 
   int length;
 
@@ -3796,14 +3796,14 @@ class History native "History" {
   String get typeName() native;
 }
 
-class IDBAny native "IDBAny" {
+class IDBAny native "*IDBAny" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class IDBCursor native "IDBCursor" {
+class IDBCursor native "*IDBCursor" {
 
   int direction;
 
@@ -3824,12 +3824,12 @@ class IDBCursor native "IDBCursor" {
   String get typeName() native;
 }
 
-class IDBCursorWithValue extends IDBCursor native "IDBCursorWithValue" {
+class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 
   IDBAny value;
 }
 
-class IDBDatabase native "IDBDatabase" {
+class IDBDatabase native "*IDBDatabase" {
 
   String name;
 
@@ -3862,7 +3862,7 @@ class IDBDatabase native "IDBDatabase" {
   String get typeName() native;
 }
 
-class IDBDatabaseError native "IDBDatabaseError" {
+class IDBDatabaseError native "*IDBDatabaseError" {
 
   int code;
 
@@ -3873,7 +3873,7 @@ class IDBDatabaseError native "IDBDatabaseError" {
   String get typeName() native;
 }
 
-class IDBDatabaseException native "IDBDatabaseException" {
+class IDBDatabaseException native "*IDBDatabaseException" {
 
   int code;
 
@@ -3888,7 +3888,7 @@ class IDBDatabaseException native "IDBDatabaseException" {
   String get typeName() native;
 }
 
-class IDBFactory native "IDBFactory" {
+class IDBFactory native "*IDBFactory" {
 
   int cmp(IDBKey first, IDBKey second) native;
 
@@ -3903,7 +3903,7 @@ class IDBFactory native "IDBFactory" {
   String get typeName() native;
 }
 
-class IDBIndex native "IDBIndex" {
+class IDBIndex native "*IDBIndex" {
 
   String keyPath;
 
@@ -3926,14 +3926,14 @@ class IDBIndex native "IDBIndex" {
   String get typeName() native;
 }
 
-class IDBKey native "IDBKey" {
+class IDBKey native "*IDBKey" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class IDBKeyRange native "IDBKeyRange" {
+class IDBKeyRange native "*IDBKeyRange" {
 
   IDBKey lower;
 
@@ -3956,7 +3956,7 @@ class IDBKeyRange native "IDBKeyRange" {
   String get typeName() native;
 }
 
-class IDBObjectStore native "IDBObjectStore" {
+class IDBObjectStore native "*IDBObjectStore" {
 
   String keyPath;
 
@@ -3987,7 +3987,7 @@ class IDBObjectStore native "IDBObjectStore" {
   String get typeName() native;
 }
 
-class IDBRequest native "IDBRequest" {
+class IDBRequest native "*IDBRequest" {
 
   int errorCode;
 
@@ -4016,7 +4016,7 @@ class IDBRequest native "IDBRequest" {
   String get typeName() native;
 }
 
-class IDBTransaction native "IDBTransaction" {
+class IDBTransaction native "*IDBTransaction" {
 
   IDBDatabase db;
 
@@ -4043,17 +4043,17 @@ class IDBTransaction native "IDBTransaction" {
   String get typeName() native;
 }
 
-class IDBVersionChangeEvent extends Event native "IDBVersionChangeEvent" {
+class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
   String version;
 }
 
-class IDBVersionChangeRequest extends IDBRequest native "IDBVersionChangeRequest" {
+class IDBVersionChangeRequest extends IDBRequest native "*IDBVersionChangeRequest" {
 
   EventListener onblocked;
 }
 
-class ImageData native "ImageData" {
+class ImageData native "*ImageData" {
 
   CanvasPixelArray data;
 
@@ -4066,7 +4066,7 @@ class ImageData native "ImageData" {
   String get typeName() native;
 }
 
-class InjectedScriptHost native "InjectedScriptHost" {
+class InjectedScriptHost native "*InjectedScriptHost" {
 
   void clearConsoleMessages() native;
 
@@ -4093,7 +4093,7 @@ class InjectedScriptHost native "InjectedScriptHost" {
   String get typeName() native;
 }
 
-class InspectorFrontendHost native "InspectorFrontendHost" {
+class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void bringToFront() native;
 
@@ -4142,28 +4142,28 @@ class InspectorFrontendHost native "InspectorFrontendHost" {
   String get typeName() native;
 }
 
-class Int16Array extends ArrayBufferView native "Int16Array" {
+class Int16Array extends ArrayBufferView native "*Int16Array" {
 
   int length;
 
   Int16Array subarray(int start, [int end = null]) native;
 }
 
-class Int32Array extends ArrayBufferView native "Int32Array" {
+class Int32Array extends ArrayBufferView native "*Int32Array" {
 
   int length;
 
   Int32Array subarray(int start, [int end = null]) native;
 }
 
-class Int8Array extends ArrayBufferView native "Int8Array" {
+class Int8Array extends ArrayBufferView native "*Int8Array" {
 
   int length;
 
   Int8Array subarray(int start, [int end = null]) native;
 }
 
-class JavaScriptCallFrame native "JavaScriptCallFrame" {
+class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   JavaScriptCallFrame caller;
 
@@ -4188,7 +4188,7 @@ class JavaScriptCallFrame native "JavaScriptCallFrame" {
   String get typeName() native;
 }
 
-class KeyboardEvent extends UIEvent native "KeyboardEvent" {
+class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   bool altGraphKey;
 
@@ -4207,7 +4207,7 @@ class KeyboardEvent extends UIEvent native "KeyboardEvent" {
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 
-class Location native "Location" {
+class Location native "*Location" {
 
   String hash;
 
@@ -4242,7 +4242,7 @@ class Location native "Location" {
   String get typeName() native;
 }
 
-class MediaError native "MediaError" {
+class MediaError native "*MediaError" {
 
   int code;
 
@@ -4251,7 +4251,7 @@ class MediaError native "MediaError" {
   String get typeName() native;
 }
 
-class MediaList native "MediaList" {
+class MediaList native "*MediaList" {
 
   int length;
 
@@ -4270,7 +4270,7 @@ class MediaList native "MediaList" {
   String get typeName() native;
 }
 
-class MediaQueryList native "MediaQueryList" {
+class MediaQueryList native "*MediaQueryList" {
 
   bool matches;
 
@@ -4285,7 +4285,7 @@ class MediaQueryList native "MediaQueryList" {
   String get typeName() native;
 }
 
-class MediaQueryListListener native "MediaQueryListListener" {
+class MediaQueryListListener native "*MediaQueryListListener" {
 
   void queryChanged(MediaQueryList list) native;
 
@@ -4294,7 +4294,7 @@ class MediaQueryListListener native "MediaQueryListListener" {
   String get typeName() native;
 }
 
-class MemoryInfo native "MemoryInfo" {
+class MemoryInfo native "*MemoryInfo" {
 
   int jsHeapSizeLimit;
 
@@ -4307,7 +4307,7 @@ class MemoryInfo native "MemoryInfo" {
   String get typeName() native;
 }
 
-class MessageChannel native "MessageChannel" {
+class MessageChannel native "*MessageChannel" {
 
   MessagePort port1;
 
@@ -4318,7 +4318,7 @@ class MessageChannel native "MessageChannel" {
   String get typeName() native;
 }
 
-class MessageEvent extends Event native "MessageEvent" {
+class MessageEvent extends Event native "*MessageEvent" {
 
   Object data;
 
@@ -4335,7 +4335,7 @@ class MessageEvent extends Event native "MessageEvent" {
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List transferables) native;
 }
 
-class MessagePort native "MessagePort" {
+class MessagePort native "*MessagePort" {
 
   EventListener onmessage;
 
@@ -4358,7 +4358,7 @@ class MessagePort native "MessagePort" {
   String get typeName() native;
 }
 
-class Metadata native "Metadata" {
+class Metadata native "*Metadata" {
 
   Date modificationTime;
 
@@ -4367,7 +4367,7 @@ class Metadata native "Metadata" {
   String get typeName() native;
 }
 
-class MetadataCallback native "MetadataCallback" {
+class MetadataCallback native "*MetadataCallback" {
 
   bool handleEvent(Metadata metadata) native;
 
@@ -4376,7 +4376,7 @@ class MetadataCallback native "MetadataCallback" {
   String get typeName() native;
 }
 
-class MouseEvent extends UIEvent native "MouseEvent" {
+class MouseEvent extends UIEvent native "*MouseEvent" {
 
   bool altKey;
 
@@ -4415,14 +4415,14 @@ class MouseEvent extends UIEvent native "MouseEvent" {
   void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native;
 }
 
-class MutationCallback native "MutationCallback" {
+class MutationCallback native "*MutationCallback" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class MutationEvent extends Event native "MutationEvent" {
+class MutationEvent extends Event native "*MutationEvent" {
 
   int attrChange;
 
@@ -4437,7 +4437,7 @@ class MutationEvent extends Event native "MutationEvent" {
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 
-class MutationRecord native "MutationRecord" {
+class MutationRecord native "*MutationRecord" {
 
   NodeList addedNodes;
 
@@ -4462,7 +4462,7 @@ class MutationRecord native "MutationRecord" {
   String get typeName() native;
 }
 
-class NamedNodeMap native "NamedNodeMap" {
+class NamedNodeMap native "*NamedNodeMap" {
 
   int length;
 
@@ -4487,7 +4487,7 @@ class NamedNodeMap native "NamedNodeMap" {
   String get typeName() native;
 }
 
-class Navigator native "Navigator" {
+class Navigator native "*Navigator" {
 
   String appCodeName;
 
@@ -4526,7 +4526,7 @@ class Navigator native "Navigator" {
   String get typeName() native;
 }
 
-class NavigatorUserMediaError native "NavigatorUserMediaError" {
+class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
   int code;
 
@@ -4535,7 +4535,7 @@ class NavigatorUserMediaError native "NavigatorUserMediaError" {
   String get typeName() native;
 }
 
-class NavigatorUserMediaErrorCallback native "NavigatorUserMediaErrorCallback" {
+class NavigatorUserMediaErrorCallback native "*NavigatorUserMediaErrorCallback" {
 
   bool handleEvent(NavigatorUserMediaError error) native;
 
@@ -4544,14 +4544,14 @@ class NavigatorUserMediaErrorCallback native "NavigatorUserMediaErrorCallback" {
   String get typeName() native;
 }
 
-class NavigatorUserMediaSuccessCallback native "NavigatorUserMediaSuccessCallback" {
+class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallback" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class Node native "Node" {
+class Node native "*Node" {
 
   NamedNodeMap attributes;
 
@@ -4630,7 +4630,7 @@ class Node native "Node" {
   String get typeName() native;
 }
 
-class NodeFilter native "NodeFilter" {
+class NodeFilter native "*NodeFilter" {
 
   int acceptNode(Node n) native;
 
@@ -4639,7 +4639,7 @@ class NodeFilter native "NodeFilter" {
   String get typeName() native;
 }
 
-class NodeIterator native "NodeIterator" {
+class NodeIterator native "*NodeIterator" {
 
   bool expandEntityReferences;
 
@@ -4664,7 +4664,7 @@ class NodeIterator native "NodeIterator" {
   String get typeName() native;
 }
 
-class NodeList native "NodeList" {
+class NodeList native "*NodeList" {
 
   int length;
 
@@ -4677,7 +4677,7 @@ class NodeList native "NodeList" {
   String get typeName() native;
 }
 
-class NodeSelector native "NodeSelector" {
+class NodeSelector native "*NodeSelector" {
 
   Element querySelector(String selectors) native;
 
@@ -4688,14 +4688,14 @@ class NodeSelector native "NodeSelector" {
   String get typeName() native;
 }
 
-class Notation extends Node native "Notation" {
+class Notation extends Node native "*Notation" {
 
   String publicId;
 
   String systemId;
 }
 
-class Notification native "Notification" {
+class Notification native "*Notification" {
 
   String dir;
 
@@ -4724,7 +4724,7 @@ class Notification native "Notification" {
   String get typeName() native;
 }
 
-class NotificationCenter native "NotificationCenter" {
+class NotificationCenter native "*NotificationCenter" {
 
   int checkPermission() native;
 
@@ -4739,21 +4739,21 @@ class NotificationCenter native "NotificationCenter" {
   String get typeName() native;
 }
 
-class OESStandardDerivatives native "OESStandardDerivatives" {
+class OESStandardDerivatives native "*OESStandardDerivatives" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class OESTextureFloat native "OESTextureFloat" {
+class OESTextureFloat native "*OESTextureFloat" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class OESVertexArrayObject native "OESVertexArrayObject" {
+class OESVertexArrayObject native "*OESVertexArrayObject" {
 
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 
@@ -4768,7 +4768,7 @@ class OESVertexArrayObject native "OESVertexArrayObject" {
   String get typeName() native;
 }
 
-class OperationNotAllowedException native "OperationNotAllowedException" {
+class OperationNotAllowedException native "*OperationNotAllowedException" {
 
   int code;
 
@@ -4783,7 +4783,7 @@ class OperationNotAllowedException native "OperationNotAllowedException" {
   String get typeName() native;
 }
 
-class OverflowEvent extends Event native "OverflowEvent" {
+class OverflowEvent extends Event native "*OverflowEvent" {
 
   bool horizontalOverflow;
 
@@ -4794,14 +4794,14 @@ class OverflowEvent extends Event native "OverflowEvent" {
   void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) native;
 }
 
-class PageTransitionEvent extends Event native "PageTransitionEvent" {
+class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
   bool persisted;
 
   void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted) native;
 }
 
-class Performance native "Performance" {
+class Performance native "*Performance" {
 
   MemoryInfo memory;
 
@@ -4814,7 +4814,7 @@ class Performance native "Performance" {
   String get typeName() native;
 }
 
-class PerformanceNavigation native "PerformanceNavigation" {
+class PerformanceNavigation native "*PerformanceNavigation" {
 
   int redirectCount;
 
@@ -4825,7 +4825,7 @@ class PerformanceNavigation native "PerformanceNavigation" {
   String get typeName() native;
 }
 
-class PerformanceTiming native "PerformanceTiming" {
+class PerformanceTiming native "*PerformanceTiming" {
 
   int connectEnd;
 
@@ -4874,14 +4874,14 @@ class PerformanceTiming native "PerformanceTiming" {
   String get typeName() native;
 }
 
-class PopStateEvent extends Event native "PopStateEvent" {
+class PopStateEvent extends Event native "*PopStateEvent" {
 
   Object state;
 
   void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) native;
 }
 
-class PositionCallback native "PositionCallback" {
+class PositionCallback native "*PositionCallback" {
 
   bool handleEvent(Geoposition position) native;
 
@@ -4890,7 +4890,7 @@ class PositionCallback native "PositionCallback" {
   String get typeName() native;
 }
 
-class PositionError native "PositionError" {
+class PositionError native "*PositionError" {
 
   int code;
 
@@ -4901,7 +4901,7 @@ class PositionError native "PositionError" {
   String get typeName() native;
 }
 
-class PositionErrorCallback native "PositionErrorCallback" {
+class PositionErrorCallback native "*PositionErrorCallback" {
 
   bool handleEvent(PositionError error) native;
 
@@ -4910,7 +4910,7 @@ class PositionErrorCallback native "PositionErrorCallback" {
   String get typeName() native;
 }
 
-class ProcessingInstruction extends Node native "ProcessingInstruction" {
+class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
   String data;
 
@@ -4919,7 +4919,7 @@ class ProcessingInstruction extends Node native "ProcessingInstruction" {
   String target;
 }
 
-class ProgressEvent extends Event native "ProgressEvent" {
+class ProgressEvent extends Event native "*ProgressEvent" {
 
   bool lengthComputable;
 
@@ -4930,7 +4930,7 @@ class ProgressEvent extends Event native "ProgressEvent" {
   void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg) native;
 }
 
-class RGBColor native "RGBColor" {
+class RGBColor native "*RGBColor" {
 
   CSSPrimitiveValue blue;
 
@@ -4943,7 +4943,7 @@ class RGBColor native "RGBColor" {
   String get typeName() native;
 }
 
-class Range native "Range" {
+class Range native "*Range" {
 
   bool collapsed;
 
@@ -5012,7 +5012,7 @@ class Range native "Range" {
   String get typeName() native;
 }
 
-class RangeException native "RangeException" {
+class RangeException native "*RangeException" {
 
   int code;
 
@@ -5027,7 +5027,7 @@ class RangeException native "RangeException" {
   String get typeName() native;
 }
 
-class Rect native "Rect" {
+class Rect native "*Rect" {
 
   CSSPrimitiveValue bottom;
 
@@ -5042,7 +5042,7 @@ class Rect native "Rect" {
   String get typeName() native;
 }
 
-class SQLError native "SQLError" {
+class SQLError native "*SQLError" {
 
   int code;
 
@@ -5053,7 +5053,7 @@ class SQLError native "SQLError" {
   String get typeName() native;
 }
 
-class SQLException native "SQLException" {
+class SQLException native "*SQLException" {
 
   int code;
 
@@ -5064,7 +5064,7 @@ class SQLException native "SQLException" {
   String get typeName() native;
 }
 
-class SQLResultSet native "SQLResultSet" {
+class SQLResultSet native "*SQLResultSet" {
 
   int insertId;
 
@@ -5077,7 +5077,7 @@ class SQLResultSet native "SQLResultSet" {
   String get typeName() native;
 }
 
-class SQLResultSetRowList native "SQLResultSetRowList" {
+class SQLResultSetRowList native "*SQLResultSetRowList" {
 
   int length;
 
@@ -5088,7 +5088,7 @@ class SQLResultSetRowList native "SQLResultSetRowList" {
   String get typeName() native;
 }
 
-class SQLStatementCallback native "SQLStatementCallback" {
+class SQLStatementCallback native "*SQLStatementCallback" {
 
   bool handleEvent(SQLTransaction transaction, SQLResultSet resultSet) native;
 
@@ -5097,7 +5097,7 @@ class SQLStatementCallback native "SQLStatementCallback" {
   String get typeName() native;
 }
 
-class SQLStatementErrorCallback native "SQLStatementErrorCallback" {
+class SQLStatementErrorCallback native "*SQLStatementErrorCallback" {
 
   bool handleEvent(SQLTransaction transaction, SQLError error) native;
 
@@ -5106,14 +5106,14 @@ class SQLStatementErrorCallback native "SQLStatementErrorCallback" {
   String get typeName() native;
 }
 
-class SQLTransaction native "SQLTransaction" {
+class SQLTransaction native "*SQLTransaction" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class SQLTransactionCallback native "SQLTransactionCallback" {
+class SQLTransactionCallback native "*SQLTransactionCallback" {
 
   bool handleEvent(SQLTransaction transaction) native;
 
@@ -5122,7 +5122,7 @@ class SQLTransactionCallback native "SQLTransactionCallback" {
   String get typeName() native;
 }
 
-class SQLTransactionErrorCallback native "SQLTransactionErrorCallback" {
+class SQLTransactionErrorCallback native "*SQLTransactionErrorCallback" {
 
   bool handleEvent(SQLError error) native;
 
@@ -5131,14 +5131,14 @@ class SQLTransactionErrorCallback native "SQLTransactionErrorCallback" {
   String get typeName() native;
 }
 
-class SQLTransactionSync native "SQLTransactionSync" {
+class SQLTransactionSync native "*SQLTransactionSync" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class SQLTransactionSyncCallback native "SQLTransactionSyncCallback" {
+class SQLTransactionSyncCallback native "*SQLTransactionSyncCallback" {
 
   bool handleEvent(SQLTransactionSync transaction) native;
 
@@ -5147,7 +5147,7 @@ class SQLTransactionSyncCallback native "SQLTransactionSyncCallback" {
   String get typeName() native;
 }
 
-class SVGAElement extends SVGElement native "SVGAElement" {
+class SVGAElement extends SVGElement native "*SVGAElement" {
 
   SVGAnimatedString target;
 
@@ -5202,10 +5202,10 @@ class SVGAElement extends SVGElement native "SVGAElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGAltGlyphDefElement extends SVGElement native "SVGAltGlyphDefElement" {
+class SVGAltGlyphDefElement extends SVGElement native "*SVGAltGlyphDefElement" {
 }
 
-class SVGAltGlyphElement extends SVGTextPositioningElement native "SVGAltGlyphElement" {
+class SVGAltGlyphElement extends SVGTextPositioningElement native "*SVGAltGlyphElement" {
 
   String format;
 
@@ -5216,10 +5216,10 @@ class SVGAltGlyphElement extends SVGTextPositioningElement native "SVGAltGlyphEl
   SVGAnimatedString href;
 }
 
-class SVGAltGlyphItemElement extends SVGElement native "SVGAltGlyphItemElement" {
+class SVGAltGlyphItemElement extends SVGElement native "*SVGAltGlyphItemElement" {
 }
 
-class SVGAngle native "SVGAngle" {
+class SVGAngle native "*SVGAngle" {
 
   int unitType;
 
@@ -5238,19 +5238,19 @@ class SVGAngle native "SVGAngle" {
   String get typeName() native;
 }
 
-class SVGAnimateColorElement extends SVGAnimationElement native "SVGAnimateColorElement" {
+class SVGAnimateColorElement extends SVGAnimationElement native "*SVGAnimateColorElement" {
 }
 
-class SVGAnimateElement extends SVGAnimationElement native "SVGAnimateElement" {
+class SVGAnimateElement extends SVGAnimationElement native "*SVGAnimateElement" {
 }
 
-class SVGAnimateMotionElement extends SVGAnimationElement native "SVGAnimateMotionElement" {
+class SVGAnimateMotionElement extends SVGAnimationElement native "*SVGAnimateMotionElement" {
 }
 
-class SVGAnimateTransformElement extends SVGAnimationElement native "SVGAnimateTransformElement" {
+class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimateTransformElement" {
 }
 
-class SVGAnimatedAngle native "SVGAnimatedAngle" {
+class SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
   SVGAngle animVal;
 
@@ -5261,7 +5261,7 @@ class SVGAnimatedAngle native "SVGAnimatedAngle" {
   String get typeName() native;
 }
 
-class SVGAnimatedBoolean native "SVGAnimatedBoolean" {
+class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
   bool animVal;
 
@@ -5272,7 +5272,7 @@ class SVGAnimatedBoolean native "SVGAnimatedBoolean" {
   String get typeName() native;
 }
 
-class SVGAnimatedEnumeration native "SVGAnimatedEnumeration" {
+class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
   int animVal;
 
@@ -5283,7 +5283,7 @@ class SVGAnimatedEnumeration native "SVGAnimatedEnumeration" {
   String get typeName() native;
 }
 
-class SVGAnimatedInteger native "SVGAnimatedInteger" {
+class SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
   int animVal;
 
@@ -5294,7 +5294,7 @@ class SVGAnimatedInteger native "SVGAnimatedInteger" {
   String get typeName() native;
 }
 
-class SVGAnimatedLength native "SVGAnimatedLength" {
+class SVGAnimatedLength native "*SVGAnimatedLength" {
 
   SVGLength animVal;
 
@@ -5305,7 +5305,7 @@ class SVGAnimatedLength native "SVGAnimatedLength" {
   String get typeName() native;
 }
 
-class SVGAnimatedLengthList native "SVGAnimatedLengthList" {
+class SVGAnimatedLengthList native "*SVGAnimatedLengthList" {
 
   SVGLengthList animVal;
 
@@ -5316,7 +5316,7 @@ class SVGAnimatedLengthList native "SVGAnimatedLengthList" {
   String get typeName() native;
 }
 
-class SVGAnimatedNumber native "SVGAnimatedNumber" {
+class SVGAnimatedNumber native "*SVGAnimatedNumber" {
 
   num animVal;
 
@@ -5327,7 +5327,7 @@ class SVGAnimatedNumber native "SVGAnimatedNumber" {
   String get typeName() native;
 }
 
-class SVGAnimatedNumberList native "SVGAnimatedNumberList" {
+class SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
   SVGNumberList animVal;
 
@@ -5338,7 +5338,7 @@ class SVGAnimatedNumberList native "SVGAnimatedNumberList" {
   String get typeName() native;
 }
 
-class SVGAnimatedPreserveAspectRatio native "SVGAnimatedPreserveAspectRatio" {
+class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
   SVGPreserveAspectRatio animVal;
 
@@ -5349,7 +5349,7 @@ class SVGAnimatedPreserveAspectRatio native "SVGAnimatedPreserveAspectRatio" {
   String get typeName() native;
 }
 
-class SVGAnimatedRect native "SVGAnimatedRect" {
+class SVGAnimatedRect native "*SVGAnimatedRect" {
 
   SVGRect animVal;
 
@@ -5360,7 +5360,7 @@ class SVGAnimatedRect native "SVGAnimatedRect" {
   String get typeName() native;
 }
 
-class SVGAnimatedString native "SVGAnimatedString" {
+class SVGAnimatedString native "*SVGAnimatedString" {
 
   String animVal;
 
@@ -5371,7 +5371,7 @@ class SVGAnimatedString native "SVGAnimatedString" {
   String get typeName() native;
 }
 
-class SVGAnimatedTransformList native "SVGAnimatedTransformList" {
+class SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
   SVGTransformList animVal;
 
@@ -5382,7 +5382,7 @@ class SVGAnimatedTransformList native "SVGAnimatedTransformList" {
   String get typeName() native;
 }
 
-class SVGAnimationElement extends SVGElement native "SVGAnimationElement" {
+class SVGAnimationElement extends SVGElement native "*SVGAnimationElement" {
 
   SVGElement targetElement;
 
@@ -5417,7 +5417,7 @@ class SVGAnimationElement extends SVGElement native "SVGAnimationElement" {
   void endElementAt(num offset) native;
 }
 
-class SVGCircleElement extends SVGElement native "SVGCircleElement" {
+class SVGCircleElement extends SVGElement native "*SVGCircleElement" {
 
   SVGAnimatedLength cx;
 
@@ -5472,7 +5472,7 @@ class SVGCircleElement extends SVGElement native "SVGCircleElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGClipPathElement extends SVGElement native "SVGClipPathElement" {
+class SVGClipPathElement extends SVGElement native "*SVGClipPathElement" {
 
   SVGAnimatedEnumeration clipPathUnits;
 
@@ -5523,7 +5523,7 @@ class SVGClipPathElement extends SVGElement native "SVGClipPathElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGColor extends CSSValue native "SVGColor" {
+class SVGColor extends CSSValue native "*SVGColor" {
 
   int colorType;
 
@@ -5536,7 +5536,7 @@ class SVGColor extends CSSValue native "SVGColor" {
   void setRGBColorICCColor(String rgbColor, String iccColor) native;
 }
 
-class SVGComponentTransferFunctionElement extends SVGElement native "SVGComponentTransferFunctionElement" {
+class SVGComponentTransferFunctionElement extends SVGElement native "*SVGComponentTransferFunctionElement" {
 
   SVGAnimatedNumber amplitude;
 
@@ -5553,7 +5553,7 @@ class SVGComponentTransferFunctionElement extends SVGElement native "SVGComponen
   SVGAnimatedEnumeration type;
 }
 
-class SVGCursorElement extends SVGElement native "SVGCursorElement" {
+class SVGCursorElement extends SVGElement native "*SVGCursorElement" {
 
   SVGAnimatedLength x;
 
@@ -5578,7 +5578,7 @@ class SVGCursorElement extends SVGElement native "SVGCursorElement" {
   SVGAnimatedBoolean externalResourcesRequired;
 }
 
-class SVGDefsElement extends SVGElement native "SVGDefsElement" {
+class SVGDefsElement extends SVGElement native "*SVGDefsElement" {
 
   // From SVGTests
 
@@ -5627,7 +5627,7 @@ class SVGDefsElement extends SVGElement native "SVGDefsElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGDescElement extends SVGElement native "SVGDescElement" {
+class SVGDescElement extends SVGElement native "*SVGDescElement" {
 
   // From SVGLangSpace
 
@@ -5644,14 +5644,14 @@ class SVGDescElement extends SVGElement native "SVGDescElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGDocument extends Document native "SVGDocument" {
+class SVGDocument extends Document native "*SVGDocument" {
 
   SVGSVGElement rootElement;
 
   Event createEvent(String eventType) native;
 }
 
-class SVGElement extends Element native "SVGElement" {
+class SVGElement extends Element native "*SVGElement" {
 
   String id;
 
@@ -5662,7 +5662,7 @@ class SVGElement extends Element native "SVGElement" {
   String xmlbase;
 }
 
-class SVGElementInstance native "SVGElementInstance" {
+class SVGElementInstance native "*SVGElementInstance" {
 
   SVGElementInstanceList childNodes;
 
@@ -5771,7 +5771,7 @@ class SVGElementInstance native "SVGElementInstance" {
   String get typeName() native;
 }
 
-class SVGElementInstanceList native "SVGElementInstanceList" {
+class SVGElementInstanceList native "*SVGElementInstanceList" {
 
   int length;
 
@@ -5782,7 +5782,7 @@ class SVGElementInstanceList native "SVGElementInstanceList" {
   String get typeName() native;
 }
 
-class SVGEllipseElement extends SVGElement native "SVGEllipseElement" {
+class SVGEllipseElement extends SVGElement native "*SVGEllipseElement" {
 
   SVGAnimatedLength cx;
 
@@ -5839,7 +5839,7 @@ class SVGEllipseElement extends SVGElement native "SVGEllipseElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGException native "SVGException" {
+class SVGException native "*SVGException" {
 
   int code;
 
@@ -5854,7 +5854,7 @@ class SVGException native "SVGException" {
   String get typeName() native;
 }
 
-class SVGExternalResourcesRequired native "SVGExternalResourcesRequired" {
+class SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
 
   SVGAnimatedBoolean externalResourcesRequired;
 
@@ -5863,7 +5863,7 @@ class SVGExternalResourcesRequired native "SVGExternalResourcesRequired" {
   String get typeName() native;
 }
 
-class SVGFEBlendElement extends SVGElement native "SVGFEBlendElement" {
+class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
 
   SVGAnimatedString in1;
 
@@ -5892,7 +5892,7 @@ class SVGFEBlendElement extends SVGElement native "SVGFEBlendElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEColorMatrixElement extends SVGElement native "SVGFEColorMatrixElement" {
+class SVGFEColorMatrixElement extends SVGElement native "*SVGFEColorMatrixElement" {
 
   SVGAnimatedString in1;
 
@@ -5921,7 +5921,7 @@ class SVGFEColorMatrixElement extends SVGElement native "SVGFEColorMatrixElement
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEComponentTransferElement extends SVGElement native "SVGFEComponentTransferElement" {
+class SVGFEComponentTransferElement extends SVGElement native "*SVGFEComponentTransferElement" {
 
   SVGAnimatedString in1;
 
@@ -5946,7 +5946,7 @@ class SVGFEComponentTransferElement extends SVGElement native "SVGFEComponentTra
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFECompositeElement extends SVGElement native "SVGFECompositeElement" {
+class SVGFECompositeElement extends SVGElement native "*SVGFECompositeElement" {
 
   SVGAnimatedString in1;
 
@@ -5983,7 +5983,7 @@ class SVGFECompositeElement extends SVGElement native "SVGFECompositeElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEConvolveMatrixElement extends SVGElement native "SVGFEConvolveMatrixElement" {
+class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrixElement" {
 
   SVGAnimatedNumber bias;
 
@@ -6030,7 +6030,7 @@ class SVGFEConvolveMatrixElement extends SVGElement native "SVGFEConvolveMatrixE
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEDiffuseLightingElement extends SVGElement native "SVGFEDiffuseLightingElement" {
+class SVGFEDiffuseLightingElement extends SVGElement native "*SVGFEDiffuseLightingElement" {
 
   SVGAnimatedNumber diffuseConstant;
 
@@ -6063,7 +6063,7 @@ class SVGFEDiffuseLightingElement extends SVGElement native "SVGFEDiffuseLightin
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEDisplacementMapElement extends SVGElement native "SVGFEDisplacementMapElement" {
+class SVGFEDisplacementMapElement extends SVGElement native "*SVGFEDisplacementMapElement" {
 
   SVGAnimatedString in1;
 
@@ -6096,14 +6096,14 @@ class SVGFEDisplacementMapElement extends SVGElement native "SVGFEDisplacementMa
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEDistantLightElement extends SVGElement native "SVGFEDistantLightElement" {
+class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
 
   SVGAnimatedNumber azimuth;
 
   SVGAnimatedNumber elevation;
 }
 
-class SVGFEDropShadowElement extends SVGElement native "SVGFEDropShadowElement" {
+class SVGFEDropShadowElement extends SVGElement native "*SVGFEDropShadowElement" {
 
   SVGAnimatedNumber dx;
 
@@ -6138,7 +6138,7 @@ class SVGFEDropShadowElement extends SVGElement native "SVGFEDropShadowElement" 
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEFloodElement extends SVGElement native "SVGFEFloodElement" {
+class SVGFEFloodElement extends SVGElement native "*SVGFEFloodElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -6161,19 +6161,19 @@ class SVGFEFloodElement extends SVGElement native "SVGFEFloodElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "SVGFEFuncAElement" {
+class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncAElement" {
 }
 
-class SVGFEFuncBElement extends SVGComponentTransferFunctionElement native "SVGFEFuncBElement" {
+class SVGFEFuncBElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncBElement" {
 }
 
-class SVGFEFuncGElement extends SVGComponentTransferFunctionElement native "SVGFEFuncGElement" {
+class SVGFEFuncGElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncGElement" {
 }
 
-class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "SVGFEFuncRElement" {
+class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncRElement" {
 }
 
-class SVGFEGaussianBlurElement extends SVGElement native "SVGFEGaussianBlurElement" {
+class SVGFEGaussianBlurElement extends SVGElement native "*SVGFEGaussianBlurElement" {
 
   SVGAnimatedString in1;
 
@@ -6204,7 +6204,7 @@ class SVGFEGaussianBlurElement extends SVGElement native "SVGFEGaussianBlurEleme
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEImageElement extends SVGElement native "SVGFEImageElement" {
+class SVGFEImageElement extends SVGElement native "*SVGFEImageElement" {
 
   SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
@@ -6243,7 +6243,7 @@ class SVGFEImageElement extends SVGElement native "SVGFEImageElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEMergeElement extends SVGElement native "SVGFEMergeElement" {
+class SVGFEMergeElement extends SVGElement native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -6266,12 +6266,12 @@ class SVGFEMergeElement extends SVGElement native "SVGFEMergeElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEMergeNodeElement extends SVGElement native "SVGFEMergeNodeElement" {
+class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
 
   SVGAnimatedString in1;
 }
 
-class SVGFEMorphologyElement extends SVGElement native "SVGFEMorphologyElement" {
+class SVGFEMorphologyElement extends SVGElement native "*SVGFEMorphologyElement" {
 
   SVGAnimatedString in1;
 
@@ -6304,7 +6304,7 @@ class SVGFEMorphologyElement extends SVGElement native "SVGFEMorphologyElement" 
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEOffsetElement extends SVGElement native "SVGFEOffsetElement" {
+class SVGFEOffsetElement extends SVGElement native "*SVGFEOffsetElement" {
 
   SVGAnimatedNumber dx;
 
@@ -6333,7 +6333,7 @@ class SVGFEOffsetElement extends SVGElement native "SVGFEOffsetElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFEPointLightElement extends SVGElement native "SVGFEPointLightElement" {
+class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement" {
 
   SVGAnimatedNumber x;
 
@@ -6342,7 +6342,7 @@ class SVGFEPointLightElement extends SVGElement native "SVGFEPointLightElement" 
   SVGAnimatedNumber z;
 }
 
-class SVGFESpecularLightingElement extends SVGElement native "SVGFESpecularLightingElement" {
+class SVGFESpecularLightingElement extends SVGElement native "*SVGFESpecularLightingElement" {
 
   SVGAnimatedString in1;
 
@@ -6373,7 +6373,7 @@ class SVGFESpecularLightingElement extends SVGElement native "SVGFESpecularLight
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFESpotLightElement extends SVGElement native "SVGFESpotLightElement" {
+class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
 
   SVGAnimatedNumber limitingConeAngle;
 
@@ -6392,7 +6392,7 @@ class SVGFESpotLightElement extends SVGElement native "SVGFESpotLightElement" {
   SVGAnimatedNumber z;
 }
 
-class SVGFETileElement extends SVGElement native "SVGFETileElement" {
+class SVGFETileElement extends SVGElement native "*SVGFETileElement" {
 
   SVGAnimatedString in1;
 
@@ -6417,7 +6417,7 @@ class SVGFETileElement extends SVGElement native "SVGFETileElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFETurbulenceElement extends SVGElement native "SVGFETurbulenceElement" {
+class SVGFETurbulenceElement extends SVGElement native "*SVGFETurbulenceElement" {
 
   SVGAnimatedNumber baseFrequencyX;
 
@@ -6452,7 +6452,7 @@ class SVGFETurbulenceElement extends SVGElement native "SVGFETurbulenceElement" 
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFilterElement extends SVGElement native "SVGFilterElement" {
+class SVGFilterElement extends SVGElement native "*SVGFilterElement" {
 
   SVGAnimatedInteger filterResX;
 
@@ -6495,7 +6495,7 @@ class SVGFilterElement extends SVGElement native "SVGFilterElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "SVGFilterPrimitiveStandardAttributes" {
+class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "*SVGFilterPrimitiveStandardAttributes" {
 
   SVGAnimatedLength height;
 
@@ -6508,7 +6508,7 @@ class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "SVGFilter
   SVGAnimatedLength y;
 }
 
-class SVGFitToViewBox native "SVGFitToViewBox" {
+class SVGFitToViewBox native "*SVGFitToViewBox" {
 
   SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
@@ -6519,25 +6519,25 @@ class SVGFitToViewBox native "SVGFitToViewBox" {
   String get typeName() native;
 }
 
-class SVGFontElement extends SVGElement native "SVGFontElement" {
+class SVGFontElement extends SVGElement native "*SVGFontElement" {
 }
 
-class SVGFontFaceElement extends SVGElement native "SVGFontFaceElement" {
+class SVGFontFaceElement extends SVGElement native "*SVGFontFaceElement" {
 }
 
-class SVGFontFaceFormatElement extends SVGElement native "SVGFontFaceFormatElement" {
+class SVGFontFaceFormatElement extends SVGElement native "*SVGFontFaceFormatElement" {
 }
 
-class SVGFontFaceNameElement extends SVGElement native "SVGFontFaceNameElement" {
+class SVGFontFaceNameElement extends SVGElement native "*SVGFontFaceNameElement" {
 }
 
-class SVGFontFaceSrcElement extends SVGElement native "SVGFontFaceSrcElement" {
+class SVGFontFaceSrcElement extends SVGElement native "*SVGFontFaceSrcElement" {
 }
 
-class SVGFontFaceUriElement extends SVGElement native "SVGFontFaceUriElement" {
+class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
 }
 
-class SVGForeignObjectElement extends SVGElement native "SVGForeignObjectElement" {
+class SVGForeignObjectElement extends SVGElement native "*SVGForeignObjectElement" {
 
   SVGAnimatedLength height;
 
@@ -6594,7 +6594,7 @@ class SVGForeignObjectElement extends SVGElement native "SVGForeignObjectElement
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGGElement extends SVGElement native "SVGGElement" {
+class SVGGElement extends SVGElement native "*SVGGElement" {
 
   // From SVGTests
 
@@ -6643,10 +6643,10 @@ class SVGGElement extends SVGElement native "SVGGElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGGlyphElement extends SVGElement native "SVGGlyphElement" {
+class SVGGlyphElement extends SVGElement native "*SVGGlyphElement" {
 }
 
-class SVGGlyphRefElement extends SVGElement native "SVGGlyphRefElement" {
+class SVGGlyphRefElement extends SVGElement native "*SVGGlyphRefElement" {
 
   num dx;
 
@@ -6673,7 +6673,7 @@ class SVGGlyphRefElement extends SVGElement native "SVGGlyphRefElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGGradientElement extends SVGElement native "SVGGradientElement" {
+class SVGGradientElement extends SVGElement native "*SVGGradientElement" {
 
   SVGAnimatedTransformList gradientTransform;
 
@@ -6698,10 +6698,10 @@ class SVGGradientElement extends SVGElement native "SVGGradientElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGHKernElement extends SVGElement native "SVGHKernElement" {
+class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
 }
 
-class SVGImageElement extends SVGElement native "SVGImageElement" {
+class SVGImageElement extends SVGElement native "*SVGImageElement" {
 
   SVGAnimatedLength height;
 
@@ -6764,7 +6764,7 @@ class SVGImageElement extends SVGElement native "SVGImageElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGLangSpace native "SVGLangSpace" {
+class SVGLangSpace native "*SVGLangSpace" {
 
   String xmllang;
 
@@ -6775,7 +6775,7 @@ class SVGLangSpace native "SVGLangSpace" {
   String get typeName() native;
 }
 
-class SVGLength native "SVGLength" {
+class SVGLength native "*SVGLength" {
 
   int unitType;
 
@@ -6794,7 +6794,7 @@ class SVGLength native "SVGLength" {
   String get typeName() native;
 }
 
-class SVGLengthList native "SVGLengthList" {
+class SVGLengthList native "*SVGLengthList" {
 
   int numberOfItems;
 
@@ -6817,7 +6817,7 @@ class SVGLengthList native "SVGLengthList" {
   String get typeName() native;
 }
 
-class SVGLineElement extends SVGElement native "SVGLineElement" {
+class SVGLineElement extends SVGElement native "*SVGLineElement" {
 
   SVGAnimatedLength x1;
 
@@ -6874,7 +6874,7 @@ class SVGLineElement extends SVGElement native "SVGLineElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGLinearGradientElement extends SVGGradientElement native "SVGLinearGradientElement" {
+class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGradientElement" {
 
   SVGAnimatedLength x1;
 
@@ -6885,7 +6885,7 @@ class SVGLinearGradientElement extends SVGGradientElement native "SVGLinearGradi
   SVGAnimatedLength y2;
 }
 
-class SVGLocatable native "SVGLocatable" {
+class SVGLocatable native "*SVGLocatable" {
 
   SVGElement farthestViewportElement;
 
@@ -6904,7 +6904,7 @@ class SVGLocatable native "SVGLocatable" {
   String get typeName() native;
 }
 
-class SVGMPathElement extends SVGElement native "SVGMPathElement" {
+class SVGMPathElement extends SVGElement native "*SVGMPathElement" {
 
   // From SVGURIReference
 
@@ -6915,7 +6915,7 @@ class SVGMPathElement extends SVGElement native "SVGMPathElement" {
   SVGAnimatedBoolean externalResourcesRequired;
 }
 
-class SVGMarkerElement extends SVGElement native "SVGMarkerElement" {
+class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   SVGAnimatedLength markerHeight;
 
@@ -6960,7 +6960,7 @@ class SVGMarkerElement extends SVGElement native "SVGMarkerElement" {
   SVGAnimatedRect viewBox;
 }
 
-class SVGMaskElement extends SVGElement native "SVGMaskElement" {
+class SVGMaskElement extends SVGElement native "*SVGMaskElement" {
 
   SVGAnimatedLength height;
 
@@ -7003,7 +7003,7 @@ class SVGMaskElement extends SVGElement native "SVGMaskElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGMatrix native "SVGMatrix" {
+class SVGMatrix native "*SVGMatrix" {
 
   num a;
 
@@ -7044,13 +7044,13 @@ class SVGMatrix native "SVGMatrix" {
   String get typeName() native;
 }
 
-class SVGMetadataElement extends SVGElement native "SVGMetadataElement" {
+class SVGMetadataElement extends SVGElement native "*SVGMetadataElement" {
 }
 
-class SVGMissingGlyphElement extends SVGElement native "SVGMissingGlyphElement" {
+class SVGMissingGlyphElement extends SVGElement native "*SVGMissingGlyphElement" {
 }
 
-class SVGNumber native "SVGNumber" {
+class SVGNumber native "*SVGNumber" {
 
   num value;
 
@@ -7059,7 +7059,7 @@ class SVGNumber native "SVGNumber" {
   String get typeName() native;
 }
 
-class SVGNumberList native "SVGNumberList" {
+class SVGNumberList native "*SVGNumberList" {
 
   int numberOfItems;
 
@@ -7082,7 +7082,7 @@ class SVGNumberList native "SVGNumberList" {
   String get typeName() native;
 }
 
-class SVGPaint extends SVGColor native "SVGPaint" {
+class SVGPaint extends SVGColor native "*SVGPaint" {
 
   int paintType;
 
@@ -7093,7 +7093,7 @@ class SVGPaint extends SVGColor native "SVGPaint" {
   void setUri(String uri) native;
 }
 
-class SVGPathElement extends SVGElement native "SVGPathElement" {
+class SVGPathElement extends SVGElement native "*SVGPathElement" {
 
   SVGPathSegList animatedNormalizedPathSegList;
 
@@ -7196,7 +7196,7 @@ class SVGPathElement extends SVGElement native "SVGPathElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGPathSeg native "SVGPathSeg" {
+class SVGPathSeg native "*SVGPathSeg" {
 
   int pathSegType;
 
@@ -7207,7 +7207,7 @@ class SVGPathSeg native "SVGPathSeg" {
   String get typeName() native;
 }
 
-class SVGPathSegArcAbs extends SVGPathSeg native "SVGPathSegArcAbs" {
+class SVGPathSegArcAbs extends SVGPathSeg native "*SVGPathSegArcAbs" {
 
   num angle;
 
@@ -7224,7 +7224,7 @@ class SVGPathSegArcAbs extends SVGPathSeg native "SVGPathSegArcAbs" {
   num y;
 }
 
-class SVGPathSegArcRel extends SVGPathSeg native "SVGPathSegArcRel" {
+class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
 
   num angle;
 
@@ -7241,10 +7241,10 @@ class SVGPathSegArcRel extends SVGPathSeg native "SVGPathSegArcRel" {
   num y;
 }
 
-class SVGPathSegClosePath extends SVGPathSeg native "SVGPathSegClosePath" {
+class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
 }
 
-class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "SVGPathSegCurvetoCubicAbs" {
+class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicAbs" {
 
   num x;
 
@@ -7259,7 +7259,7 @@ class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "SVGPathSegCurvetoCubi
   num y2;
 }
 
-class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "SVGPathSegCurvetoCubicRel" {
+class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicRel" {
 
   num x;
 
@@ -7274,7 +7274,7 @@ class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "SVGPathSegCurvetoCubi
   num y2;
 }
 
-class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "SVGPathSegCurvetoCubicSmoothAbs" {
+class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
 
   num x;
 
@@ -7285,7 +7285,7 @@ class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "SVGPathSegCurve
   num y2;
 }
 
-class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "SVGPathSegCurvetoCubicSmoothRel" {
+class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothRel" {
 
   num x;
 
@@ -7296,7 +7296,7 @@ class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "SVGPathSegCurve
   num y2;
 }
 
-class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "SVGPathSegCurvetoQuadraticAbs" {
+class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticAbs" {
 
   num x;
 
@@ -7307,7 +7307,7 @@ class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "SVGPathSegCurveto
   num y1;
 }
 
-class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "SVGPathSegCurvetoQuadraticRel" {
+class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticRel" {
 
   num x;
 
@@ -7318,55 +7318,55 @@ class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "SVGPathSegCurveto
   num y1;
 }
 
-class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "SVGPathSegCurvetoQuadraticSmoothAbs" {
+class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
 
   num x;
 
   num y;
 }
 
-class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "SVGPathSegCurvetoQuadraticSmoothRel" {
+class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothRel" {
 
   num x;
 
   num y;
 }
 
-class SVGPathSegLinetoAbs extends SVGPathSeg native "SVGPathSegLinetoAbs" {
+class SVGPathSegLinetoAbs extends SVGPathSeg native "*SVGPathSegLinetoAbs" {
 
   num x;
 
   num y;
 }
 
-class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "SVGPathSegLinetoHorizontalAbs" {
+class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "*SVGPathSegLinetoHorizontalAbs" {
 
   num x;
 }
 
-class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "SVGPathSegLinetoHorizontalRel" {
+class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "*SVGPathSegLinetoHorizontalRel" {
 
   num x;
 }
 
-class SVGPathSegLinetoRel extends SVGPathSeg native "SVGPathSegLinetoRel" {
+class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
 
   num x;
 
   num y;
 }
 
-class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "SVGPathSegLinetoVerticalAbs" {
+class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVerticalAbs" {
 
   num y;
 }
 
-class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "SVGPathSegLinetoVerticalRel" {
+class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVerticalRel" {
 
   num y;
 }
 
-class SVGPathSegList native "SVGPathSegList" {
+class SVGPathSegList native "*SVGPathSegList" {
 
   int numberOfItems;
 
@@ -7389,21 +7389,21 @@ class SVGPathSegList native "SVGPathSegList" {
   String get typeName() native;
 }
 
-class SVGPathSegMovetoAbs extends SVGPathSeg native "SVGPathSegMovetoAbs" {
+class SVGPathSegMovetoAbs extends SVGPathSeg native "*SVGPathSegMovetoAbs" {
 
   num x;
 
   num y;
 }
 
-class SVGPathSegMovetoRel extends SVGPathSeg native "SVGPathSegMovetoRel" {
+class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
 
   num x;
 
   num y;
 }
 
-class SVGPatternElement extends SVGElement native "SVGPatternElement" {
+class SVGPatternElement extends SVGElement native "*SVGPatternElement" {
 
   SVGAnimatedLength height;
 
@@ -7458,7 +7458,7 @@ class SVGPatternElement extends SVGElement native "SVGPatternElement" {
   SVGAnimatedRect viewBox;
 }
 
-class SVGPoint native "SVGPoint" {
+class SVGPoint native "*SVGPoint" {
 
   num x;
 
@@ -7471,7 +7471,7 @@ class SVGPoint native "SVGPoint" {
   String get typeName() native;
 }
 
-class SVGPointList native "SVGPointList" {
+class SVGPointList native "*SVGPointList" {
 
   int numberOfItems;
 
@@ -7494,7 +7494,7 @@ class SVGPointList native "SVGPointList" {
   String get typeName() native;
 }
 
-class SVGPolygonElement extends SVGElement native "SVGPolygonElement" {
+class SVGPolygonElement extends SVGElement native "*SVGPolygonElement" {
 
   SVGPointList animatedPoints;
 
@@ -7547,7 +7547,7 @@ class SVGPolygonElement extends SVGElement native "SVGPolygonElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGPolylineElement extends SVGElement native "SVGPolylineElement" {
+class SVGPolylineElement extends SVGElement native "*SVGPolylineElement" {
 
   SVGPointList animatedPoints;
 
@@ -7600,7 +7600,7 @@ class SVGPolylineElement extends SVGElement native "SVGPolylineElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGPreserveAspectRatio native "SVGPreserveAspectRatio" {
+class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   int align;
 
@@ -7611,7 +7611,7 @@ class SVGPreserveAspectRatio native "SVGPreserveAspectRatio" {
   String get typeName() native;
 }
 
-class SVGRadialGradientElement extends SVGGradientElement native "SVGRadialGradientElement" {
+class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
 
   SVGAnimatedLength cx;
 
@@ -7624,7 +7624,7 @@ class SVGRadialGradientElement extends SVGGradientElement native "SVGRadialGradi
   SVGAnimatedLength r;
 }
 
-class SVGRect native "SVGRect" {
+class SVGRect native "*SVGRect" {
 
   num height;
 
@@ -7639,7 +7639,7 @@ class SVGRect native "SVGRect" {
   String get typeName() native;
 }
 
-class SVGRectElement extends SVGElement native "SVGRectElement" {
+class SVGRectElement extends SVGElement native "*SVGRectElement" {
 
   SVGAnimatedLength height;
 
@@ -7700,14 +7700,14 @@ class SVGRectElement extends SVGElement native "SVGRectElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGRenderingIntent native "SVGRenderingIntent" {
+class SVGRenderingIntent native "*SVGRenderingIntent" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class SVGSVGElement extends SVGElement native "SVGSVGElement" {
+class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
   String contentScriptType;
 
@@ -7836,7 +7836,7 @@ class SVGSVGElement extends SVGElement native "SVGSVGElement" {
   int zoomAndPan;
 }
 
-class SVGScriptElement extends SVGElement native "SVGScriptElement" {
+class SVGScriptElement extends SVGElement native "*SVGScriptElement" {
 
   String type;
 
@@ -7849,10 +7849,10 @@ class SVGScriptElement extends SVGElement native "SVGScriptElement" {
   SVGAnimatedBoolean externalResourcesRequired;
 }
 
-class SVGSetElement extends SVGAnimationElement native "SVGSetElement" {
+class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
 }
 
-class SVGStopElement extends SVGElement native "SVGStopElement" {
+class SVGStopElement extends SVGElement native "*SVGStopElement" {
 
   SVGAnimatedNumber offset;
 
@@ -7865,7 +7865,7 @@ class SVGStopElement extends SVGElement native "SVGStopElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGStringList native "SVGStringList" {
+class SVGStringList native "*SVGStringList" {
 
   int numberOfItems;
 
@@ -7888,7 +7888,7 @@ class SVGStringList native "SVGStringList" {
   String get typeName() native;
 }
 
-class SVGStylable native "SVGStylable" {
+class SVGStylable native "*SVGStylable" {
 
   SVGAnimatedString className;
 
@@ -7901,7 +7901,7 @@ class SVGStylable native "SVGStylable" {
   String get typeName() native;
 }
 
-class SVGStyleElement extends SVGElement native "SVGStyleElement" {
+class SVGStyleElement extends SVGElement native "*SVGStyleElement" {
 
   String media;
 
@@ -7916,7 +7916,7 @@ class SVGStyleElement extends SVGElement native "SVGStyleElement" {
   String xmlspace;
 }
 
-class SVGSwitchElement extends SVGElement native "SVGSwitchElement" {
+class SVGSwitchElement extends SVGElement native "*SVGSwitchElement" {
 
   // From SVGTests
 
@@ -7965,7 +7965,7 @@ class SVGSwitchElement extends SVGElement native "SVGSwitchElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGSymbolElement extends SVGElement native "SVGSymbolElement" {
+class SVGSymbolElement extends SVGElement native "*SVGSymbolElement" {
 
   // From SVGLangSpace
 
@@ -7992,17 +7992,17 @@ class SVGSymbolElement extends SVGElement native "SVGSymbolElement" {
   SVGAnimatedRect viewBox;
 }
 
-class SVGTRefElement extends SVGTextPositioningElement native "SVGTRefElement" {
+class SVGTRefElement extends SVGTextPositioningElement native "*SVGTRefElement" {
 
   // From SVGURIReference
 
   SVGAnimatedString href;
 }
 
-class SVGTSpanElement extends SVGTextPositioningElement native "SVGTSpanElement" {
+class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement" {
 }
 
-class SVGTests native "SVGTests" {
+class SVGTests native "*SVGTests" {
 
   SVGStringList requiredExtensions;
 
@@ -8017,7 +8017,7 @@ class SVGTests native "SVGTests" {
   String get typeName() native;
 }
 
-class SVGTextContentElement extends SVGElement native "SVGTextContentElement" {
+class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
   SVGAnimatedEnumeration lengthAdjust;
 
@@ -8070,7 +8070,7 @@ class SVGTextContentElement extends SVGElement native "SVGTextContentElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGTextElement extends SVGTextPositioningElement native "SVGTextElement" {
+class SVGTextElement extends SVGTextPositioningElement native "*SVGTextElement" {
 
   // From SVGTransformable
 
@@ -8091,7 +8091,7 @@ class SVGTextElement extends SVGTextPositioningElement native "SVGTextElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGTextPathElement extends SVGTextContentElement native "SVGTextPathElement" {
+class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathElement" {
 
   SVGAnimatedEnumeration method;
 
@@ -8104,7 +8104,7 @@ class SVGTextPathElement extends SVGTextContentElement native "SVGTextPathElemen
   SVGAnimatedString href;
 }
 
-class SVGTextPositioningElement extends SVGTextContentElement native "SVGTextPositioningElement" {
+class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
 
   SVGAnimatedLengthList dx;
 
@@ -8117,7 +8117,7 @@ class SVGTextPositioningElement extends SVGTextContentElement native "SVGTextPos
   SVGAnimatedLengthList y;
 }
 
-class SVGTitleElement extends SVGElement native "SVGTitleElement" {
+class SVGTitleElement extends SVGElement native "*SVGTitleElement" {
 
   // From SVGLangSpace
 
@@ -8134,7 +8134,7 @@ class SVGTitleElement extends SVGElement native "SVGTitleElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGTransform native "SVGTransform" {
+class SVGTransform native "*SVGTransform" {
 
   num angle;
 
@@ -8159,7 +8159,7 @@ class SVGTransform native "SVGTransform" {
   String get typeName() native;
 }
 
-class SVGTransformList native "SVGTransformList" {
+class SVGTransformList native "*SVGTransformList" {
 
   int numberOfItems;
 
@@ -8186,12 +8186,12 @@ class SVGTransformList native "SVGTransformList" {
   String get typeName() native;
 }
 
-class SVGTransformable extends SVGLocatable native "SVGTransformable" {
+class SVGTransformable extends SVGLocatable native "*SVGTransformable" {
 
   SVGAnimatedTransformList transform;
 }
 
-class SVGURIReference native "SVGURIReference" {
+class SVGURIReference native "*SVGURIReference" {
 
   SVGAnimatedString href;
 
@@ -8200,14 +8200,14 @@ class SVGURIReference native "SVGURIReference" {
   String get typeName() native;
 }
 
-class SVGUnitTypes native "SVGUnitTypes" {
+class SVGUnitTypes native "*SVGUnitTypes" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class SVGUseElement extends SVGElement native "SVGUseElement" {
+class SVGUseElement extends SVGElement native "*SVGUseElement" {
 
   SVGElementInstance animatedInstanceRoot;
 
@@ -8272,10 +8272,10 @@ class SVGUseElement extends SVGElement native "SVGUseElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGVKernElement extends SVGElement native "SVGVKernElement" {
+class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
 }
 
-class SVGViewElement extends SVGElement native "SVGViewElement" {
+class SVGViewElement extends SVGElement native "*SVGViewElement" {
 
   SVGStringList viewTarget;
 
@@ -8294,7 +8294,7 @@ class SVGViewElement extends SVGElement native "SVGViewElement" {
   int zoomAndPan;
 }
 
-class SVGViewSpec extends SVGZoomAndPan native "SVGViewSpec" {
+class SVGViewSpec extends SVGZoomAndPan native "*SVGViewSpec" {
 
   String preserveAspectRatioString;
 
@@ -8315,7 +8315,7 @@ class SVGViewSpec extends SVGZoomAndPan native "SVGViewSpec" {
   SVGAnimatedRect viewBox;
 }
 
-class SVGZoomAndPan native "SVGZoomAndPan" {
+class SVGZoomAndPan native "*SVGZoomAndPan" {
 
   int zoomAndPan;
 
@@ -8324,7 +8324,7 @@ class SVGZoomAndPan native "SVGZoomAndPan" {
   String get typeName() native;
 }
 
-class SVGZoomEvent extends UIEvent native "SVGZoomEvent" {
+class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
 
   num newScale;
 
@@ -8337,7 +8337,7 @@ class SVGZoomEvent extends UIEvent native "SVGZoomEvent" {
   SVGRect zoomRectScreen;
 }
 
-class Screen native "Screen" {
+class Screen native "*Screen" {
 
   int availHeight;
 
@@ -8360,7 +8360,7 @@ class Screen native "Screen" {
   String get typeName() native;
 }
 
-class ScriptProfile native "ScriptProfile" {
+class ScriptProfile native "*ScriptProfile" {
 
   ScriptProfileNode head;
 
@@ -8373,7 +8373,7 @@ class ScriptProfile native "ScriptProfile" {
   String get typeName() native;
 }
 
-class ScriptProfileNode native "ScriptProfileNode" {
+class ScriptProfileNode native "*ScriptProfileNode" {
 
   int callUID;
 
@@ -8398,24 +8398,24 @@ class ScriptProfileNode native "ScriptProfileNode" {
   String get typeName() native;
 }
 
-class SharedWorker extends AbstractWorker native "SharedWorker" {
+class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
   MessagePort port;
 }
 
-class SharedWorkercontext extends WorkerContext native "SharedWorkercontext" {
+class SharedWorkercontext extends WorkerContext native "*SharedWorkercontext" {
 
   String name;
 
   EventListener onconnect;
 }
 
-class SpeechInputEvent extends Event native "SpeechInputEvent" {
+class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
   SpeechInputResultList results;
 }
 
-class SpeechInputResult native "SpeechInputResult" {
+class SpeechInputResult native "*SpeechInputResult" {
 
   num confidence;
 
@@ -8426,7 +8426,7 @@ class SpeechInputResult native "SpeechInputResult" {
   String get typeName() native;
 }
 
-class SpeechInputResultList native "SpeechInputResultList" {
+class SpeechInputResultList native "*SpeechInputResultList" {
 
   int length;
 
@@ -8437,7 +8437,7 @@ class SpeechInputResultList native "SpeechInputResultList" {
   String get typeName() native;
 }
 
-class Storage native "Storage" {
+class Storage native "*Storage" {
 
   int length;
 
@@ -8456,7 +8456,7 @@ class Storage native "Storage" {
   String get typeName() native;
 }
 
-class StorageEvent extends Event native "StorageEvent" {
+class StorageEvent extends Event native "*StorageEvent" {
 
   String key;
 
@@ -8471,7 +8471,7 @@ class StorageEvent extends Event native "StorageEvent" {
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
 
-class StorageInfo native "StorageInfo" {
+class StorageInfo native "*StorageInfo" {
 
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) native;
 
@@ -8482,7 +8482,7 @@ class StorageInfo native "StorageInfo" {
   String get typeName() native;
 }
 
-class StorageInfoErrorCallback native "StorageInfoErrorCallback" {
+class StorageInfoErrorCallback native "*StorageInfoErrorCallback" {
 
   bool handleEvent(DOMException error) native;
 
@@ -8491,7 +8491,7 @@ class StorageInfoErrorCallback native "StorageInfoErrorCallback" {
   String get typeName() native;
 }
 
-class StorageInfoQuotaCallback native "StorageInfoQuotaCallback" {
+class StorageInfoQuotaCallback native "*StorageInfoQuotaCallback" {
 
   bool handleEvent(int grantedQuotaInBytes) native;
 
@@ -8500,7 +8500,7 @@ class StorageInfoQuotaCallback native "StorageInfoQuotaCallback" {
   String get typeName() native;
 }
 
-class StorageInfoUsageCallback native "StorageInfoUsageCallback" {
+class StorageInfoUsageCallback native "*StorageInfoUsageCallback" {
 
   bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes) native;
 
@@ -8509,7 +8509,7 @@ class StorageInfoUsageCallback native "StorageInfoUsageCallback" {
   String get typeName() native;
 }
 
-class StringCallback native "StringCallback" {
+class StringCallback native "*StringCallback" {
 
   bool handleEvent(String data) native;
 
@@ -8518,7 +8518,7 @@ class StringCallback native "StringCallback" {
   String get typeName() native;
 }
 
-class StyleMedia native "StyleMedia" {
+class StyleMedia native "*StyleMedia" {
 
   String type;
 
@@ -8529,7 +8529,7 @@ class StyleMedia native "StyleMedia" {
   String get typeName() native;
 }
 
-class StyleSheet native "StyleSheet" {
+class StyleSheet native "*StyleSheet" {
 
   bool disabled;
 
@@ -8550,7 +8550,7 @@ class StyleSheet native "StyleSheet" {
   String get typeName() native;
 }
 
-class StyleSheetList native "StyleSheetList" {
+class StyleSheetList native "*StyleSheetList" {
 
   int length;
 
@@ -8563,7 +8563,7 @@ class StyleSheetList native "StyleSheetList" {
   String get typeName() native;
 }
 
-class Text extends CharacterData native "Text" {
+class Text extends CharacterData native "*Text" {
 
   String wholeText;
 
@@ -8572,14 +8572,14 @@ class Text extends CharacterData native "Text" {
   Text splitText(int offset) native;
 }
 
-class TextEvent extends UIEvent native "TextEvent" {
+class TextEvent extends UIEvent native "*TextEvent" {
 
   String data;
 
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg) native;
 }
 
-class TextMetrics native "TextMetrics" {
+class TextMetrics native "*TextMetrics" {
 
   num width;
 
@@ -8588,7 +8588,7 @@ class TextMetrics native "TextMetrics" {
   String get typeName() native;
 }
 
-class TextTrack native "TextTrack" {
+class TextTrack native "*TextTrack" {
 
   TextTrackCueList activeCues;
 
@@ -8613,7 +8613,7 @@ class TextTrack native "TextTrack" {
   String get typeName() native;
 }
 
-class TextTrackCue native "TextTrackCue" {
+class TextTrackCue native "*TextTrackCue" {
 
   String alignment;
 
@@ -8646,7 +8646,7 @@ class TextTrackCue native "TextTrackCue" {
   String get typeName() native;
 }
 
-class TextTrackCueList native "TextTrackCueList" {
+class TextTrackCueList native "*TextTrackCueList" {
 
   int length;
 
@@ -8659,7 +8659,7 @@ class TextTrackCueList native "TextTrackCueList" {
   String get typeName() native;
 }
 
-class TimeRanges native "TimeRanges" {
+class TimeRanges native "*TimeRanges" {
 
   int length;
 
@@ -8672,7 +8672,7 @@ class TimeRanges native "TimeRanges" {
   String get typeName() native;
 }
 
-class Touch native "Touch" {
+class Touch native "*Touch" {
 
   int clientX;
 
@@ -8703,7 +8703,7 @@ class Touch native "Touch" {
   String get typeName() native;
 }
 
-class TouchEvent extends UIEvent native "TouchEvent" {
+class TouchEvent extends UIEvent native "*TouchEvent" {
 
   bool altKey;
 
@@ -8722,7 +8722,7 @@ class TouchEvent extends UIEvent native "TouchEvent" {
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
-class TouchList native "TouchList" {
+class TouchList native "*TouchList" {
 
   int length;
 
@@ -8735,7 +8735,7 @@ class TouchList native "TouchList" {
   String get typeName() native;
 }
 
-class TreeWalker native "TreeWalker" {
+class TreeWalker native "*TreeWalker" {
 
   Node currentNode;
 
@@ -8766,7 +8766,7 @@ class TreeWalker native "TreeWalker" {
   String get typeName() native;
 }
 
-class UIEvent extends Event native "UIEvent" {
+class UIEvent extends Event native "*UIEvent" {
 
   int charCode;
 
@@ -8789,28 +8789,28 @@ class UIEvent extends Event native "UIEvent" {
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) native;
 }
 
-class Uint16Array extends ArrayBufferView native "Uint16Array" {
+class Uint16Array extends ArrayBufferView native "*Uint16Array" {
 
   int length;
 
   Uint16Array subarray(int start, [int end = null]) native;
 }
 
-class Uint32Array extends ArrayBufferView native "Uint32Array" {
+class Uint32Array extends ArrayBufferView native "*Uint32Array" {
 
   int length;
 
   Uint32Array subarray(int start, [int end = null]) native;
 }
 
-class Uint8Array extends ArrayBufferView native "Uint8Array" {
+class Uint8Array extends ArrayBufferView native "*Uint8Array" {
 
   int length;
 
   Uint8Array subarray(int start, [int end = null]) native;
 }
 
-class ValidityState native "ValidityState" {
+class ValidityState native "*ValidityState" {
 
   bool customError;
 
@@ -8835,7 +8835,7 @@ class ValidityState native "ValidityState" {
   String get typeName() native;
 }
 
-class VoidCallback native "VoidCallback" {
+class VoidCallback native "*VoidCallback" {
 
   void handleEvent() native;
 
@@ -8844,7 +8844,7 @@ class VoidCallback native "VoidCallback" {
   String get typeName() native;
 }
 
-class WebGLActiveInfo native "WebGLActiveInfo" {
+class WebGLActiveInfo native "*WebGLActiveInfo" {
 
   String name;
 
@@ -8857,14 +8857,14 @@ class WebGLActiveInfo native "WebGLActiveInfo" {
   String get typeName() native;
 }
 
-class WebGLBuffer native "WebGLBuffer" {
+class WebGLBuffer native "*WebGLBuffer" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLContextAttributes native "WebGLContextAttributes" {
+class WebGLContextAttributes native "*WebGLContextAttributes" {
 
   bool alpha;
 
@@ -8883,19 +8883,19 @@ class WebGLContextAttributes native "WebGLContextAttributes" {
   String get typeName() native;
 }
 
-class WebGLContextEvent extends Event native "WebGLContextEvent" {
+class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
   String statusMessage;
 }
 
-class WebGLDebugRendererInfo native "WebGLDebugRendererInfo" {
+class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLDebugShaders native "WebGLDebugShaders" {
+class WebGLDebugShaders native "*WebGLDebugShaders" {
 
   String getTranslatedShaderSource(WebGLShader shader) native;
 
@@ -8904,28 +8904,28 @@ class WebGLDebugShaders native "WebGLDebugShaders" {
   String get typeName() native;
 }
 
-class WebGLFramebuffer native "WebGLFramebuffer" {
+class WebGLFramebuffer native "*WebGLFramebuffer" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLProgram native "WebGLProgram" {
+class WebGLProgram native "*WebGLProgram" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLRenderbuffer native "WebGLRenderbuffer" {
+class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLRenderingContext extends CanvasRenderingContext native "WebGLRenderingContext" {
+class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
 
   int drawingBufferHeight;
 
@@ -9200,35 +9200,35 @@ class WebGLRenderingContext extends CanvasRenderingContext native "WebGLRenderin
   void viewport(int x, int y, int width, int height) native;
 }
 
-class WebGLShader native "WebGLShader" {
+class WebGLShader native "*WebGLShader" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLTexture native "WebGLTexture" {
+class WebGLTexture native "*WebGLTexture" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLUniformLocation native "WebGLUniformLocation" {
+class WebGLUniformLocation native "*WebGLUniformLocation" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebGLVertexArrayObjectOES native "WebGLVertexArrayObjectOES" {
+class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebKitAnimation native "WebKitAnimation" {
+class WebKitAnimation native "*WebKitAnimation" {
 
   num delay;
 
@@ -9257,7 +9257,7 @@ class WebKitAnimation native "WebKitAnimation" {
   String get typeName() native;
 }
 
-class WebKitAnimationEvent extends Event native "WebKitAnimationEvent" {
+class WebKitAnimationEvent extends Event native "*WebKitAnimationEvent" {
 
   String animationName;
 
@@ -9266,7 +9266,7 @@ class WebKitAnimationEvent extends Event native "WebKitAnimationEvent" {
   void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg) native;
 }
 
-class WebKitAnimationList native "WebKitAnimationList" {
+class WebKitAnimationList native "*WebKitAnimationList" {
 
   int length;
 
@@ -9277,7 +9277,7 @@ class WebKitAnimationList native "WebKitAnimationList" {
   String get typeName() native;
 }
 
-class WebKitBlobBuilder native "WebKitBlobBuilder" {
+class WebKitBlobBuilder native "*WebKitBlobBuilder" {
 
   void append(var blob_OR_value, [String endings = null]) native;
 
@@ -9288,19 +9288,19 @@ class WebKitBlobBuilder native "WebKitBlobBuilder" {
   String get typeName() native;
 }
 
-class WebKitCSSFilterValue extends CSSValueList native "WebKitCSSFilterValue" {
+class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
 
   int operationType;
 }
 
-class WebKitCSSKeyframeRule extends CSSRule native "WebKitCSSKeyframeRule" {
+class WebKitCSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 
   String keyText;
 
   CSSStyleDeclaration style;
 }
 
-class WebKitCSSKeyframesRule extends CSSRule native "WebKitCSSKeyframesRule" {
+class WebKitCSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 
   CSSRuleList cssRules;
 
@@ -9313,7 +9313,7 @@ class WebKitCSSKeyframesRule extends CSSRule native "WebKitCSSKeyframesRule" {
   void insertRule(String rule) native;
 }
 
-class WebKitCSSMatrix native "WebKitCSSMatrix" {
+class WebKitCSSMatrix native "*WebKitCSSMatrix" {
   WebKitCSSMatrix([String spec]) native;
 
 
@@ -9386,12 +9386,12 @@ class WebKitCSSMatrix native "WebKitCSSMatrix" {
   String get typeName() native;
 }
 
-class WebKitCSSTransformValue extends CSSValueList native "WebKitCSSTransformValue" {
+class WebKitCSSTransformValue extends CSSValueList native "*WebKitCSSTransformValue" {
 
   int operationType;
 }
 
-class WebKitFlags native "WebKitFlags" {
+class WebKitFlags native "*WebKitFlags" {
 
   bool create;
 
@@ -9402,7 +9402,7 @@ class WebKitFlags native "WebKitFlags" {
   String get typeName() native;
 }
 
-class WebKitLoseContext native "WebKitLoseContext" {
+class WebKitLoseContext native "*WebKitLoseContext" {
 
   void loseContext() native;
 
@@ -9413,7 +9413,7 @@ class WebKitLoseContext native "WebKitLoseContext" {
   String get typeName() native;
 }
 
-class WebKitMutationObserver native "WebKitMutationObserver" {
+class WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
 
@@ -9422,7 +9422,7 @@ class WebKitMutationObserver native "WebKitMutationObserver" {
   String get typeName() native;
 }
 
-class WebKitPoint native "WebKitPoint" {
+class WebKitPoint native "*WebKitPoint" {
   WebKitPoint(num x, num y) native;
 
 
@@ -9435,7 +9435,7 @@ class WebKitPoint native "WebKitPoint" {
   String get typeName() native;
 }
 
-class WebKitTransitionEvent extends Event native "WebKitTransitionEvent" {
+class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
 
   num elapsedTime;
 
@@ -9444,7 +9444,7 @@ class WebKitTransitionEvent extends Event native "WebKitTransitionEvent" {
   void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg) native;
 }
 
-class WebSocket native "WebSocket" {
+class WebSocket native "*WebSocket" {
 
   String URL;
 
@@ -9481,7 +9481,7 @@ class WebSocket native "WebSocket" {
   String get typeName() native;
 }
 
-class WheelEvent extends UIEvent native "WheelEvent" {
+class WheelEvent extends UIEvent native "*WheelEvent" {
 
   bool altKey;
 
@@ -9518,7 +9518,7 @@ class WheelEvent extends UIEvent native "WheelEvent" {
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
-class Worker extends AbstractWorker native "Worker" {
+class Worker extends AbstractWorker native "*Worker" {
 
   EventListener onmessage;
 
@@ -9529,7 +9529,7 @@ class Worker extends AbstractWorker native "Worker" {
   void webkitPostMessage(String message, [List messagePorts = null]) native;
 }
 
-class WorkerContext native "WorkerContext" {
+class WorkerContext native "*WorkerContext" {
 
   WorkerLocation location;
 
@@ -9566,7 +9566,7 @@ class WorkerContext native "WorkerContext" {
   String get typeName() native;
 }
 
-class WorkerLocation native "WorkerLocation" {
+class WorkerLocation native "*WorkerLocation" {
 
   String hash;
 
@@ -9591,7 +9591,7 @@ class WorkerLocation native "WorkerLocation" {
   String get typeName() native;
 }
 
-class WorkerNavigator native "WorkerNavigator" {
+class WorkerNavigator native "*WorkerNavigator" {
 
   String appName;
 
@@ -9608,7 +9608,7 @@ class WorkerNavigator native "WorkerNavigator" {
   String get typeName() native;
 }
 
-class XMLHttpRequest native "XMLHttpRequest" {
+class XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 
@@ -9669,7 +9669,7 @@ class XMLHttpRequest native "XMLHttpRequest" {
   String get typeName() native;
 }
 
-class XMLHttpRequestException native "XMLHttpRequestException" {
+class XMLHttpRequestException native "*XMLHttpRequestException" {
 
   int code;
 
@@ -9684,14 +9684,14 @@ class XMLHttpRequestException native "XMLHttpRequestException" {
   String get typeName() native;
 }
 
-class XMLHttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgressEvent" {
+class XMLHttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
   int position;
 
   int totalSize;
 }
 
-class XMLHttpRequestUpload native "XMLHttpRequestUpload" {
+class XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
 
   EventListener onabort;
 
@@ -9714,7 +9714,7 @@ class XMLHttpRequestUpload native "XMLHttpRequestUpload" {
   String get typeName() native;
 }
 
-class XMLSerializer native "XMLSerializer" {
+class XMLSerializer native "*XMLSerializer" {
 
   String serializeToString(Node node) native;
 
@@ -9723,7 +9723,7 @@ class XMLSerializer native "XMLSerializer" {
   String get typeName() native;
 }
 
-class XPathEvaluator native "XPathEvaluator" {
+class XPathEvaluator native "*XPathEvaluator" {
 
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
 
@@ -9736,7 +9736,7 @@ class XPathEvaluator native "XPathEvaluator" {
   String get typeName() native;
 }
 
-class XPathException native "XPathException" {
+class XPathException native "*XPathException" {
 
   int code;
 
@@ -9751,7 +9751,7 @@ class XPathException native "XPathException" {
   String get typeName() native;
 }
 
-class XPathExpression native "XPathExpression" {
+class XPathExpression native "*XPathExpression" {
 
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 
@@ -9760,7 +9760,7 @@ class XPathExpression native "XPathExpression" {
   String get typeName() native;
 }
 
-class XPathNSResolver native "XPathNSResolver" {
+class XPathNSResolver native "*XPathNSResolver" {
 
   String lookupNamespaceURI(String prefix) native;
 
@@ -9769,7 +9769,7 @@ class XPathNSResolver native "XPathNSResolver" {
   String get typeName() native;
 }
 
-class XPathResult native "XPathResult" {
+class XPathResult native "*XPathResult" {
 
   bool booleanValue;
 
@@ -9794,7 +9794,7 @@ class XPathResult native "XPathResult" {
   String get typeName() native;
 }
 
-class XSLTProcessor native "XSLTProcessor" {
+class XSLTProcessor native "*XSLTProcessor" {
 
   void clearParameters() native;
 

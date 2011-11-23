@@ -1,5 +1,5 @@
 
-class SVGFEMergeNodeElement extends SVGElement native "SVGFEMergeNodeElement" {
+class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
 
   SVGAnimatedString in1;
 }

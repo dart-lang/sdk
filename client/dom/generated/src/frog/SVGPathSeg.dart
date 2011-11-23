@@ -1,5 +1,5 @@
 
-class SVGPathSeg native "SVGPathSeg" {
+class SVGPathSeg native "*SVGPathSeg" {
 
   int pathSegType;
 

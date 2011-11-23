@@ -1,5 +1,5 @@
 
-class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "SVGPathSegCurvetoCubicSmoothAbs" {
+class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
 
   num x;
 

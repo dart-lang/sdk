@@ -1,5 +1,5 @@
 
-class SVGURIReference native "SVGURIReference" {
+class SVGURIReference native "*SVGURIReference" {
 
   SVGAnimatedString href;
 

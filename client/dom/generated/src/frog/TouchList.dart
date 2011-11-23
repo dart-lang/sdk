@@ -1,5 +1,5 @@
 
-class TouchList native "TouchList" {
+class TouchList native "*TouchList" {
 
   int length;
 

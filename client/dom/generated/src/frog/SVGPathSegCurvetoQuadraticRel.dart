@@ -1,5 +1,5 @@
 
-class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "SVGPathSegCurvetoQuadraticRel" {
+class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticRel" {
 
   num x;
 

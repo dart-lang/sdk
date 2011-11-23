@@ -1,5 +1,5 @@
 
-class TextTrackCue native "TextTrackCue" {
+class TextTrackCue native "*TextTrackCue" {
 
   String alignment;
 

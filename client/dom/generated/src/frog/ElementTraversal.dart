@@ -1,5 +1,5 @@
 
-class ElementTraversal native "ElementTraversal" {
+class ElementTraversal native "*ElementTraversal" {
 
   int childElementCount;
 

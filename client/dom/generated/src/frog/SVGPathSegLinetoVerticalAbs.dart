@@ -1,5 +1,5 @@
 
-class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "SVGPathSegLinetoVerticalAbs" {
+class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVerticalAbs" {
 
   num y;
 }

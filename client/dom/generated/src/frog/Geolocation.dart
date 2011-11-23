@@ -1,5 +1,5 @@
 
-class Geolocation native "Geolocation" {
+class Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
 

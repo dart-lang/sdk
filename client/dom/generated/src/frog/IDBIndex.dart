@@ -1,5 +1,5 @@
 
-class IDBIndex native "IDBIndex" {
+class IDBIndex native "*IDBIndex" {
 
   String keyPath;
 

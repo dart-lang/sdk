@@ -1,5 +1,5 @@
 
-class SVGSVGElement extends SVGElement native "SVGSVGElement" {
+class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
   String contentScriptType;
 

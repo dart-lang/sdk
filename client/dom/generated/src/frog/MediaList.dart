@@ -1,5 +1,5 @@
 
-class MediaList native "MediaList" {
+class MediaList native "*MediaList" {
 
   int length;
 

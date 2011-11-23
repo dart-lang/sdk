@@ -1,5 +1,5 @@
 
-class SVGFEComponentTransferElement extends SVGElement native "SVGFEComponentTransferElement" {
+class SVGFEComponentTransferElement extends SVGElement native "*SVGFEComponentTransferElement" {
 
   SVGAnimatedString in1;
 

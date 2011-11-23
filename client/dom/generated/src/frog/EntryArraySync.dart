@@ -1,5 +1,5 @@
 
-class EntryArraySync native "EntryArraySync" {
+class EntryArraySync native "*EntryArraySync" {
 
   int length;
 

@@ -1,5 +1,5 @@
 
-class SVGFESpotLightElement extends SVGElement native "SVGFESpotLightElement" {
+class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
 
   SVGAnimatedNumber limitingConeAngle;
 

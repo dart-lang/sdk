@@ -1,5 +1,5 @@
 
-class SVGLangSpace native "SVGLangSpace" {
+class SVGLangSpace native "*SVGLangSpace" {
 
   String xmllang;
 

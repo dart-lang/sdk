@@ -1,5 +1,5 @@
 
-class SVGFEDisplacementMapElement extends SVGElement native "SVGFEDisplacementMapElement" {
+class SVGFEDisplacementMapElement extends SVGElement native "*SVGFEDisplacementMapElement" {
 
   SVGAnimatedString in1;
 

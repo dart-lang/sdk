@@ -1,5 +1,5 @@
 
-class Node native "Node" {
+class Node native "*Node" {
 
   NamedNodeMap attributes;
 

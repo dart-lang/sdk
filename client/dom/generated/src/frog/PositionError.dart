@@ -1,5 +1,5 @@
 
-class PositionError native "PositionError" {
+class PositionError native "*PositionError" {
 
   int code;
 

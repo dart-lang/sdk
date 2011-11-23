@@ -1,5 +1,5 @@
 
-class Range native "Range" {
+class Range native "*Range" {
 
   bool collapsed;
 

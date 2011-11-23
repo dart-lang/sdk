@@ -1,5 +1,5 @@
 
-class WebGLActiveInfo native "WebGLActiveInfo" {
+class WebGLActiveInfo native "*WebGLActiveInfo" {
 
   String name;
 

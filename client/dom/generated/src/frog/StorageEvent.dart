@@ -1,5 +1,5 @@
 
-class StorageEvent extends Event native "StorageEvent" {
+class StorageEvent extends Event native "*StorageEvent" {
 
   String key;
 

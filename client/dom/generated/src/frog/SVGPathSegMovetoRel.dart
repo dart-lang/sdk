@@ -1,5 +1,5 @@
 
-class SVGPathSegMovetoRel extends SVGPathSeg native "SVGPathSegMovetoRel" {
+class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
 
   num x;
 

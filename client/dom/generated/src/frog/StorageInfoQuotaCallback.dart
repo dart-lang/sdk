@@ -1,5 +1,5 @@
 
-class StorageInfoQuotaCallback native "StorageInfoQuotaCallback" {
+class StorageInfoQuotaCallback native "*StorageInfoQuotaCallback" {
 
   bool handleEvent(int grantedQuotaInBytes) native;
 

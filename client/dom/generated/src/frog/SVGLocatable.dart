@@ -1,5 +1,5 @@
 
-class SVGLocatable native "SVGLocatable" {
+class SVGLocatable native "*SVGLocatable" {
 
   SVGElement farthestViewportElement;
 

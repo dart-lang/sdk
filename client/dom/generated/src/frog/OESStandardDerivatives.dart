@@ -1,5 +1,5 @@
 
-class OESStandardDerivatives native "OESStandardDerivatives" {
+class OESStandardDerivatives native "*OESStandardDerivatives" {
 
   var dartObjectLocalStorage;
 

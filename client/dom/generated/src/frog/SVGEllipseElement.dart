@@ -1,5 +1,5 @@
 
-class SVGEllipseElement extends SVGElement native "SVGEllipseElement" {
+class SVGEllipseElement extends SVGElement native "*SVGEllipseElement" {
 
   SVGAnimatedLength cx;
 

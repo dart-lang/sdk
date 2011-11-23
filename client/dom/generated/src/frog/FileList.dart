@@ -1,5 +1,5 @@
 
-class FileList native "FileList" {
+class FileList native "*FileList" {
 
   int length;
 

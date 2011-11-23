@@ -1,5 +1,5 @@
 
-class SVGFESpecularLightingElement extends SVGElement native "SVGFESpecularLightingElement" {
+class SVGFESpecularLightingElement extends SVGElement native "*SVGFESpecularLightingElement" {
 
   SVGAnimatedString in1;
 

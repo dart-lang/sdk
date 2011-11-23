@@ -1,5 +1,5 @@
 
-class SVGPolygonElement extends SVGElement native "SVGPolygonElement" {
+class SVGPolygonElement extends SVGElement native "*SVGPolygonElement" {
 
   SVGPointList animatedPoints;
 

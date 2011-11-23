@@ -1,5 +1,5 @@
 
-class SVGTextContentElement extends SVGElement native "SVGTextContentElement" {
+class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
   SVGAnimatedEnumeration lengthAdjust;
 

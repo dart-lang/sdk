@@ -1,5 +1,5 @@
 
-class WebKitTransitionEvent extends Event native "WebKitTransitionEvent" {
+class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
 
   num elapsedTime;
 

@@ -1,5 +1,5 @@
 
-class Screen native "Screen" {
+class Screen native "*Screen" {
 
   int availHeight;
 

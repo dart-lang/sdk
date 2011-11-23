@@ -1,5 +1,5 @@
 
-class SVGFEDiffuseLightingElement extends SVGElement native "SVGFEDiffuseLightingElement" {
+class SVGFEDiffuseLightingElement extends SVGElement native "*SVGFEDiffuseLightingElement" {
 
   SVGAnimatedNumber diffuseConstant;
 

@@ -1,5 +1,5 @@
 
-class DOMFormData native "DOMFormData" {
+class DOMFormData native "*DOMFormData" {
 
   void append(String name, String value, String filename) native;
 

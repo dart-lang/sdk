@@ -1,5 +1,5 @@
 
-class ErrorCallback native "ErrorCallback" {
+class ErrorCallback native "*ErrorCallback" {
 
   bool handleEvent(FileError error) native;
 

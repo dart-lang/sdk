@@ -1,5 +1,5 @@
 
-class DOMParser native "DOMParser" {
+class DOMParser native "*DOMParser" {
 
   Document parseFromString(String str, String contentType) native;
 

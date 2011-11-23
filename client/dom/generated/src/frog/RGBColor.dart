@@ -1,5 +1,5 @@
 
-class RGBColor native "RGBColor" {
+class RGBColor native "*RGBColor" {
 
   CSSPrimitiveValue blue;
 

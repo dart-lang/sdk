@@ -1,5 +1,5 @@
 
-class SVGViewSpec extends SVGZoomAndPan native "SVGViewSpec" {
+class SVGViewSpec extends SVGZoomAndPan native "*SVGViewSpec" {
 
   String preserveAspectRatioString;
 

@@ -1,5 +1,5 @@
 
-class SVGMatrix native "SVGMatrix" {
+class SVGMatrix native "*SVGMatrix" {
 
   num a;
 

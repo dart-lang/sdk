@@ -1,5 +1,5 @@
 
-class OperationNotAllowedException native "OperationNotAllowedException" {
+class OperationNotAllowedException native "*OperationNotAllowedException" {
 
   int code;
 

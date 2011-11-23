@@ -1,5 +1,5 @@
 
-class DOMMimeType native "DOMMimeType" {
+class DOMMimeType native "*DOMMimeType" {
 
   String description;
 

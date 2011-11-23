@@ -1,5 +1,5 @@
 
-class File extends Blob native "File" {
+class File extends Blob native "*File" {
 
   String fileName;
 

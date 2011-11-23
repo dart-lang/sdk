@@ -1,5 +1,5 @@
 
-class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
+class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
 
   bool autoplay;
 

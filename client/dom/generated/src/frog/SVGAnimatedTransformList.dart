@@ -1,5 +1,5 @@
 
-class SVGAnimatedTransformList native "SVGAnimatedTransformList" {
+class SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
   SVGTransformList animVal;
 

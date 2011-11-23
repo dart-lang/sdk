@@ -1,5 +1,5 @@
 
-class SVGFitToViewBox native "SVGFitToViewBox" {
+class SVGFitToViewBox native "*SVGFitToViewBox" {
 
   SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 

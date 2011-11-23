@@ -1,5 +1,5 @@
 
-class Storage native "Storage" {
+class Storage native "*Storage" {
 
   int length;
 

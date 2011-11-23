@@ -1,5 +1,5 @@
 
-class IDBVersionChangeRequest extends IDBRequest native "IDBVersionChangeRequest" {
+class IDBVersionChangeRequest extends IDBRequest native "*IDBVersionChangeRequest" {
 
   EventListener onblocked;
 }

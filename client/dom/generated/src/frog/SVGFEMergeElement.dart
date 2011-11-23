@@ -1,5 +1,5 @@
 
-class SVGFEMergeElement extends SVGElement native "SVGFEMergeElement" {
+class SVGFEMergeElement extends SVGElement native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 

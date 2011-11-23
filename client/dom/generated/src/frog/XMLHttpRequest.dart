@@ -1,5 +1,5 @@
 
-class XMLHttpRequest native "XMLHttpRequest" {
+class XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 

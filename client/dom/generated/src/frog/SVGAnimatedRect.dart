@@ -1,5 +1,5 @@
 
-class SVGAnimatedRect native "SVGAnimatedRect" {
+class SVGAnimatedRect native "*SVGAnimatedRect" {
 
   SVGRect animVal;
 

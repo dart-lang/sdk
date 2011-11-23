@@ -1,5 +1,5 @@
 
-class SVGAltGlyphElement extends SVGTextPositioningElement native "SVGAltGlyphElement" {
+class SVGAltGlyphElement extends SVGTextPositioningElement native "*SVGAltGlyphElement" {
 
   String format;
 

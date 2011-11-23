@@ -1,5 +1,5 @@
 
-class EventSource native "EventSource" {
+class EventSource native "*EventSource" {
 
   String URL;
 

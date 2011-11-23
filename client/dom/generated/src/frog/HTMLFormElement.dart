@@ -1,5 +1,5 @@
 
-class HTMLFormElement extends HTMLElement native "HTMLFormElement" {
+class HTMLFormElement extends HTMLElement native "*HTMLFormElement" {
 
   String acceptCharset;
 

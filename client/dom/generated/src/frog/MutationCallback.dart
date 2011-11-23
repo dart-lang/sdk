@@ -1,5 +1,5 @@
 
-class MutationCallback native "MutationCallback" {
+class MutationCallback native "*MutationCallback" {
 
   var dartObjectLocalStorage;
 

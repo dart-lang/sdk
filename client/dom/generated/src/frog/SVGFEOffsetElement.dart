@@ -1,5 +1,5 @@
 
-class SVGFEOffsetElement extends SVGElement native "SVGFEOffsetElement" {
+class SVGFEOffsetElement extends SVGElement native "*SVGFEOffsetElement" {
 
   SVGAnimatedNumber dx;
 

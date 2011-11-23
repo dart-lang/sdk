@@ -1,5 +1,5 @@
 
-class Entity extends Node native "Entity" {
+class Entity extends Node native "*Entity" {
 
   String notationName;
 

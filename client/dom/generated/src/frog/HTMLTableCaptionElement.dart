@@ -1,5 +1,5 @@
 
-class HTMLTableCaptionElement extends HTMLElement native "HTMLTableCaptionElement" {
+class HTMLTableCaptionElement extends HTMLElement native "*HTMLTableCaptionElement" {
 
   String align;
 }

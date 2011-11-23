@@ -1,5 +1,5 @@
 
-class ClientRectList native "ClientRectList" {
+class ClientRectList native "*ClientRectList" {
 
   int length;
 

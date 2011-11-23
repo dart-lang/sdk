@@ -1,5 +1,5 @@
 
-class CSSValue native "CSSValue" {
+class CSSValue native "*CSSValue" {
 
   String cssText;
 

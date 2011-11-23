@@ -1,5 +1,5 @@
 
-class SVGNumberList native "SVGNumberList" {
+class SVGNumberList native "*SVGNumberList" {
 
   int numberOfItems;
 

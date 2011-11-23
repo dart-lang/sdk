@@ -1,5 +1,5 @@
 
-class SQLStatementCallback native "SQLStatementCallback" {
+class SQLStatementCallback native "*SQLStatementCallback" {
 
   bool handleEvent(SQLTransaction transaction, SQLResultSet resultSet) native;
 

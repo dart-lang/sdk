@@ -1,5 +1,5 @@
 
-class SVGAnimatedInteger native "SVGAnimatedInteger" {
+class SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
   int animVal;
 

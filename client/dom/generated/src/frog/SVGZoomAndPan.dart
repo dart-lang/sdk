@@ -1,5 +1,5 @@
 
-class SVGZoomAndPan native "SVGZoomAndPan" {
+class SVGZoomAndPan native "*SVGZoomAndPan" {
 
   int zoomAndPan;
 

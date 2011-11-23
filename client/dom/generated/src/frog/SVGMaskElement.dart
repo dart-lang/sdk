@@ -1,5 +1,5 @@
 
-class SVGMaskElement extends SVGElement native "SVGMaskElement" {
+class SVGMaskElement extends SVGElement native "*SVGMaskElement" {
 
   SVGAnimatedLength height;
 

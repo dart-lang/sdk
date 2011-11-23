@@ -1,5 +1,5 @@
 
-class SVGElementInstance native "SVGElementInstance" {
+class SVGElementInstance native "*SVGElementInstance" {
 
   SVGElementInstanceList childNodes;
 

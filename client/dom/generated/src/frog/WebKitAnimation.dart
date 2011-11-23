@@ -1,5 +1,5 @@
 
-class WebKitAnimation native "WebKitAnimation" {
+class WebKitAnimation native "*WebKitAnimation" {
 
   num delay;
 

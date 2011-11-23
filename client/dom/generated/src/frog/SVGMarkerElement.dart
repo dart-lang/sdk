@@ -1,5 +1,5 @@
 
-class SVGMarkerElement extends SVGElement native "SVGMarkerElement" {
+class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   SVGAnimatedLength markerHeight;
 

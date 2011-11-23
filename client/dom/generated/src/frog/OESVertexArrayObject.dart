@@ -1,5 +1,5 @@
 
-class OESVertexArrayObject native "OESVertexArrayObject" {
+class OESVertexArrayObject native "*OESVertexArrayObject" {
 
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 

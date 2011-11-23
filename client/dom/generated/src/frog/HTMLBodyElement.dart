@@ -1,5 +1,5 @@
 
-class HTMLBodyElement extends HTMLElement native "HTMLBodyElement" {
+class HTMLBodyElement extends HTMLElement native "*HTMLBodyElement" {
 
   String aLink;
 

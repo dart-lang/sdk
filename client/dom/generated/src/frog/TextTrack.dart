@@ -1,5 +1,5 @@
 
-class TextTrack native "TextTrack" {
+class TextTrack native "*TextTrack" {
 
   TextTrackCueList activeCues;
 

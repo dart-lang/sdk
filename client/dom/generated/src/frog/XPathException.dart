@@ -1,5 +1,5 @@
 
-class XPathException native "XPathException" {
+class XPathException native "*XPathException" {
 
   int code;
 

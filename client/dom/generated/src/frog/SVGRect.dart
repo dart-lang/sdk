@@ -1,5 +1,5 @@
 
-class SVGRect native "SVGRect" {
+class SVGRect native "*SVGRect" {
 
   num height;
 

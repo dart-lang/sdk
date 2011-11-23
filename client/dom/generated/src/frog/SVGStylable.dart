@@ -1,5 +1,5 @@
 
-class SVGStylable native "SVGStylable" {
+class SVGStylable native "*SVGStylable" {
 
   SVGAnimatedString className;
 

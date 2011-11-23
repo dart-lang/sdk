@@ -1,5 +1,5 @@
 
-class SVGAnimatedString native "SVGAnimatedString" {
+class SVGAnimatedString native "*SVGAnimatedString" {
 
   String animVal;
 

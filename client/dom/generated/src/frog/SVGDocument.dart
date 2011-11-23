@@ -1,5 +1,5 @@
 
-class SVGDocument extends Document native "SVGDocument" {
+class SVGDocument extends Document native "*SVGDocument" {
 
   SVGSVGElement rootElement;
 

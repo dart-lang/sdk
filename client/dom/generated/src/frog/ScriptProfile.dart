@@ -1,5 +1,5 @@
 
-class ScriptProfile native "ScriptProfile" {
+class ScriptProfile native "*ScriptProfile" {
 
   ScriptProfileNode head;
 

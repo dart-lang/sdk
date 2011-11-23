@@ -1,5 +1,5 @@
 
-class CSSStyleDeclaration native "CSSStyleDeclaration" {
+class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
   String cssText;
 

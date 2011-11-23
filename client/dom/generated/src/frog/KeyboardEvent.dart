@@ -1,5 +1,5 @@
 
-class KeyboardEvent extends UIEvent native "KeyboardEvent" {
+class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   bool altGraphKey;
 

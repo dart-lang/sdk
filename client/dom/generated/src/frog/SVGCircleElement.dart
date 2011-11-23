@@ -1,5 +1,5 @@
 
-class SVGCircleElement extends SVGElement native "SVGCircleElement" {
+class SVGCircleElement extends SVGElement native "*SVGCircleElement" {
 
   SVGAnimatedLength cx;
 

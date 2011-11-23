@@ -1,5 +1,5 @@
 
-class SVGSymbolElement extends SVGElement native "SVGSymbolElement" {
+class SVGSymbolElement extends SVGElement native "*SVGSymbolElement" {
 
   // From SVGLangSpace
 

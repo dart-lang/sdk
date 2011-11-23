@@ -1,5 +1,5 @@
 
-class ArrayBufferView native "ArrayBufferView" {
+class ArrayBufferView native "*ArrayBufferView" {
 
   ArrayBuffer buffer;
 

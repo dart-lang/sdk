@@ -1,3 +1,3 @@
 
-class SVGAltGlyphDefElement extends SVGElement native "SVGAltGlyphDefElement" {
+class SVGAltGlyphDefElement extends SVGElement native "*SVGAltGlyphDefElement" {
 }

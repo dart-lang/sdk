@@ -1,3 +1,3 @@
 
-class HTMLUnknownElement extends HTMLElement native "HTMLUnknownElement" {
+class HTMLUnknownElement extends HTMLElement native "*HTMLUnknownElement" {
 }

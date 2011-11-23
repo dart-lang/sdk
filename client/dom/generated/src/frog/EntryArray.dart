@@ -1,5 +1,5 @@
 
-class EntryArray native "EntryArray" {
+class EntryArray native "*EntryArray" {
 
   int length;
 

@@ -1,5 +1,5 @@
 
-class DOMTokenList native "DOMTokenList" {
+class DOMTokenList native "*DOMTokenList" {
 
   int length;
 

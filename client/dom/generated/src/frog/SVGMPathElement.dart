@@ -1,5 +1,5 @@
 
-class SVGMPathElement extends SVGElement native "SVGMPathElement" {
+class SVGMPathElement extends SVGElement native "*SVGMPathElement" {
 
   // From SVGURIReference
 

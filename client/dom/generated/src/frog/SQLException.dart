@@ -1,5 +1,5 @@
 
-class SQLException native "SQLException" {
+class SQLException native "*SQLException" {
 
   int code;
 

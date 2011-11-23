@@ -1,5 +1,5 @@
 
-class HTMLLinkElement extends HTMLElement native "HTMLLinkElement" {
+class HTMLLinkElement extends HTMLElement native "*HTMLLinkElement" {
 
   String charset;
 

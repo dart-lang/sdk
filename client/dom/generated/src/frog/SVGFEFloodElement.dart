@@ -1,5 +1,5 @@
 
-class SVGFEFloodElement extends SVGElement native "SVGFEFloodElement" {
+class SVGFEFloodElement extends SVGElement native "*SVGFEFloodElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 

@@ -1,5 +1,5 @@
 
-class WebKitCSSFilterValue extends CSSValueList native "WebKitCSSFilterValue" {
+class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
 
   int operationType;
 }

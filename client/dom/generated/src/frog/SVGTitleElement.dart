@@ -1,5 +1,5 @@
 
-class SVGTitleElement extends SVGElement native "SVGTitleElement" {
+class SVGTitleElement extends SVGElement native "*SVGTitleElement" {
 
   // From SVGLangSpace
 

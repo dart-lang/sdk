@@ -1,5 +1,5 @@
 
-class MediaError native "MediaError" {
+class MediaError native "*MediaError" {
 
   int code;
 

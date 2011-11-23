@@ -1,5 +1,5 @@
 
-class WebKitCSSTransformValue extends CSSValueList native "WebKitCSSTransformValue" {
+class WebKitCSSTransformValue extends CSSValueList native "*WebKitCSSTransformValue" {
 
   int operationType;
 }

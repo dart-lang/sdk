@@ -1,5 +1,5 @@
 
-class IDBKey native "IDBKey" {
+class IDBKey native "*IDBKey" {
 
   var dartObjectLocalStorage;
 

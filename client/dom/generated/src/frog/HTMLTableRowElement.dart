@@ -1,5 +1,5 @@
 
-class HTMLTableRowElement extends HTMLElement native "HTMLTableRowElement" {
+class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
 
   String align;
 

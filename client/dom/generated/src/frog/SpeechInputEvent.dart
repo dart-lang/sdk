@@ -1,5 +1,5 @@
 
-class SpeechInputEvent extends Event native "SpeechInputEvent" {
+class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
   SpeechInputResultList results;
 }

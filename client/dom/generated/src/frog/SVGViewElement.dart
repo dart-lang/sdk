@@ -1,5 +1,5 @@
 
-class SVGViewElement extends SVGElement native "SVGViewElement" {
+class SVGViewElement extends SVGElement native "*SVGViewElement" {
 
   SVGStringList viewTarget;
 

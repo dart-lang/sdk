@@ -1,5 +1,5 @@
 
-class SVGFETurbulenceElement extends SVGElement native "SVGFETurbulenceElement" {
+class SVGFETurbulenceElement extends SVGElement native "*SVGFETurbulenceElement" {
 
   SVGAnimatedNumber baseFrequencyX;
 

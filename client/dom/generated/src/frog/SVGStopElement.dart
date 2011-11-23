@@ -1,5 +1,5 @@
 
-class SVGStopElement extends SVGElement native "SVGStopElement" {
+class SVGStopElement extends SVGElement native "*SVGStopElement" {
 
   SVGAnimatedNumber offset;
 

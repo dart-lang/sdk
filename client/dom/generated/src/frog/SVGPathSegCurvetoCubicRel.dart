@@ -1,5 +1,5 @@
 
-class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "SVGPathSegCurvetoCubicRel" {
+class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicRel" {
 
   num x;
 

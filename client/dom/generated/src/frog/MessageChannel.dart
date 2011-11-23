@@ -1,5 +1,5 @@
 
-class MessageChannel native "MessageChannel" {
+class MessageChannel native "*MessageChannel" {
 
   MessagePort port1;
 

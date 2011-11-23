@@ -1,5 +1,5 @@
 
-class PositionCallback native "PositionCallback" {
+class PositionCallback native "*PositionCallback" {
 
   bool handleEvent(Geoposition position) native;
 

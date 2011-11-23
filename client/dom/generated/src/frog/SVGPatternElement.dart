@@ -1,5 +1,5 @@
 
-class SVGPatternElement extends SVGElement native "SVGPatternElement" {
+class SVGPatternElement extends SVGElement native "*SVGPatternElement" {
 
   SVGAnimatedLength height;
 

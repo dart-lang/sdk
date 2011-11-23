@@ -1,5 +1,5 @@
 
-class FileWriter native "FileWriter" {
+class FileWriter native "*FileWriter" {
 
   FileError error;
 

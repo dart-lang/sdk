@@ -1,5 +1,5 @@
 
-class XMLHttpRequestException native "XMLHttpRequestException" {
+class XMLHttpRequestException native "*XMLHttpRequestException" {
 
   int code;
 

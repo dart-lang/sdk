@@ -1,5 +1,5 @@
 
-class WorkerContext native "WorkerContext" {
+class WorkerContext native "*WorkerContext" {
 
   WorkerLocation location;
 

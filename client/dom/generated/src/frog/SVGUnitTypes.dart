@@ -1,5 +1,5 @@
 
-class SVGUnitTypes native "SVGUnitTypes" {
+class SVGUnitTypes native "*SVGUnitTypes" {
 
   var dartObjectLocalStorage;
 

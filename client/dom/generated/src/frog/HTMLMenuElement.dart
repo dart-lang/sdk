@@ -1,5 +1,5 @@
 
-class HTMLMenuElement extends HTMLElement native "HTMLMenuElement" {
+class HTMLMenuElement extends HTMLElement native "*HTMLMenuElement" {
 
   bool compact;
 }

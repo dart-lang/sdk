@@ -1,5 +1,5 @@
 
-class HTMLAllCollection native "HTMLAllCollection" {
+class HTMLAllCollection native "*HTMLAllCollection" {
 
   int length;
 

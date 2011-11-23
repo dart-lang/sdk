@@ -1,5 +1,5 @@
 
-class CSSPrimitiveValue extends CSSValue native "CSSPrimitiveValue" {
+class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   int primitiveType;
 

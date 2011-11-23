@@ -1,5 +1,5 @@
 
-class SVGRectElement extends SVGElement native "SVGRectElement" {
+class SVGRectElement extends SVGElement native "*SVGRectElement" {
 
   SVGAnimatedLength height;
 

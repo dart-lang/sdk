@@ -1,5 +1,5 @@
 
-class StorageInfoErrorCallback native "StorageInfoErrorCallback" {
+class StorageInfoErrorCallback native "*StorageInfoErrorCallback" {
 
   bool handleEvent(DOMException error) native;
 

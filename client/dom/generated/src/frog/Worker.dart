@@ -1,5 +1,5 @@
 
-class Worker extends AbstractWorker native "Worker" {
+class Worker extends AbstractWorker native "*Worker" {
 
   EventListener onmessage;
 

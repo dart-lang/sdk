@@ -1,5 +1,5 @@
 
-class IDBDatabaseException native "IDBDatabaseException" {
+class IDBDatabaseException native "*IDBDatabaseException" {
 
   int code;
 

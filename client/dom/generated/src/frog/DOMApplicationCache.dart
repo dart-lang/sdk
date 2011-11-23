@@ -1,5 +1,5 @@
 
-class DOMApplicationCache native "DOMApplicationCache" {
+class DOMApplicationCache native "*DOMApplicationCache" {
 
   EventListener oncached;
 

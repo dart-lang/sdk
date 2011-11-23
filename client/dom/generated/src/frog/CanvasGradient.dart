@@ -1,5 +1,5 @@
 
-class CanvasGradient native "CanvasGradient" {
+class CanvasGradient native "*CanvasGradient" {
 
   void addColorStop(num offset, String color) native;
 

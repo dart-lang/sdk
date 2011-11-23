@@ -1,5 +1,5 @@
 
-class HTMLOptionsCollection extends HTMLCollection native "HTMLOptionsCollection" {
+class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
 
   int length;
 

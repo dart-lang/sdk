@@ -1,5 +1,5 @@
 
-class HTMLFrameElement extends HTMLElement native "HTMLFrameElement" {
+class HTMLFrameElement extends HTMLElement native "*HTMLFrameElement" {
 
   Document contentDocument;
 

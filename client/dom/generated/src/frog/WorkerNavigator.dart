@@ -1,5 +1,5 @@
 
-class WorkerNavigator native "WorkerNavigator" {
+class WorkerNavigator native "*WorkerNavigator" {
 
   String appName;
 

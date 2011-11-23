@@ -1,5 +1,5 @@
 
-class SVGFEColorMatrixElement extends SVGElement native "SVGFEColorMatrixElement" {
+class SVGFEColorMatrixElement extends SVGElement native "*SVGFEColorMatrixElement" {
 
   SVGAnimatedString in1;
 

@@ -1,5 +1,5 @@
 
-class HTMLTableCellElement extends HTMLElement native "HTMLTableCellElement" {
+class HTMLTableCellElement extends HTMLElement native "*HTMLTableCellElement" {
 
   String abbr;
 

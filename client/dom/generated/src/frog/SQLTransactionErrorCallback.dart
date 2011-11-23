@@ -1,5 +1,5 @@
 
-class SQLTransactionErrorCallback native "SQLTransactionErrorCallback" {
+class SQLTransactionErrorCallback native "*SQLTransactionErrorCallback" {
 
   bool handleEvent(SQLError error) native;
 

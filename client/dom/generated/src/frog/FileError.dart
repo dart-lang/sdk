@@ -1,5 +1,5 @@
 
-class FileError native "FileError" {
+class FileError native "*FileError" {
 
   int code;
 

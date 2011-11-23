@@ -1,5 +1,5 @@
 
-class WebSocket native "WebSocket" {
+class WebSocket native "*WebSocket" {
 
   String URL;
 

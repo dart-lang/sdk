@@ -1,5 +1,5 @@
 
-class SVGAnimatedBoolean native "SVGAnimatedBoolean" {
+class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
   bool animVal;
 

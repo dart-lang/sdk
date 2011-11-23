@@ -1,5 +1,5 @@
 
-class DOMWindow native "DOMWindow" {
+class DOMWindow native "*DOMWindow" {
 
   DOMApplicationCache applicationCache;
 

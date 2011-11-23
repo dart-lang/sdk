@@ -1,5 +1,5 @@
 
-class CSSValueList extends CSSValue native "CSSValueList" {
+class CSSValueList extends CSSValue native "*CSSValueList" {
 
   int length;
 

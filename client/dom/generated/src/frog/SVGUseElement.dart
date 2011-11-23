@@ -1,5 +1,5 @@
 
-class SVGUseElement extends SVGElement native "SVGUseElement" {
+class SVGUseElement extends SVGElement native "*SVGUseElement" {
 
   SVGElementInstance animatedInstanceRoot;
 

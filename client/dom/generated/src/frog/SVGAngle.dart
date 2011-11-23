@@ -1,5 +1,5 @@
 
-class SVGAngle native "SVGAngle" {
+class SVGAngle native "*SVGAngle" {
 
   int unitType;
 

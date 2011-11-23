@@ -1,5 +1,5 @@
 
-class StringCallback native "StringCallback" {
+class StringCallback native "*StringCallback" {
 
   bool handleEvent(String data) native;
 

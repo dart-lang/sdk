@@ -1,5 +1,5 @@
 
-class HTMLBaseElement extends HTMLElement native "HTMLBaseElement" {
+class HTMLBaseElement extends HTMLElement native "*HTMLBaseElement" {
 
   String href;
 

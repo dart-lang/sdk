@@ -1,5 +1,5 @@
 
-class DOMSelection native "DOMSelection" {
+class DOMSelection native "*DOMSelection" {
 
   Node anchorNode;
 

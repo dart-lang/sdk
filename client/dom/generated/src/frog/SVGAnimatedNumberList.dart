@@ -1,5 +1,5 @@
 
-class SVGAnimatedNumberList native "SVGAnimatedNumberList" {
+class SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
   SVGNumberList animVal;
 

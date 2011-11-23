@@ -1,5 +1,5 @@
 
-class SVGZoomEvent extends UIEvent native "SVGZoomEvent" {
+class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
 
   num newScale;
 

@@ -1,5 +1,5 @@
 
-class SVGFEPointLightElement extends SVGElement native "SVGFEPointLightElement" {
+class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement" {
 
   SVGAnimatedNumber x;
 

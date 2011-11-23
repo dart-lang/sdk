@@ -1,5 +1,5 @@
 
-class SVGGlyphRefElement extends SVGElement native "SVGGlyphRefElement" {
+class SVGGlyphRefElement extends SVGElement native "*SVGGlyphRefElement" {
 
   num dx;
 

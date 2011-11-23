@@ -1,5 +1,5 @@
 
-class NodeSelector native "NodeSelector" {
+class NodeSelector native "*NodeSelector" {
 
   Element querySelector(String selectors) native;
 
