@@ -74,9 +74,6 @@ int TraceParser::indent_ = 0;
 #endif  // DEBUG
 
 
-static const char* kManglePrefix = "this:";
-
-
 template<typename T>
 static RawArray* NewArray(const GrowableArray<T*>& objs) {
   Array& a = Array::Handle(Array::New(objs.length(), Heap::kOld));
