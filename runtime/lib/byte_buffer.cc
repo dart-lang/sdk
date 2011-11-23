@@ -14,14 +14,7 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(ByteBuffer_allocate, 1) {
-  const Instance& length_instance = Instance::CheckedHandle(arguments->At(0));
-  if (!length_instance.IsSmi()) {
-    GrowableArray<const Object*> args;
-    args.Add(&length_instance);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  Smi& length = Smi::Handle();
-  length ^= length_instance.raw();
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
   if (length.Value() < 0) {
     GrowableArray<const Object*> args;
     args.Add(&length);
@@ -37,11 +30,6 @@ DEFINE_NATIVE_ENTRY(ByteBuffer_allocate, 1) {
 
 DEFINE_NATIVE_ENTRY(ByteBuffer_getLength, 1) {
   const ByteBuffer& array = ByteBuffer::CheckedHandle(arguments->At(0));
-  if (array.IsNull()) {
-    // TODO(asiva): Need to handle error cases.
-    UNIMPLEMENTED();
-    return;
-  }
   const Smi& length = Smi::Handle(Smi::New(array.Length()));
   arguments->SetReturn(length);
 }

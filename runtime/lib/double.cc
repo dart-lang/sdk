@@ -23,7 +23,8 @@ DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_add, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
-  double right = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
+  double right = right_object.value();
   const Double& result = Double::Handle(Double::New(left + right));
   arguments->SetReturn(result);
 }
@@ -31,7 +32,8 @@ DEFINE_NATIVE_ENTRY(Double_add, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_sub, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
-  double right = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
+  double right = right_object.value();
   const Double& result = Double::Handle(Double::New(left - right));
   arguments->SetReturn(result);
 }
@@ -39,7 +41,8 @@ DEFINE_NATIVE_ENTRY(Double_sub, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_mul, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
-  double right = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
+  double right = right_object.value();
   const Double& result = Double::Handle(Double::New(left * right));
   arguments->SetReturn(result);
 }
@@ -47,7 +50,8 @@ DEFINE_NATIVE_ENTRY(Double_mul, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_div, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
-  double right = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
+  double right = right_object.value();
   const Double& result = Double::Handle(Double::New(left / right));
   arguments->SetReturn(result);
 }
@@ -55,7 +59,8 @@ DEFINE_NATIVE_ENTRY(Double_div, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
-  double right = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
+  double right = right_object.value();
   const Double& result = Double::Handle(Double::New(trunc(left / right)));
   arguments->SetReturn(result);
 }
@@ -63,7 +68,8 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
-  double right = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
+  double right = right_object.value();
   double remainder = fmod(left, right);
   if (remainder == 0.0) {
     // We explicitely switch to the positive 0.0 (just in case it was negative).
@@ -82,7 +88,8 @@ DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_remainder, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
-  double right = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
+  double right = right_object.value();
   const Double& result = Double::Handle(Double::New(fmod(left, right)));
   arguments->SetReturn(result);
 }
@@ -90,7 +97,7 @@ DEFINE_NATIVE_ENTRY(Double_remainder, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
   const Double& left = Double::CheckedHandle(arguments->At(0));
-  const Double& right = Double::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Double, right, arguments->At(1));
   bool result = right.IsNull() ? false : (left.value() > right.value());
   arguments->SetReturn(Bool::Handle(Bool::Get(result)));
 }
@@ -98,7 +105,7 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 2) {
   const Double& right = Double::CheckedHandle(arguments->At(0));
-  const Integer& left = Integer::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, left, arguments->At(1));
   const Bool& result = Bool::Handle(Bool::Get(
       left.AsDoubleValue() > right.value()));
   arguments->SetReturn(result);
@@ -107,7 +114,7 @@ DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_equal, 2) {
   const Double& left = Double::CheckedHandle(arguments->At(0));
-  const Double& right = Double::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Double, right, arguments->At(1));
   bool result = right.IsNull() ? false : (left.value() == right.value());
   arguments->SetReturn(Bool::Handle(Bool::Get(result)));
 }
@@ -115,7 +122,7 @@ DEFINE_NATIVE_ENTRY(Double_equal, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_equalToInteger, 2) {
   const Double& left = Double::CheckedHandle(arguments->At(0));
-  const Integer& right = Integer::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, right, arguments->At(1));
   const Bool& result =
       Bool::Handle(Bool::Get(left.value() == right.AsDoubleValue()));
   arguments->SetReturn(result);
@@ -146,7 +153,8 @@ DEFINE_NATIVE_ENTRY(Double_truncate, 1) {
 
 DEFINE_NATIVE_ENTRY(Double_pow, 2) {
   const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  const double exponent = Double::CheckedHandle(arguments->At(1)).value();
+  GET_NATIVE_ARGUMENT(Double, exponent_object, arguments->At(1));
+  const double exponent = exponent_object.value();
   arguments->SetReturn(Double::Handle(Double::New(pow(operand, exponent))));
 }
 

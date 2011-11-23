@@ -16,56 +16,57 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(MathNatives_sqrt, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(sqrt(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(sqrt(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_sin, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(sin(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(sin(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_cos, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(cos(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(cos(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_tan, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(tan(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(tan(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_asin, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(asin(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(asin(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_acos, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(acos(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(acos(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_atan, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(atan(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(atan(operand.value()))));
 }
 
 // It is not possible to call the native MathNatives_atan2. Somehow this leads
 // to a dynamic error "native function 'MathNatives_atan2' cannot be found".
 DEFINE_NATIVE_ENTRY(MathNatives_2atan, 2) {
-  const double operand1 = Double::CheckedHandle(arguments->At(0)).value();
-  const double operand2 = Double::CheckedHandle(arguments->At(1)).value();
-  arguments->SetReturn(Double::Handle(Double::New(atan2(operand1, operand2))));
+  GET_NATIVE_ARGUMENT(Double, operand1, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Double, operand2, arguments->At(1));
+  arguments->SetReturn(Double::Handle(Double::New(
+      atan2(operand1.value(), operand2.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_exp, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(exp(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(exp(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_log, 1) {
-  const double operand = Double::CheckedHandle(arguments->At(0)).value();
-  arguments->SetReturn(Double::Handle(Double::New(log(operand))));
+  GET_NATIVE_ARGUMENT(Double, operand, arguments->At(0));
+  arguments->SetReturn(Double::Handle(Double::New(log(operand.value()))));
 }
 
 DEFINE_NATIVE_ENTRY(MathNatives_random, 0) {
@@ -104,7 +105,7 @@ static bool IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
 
 
 DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
-  const String& value = String::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, value, arguments->At(0));
   Scanner scanner(value, String::Handle());
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   String* int_string;
@@ -129,7 +130,7 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
 
 
 DEFINE_NATIVE_ENTRY(MathNatives_parseDouble, 1) {
-  const String& value = String::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, value, arguments->At(0));
   Scanner scanner(value, String::Handle());
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   String* number_string;
