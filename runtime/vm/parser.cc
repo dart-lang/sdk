@@ -838,10 +838,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   parameter.name_pos = token_index_;
   ConsumeToken();
   if (parameter.is_field_initializer) {
-    if (params->has_named_optional_parameters) {
-      ErrorMsg(parameter.name_pos,
-               "initializing formal parameter cannot be optional");
-    }
     params->has_field_initializer = true;
   }
 
@@ -1602,7 +1598,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
 
   // Turn formal field parameters into field initializers or report error
-  // if the function is not a constructor
+  // if the function is not a constructor.
   if (params.has_field_initializer) {
     for (int i = 0; i < params.parameters->length(); i++) {
       ParamDesc& param = (*params.parameters)[i];
@@ -1614,12 +1610,14 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                    "unresolved reference to instance field '%s'",
                    field_name.ToCString());
         }
-        const String& mangled_name =
-            String::ZoneHandle(MangledInitParamName(field_name));
         AstNode* instance = new LoadLocalNode(param.name_pos, *receiver);
         LocalVariable* p =
-            current_block_->scope->LookupVariable(mangled_name, false);
+            current_block_->scope->LookupVariable(*param.name, false);
         ASSERT(p != NULL);
+        // Initializing formals cannot be used in the explicit initializer
+        // list, nor can they be used in the constructor body.
+        // Thus, make the parameter invisible.
+        p->set_invisible(true);
         AstNode* value = new LoadLocalNode(param.name_pos, *p);
         AstNode* initializer = new StoreInstanceFieldNode(
             param.name_pos, instance, field, value);
@@ -3392,9 +3390,6 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
     ParamDesc& param_desc = (*params->parameters)[i];
     ASSERT(!is_top_level_ || param_desc.type->IsResolved());
     const String* name = param_desc.name;
-    if (param_desc.is_field_initializer) {
-      name = &String::ZoneHandle(MangledInitParamName(*name));
-    }
     LocalVariable* parameter = new LocalVariable(
         param_desc.name_pos, *name, *param_desc.type);
     if (!scope->AddVariable(parameter)) {

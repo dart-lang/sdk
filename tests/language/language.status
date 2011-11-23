@@ -286,6 +286,7 @@ NumbersTest: Fail
 OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
+ParameterInitializer5NegativeTest: Fail  # Issue 581
 Prefix3NegativeTest: Fail
 Prefix7NegativeTest: Fail
 Prefix8NegativeTest: Fail
