@@ -5,7 +5,7 @@
 String getPlatformOutDir() {
   var os = new Platform().operatingSystem();
   if (os == 'linux') return 'out';
-  if (os == 'macos') 'xcodebuild';
+  if (os == 'macos') return 'xcodebuild';
   return '';  // Windows.
 }
 
