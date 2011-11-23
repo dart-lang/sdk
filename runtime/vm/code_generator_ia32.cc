@@ -1463,22 +1463,20 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 
       // Compare if the classes are equal.
       __ Bind(&compare_classes);
-      if (type_class.is_interface()) {
-        if (type.IsStringInterface()) {
-          Label runtime_call;
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          const Class& one_byte_string_class = Class::ZoneHandle(
-              Isolate::Current()->object_store()->one_byte_string_class());
-          __ CompareObject(ECX, one_byte_string_class);
-          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-          __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done, Assembler::kNearJump);
-          __ Bind(&runtime_call);
-        }
-      } else {  // type_class is not an interface.
+      const Class* compare_class = NULL;
+      if (type.IsStringInterface()) {
+        compare_class = &Class::ZoneHandle(
+            Isolate::Current()->object_store()->one_byte_string_class());
+      } else if (type.IsBoolInterface()) {
+        compare_class = &Class::ZoneHandle(
+            Isolate::Current()->object_store()->bool_class());
+      } else if (!type_class.is_interface()) {
+        compare_class = &type_class;
+      }
+      if (compare_class != NULL) {
         Label runtime_call;
         __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        __ CompareObject(ECX, type_class);
+        __ CompareObject(ECX, *compare_class);
         __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
         __ PushObject(negate_result ? bool_false : bool_true);
         __ jmp(&done, Assembler::kNearJump);
@@ -1516,7 +1514,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 // Jumps to label if ECX equals the given class.
 // Inputs:
 // - ECX: tested class.
-void CodeGenerator::TestClassAndJump(const Class& cls, Label *label) {
+void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
   __ CompareObject(ECX, cls);
   __ j(EQUAL, label, Assembler::kNearJump);
 }
