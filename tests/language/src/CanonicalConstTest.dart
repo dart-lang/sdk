@@ -25,7 +25,7 @@ class CanonicalConstTest {
     Expect.isTrue(const [2,1] !== const[1,2]);
     Expect.isTrue(const <int>[1,2] === const <int>[1,2]);
     Expect.isTrue(const <Object>[1,2] === const <Object>[1,2]);
-    Expect.isTrue(const <int>[1,2] !== const <double>[1,2]);
+    Expect.isTrue(const <int>[1,2] !== const <double>[1.0,2.0]);
     Expect.isTrue(const {"a":1, "b":2} === const {"a":1, "b":2});
     Expect.isTrue(const {"a":1, "b":2} !== const {"a":2, "b":2});
   }

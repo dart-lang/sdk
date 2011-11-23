@@ -118,7 +118,10 @@ ImplicitThisTest/none: Fail # Issue 375
 InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 IsObjectTest: Skip # Hasn't be tested on DartC yet
 Library4NegativeTest: Fail               # Bug 5406175
-ListLiteral3Test: Fail      # Bug 4510015.
+ListLiteral1NegativeTest: Skip # Issue 220
+ListLiteral2NegativeTest: Fail # Issue 220
+ListLiteral3Test: Fail # Issue 220
+ListLiteral4Test: Fail # Issue 220
 ListTest: Fail              # Bug 5146975.
 LocalFunction3Test: Fail     # Bug 4202974.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
@@ -205,7 +208,6 @@ FactoryImplementationTest: Fail # Issue 523
 
 BitOperationsTest: Fail  # relies on big integers not available in JS
 CallThroughGetterTest: Fail
-CanonicalConstTest: Fail # type in const array allocation is erased
 CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
 ClosureSharedStateTest: Fail
@@ -257,7 +259,10 @@ Library1NegativeTest: Fail # issue with test see #354
 Library4NegativeTest: Fail # issue with test see #354
 Library5NegativeTest: Fail # issue with test see #354
 Library6NegativeTest: Fail # issue with test see #354
-ListLiteral3Test: Fail
+ListLiteral1NegativeTest: Fail # Issue 220
+ListLiteral2NegativeTest: Fail # Issue 220
+ListLiteral3Test: Fail # Issue 220
+ListLiteral4Test: Fail # Issue 220
 ListTest: Fail         # array bound checks not implemented
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail

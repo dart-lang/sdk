@@ -26,17 +26,14 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DECLARE_FLAG(bool, expose_core_impl);
 
 // All references to Dart names are listed here.
 static const char* kAssertionErrorName = "AssertionError";
 static const char* kFallThroughErrorName = "FallThroughError";
 static const char* kThrowNewName = "_throwNew";
-static const char* kGrowableObjectArrayFromArrayName =
-    "GrowableObjectArray._usingArray";
-static const char* kGrowableObjectArrayName = "GrowableObjectArray";
-static const char* kLiteralMapFactoryName = "_LiteralMapFactory";
-static const char* kLiteralMapFactoryFromLiteralName = "Map.fromLiteral";
+static const char* kLiteralFactoryClassName = "_LiteralFactory";
+static const char* kLiteralFactoryListFromLiteralName = "List.fromLiteral";
+static const char* kLiteralFactoryMapFromLiteralName = "Map.fromLiteral";
 static const char* kImmutableMapName = "ImmutableMap";
 static const char* kImmutableMapConstructorName = "ImmutableMap.";
 static const char* kStringClassName = "StringBase";
@@ -4436,8 +4433,7 @@ static RawClass* LookupImplClass(const String& class_name) {
 static RawClass* LookupCoreClass(const String& class_name) {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   String& name = String::Handle(class_name.raw());
-  if ((class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) &&
-      !FLAG_expose_core_impl) {
+  if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per script basis.
     name = String::Concat(name, String::Handle(core_lib.private_key()));
     name = String::NewSymbol(name);
@@ -6584,34 +6580,46 @@ void Parser::CheckConstructorCallTypeArguments(
 
 
 // Parse "[" [ expr { "," expr } ["," ] "]".
-// Note: if the array literal is empty and the brackets have no whitespace
+// Note: if the list literal is empty and the brackets have no whitespace
 // between them, the scanner recognizes the opening and closing bracket
 // as one token of type Token::kINDEX.
-AstNode* Parser::ParseArrayLiteral(intptr_t type_pos,
-                                   bool is_const,
-                                   const TypeArguments& type_arguments) {
+AstNode* Parser::ParseListLiteral(intptr_t type_pos,
+                                  bool is_const,
+                                  const TypeArguments& type_arguments) {
+  TRACE_PARSER("ParseListLiteral");
+  ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACK || CurrentToken() == Token::kINDEX);
   const intptr_t literal_pos = token_index_;
   bool is_empty_literal = CurrentToken() == Token::kINDEX;
   ConsumeToken();
 
-  // If no type arguments are provided, leave them as null, which is equivalent
-  // to using Array<Dynamic>. See issue 4966724.
+  Type& element_type = Type::Handle(Type::DynamicType());
+  // If no type argument vector is provided, leave it as null, which is
+  // equivalent to using Dynamic as the type argument for the element type.
   if (!type_arguments.IsNull()) {
-    // For now, only check the number of type arguments. See issue 4975876.
+    ASSERT(type_arguments.Length() > 0);
+    // List literals take a single type argument.
+    element_type = type_arguments.TypeAt(0);
     if (type_arguments.Length() != 1) {
-      ASSERT(type_pos >= 0);
-      ErrorMsg(type_pos, "wrong number of type arguments for Array literal");
+      ErrorMsg(type_pos,
+               "a list literal takes one type argument specifying "
+               "the element type");
+    }
+    if (is_const && !element_type.IsInstantiated()) {
+      ErrorMsg(type_pos,
+               "the type argument of a constant list literal cannot include "
+               "a type variable");
     }
   }
+  ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
 
-  // Parse the array elements. Note: there may be an optional extra
+  // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
-  ArrayNode* array = new ArrayNode(token_index_, type_arguments);
+  ArrayNode* list = new ArrayNode(token_index_, TypeArguments::ZoneHandle());
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
     while (CurrentToken() != Token::kRBRACK) {
-      array->AddElement(ParseExpr(is_const));
+      list->AddElement(ParseExpr(is_const));
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
       } else if (CurrentToken() != Token::kRBRACK) {
@@ -6623,49 +6631,54 @@ AstNode* Parser::ParseArrayLiteral(intptr_t type_pos,
   }
 
   if (is_const) {
-    // Allocate and initialize the array at compile time.
-    Array& lit_array =
-        Array::ZoneHandle(Array::New(array->length(), Heap::kOld));
-    if (!type_arguments.IsNull()) {
-      // TODO(regis): Where should we check the constraints on type parameters?
-      if (!type_arguments.IsInstantiated()) {
-        ErrorMsg("type must be constant in const constructor");
-      }
-      lit_array.SetTypeArguments(type_arguments);
-    }
+    // Allocate and initialize the const list at compile time.
+    Array& const_list =
+        Array::ZoneHandle(Array::New(list->length(), Heap::kOld));
+    const_list.SetTypeArguments(type_arguments);
 
-    for (int i = 0; i < array->length(); i++) {
-      AstNode* elem = array->ElementAt(i);
+    for (int i = 0; i < list->length(); i++) {
+      AstNode* elem = list->ElementAt(i);
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
-      lit_array.SetAt(i, elem->AsLiteralNode()->literal());
+      if (!element_type.IsDynamicType() &&
+          !elem->AsLiteralNode()->literal().Is(element_type)) {
+        ErrorMsg(elem->AsLiteralNode()->token_index(),
+                 "list literal element at index %d must be "
+                 "a constant of type '%s'",
+                 i,
+                 String::Handle(element_type.Name()).ToCString());
+      }
+      const_list.SetAt(i, elem->AsLiteralNode()->literal());
     }
-    lit_array ^= lit_array.Canonicalize();
-    lit_array.MakeImmutable();
-    return new LiteralNode(literal_pos, lit_array);
+    const_list ^= const_list.Canonicalize();
+    const_list.MakeImmutable();
+    return new LiteralNode(literal_pos, const_list);
   } else {
+    // Factory call at runtime.
+    String& literal_factory_class_name = String::Handle(
+        String::NewSymbol(kLiteralFactoryClassName));
+    const Class& literal_factory_class =
+        Class::Handle(LookupCoreClass(literal_factory_class_name));
+    ASSERT(!literal_factory_class.IsNull());
+    const String& literal_list_factory_name =
+        String::Handle(String::NewSymbol(kLiteralFactoryListFromLiteralName));
+    const Function& literal_list_factory = Function::ZoneHandle(
+        literal_factory_class.LookupFactory(literal_list_factory_name));
+    ASSERT(!literal_list_factory.IsNull());
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureReceiver();
     }
-
-    // Make a new growable array from the fixed array.
-    String& growable_object_array_class_name = String::Handle(
-        String::NewSymbol(kGrowableObjectArrayName));
-    const Class& growable_array_class = Class::Handle(
-        LookupImplClass(growable_object_array_class_name));
-    String& ctor_name =
-        String::Handle(String::NewSymbol(kGrowableObjectArrayFromArrayName));
-    Function& array_ctor = Function::ZoneHandle(
-        growable_array_class.LookupConstructor(ctor_name));
-    ASSERT(!array_ctor.IsNull());
-    ArgumentListNode* ctor_args = new ArgumentListNode(literal_pos);
-    ctor_args->Add(array);
-    CheckConstructorCallTypeArguments(literal_pos, array_ctor, type_arguments);
+    ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
+    factory_param->Add(
+        new LiteralNode(literal_pos, Smi::ZoneHandle(Smi::New(literal_pos))));
+    factory_param->Add(
+        new LiteralNode(literal_pos, String::ZoneHandle(element_type.Name())));
+    factory_param->Add(list);
     return new ConstructorCallNode(
-        literal_pos, type_arguments, array_ctor, ctor_args);
+        literal_pos, type_arguments, literal_list_factory, factory_param);
   }
 }
 
@@ -6704,14 +6717,15 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   const intptr_t literal_pos = token_index_;
   ConsumeToken();
 
-  Type& value_type_argument = Type::Handle(Type::DynamicType());
+  Type& value_type = Type::Handle(Type::DynamicType());
   TypeArguments& map_type_arguments =
       TypeArguments::ZoneHandle(type_arguments.raw());
-  // If no type argument is provided, leave it as null, which is equivalent
-  // to using Dynamic as the type argument for the value type.
+  // If no type argument vector is provided, leave it as null, which is
+  // equivalent to using Dynamic as the type argument for the value type.
   if (!map_type_arguments.IsNull()) {
-    // Map literals only take one type argument.
-    value_type_argument = map_type_arguments.TypeAt(0);
+    ASSERT(map_type_arguments.Length() > 0);
+    // Map literals take a single type argument.
+    value_type = map_type_arguments.TypeAt(0);
     if (map_type_arguments.Length() > 1) {
       // We temporarily accept two type arguments, as long as the first one is
       // type String.
@@ -6720,21 +6734,21 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                  "a map literal takes one type argument specifying "
                  "the value type");
       }
-      if (!value_type_argument.IsStringInterface()) {
+      if (!value_type.IsStringInterface()) {
         ErrorMsg(type_pos,
                  "the key type of a map literal is implicitly 'String'");
       }
       Warning(type_pos,
               "a map literal takes one type argument specifying "
               "the value type");
-      value_type_argument = map_type_arguments.TypeAt(1);
+      value_type = map_type_arguments.TypeAt(1);
     } else {
       TypeArray& type_array = TypeArray::Handle(TypeArray::New(2));
       type_array.SetTypeAt(0, Type::Handle(Type::StringInterface()));
-      type_array.SetTypeAt(1, value_type_argument);
+      type_array.SetTypeAt(1, value_type);
       map_type_arguments = type_array.raw();
     }
-    if (is_const && !value_type_argument.IsInstantiated()) {
+    if (is_const && !value_type.IsInstantiated()) {
       ErrorMsg(type_pos,
                "the type argument of a constant map literal cannot include "
                "a type variable");
@@ -6785,11 +6799,13 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       if (((i % 2) == 1) &&  // Check values only, not keys.
-          !value_type_argument.IsDynamicType() &&
-          !arg->AsLiteralNode()->literal().Is(value_type_argument)) {
+          !value_type.IsDynamicType() &&
+          !arg->AsLiteralNode()->literal().Is(value_type)) {
         ErrorMsg(arg->AsLiteralNode()->token_index(),
-                 "map literal entry value must be a constant of type '%s'",
-                 String::Handle(value_type_argument.Name()).ToCString());
+                 "map literal value at index %d must be "
+                 "a constant of type '%s'",
+                 i >> 1,
+                 String::Handle(value_type.Name()).ToCString());
       }
       key_value_array.SetAt(i, arg->AsLiteralNode()->literal());
     }
@@ -6821,15 +6837,15 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   } else {
     // Factory call at runtime.
-    String& literal_map_factory_class_name = String::Handle(
-        String::NewSymbol(kLiteralMapFactoryName));
-    const Class& literal_map_factory_class =
-        Class::Handle(LookupCoreClass(literal_map_factory_class_name));
-    ASSERT(!literal_map_factory_class.IsNull());
+    String& literal_factory_class_name = String::Handle(
+        String::NewSymbol(kLiteralFactoryClassName));
+    const Class& literal_factory_class =
+        Class::Handle(LookupCoreClass(literal_factory_class_name));
+    ASSERT(!literal_factory_class.IsNull());
     const String& literal_map_factory_name =
-        String::Handle(String::NewSymbol(kLiteralMapFactoryFromLiteralName));
+        String::Handle(String::NewSymbol(kLiteralFactoryMapFromLiteralName));
     const Function& literal_map_factory = Function::ZoneHandle(
-        literal_map_factory_class.LookupFactory(literal_map_factory_name));
+        literal_factory_class.LookupFactory(literal_map_factory_name));
     ASSERT(!literal_map_factory.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
@@ -6841,8 +6857,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     factory_param->Add(
         new LiteralNode(literal_pos, Smi::ZoneHandle(Smi::New(literal_pos))));
     factory_param->Add(
-        new LiteralNode(literal_pos,
-                        String::ZoneHandle(value_type_argument.Name())));
+        new LiteralNode(literal_pos, String::ZoneHandle(value_type.Name())));
     factory_param->Add(kv_pairs);
     return new ConstructorCallNode(
         literal_pos, map_type_arguments, literal_map_factory, factory_param);
@@ -6862,7 +6877,7 @@ AstNode* Parser::ParseCompoundLiteral() {
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
-    primary = ParseArrayLiteral(type_pos, is_const, type_arguments);
+    primary = ParseListLiteral(type_pos, is_const, type_arguments);
   } else if (CurrentToken() == Token::kLBRACE) {
     primary = ParseMapLiteral(type_pos, is_const, type_arguments);
   } else {
@@ -7307,9 +7322,9 @@ void Parser::SkipFunctionLiteral() {
 }
 
 
-void Parser::SkipArrayLiteral() {
+void Parser::SkipListLiteral() {
   if (CurrentToken() == Token::kINDEX) {
-    // Empty array literal.
+    // Empty list literal.
     ConsumeToken();
     return;
   }
@@ -7356,7 +7371,7 @@ void Parser::SkipCompoundLiteral() {
   }
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
-    SkipArrayLiteral();
+    SkipListLiteral();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipMapLiteral();
   }

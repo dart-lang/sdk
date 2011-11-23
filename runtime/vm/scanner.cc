@@ -13,7 +13,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
-DECLARE_FLAG(bool, expose_core_impl);
 
 void Scanner::InitKeywordTable() {
   for (int i = 0; i < Token::numKeywords; i++) {
@@ -252,7 +251,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   current_token_.kind = Token::kIDENT;
   String& literal =
       String::ZoneHandle(String::NewSymbol(source_, ident_pos, ident_length));
-  if ((ident_char0 == kPrivateIdentifierStart) && !FLAG_expose_core_impl) {
+  if (ident_char0 == kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per script basis.
     literal = String::Concat(literal, private_key_);
     literal = String::NewSymbol(literal);

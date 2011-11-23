@@ -28,8 +28,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, expose_core_impl, false,
-    "Enables access to core implementation library (only for testing).");
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 
@@ -4170,10 +4168,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
     result.AddImport(core_lib);
-    if (FLAG_expose_core_impl) {
-      // Make implementation corelib visible to Dart code.
-      result.AddImport(Library::Handle(Library::CoreImplLibrary()));
-    }
   }
   return result.raw();
 }

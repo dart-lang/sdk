@@ -13,7 +13,7 @@
     'error.cc',
     'error.dart',
     'error.h',
-    'literal_map_factory.dart',
+    'literal_factory.dart',
     'object.cc',
     'object.dart',
   ],

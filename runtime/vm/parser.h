@@ -162,7 +162,7 @@ class Parser : ValueObject {
   void SkipNewOperator();
   void SkipActualParameters();
   void SkipMapLiteral();
-  void SkipArrayLiteral();
+  void SkipListLiteral();
   void SkipFunctionLiteral();
   void SkipStringLiteral();
 
@@ -342,9 +342,9 @@ class Parser : ValueObject {
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral();
   AstNode* ParseCompoundLiteral();
-  AstNode* ParseArrayLiteral(intptr_t type_pos,
-                             bool is_const,
-                             const TypeArguments& type_arguments);
+  AstNode* ParseListLiteral(intptr_t type_pos,
+                            bool is_const,
+                            const TypeArguments& type_arguments);
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
                            const TypeArguments& type_arguments);

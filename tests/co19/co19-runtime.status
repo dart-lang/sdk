@@ -301,7 +301,6 @@ LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t01: Fail  # Issue 441
 
 # Started failing after changing how @dynamic-type-error is handled.
 [ $component == vm && $checked ]
-LangSpecTest/13_Types/13_2_Dynamic_Type_System/A01/t01: Fail # Issue 220
 LibTest/core/List/every/List/every/A01/t04: Fail # Issue co19 - 46
 LibTest/core/List/filter/List/filter/A01/t04: Fail # Issue co19 - 46
 LibTest/core/List/forEach/List/forEach/A01/t05: Fail # Issue co19 - 46
