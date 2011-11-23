@@ -76,11 +76,6 @@ int TraceParser::indent_ = 0;
 
 static const char* kManglePrefix = "this:";
 
-static RawString* MangledInitParamName(const String& field_name) {
-  return String::Concat(String::Handle(String::New(kManglePrefix)),
-                        field_name);
-}
-
 
 template<typename T>
 static RawArray* NewArray(const GrowableArray<T*>& objs) {
