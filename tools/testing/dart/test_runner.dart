@@ -38,7 +38,7 @@ class TestCase {
            [isNegative = false])
       : this.isNegative = isNegative {
     if (!isNegative) {
-      isNegative = displayName.contains("NegativeTest");
+      this.isNegative = displayName.contains("NegativeTest");
     }
     commandLine = executablePath;
     for (var arg in arguments) {

@@ -6,8 +6,7 @@
 
 #import("../../../tools/testing/dart/test_runner.dart");
 #import("../../../tools/testing/dart/status_file_parser.dart");
-
-// TODO(whesse) source("ProcessTestUtil.dart"); when it is committed.
+#source("ProcessTestUtil.dart");
 
 class TestController {
   static final int numTests = 4;
@@ -36,6 +35,7 @@ class TestController {
   }
 }
 
+
 TestCase MakeTestCase(String testName, List<String> expectations) {
   String test_path = "tests/standalone/src/${testName}.dart";
   // Working directory may be dart/runtime rather than dart.
@@ -56,12 +56,18 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 
 
 String getDartBinName() {
-  var names = ["out/Debug_ia32/dart",
-               "out/Release_ia32/dart",
-               "xcodebuild/Debug_ia32/dart",
-               "xcodebuild/Release_ia32/dart",
-               "Debug_ia32/dart.exe",
-               "Release_ia32/dart.exe"];
+  var os = new Platform().operatingSystem();
+
+  var outDir = '';
+  if (os == 'linux') {
+    outDir = 'out';
+  } else if (os == 'macos') {
+    outDir = 'xcodebuild';
+  }
+
+  var names = ['$outDir/Debug_ia32/dart',
+               '$outDir/Release_ia32/dart'];
+
   for (var name in names) {
     if (new File(name).existsSync()) {
       return name;
@@ -69,21 +75,6 @@ String getDartBinName() {
   }
 }
 
-
-String getProcessTestFileName() {
-  var names = ['out/Release_ia32/process_test',
-               'out/Debug_ia32/process_test',
-               'xcodebuild/Release_ia32/process_test',
-               'xcodebuild/Debug_ia32/process_test',
-               'Release_ia32/process_test.exe',
-               'Debug_ia32/process_test.exe'];
-  for (var name in names) {
-    if (new File(name).existsSync()) {
-      return name;
-    }
-  }
-  Expect.fail('Could not find the process_test program.');
-}
 
 void main() {
   int timeout = 2;

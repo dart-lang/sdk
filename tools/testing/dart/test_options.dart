@@ -20,7 +20,7 @@ class _TestOptionSpecification {
                            this.keys,
                            this.values,
                            this.defaultValue,
-                           [this.type = 'string']);
+                           [type = 'string']) : this.type = type;
   String name;
   String description;
   List<String> keys;

@@ -56,7 +56,7 @@ class SocketOutputStream implements OutputStream {
   SocketOutputStream(Socket socket)
       : _socket = socket, _pendingWrites = new _BufferList();
 
-    bool write(List<int> buffer, [bool copyBuffer = true]) {
+  bool write(List<int> buffer, [bool copyBuffer = true]) {
     return _write(buffer, 0, buffer.length, copyBuffer);
   }
 
