@@ -1324,7 +1324,7 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     if (i == (ic_data.NumberOfChecks() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
     } else {
-      __ j(EQUAL, &load_field, Assembler::kNearJump);
+      __ j(EQUAL, &load_field);
     }
   }
   Class& cls = Class::Handle();
@@ -1493,7 +1493,7 @@ void OptimizingCodeGenerator::InlineInstanceSettersWithSameTarget(
     if (i == (ic_data.NumberOfChecks() - 1)) {
       __ j(NOT_EQUAL, deopt_blob->label());
     } else {
-      __ j(EQUAL, &store_field, Assembler::kNearJump);
+      __ j(EQUAL, &store_field);
     }
   }
   Class& cls = Class::Handle();
