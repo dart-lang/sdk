@@ -276,6 +276,7 @@ NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NamingTest: Fail
+NativeClassInheritance2FrogTest: Fail
 NonConstSuperNegativeTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
