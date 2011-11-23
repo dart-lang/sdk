@@ -11,54 +11,6 @@ class _DOMApplicationCacheWrappingImplementation extends DOMWrapperBase implemen
     return new _DOMApplicationCacheWrappingImplementation();
   }
 
-  EventListener get oncached() { return _get_oncached(this); }
-  static EventListener _get_oncached(var _this) native;
-
-  void set oncached(EventListener value) { _set_oncached(this, value); }
-  static void _set_oncached(var _this, EventListener value) native;
-
-  EventListener get onchecking() { return _get_onchecking(this); }
-  static EventListener _get_onchecking(var _this) native;
-
-  void set onchecking(EventListener value) { _set_onchecking(this, value); }
-  static void _set_onchecking(var _this, EventListener value) native;
-
-  EventListener get ondownloading() { return _get_ondownloading(this); }
-  static EventListener _get_ondownloading(var _this) native;
-
-  void set ondownloading(EventListener value) { _set_ondownloading(this, value); }
-  static void _set_ondownloading(var _this, EventListener value) native;
-
-  EventListener get onerror() { return _get_onerror(this); }
-  static EventListener _get_onerror(var _this) native;
-
-  void set onerror(EventListener value) { _set_onerror(this, value); }
-  static void _set_onerror(var _this, EventListener value) native;
-
-  EventListener get onnoupdate() { return _get_onnoupdate(this); }
-  static EventListener _get_onnoupdate(var _this) native;
-
-  void set onnoupdate(EventListener value) { _set_onnoupdate(this, value); }
-  static void _set_onnoupdate(var _this, EventListener value) native;
-
-  EventListener get onobsolete() { return _get_onobsolete(this); }
-  static EventListener _get_onobsolete(var _this) native;
-
-  void set onobsolete(EventListener value) { _set_onobsolete(this, value); }
-  static void _set_onobsolete(var _this, EventListener value) native;
-
-  EventListener get onprogress() { return _get_onprogress(this); }
-  static EventListener _get_onprogress(var _this) native;
-
-  void set onprogress(EventListener value) { _set_onprogress(this, value); }
-  static void _set_onprogress(var _this, EventListener value) native;
-
-  EventListener get onupdateready() { return _get_onupdateready(this); }
-  static EventListener _get_onupdateready(var _this) native;
-
-  void set onupdateready(EventListener value) { _set_onupdateready(this, value); }
-  static void _set_onupdateready(var _this, EventListener value) native;
-
   int get status() { return _get_status(this); }
   static int _get_status(var _this) native;
 

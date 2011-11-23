@@ -1,8 +1,6 @@
 
 class AbstractWorker native "*AbstractWorker" {
 
-  EventListener onerror;
-
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   bool dispatchEvent(Event evt) native;

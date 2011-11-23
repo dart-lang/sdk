@@ -24,22 +24,6 @@ interface WebSocket extends EventTarget {
 
   String get extensions();
 
-  EventListener get onclose();
-
-  void set onclose(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onmessage();
-
-  void set onmessage(EventListener value);
-
-  EventListener get onopen();
-
-  void set onopen(EventListener value);
-
   String get protocol();
 
   int get readyState();

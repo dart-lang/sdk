@@ -102,10 +102,6 @@ interface HTMLInputElement extends HTMLElement {
 
   void set name(String value);
 
-  EventListener get onwebkitspeechchange();
-
-  void set onwebkitspeechchange(EventListener value);
-
   String get pattern();
 
   void set pattern(String value);

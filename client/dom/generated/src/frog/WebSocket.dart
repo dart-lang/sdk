@@ -9,14 +9,6 @@ class WebSocket native "*WebSocket" {
 
   String extensions;
 
-  EventListener onclose;
-
-  EventListener onerror;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
   String protocol;
 
   int readyState;

@@ -26,30 +26,6 @@ class _WebSocketWrappingImplementation extends DOMWrapperBase implements WebSock
   String get extensions() { return _get_extensions(this); }
   static String _get_extensions(var _this) native;
 
-  EventListener get onclose() { return _get_onclose(this); }
-  static EventListener _get_onclose(var _this) native;
-
-  void set onclose(EventListener value) { _set_onclose(this, value); }
-  static void _set_onclose(var _this, EventListener value) native;
-
-  EventListener get onerror() { return _get_onerror(this); }
-  static EventListener _get_onerror(var _this) native;
-
-  void set onerror(EventListener value) { _set_onerror(this, value); }
-  static void _set_onerror(var _this, EventListener value) native;
-
-  EventListener get onmessage() { return _get_onmessage(this); }
-  static EventListener _get_onmessage(var _this) native;
-
-  void set onmessage(EventListener value) { _set_onmessage(this, value); }
-  static void _set_onmessage(var _this, EventListener value) native;
-
-  EventListener get onopen() { return _get_onopen(this); }
-  static EventListener _get_onopen(var _this) native;
-
-  void set onopen(EventListener value) { _set_onopen(this, value); }
-  static void _set_onopen(var _this, EventListener value) native;
-
   String get protocol() { return _get_protocol(this); }
   static String _get_protocol(var _this) native;
 

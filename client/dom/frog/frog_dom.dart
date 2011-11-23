@@ -18,8 +18,6 @@ HTMLDocument get document() native "return window.document;";
 
 class AbstractWorker native "*AbstractWorker" {
 
-  EventListener onerror;
-
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   bool dispatchEvent(Event evt) native;
@@ -605,22 +603,6 @@ class CustomEvent extends Event native "*CustomEvent" {
 
 class DOMApplicationCache native "*DOMApplicationCache" {
 
-  EventListener oncached;
-
-  EventListener onchecking;
-
-  EventListener ondownloading;
-
-  EventListener onerror;
-
-  EventListener onnoupdate;
-
-  EventListener onobsolete;
-
-  EventListener onprogress;
-
-  EventListener onupdateready;
-
   int status;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -916,152 +898,6 @@ class DOMWindow native "*DOMWindow" {
 
   bool offscreenBuffering;
 
-  EventListener onabort;
-
-  EventListener onbeforeunload;
-
-  EventListener onblur;
-
-  EventListener oncanplay;
-
-  EventListener oncanplaythrough;
-
-  EventListener onchange;
-
-  EventListener onclick;
-
-  EventListener oncontextmenu;
-
-  EventListener ondblclick;
-
-  EventListener ondevicemotion;
-
-  EventListener ondeviceorientation;
-
-  EventListener ondrag;
-
-  EventListener ondragend;
-
-  EventListener ondragenter;
-
-  EventListener ondragleave;
-
-  EventListener ondragover;
-
-  EventListener ondragstart;
-
-  EventListener ondrop;
-
-  EventListener ondurationchange;
-
-  EventListener onemptied;
-
-  EventListener onended;
-
-  EventListener onerror;
-
-  EventListener onfocus;
-
-  EventListener onhashchange;
-
-  EventListener oninput;
-
-  EventListener oninvalid;
-
-  EventListener onkeydown;
-
-  EventListener onkeypress;
-
-  EventListener onkeyup;
-
-  EventListener onload;
-
-  EventListener onloadeddata;
-
-  EventListener onloadedmetadata;
-
-  EventListener onloadstart;
-
-  EventListener onmessage;
-
-  EventListener onmousedown;
-
-  EventListener onmousemove;
-
-  EventListener onmouseout;
-
-  EventListener onmouseover;
-
-  EventListener onmouseup;
-
-  EventListener onmousewheel;
-
-  EventListener onoffline;
-
-  EventListener ononline;
-
-  EventListener onpagehide;
-
-  EventListener onpageshow;
-
-  EventListener onpause;
-
-  EventListener onplay;
-
-  EventListener onplaying;
-
-  EventListener onpopstate;
-
-  EventListener onprogress;
-
-  EventListener onratechange;
-
-  EventListener onreset;
-
-  EventListener onresize;
-
-  EventListener onscroll;
-
-  EventListener onsearch;
-
-  EventListener onseeked;
-
-  EventListener onseeking;
-
-  EventListener onselect;
-
-  EventListener onstalled;
-
-  EventListener onstorage;
-
-  EventListener onsubmit;
-
-  EventListener onsuspend;
-
-  EventListener ontimeupdate;
-
-  EventListener ontouchcancel;
-
-  EventListener ontouchend;
-
-  EventListener ontouchmove;
-
-  EventListener ontouchstart;
-
-  EventListener onunload;
-
-  EventListener onvolumechange;
-
-  EventListener onwaiting;
-
-  EventListener onwebkitanimationend;
-
-  EventListener onwebkitanimationiteration;
-
-  EventListener onwebkitanimationstart;
-
-  EventListener onwebkittransitionend;
-
   DOMWindow opener;
 
   int outerHeight;
@@ -1303,8 +1139,6 @@ class DatabaseSync native "*DatabaseSync" {
 
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
-  EventListener onmessage;
-
   void postMessage(Object message, [List messagePorts = null]) native;
 
   void webkitPostMessage(Object message, [List transferList = null]) native;
@@ -1411,98 +1245,6 @@ class Document extends Node native "*Document" {
   HTMLCollection links;
 
   Location location;
-
-  EventListener onabort;
-
-  EventListener onbeforecopy;
-
-  EventListener onbeforecut;
-
-  EventListener onbeforepaste;
-
-  EventListener onblur;
-
-  EventListener onchange;
-
-  EventListener onclick;
-
-  EventListener oncontextmenu;
-
-  EventListener oncopy;
-
-  EventListener oncut;
-
-  EventListener ondblclick;
-
-  EventListener ondrag;
-
-  EventListener ondragend;
-
-  EventListener ondragenter;
-
-  EventListener ondragleave;
-
-  EventListener ondragover;
-
-  EventListener ondragstart;
-
-  EventListener ondrop;
-
-  EventListener onerror;
-
-  EventListener onfocus;
-
-  EventListener oninput;
-
-  EventListener oninvalid;
-
-  EventListener onkeydown;
-
-  EventListener onkeypress;
-
-  EventListener onkeyup;
-
-  EventListener onload;
-
-  EventListener onmousedown;
-
-  EventListener onmousemove;
-
-  EventListener onmouseout;
-
-  EventListener onmouseover;
-
-  EventListener onmouseup;
-
-  EventListener onmousewheel;
-
-  EventListener onpaste;
-
-  EventListener onreadystatechange;
-
-  EventListener onreset;
-
-  EventListener onscroll;
-
-  EventListener onsearch;
-
-  EventListener onselect;
-
-  EventListener onselectionchange;
-
-  EventListener onselectstart;
-
-  EventListener onsubmit;
-
-  EventListener ontouchcancel;
-
-  EventListener ontouchend;
-
-  EventListener ontouchmove;
-
-  EventListener ontouchstart;
-
-  EventListener onwebkitfullscreenchange;
 
   String preferredStylesheetSet;
 
@@ -1650,94 +1392,6 @@ class Element extends Node native "*Element" {
   int offsetTop;
 
   int offsetWidth;
-
-  EventListener onabort;
-
-  EventListener onbeforecopy;
-
-  EventListener onbeforecut;
-
-  EventListener onbeforepaste;
-
-  EventListener onblur;
-
-  EventListener onchange;
-
-  EventListener onclick;
-
-  EventListener oncontextmenu;
-
-  EventListener oncopy;
-
-  EventListener oncut;
-
-  EventListener ondblclick;
-
-  EventListener ondrag;
-
-  EventListener ondragend;
-
-  EventListener ondragenter;
-
-  EventListener ondragleave;
-
-  EventListener ondragover;
-
-  EventListener ondragstart;
-
-  EventListener ondrop;
-
-  EventListener onerror;
-
-  EventListener onfocus;
-
-  EventListener oninput;
-
-  EventListener oninvalid;
-
-  EventListener onkeydown;
-
-  EventListener onkeypress;
-
-  EventListener onkeyup;
-
-  EventListener onload;
-
-  EventListener onmousedown;
-
-  EventListener onmousemove;
-
-  EventListener onmouseout;
-
-  EventListener onmouseover;
-
-  EventListener onmouseup;
-
-  EventListener onmousewheel;
-
-  EventListener onpaste;
-
-  EventListener onreset;
-
-  EventListener onscroll;
-
-  EventListener onsearch;
-
-  EventListener onselect;
-
-  EventListener onselectstart;
-
-  EventListener onsubmit;
-
-  EventListener ontouchcancel;
-
-  EventListener ontouchend;
-
-  EventListener ontouchmove;
-
-  EventListener ontouchstart;
-
-  EventListener onwebkitfullscreenchange;
 
   Element previousElementSibling;
 
@@ -2028,12 +1682,6 @@ class EventSource native "*EventSource" {
 
   String URL;
 
-  EventListener onerror;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
   int readyState;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -2137,18 +1785,6 @@ class FileReader native "*FileReader" {
 
   FileError error;
 
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadend;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
-
   int readyState;
 
   Object result;
@@ -2197,18 +1833,6 @@ class FileWriter native "*FileWriter" {
   FileError error;
 
   int length;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onprogress;
-
-  EventListener onwrite;
-
-  EventListener onwriteend;
-
-  EventListener onwritestart;
 
   int position;
 
@@ -2448,34 +2072,6 @@ class HTMLBodyElement extends HTMLElement native "*HTMLBodyElement" {
   String bgColor;
 
   String link;
-
-  EventListener onbeforeunload;
-
-  EventListener onblur;
-
-  EventListener onerror;
-
-  EventListener onfocus;
-
-  EventListener onhashchange;
-
-  EventListener onload;
-
-  EventListener onmessage;
-
-  EventListener onoffline;
-
-  EventListener ononline;
-
-  EventListener onorientationchange;
-
-  EventListener onpopstate;
-
-  EventListener onresize;
-
-  EventListener onstorage;
-
-  EventListener onunload;
 
   String text;
 
@@ -2783,34 +2379,6 @@ class HTMLFrameSetElement extends HTMLElement native "*HTMLFrameSetElement" {
 
   String cols;
 
-  EventListener onbeforeunload;
-
-  EventListener onblur;
-
-  EventListener onerror;
-
-  EventListener onfocus;
-
-  EventListener onhashchange;
-
-  EventListener onload;
-
-  EventListener onmessage;
-
-  EventListener onoffline;
-
-  EventListener ononline;
-
-  EventListener onorientationchange;
-
-  EventListener onpopstate;
-
-  EventListener onresize;
-
-  EventListener onstorage;
-
-  EventListener onunload;
-
   String rows;
 }
 
@@ -2965,8 +2533,6 @@ class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
   bool multiple;
 
   String name;
-
-  EventListener onwebkitspeechchange;
 
   String pattern;
 
@@ -3833,12 +3399,6 @@ class IDBDatabase native "*IDBDatabase" {
 
   String name;
 
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onversionchange;
-
   String version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -3991,10 +3551,6 @@ class IDBRequest native "*IDBRequest" {
 
   int errorCode;
 
-  EventListener onerror;
-
-  EventListener onsuccess;
-
   int readyState;
 
   IDBAny result;
@@ -4022,12 +3578,6 @@ class IDBTransaction native "*IDBTransaction" {
 
   int mode;
 
-  EventListener onabort;
-
-  EventListener oncomplete;
-
-  EventListener onerror;
-
   void abort() native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -4049,8 +3599,6 @@ class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 }
 
 class IDBVersionChangeRequest extends IDBRequest native "*IDBVersionChangeRequest" {
-
-  EventListener onblocked;
 }
 
 class ImageData native "*ImageData" {
@@ -4336,8 +3884,6 @@ class MessageEvent extends Event native "*MessageEvent" {
 }
 
 class MessagePort native "*MessagePort" {
-
-  EventListener onmessage;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -4698,14 +4244,6 @@ class Notation extends Node native "*Notation" {
 class Notification native "*Notification" {
 
   String dir;
-
-  EventListener onclick;
-
-  EventListener onclose;
-
-  EventListener ondisplay;
-
-  EventListener onerror;
 
   String replaceId;
 
@@ -5675,86 +5213,6 @@ class SVGElementInstance native "*SVGElementInstance" {
   SVGElementInstance lastChild;
 
   SVGElementInstance nextSibling;
-
-  EventListener onabort;
-
-  EventListener onbeforecopy;
-
-  EventListener onbeforecut;
-
-  EventListener onbeforepaste;
-
-  EventListener onblur;
-
-  EventListener onchange;
-
-  EventListener onclick;
-
-  EventListener oncontextmenu;
-
-  EventListener oncopy;
-
-  EventListener oncut;
-
-  EventListener ondblclick;
-
-  EventListener ondrag;
-
-  EventListener ondragend;
-
-  EventListener ondragenter;
-
-  EventListener ondragleave;
-
-  EventListener ondragover;
-
-  EventListener ondragstart;
-
-  EventListener ondrop;
-
-  EventListener onerror;
-
-  EventListener onfocus;
-
-  EventListener oninput;
-
-  EventListener onkeydown;
-
-  EventListener onkeypress;
-
-  EventListener onkeyup;
-
-  EventListener onload;
-
-  EventListener onmousedown;
-
-  EventListener onmousemove;
-
-  EventListener onmouseout;
-
-  EventListener onmouseover;
-
-  EventListener onmouseup;
-
-  EventListener onmousewheel;
-
-  EventListener onpaste;
-
-  EventListener onreset;
-
-  EventListener onresize;
-
-  EventListener onscroll;
-
-  EventListener onsearch;
-
-  EventListener onselect;
-
-  EventListener onselectstart;
-
-  EventListener onsubmit;
-
-  EventListener onunload;
 
   SVGElementInstance parentNode;
 
@@ -8406,8 +7864,6 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 class SharedWorkercontext extends WorkerContext native "*SharedWorkercontext" {
 
   String name;
-
-  EventListener onconnect;
 }
 
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
@@ -9454,14 +8910,6 @@ class WebSocket native "*WebSocket" {
 
   String extensions;
 
-  EventListener onclose;
-
-  EventListener onerror;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
   String protocol;
 
   int readyState;
@@ -9520,8 +8968,6 @@ class WheelEvent extends UIEvent native "*WheelEvent" {
 
 class Worker extends AbstractWorker native "*Worker" {
 
-  EventListener onmessage;
-
   void postMessage(String message, [List messagePorts = null]) native;
 
   void terminate() native;
@@ -9534,8 +8980,6 @@ class WorkerContext native "*WorkerContext" {
   WorkerLocation location;
 
   WorkerNavigator navigator;
-
-  EventListener onerror;
 
   WorkerContext self;
 
@@ -9614,18 +9058,6 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 
   bool asBlob;
 
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
-
-  EventListener onreadystatechange;
-
   int readyState;
 
   Blob responseBlob;
@@ -9692,16 +9124,6 @@ class XMLHttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestP
 }
 
 class XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

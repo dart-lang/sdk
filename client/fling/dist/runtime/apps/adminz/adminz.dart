@@ -14,11 +14,11 @@ class Xhr {
       String contentType, XhrCallback onSuccess, XhrCallback onFailure) {
     // TODO(knorton): Catch exceptions.
     final xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () {
+    final onReadyStateChange = () {
       if (xhr.readyState != 4)
         return;
 
-      xhr.onreadystatechange = null;
+      xhr.removeEventListener('readystatechange', onReadyStateChange);
       if (xhr.status == 200) {
         if (onSuccess != null)
           onSuccess(xhr);
@@ -27,6 +27,7 @@ class Xhr {
           onFailure(xhr);
       }
     };
+    xhr.addEventListener('readystatechange', onReadyStateChange, true);
     xhr.open(method, url, true);
     if (contentType == null) {
       xhr.setRequestHeader('Content-Type', contentType);

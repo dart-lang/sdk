@@ -6,38 +6,6 @@
 
 interface ApplicationCache extends EventTarget {
 
-  EventListener get oncached();
-
-  void set oncached(EventListener value);
-
-  EventListener get onchecking();
-
-  void set onchecking(EventListener value);
-
-  EventListener get ondownloading();
-
-  void set ondownloading(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onnoupdate();
-
-  void set onnoupdate(EventListener value);
-
-  EventListener get onobsolete();
-
-  void set onobsolete(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
-
-  EventListener get onupdateready();
-
-  void set onupdateready(EventListener value);
-
   int get status();
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);

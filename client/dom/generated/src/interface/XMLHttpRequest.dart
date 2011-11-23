@@ -23,30 +23,6 @@ interface XMLHttpRequest extends EventTarget factory _XMLHttpRequestFactoryProvi
 
   void set asBlob(bool value);
 
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onload();
-
-  void set onload(EventListener value);
-
-  EventListener get onloadstart();
-
-  void set onloadstart(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
-
-  EventListener get onreadystatechange();
-
-  void set onreadystatechange(EventListener value);
-
   int get readyState();
 
   Blob get responseBlob();

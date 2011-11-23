@@ -66,8 +66,6 @@ function DOM$fixMembers(cls, keys) {
 
 function DOM$fixClass$AbstractWorker(c) {
   if (c.prototype) {
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
   }
   DOM$fixMembers(c, [
     'addEventListener',
@@ -545,22 +543,6 @@ function DOM$fixClass$CustomEvent(c) {
 }
 function DOM$fixClass$DOMApplicationCache(c) {
   if (c.prototype) {
-    c.prototype.oncached$getter = function() { return DOM$EnsureDartNull(this.oncached); };
-    c.prototype.oncached$setter = function(value) { this.oncached = value; };
-    c.prototype.onchecking$getter = function() { return DOM$EnsureDartNull(this.onchecking); };
-    c.prototype.onchecking$setter = function(value) { this.onchecking = value; };
-    c.prototype.ondownloading$getter = function() { return DOM$EnsureDartNull(this.ondownloading); };
-    c.prototype.ondownloading$setter = function(value) { this.ondownloading = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onnoupdate$getter = function() { return DOM$EnsureDartNull(this.onnoupdate); };
-    c.prototype.onnoupdate$setter = function(value) { this.onnoupdate = value; };
-    c.prototype.onobsolete$getter = function() { return DOM$EnsureDartNull(this.onobsolete); };
-    c.prototype.onobsolete$setter = function(value) { this.onobsolete = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onupdateready$getter = function() { return DOM$EnsureDartNull(this.onupdateready); };
-    c.prototype.onupdateready$setter = function(value) { this.onupdateready = value; };
     c.prototype.status$getter = function() { return DOM$EnsureDartNull(this.status); };
   }
   DOM$fixMembers(c, [
@@ -761,152 +743,6 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.navigator$setter = function(value) { this.navigator = value; };
     c.prototype.offscreenBuffering$getter = function() { return DOM$EnsureDartNull(this.offscreenBuffering); };
     c.prototype.offscreenBuffering$setter = function(value) { this.offscreenBuffering = value; };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onbeforeunload$getter = function() { return DOM$EnsureDartNull(this.onbeforeunload); };
-    c.prototype.onbeforeunload$setter = function(value) { this.onbeforeunload = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.oncanplay$getter = function() { return DOM$EnsureDartNull(this.oncanplay); };
-    c.prototype.oncanplay$setter = function(value) { this.oncanplay = value; };
-    c.prototype.oncanplaythrough$getter = function() { return DOM$EnsureDartNull(this.oncanplaythrough); };
-    c.prototype.oncanplaythrough$setter = function(value) { this.oncanplaythrough = value; };
-    c.prototype.onchange$getter = function() { return DOM$EnsureDartNull(this.onchange); };
-    c.prototype.onchange$setter = function(value) { this.onchange = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.oncontextmenu$getter = function() { return DOM$EnsureDartNull(this.oncontextmenu); };
-    c.prototype.oncontextmenu$setter = function(value) { this.oncontextmenu = value; };
-    c.prototype.ondblclick$getter = function() { return DOM$EnsureDartNull(this.ondblclick); };
-    c.prototype.ondblclick$setter = function(value) { this.ondblclick = value; };
-    c.prototype.ondevicemotion$getter = function() { return DOM$EnsureDartNull(this.ondevicemotion); };
-    c.prototype.ondevicemotion$setter = function(value) { this.ondevicemotion = value; };
-    c.prototype.ondeviceorientation$getter = function() { return DOM$EnsureDartNull(this.ondeviceorientation); };
-    c.prototype.ondeviceorientation$setter = function(value) { this.ondeviceorientation = value; };
-    c.prototype.ondrag$getter = function() { return DOM$EnsureDartNull(this.ondrag); };
-    c.prototype.ondrag$setter = function(value) { this.ondrag = value; };
-    c.prototype.ondragend$getter = function() { return DOM$EnsureDartNull(this.ondragend); };
-    c.prototype.ondragend$setter = function(value) { this.ondragend = value; };
-    c.prototype.ondragenter$getter = function() { return DOM$EnsureDartNull(this.ondragenter); };
-    c.prototype.ondragenter$setter = function(value) { this.ondragenter = value; };
-    c.prototype.ondragleave$getter = function() { return DOM$EnsureDartNull(this.ondragleave); };
-    c.prototype.ondragleave$setter = function(value) { this.ondragleave = value; };
-    c.prototype.ondragover$getter = function() { return DOM$EnsureDartNull(this.ondragover); };
-    c.prototype.ondragover$setter = function(value) { this.ondragover = value; };
-    c.prototype.ondragstart$getter = function() { return DOM$EnsureDartNull(this.ondragstart); };
-    c.prototype.ondragstart$setter = function(value) { this.ondragstart = value; };
-    c.prototype.ondrop$getter = function() { return DOM$EnsureDartNull(this.ondrop); };
-    c.prototype.ondrop$setter = function(value) { this.ondrop = value; };
-    c.prototype.ondurationchange$getter = function() { return DOM$EnsureDartNull(this.ondurationchange); };
-    c.prototype.ondurationchange$setter = function(value) { this.ondurationchange = value; };
-    c.prototype.onemptied$getter = function() { return DOM$EnsureDartNull(this.onemptied); };
-    c.prototype.onemptied$setter = function(value) { this.onemptied = value; };
-    c.prototype.onended$getter = function() { return DOM$EnsureDartNull(this.onended); };
-    c.prototype.onended$setter = function(value) { this.onended = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.onhashchange$getter = function() { return DOM$EnsureDartNull(this.onhashchange); };
-    c.prototype.onhashchange$setter = function(value) { this.onhashchange = value; };
-    c.prototype.oninput$getter = function() { return DOM$EnsureDartNull(this.oninput); };
-    c.prototype.oninput$setter = function(value) { this.oninput = value; };
-    c.prototype.oninvalid$getter = function() { return DOM$EnsureDartNull(this.oninvalid); };
-    c.prototype.oninvalid$setter = function(value) { this.oninvalid = value; };
-    c.prototype.onkeydown$getter = function() { return DOM$EnsureDartNull(this.onkeydown); };
-    c.prototype.onkeydown$setter = function(value) { this.onkeydown = value; };
-    c.prototype.onkeypress$getter = function() { return DOM$EnsureDartNull(this.onkeypress); };
-    c.prototype.onkeypress$setter = function(value) { this.onkeypress = value; };
-    c.prototype.onkeyup$getter = function() { return DOM$EnsureDartNull(this.onkeyup); };
-    c.prototype.onkeyup$setter = function(value) { this.onkeyup = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadeddata$getter = function() { return DOM$EnsureDartNull(this.onloadeddata); };
-    c.prototype.onloadeddata$setter = function(value) { this.onloadeddata = value; };
-    c.prototype.onloadedmetadata$getter = function() { return DOM$EnsureDartNull(this.onloadedmetadata); };
-    c.prototype.onloadedmetadata$setter = function(value) { this.onloadedmetadata = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onmousedown$getter = function() { return DOM$EnsureDartNull(this.onmousedown); };
-    c.prototype.onmousedown$setter = function(value) { this.onmousedown = value; };
-    c.prototype.onmousemove$getter = function() { return DOM$EnsureDartNull(this.onmousemove); };
-    c.prototype.onmousemove$setter = function(value) { this.onmousemove = value; };
-    c.prototype.onmouseout$getter = function() { return DOM$EnsureDartNull(this.onmouseout); };
-    c.prototype.onmouseout$setter = function(value) { this.onmouseout = value; };
-    c.prototype.onmouseover$getter = function() { return DOM$EnsureDartNull(this.onmouseover); };
-    c.prototype.onmouseover$setter = function(value) { this.onmouseover = value; };
-    c.prototype.onmouseup$getter = function() { return DOM$EnsureDartNull(this.onmouseup); };
-    c.prototype.onmouseup$setter = function(value) { this.onmouseup = value; };
-    c.prototype.onmousewheel$getter = function() { return DOM$EnsureDartNull(this.onmousewheel); };
-    c.prototype.onmousewheel$setter = function(value) { this.onmousewheel = value; };
-    c.prototype.onoffline$getter = function() { return DOM$EnsureDartNull(this.onoffline); };
-    c.prototype.onoffline$setter = function(value) { this.onoffline = value; };
-    c.prototype.ononline$getter = function() { return DOM$EnsureDartNull(this.ononline); };
-    c.prototype.ononline$setter = function(value) { this.ononline = value; };
-    c.prototype.onpagehide$getter = function() { return DOM$EnsureDartNull(this.onpagehide); };
-    c.prototype.onpagehide$setter = function(value) { this.onpagehide = value; };
-    c.prototype.onpageshow$getter = function() { return DOM$EnsureDartNull(this.onpageshow); };
-    c.prototype.onpageshow$setter = function(value) { this.onpageshow = value; };
-    c.prototype.onpause$getter = function() { return DOM$EnsureDartNull(this.onpause); };
-    c.prototype.onpause$setter = function(value) { this.onpause = value; };
-    c.prototype.onplay$getter = function() { return DOM$EnsureDartNull(this.onplay); };
-    c.prototype.onplay$setter = function(value) { this.onplay = value; };
-    c.prototype.onplaying$getter = function() { return DOM$EnsureDartNull(this.onplaying); };
-    c.prototype.onplaying$setter = function(value) { this.onplaying = value; };
-    c.prototype.onpopstate$getter = function() { return DOM$EnsureDartNull(this.onpopstate); };
-    c.prototype.onpopstate$setter = function(value) { this.onpopstate = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onratechange$getter = function() { return DOM$EnsureDartNull(this.onratechange); };
-    c.prototype.onratechange$setter = function(value) { this.onratechange = value; };
-    c.prototype.onreset$getter = function() { return DOM$EnsureDartNull(this.onreset); };
-    c.prototype.onreset$setter = function(value) { this.onreset = value; };
-    c.prototype.onresize$getter = function() { return DOM$EnsureDartNull(this.onresize); };
-    c.prototype.onresize$setter = function(value) { this.onresize = value; };
-    c.prototype.onscroll$getter = function() { return DOM$EnsureDartNull(this.onscroll); };
-    c.prototype.onscroll$setter = function(value) { this.onscroll = value; };
-    c.prototype.onsearch$getter = function() { return DOM$EnsureDartNull(this.onsearch); };
-    c.prototype.onsearch$setter = function(value) { this.onsearch = value; };
-    c.prototype.onseeked$getter = function() { return DOM$EnsureDartNull(this.onseeked); };
-    c.prototype.onseeked$setter = function(value) { this.onseeked = value; };
-    c.prototype.onseeking$getter = function() { return DOM$EnsureDartNull(this.onseeking); };
-    c.prototype.onseeking$setter = function(value) { this.onseeking = value; };
-    c.prototype.onselect$getter = function() { return DOM$EnsureDartNull(this.onselect); };
-    c.prototype.onselect$setter = function(value) { this.onselect = value; };
-    c.prototype.onstalled$getter = function() { return DOM$EnsureDartNull(this.onstalled); };
-    c.prototype.onstalled$setter = function(value) { this.onstalled = value; };
-    c.prototype.onstorage$getter = function() { return DOM$EnsureDartNull(this.onstorage); };
-    c.prototype.onstorage$setter = function(value) { this.onstorage = value; };
-    c.prototype.onsubmit$getter = function() { return DOM$EnsureDartNull(this.onsubmit); };
-    c.prototype.onsubmit$setter = function(value) { this.onsubmit = value; };
-    c.prototype.onsuspend$getter = function() { return DOM$EnsureDartNull(this.onsuspend); };
-    c.prototype.onsuspend$setter = function(value) { this.onsuspend = value; };
-    c.prototype.ontimeupdate$getter = function() { return DOM$EnsureDartNull(this.ontimeupdate); };
-    c.prototype.ontimeupdate$setter = function(value) { this.ontimeupdate = value; };
-    c.prototype.ontouchcancel$getter = function() { return DOM$EnsureDartNull(this.ontouchcancel); };
-    c.prototype.ontouchcancel$setter = function(value) { this.ontouchcancel = value; };
-    c.prototype.ontouchend$getter = function() { return DOM$EnsureDartNull(this.ontouchend); };
-    c.prototype.ontouchend$setter = function(value) { this.ontouchend = value; };
-    c.prototype.ontouchmove$getter = function() { return DOM$EnsureDartNull(this.ontouchmove); };
-    c.prototype.ontouchmove$setter = function(value) { this.ontouchmove = value; };
-    c.prototype.ontouchstart$getter = function() { return DOM$EnsureDartNull(this.ontouchstart); };
-    c.prototype.ontouchstart$setter = function(value) { this.ontouchstart = value; };
-    c.prototype.onunload$getter = function() { return DOM$EnsureDartNull(this.onunload); };
-    c.prototype.onunload$setter = function(value) { this.onunload = value; };
-    c.prototype.onvolumechange$getter = function() { return DOM$EnsureDartNull(this.onvolumechange); };
-    c.prototype.onvolumechange$setter = function(value) { this.onvolumechange = value; };
-    c.prototype.onwaiting$getter = function() { return DOM$EnsureDartNull(this.onwaiting); };
-    c.prototype.onwaiting$setter = function(value) { this.onwaiting = value; };
-    c.prototype.onwebkitanimationend$getter = function() { return DOM$EnsureDartNull(this.onwebkitanimationend); };
-    c.prototype.onwebkitanimationend$setter = function(value) { this.onwebkitanimationend = value; };
-    c.prototype.onwebkitanimationiteration$getter = function() { return DOM$EnsureDartNull(this.onwebkitanimationiteration); };
-    c.prototype.onwebkitanimationiteration$setter = function(value) { this.onwebkitanimationiteration = value; };
-    c.prototype.onwebkitanimationstart$getter = function() { return DOM$EnsureDartNull(this.onwebkitanimationstart); };
-    c.prototype.onwebkitanimationstart$setter = function(value) { this.onwebkitanimationstart = value; };
-    c.prototype.onwebkittransitionend$getter = function() { return DOM$EnsureDartNull(this.onwebkittransitionend); };
-    c.prototype.onwebkittransitionend$setter = function(value) { this.onwebkittransitionend = value; };
     c.prototype.opener$getter = function() { return DOM$EnsureDartNull(this.opener); };
     c.prototype.opener$setter = function(value) { this.opener = value; };
     c.prototype.outerHeight$getter = function() { return DOM$EnsureDartNull(this.outerHeight); };
@@ -1067,8 +903,6 @@ function DOM$fixClass$DatabaseSync(c) {
 }
 function DOM$fixClass$DedicatedWorkerContext(c) {
   if (c.prototype) {
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
   DOM$fixMembers(c, [
     'postMessage',
@@ -1157,98 +991,6 @@ function DOM$fixClass$Document(c) {
     c.prototype.links$getter = function() { return DOM$EnsureDartNull(this.links); };
     c.prototype.location$getter = function() { return DOM$EnsureDartNull(this.location); };
     c.prototype.location$setter = function(value) { this.location = value; };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onbeforecopy$getter = function() { return DOM$EnsureDartNull(this.onbeforecopy); };
-    c.prototype.onbeforecopy$setter = function(value) { this.onbeforecopy = value; };
-    c.prototype.onbeforecut$getter = function() { return DOM$EnsureDartNull(this.onbeforecut); };
-    c.prototype.onbeforecut$setter = function(value) { this.onbeforecut = value; };
-    c.prototype.onbeforepaste$getter = function() { return DOM$EnsureDartNull(this.onbeforepaste); };
-    c.prototype.onbeforepaste$setter = function(value) { this.onbeforepaste = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onchange$getter = function() { return DOM$EnsureDartNull(this.onchange); };
-    c.prototype.onchange$setter = function(value) { this.onchange = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.oncontextmenu$getter = function() { return DOM$EnsureDartNull(this.oncontextmenu); };
-    c.prototype.oncontextmenu$setter = function(value) { this.oncontextmenu = value; };
-    c.prototype.oncopy$getter = function() { return DOM$EnsureDartNull(this.oncopy); };
-    c.prototype.oncopy$setter = function(value) { this.oncopy = value; };
-    c.prototype.oncut$getter = function() { return DOM$EnsureDartNull(this.oncut); };
-    c.prototype.oncut$setter = function(value) { this.oncut = value; };
-    c.prototype.ondblclick$getter = function() { return DOM$EnsureDartNull(this.ondblclick); };
-    c.prototype.ondblclick$setter = function(value) { this.ondblclick = value; };
-    c.prototype.ondrag$getter = function() { return DOM$EnsureDartNull(this.ondrag); };
-    c.prototype.ondrag$setter = function(value) { this.ondrag = value; };
-    c.prototype.ondragend$getter = function() { return DOM$EnsureDartNull(this.ondragend); };
-    c.prototype.ondragend$setter = function(value) { this.ondragend = value; };
-    c.prototype.ondragenter$getter = function() { return DOM$EnsureDartNull(this.ondragenter); };
-    c.prototype.ondragenter$setter = function(value) { this.ondragenter = value; };
-    c.prototype.ondragleave$getter = function() { return DOM$EnsureDartNull(this.ondragleave); };
-    c.prototype.ondragleave$setter = function(value) { this.ondragleave = value; };
-    c.prototype.ondragover$getter = function() { return DOM$EnsureDartNull(this.ondragover); };
-    c.prototype.ondragover$setter = function(value) { this.ondragover = value; };
-    c.prototype.ondragstart$getter = function() { return DOM$EnsureDartNull(this.ondragstart); };
-    c.prototype.ondragstart$setter = function(value) { this.ondragstart = value; };
-    c.prototype.ondrop$getter = function() { return DOM$EnsureDartNull(this.ondrop); };
-    c.prototype.ondrop$setter = function(value) { this.ondrop = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.oninput$getter = function() { return DOM$EnsureDartNull(this.oninput); };
-    c.prototype.oninput$setter = function(value) { this.oninput = value; };
-    c.prototype.oninvalid$getter = function() { return DOM$EnsureDartNull(this.oninvalid); };
-    c.prototype.oninvalid$setter = function(value) { this.oninvalid = value; };
-    c.prototype.onkeydown$getter = function() { return DOM$EnsureDartNull(this.onkeydown); };
-    c.prototype.onkeydown$setter = function(value) { this.onkeydown = value; };
-    c.prototype.onkeypress$getter = function() { return DOM$EnsureDartNull(this.onkeypress); };
-    c.prototype.onkeypress$setter = function(value) { this.onkeypress = value; };
-    c.prototype.onkeyup$getter = function() { return DOM$EnsureDartNull(this.onkeyup); };
-    c.prototype.onkeyup$setter = function(value) { this.onkeyup = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmousedown$getter = function() { return DOM$EnsureDartNull(this.onmousedown); };
-    c.prototype.onmousedown$setter = function(value) { this.onmousedown = value; };
-    c.prototype.onmousemove$getter = function() { return DOM$EnsureDartNull(this.onmousemove); };
-    c.prototype.onmousemove$setter = function(value) { this.onmousemove = value; };
-    c.prototype.onmouseout$getter = function() { return DOM$EnsureDartNull(this.onmouseout); };
-    c.prototype.onmouseout$setter = function(value) { this.onmouseout = value; };
-    c.prototype.onmouseover$getter = function() { return DOM$EnsureDartNull(this.onmouseover); };
-    c.prototype.onmouseover$setter = function(value) { this.onmouseover = value; };
-    c.prototype.onmouseup$getter = function() { return DOM$EnsureDartNull(this.onmouseup); };
-    c.prototype.onmouseup$setter = function(value) { this.onmouseup = value; };
-    c.prototype.onmousewheel$getter = function() { return DOM$EnsureDartNull(this.onmousewheel); };
-    c.prototype.onmousewheel$setter = function(value) { this.onmousewheel = value; };
-    c.prototype.onpaste$getter = function() { return DOM$EnsureDartNull(this.onpaste); };
-    c.prototype.onpaste$setter = function(value) { this.onpaste = value; };
-    c.prototype.onreadystatechange$getter = function() { return DOM$EnsureDartNull(this.onreadystatechange); };
-    c.prototype.onreadystatechange$setter = function(value) { this.onreadystatechange = value; };
-    c.prototype.onreset$getter = function() { return DOM$EnsureDartNull(this.onreset); };
-    c.prototype.onreset$setter = function(value) { this.onreset = value; };
-    c.prototype.onscroll$getter = function() { return DOM$EnsureDartNull(this.onscroll); };
-    c.prototype.onscroll$setter = function(value) { this.onscroll = value; };
-    c.prototype.onsearch$getter = function() { return DOM$EnsureDartNull(this.onsearch); };
-    c.prototype.onsearch$setter = function(value) { this.onsearch = value; };
-    c.prototype.onselect$getter = function() { return DOM$EnsureDartNull(this.onselect); };
-    c.prototype.onselect$setter = function(value) { this.onselect = value; };
-    c.prototype.onselectionchange$getter = function() { return DOM$EnsureDartNull(this.onselectionchange); };
-    c.prototype.onselectionchange$setter = function(value) { this.onselectionchange = value; };
-    c.prototype.onselectstart$getter = function() { return DOM$EnsureDartNull(this.onselectstart); };
-    c.prototype.onselectstart$setter = function(value) { this.onselectstart = value; };
-    c.prototype.onsubmit$getter = function() { return DOM$EnsureDartNull(this.onsubmit); };
-    c.prototype.onsubmit$setter = function(value) { this.onsubmit = value; };
-    c.prototype.ontouchcancel$getter = function() { return DOM$EnsureDartNull(this.ontouchcancel); };
-    c.prototype.ontouchcancel$setter = function(value) { this.ontouchcancel = value; };
-    c.prototype.ontouchend$getter = function() { return DOM$EnsureDartNull(this.ontouchend); };
-    c.prototype.ontouchend$setter = function(value) { this.ontouchend = value; };
-    c.prototype.ontouchmove$getter = function() { return DOM$EnsureDartNull(this.ontouchmove); };
-    c.prototype.ontouchmove$setter = function(value) { this.ontouchmove = value; };
-    c.prototype.ontouchstart$getter = function() { return DOM$EnsureDartNull(this.ontouchstart); };
-    c.prototype.ontouchstart$setter = function(value) { this.ontouchstart = value; };
-    c.prototype.onwebkitfullscreenchange$getter = function() { return DOM$EnsureDartNull(this.onwebkitfullscreenchange); };
-    c.prototype.onwebkitfullscreenchange$setter = function(value) { this.onwebkitfullscreenchange = value; };
     c.prototype.preferredStylesheetSet$getter = function() { return DOM$EnsureDartNull(this.preferredStylesheetSet); };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.referrer$getter = function() { return DOM$EnsureDartNull(this.referrer); };
@@ -1347,94 +1089,6 @@ function DOM$fixClass$Element(c) {
     c.prototype.offsetParent$getter = function() { return DOM$EnsureDartNull(this.offsetParent); };
     c.prototype.offsetTop$getter = function() { return DOM$EnsureDartNull(this.offsetTop); };
     c.prototype.offsetWidth$getter = function() { return DOM$EnsureDartNull(this.offsetWidth); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onbeforecopy$getter = function() { return DOM$EnsureDartNull(this.onbeforecopy); };
-    c.prototype.onbeforecopy$setter = function(value) { this.onbeforecopy = value; };
-    c.prototype.onbeforecut$getter = function() { return DOM$EnsureDartNull(this.onbeforecut); };
-    c.prototype.onbeforecut$setter = function(value) { this.onbeforecut = value; };
-    c.prototype.onbeforepaste$getter = function() { return DOM$EnsureDartNull(this.onbeforepaste); };
-    c.prototype.onbeforepaste$setter = function(value) { this.onbeforepaste = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onchange$getter = function() { return DOM$EnsureDartNull(this.onchange); };
-    c.prototype.onchange$setter = function(value) { this.onchange = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.oncontextmenu$getter = function() { return DOM$EnsureDartNull(this.oncontextmenu); };
-    c.prototype.oncontextmenu$setter = function(value) { this.oncontextmenu = value; };
-    c.prototype.oncopy$getter = function() { return DOM$EnsureDartNull(this.oncopy); };
-    c.prototype.oncopy$setter = function(value) { this.oncopy = value; };
-    c.prototype.oncut$getter = function() { return DOM$EnsureDartNull(this.oncut); };
-    c.prototype.oncut$setter = function(value) { this.oncut = value; };
-    c.prototype.ondblclick$getter = function() { return DOM$EnsureDartNull(this.ondblclick); };
-    c.prototype.ondblclick$setter = function(value) { this.ondblclick = value; };
-    c.prototype.ondrag$getter = function() { return DOM$EnsureDartNull(this.ondrag); };
-    c.prototype.ondrag$setter = function(value) { this.ondrag = value; };
-    c.prototype.ondragend$getter = function() { return DOM$EnsureDartNull(this.ondragend); };
-    c.prototype.ondragend$setter = function(value) { this.ondragend = value; };
-    c.prototype.ondragenter$getter = function() { return DOM$EnsureDartNull(this.ondragenter); };
-    c.prototype.ondragenter$setter = function(value) { this.ondragenter = value; };
-    c.prototype.ondragleave$getter = function() { return DOM$EnsureDartNull(this.ondragleave); };
-    c.prototype.ondragleave$setter = function(value) { this.ondragleave = value; };
-    c.prototype.ondragover$getter = function() { return DOM$EnsureDartNull(this.ondragover); };
-    c.prototype.ondragover$setter = function(value) { this.ondragover = value; };
-    c.prototype.ondragstart$getter = function() { return DOM$EnsureDartNull(this.ondragstart); };
-    c.prototype.ondragstart$setter = function(value) { this.ondragstart = value; };
-    c.prototype.ondrop$getter = function() { return DOM$EnsureDartNull(this.ondrop); };
-    c.prototype.ondrop$setter = function(value) { this.ondrop = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.oninput$getter = function() { return DOM$EnsureDartNull(this.oninput); };
-    c.prototype.oninput$setter = function(value) { this.oninput = value; };
-    c.prototype.oninvalid$getter = function() { return DOM$EnsureDartNull(this.oninvalid); };
-    c.prototype.oninvalid$setter = function(value) { this.oninvalid = value; };
-    c.prototype.onkeydown$getter = function() { return DOM$EnsureDartNull(this.onkeydown); };
-    c.prototype.onkeydown$setter = function(value) { this.onkeydown = value; };
-    c.prototype.onkeypress$getter = function() { return DOM$EnsureDartNull(this.onkeypress); };
-    c.prototype.onkeypress$setter = function(value) { this.onkeypress = value; };
-    c.prototype.onkeyup$getter = function() { return DOM$EnsureDartNull(this.onkeyup); };
-    c.prototype.onkeyup$setter = function(value) { this.onkeyup = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmousedown$getter = function() { return DOM$EnsureDartNull(this.onmousedown); };
-    c.prototype.onmousedown$setter = function(value) { this.onmousedown = value; };
-    c.prototype.onmousemove$getter = function() { return DOM$EnsureDartNull(this.onmousemove); };
-    c.prototype.onmousemove$setter = function(value) { this.onmousemove = value; };
-    c.prototype.onmouseout$getter = function() { return DOM$EnsureDartNull(this.onmouseout); };
-    c.prototype.onmouseout$setter = function(value) { this.onmouseout = value; };
-    c.prototype.onmouseover$getter = function() { return DOM$EnsureDartNull(this.onmouseover); };
-    c.prototype.onmouseover$setter = function(value) { this.onmouseover = value; };
-    c.prototype.onmouseup$getter = function() { return DOM$EnsureDartNull(this.onmouseup); };
-    c.prototype.onmouseup$setter = function(value) { this.onmouseup = value; };
-    c.prototype.onmousewheel$getter = function() { return DOM$EnsureDartNull(this.onmousewheel); };
-    c.prototype.onmousewheel$setter = function(value) { this.onmousewheel = value; };
-    c.prototype.onpaste$getter = function() { return DOM$EnsureDartNull(this.onpaste); };
-    c.prototype.onpaste$setter = function(value) { this.onpaste = value; };
-    c.prototype.onreset$getter = function() { return DOM$EnsureDartNull(this.onreset); };
-    c.prototype.onreset$setter = function(value) { this.onreset = value; };
-    c.prototype.onscroll$getter = function() { return DOM$EnsureDartNull(this.onscroll); };
-    c.prototype.onscroll$setter = function(value) { this.onscroll = value; };
-    c.prototype.onsearch$getter = function() { return DOM$EnsureDartNull(this.onsearch); };
-    c.prototype.onsearch$setter = function(value) { this.onsearch = value; };
-    c.prototype.onselect$getter = function() { return DOM$EnsureDartNull(this.onselect); };
-    c.prototype.onselect$setter = function(value) { this.onselect = value; };
-    c.prototype.onselectstart$getter = function() { return DOM$EnsureDartNull(this.onselectstart); };
-    c.prototype.onselectstart$setter = function(value) { this.onselectstart = value; };
-    c.prototype.onsubmit$getter = function() { return DOM$EnsureDartNull(this.onsubmit); };
-    c.prototype.onsubmit$setter = function(value) { this.onsubmit = value; };
-    c.prototype.ontouchcancel$getter = function() { return DOM$EnsureDartNull(this.ontouchcancel); };
-    c.prototype.ontouchcancel$setter = function(value) { this.ontouchcancel = value; };
-    c.prototype.ontouchend$getter = function() { return DOM$EnsureDartNull(this.ontouchend); };
-    c.prototype.ontouchend$setter = function(value) { this.ontouchend = value; };
-    c.prototype.ontouchmove$getter = function() { return DOM$EnsureDartNull(this.ontouchmove); };
-    c.prototype.ontouchmove$setter = function(value) { this.ontouchmove = value; };
-    c.prototype.ontouchstart$getter = function() { return DOM$EnsureDartNull(this.ontouchstart); };
-    c.prototype.ontouchstart$setter = function(value) { this.ontouchstart = value; };
-    c.prototype.onwebkitfullscreenchange$getter = function() { return DOM$EnsureDartNull(this.onwebkitfullscreenchange); };
-    c.prototype.onwebkitfullscreenchange$setter = function(value) { this.onwebkitfullscreenchange = value; };
     c.prototype.previousElementSibling$getter = function() { return DOM$EnsureDartNull(this.previousElementSibling); };
     c.prototype.scrollHeight$getter = function() { return DOM$EnsureDartNull(this.scrollHeight); };
     c.prototype.scrollLeft$getter = function() { return DOM$EnsureDartNull(this.scrollLeft); };
@@ -1628,12 +1282,6 @@ function DOM$fixClass$EventException(c) {
 function DOM$fixClass$EventSource(c) {
   if (c.prototype) {
     c.prototype.URL$getter = function() { return DOM$EnsureDartNull(this.URL); };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onopen$getter = function() { return DOM$EnsureDartNull(this.onopen); };
-    c.prototype.onopen$setter = function(value) { this.onopen = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
   DOM$fixMembers(c, [
@@ -1712,18 +1360,6 @@ function DOM$fixClass$FileList(c) {
 function DOM$fixClass$FileReader(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadend$getter = function() { return DOM$EnsureDartNull(this.onloadend); };
-    c.prototype.onloadend$setter = function(value) { this.onloadend = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
   }
@@ -1755,18 +1391,6 @@ function DOM$fixClass$FileWriter(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onwrite$getter = function() { return DOM$EnsureDartNull(this.onwrite); };
-    c.prototype.onwrite$setter = function(value) { this.onwrite = value; };
-    c.prototype.onwriteend$getter = function() { return DOM$EnsureDartNull(this.onwriteend); };
-    c.prototype.onwriteend$setter = function(value) { this.onwriteend = value; };
-    c.prototype.onwritestart$getter = function() { return DOM$EnsureDartNull(this.onwritestart); };
-    c.prototype.onwritestart$setter = function(value) { this.onwritestart = value; };
     c.prototype.position$getter = function() { return DOM$EnsureDartNull(this.position); };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
@@ -2026,34 +1650,6 @@ function DOM$fixClass$HTMLBodyElement(c) {
     c.prototype.bgColor$setter = function(value) { this.bgColor = value; };
     c.prototype.link$getter = function() { return DOM$EnsureDartNull(this.link); };
     c.prototype.link$setter = function(value) { this.link = value; };
-    c.prototype.onbeforeunload$getter = function() { return DOM$EnsureDartNull(this.onbeforeunload); };
-    c.prototype.onbeforeunload$setter = function(value) { this.onbeforeunload = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.onhashchange$getter = function() { return DOM$EnsureDartNull(this.onhashchange); };
-    c.prototype.onhashchange$setter = function(value) { this.onhashchange = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onoffline$getter = function() { return DOM$EnsureDartNull(this.onoffline); };
-    c.prototype.onoffline$setter = function(value) { this.onoffline = value; };
-    c.prototype.ononline$getter = function() { return DOM$EnsureDartNull(this.ononline); };
-    c.prototype.ononline$setter = function(value) { this.ononline = value; };
-    c.prototype.onorientationchange$getter = function() { return DOM$EnsureDartNull(this.onorientationchange); };
-    c.prototype.onorientationchange$setter = function(value) { this.onorientationchange = value; };
-    c.prototype.onpopstate$getter = function() { return DOM$EnsureDartNull(this.onpopstate); };
-    c.prototype.onpopstate$setter = function(value) { this.onpopstate = value; };
-    c.prototype.onresize$getter = function() { return DOM$EnsureDartNull(this.onresize); };
-    c.prototype.onresize$setter = function(value) { this.onresize = value; };
-    c.prototype.onstorage$getter = function() { return DOM$EnsureDartNull(this.onstorage); };
-    c.prototype.onstorage$setter = function(value) { this.onstorage = value; };
-    c.prototype.onunload$getter = function() { return DOM$EnsureDartNull(this.onunload); };
-    c.prototype.onunload$setter = function(value) { this.onunload = value; };
     c.prototype.text$getter = function() { return DOM$EnsureDartNull(this.text); };
     c.prototype.text$setter = function(value) { this.text = value; };
     c.prototype.vLink$getter = function() { return DOM$EnsureDartNull(this.vLink); };
@@ -2430,34 +2026,6 @@ function DOM$fixClass$HTMLFrameSetElement(c) {
   if (c.prototype) {
     c.prototype.cols$getter = function() { return DOM$EnsureDartNull(this.cols); };
     c.prototype.cols$setter = function(value) { this.cols = value; };
-    c.prototype.onbeforeunload$getter = function() { return DOM$EnsureDartNull(this.onbeforeunload); };
-    c.prototype.onbeforeunload$setter = function(value) { this.onbeforeunload = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.onhashchange$getter = function() { return DOM$EnsureDartNull(this.onhashchange); };
-    c.prototype.onhashchange$setter = function(value) { this.onhashchange = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onoffline$getter = function() { return DOM$EnsureDartNull(this.onoffline); };
-    c.prototype.onoffline$setter = function(value) { this.onoffline = value; };
-    c.prototype.ononline$getter = function() { return DOM$EnsureDartNull(this.ononline); };
-    c.prototype.ononline$setter = function(value) { this.ononline = value; };
-    c.prototype.onorientationchange$getter = function() { return DOM$EnsureDartNull(this.onorientationchange); };
-    c.prototype.onorientationchange$setter = function(value) { this.onorientationchange = value; };
-    c.prototype.onpopstate$getter = function() { return DOM$EnsureDartNull(this.onpopstate); };
-    c.prototype.onpopstate$setter = function(value) { this.onpopstate = value; };
-    c.prototype.onresize$getter = function() { return DOM$EnsureDartNull(this.onresize); };
-    c.prototype.onresize$setter = function(value) { this.onresize = value; };
-    c.prototype.onstorage$getter = function() { return DOM$EnsureDartNull(this.onstorage); };
-    c.prototype.onstorage$setter = function(value) { this.onstorage = value; };
-    c.prototype.onunload$getter = function() { return DOM$EnsureDartNull(this.onunload); };
-    c.prototype.onunload$setter = function(value) { this.onunload = value; };
     c.prototype.rows$getter = function() { return DOM$EnsureDartNull(this.rows); };
     c.prototype.rows$setter = function(value) { this.rows = value; };
   }
@@ -2658,8 +2226,6 @@ function DOM$fixClass$HTMLInputElement(c) {
     c.prototype.multiple$setter = function(value) { this.multiple = value; };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
     c.prototype.name$setter = function(value) { this.name = value; };
-    c.prototype.onwebkitspeechchange$getter = function() { return DOM$EnsureDartNull(this.onwebkitspeechchange); };
-    c.prototype.onwebkitspeechchange$setter = function(value) { this.onwebkitspeechchange = value; };
     c.prototype.pattern$getter = function() { return DOM$EnsureDartNull(this.pattern); };
     c.prototype.pattern$setter = function(value) { this.pattern = value; };
     c.prototype.placeholder$getter = function() { return DOM$EnsureDartNull(this.placeholder); };
@@ -3731,12 +3297,6 @@ function DOM$fixClass$IDBCursorWithValue(c) {
 function DOM$fixClass$IDBDatabase(c) {
   if (c.prototype) {
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onversionchange$getter = function() { return DOM$EnsureDartNull(this.onversionchange); };
-    c.prototype.onversionchange$setter = function(value) { this.onversionchange = value; };
     c.prototype.version$getter = function() { return DOM$EnsureDartNull(this.version); };
   }
   DOM$fixMembers(c, [
@@ -3838,10 +3398,6 @@ function DOM$fixClass$IDBObjectStore(c) {
 function DOM$fixClass$IDBRequest(c) {
   if (c.prototype) {
     c.prototype.errorCode$getter = function() { return DOM$EnsureDartNull(this.errorCode); };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onsuccess$getter = function() { return DOM$EnsureDartNull(this.onsuccess); };
-    c.prototype.onsuccess$setter = function(value) { this.onsuccess = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
     c.prototype.source$getter = function() { return DOM$EnsureDartNull(this.source); };
@@ -3858,12 +3414,6 @@ function DOM$fixClass$IDBTransaction(c) {
   if (c.prototype) {
     c.prototype.db$getter = function() { return DOM$EnsureDartNull(this.db); };
     c.prototype.mode$getter = function() { return DOM$EnsureDartNull(this.mode); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.oncomplete$getter = function() { return DOM$EnsureDartNull(this.oncomplete); };
-    c.prototype.oncomplete$setter = function(value) { this.oncomplete = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
   }
   DOM$fixMembers(c, [
     'abort',
@@ -3882,8 +3432,6 @@ function DOM$fixClass$IDBVersionChangeEvent(c) {
 }
 function DOM$fixClass$IDBVersionChangeRequest(c) {
   if (c.prototype) {
-    c.prototype.onblocked$getter = function() { return DOM$EnsureDartNull(this.onblocked); };
-    c.prototype.onblocked$setter = function(value) { this.onblocked = value; };
   }
   c.$implements$IDBVersionChangeRequest$Dart = 1;
   c.$implements$IDBRequest$Dart = 1;
@@ -4107,8 +3655,6 @@ function DOM$fixClass$MessageEvent(c) {
 }
 function DOM$fixClass$MessagePort(c) {
   if (c.prototype) {
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
   DOM$fixMembers(c, [
     'addEventListener',
@@ -4341,14 +3887,6 @@ function DOM$fixClass$Notification(c) {
   if (c.prototype) {
     c.prototype.dir$getter = function() { return DOM$EnsureDartNull(this.dir); };
     c.prototype.dir$setter = function(value) { this.dir = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.onclose$getter = function() { return DOM$EnsureDartNull(this.onclose); };
-    c.prototype.onclose$setter = function(value) { this.onclose = value; };
-    c.prototype.ondisplay$getter = function() { return DOM$EnsureDartNull(this.ondisplay); };
-    c.prototype.ondisplay$setter = function(value) { this.ondisplay = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
     c.prototype.replaceId$getter = function() { return DOM$EnsureDartNull(this.replaceId); };
     c.prototype.replaceId$setter = function(value) { this.replaceId = value; };
   }
@@ -5176,86 +4714,6 @@ function DOM$fixClass$SVGElementInstance(c) {
     c.prototype.firstChild$getter = function() { return DOM$EnsureDartNull(this.firstChild); };
     c.prototype.lastChild$getter = function() { return DOM$EnsureDartNull(this.lastChild); };
     c.prototype.nextSibling$getter = function() { return DOM$EnsureDartNull(this.nextSibling); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onbeforecopy$getter = function() { return DOM$EnsureDartNull(this.onbeforecopy); };
-    c.prototype.onbeforecopy$setter = function(value) { this.onbeforecopy = value; };
-    c.prototype.onbeforecut$getter = function() { return DOM$EnsureDartNull(this.onbeforecut); };
-    c.prototype.onbeforecut$setter = function(value) { this.onbeforecut = value; };
-    c.prototype.onbeforepaste$getter = function() { return DOM$EnsureDartNull(this.onbeforepaste); };
-    c.prototype.onbeforepaste$setter = function(value) { this.onbeforepaste = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onchange$getter = function() { return DOM$EnsureDartNull(this.onchange); };
-    c.prototype.onchange$setter = function(value) { this.onchange = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.oncontextmenu$getter = function() { return DOM$EnsureDartNull(this.oncontextmenu); };
-    c.prototype.oncontextmenu$setter = function(value) { this.oncontextmenu = value; };
-    c.prototype.oncopy$getter = function() { return DOM$EnsureDartNull(this.oncopy); };
-    c.prototype.oncopy$setter = function(value) { this.oncopy = value; };
-    c.prototype.oncut$getter = function() { return DOM$EnsureDartNull(this.oncut); };
-    c.prototype.oncut$setter = function(value) { this.oncut = value; };
-    c.prototype.ondblclick$getter = function() { return DOM$EnsureDartNull(this.ondblclick); };
-    c.prototype.ondblclick$setter = function(value) { this.ondblclick = value; };
-    c.prototype.ondrag$getter = function() { return DOM$EnsureDartNull(this.ondrag); };
-    c.prototype.ondrag$setter = function(value) { this.ondrag = value; };
-    c.prototype.ondragend$getter = function() { return DOM$EnsureDartNull(this.ondragend); };
-    c.prototype.ondragend$setter = function(value) { this.ondragend = value; };
-    c.prototype.ondragenter$getter = function() { return DOM$EnsureDartNull(this.ondragenter); };
-    c.prototype.ondragenter$setter = function(value) { this.ondragenter = value; };
-    c.prototype.ondragleave$getter = function() { return DOM$EnsureDartNull(this.ondragleave); };
-    c.prototype.ondragleave$setter = function(value) { this.ondragleave = value; };
-    c.prototype.ondragover$getter = function() { return DOM$EnsureDartNull(this.ondragover); };
-    c.prototype.ondragover$setter = function(value) { this.ondragover = value; };
-    c.prototype.ondragstart$getter = function() { return DOM$EnsureDartNull(this.ondragstart); };
-    c.prototype.ondragstart$setter = function(value) { this.ondragstart = value; };
-    c.prototype.ondrop$getter = function() { return DOM$EnsureDartNull(this.ondrop); };
-    c.prototype.ondrop$setter = function(value) { this.ondrop = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.oninput$getter = function() { return DOM$EnsureDartNull(this.oninput); };
-    c.prototype.oninput$setter = function(value) { this.oninput = value; };
-    c.prototype.onkeydown$getter = function() { return DOM$EnsureDartNull(this.onkeydown); };
-    c.prototype.onkeydown$setter = function(value) { this.onkeydown = value; };
-    c.prototype.onkeypress$getter = function() { return DOM$EnsureDartNull(this.onkeypress); };
-    c.prototype.onkeypress$setter = function(value) { this.onkeypress = value; };
-    c.prototype.onkeyup$getter = function() { return DOM$EnsureDartNull(this.onkeyup); };
-    c.prototype.onkeyup$setter = function(value) { this.onkeyup = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmousedown$getter = function() { return DOM$EnsureDartNull(this.onmousedown); };
-    c.prototype.onmousedown$setter = function(value) { this.onmousedown = value; };
-    c.prototype.onmousemove$getter = function() { return DOM$EnsureDartNull(this.onmousemove); };
-    c.prototype.onmousemove$setter = function(value) { this.onmousemove = value; };
-    c.prototype.onmouseout$getter = function() { return DOM$EnsureDartNull(this.onmouseout); };
-    c.prototype.onmouseout$setter = function(value) { this.onmouseout = value; };
-    c.prototype.onmouseover$getter = function() { return DOM$EnsureDartNull(this.onmouseover); };
-    c.prototype.onmouseover$setter = function(value) { this.onmouseover = value; };
-    c.prototype.onmouseup$getter = function() { return DOM$EnsureDartNull(this.onmouseup); };
-    c.prototype.onmouseup$setter = function(value) { this.onmouseup = value; };
-    c.prototype.onmousewheel$getter = function() { return DOM$EnsureDartNull(this.onmousewheel); };
-    c.prototype.onmousewheel$setter = function(value) { this.onmousewheel = value; };
-    c.prototype.onpaste$getter = function() { return DOM$EnsureDartNull(this.onpaste); };
-    c.prototype.onpaste$setter = function(value) { this.onpaste = value; };
-    c.prototype.onreset$getter = function() { return DOM$EnsureDartNull(this.onreset); };
-    c.prototype.onreset$setter = function(value) { this.onreset = value; };
-    c.prototype.onresize$getter = function() { return DOM$EnsureDartNull(this.onresize); };
-    c.prototype.onresize$setter = function(value) { this.onresize = value; };
-    c.prototype.onscroll$getter = function() { return DOM$EnsureDartNull(this.onscroll); };
-    c.prototype.onscroll$setter = function(value) { this.onscroll = value; };
-    c.prototype.onsearch$getter = function() { return DOM$EnsureDartNull(this.onsearch); };
-    c.prototype.onsearch$setter = function(value) { this.onsearch = value; };
-    c.prototype.onselect$getter = function() { return DOM$EnsureDartNull(this.onselect); };
-    c.prototype.onselect$setter = function(value) { this.onselect = value; };
-    c.prototype.onselectstart$getter = function() { return DOM$EnsureDartNull(this.onselectstart); };
-    c.prototype.onselectstart$setter = function(value) { this.onselectstart = value; };
-    c.prototype.onsubmit$getter = function() { return DOM$EnsureDartNull(this.onsubmit); };
-    c.prototype.onsubmit$setter = function(value) { this.onsubmit = value; };
-    c.prototype.onunload$getter = function() { return DOM$EnsureDartNull(this.onunload); };
-    c.prototype.onunload$setter = function(value) { this.onunload = value; };
     c.prototype.parentNode$getter = function() { return DOM$EnsureDartNull(this.parentNode); };
     c.prototype.previousSibling$getter = function() { return DOM$EnsureDartNull(this.previousSibling); };
   }
@@ -7622,8 +7080,6 @@ function DOM$fixClass$SharedWorker(c) {
 function DOM$fixClass$SharedWorkercontext(c) {
   if (c.prototype) {
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
-    c.prototype.onconnect$getter = function() { return DOM$EnsureDartNull(this.onconnect); };
-    c.prototype.onconnect$setter = function(value) { this.onconnect = value; };
   }
   c.$implements$SharedWorkercontext$Dart = 1;
   c.$implements$WorkerContext$Dart = 1;
@@ -8384,14 +7840,6 @@ function DOM$fixClass$WebSocket(c) {
     c.prototype.binaryType$setter = function(value) { this.binaryType = value; };
     c.prototype.bufferedAmount$getter = function() { return DOM$EnsureDartNull(this.bufferedAmount); };
     c.prototype.extensions$getter = function() { return DOM$EnsureDartNull(this.extensions); };
-    c.prototype.onclose$getter = function() { return DOM$EnsureDartNull(this.onclose); };
-    c.prototype.onclose$setter = function(value) { this.onclose = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onopen$getter = function() { return DOM$EnsureDartNull(this.onopen); };
-    c.prototype.onopen$setter = function(value) { this.onopen = value; };
     c.prototype.protocol$getter = function() { return DOM$EnsureDartNull(this.protocol); };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
@@ -8430,8 +7878,6 @@ function DOM$fixClass$WheelEvent(c) {
 }
 function DOM$fixClass$Worker(c) {
   if (c.prototype) {
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
   DOM$fixMembers(c, [
     'postMessage',
@@ -8447,8 +7893,6 @@ function DOM$fixClass$WorkerContext(c) {
     c.prototype.location$setter = function(value) { this.location = value; };
     c.prototype.navigator$getter = function() { return DOM$EnsureDartNull(this.navigator); };
     c.prototype.navigator$setter = function(value) { this.navigator = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
     c.prototype.self$getter = function() { return DOM$EnsureDartNull(this.self); };
     c.prototype.self$setter = function(value) { this.self = value; };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
@@ -8494,18 +7938,6 @@ function DOM$fixClass$XMLHttpRequest(c) {
   if (c.prototype) {
     c.prototype.asBlob$getter = function() { return DOM$EnsureDartNull(this.asBlob); };
     c.prototype.asBlob$setter = function(value) { this.asBlob = value; };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onreadystatechange$getter = function() { return DOM$EnsureDartNull(this.onreadystatechange); };
-    c.prototype.onreadystatechange$setter = function(value) { this.onreadystatechange = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.responseBlob$getter = function() { return DOM$EnsureDartNull(this.responseBlob); };
     c.prototype.responseText$getter = function() { return DOM$EnsureDartNull(this.responseText); };
@@ -8552,16 +7984,6 @@ function DOM$fixClass$XMLHttpRequestProgressEvent(c) {
 }
 function DOM$fixClass$XMLHttpRequestUpload(c) {
   if (c.prototype) {
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
   }
   DOM$fixMembers(c, [
     'addEventListener',

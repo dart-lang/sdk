@@ -14,18 +14,6 @@ interface EventSource extends EventTarget {
 
   String get URL();
 
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onmessage();
-
-  void set onmessage(EventListener value);
-
-  EventListener get onopen();
-
-  void set onopen(EventListener value);
-
   int get readyState();
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);

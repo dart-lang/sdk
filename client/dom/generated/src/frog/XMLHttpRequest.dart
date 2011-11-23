@@ -5,18 +5,6 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 
   bool asBlob;
 
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
-
-  EventListener onreadystatechange;
-
   int readyState;
 
   Blob responseBlob;

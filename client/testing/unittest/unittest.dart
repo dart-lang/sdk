@@ -41,11 +41,11 @@ _platformStartTests() {
   window.postMessage('unittest-suite-wait-for-done', '*');
 
   // Listen for uncaught errors.
-  window.onerror = _onErrorClosure;
+  window.addEventListener('error', _onErrorClosure, true);
 }
 
 _platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
-  window.onerror = null;
+  window.removeEventListener('error', _onErrorClosure);
 
   if (_isLayoutTest && testsPassed == _tests.length) {
     document.body.innerHTML = "PASS";

@@ -6,10 +6,6 @@
 
 interface MessagePort extends EventTarget {
 
-  EventListener get onmessage();
-
-  void set onmessage(EventListener value);
-
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close();

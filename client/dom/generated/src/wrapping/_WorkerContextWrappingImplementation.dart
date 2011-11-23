@@ -23,12 +23,6 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   void set navigator(WorkerNavigator value) { _set_navigator(this, value); }
   static void _set_navigator(var _this, WorkerNavigator value) native;
 
-  EventListener get onerror() { return _get_onerror(this); }
-  static EventListener _get_onerror(var _this) native;
-
-  void set onerror(EventListener value) { _set_onerror(this, value); }
-  static void _set_onerror(var _this, EventListener value) native;
-
   WorkerContext get self() { return _get_self(this); }
   static WorkerContext _get_self(var _this) native;
 

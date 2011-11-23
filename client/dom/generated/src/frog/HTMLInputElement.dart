@@ -53,8 +53,6 @@ class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
 
   String name;
 
-  EventListener onwebkitspeechchange;
-
   String pattern;
 
   String placeholder;

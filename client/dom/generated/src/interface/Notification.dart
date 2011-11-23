@@ -10,22 +10,6 @@ interface Notification extends EventTarget {
 
   void set dir(String value);
 
-  EventListener get onclick();
-
-  void set onclick(EventListener value);
-
-  EventListener get onclose();
-
-  void set onclose(EventListener value);
-
-  EventListener get ondisplay();
-
-  void set ondisplay(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
   String get replaceId();
 
   void set replaceId(String value);

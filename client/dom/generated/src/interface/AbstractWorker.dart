@@ -6,10 +6,6 @@
 
 interface AbstractWorker extends EventTarget {
 
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event evt);

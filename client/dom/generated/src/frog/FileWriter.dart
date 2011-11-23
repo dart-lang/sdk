@@ -5,18 +5,6 @@ class FileWriter native "*FileWriter" {
 
   int length;
 
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onprogress;
-
-  EventListener onwrite;
-
-  EventListener onwriteend;
-
-  EventListener onwritestart;
-
   int position;
 
   int readyState;

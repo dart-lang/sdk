@@ -1,8 +1,6 @@
 
 class MessagePort native "*MessagePort" {
 
-  EventListener onmessage;
-
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close() native;

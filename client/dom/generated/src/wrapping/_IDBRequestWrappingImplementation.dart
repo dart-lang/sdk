@@ -14,18 +14,6 @@ class _IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBReq
   int get errorCode() { return _get_errorCode(this); }
   static int _get_errorCode(var _this) native;
 
-  EventListener get onerror() { return _get_onerror(this); }
-  static EventListener _get_onerror(var _this) native;
-
-  void set onerror(EventListener value) { _set_onerror(this, value); }
-  static void _set_onerror(var _this, EventListener value) native;
-
-  EventListener get onsuccess() { return _get_onsuccess(this); }
-  static EventListener _get_onsuccess(var _this) native;
-
-  void set onsuccess(EventListener value) { _set_onsuccess(this, value); }
-  static void _set_onsuccess(var _this, EventListener value) native;
-
   int get readyState() { return _get_readyState(this); }
   static int _get_readyState(var _this) native;
 

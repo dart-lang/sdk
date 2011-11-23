@@ -11,12 +11,6 @@ class _AbstractWorkerWrappingImplementation extends DOMWrapperBase implements Ab
     return new _AbstractWorkerWrappingImplementation();
   }
 
-  EventListener get onerror() { return _get_onerror(this); }
-  static EventListener _get_onerror(var _this) native;
-
-  void set onerror(EventListener value) { _set_onerror(this, value); }
-  static void _set_onerror(var _this, EventListener value) native;
-
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener_AbstractWorker(this, type, listener);

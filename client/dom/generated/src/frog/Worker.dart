@@ -1,8 +1,6 @@
 
 class Worker extends AbstractWorker native "*Worker" {
 
-  EventListener onmessage;
-
   void postMessage(String message, [List messagePorts = null]) native;
 
   void terminate() native;

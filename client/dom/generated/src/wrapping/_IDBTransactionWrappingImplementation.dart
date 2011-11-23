@@ -17,24 +17,6 @@ class _IDBTransactionWrappingImplementation extends DOMWrapperBase implements ID
   int get mode() { return _get_mode(this); }
   static int _get_mode(var _this) native;
 
-  EventListener get onabort() { return _get_onabort(this); }
-  static EventListener _get_onabort(var _this) native;
-
-  void set onabort(EventListener value) { _set_onabort(this, value); }
-  static void _set_onabort(var _this, EventListener value) native;
-
-  EventListener get oncomplete() { return _get_oncomplete(this); }
-  static EventListener _get_oncomplete(var _this) native;
-
-  void set oncomplete(EventListener value) { _set_oncomplete(this, value); }
-  static void _set_oncomplete(var _this, EventListener value) native;
-
-  EventListener get onerror() { return _get_onerror(this); }
-  static EventListener _get_onerror(var _this) native;
-
-  void set onerror(EventListener value) { _set_onerror(this, value); }
-  static void _set_onerror(var _this, EventListener value) native;
-
   void abort() {
     _abort(this);
     return;

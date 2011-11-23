@@ -3,9 +3,7 @@
 #import('Suites.dart');
 
 main() {
-   window.onload = (Event evt) {
-    new Dromaeo().run();
-  };
+  new Dromaeo().run();
 }
 
 class SuiteController {

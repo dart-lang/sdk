@@ -459,6 +459,7 @@ class DartGenerator(object):
         generator.AddConstant(const)
 
     for attr in sorted(interface.attributes, AttributeOutputOrder):
+      if attr.type.id == 'EventListener': continue
       if attr.is_fc_getter:
         for generator in generators:
           generator.AddGetter(attr)

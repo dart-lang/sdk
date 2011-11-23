@@ -1,22 +1,6 @@
 
 class DOMApplicationCache native "*DOMApplicationCache" {
 
-  EventListener oncached;
-
-  EventListener onchecking;
-
-  EventListener ondownloading;
-
-  EventListener onerror;
-
-  EventListener onnoupdate;
-
-  EventListener onobsolete;
-
-  EventListener onprogress;
-
-  EventListener onupdateready;
-
   int status;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;

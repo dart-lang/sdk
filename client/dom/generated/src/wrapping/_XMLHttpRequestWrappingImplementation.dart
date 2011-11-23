@@ -17,42 +17,6 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   void set asBlob(bool value) { _set_asBlob(this, value); }
   static void _set_asBlob(var _this, bool value) native;
 
-  EventListener get onabort() { return _get_onabort(this); }
-  static EventListener _get_onabort(var _this) native;
-
-  void set onabort(EventListener value) { _set_onabort(this, value); }
-  static void _set_onabort(var _this, EventListener value) native;
-
-  EventListener get onerror() { return _get_onerror(this); }
-  static EventListener _get_onerror(var _this) native;
-
-  void set onerror(EventListener value) { _set_onerror(this, value); }
-  static void _set_onerror(var _this, EventListener value) native;
-
-  EventListener get onload() { return _get_onload(this); }
-  static EventListener _get_onload(var _this) native;
-
-  void set onload(EventListener value) { _set_onload(this, value); }
-  static void _set_onload(var _this, EventListener value) native;
-
-  EventListener get onloadstart() { return _get_onloadstart(this); }
-  static EventListener _get_onloadstart(var _this) native;
-
-  void set onloadstart(EventListener value) { _set_onloadstart(this, value); }
-  static void _set_onloadstart(var _this, EventListener value) native;
-
-  EventListener get onprogress() { return _get_onprogress(this); }
-  static EventListener _get_onprogress(var _this) native;
-
-  void set onprogress(EventListener value) { _set_onprogress(this, value); }
-  static void _set_onprogress(var _this, EventListener value) native;
-
-  EventListener get onreadystatechange() { return _get_onreadystatechange(this); }
-  static EventListener _get_onreadystatechange(var _this) native;
-
-  void set onreadystatechange(EventListener value) { _set_onreadystatechange(this, value); }
-  static void _set_onreadystatechange(var _this, EventListener value) native;
-
   int get readyState() { return _get_readyState(this); }
   static int _get_readyState(var _this) native;
 

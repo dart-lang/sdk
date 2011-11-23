@@ -155,12 +155,6 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set name(String value) { _set_name(this, value); }
   static void _set_name(var _this, String value) native;
 
-  EventListener get onwebkitspeechchange() { return _get_onwebkitspeechchange(this); }
-  static EventListener _get_onwebkitspeechchange(var _this) native;
-
-  void set onwebkitspeechchange(EventListener value) { _set_onwebkitspeechchange(this, value); }
-  static void _set_onwebkitspeechchange(var _this, EventListener value) native;
-
   String get pattern() { return _get_pattern(this); }
   static String _get_pattern(var _this) native;
 

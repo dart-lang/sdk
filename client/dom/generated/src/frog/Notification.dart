@@ -3,14 +3,6 @@ class Notification native "*Notification" {
 
   String dir;
 
-  EventListener onclick;
-
-  EventListener onclose;
-
-  EventListener ondisplay;
-
-  EventListener onerror;
-
   String replaceId;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
