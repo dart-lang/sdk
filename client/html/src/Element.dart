@@ -12,14 +12,6 @@ class DeferredElementRect {
   // TODO(jacobr)
 }
 
-class ScrollOptions {
-  final int lines;
-  final int pages;
-  final bool center;
-
-  ScrollOptions([this.lines = 0, this.pages = 0, this.center = false]);
-}
-
 interface ElementEvents extends Events {
   EventListenerList get abort();
   EventListenerList get beforeCopy();

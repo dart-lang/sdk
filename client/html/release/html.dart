@@ -22933,14 +22933,6 @@ class DeferredElementRect {
   // TODO(jacobr)
 }
 
-class ScrollOptions {
-  final int lines;
-  final int pages;
-  final bool center;
-
-  ScrollOptions([this.lines = 0, this.pages = 0, this.center = false]);
-}
-
 interface ElementEvents extends Events {
   EventListenerList get abort();
   EventListenerList get beforeCopy();
@@ -25334,7 +25326,7 @@ class _ChildrenNodeList implements NodeList {
 
   /** @domName Node.hasChildNodes */
   bool isEmpty() {
-    return _node.hasChildNodes();
+    return !_node.hasChildNodes();
   }
 
   int get length() {
@@ -25473,7 +25465,7 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
     return this;
   }
 
-  /** @domName Node.contains */
+  /** @domName contains */
   bool contains(Node otherNode) {
     // TODO: Feature detect and use built in.
     while (otherNode != null && otherNode != this) {
