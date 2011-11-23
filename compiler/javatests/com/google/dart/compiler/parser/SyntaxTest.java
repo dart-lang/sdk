@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.parser;
 
+import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
@@ -19,9 +20,11 @@ import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTryStatement;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariableStatement;
 
@@ -29,6 +32,30 @@ import java.util.List;
 
 public class SyntaxTest extends AbstractParserTest {
 
+  /**
+   * There was bug when "identA.identB" always considered as constructor declaration. But it can be
+   * constructor only if "identA" is name of enclosing class.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=513
+   */
+  public void testQualifiedReturnType() {
+    DartUnit unit = parseUnit("QualifiedReturnTypeB.dart");
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit QualifiedReturnTypeB.dart",
+            "class A {",
+            "",
+            "  pref.A foo() {",
+            "    return new pref.A();",
+            "  }",
+            "}"),
+        unit.toSource().trim());
+    DartClass classB = (DartClass) unit.getTopLevelNodes().get(0);
+    DartMethodDefinition fooMethod = (DartMethodDefinition) classB.getMembers().get(0);
+    DartTypeNode fooReturnType = fooMethod.getFunction().getReturnTypeNode();
+    assertEquals(true, fooReturnType.getIdentifier() instanceof DartPropertyAccess);
+  }
+  
   @Override
   public void testStrings() {
     DartUnit unit = parseUnit("Strings.dart");

@@ -145,8 +145,7 @@ OverrideFieldTest/04: Fail       # Bug 5215249
 OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
 Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
-Prefix14Test: Fail                       # Bug 5406175
-Prefix15Test: Skip                       # Bug 5406175
+Prefix14NegativeTest: Fail               # Issue 575
 Prefix16NegativeTest: Fail               # Bug 5532534
 Prefix3NegativeTest: Fail                # Bug 5406175
 PseudoKWNegativeTest: Fail   # Bug 4979760.

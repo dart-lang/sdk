@@ -669,6 +669,17 @@ public class ResolverTest extends ResolverTestCase {
         TypeErrorCode.NO_SUCH_TYPE);
   }
 
+  public void test_noSuchType_methodParameterType_noQualifier() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class MyClass {",
+        "  Object foo(lib.Unknown p) {",
+        "    return null;",
+        "  }",
+        "}"),
+        TypeErrorCode.NO_SUCH_TYPE);
+  }
+
   public void test_noSuchType_returnType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",

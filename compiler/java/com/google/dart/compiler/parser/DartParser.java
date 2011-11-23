@@ -888,9 +888,23 @@ public class DartParser extends CompletionHooksParserBase {
 
       case VOID:
       case IDENTIFIER: {
-        // Check to see if it's a method/ctor.
+        // Check to see if it's a qualified ctor.
+        {
+          // Skip (PERIOD IDENTIFIER)* sequence.
+          // Actually only one is valid, but it is OK for parser.
+          int k = 1;
+          while (peek(k) == Token.PERIOD && peek(k + 1) == Token.IDENTIFIER) {
+            k += 2;
+          }
+          // If next token is LPAREN, then this is constructor.
+          if (peek(k) == Token.LPAREN) {
+            member = parseMethodOrAccessor(modifiers, null);
+            break;
+          }
+        }
+
+        // Check to see if it's a method.
         if (peek(1) == Token.LPAREN
-            || peek(1) == Token.PERIOD
             || peekPseudoKeyword(0, OPERATOR_KEYWORD)
             || peekPseudoKeyword(0, GETTER_KEYWORD)
             || peekPseudoKeyword(0, SETTER_KEYWORD)) {
