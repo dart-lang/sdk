@@ -4,15 +4,22 @@
 
 String getPlatformOutDir() {
   var os = new Platform().operatingSystem();
-  if (os == 'linux') return 'out';
-  if (os == 'macos') return 'xcodebuild';
+  if (os == 'linux') return 'out/';
+  if (os == 'macos') return 'xcodebuild/';
   return '';  // Windows.
+}
+
+String getPlatformExecutableExtension() {
+  var os = new Platform().operatingSystem();
+  if (os == 'windows') return '.exe';
+  return '';  // Linux and Mac OS.
 }
 
 String getProcessTestFileName() {
   var outDir = getPlatformOutDir();
-  var names = ['$outDir/Release_ia32/process_test',
-               '$outDir/Debug_ia32/process_test'];
+  var extension = getPlatformExecutableExtension();
+  var names = ['${outDir}Release_ia32/process_test$extension',
+               '${outDir}Debug_ia32/process_test$extension'];
 
   for (var name in names) {
     if (new File(name).existsSync()) {
@@ -24,8 +31,9 @@ String getProcessTestFileName() {
 
 String getDartFileName() {
   var outDir = getPlatformOutDir();
-  var names = ['$outDir/Release_ia32/dart',
-               '$outDir/Debug_ia32/dart'];
+  var extension = getPlatformExecutableExtension();
+  var names = ['${outDir}Release_ia32/dart$extension',
+               '${outDir}Debug_ia32/dart$extension'];
 
   for (var name in names) {
     if (new File(name).existsSync()) {
