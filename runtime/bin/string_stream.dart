@@ -28,7 +28,7 @@ class DecoderException implements Exception {
 class _StringDecoderBase implements _Decoder<String> {
   _StringDecoderBase()
       : _bufferList = new _BufferList(),
-        _result = new StringBuffer();
+        _result = new List<int>();
 
   // Add UTF-8 encoded data.
   int write(List<int> buffer) {
@@ -52,8 +52,8 @@ class _StringDecoderBase implements _Decoder<String> {
     if (isEmpty()) {
       return null;
     } else {
-      String result =  _result.toString();
-      _result = new StringBuffer();
+      String result =  new String.fromCharCodes(_result);
+      _result = new List<int>();
       return result;
     }
   }
@@ -61,7 +61,7 @@ class _StringDecoderBase implements _Decoder<String> {
   abstract bool _processNext();
 
   _BufferList _bufferList;
-  StringBuffer _result;
+  List<int> _result;
 }
 
 
@@ -75,7 +75,7 @@ class _AsciiDecoder extends _StringDecoderBase {
       if (byte > 127) {
         throw new DecoderException("Illegal ASCII character $byte");
       }
-      _result.addCharCode(byte);
+      _result.add(byte);
     }
     return true;
   }
@@ -89,7 +89,7 @@ class _Latin1Decoder extends _StringDecoderBase {
   bool _processNext() {
     while (_bufferList.length > 0) {
       int byte = _bufferList.next();
-      _result.addCharCode(byte);
+      _result.add(byte);
     }
     return true;
   }
@@ -131,7 +131,7 @@ class _UTF8Decoder extends _StringDecoderBase {
       // Remove the value peeked from the buffer list.
       _bufferList.next();
     }
-    _result.addCharCode(value);
+    _result.add(value);
     return true;
   }
 }
