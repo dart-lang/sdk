@@ -4,6 +4,22 @@
 
 prefix co19
 
+
+#
+# Problems specific to running on Mac OS X
+#
+
+[ $component == dartc && $system == macos ]
+LangSpecTest/13_Types/13_4_Interface_Types/A11/t01: Crash # Out of memory
+LangSpecTest/13_Types/13_4_Interface_Types/A11/t02: Crash # Out of memory
+
+LibTest/core/Math/acos/Math/acos/A01/t01: Fail # Issue co19 - 44
+LibTest/core/Math/asin/Math/asin/A01/t01: Fail # Issue co19 - 44
+LibTest/core/Math/atan/Math/atan/A01/t01: Fail  # Issue co19 - 44
+
+LibTest/core/String/toLowerCase/String/toLowerCase/A01/t04: Fail
+LibTest/core/String/toUpperCase/String/toUpperCase/A01/t04: Fail
+
 #
 # Problems specific to compiler in release build (--optimize)
 #
