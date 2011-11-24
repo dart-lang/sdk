@@ -125,7 +125,7 @@
     },
     {
       # Completely statically linked dart binary.
-      'target_name': 'dart_no_snapshot_bin',
+      'target_name': 'dart_no_snapshot',
       'type': 'executable',
       'dependencies': [
         'libdart',
@@ -147,7 +147,7 @@
     },
     {
       # Completely statically linked binary for generating snapshots.
-      'target_name': 'gen_snapshot_bin',
+      'target_name': 'gen_snapshot',
       'type': 'executable',
       'dependencies': [
         'libdart',
@@ -176,14 +176,14 @@
         }],
       ],
       'dependencies': [
-        'gen_snapshot_bin',
+        'gen_snapshot',
       ],
       'actions': [
         {
           'action_name': 'generate_snapshot_file',
           'inputs': [
             '../tools/create_snapshot_file.py',
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot_bin<(EXECUTABLE_SUFFIX)',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
             '<(snapshot_in_cc_file)',
           ],
           'outputs': [
@@ -192,7 +192,7 @@
           'action': [
             'python',
             'tools/create_snapshot_file.py',
-            '--executable', '<(PRODUCT_DIR)/gen_snapshot_bin',
+            '--executable', '<(PRODUCT_DIR)/gen_snapshot',
             '--output_bin', '<(snapshot_bin_file)',
             '--input_cc', '<(snapshot_in_cc_file)',
             '--output', '<(snapshot_cc_file)',
@@ -200,28 +200,6 @@
           'message': 'Generating ''<(snapshot_cc_file)'' file.'
         },
       ]
-    },
-    {
-      'target_name': 'dart_bin',
-      'type': 'executable',
-      'dependencies': [
-        'libdart',
-        'libdart_builtin',
-        'generate_snapshot_file',
-      ],
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        'main.cc',
-        '<(snapshot_cc_file)',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
-          },
-       }]],
     },
     {
       'target_name': 'dart',
