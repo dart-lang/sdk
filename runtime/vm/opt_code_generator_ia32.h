@@ -40,6 +40,9 @@ class OptimizingCodeGenerator : public CodeGenerator {
   virtual void VisitIfNode(IfNode* node);
   virtual void VisitInstanceCallNode(InstanceCallNode* node);
   virtual void VisitStaticCallNode(StaticCallNode* node);
+  virtual void VisitReturnNode(ReturnNode* node);
+  virtual void VisitSequenceNode(SequenceNode* node_sequence);
+  virtual void VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node);
 
   // Return true if intrinsification succeeded and no more code is needed.
   // Returns false if either no intrinsification occured or if intrinsified

@@ -2554,6 +2554,51 @@ void OptimizingCodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
   }
 }
 
+
+void OptimizingCodeGenerator::VisitReturnNode(ReturnNode* node) {
+  if ((node->inlined_finally_list_length() > 0) || FLAG_enable_type_checks) {
+    CodeGenerator::VisitReturnNode(node);
+    return;
+  }
+  ASSERT(!IsResultNeeded(node));
+  ASSERT(node->value() != NULL);
+  VisitLoadOne(node->value(), EAX);
+  GenerateReturnEpilog();
+}
+
+
+void OptimizingCodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
+  if (FLAG_enable_type_checks ||
+      (node_sequence->scope()->num_context_variables() > 0)) {
+    CodeGenerator::VisitSequenceNode(node_sequence);
+    return;
+  }
+  for (int i = 0; i < node_sequence->length(); i++) {
+    AstNode* child_node = node_sequence->NodeAt(i);
+    state()->set_root_node(child_node);
+    child_node->Visit(this);
+  }
+  if (node_sequence->label() != NULL) {
+    __ Bind(node_sequence->label()->break_label());
+  }
+}
+
+
+void OptimizingCodeGenerator::VisitStoreInstanceFieldNode(
+    StoreInstanceFieldNode* node) {
+  if (FLAG_enable_type_checks) {
+    CodeGenerator::VisitStoreInstanceFieldNode(node);
+    return;
+  }
+  VisitLoadTwo(node->instance(), node->value(), EDX, EAX);
+  __ StoreIntoObject(EDX, FieldAddress(EDX, node->field().Offset()), EAX);
+  if (IsResultNeeded(node)) {
+    // The result is the input value.
+    __ pushl(EAX);
+  }
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32
