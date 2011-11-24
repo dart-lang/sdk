@@ -4,10 +4,9 @@
 //
 // Test creating a large number of socket connections.
 
-final SERVERINIT = 0;
-final SERVERSHUTDOWN = -1;
+#source("TestingServer.dart");
+
 final CONNECTIONS = 200;
-final HOST = "127.0.0.1";
 
 class SocketManyConnectionsTest {
 
@@ -35,7 +34,7 @@ class SocketManyConnectionsTest {
     }
 
     for (int i = 0; i < CONNECTIONS; i++) {
-      _sockets[i] = new Socket(HOST, _port);
+      _sockets[i] = new Socket(TestingServer.HOST, _port);
       if (_sockets[i] !== null) {
         _sockets[i].connectHandler = connectHandler;
       } else {
@@ -49,11 +48,11 @@ class SocketManyConnectionsTest {
       _port = message;
       run();
     });
-    _sendPort.send(SERVERINIT, _receivePort.toSendPort());
+    _sendPort.send(TestingServer.INIT, _receivePort.toSendPort());
   }
 
   void shutdown() {
-    _sendPort.send(SERVERSHUTDOWN, _receivePort.toSendPort());
+    _sendPort.send(TestingServer.SHUTDOWN, _receivePort.toSendPort());
     _receivePort.close();
   }
 
@@ -64,48 +63,26 @@ class SocketManyConnectionsTest {
   int _connections;
 }
 
-class TestServer extends Isolate {
+class TestServer extends TestingServer {
 
-  void main() {
+  void connectionHandler() {
+    Socket _client;
 
-    void connectionHandler() {
-      Socket _client;
-
-      void closeHandler() {
-        _client.close();
-      }
-
-      void errorHandler() {
-        print("Socket error");
-        _client.close();
-      }
-
-      _client = _server.accept();
-      _connections++;
-      _client.closeHandler = closeHandler;
-      _client.errorHandler = errorHandler;
+    void closeHandler() {
+      _client.close();
     }
 
-    void errorHandlerServer() {
-      print("Server socket error");
-      _server.close();
+    void errorHandler() {
+      print("Socket error");
+      _client.close();
     }
 
-    this.port.receive((message, SendPort replyTo) {
-      if (message == SERVERINIT) {
-        _server = new ServerSocket(HOST, 0, 10);
-        Expect.equals(true, _server !== null);
-        _server.connectionHandler = connectionHandler;
-        _server.errorHandler = errorHandlerServer;
-        replyTo.send(_server.port, null);
-      } else if (message == SERVERSHUTDOWN) {
-        _server.close();
-        this.port.close();
-      }
-    });
+    _client = _server.accept();
+    _connections++;
+    _client.closeHandler = closeHandler;
+    _client.errorHandler = errorHandler;
   }
 
-  ServerSocket _server;
   int _connections = 0;
 }
 
