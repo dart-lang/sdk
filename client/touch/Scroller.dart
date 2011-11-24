@@ -134,16 +134,14 @@ class Scroller implements Draggable, MomentumDelegate {
   bool _activeGesture = false;
   ScrollWatcher _scrollWatcher;
 
-  Scroller(Element scrollableElem, [verticalEnabled = false,
-           horizontalEnabled = false,
+  Scroller(Element scrollableElem, [this.verticalEnabled = false,
+           this.horizontalEnabled = false,
            momentumEnabled = true,
            lookupContentSizeDelegate = null,
            num defaultDecelerationFactor = 1,
            int scrollTechnique = null, bool capture = false])
-      : this.verticalEnabled = verticalEnabled,
-        this.horizontalEnabled = horizontalEnabled,
-        this._momentumEnabled = momentumEnabled,
-        this._lookupContentSizeDelegate = lookupContentSizeDelegate,
+      : _momentumEnabled = momentumEnabled,
+        _lookupContentSizeDelegate = lookupContentSizeDelegate,
         _element = scrollableElem,
         _frame = scrollableElem.parent,
         _scrollTechnique = scrollTechnique !== null

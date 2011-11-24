@@ -60,9 +60,8 @@ class AbstractObservable implements Observable {
     return false;
   }
 
-  AbstractObservable([Observable parent = null])
-    : this.parent = parent,
-      uid = EventBatch.genUid(),
+  AbstractObservable([Observable this.parent = null])
+    : uid = EventBatch.genUid(),
       listeners = new List<ChangeListener>();
 
   bool addChangeListener(ChangeListener listener) {

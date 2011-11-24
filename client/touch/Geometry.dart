@@ -17,7 +17,7 @@ class Coordinate {
    */
   num y;
 
-  Coordinate([num x = 0, num y = 0]) : this.x = x, this.y = y {
+  Coordinate([num this.x = 0, num this.y = 0]) {
   }
 
   /**
