@@ -863,6 +863,20 @@ void CodeGenerator::VisitTypeNode(TypeNode* node) {
 }
 
 
+void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
+  ASSERT(FLAG_enable_type_checks);
+  node->expr()->Visit(this);
+  __ popl(EAX);
+  GenerateAssertAssignable(node->id(),
+                           node->token_index(),
+                           node->type(),
+                           node->dst_name());
+  if (IsResultNeeded(node)) {
+    __ pushl(EAX);
+  }
+}
+
+
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
   if (function.IsNonImplicitClosureFunction()) {

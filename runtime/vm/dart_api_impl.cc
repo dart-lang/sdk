@@ -757,7 +757,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     return Api::Error(msg);
   }
   const Type& type = Type::Handle(Type::NewNonParameterizedType(cls));
-  *value = instance.Is(type);
+  *value = instance.IsInstanceOf(type, TypeArguments::Handle());
   return Api::Success();
 }
 
@@ -1129,7 +1129,9 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
     Instance& instance = Instance::Handle();
     instance ^= obj.raw();
     const Type& type = Type::Handle(isolate->object_store()->list_interface());
-    return instance.Is(type) ? instance.raw() : Instance::null();
+    if (instance.IsInstanceOf(type, TypeArguments::Handle())) {
+      return instance.raw();
+    }
   }
   return Instance::null();
 }

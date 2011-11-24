@@ -128,6 +128,17 @@ void AstPrinter::VisitTypeNode(TypeNode* node) {
 }
 
 
+void AstPrinter::VisitAssignableNode(AssignableNode* node) {
+  OS::Print("(assignable ");
+  node->expr()->Visit(this);
+  const Type& type = node->type();
+  const String& dst_name = node->dst_name();
+  OS::Print(" to type '%s' of '%s')",
+            String::Handle(type.Name()).ToCString(),
+            dst_name.ToCString());
+}
+
+
 void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
   OS::Print("***** PRIMARY NODE IN AST ***** (%s '%s')",
       node->Name(), node->primary().ToCString());

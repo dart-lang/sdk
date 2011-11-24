@@ -2139,13 +2139,6 @@ class Instance : public Object {
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
 
-  // Short version of IsInstanceOf with an instantiated type.
-  bool Is(const Type& type) const {
-    ASSERT(type.IsInstantiated());
-    const TypeArguments& no_instantiator = TypeArguments::Handle();
-    return TestType(kIsSubtypeOf, type, no_instantiator);
-  }
-
   // Check if this instance is an instance of the given type.
   bool IsInstanceOf(const Type& type,
                     const TypeArguments& type_instantiator) const {

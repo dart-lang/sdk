@@ -6,25 +6,13 @@
 // list and map literals.
 
 class _LiteralFactory {
-  // [elements] contains elements that are not yet type checked.
-  factory List<E>.fromLiteral(int location,
-                              String element_type,
-                              List elements) {
-    var len = elements.length;
-    var list = new GrowableObjectArray<E>.withCapacity(len);
-    for (int i = 0; i < len; i++) {
-      // In checked mode only, rethrow a potential type error with a more user
-      // friendly error message.
-      try {
-        list.backingArray[i] = elements[i];
-      } catch (TypeError error) {
-        TypeError._throwNew(location,
-                            elements[i],
-                            element_type,
-                            "list literal element at index ${i}");
-      }
+  // [elements] contains elements that are already type checked.
+  factory List<E>.fromLiteral(List elements) {
+    var list = new GrowableObjectArray<E>();
+    if (elements.length > 0) {
+      list.backingArray = elements;
+      list.length = elements.length;
     }
-    list.length = len;
     return list;
   }
 
@@ -32,23 +20,11 @@ class _LiteralFactory {
   // The keys are at position 2*n and are already type checked by the parser
   // in checked mode.
   // The values are at position 2*n+1 and are not yet type checked.
-  factory Map<K, V>.fromLiteral(int location,
-                                String value_type,
-                                List elements) {
+  factory Map<K, V>.fromLiteral(List elements) {
     var map = new LinkedHashMap<String, V>();
     var len = elements.length;
     for (int i = 1; i < len; i += 2) {
-      // The type of the key has been checked in the parser already.
-      // In checked mode only, rethrow a potential type error with a more user
-      // friendly error message.
-      try {
-        map[elements[i - 1]] = elements[i];
-      } catch (TypeError error) {
-        TypeError._throwNew(location,
-                            elements[i],
-                            value_type,
-                            "map literal value at index ${i ~/ 2}");
-      }
+      map[elements[i - 1]] = elements[i];
     }
     return map;
   }

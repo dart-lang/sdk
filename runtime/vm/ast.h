@@ -20,6 +20,7 @@ namespace dart {
   V(ReturnNode, "return")                                                      \
   V(LiteralNode, "literal")                                                    \
   V(TypeNode, "type")                                                          \
+  V(AssignableNode, "assignable")                                              \
   V(BinaryOpNode, "binop")                                                     \
   V(StringConcatNode, "concat")                                                \
   V(ComparisonNode, "compare")                                                 \
@@ -369,6 +370,39 @@ class TypeNode : public AstNode {
   const Type& type_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(TypeNode);
+};
+
+
+class AssignableNode : public AstNode {
+ public:
+  AssignableNode(intptr_t token_index,
+                 AstNode* expr,
+                 const Type& type,
+                 const String& dst_name)
+      : AstNode(token_index), expr_(expr), type_(type), dst_name_(dst_name) {
+    ASSERT(expr_ != NULL);
+    ASSERT(type_.IsZoneHandle());
+    ASSERT(!type_.IsNull());
+    ASSERT(type_.IsFinalized());
+    ASSERT(dst_name_.IsZoneHandle());
+  }
+
+  AstNode* expr() const { return expr_; }
+  const Type& type() const { return type_; }
+  const String& dst_name() const { return dst_name_; }
+
+  virtual void VisitChildren(AstNodeVisitor* visitor) const {
+    expr()->Visit(visitor);
+  }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(AssignableNode);
+
+ private:
+  AstNode* expr_;
+  const Type& type_;
+  const String& dst_name_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(AssignableNode);
 };
 
 

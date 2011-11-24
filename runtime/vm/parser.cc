@@ -6580,7 +6580,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   bool is_empty_literal = CurrentToken() == Token::kINDEX;
   ConsumeToken();
 
-  Type& element_type = Type::Handle(Type::DynamicType());
+  Type& element_type = Type::ZoneHandle(Type::DynamicType());
   // If no type argument vector is provided, leave it as null, which is
   // equivalent to using Dynamic as the type argument for the element type.
   if (!type_arguments.IsNull()) {
@@ -6605,8 +6605,28 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   ArrayNode* list = new ArrayNode(token_index_, TypeArguments::ZoneHandle());
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
+    const String& dst_name = String::ZoneHandle(
+        String::NewSymbol("list literal element"));
     while (CurrentToken() != Token::kRBRACK) {
-      list->AddElement(ParseExpr(is_const));
+      const intptr_t element_pos = token_index_;
+      AstNode* element = ParseExpr(is_const);
+      if (FLAG_enable_type_checks &&
+          !is_const &&
+          !element_type.IsDynamicType()) {
+        // The expression needs to be type checked at runtime.
+        // Eliminate the type check if it can be performed at compile time and
+        // if it succeeds.
+        if (!element_type.IsInstantiated() ||
+            !element->IsLiteralNode() ||
+            !element->AsLiteralNode()->literal().
+                IsAssignableTo(element_type, TypeArguments::Handle())) {
+          element = new AssignableNode(element_pos,
+                                       element,
+                                       element_type,
+                                       dst_name);
+        }
+      }
+      list->AddElement(element);
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
       } else if (CurrentToken() != Token::kRBRACK) {
@@ -6661,10 +6681,6 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       CaptureReceiver();
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
-    factory_param->Add(
-        new LiteralNode(literal_pos, Smi::ZoneHandle(Smi::New(literal_pos))));
-    factory_param->Add(
-        new LiteralNode(literal_pos, String::ZoneHandle(element_type.Name())));
     factory_param->Add(list);
     return new ConstructorCallNode(
         literal_pos, type_arguments, literal_list_factory, factory_param);
@@ -6706,7 +6722,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   const intptr_t literal_pos = token_index_;
   ConsumeToken();
 
-  Type& value_type = Type::Handle(Type::DynamicType());
+  Type& value_type = Type::ZoneHandle(Type::DynamicType());
   TypeArguments& map_type_arguments =
       TypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
@@ -6749,6 +6765,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   // comma after the last entry.
   ArrayNode* kv_pairs =
       new ArrayNode(token_index_, TypeArguments::ZoneHandle());
+  const String& dst_name = String::ZoneHandle(
+      String::NewSymbol("list literal element"));
   while (CurrentToken() != Token::kRBRACE) {
     AstNode* key = NULL;
     if (CurrentToken() == Token::kSTRING) {
@@ -6761,9 +6779,25 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
     ExpectToken(Token::kCOLON);
     const bool saved_mode = SetAllowFunctionLiterals(true);
+    const intptr_t value_pos = token_index_;
     AstNode* value = ParseExpr(is_const);
     SetAllowFunctionLiterals(saved_mode);
-
+    if (FLAG_enable_type_checks &&
+        !is_const &&
+        !value_type.IsDynamicType()) {
+      // The expression needs to be type checked at runtime.
+      // Eliminate the type check if it can be performed at compile time and
+      // if it succeeds.
+      if (!value_type.IsInstantiated() ||
+          !value->IsLiteralNode() ||
+          !value->AsLiteralNode()->literal().
+              IsAssignableTo(value_type, TypeArguments::Handle())) {
+        value = new AssignableNode(value_pos,
+                                   value,
+                                   value_type,
+                                   dst_name);
+      }
+    }
     AddKeyValuePair(kv_pairs, is_const, key, value);
 
     if (CurrentToken() == Token::kCOMMA) {
@@ -6845,10 +6879,6 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       CaptureReceiver();
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
-    factory_param->Add(
-        new LiteralNode(literal_pos, Smi::ZoneHandle(Smi::New(literal_pos))));
-    factory_param->Add(
-        new LiteralNode(literal_pos, String::ZoneHandle(value_type.Name())));
     factory_param->Add(kv_pairs);
     return new ConstructorCallNode(
         literal_pos, map_type_arguments, literal_map_factory, factory_param);
