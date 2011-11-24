@@ -88,12 +88,21 @@ class StandardTestConfiguration(test.TestConfiguration):
           kind, test_source = tags[tag]
           if not self.Contains(path, test_path + [tag]):
             continue
-          tests.append(test_case.MultiTestCase(self.context,
-                                               test_path + [tag],
-                                               test_source,
-                                               kind,
-                                               mode, arch, component,
-                                               self.flags))
+          if vm_options_list:
+            for options in vm_options_list:
+              tests.append(test_case.MultiTestCase(self.context,
+                                                   test_path + [tag],
+                                                   test_source,
+                                                   kind,
+                                                   mode, arch, component,
+                                                   options + self.flags))
+          else:
+            tests.append(test_case.MultiTestCase(self.context,
+                                                 test_path + [tag],
+                                                 test_source,
+                                                 kind,
+                                                 mode, arch, component,
+                                                 self.flags))
       else:
         if vm_options_list:
           for options in vm_options_list:
