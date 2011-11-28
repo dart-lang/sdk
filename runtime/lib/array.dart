@@ -161,7 +161,7 @@ class ObjectArray<T> implements List<T> {
 // the inline cache misses.
 class ImmutableArray<T> implements List<T> {
 
-  factory ImmutableArray._uninstantiable() {
+  factory ImmutableArray<T>._uninstantiable() {
     throw const UnsupportedOperationException(
         "ImmutableArray can only be allocated by the VM");
   }
