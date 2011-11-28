@@ -157,9 +157,8 @@ public class RuntimeTypeInjector {
     // implementation works properly.
     interfaces.add(classElement.getType());
 
-    for (InterfaceType current = classElement.getType(); current != null;
-      current = current.getElement().getSupertype()) {
-      // TODO(johnlenz): Maybe use "getAllSupertypes" on the interface element instead
+   InterfaceType current = classElement.getType();
+   if (current != null) {
       addAllInterfaces(interfaces, current);
     }
     return interfaces;
