@@ -3,6 +3,16 @@ class XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 
+  static final int DONE = 4;
+
+  static final int HEADERS_RECEIVED = 2;
+
+  static final int LOADING = 3;
+
+  static final int OPENED = 1;
+
+  static final int UNSENT = 0;
+
   bool asBlob;
 
   int readyState;

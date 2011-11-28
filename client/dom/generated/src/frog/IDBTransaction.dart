@@ -1,6 +1,12 @@
 
 class IDBTransaction native "*IDBTransaction" {
 
+  static final int READ_ONLY = 0;
+
+  static final int READ_WRITE = 1;
+
+  static final int VERSION_CHANGE = 2;
+
   IDBDatabase db;
 
   int mode;

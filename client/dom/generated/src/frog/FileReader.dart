@@ -3,6 +3,12 @@ class FileReader native "*FileReader" {
   FileReader() native;
 
 
+  static final int DONE = 2;
+
+  static final int EMPTY = 0;
+
+  static final int LOADING = 1;
+
   FileError error;
 
   int readyState;

@@ -1,6 +1,22 @@
 
 class Range native "*Range" {
 
+  static final int END_TO_END = 2;
+
+  static final int END_TO_START = 3;
+
+  static final int NODE_AFTER = 1;
+
+  static final int NODE_BEFORE = 0;
+
+  static final int NODE_BEFORE_AND_AFTER = 2;
+
+  static final int NODE_INSIDE = 3;
+
+  static final int START_TO_END = 1;
+
+  static final int START_TO_START = 0;
+
   bool collapsed;
 
   Node commonAncestorContainer;

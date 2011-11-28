@@ -1,6 +1,12 @@
 
 class MutationEvent extends Event native "*MutationEvent" {
 
+  static final int ADDITION = 2;
+
+  static final int MODIFICATION = 1;
+
+  static final int REMOVAL = 3;
+
   int attrChange;
 
   String attrName;

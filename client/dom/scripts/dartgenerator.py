@@ -1953,6 +1953,14 @@ class FrogInterfaceGenerator(object):
     pass
 
   def AddConstant(self, constant):
+    # Since we are currently generating native classes without interfaces,
+    # generate the constants as part of the class.  This will need to go away
+    # if we revert back to generating interfaces.
+    self._members_emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
+                               NAME=constant.id,
+                               TYPE=constant.type.id,
+                               VALUE=constant.value)
+
     pass
 
   def AddGetter(self, attr):

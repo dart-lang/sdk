@@ -1,6 +1,12 @@
 
 class FileWriter native "*FileWriter" {
 
+  static final int DONE = 2;
+
+  static final int INIT = 0;
+
+  static final int WRITING = 1;
+
   FileError error;
 
   int length;

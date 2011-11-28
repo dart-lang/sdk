@@ -1,6 +1,12 @@
 
 class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
+  static final int LENGTHADJUST_SPACING = 1;
+
+  static final int LENGTHADJUST_SPACINGANDGLYPHS = 2;
+
+  static final int LENGTHADJUST_UNKNOWN = 0;
+
   SVGAnimatedEnumeration lengthAdjust;
 
   SVGAnimatedLength textLength;

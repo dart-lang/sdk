@@ -1,6 +1,14 @@
 
 class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrixElement" {
 
+  static final int SVG_EDGEMODE_DUPLICATE = 1;
+
+  static final int SVG_EDGEMODE_NONE = 3;
+
+  static final int SVG_EDGEMODE_UNKNOWN = 0;
+
+  static final int SVG_EDGEMODE_WRAP = 2;
+
   SVGAnimatedNumber bias;
 
   SVGAnimatedNumber divisor;

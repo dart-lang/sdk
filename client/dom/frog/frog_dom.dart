@@ -135,6 +135,58 @@ class CSSPageRule extends CSSRule native "*CSSPageRule" {
 
 class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
+  static final int CSS_ATTR = 22;
+
+  static final int CSS_CM = 6;
+
+  static final int CSS_COUNTER = 23;
+
+  static final int CSS_DEG = 11;
+
+  static final int CSS_DIMENSION = 18;
+
+  static final int CSS_EMS = 3;
+
+  static final int CSS_EXS = 4;
+
+  static final int CSS_GRAD = 13;
+
+  static final int CSS_HZ = 16;
+
+  static final int CSS_IDENT = 21;
+
+  static final int CSS_IN = 8;
+
+  static final int CSS_KHZ = 17;
+
+  static final int CSS_MM = 7;
+
+  static final int CSS_MS = 14;
+
+  static final int CSS_NUMBER = 1;
+
+  static final int CSS_PC = 10;
+
+  static final int CSS_PERCENTAGE = 2;
+
+  static final int CSS_PT = 9;
+
+  static final int CSS_PX = 5;
+
+  static final int CSS_RAD = 12;
+
+  static final int CSS_RECT = 24;
+
+  static final int CSS_RGBCOLOR = 25;
+
+  static final int CSS_S = 15;
+
+  static final int CSS_STRING = 19;
+
+  static final int CSS_UNKNOWN = 0;
+
+  static final int CSS_URI = 20;
+
   int primitiveType;
 
   Counter getCounterValue() native;
@@ -153,6 +205,26 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 }
 
 class CSSRule native "*CSSRule" {
+
+  static final int CHARSET_RULE = 2;
+
+  static final int FONT_FACE_RULE = 5;
+
+  static final int IMPORT_RULE = 3;
+
+  static final int MEDIA_RULE = 4;
+
+  static final int PAGE_RULE = 6;
+
+  static final int STYLE_RULE = 1;
+
+  static final int UNKNOWN_RULE = 0;
+
+  static final int WEBKIT_KEYFRAMES_RULE = 8;
+
+  static final int WEBKIT_KEYFRAME_RULE = 9;
+
+  static final int WEBKIT_REGION_STYLE_RULE = 10;
 
   String cssText;
 
@@ -235,6 +307,14 @@ class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 }
 
 class CSSValue native "*CSSValue" {
+
+  static final int CSS_CUSTOM = 3;
+
+  static final int CSS_INHERIT = 0;
+
+  static final int CSS_PRIMITIVE_VALUE = 1;
+
+  static final int CSS_VALUE_LIST = 2;
 
   String cssText;
 
@@ -603,6 +683,18 @@ class CustomEvent extends Event native "*CustomEvent" {
 
 class DOMApplicationCache native "*DOMApplicationCache" {
 
+  static final int CHECKING = 2;
+
+  static final int DOWNLOADING = 3;
+
+  static final int IDLE = 1;
+
+  static final int OBSOLETE = 5;
+
+  static final int UNCACHED = 0;
+
+  static final int UPDATEREADY = 4;
+
   int status;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -621,6 +713,56 @@ class DOMApplicationCache native "*DOMApplicationCache" {
 }
 
 class DOMException native "*DOMException" {
+
+  static final int ABORT_ERR = 20;
+
+  static final int DATA_CLONE_ERR = 25;
+
+  static final int DOMSTRING_SIZE_ERR = 2;
+
+  static final int HIERARCHY_REQUEST_ERR = 3;
+
+  static final int INDEX_SIZE_ERR = 1;
+
+  static final int INUSE_ATTRIBUTE_ERR = 10;
+
+  static final int INVALID_ACCESS_ERR = 15;
+
+  static final int INVALID_CHARACTER_ERR = 5;
+
+  static final int INVALID_MODIFICATION_ERR = 13;
+
+  static final int INVALID_NODE_TYPE_ERR = 24;
+
+  static final int INVALID_STATE_ERR = 11;
+
+  static final int NAMESPACE_ERR = 14;
+
+  static final int NETWORK_ERR = 19;
+
+  static final int NOT_FOUND_ERR = 8;
+
+  static final int NOT_SUPPORTED_ERR = 9;
+
+  static final int NO_DATA_ALLOWED_ERR = 6;
+
+  static final int NO_MODIFICATION_ALLOWED_ERR = 7;
+
+  static final int QUOTA_EXCEEDED_ERR = 22;
+
+  static final int SECURITY_ERR = 18;
+
+  static final int SYNTAX_ERR = 12;
+
+  static final int TIMEOUT_ERR = 23;
+
+  static final int TYPE_MISMATCH_ERR = 17;
+
+  static final int URL_MISMATCH_ERR = 21;
+
+  static final int VALIDATION_ERR = 16;
+
+  static final int WRONG_DOCUMENT_ERR = 4;
 
   int code;
 
@@ -1626,6 +1768,44 @@ class ErrorEvent extends Event native "*ErrorEvent" {
 
 class Event native "*Event" {
 
+  static final int AT_TARGET = 2;
+
+  static final int BLUR = 8192;
+
+  static final int BUBBLING_PHASE = 3;
+
+  static final int CAPTURING_PHASE = 1;
+
+  static final int CHANGE = 32768;
+
+  static final int CLICK = 64;
+
+  static final int DBLCLICK = 128;
+
+  static final int DRAGDROP = 2048;
+
+  static final int FOCUS = 4096;
+
+  static final int KEYDOWN = 256;
+
+  static final int KEYPRESS = 1024;
+
+  static final int KEYUP = 512;
+
+  static final int MOUSEDOWN = 1;
+
+  static final int MOUSEDRAG = 32;
+
+  static final int MOUSEMOVE = 16;
+
+  static final int MOUSEOUT = 8;
+
+  static final int MOUSEOVER = 4;
+
+  static final int MOUSEUP = 2;
+
+  static final int SELECT = 16384;
+
   bool bubbles;
 
   bool cancelBubble;
@@ -1665,6 +1845,10 @@ class Event native "*Event" {
 
 class EventException native "*EventException" {
 
+  static final int DISPATCH_REQUEST_ERR = 1;
+
+  static final int UNSPECIFIED_EVENT_TYPE_ERR = 0;
+
   int code;
 
   String message;
@@ -1679,6 +1863,12 @@ class EventException native "*EventException" {
 }
 
 class EventSource native "*EventSource" {
+
+  static final int CLOSED = 2;
+
+  static final int CONNECTING = 0;
+
+  static final int OPEN = 1;
 
   String URL;
 
@@ -1746,6 +1936,30 @@ class FileEntrySync extends EntrySync native "*FileEntrySync" {
 
 class FileError native "*FileError" {
 
+  static final int ABORT_ERR = 3;
+
+  static final int ENCODING_ERR = 5;
+
+  static final int INVALID_MODIFICATION_ERR = 9;
+
+  static final int INVALID_STATE_ERR = 7;
+
+  static final int NOT_FOUND_ERR = 1;
+
+  static final int NOT_READABLE_ERR = 4;
+
+  static final int NO_MODIFICATION_ALLOWED_ERR = 6;
+
+  static final int PATH_EXISTS_ERR = 12;
+
+  static final int QUOTA_EXCEEDED_ERR = 10;
+
+  static final int SECURITY_ERR = 2;
+
+  static final int SYNTAX_ERR = 8;
+
+  static final int TYPE_MISMATCH_ERR = 11;
+
   int code;
 
   var dartObjectLocalStorage;
@@ -1754,6 +1968,30 @@ class FileError native "*FileError" {
 }
 
 class FileException native "*FileException" {
+
+  static final int ABORT_ERR = 3;
+
+  static final int ENCODING_ERR = 5;
+
+  static final int INVALID_MODIFICATION_ERR = 9;
+
+  static final int INVALID_STATE_ERR = 7;
+
+  static final int NOT_FOUND_ERR = 1;
+
+  static final int NOT_READABLE_ERR = 4;
+
+  static final int NO_MODIFICATION_ALLOWED_ERR = 6;
+
+  static final int PATH_EXISTS_ERR = 12;
+
+  static final int QUOTA_EXCEEDED_ERR = 10;
+
+  static final int SECURITY_ERR = 2;
+
+  static final int SYNTAX_ERR = 8;
+
+  static final int TYPE_MISMATCH_ERR = 11;
 
   int code;
 
@@ -1782,6 +2020,12 @@ class FileList native "*FileList" {
 class FileReader native "*FileReader" {
   FileReader() native;
 
+
+  static final int DONE = 2;
+
+  static final int EMPTY = 0;
+
+  static final int LOADING = 1;
 
   FileError error;
 
@@ -1829,6 +2073,12 @@ class FileSystemCallback native "*FileSystemCallback" {
 }
 
 class FileWriter native "*FileWriter" {
+
+  static final int DONE = 2;
+
+  static final int INIT = 0;
+
+  static final int WRITING = 1;
 
   FileError error;
 
@@ -1879,12 +2129,16 @@ class FileWriterSync native "*FileWriterSync" {
 
 class Float32Array extends ArrayBufferView native "*Float32Array" {
 
+  static final int BYTES_PER_ELEMENT = 4;
+
   int length;
 
   Float32Array subarray(int start, [int end = null]) native;
 }
 
 class Float64Array extends ArrayBufferView native "*Float64Array" {
+
+  static final int BYTES_PER_ELEMENT = 8;
 
   int length;
 
@@ -2719,6 +2973,24 @@ class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
 
 class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
 
+  static final int HAVE_CURRENT_DATA = 2;
+
+  static final int HAVE_ENOUGH_DATA = 4;
+
+  static final int HAVE_FUTURE_DATA = 3;
+
+  static final int HAVE_METADATA = 1;
+
+  static final int HAVE_NOTHING = 0;
+
+  static final int NETWORK_EMPTY = 0;
+
+  static final int NETWORK_IDLE = 1;
+
+  static final int NETWORK_LOADING = 2;
+
+  static final int NETWORK_NO_SOURCE = 3;
+
   bool autoplay;
 
   TimeRanges buffered;
@@ -3371,6 +3643,14 @@ class IDBAny native "*IDBAny" {
 
 class IDBCursor native "*IDBCursor" {
 
+  static final int NEXT = 0;
+
+  static final int NEXT_NO_DUPLICATE = 1;
+
+  static final int PREV = 2;
+
+  static final int PREV_NO_DUPLICATE = 3;
+
   int direction;
 
   IDBKey key;
@@ -3434,6 +3714,34 @@ class IDBDatabaseError native "*IDBDatabaseError" {
 }
 
 class IDBDatabaseException native "*IDBDatabaseException" {
+
+  static final int ABORT_ERR = 13;
+
+  static final int CONSTRAINT_ERR = 4;
+
+  static final int DATA_ERR = 5;
+
+  static final int DEADLOCK_ERR = 11;
+
+  static final int NON_TRANSIENT_ERR = 2;
+
+  static final int NOT_ALLOWED_ERR = 6;
+
+  static final int NOT_FOUND_ERR = 3;
+
+  static final int NO_ERR = 0;
+
+  static final int READ_ONLY_ERR = 12;
+
+  static final int RECOVERABLE_ERR = 8;
+
+  static final int SERIAL_ERR = 7;
+
+  static final int TIMEOUT_ERR = 10;
+
+  static final int TRANSIENT_ERR = 9;
+
+  static final int UNKNOWN_ERR = 1;
 
   int code;
 
@@ -3549,6 +3857,10 @@ class IDBObjectStore native "*IDBObjectStore" {
 
 class IDBRequest native "*IDBRequest" {
 
+  static final int DONE = 2;
+
+  static final int LOADING = 1;
+
   int errorCode;
 
   int readyState;
@@ -3573,6 +3885,12 @@ class IDBRequest native "*IDBRequest" {
 }
 
 class IDBTransaction native "*IDBTransaction" {
+
+  static final int READ_ONLY = 0;
+
+  static final int READ_WRITE = 1;
+
+  static final int VERSION_CHANGE = 2;
 
   IDBDatabase db;
 
@@ -3692,12 +4010,16 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
 
 class Int16Array extends ArrayBufferView native "*Int16Array" {
 
+  static final int BYTES_PER_ELEMENT = 2;
+
   int length;
 
   Int16Array subarray(int start, [int end = null]) native;
 }
 
 class Int32Array extends ArrayBufferView native "*Int32Array" {
+
+  static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 
@@ -3706,12 +4028,24 @@ class Int32Array extends ArrayBufferView native "*Int32Array" {
 
 class Int8Array extends ArrayBufferView native "*Int8Array" {
 
+  static final int BYTES_PER_ELEMENT = 1;
+
   int length;
 
   Int8Array subarray(int start, [int end = null]) native;
 }
 
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
+
+  static final int CATCH_SCOPE = 4;
+
+  static final int CLOSURE_SCOPE = 3;
+
+  static final int GLOBAL_SCOPE = 0;
+
+  static final int LOCAL_SCOPE = 1;
+
+  static final int WITH_SCOPE = 2;
 
   JavaScriptCallFrame caller;
 
@@ -3791,6 +4125,14 @@ class Location native "*Location" {
 }
 
 class MediaError native "*MediaError" {
+
+  static final int MEDIA_ERR_ABORTED = 1;
+
+  static final int MEDIA_ERR_DECODE = 3;
+
+  static final int MEDIA_ERR_NETWORK = 2;
+
+  static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   int code;
 
@@ -3970,6 +4312,12 @@ class MutationCallback native "*MutationCallback" {
 
 class MutationEvent extends Event native "*MutationEvent" {
 
+  static final int ADDITION = 2;
+
+  static final int MODIFICATION = 1;
+
+  static final int REMOVAL = 3;
+
   int attrChange;
 
   String attrName;
@@ -4074,6 +4422,8 @@ class Navigator native "*Navigator" {
 
 class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
+  static final int PERMISSION_DENIED = 1;
+
   int code;
 
   var dartObjectLocalStorage;
@@ -4098,6 +4448,42 @@ class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallba
 }
 
 class Node native "*Node" {
+
+  static final int ATTRIBUTE_NODE = 2;
+
+  static final int CDATA_SECTION_NODE = 4;
+
+  static final int COMMENT_NODE = 8;
+
+  static final int DOCUMENT_FRAGMENT_NODE = 11;
+
+  static final int DOCUMENT_NODE = 9;
+
+  static final int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+
+  static final int DOCUMENT_POSITION_CONTAINS = 0x08;
+
+  static final int DOCUMENT_POSITION_DISCONNECTED = 0x01;
+
+  static final int DOCUMENT_POSITION_FOLLOWING = 0x04;
+
+  static final int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
+
+  static final int DOCUMENT_POSITION_PRECEDING = 0x02;
+
+  static final int DOCUMENT_TYPE_NODE = 10;
+
+  static final int ELEMENT_NODE = 1;
+
+  static final int ENTITY_NODE = 6;
+
+  static final int ENTITY_REFERENCE_NODE = 5;
+
+  static final int NOTATION_NODE = 12;
+
+  static final int PROCESSING_INSTRUCTION_NODE = 7;
+
+  static final int TEXT_NODE = 3;
 
   NamedNodeMap attributes;
 
@@ -4177,6 +4563,38 @@ class Node native "*Node" {
 }
 
 class NodeFilter native "*NodeFilter" {
+
+  static final int FILTER_ACCEPT = 1;
+
+  static final int FILTER_REJECT = 2;
+
+  static final int FILTER_SKIP = 3;
+
+  static final int SHOW_ALL = 0xFFFFFFFF;
+
+  static final int SHOW_ATTRIBUTE = 0x00000002;
+
+  static final int SHOW_CDATA_SECTION = 0x00000008;
+
+  static final int SHOW_COMMENT = 0x00000080;
+
+  static final int SHOW_DOCUMENT = 0x00000100;
+
+  static final int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
+
+  static final int SHOW_DOCUMENT_TYPE = 0x00000200;
+
+  static final int SHOW_ELEMENT = 0x00000001;
+
+  static final int SHOW_ENTITY = 0x00000020;
+
+  static final int SHOW_ENTITY_REFERENCE = 0x00000010;
+
+  static final int SHOW_NOTATION = 0x00000800;
+
+  static final int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
+
+  static final int SHOW_TEXT = 0x00000004;
 
   int acceptNode(Node n) native;
 
@@ -4279,6 +4697,8 @@ class NotificationCenter native "*NotificationCenter" {
 
 class OESStandardDerivatives native "*OESStandardDerivatives" {
 
+  static final int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -4292,6 +4712,8 @@ class OESTextureFloat native "*OESTextureFloat" {
 }
 
 class OESVertexArrayObject native "*OESVertexArrayObject" {
+
+  static final int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
 
@@ -4308,6 +4730,8 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
 
 class OperationNotAllowedException native "*OperationNotAllowedException" {
 
+  static final int NOT_ALLOWED_ERR = 1;
+
   int code;
 
   String message;
@@ -4322,6 +4746,12 @@ class OperationNotAllowedException native "*OperationNotAllowedException" {
 }
 
 class OverflowEvent extends Event native "*OverflowEvent" {
+
+  static final int BOTH = 2;
+
+  static final int HORIZONTAL = 0;
+
+  static final int VERTICAL = 1;
 
   bool horizontalOverflow;
 
@@ -4353,6 +4783,14 @@ class Performance native "*Performance" {
 }
 
 class PerformanceNavigation native "*PerformanceNavigation" {
+
+  static final int TYPE_BACK_FORWARD = 2;
+
+  static final int TYPE_NAVIGATE = 0;
+
+  static final int TYPE_RELOAD = 1;
+
+  static final int TYPE_RESERVED = 255;
 
   int redirectCount;
 
@@ -4430,6 +4868,12 @@ class PositionCallback native "*PositionCallback" {
 
 class PositionError native "*PositionError" {
 
+  static final int PERMISSION_DENIED = 1;
+
+  static final int POSITION_UNAVAILABLE = 2;
+
+  static final int TIMEOUT = 3;
+
   int code;
 
   String message;
@@ -4482,6 +4926,22 @@ class RGBColor native "*RGBColor" {
 }
 
 class Range native "*Range" {
+
+  static final int END_TO_END = 2;
+
+  static final int END_TO_START = 3;
+
+  static final int NODE_AFTER = 1;
+
+  static final int NODE_BEFORE = 0;
+
+  static final int NODE_BEFORE_AND_AFTER = 2;
+
+  static final int NODE_INSIDE = 3;
+
+  static final int START_TO_END = 1;
+
+  static final int START_TO_START = 0;
 
   bool collapsed;
 
@@ -4552,6 +5012,10 @@ class Range native "*Range" {
 
 class RangeException native "*RangeException" {
 
+  static final int BAD_BOUNDARYPOINTS_ERR = 1;
+
+  static final int INVALID_NODE_TYPE_ERR = 2;
+
   int code;
 
   String message;
@@ -4582,6 +5046,22 @@ class Rect native "*Rect" {
 
 class SQLError native "*SQLError" {
 
+  static final int CONSTRAINT_ERR = 6;
+
+  static final int DATABASE_ERR = 1;
+
+  static final int QUOTA_ERR = 4;
+
+  static final int SYNTAX_ERR = 5;
+
+  static final int TIMEOUT_ERR = 7;
+
+  static final int TOO_LARGE_ERR = 3;
+
+  static final int UNKNOWN_ERR = 0;
+
+  static final int VERSION_ERR = 2;
+
   int code;
 
   String message;
@@ -4592,6 +5072,22 @@ class SQLError native "*SQLError" {
 }
 
 class SQLException native "*SQLException" {
+
+  static final int CONSTRAINT_ERR = 6;
+
+  static final int DATABASE_ERR = 1;
+
+  static final int QUOTA_ERR = 4;
+
+  static final int SYNTAX_ERR = 5;
+
+  static final int TIMEOUT_ERR = 7;
+
+  static final int TOO_LARGE_ERR = 3;
+
+  static final int UNKNOWN_ERR = 0;
+
+  static final int VERSION_ERR = 2;
 
   int code;
 
@@ -4758,6 +5254,16 @@ class SVGAltGlyphItemElement extends SVGElement native "*SVGAltGlyphItemElement"
 }
 
 class SVGAngle native "*SVGAngle" {
+
+  static final int SVG_ANGLETYPE_DEG = 2;
+
+  static final int SVG_ANGLETYPE_GRAD = 4;
+
+  static final int SVG_ANGLETYPE_RAD = 3;
+
+  static final int SVG_ANGLETYPE_UNKNOWN = 0;
+
+  static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   int unitType;
 
@@ -5063,6 +5569,14 @@ class SVGClipPathElement extends SVGElement native "*SVGClipPathElement" {
 
 class SVGColor extends CSSValue native "*SVGColor" {
 
+  static final int SVG_COLORTYPE_CURRENTCOLOR = 3;
+
+  static final int SVG_COLORTYPE_RGBCOLOR = 1;
+
+  static final int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
+
+  static final int SVG_COLORTYPE_UNKNOWN = 0;
+
   int colorType;
 
   RGBColor rgbColor;
@@ -5075,6 +5589,18 @@ class SVGColor extends CSSValue native "*SVGColor" {
 }
 
 class SVGComponentTransferFunctionElement extends SVGElement native "*SVGComponentTransferFunctionElement" {
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   SVGAnimatedNumber amplitude;
 
@@ -5299,6 +5825,12 @@ class SVGEllipseElement extends SVGElement native "*SVGEllipseElement" {
 
 class SVGException native "*SVGException" {
 
+  static final int SVG_INVALID_VALUE_ERR = 1;
+
+  static final int SVG_MATRIX_NOT_INVERTABLE = 2;
+
+  static final int SVG_WRONG_TYPE_ERR = 0;
+
   int code;
 
   String message;
@@ -5322,6 +5854,18 @@ class SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
 }
 
 class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
+
+  static final int SVG_FEBLEND_MODE_DARKEN = 4;
+
+  static final int SVG_FEBLEND_MODE_LIGHTEN = 5;
+
+  static final int SVG_FEBLEND_MODE_MULTIPLY = 2;
+
+  static final int SVG_FEBLEND_MODE_NORMAL = 1;
+
+  static final int SVG_FEBLEND_MODE_SCREEN = 3;
+
+  static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   SVGAnimatedString in1;
 
@@ -5351,6 +5895,16 @@ class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
 }
 
 class SVGFEColorMatrixElement extends SVGElement native "*SVGFEColorMatrixElement" {
+
+  static final int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
+
+  static final int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
+
+  static final int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
+
+  static final int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
+
+  static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   SVGAnimatedString in1;
 
@@ -5406,6 +5960,20 @@ class SVGFEComponentTransferElement extends SVGElement native "*SVGFEComponentTr
 
 class SVGFECompositeElement extends SVGElement native "*SVGFECompositeElement" {
 
+  static final int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_IN = 2;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
+
+  static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
+
   SVGAnimatedString in1;
 
   SVGAnimatedString in2;
@@ -5442,6 +6010,14 @@ class SVGFECompositeElement extends SVGElement native "*SVGFECompositeElement" {
 }
 
 class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrixElement" {
+
+  static final int SVG_EDGEMODE_DUPLICATE = 1;
+
+  static final int SVG_EDGEMODE_NONE = 3;
+
+  static final int SVG_EDGEMODE_UNKNOWN = 0;
+
+  static final int SVG_EDGEMODE_WRAP = 2;
 
   SVGAnimatedNumber bias;
 
@@ -5522,6 +6098,16 @@ class SVGFEDiffuseLightingElement extends SVGElement native "*SVGFEDiffuseLighti
 }
 
 class SVGFEDisplacementMapElement extends SVGElement native "*SVGFEDisplacementMapElement" {
+
+  static final int SVG_CHANNEL_A = 4;
+
+  static final int SVG_CHANNEL_B = 3;
+
+  static final int SVG_CHANNEL_G = 2;
+
+  static final int SVG_CHANNEL_R = 1;
+
+  static final int SVG_CHANNEL_UNKNOWN = 0;
 
   SVGAnimatedString in1;
 
@@ -5731,6 +6317,12 @@ class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
 
 class SVGFEMorphologyElement extends SVGElement native "*SVGFEMorphologyElement" {
 
+  static final int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
+
+  static final int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
+
+  static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
+
   SVGAnimatedString in1;
 
   SVGAnimatedEnumeration operator;
@@ -5876,6 +6468,18 @@ class SVGFETileElement extends SVGElement native "*SVGFETileElement" {
 }
 
 class SVGFETurbulenceElement extends SVGElement native "*SVGFETurbulenceElement" {
+
+  static final int SVG_STITCHTYPE_NOSTITCH = 2;
+
+  static final int SVG_STITCHTYPE_STITCH = 1;
+
+  static final int SVG_STITCHTYPE_UNKNOWN = 0;
+
+  static final int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
+
+  static final int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
+
+  static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   SVGAnimatedNumber baseFrequencyX;
 
@@ -6133,6 +6737,14 @@ class SVGGlyphRefElement extends SVGElement native "*SVGGlyphRefElement" {
 
 class SVGGradientElement extends SVGElement native "*SVGGradientElement" {
 
+  static final int SVG_SPREADMETHOD_PAD = 1;
+
+  static final int SVG_SPREADMETHOD_REFLECT = 2;
+
+  static final int SVG_SPREADMETHOD_REPEAT = 3;
+
+  static final int SVG_SPREADMETHOD_UNKNOWN = 0;
+
   SVGAnimatedTransformList gradientTransform;
 
   SVGAnimatedEnumeration gradientUnits;
@@ -6234,6 +6846,28 @@ class SVGLangSpace native "*SVGLangSpace" {
 }
 
 class SVGLength native "*SVGLength" {
+
+  static final int SVG_LENGTHTYPE_CM = 6;
+
+  static final int SVG_LENGTHTYPE_EMS = 3;
+
+  static final int SVG_LENGTHTYPE_EXS = 4;
+
+  static final int SVG_LENGTHTYPE_IN = 8;
+
+  static final int SVG_LENGTHTYPE_MM = 7;
+
+  static final int SVG_LENGTHTYPE_NUMBER = 1;
+
+  static final int SVG_LENGTHTYPE_PC = 10;
+
+  static final int SVG_LENGTHTYPE_PERCENTAGE = 2;
+
+  static final int SVG_LENGTHTYPE_PT = 9;
+
+  static final int SVG_LENGTHTYPE_PX = 5;
+
+  static final int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   int unitType;
 
@@ -6374,6 +7008,18 @@ class SVGMPathElement extends SVGElement native "*SVGMPathElement" {
 }
 
 class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
+
+  static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
+
+  static final int SVG_MARKERUNITS_UNKNOWN = 0;
+
+  static final int SVG_MARKERUNITS_USERSPACEONUSE = 1;
+
+  static final int SVG_MARKER_ORIENT_ANGLE = 2;
+
+  static final int SVG_MARKER_ORIENT_AUTO = 1;
+
+  static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   SVGAnimatedLength markerHeight;
 
@@ -6542,6 +7188,26 @@ class SVGNumberList native "*SVGNumberList" {
 
 class SVGPaint extends SVGColor native "*SVGPaint" {
 
+  static final int SVG_PAINTTYPE_CURRENTCOLOR = 102;
+
+  static final int SVG_PAINTTYPE_NONE = 101;
+
+  static final int SVG_PAINTTYPE_RGBCOLOR = 1;
+
+  static final int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
+
+  static final int SVG_PAINTTYPE_UNKNOWN = 0;
+
+  static final int SVG_PAINTTYPE_URI = 107;
+
+  static final int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
+
+  static final int SVG_PAINTTYPE_URI_NONE = 103;
+
+  static final int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
+
+  static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
+
   int paintType;
 
   String uri;
@@ -6655,6 +7321,46 @@ class SVGPathElement extends SVGElement native "*SVGPathElement" {
 }
 
 class SVGPathSeg native "*SVGPathSeg" {
+
+  static final int PATHSEG_ARC_ABS = 10;
+
+  static final int PATHSEG_ARC_REL = 11;
+
+  static final int PATHSEG_CLOSEPATH = 1;
+
+  static final int PATHSEG_CURVETO_CUBIC_ABS = 6;
+
+  static final int PATHSEG_CURVETO_CUBIC_REL = 7;
+
+  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
+
+  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_REL = 9;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
+
+  static final int PATHSEG_LINETO_ABS = 4;
+
+  static final int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
+
+  static final int PATHSEG_LINETO_HORIZONTAL_REL = 13;
+
+  static final int PATHSEG_LINETO_REL = 5;
+
+  static final int PATHSEG_LINETO_VERTICAL_ABS = 14;
+
+  static final int PATHSEG_LINETO_VERTICAL_REL = 15;
+
+  static final int PATHSEG_MOVETO_ABS = 2;
+
+  static final int PATHSEG_MOVETO_REL = 3;
+
+  static final int PATHSEG_UNKNOWN = 0;
 
   int pathSegType;
 
@@ -7060,6 +7766,34 @@ class SVGPolylineElement extends SVGElement native "*SVGPolylineElement" {
 
 class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
+  static final int SVG_MEETORSLICE_MEET = 1;
+
+  static final int SVG_MEETORSLICE_SLICE = 2;
+
+  static final int SVG_MEETORSLICE_UNKNOWN = 0;
+
+  static final int SVG_PRESERVEASPECTRATIO_NONE = 1;
+
+  static final int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
+
   int align;
 
   int meetOrSlice;
@@ -7159,6 +7893,18 @@ class SVGRectElement extends SVGElement native "*SVGRectElement" {
 }
 
 class SVGRenderingIntent native "*SVGRenderingIntent" {
+
+  static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
+
+  static final int RENDERING_INTENT_AUTO = 1;
+
+  static final int RENDERING_INTENT_PERCEPTUAL = 2;
+
+  static final int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
+
+  static final int RENDERING_INTENT_SATURATION = 4;
+
+  static final int RENDERING_INTENT_UNKNOWN = 0;
 
   var dartObjectLocalStorage;
 
@@ -7477,6 +8223,12 @@ class SVGTests native "*SVGTests" {
 
 class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
+  static final int LENGTHADJUST_SPACING = 1;
+
+  static final int LENGTHADJUST_SPACINGANDGLYPHS = 2;
+
+  static final int LENGTHADJUST_UNKNOWN = 0;
+
   SVGAnimatedEnumeration lengthAdjust;
 
   SVGAnimatedLength textLength;
@@ -7551,6 +8303,18 @@ class SVGTextElement extends SVGTextPositioningElement native "*SVGTextElement" 
 
 class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathElement" {
 
+  static final int TEXTPATH_METHODTYPE_ALIGN = 1;
+
+  static final int TEXTPATH_METHODTYPE_STRETCH = 2;
+
+  static final int TEXTPATH_METHODTYPE_UNKNOWN = 0;
+
+  static final int TEXTPATH_SPACINGTYPE_AUTO = 1;
+
+  static final int TEXTPATH_SPACINGTYPE_EXACT = 2;
+
+  static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
+
   SVGAnimatedEnumeration method;
 
   SVGAnimatedEnumeration spacing;
@@ -7593,6 +8357,20 @@ class SVGTitleElement extends SVGElement native "*SVGTitleElement" {
 }
 
 class SVGTransform native "*SVGTransform" {
+
+  static final int SVG_TRANSFORM_MATRIX = 1;
+
+  static final int SVG_TRANSFORM_ROTATE = 4;
+
+  static final int SVG_TRANSFORM_SCALE = 3;
+
+  static final int SVG_TRANSFORM_SKEWX = 5;
+
+  static final int SVG_TRANSFORM_SKEWY = 6;
+
+  static final int SVG_TRANSFORM_TRANSLATE = 2;
+
+  static final int SVG_TRANSFORM_UNKNOWN = 0;
 
   num angle;
 
@@ -7659,6 +8437,12 @@ class SVGURIReference native "*SVGURIReference" {
 }
 
 class SVGUnitTypes native "*SVGUnitTypes" {
+
+  static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
+
+  static final int SVG_UNIT_TYPE_UNKNOWN = 0;
+
+  static final int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 
   var dartObjectLocalStorage;
 
@@ -7774,6 +8558,12 @@ class SVGViewSpec extends SVGZoomAndPan native "*SVGViewSpec" {
 }
 
 class SVGZoomAndPan native "*SVGZoomAndPan" {
+
+  static final int SVG_ZOOMANDPAN_DISABLE = 1;
+
+  static final int SVG_ZOOMANDPAN_MAGNIFY = 2;
+
+  static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
   int zoomAndPan;
 
@@ -7929,6 +8719,10 @@ class StorageEvent extends Event native "*StorageEvent" {
 
 class StorageInfo native "*StorageInfo" {
 
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) native;
 
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) native;
@@ -8045,6 +8839,20 @@ class TextMetrics native "*TextMetrics" {
 }
 
 class TextTrack native "*TextTrack" {
+
+  static final int Disabled = 0;
+
+  static final int Error = 3;
+
+  static final int Hidden = 1;
+
+  static final int Loaded = 2;
+
+  static final int Loading = 1;
+
+  static final int None = 0;
+
+  static final int Showing = 2;
 
   TextTrackCueList activeCues;
 
@@ -8247,6 +9055,8 @@ class UIEvent extends Event native "*UIEvent" {
 
 class Uint16Array extends ArrayBufferView native "*Uint16Array" {
 
+  static final int BYTES_PER_ELEMENT = 2;
+
   int length;
 
   Uint16Array subarray(int start, [int end = null]) native;
@@ -8254,12 +9064,16 @@ class Uint16Array extends ArrayBufferView native "*Uint16Array" {
 
 class Uint32Array extends ArrayBufferView native "*Uint32Array" {
 
+  static final int BYTES_PER_ELEMENT = 4;
+
   int length;
 
   Uint32Array subarray(int start, [int end = null]) native;
 }
 
 class Uint8Array extends ArrayBufferView native "*Uint8Array" {
+
+  static final int BYTES_PER_ELEMENT = 1;
 
   int length;
 
@@ -8346,6 +9160,10 @@ class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
 class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
+  static final int UNMASKED_RENDERER_WEBGL = 0x9246;
+
+  static final int UNMASKED_VENDOR_WEBGL = 0x9245;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -8382,6 +9200,600 @@ class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }
 
 class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
+
+  static final int ACTIVE_ATTRIBUTES = 0x8B89;
+
+  static final int ACTIVE_TEXTURE = 0x84E0;
+
+  static final int ACTIVE_UNIFORMS = 0x8B86;
+
+  static final int ALIASED_LINE_WIDTH_RANGE = 0x846E;
+
+  static final int ALIASED_POINT_SIZE_RANGE = 0x846D;
+
+  static final int ALPHA = 0x1906;
+
+  static final int ALPHA_BITS = 0x0D55;
+
+  static final int ALWAYS = 0x0207;
+
+  static final int ARRAY_BUFFER = 0x8892;
+
+  static final int ARRAY_BUFFER_BINDING = 0x8894;
+
+  static final int ATTACHED_SHADERS = 0x8B85;
+
+  static final int BACK = 0x0405;
+
+  static final int BLEND = 0x0BE2;
+
+  static final int BLEND_COLOR = 0x8005;
+
+  static final int BLEND_DST_ALPHA = 0x80CA;
+
+  static final int BLEND_DST_RGB = 0x80C8;
+
+  static final int BLEND_EQUATION = 0x8009;
+
+  static final int BLEND_EQUATION_ALPHA = 0x883D;
+
+  static final int BLEND_EQUATION_RGB = 0x8009;
+
+  static final int BLEND_SRC_ALPHA = 0x80CB;
+
+  static final int BLEND_SRC_RGB = 0x80C9;
+
+  static final int BLUE_BITS = 0x0D54;
+
+  static final int BOOL = 0x8B56;
+
+  static final int BOOL_VEC2 = 0x8B57;
+
+  static final int BOOL_VEC3 = 0x8B58;
+
+  static final int BOOL_VEC4 = 0x8B59;
+
+  static final int BROWSER_DEFAULT_WEBGL = 0x9244;
+
+  static final int BUFFER_SIZE = 0x8764;
+
+  static final int BUFFER_USAGE = 0x8765;
+
+  static final int BYTE = 0x1400;
+
+  static final int CCW = 0x0901;
+
+  static final int CLAMP_TO_EDGE = 0x812F;
+
+  static final int COLOR_ATTACHMENT0 = 0x8CE0;
+
+  static final int COLOR_BUFFER_BIT = 0x00004000;
+
+  static final int COLOR_CLEAR_VALUE = 0x0C22;
+
+  static final int COLOR_WRITEMASK = 0x0C23;
+
+  static final int COMPILE_STATUS = 0x8B81;
+
+  static final int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
+
+  static final int CONSTANT_ALPHA = 0x8003;
+
+  static final int CONSTANT_COLOR = 0x8001;
+
+  static final int CONTEXT_LOST_WEBGL = 0x9242;
+
+  static final int CULL_FACE = 0x0B44;
+
+  static final int CULL_FACE_MODE = 0x0B45;
+
+  static final int CURRENT_PROGRAM = 0x8B8D;
+
+  static final int CURRENT_VERTEX_ATTRIB = 0x8626;
+
+  static final int CW = 0x0900;
+
+  static final int DECR = 0x1E03;
+
+  static final int DECR_WRAP = 0x8508;
+
+  static final int DELETE_STATUS = 0x8B80;
+
+  static final int DEPTH_ATTACHMENT = 0x8D00;
+
+  static final int DEPTH_BITS = 0x0D56;
+
+  static final int DEPTH_BUFFER_BIT = 0x00000100;
+
+  static final int DEPTH_CLEAR_VALUE = 0x0B73;
+
+  static final int DEPTH_COMPONENT = 0x1902;
+
+  static final int DEPTH_COMPONENT16 = 0x81A5;
+
+  static final int DEPTH_FUNC = 0x0B74;
+
+  static final int DEPTH_RANGE = 0x0B70;
+
+  static final int DEPTH_STENCIL = 0x84F9;
+
+  static final int DEPTH_STENCIL_ATTACHMENT = 0x821A;
+
+  static final int DEPTH_TEST = 0x0B71;
+
+  static final int DEPTH_WRITEMASK = 0x0B72;
+
+  static final int DITHER = 0x0BD0;
+
+  static final int DONT_CARE = 0x1100;
+
+  static final int DST_ALPHA = 0x0304;
+
+  static final int DST_COLOR = 0x0306;
+
+  static final int DYNAMIC_DRAW = 0x88E8;
+
+  static final int ELEMENT_ARRAY_BUFFER = 0x8893;
+
+  static final int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+
+  static final int EQUAL = 0x0202;
+
+  static final int FASTEST = 0x1101;
+
+  static final int FLOAT = 0x1406;
+
+  static final int FLOAT_MAT2 = 0x8B5A;
+
+  static final int FLOAT_MAT3 = 0x8B5B;
+
+  static final int FLOAT_MAT4 = 0x8B5C;
+
+  static final int FLOAT_VEC2 = 0x8B50;
+
+  static final int FLOAT_VEC3 = 0x8B51;
+
+  static final int FLOAT_VEC4 = 0x8B52;
+
+  static final int FRAGMENT_SHADER = 0x8B30;
+
+  static final int FRAMEBUFFER = 0x8D40;
+
+  static final int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+
+  static final int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+
+  static final int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+
+  static final int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+
+  static final int FRAMEBUFFER_BINDING = 0x8CA6;
+
+  static final int FRAMEBUFFER_COMPLETE = 0x8CD5;
+
+  static final int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+
+  static final int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
+
+  static final int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+
+  static final int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
+
+  static final int FRONT = 0x0404;
+
+  static final int FRONT_AND_BACK = 0x0408;
+
+  static final int FRONT_FACE = 0x0B46;
+
+  static final int FUNC_ADD = 0x8006;
+
+  static final int FUNC_REVERSE_SUBTRACT = 0x800B;
+
+  static final int FUNC_SUBTRACT = 0x800A;
+
+  static final int GENERATE_MIPMAP_HINT = 0x8192;
+
+  static final int GEQUAL = 0x0206;
+
+  static final int GREATER = 0x0204;
+
+  static final int GREEN_BITS = 0x0D53;
+
+  static final int HIGH_FLOAT = 0x8DF2;
+
+  static final int HIGH_INT = 0x8DF5;
+
+  static final int INCR = 0x1E02;
+
+  static final int INCR_WRAP = 0x8507;
+
+  static final int INT = 0x1404;
+
+  static final int INT_VEC2 = 0x8B53;
+
+  static final int INT_VEC3 = 0x8B54;
+
+  static final int INT_VEC4 = 0x8B55;
+
+  static final int INVALID_ENUM = 0x0500;
+
+  static final int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
+
+  static final int INVALID_OPERATION = 0x0502;
+
+  static final int INVALID_VALUE = 0x0501;
+
+  static final int INVERT = 0x150A;
+
+  static final int KEEP = 0x1E00;
+
+  static final int LEQUAL = 0x0203;
+
+  static final int LESS = 0x0201;
+
+  static final int LINEAR = 0x2601;
+
+  static final int LINEAR_MIPMAP_LINEAR = 0x2703;
+
+  static final int LINEAR_MIPMAP_NEAREST = 0x2701;
+
+  static final int LINES = 0x0001;
+
+  static final int LINE_LOOP = 0x0002;
+
+  static final int LINE_STRIP = 0x0003;
+
+  static final int LINE_WIDTH = 0x0B21;
+
+  static final int LINK_STATUS = 0x8B82;
+
+  static final int LOW_FLOAT = 0x8DF0;
+
+  static final int LOW_INT = 0x8DF3;
+
+  static final int LUMINANCE = 0x1909;
+
+  static final int LUMINANCE_ALPHA = 0x190A;
+
+  static final int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+
+  static final int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
+
+  static final int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
+
+  static final int MAX_RENDERBUFFER_SIZE = 0x84E8;
+
+  static final int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+
+  static final int MAX_TEXTURE_SIZE = 0x0D33;
+
+  static final int MAX_VARYING_VECTORS = 0x8DFC;
+
+  static final int MAX_VERTEX_ATTRIBS = 0x8869;
+
+  static final int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+
+  static final int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
+
+  static final int MAX_VIEWPORT_DIMS = 0x0D3A;
+
+  static final int MEDIUM_FLOAT = 0x8DF1;
+
+  static final int MEDIUM_INT = 0x8DF4;
+
+  static final int MIRRORED_REPEAT = 0x8370;
+
+  static final int NEAREST = 0x2600;
+
+  static final int NEAREST_MIPMAP_LINEAR = 0x2702;
+
+  static final int NEAREST_MIPMAP_NEAREST = 0x2700;
+
+  static final int NEVER = 0x0200;
+
+  static final int NICEST = 0x1102;
+
+  static final int NONE = 0;
+
+  static final int NOTEQUAL = 0x0205;
+
+  static final int NO_ERROR = 0;
+
+  static final int NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
+
+  static final int ONE = 1;
+
+  static final int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+
+  static final int ONE_MINUS_CONSTANT_COLOR = 0x8002;
+
+  static final int ONE_MINUS_DST_ALPHA = 0x0305;
+
+  static final int ONE_MINUS_DST_COLOR = 0x0307;
+
+  static final int ONE_MINUS_SRC_ALPHA = 0x0303;
+
+  static final int ONE_MINUS_SRC_COLOR = 0x0301;
+
+  static final int OUT_OF_MEMORY = 0x0505;
+
+  static final int PACK_ALIGNMENT = 0x0D05;
+
+  static final int POINTS = 0x0000;
+
+  static final int POLYGON_OFFSET_FACTOR = 0x8038;
+
+  static final int POLYGON_OFFSET_FILL = 0x8037;
+
+  static final int POLYGON_OFFSET_UNITS = 0x2A00;
+
+  static final int RED_BITS = 0x0D52;
+
+  static final int RENDERBUFFER = 0x8D41;
+
+  static final int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
+
+  static final int RENDERBUFFER_BINDING = 0x8CA7;
+
+  static final int RENDERBUFFER_BLUE_SIZE = 0x8D52;
+
+  static final int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
+
+  static final int RENDERBUFFER_GREEN_SIZE = 0x8D51;
+
+  static final int RENDERBUFFER_HEIGHT = 0x8D43;
+
+  static final int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
+
+  static final int RENDERBUFFER_RED_SIZE = 0x8D50;
+
+  static final int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
+
+  static final int RENDERBUFFER_WIDTH = 0x8D42;
+
+  static final int RENDERER = 0x1F01;
+
+  static final int REPEAT = 0x2901;
+
+  static final int REPLACE = 0x1E01;
+
+  static final int RGB = 0x1907;
+
+  static final int RGB565 = 0x8D62;
+
+  static final int RGB5_A1 = 0x8057;
+
+  static final int RGBA = 0x1908;
+
+  static final int RGBA4 = 0x8056;
+
+  static final int SAMPLER_2D = 0x8B5E;
+
+  static final int SAMPLER_CUBE = 0x8B60;
+
+  static final int SAMPLES = 0x80A9;
+
+  static final int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+
+  static final int SAMPLE_BUFFERS = 0x80A8;
+
+  static final int SAMPLE_COVERAGE = 0x80A0;
+
+  static final int SAMPLE_COVERAGE_INVERT = 0x80AB;
+
+  static final int SAMPLE_COVERAGE_VALUE = 0x80AA;
+
+  static final int SCISSOR_BOX = 0x0C10;
+
+  static final int SCISSOR_TEST = 0x0C11;
+
+  static final int SHADER_COMPILER = 0x8DFA;
+
+  static final int SHADER_TYPE = 0x8B4F;
+
+  static final int SHADING_LANGUAGE_VERSION = 0x8B8C;
+
+  static final int SHORT = 0x1402;
+
+  static final int SRC_ALPHA = 0x0302;
+
+  static final int SRC_ALPHA_SATURATE = 0x0308;
+
+  static final int SRC_COLOR = 0x0300;
+
+  static final int STATIC_DRAW = 0x88E4;
+
+  static final int STENCIL_ATTACHMENT = 0x8D20;
+
+  static final int STENCIL_BACK_FAIL = 0x8801;
+
+  static final int STENCIL_BACK_FUNC = 0x8800;
+
+  static final int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
+
+  static final int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
+
+  static final int STENCIL_BACK_REF = 0x8CA3;
+
+  static final int STENCIL_BACK_VALUE_MASK = 0x8CA4;
+
+  static final int STENCIL_BACK_WRITEMASK = 0x8CA5;
+
+  static final int STENCIL_BITS = 0x0D57;
+
+  static final int STENCIL_BUFFER_BIT = 0x00000400;
+
+  static final int STENCIL_CLEAR_VALUE = 0x0B91;
+
+  static final int STENCIL_FAIL = 0x0B94;
+
+  static final int STENCIL_FUNC = 0x0B92;
+
+  static final int STENCIL_INDEX = 0x1901;
+
+  static final int STENCIL_INDEX8 = 0x8D48;
+
+  static final int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
+
+  static final int STENCIL_PASS_DEPTH_PASS = 0x0B96;
+
+  static final int STENCIL_REF = 0x0B97;
+
+  static final int STENCIL_TEST = 0x0B90;
+
+  static final int STENCIL_VALUE_MASK = 0x0B93;
+
+  static final int STENCIL_WRITEMASK = 0x0B98;
+
+  static final int STREAM_DRAW = 0x88E0;
+
+  static final int SUBPIXEL_BITS = 0x0D50;
+
+  static final int TEXTURE = 0x1702;
+
+  static final int TEXTURE0 = 0x84C0;
+
+  static final int TEXTURE1 = 0x84C1;
+
+  static final int TEXTURE10 = 0x84CA;
+
+  static final int TEXTURE11 = 0x84CB;
+
+  static final int TEXTURE12 = 0x84CC;
+
+  static final int TEXTURE13 = 0x84CD;
+
+  static final int TEXTURE14 = 0x84CE;
+
+  static final int TEXTURE15 = 0x84CF;
+
+  static final int TEXTURE16 = 0x84D0;
+
+  static final int TEXTURE17 = 0x84D1;
+
+  static final int TEXTURE18 = 0x84D2;
+
+  static final int TEXTURE19 = 0x84D3;
+
+  static final int TEXTURE2 = 0x84C2;
+
+  static final int TEXTURE20 = 0x84D4;
+
+  static final int TEXTURE21 = 0x84D5;
+
+  static final int TEXTURE22 = 0x84D6;
+
+  static final int TEXTURE23 = 0x84D7;
+
+  static final int TEXTURE24 = 0x84D8;
+
+  static final int TEXTURE25 = 0x84D9;
+
+  static final int TEXTURE26 = 0x84DA;
+
+  static final int TEXTURE27 = 0x84DB;
+
+  static final int TEXTURE28 = 0x84DC;
+
+  static final int TEXTURE29 = 0x84DD;
+
+  static final int TEXTURE3 = 0x84C3;
+
+  static final int TEXTURE30 = 0x84DE;
+
+  static final int TEXTURE31 = 0x84DF;
+
+  static final int TEXTURE4 = 0x84C4;
+
+  static final int TEXTURE5 = 0x84C5;
+
+  static final int TEXTURE6 = 0x84C6;
+
+  static final int TEXTURE7 = 0x84C7;
+
+  static final int TEXTURE8 = 0x84C8;
+
+  static final int TEXTURE9 = 0x84C9;
+
+  static final int TEXTURE_2D = 0x0DE1;
+
+  static final int TEXTURE_BINDING_2D = 0x8069;
+
+  static final int TEXTURE_BINDING_CUBE_MAP = 0x8514;
+
+  static final int TEXTURE_CUBE_MAP = 0x8513;
+
+  static final int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
+
+  static final int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
+
+  static final int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
+
+  static final int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
+
+  static final int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
+
+  static final int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
+
+  static final int TEXTURE_MAG_FILTER = 0x2800;
+
+  static final int TEXTURE_MIN_FILTER = 0x2801;
+
+  static final int TEXTURE_WRAP_S = 0x2802;
+
+  static final int TEXTURE_WRAP_T = 0x2803;
+
+  static final int TRIANGLES = 0x0004;
+
+  static final int TRIANGLE_FAN = 0x0006;
+
+  static final int TRIANGLE_STRIP = 0x0005;
+
+  static final int UNPACK_ALIGNMENT = 0x0CF5;
+
+  static final int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
+
+  static final int UNPACK_FLIP_Y_WEBGL = 0x9240;
+
+  static final int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
+
+  static final int UNSIGNED_BYTE = 0x1401;
+
+  static final int UNSIGNED_INT = 0x1405;
+
+  static final int UNSIGNED_SHORT = 0x1403;
+
+  static final int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+
+  static final int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+
+  static final int UNSIGNED_SHORT_5_6_5 = 0x8363;
+
+  static final int VALIDATE_STATUS = 0x8B83;
+
+  static final int VENDOR = 0x1F00;
+
+  static final int VERSION = 0x1F02;
+
+  static final int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+
+  static final int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+
+  static final int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+
+  static final int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
+
+  static final int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+
+  static final int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+
+  static final int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+
+  static final int VERTEX_SHADER = 0x8B31;
+
+  static final int VIEWPORT = 0x0BA2;
+
+  static final int ZERO = 0;
 
   int drawingBufferHeight;
 
@@ -8686,6 +10098,18 @@ class WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 
 class WebKitAnimation native "*WebKitAnimation" {
 
+  static final int DIRECTION_ALTERNATE = 1;
+
+  static final int DIRECTION_NORMAL = 0;
+
+  static final int FILL_BACKWARDS = 1;
+
+  static final int FILL_BOTH = 3;
+
+  static final int FILL_FORWARDS = 2;
+
+  static final int FILL_NONE = 0;
+
   num delay;
 
   int direction;
@@ -8745,6 +10169,28 @@ class WebKitBlobBuilder native "*WebKitBlobBuilder" {
 }
 
 class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
+
+  static final int CSS_FILTER_BLUR = 9;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GAMMA = 8;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  static final int CSS_FILTER_SHARPEN = 10;
 
   int operationType;
 }
@@ -8844,6 +10290,48 @@ class WebKitCSSMatrix native "*WebKitCSSMatrix" {
 
 class WebKitCSSTransformValue extends CSSValueList native "*WebKitCSSTransformValue" {
 
+  static final int CSS_MATRIX = 11;
+
+  static final int CSS_MATRIX3D = 21;
+
+  static final int CSS_PERSPECTIVE = 20;
+
+  static final int CSS_ROTATE = 4;
+
+  static final int CSS_ROTATE3D = 17;
+
+  static final int CSS_ROTATEX = 14;
+
+  static final int CSS_ROTATEY = 15;
+
+  static final int CSS_ROTATEZ = 16;
+
+  static final int CSS_SCALE = 5;
+
+  static final int CSS_SCALE3D = 19;
+
+  static final int CSS_SCALEX = 6;
+
+  static final int CSS_SCALEY = 7;
+
+  static final int CSS_SCALEZ = 18;
+
+  static final int CSS_SKEW = 8;
+
+  static final int CSS_SKEWX = 9;
+
+  static final int CSS_SKEWY = 10;
+
+  static final int CSS_TRANSLATE = 1;
+
+  static final int CSS_TRANSLATE3D = 13;
+
+  static final int CSS_TRANSLATEX = 2;
+
+  static final int CSS_TRANSLATEY = 3;
+
+  static final int CSS_TRANSLATEZ = 12;
+
   int operationType;
 }
 
@@ -8901,6 +10389,14 @@ class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
 }
 
 class WebSocket native "*WebSocket" {
+
+  static final int CLOSED = 3;
+
+  static final int CLOSING = 2;
+
+  static final int CONNECTING = 0;
+
+  static final int OPEN = 1;
 
   String URL;
 
@@ -9056,6 +10552,16 @@ class XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 
+  static final int DONE = 4;
+
+  static final int HEADERS_RECEIVED = 2;
+
+  static final int LOADING = 3;
+
+  static final int OPENED = 1;
+
+  static final int UNSENT = 0;
+
   bool asBlob;
 
   int readyState;
@@ -9102,6 +10608,10 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 }
 
 class XMLHttpRequestException native "*XMLHttpRequestException" {
+
+  static final int ABORT_ERR = 102;
+
+  static final int NETWORK_ERR = 101;
 
   int code;
 
@@ -9160,6 +10670,10 @@ class XPathEvaluator native "*XPathEvaluator" {
 
 class XPathException native "*XPathException" {
 
+  static final int INVALID_EXPRESSION_ERR = 51;
+
+  static final int TYPE_ERR = 52;
+
   int code;
 
   String message;
@@ -9192,6 +10706,26 @@ class XPathNSResolver native "*XPathNSResolver" {
 }
 
 class XPathResult native "*XPathResult" {
+
+  static final int ANY_TYPE = 0;
+
+  static final int ANY_UNORDERED_NODE_TYPE = 8;
+
+  static final int BOOLEAN_TYPE = 3;
+
+  static final int FIRST_ORDERED_NODE_TYPE = 9;
+
+  static final int NUMBER_TYPE = 1;
+
+  static final int ORDERED_NODE_ITERATOR_TYPE = 5;
+
+  static final int ORDERED_NODE_SNAPSHOT_TYPE = 7;
+
+  static final int STRING_TYPE = 2;
+
+  static final int UNORDERED_NODE_ITERATOR_TYPE = 4;
+
+  static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   bool booleanValue;
 
