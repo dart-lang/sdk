@@ -148,6 +148,24 @@ class RawObject {
     return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   }
 
+  // Support for GC marking bit.
+  bool IsMarked() const {
+    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
+    uword mark_bits = header_bits & kMarkingMask;
+    ASSERT((mark_bits == kNotMarked) || (mark_bits == kMarked));
+    return mark_bits == kMarked;
+  }
+  void SetMarkBit() {
+    ASSERT(!IsMarked());
+    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
+    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits | kMarked);
+  }
+  void ClearMarkBit() {
+    ASSERT(IsMarked());
+    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
+    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarked);
+  }
+
   void Validate() const;
   intptr_t Size() const;
   intptr_t VisitPointers(ObjectPointerVisitor* visitor);
@@ -166,6 +184,12 @@ class RawObject {
   RawClass* class_;
 
  private:
+  enum {
+    kMarkingMask = 3,
+    kNotMarked = 1,  // Tagged pointer.
+    kMarked = 3,  // Tagged pointer and forwarding bit set.
+  };
+
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
     return reinterpret_cast<RawObject*>(
@@ -176,6 +200,7 @@ class RawObject {
   friend class Array;
   friend class SnapshotWriter;
   friend class SnapshotReader;
+  friend class MarkingVisitor;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
