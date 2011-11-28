@@ -20,6 +20,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
+DEFINE_FLAG(bool, use_slow_path, false,
+    "Set to true for debugging & verifying the slow paths.");
 
 // Input parameters:
 //   ESP : points to return address.
@@ -1257,6 +1259,9 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     if (is_implicit_instance_closure) {
       __ movl(ECX, EBX);  // ECX: new context address.
       __ addl(EBX, Immediate(context_size));
+    }
+    if (FLAG_use_slow_path) {
+      __ jmp(&slow_case);
     }
     // Check if the allocation fits into the remaining space.
     // EAX: potential new closure object.
