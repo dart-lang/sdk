@@ -19,6 +19,7 @@ public class JsAnalysisTests extends TestSetup {
     TestSuite suite = new TestSuite("Dart Javascript analysis test suite.");
 
     suite.addTestSuite(TopLevelElementIndexerTest.class);
+    suite.addTestSuite(DependencyComputerTest.class);
     
     return new JsAnalysisTests(suite);
   }
