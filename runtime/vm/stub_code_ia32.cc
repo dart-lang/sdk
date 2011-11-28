@@ -1354,22 +1354,27 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const Closure& new_closure = Closure::ZoneHandle();
   __ PushObject(new_closure);  // Push Null closure for return value.
   __ PushObject(func);
-  if (has_type_arguments) {
-    __ pushl(ECX);  // Push type arguments of closure to be allocated.
-  } else {
-    __ pushl(raw_null);  // Push null type arguments.
-  }
   if (is_implicit_static_closure) {
     __ CallRuntimeFromStub(kAllocateImplicitStaticClosureRuntimeEntry);
-  } else if (is_implicit_instance_closure) {
-    __ pushl(EAX);  // Receiver.
-    __ CallRuntimeFromStub(kAllocateImplicitInstanceClosureRuntimeEntry);
-    __ popl(EAX);  // Pop receiver.
   } else {
-    ASSERT(func.IsNonImplicitClosureFunction());
-    __ CallRuntimeFromStub(kAllocateClosureRuntimeEntry);
+    if (is_implicit_instance_closure) {
+      __ pushl(EAX);  // Receiver.
+    }
+    if (has_type_arguments) {
+      __ pushl(ECX);  // Push type arguments of closure to be allocated.
+    } else {
+      __ pushl(raw_null);  // Push null type arguments.
+    }
+    if (is_implicit_instance_closure) {
+      __ CallRuntimeFromStub(kAllocateImplicitInstanceClosureRuntimeEntry);
+      __ popl(EAX);  // Pop argument (type arguments of object).
+      __ popl(EAX);  // Pop receiver.
+    } else {
+      ASSERT(func.IsNonImplicitClosureFunction());
+      __ CallRuntimeFromStub(kAllocateClosureRuntimeEntry);
+      __ popl(EAX);  // Pop argument (type arguments of object).
+    }
   }
-  __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop function object.
   __ popl(EAX);
   // EAX: new object
