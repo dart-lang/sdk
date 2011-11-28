@@ -6,6 +6,7 @@
   'includes': [
     'vm/vm.gypi',
     'bin/bin.gypi',
+    'third_party/double-conversion/src/double-conversion.gypi',
     'third_party/jscre/jscre.gypi',
     'tools/gyp/runtime-configurations.gypi',
   ],
@@ -17,6 +18,7 @@
         'libdart_lib',
         'libdart_vm',
         'libjscre',
+        'libdouble_conversion',
       ],
       'include_dirs': [
         '.',

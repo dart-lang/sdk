@@ -9,3 +9,5 @@ for v8.
 
 Local Modifications:
 Removed the test directory, the Makefile and the scons-files.
+Wrapped ASSERT, UNIMPLEMENTED and UNREACHABLE macros into #ifndef.
+Changed memcpy to memmove.

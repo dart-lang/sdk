@@ -32,9 +32,15 @@
 #include <string.h>
 
 #include <assert.h>
+#ifndef ASSERT
 #define ASSERT(condition)      (assert(condition))
+#endif
+#ifndef UNIMPLEMENTED
 #define UNIMPLEMENTED() (abort())
+#endif
+#ifndef UNREACHABLE
 #define UNREACHABLE()   (abort())
+#endif
 
 // Double operations detection based on target architecture.
 // Linux uses a 80bit wide floating point stack on x86. This induces double
@@ -90,15 +96,19 @@ typedef unsigned __int64 uint64_t;
 // size_t which represents the number of elements of the given
 // array. You should only use ARRAY_SIZE on statically allocated
 // arrays.
+#ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a)                                   \
   ((sizeof(a) / sizeof(*(a))) /                         \
   static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+#endif
 
 // A macro to disallow the evil copy constructor and operator= functions
 // This should be used in the private: declarations for a class
+#ifndef DISALLOW_COPY_AND_ASSIGN
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)      \
   TypeName(const TypeName&);                    \
   void operator=(const TypeName&)
+#endif
 
 // A macro to disallow all the implicit constructors, namely the
 // default constructor, copy constructor and operator= functions.
@@ -106,9 +116,11 @@ typedef unsigned __int64 uint64_t;
 // This should be used in the private: declarations for a class
 // that wants to prevent anyone from instantiating it. This is
 // especially useful for classes containing only static methods.
+#ifndef DISALLOW_IMPLICIT_CONSTRUCTORS
 #define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName) \
   TypeName();                                    \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
+#endif
 
 namespace double_conversion {
 
@@ -218,7 +230,7 @@ class StringBuilder {
   void AddSubstring(const char* s, int n) {
     ASSERT(!is_finalized() && position_ + n < buffer_.length());
     ASSERT(static_cast<size_t>(n) <= strlen(s));
-    memcpy(&buffer_[position_], s, n * kCharSize);
+    memmove(&buffer_[position_], s, n * kCharSize);
     position_ += n;
   }
 
@@ -283,7 +295,7 @@ inline Dest BitCast(const Source& source) {
   typedef char VerifySizesAreEqual[sizeof(Dest) == sizeof(Source) ? 1 : -1];
 
   Dest dest;
-  memcpy(&dest, &source, sizeof(dest));
+  memmove(&dest, &source, sizeof(dest));
   return dest;
 }
 
