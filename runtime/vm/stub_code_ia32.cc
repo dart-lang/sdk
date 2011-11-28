@@ -640,7 +640,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
     // Assert that length is a Smi.
     __ testl(EDX, Immediate(kSmiTagSize));
-    __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+    if (FLAG_use_slow_path) {
+      __ jmp(&slow_case);
+    } else {
+      __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+    }
     __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
     __ movl(EDI, Address(EDI, Isolate::heap_offset()));
     __ movl(EDI, Address(EDI, Heap::new_space_offset()));
@@ -971,7 +975,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EBX: potential next object start.
     // EDX: number of context variables.
     __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-    __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    if (FLAG_use_slow_path) {
+      __ jmp(&slow_case);
+    } else {
+      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    }
 
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
@@ -1088,7 +1096,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EAX: potential new object start.
     // EBX: potential next object start.
     __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-    __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    if (FLAG_use_slow_path) {
+      __ jmp(&slow_case);
+    } else {
+      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    }
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1260,15 +1272,16 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ movl(ECX, EBX);  // ECX: new context address.
       __ addl(EBX, Immediate(context_size));
     }
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    }
     // Check if the allocation fits into the remaining space.
     // EAX: potential new closure object.
     // ECX: potential new context object (only if is_implicit_closure).
     // EBX: potential next object start.
     __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-    __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    if (FLAG_use_slow_path) {
+      __ jmp(&slow_case);
+    } else {
+      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    }
 
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
