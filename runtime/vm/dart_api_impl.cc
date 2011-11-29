@@ -85,6 +85,61 @@ static void SetupErrorResult(Dart_Handle* handle) {
 }
 
 
+// NOTE: Need to pass 'result' as a parameter here in order to avoid
+// warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
+// which shows up because of the use of setjmp.
+static void InvokeStatic(Isolate* isolate,
+                         const Function& function,
+                         GrowableArray<const Object*>& args,
+                         Dart_Handle* result) {
+  ASSERT(isolate != NULL);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    const Array& kNoArgumentNames = Array::Handle();
+    const Instance& retval = Instance::Handle(
+        DartEntry::InvokeStatic(function, args, kNoArgumentNames));
+    if (retval.IsUnhandledException()) {
+      *result = Api::ErrorFromException(retval);
+    } else {
+      *result = Api::NewLocalHandle(retval);
+    }
+  } else {
+    SetupErrorResult(result);
+  }
+  isolate->set_long_jump_base(base);
+}
+
+
+// NOTE: Need to pass 'result' as a parameter here in order to avoid
+// warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
+// which shows up because of the use of setjmp.
+static void InvokeDynamic(Isolate* isolate,
+                          const Instance& receiver,
+                          const Function& function,
+                          GrowableArray<const Object*>& args,
+                          Dart_Handle* result) {
+  ASSERT(isolate != NULL);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    const Array& kNoArgumentNames = Array::Handle();
+    const Instance& retval = Instance::Handle(
+        DartEntry::InvokeDynamic(receiver, function, args, kNoArgumentNames));
+    if (retval.IsUnhandledException()) {
+      *result = Api::ErrorFromException(retval);
+    } else {
+      *result = Api::NewLocalHandle(retval);
+    }
+  } else {
+    SetupErrorResult(result);
+  }
+  isolate->set_long_jump_base(base);
+}
+
+
 Dart_Handle Api::NewLocalHandle(const Object& object) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -359,7 +414,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
 }
 
 
-// TODO(turnidge): This clonse Api::Error.  I need to use va_copy to
+// TODO(turnidge): This clones Api::Error.  I need to use va_copy to
 // fix this but not sure if it available on all of our builds.
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
   DARTSCOPE(Isolate::Current());
@@ -592,8 +647,8 @@ static RawInstance* DeserializeMessage(void* data) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port,
-                                           Dart_Port reply_port,
+DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port_id,
+                                           Dart_Port reply_port_id,
                                            Dart_Message dart_message) {
   DARTSCOPE(Isolate::Current());
 
@@ -601,7 +656,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port,
   const String& class_name =
       String::Handle(String::NewSymbol("ReceivePortImpl"));
   const String& function_name =
-      String::Handle(String::NewSymbol("handleMessage_"));
+      String::Handle(String::NewSymbol("_handleMessage"));
   const int kNumArguments = 3;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
@@ -612,9 +667,10 @@ DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port,
                               kNoArgumentNames,
                               Resolver::kIsQualified));
   GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(dest_port)));
-  arguments.Add(&Integer::Handle(Integer::New(reply_port)));
+  arguments.Add(&Integer::Handle(Integer::New(dest_port_id)));
+  arguments.Add(&Integer::Handle(Integer::New(reply_port_id)));
   arguments.Add(&msg);
+  // TODO(turnidge): This call should be wrapped in a longjmp
   const Object& result = Object::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
   if (result.IsUnhandledException()) {
@@ -644,13 +700,20 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
 }
 
 
+DART_EXPORT bool Dart_HasLivePorts() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate);
+  return isolate->live_ports() > 0;
+}
+
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
 
-DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
+DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
                                    intptr_t len,
                                    intptr_t* data) {
   uint8_t* buffer = NULL;
@@ -659,20 +722,74 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
   writer.WriteMessage(len, data);
 
   // Post the message at the given port.
-  return PortMap::PostMessage(port, kNoReplyPort, buffer);
+  return PortMap::PostMessage(port_id, kNoReplyPort, buffer);
 }
 
 
-DART_EXPORT bool Dart_Post(Dart_Port port, Dart_Handle handle) {
+DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   DARTSCOPE(Isolate::Current());
   const Object& object = Object::Handle(Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
   SnapshotWriter writer(false, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
-  return PortMap::PostMessage(port, kNoReplyPort, data);
+  return PortMap::PostMessage(port_id, kNoReplyPort, data);
 }
 
+
+DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& class_name = String::Handle(String::NewSymbol("SendPortImpl"));
+  const String& function_name = String::Handle(String::NewSymbol("_create"));
+  const int kNumArguments = 1;
+  const Array& kNoArgumentNames = Array::Handle();
+  // TODO(turnidge): Consider adding a helper function to make
+  // function resolution by class name and function name more concise.
+  const Function& function = Function::Handle(
+      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+                              class_name,
+                              function_name,
+                              kNumArguments,
+                              kNoArgumentNames,
+                              Resolver::kIsQualified));
+  GrowableArray<const Object*> arguments(kNumArguments);
+  arguments.Add(&Integer::Handle(Integer::New(port_id)));
+  Dart_Handle result;
+  InvokeStatic(isolate, function, arguments, &result);
+  return result;
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& class_name =
+      String::Handle(String::NewSymbol("ReceivePortImpl"));
+  const String& function_name =
+      String::Handle(String::NewSymbol("_get_or_create"));
+  const int kNumArguments = 1;
+  const Array& kNoArgumentNames = Array::Handle();
+  const Function& function = Function::Handle(
+      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+                              class_name,
+                              function_name,
+                              kNumArguments,
+                              kNoArgumentNames,
+                              Resolver::kIsQualified));
+  GrowableArray<const Object*> arguments(kNumArguments);
+  arguments.Add(&Integer::Handle(Integer::New(port_id)));
+  Dart_Handle result;
+  InvokeStatic(isolate, function, arguments, &result);
+  return result;
+}
+
+
+DART_EXPORT Dart_Port Dart_GetMainPortId() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate);
+  return isolate->main_port();
+}
 
 // --- Scopes ----
 
@@ -1549,61 +1666,6 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 
 
 // --- Methods and Fields ---
-
-
-// NOTE: Need to pass 'result' as a parameter here in order to avoid
-// warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
-// which shows up because of the use of setjmp.
-static void InvokeStatic(Isolate* isolate,
-                         const Function& function,
-                         GrowableArray<const Object*>& args,
-                         Dart_Handle* result) {
-  ASSERT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    const Array& kNoArgumentNames = Array::Handle();
-    const Instance& retval = Instance::Handle(
-        DartEntry::InvokeStatic(function, args, kNoArgumentNames));
-    if (retval.IsUnhandledException()) {
-      *result = Api::ErrorFromException(retval);
-    } else {
-      *result = Api::NewLocalHandle(retval);
-    }
-  } else {
-    SetupErrorResult(result);
-  }
-  isolate->set_long_jump_base(base);
-}
-
-
-// NOTE: Need to pass 'result' as a parameter here in order to avoid
-// warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
-// which shows up because of the use of setjmp.
-static void InvokeDynamic(Isolate* isolate,
-                          const Instance& receiver,
-                          const Function& function,
-                          GrowableArray<const Object*>& args,
-                          Dart_Handle* result) {
-  ASSERT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    const Array& kNoArgumentNames = Array::Handle();
-    const Instance& retval = Instance::Handle(
-        DartEntry::InvokeDynamic(receiver, function, args, kNoArgumentNames));
-    if (retval.IsUnhandledException()) {
-      *result = Api::ErrorFromException(retval);
-    } else {
-      *result = Api::NewLocalHandle(retval);
-    }
-  } else {
-    SetupErrorResult(result);
-  }
-  isolate->set_long_jump_base(base);
-}
 
 
 DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,

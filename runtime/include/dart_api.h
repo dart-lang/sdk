@@ -382,8 +382,8 @@ const Dart_Port kNoReplyPort = 0;
  * processing this message.
  */
 typedef bool (*Dart_PostMessageCallback)(Dart_Isolate dest_isolate,
-                                         Dart_Port dest_port,
-                                         Dart_Port reply_port,
+                                         Dart_Port dest_port_id,
+                                         Dart_Port reply_port_id,
                                          Dart_Message message);
 // TODO(turnidge): Add a Dart_ReleaseMessage to hide allocation details.
 
@@ -397,7 +397,7 @@ const Dart_Port kCloseAllPorts = 0;
  * 'port' parameter when all active ports are being closed at once.
  */
 typedef void (*Dart_ClosePortCallback)(Dart_Isolate isolate,
-                                       Dart_Port port);
+                                       Dart_Port port_id);
 
 /**
  * Allows embedders to provide an alternative mechanism for sending
@@ -424,8 +424,8 @@ DART_EXPORT void Dart_SetMessageCallbacks(
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port,
-                                           Dart_Port reply_port,
+DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port_id,
+                                           Dart_Port reply_port_id,
                                            Dart_Message dart_message);
 // TODO(turnidge): Revisit memory management of 'dart_message'.
 
@@ -445,6 +445,18 @@ DART_EXPORT Dart_Handle Dart_RunLoop();
 // TODO(turnidge): Should this be removed from the public api?
 
 /**
+ * Gets the main port id for the current isolate.
+ */
+DART_EXPORT Dart_Port Dart_GetMainPortId();
+
+/**
+ * Does the current isolate have live ReceivePorts?
+ *
+ * A ReceivePort is live when it has not been closed.
+ */
+DART_EXPORT bool Dart_HasLivePorts();
+
+/**
  * Posts a message for some isolate. The message is built from a raw
  * array.
  *
@@ -454,7 +466,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop();
  *
  * \return True if the message was posted.
  */
-DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
+DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
                                    intptr_t length,
                                    intptr_t* data);
 // TODO(turnidge): Should this be intptr_t or some fixed length type?
@@ -471,7 +483,19 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port,
  *
  * \return True if the message was posted.
  */
-DART_EXPORT bool Dart_Post(Dart_Port port, Dart_Handle object);
+DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
+
+/**
+ * Returns a new SendPort with the provided port id.
+ */
+DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
+
+/**
+ * Gets the ReceivePort for the provided port id, creating it if necessary.
+ *
+ * Note that there is at most one ReceivePort for a given port id.
+ */
+DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id);
 
 // --- Scopes ----
 

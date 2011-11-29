@@ -81,9 +81,9 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(script);
   Dart_Handle lib = Dart_LoadScript(url, source, LibraryTagHandler);
-  ASSERT(!Dart_IsError(lib));
+  DART_CHECK_VALID(lib);
   Dart_Handle result = Dart_SetNativeResolver(lib, resolver);
-  ASSERT(!Dart_IsError(result));
+  DART_CHECK_VALID(result);
   return lib;
 }
 
@@ -91,7 +91,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
 Dart_Handle TestCase::lib() {
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle lib = Dart_LookupLibrary(url);
-  ASSERT(!Dart_IsError(lib));
+  DART_CHECK_VALID(lib);
   ASSERT(Dart_IsLibrary(lib));
   return lib;
 }

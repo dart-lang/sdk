@@ -36,7 +36,9 @@ Isolate::Isolate()
       message_queue_(NULL),
       post_message_callback_(NULL),
       close_port_callback_(NULL),
-      active_ports_(0),
+      num_ports_(0),
+      live_ports_(0),
+      main_port_(0),
       heap_(NULL),
       object_store_(NULL),
       top_resource_(NULL),
@@ -125,6 +127,7 @@ Isolate* Isolate::Init() {
   // TODO(5411455): Need to figure out how to set the stack limit for the
   // main thread.
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
+  result->set_main_port(PortMap::CreatePort());
 
   return result;
 }
@@ -241,7 +244,7 @@ void Isolate::StandardRunLoop() {
   ASSERT(post_message_callback() == &StandardPostMessageCallback);
   ASSERT(close_port_callback() == &StandardClosePortCallback);
 
-  while (active_ports() > 0) {
+  while (live_ports() > 0) {
     ASSERT(this == Isolate::Current());
     Zone zone(this);
     HandleScope handle_scope(this);

@@ -33,6 +33,7 @@ bool Dart::InitOnce(int argc, const char** argv,
   Flags::ProcessCommandLineFlags(argc, argv);
   VirtualMemory::InitOnce();
   Isolate::InitOnce();
+  PortMap::InitOnce();
   // Create the VM isolate and finish the VM initialization.
   {
     ASSERT(vm_isolate_ == NULL);
@@ -43,7 +44,6 @@ bool Dart::InitOnce(int argc, const char** argv,
     ObjectStore::Init(vm_isolate_);
     Object::InitOnce();
     StubCode::InitOnce();
-    PortMap::InitOnce();
     Scanner::InitOnce();
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
