@@ -248,12 +248,18 @@ void Isolate::StandardRunLoop() {
 
     PortMessage* message = message_queue()->Dequeue(0);
     if (message != NULL) {
+      Dart_EnterScope();
       Dart_Handle result = Dart_HandleMessage(
           message->dest_port(), message->reply_port(), message->data());
       if (Dart_IsError(result)) {
+        // TODO(turnidge): Consider passing this error out to
+        // Dart_RunLoop so that the embedder can choose how to handle
+        // it.
         fprintf(stderr, "%s\n", Dart_GetError(result));
+        Dart_ExitScope();
         exit(255);
       }
+      Dart_ExitScope();
       delete message;
     }
   }

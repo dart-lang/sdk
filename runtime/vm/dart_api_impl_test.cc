@@ -2822,6 +2822,80 @@ UNIT_TEST_CASE(ImportLibrary5) {
   }
   Dart_ShutdownIsolate();
 }
+
+
+static void* RunLoopTest_InitCallback(void* data) {
+  const char* kScriptChars =
+      "#import('builtin');\n"
+      "class MyIsolate extends Isolate {\n"
+      "  MyIsolate() : super() { }\n"
+      "  void main() {\n"
+      "    port.receive((message, replyTo) {\n"
+      "      if (message) {\n"
+      "        throw new Exception('MakeVMExit');\n"
+      "      } else {\n"
+      "        replyTo.call('hello');\n"
+      "        port.close();\n"
+      "      }\n"
+      "    });\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "void main(message) {\n"
+      "  new MyIsolate().spawn().then((port) {\n"
+      "    port.call(message).receive((message, replyTo) {\n"
+      "      if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
+      "    });\n"
+      "  });\n"
+      "}\n";
+
+  Dart_EnterScope();
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle lib = Dart_LoadScript(url, source, library_handler);
+  EXPECT_VALID(lib);
+  Dart_ExitScope();
+  return NULL;
+}
+
+
+// Common code for RunLoop_Success/RunLoop_Failure.
+static void RunLoopTest(bool throw_exception) {
+  Dart_IsolateInitCallback saved = Isolate::InitCallback();
+  Isolate::SetInitCallback(RunLoopTest_InitCallback);
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
+  EXPECT_VALID(lib);
+  Dart_Handle result;
+  Dart_Handle args[1];
+  args[0] = (throw_exception ? Dart_True() : Dart_False());
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString(""),
+                             Dart_NewString("main"),
+                             1,
+                             args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+
+  Isolate::SetInitCallback(saved);
+}
+
+
+UNIT_TEST_CASE(RunLoop_Success) {
+  RunLoopTest(false);
+}
+
+
+UNIT_TEST_CASE(RunLoop_Exception) {
+  RunLoopTest(true);
+}
+
 #endif  // TARGET_ARCH_IA32.
 
 }  // namespace dart
