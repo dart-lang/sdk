@@ -10,18 +10,13 @@ interface ServerSocket factory _ServerSocket {
   ServerSocket(String bindAddress, int port, int backlog);
 
   /*
-   * Accepts a connection to this socket.
+   * The connection handler gets called when there is a new incoming
+   * connection on the socket.
    */
-  Socket accept();
+  void set connectionHandler(void callback(Socket connection));
 
   /*
-   * The connection handler gets executed when there are incoming connections
-   * on the socket.
-   */
-  void set connectionHandler(void callback());
-
-  /*
-   * The error handler gets executed when a socket error occurs.
+   * The error handler gets called when a socket error occurs.
    */
   void set errorHandler(void callback());
 

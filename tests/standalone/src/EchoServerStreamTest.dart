@@ -139,8 +139,7 @@ class EchoServer extends TestingServer {
 
   static final int MSGSIZE = EchoServerGame.MSGSIZE;
 
-  void connectionHandler() {
-    Socket _client;
+  void connectionHandler(Socket connection) {
     InputStream inputStream;
     List<int> buffer = new List<int>(MSGSIZE);
     int offset = 0;
@@ -148,7 +147,7 @@ class EchoServer extends TestingServer {
     void dataReceived() {
       SocketOutputStream outputStream;
       int bytesRead;
-      outputStream = _client.outputStream;
+      outputStream = connection.outputStream;
       bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
       if (bytesRead > 0) {
         offset += bytesRead;
@@ -166,10 +165,9 @@ class EchoServer extends TestingServer {
       Expect.fail("Socket error");
     }
 
-    _client = _server.accept();
-    inputStream = _client.inputStream;
+    inputStream = connection.inputStream;
     inputStream.dataHandler = dataReceived;
-    _client.errorHandler = errorHandler;
+    connection.errorHandler = errorHandler;
   }
 }
 

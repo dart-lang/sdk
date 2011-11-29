@@ -209,8 +209,7 @@ class SocketCloseServer extends Isolate {
 
   void main() {
 
-    void connectionHandler() {
-      Socket _client;
+    void connectionHandler(Socket connection) {
 
       void dataHandler() {
         _dataEvents++;
@@ -220,30 +219,30 @@ class SocketCloseServer extends Isolate {
             break;
           case 1:
             List<int> b = new List<int>(100);
-            _client.readList(b, 0, 100);
+            connection.readList(b, 0, 100);
             break;
           case 2:
             List<int> b = new List<int>(100);
-            _client.readList(b, 0, 100);
-            _client.close();
+            connection.readList(b, 0, 100);
+            connection.close();
             break;
           case 3:
             List<int> b = new List<int>(100);
-            _client.readList(b, 0, 100);
-            _client.writeList("Hello".charCodes(), 0, 5);
-            _client.close();
+            connection.readList(b, 0, 100);
+            connection.writeList("Hello".charCodes(), 0, 5);
+            connection.close();
             break;
           case 4:
             List<int> b = new List<int>(100);
-            _client.readList(b, 0, 100);
-            _client.writeList("Hello".charCodes(), 0, 5);
+            connection.readList(b, 0, 100);
+            connection.writeList("Hello".charCodes(), 0, 5);
             break;
           case 5:
           case 6:
             List<int> b = new List<int>(100);
-            _client.readList(b, 0, 100);
-            _client.writeList("Hello".charCodes(), 0, 5);
-            _client.close(true);
+            connection.readList(b, 0, 100);
+            connection.writeList("Hello".charCodes(), 0, 5);
+            connection.close(true);
             break;
           default:
             Expect.fail("Unknown test mode");
@@ -252,19 +251,18 @@ class SocketCloseServer extends Isolate {
 
       void closeHandler() {
         _closeEvents++;
-        _client.close();
+        connection.close();
       }
 
       void errorHandler() {
         Expect.fail("Socket error");
       }
 
-      _client = _server.accept();
       _iterations++;
 
-      _client.dataHandler = dataHandler;
-      _client.closeHandler = closeHandler;
-      _client.errorHandler = errorHandler;
+      connection.dataHandler = dataHandler;
+      connection.closeHandler = closeHandler;
+      connection.errorHandler = errorHandler;
     }
 
     void errorHandlerServer() {

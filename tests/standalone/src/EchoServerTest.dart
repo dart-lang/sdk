@@ -130,8 +130,7 @@ class EchoServer extends TestingServer {
 
   static final msgSize = EchoServerGame.MSGSIZE;
 
-  void connectionHandler() {
-    Socket _client;
+  void connectionHandler(Socket connection) {
 
     void messageHandler() {
 
@@ -139,7 +138,7 @@ class EchoServer extends TestingServer {
       int bytesRead = 0;
 
       void handleRead() {
-        int read = _client.readList(buffer, bytesRead, msgSize - bytesRead);
+        int read = connection.readList(buffer, bytesRead, msgSize - bytesRead);
         if (read > 0) {
           bytesRead += read;
           if (bytesRead < msgSize) {
@@ -147,7 +146,7 @@ class EchoServer extends TestingServer {
             for (int i = 0; i < bytesRead; i++) {
               Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
             }
-            _client.dataHandler = handleRead;
+            connection.dataHandler = handleRead;
           } else {
             // We check every time the whole buffer to verify data integrity.
             for (int i = 0; i < msgSize; i++) {
@@ -159,13 +158,13 @@ class EchoServer extends TestingServer {
               int bytesWritten = 0;
 
               void handleWrite() {
-                int written = _client.writeList(
+                int written = connection.writeList(
                     buffer, bytesWritten, msgSize - bytesWritten);
                 bytesWritten += written;
                 if (bytesWritten < msgSize) {
-                  _client.writeHandler = handleWrite;
+                  connection.writeHandler = handleWrite;
                 } else {
-                  _client.close(true);
+                  connection.close(true);
                 }
               }
               handleWrite();
@@ -179,17 +178,16 @@ class EchoServer extends TestingServer {
     }
 
     void closeHandler() {
-      _client.close();
+      connection.close();
     }
 
     void errorHandler() {
       Expect.fail("Socket error");
     }
 
-    _client = _server.accept();
-    _client.dataHandler = messageHandler;
-    _client.closeHandler = closeHandler;
-    _client.errorHandler = errorHandler;
+    connection.dataHandler = messageHandler;
+    connection.closeHandler = closeHandler;
+    connection.errorHandler = errorHandler;
   }
 }
 

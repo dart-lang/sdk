@@ -240,12 +240,23 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   bool _createBindListen(String bindAddress, int port, int backlog)
       native "ServerSocket_CreateBindListen";
 
-  void set connectionHandler(void callback()) {
-    _setHandler(_IN_EVENT, callback);
+  void set connectionHandler(void callback(Socket connection)) {
+    _clientConnectionHandler = callback;
+    _setHandler(_IN_EVENT,
+                _clientConnectionHandler != null ? _connectionHandler : null);
+  }
+
+  void _connectionHandler() {
+    if (_id >= 0) {
+      _Socket socket = new _Socket._internal();
+      if (_accept(socket)) _clientConnectionHandler(socket);
+    }
   }
 
   bool _isListenSocket() => true;
   bool _isPipe() => false;
+
+  var _clientConnectionHandler;
 }
 
 

@@ -65,22 +65,21 @@ class SocketManyConnectionsTest {
 
 class TestServer extends TestingServer {
 
-  void connectionHandler() {
+  void connectionHandler(Socket connection) {
     Socket _client;
 
     void closeHandler() {
-      _client.close();
+      connection.close();
     }
 
     void errorHandler() {
       print("Socket error");
-      _client.close();
+      connection.close();
     }
 
-    _client = _server.accept();
     _connections++;
-    _client.closeHandler = closeHandler;
-    _client.errorHandler = errorHandler;
+    connection.closeHandler = closeHandler;
+    connection.errorHandler = errorHandler;
   }
 
   int _connections = 0;
