@@ -278,6 +278,7 @@ static bool PostMessage(Dart_Isolate dest_isolate,
   OS::Print("-- Adding MessageEvent to queue --\n");
   event_queue->Add(
       new MessageEvent(dest_isolate, dest_port, reply_port, message));
+  return true;
 }
 
 
@@ -338,7 +339,6 @@ static void native_echo(Dart_NativeArguments args) {
 
 static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   OS::Print("-- Enter: CustomIsolateImpl_start --\n");
-  Dart_Handle result;
 
   // We would probably want to pass in the this pointer too, so we
   // could associate the CustomIsolateImpl instance with the
@@ -381,7 +381,7 @@ UNIT_TEST_CASE(CustomIsolates) {
   event_queue = new EventQueue();
   current_event = NULL;
 
-  Dart_Isolate main_isolate = Dart_CreateIsolate(NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL);
   Dart_SetMessageCallbacks(&PostMessage, &ClosePort);
   Dart_EnterScope();
   Dart_Handle result;
