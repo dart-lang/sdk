@@ -54,6 +54,30 @@ public class DependencyComputerTest extends TestCase {
   }
 
   /**
+   * Tests that we can find dependencies to methods added to the prototype chain of native objects.
+   */
+  public void testNativeDependencies() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("function A() {}\n");
+    sb.append("A.prototype.foo = function() {}\n");
+    sb.append("Array.prototype.foo = function() {}\n");
+    sb.append("function execute() {  Array.prototype.foo.call(); }");
+
+    AstRoot astRoot = parser.parse(sb.toString(), "", 1);
+    astRoot.visit(topLevelElementIndexer);
+    AstNode executeFunction = (AstNode) astRoot.getLastChild();
+    List<JavascriptElement> computedDependencies =
+        dependencyComputer.computeDependencies(executeFunction);
+    assertNotNull(computedDependencies);
+
+    /*
+     * The foo method is added to the native Array object's prototype directly, ensure that we found
+     * it.
+     */
+    assertEquals(1, computedDependencies.size());
+  }
+
+  /**
    * Tests that we do add a virtual dependency to a member of an instantiated
    * class even though its name is shadowed by a local variable.
    */

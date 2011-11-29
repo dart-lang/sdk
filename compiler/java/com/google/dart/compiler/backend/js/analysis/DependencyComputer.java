@@ -96,7 +96,7 @@ class DependencyComputer {
       Symbol symbol = scope.getSymbol(name);
       if (symbol == null) {
         Scope parentScope = scope.getParentScope();
-        if (parentScope == null) {
+        if (parentScope == null && (scope != scope.getAstRoot())) {
           return findSymbol(scope.getAstRoot(), name);
         } else {
           return findSymbol(parentScope, name);
