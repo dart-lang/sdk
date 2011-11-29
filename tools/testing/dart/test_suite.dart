@@ -110,7 +110,7 @@ class CCTestSuite implements TestSuite {
 
     receiveTestName = new ReceivePort();
     new CCTestListerIsolate().spawn().then((port) {
-        port.send(runnerPath, receiveTestName);
+        port.send(runnerPath, receiveTestName.toSendPort());
         receiveTestName.receive(testNameHandler);
     });
   }
