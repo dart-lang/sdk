@@ -63,6 +63,12 @@ intptr_t Socket::Available(intptr_t fd) {
 int Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
   ssize_t read_bytes = read(fd, buffer, num_bytes);
+  if (read_bytes == -1 &&
+      (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
+    // If the read was interrupted or the read would block we need
+    // to retry and therefore return 0 as the number of bytes written.
+    read_bytes = 0;
+  }
   return read_bytes;
 }
 
@@ -70,6 +76,12 @@ int Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 int Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
   ssize_t written_bytes = write(fd, buffer, num_bytes);
+  if (written_bytes == -1 &&
+      (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
+    // If the write was interrupted or the write would block we need
+    // to retry and therefore return 0 as the number of bytes written.
+    written_bytes = 0;
+  }
   return written_bytes;
 }
 

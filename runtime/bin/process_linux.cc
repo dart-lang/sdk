@@ -15,6 +15,7 @@
 
 #include "bin/fdutils.h"
 
+
 class ProcessInfo {
  public:
   ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) { }
@@ -112,6 +113,24 @@ void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
       close(process->fd());
     }
   }
+}
+
+
+static void ReportChildError(int exec_control_fd) {
+  // In the case of failure in the child process write the errno and
+  // the OS error message to the exec control pipe and exit.
+  int child_errno = errno;
+  char* os_error_message = strerror(errno);
+  ASSERT(sizeof(child_errno) == sizeof(errno));
+  int bytes_written =
+      FDUtils::WriteToBlocking(
+          exec_control_fd, &child_errno, sizeof(child_errno));
+  if (bytes_written == sizeof(child_errno)) {
+    FDUtils::WriteToBlocking(
+        exec_control_fd, os_error_message, strlen(os_error_message) + 1);
+  }
+  close(exec_control_fd);
+  exit(1);
 }
 
 
@@ -230,30 +249,23 @@ int Process::Start(const char* path,
     close(read_err[0]);
     close(exec_control[0]);
 
-    dup2(write_out[0], STDIN_FILENO);
+    if (dup2(write_out[0], STDIN_FILENO) == -1) {
+      ReportChildError(exec_control[1]);
+    }
     close(write_out[0]);
 
-    dup2(read_in[1], STDOUT_FILENO);
+    if (dup2(read_in[1], STDOUT_FILENO) == -1) {
+      ReportChildError(exec_control[1]);
+    }
     close(read_in[1]);
 
-    dup2(read_err[1], STDERR_FILENO);
+    if (dup2(read_err[1], STDERR_FILENO) == -1) {
+      ReportChildError(exec_control[1]);
+    }
     close(read_err[1]);
 
     execvp(path, const_cast<char* const*>(program_arguments));
-    // In the case of failure write the errno and the OS error message
-    // to the exec control pipe.
-    int child_errno = errno;
-    char* os_error_message = strerror(errno);
-    ASSERT(sizeof(child_errno) == sizeof(errno));
-    int bytes_written =
-        FDUtils::WriteToBlocking(
-            exec_control[1], &child_errno, sizeof(child_errno));
-    if (bytes_written == sizeof(child_errno)) {
-      FDUtils::WriteToBlocking(
-          exec_control[1], os_error_message, strlen(os_error_message) + 1);
-    }
-    close(exec_control[1]);
-    exit(1);
+    ReportChildError(exec_control[1]);
   }
 
   // The arguments for the spawned process are not needed any longer.

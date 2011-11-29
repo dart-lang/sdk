@@ -61,8 +61,6 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       bytes_read = -1;
     }
-  } else if (bytes_read < 0) {
-    bytes_read = 0;
   }
   delete[] buffer;
   Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
@@ -96,9 +94,6 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   intptr_t total_bytes_written =
       Socket::Write(socket, reinterpret_cast<void*>(buffer), length);
   delete[] buffer;
-  if (total_bytes_written < 0) {
-    total_bytes_written = 0;
-  }
   Dart_SetReturnValue(args, Dart_NewInteger(total_bytes_written));
   Dart_ExitScope();
 }

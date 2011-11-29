@@ -200,10 +200,8 @@ static void PrintEventMask(struct pollfd* pollfd) {
   if ((pollfd->revents & POLLOUT) != 0) printf("POLLOUT ");
   if ((pollfd->revents & POLLERR) != 0) printf("POLLERR ");
   if ((pollfd->revents & POLLHUP) != 0) printf("POLLHUP ");
-  if ((pollfd->revents & POLLRDHUP) != 0) printf("POLLRDHUP ");
   if ((pollfd->revents & POLLNVAL) != 0) printf("POLLNVAL ");
-  int all_events = POLLIN | POLLPRI | POLLOUT |
-                   POLLERR | POLLHUP | POLLRDHUP | POLLNVAL;
+  int all_events = POLLIN | POLLPRI | POLLOUT | POLLERR | POLLHUP | POLLNVAL;
   if ((pollfd->revents & ~all_events) != 0) {
     printf("(and %08x) ", pollfd->revents & ~all_events);
   }

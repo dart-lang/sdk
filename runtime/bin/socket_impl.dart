@@ -298,7 +298,7 @@ class _Socket extends _SocketBase implements Socket {
       }
       int result = _readList(buffer, offset, bytes);
       if (result < 0) {
-        throw new SocketIOException("Error: readList failed");
+        _reportError();
       }
       return result;
     }
@@ -323,7 +323,14 @@ class _Socket extends _SocketBase implements Socket {
       if ((offset + bytes) > buffer.length) {
         throw new IndexOutOfRangeException(offset + bytes);
       }
-      return _writeList(buffer, offset, bytes);
+      var bytes_written = _writeList(buffer, offset, bytes);
+      if (bytes_written < 0) {
+        // If writing fails we return 0 as the number of bytes and
+        // report the error on the error handler.
+        bytes_written = 0;
+        _reportError();
+      }
+      return bytes_written;
     }
     throw new
         SocketIOException("Error: writeList failed - invalid socket handle");
@@ -331,6 +338,17 @@ class _Socket extends _SocketBase implements Socket {
 
   int _writeList(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
+
+  void _reportError() {
+    // For all errors we close the socket, call the error handler and
+    // disable further calls of the error handler.
+    close();
+    var errorHandler = _handlerMap[_ERROR_EVENT];
+    if (errorHandler != null) {
+      errorHandler();
+      _setHandler(_ERROR_EVENT, null);
+    }
+  }
 
   bool _createConnect(String host, int port) native "Socket_CreateConnect";
 

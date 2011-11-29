@@ -62,8 +62,7 @@ interface Socket factory _Socket {
    * Writes up to [count] bytes of the buffer from [offset] buffer offset to
    * the socket. The number of successfully written bytes is returned. This
    * function is non-blocking and will only write data if buffer space is
-   * available in the socket. It will return 0 if an error occurs, e.g., no
-   * buffer space available.
+   * available in the socket.
    */
   int writeList(List<int> buffer, int offset, int count);
 
