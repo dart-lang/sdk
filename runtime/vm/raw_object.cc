@@ -150,10 +150,20 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   ASSERT(IsHeapObject());
 
   // Read the necessary data out of the class before visting the class itself.
-  ObjectKind kind = ptr()->class_->ptr()->instance_kind_;
+  RawClass* raw_class = ptr()->class_;
+  if (IsMarked()) {
+    // If the object is marked we need to remove the marking bits from the
+    // raw_class which we loaded above.
+    uword header_bits = reinterpret_cast<uword>(raw_class);
+    header_bits = (header_bits & ~kMarkingMask) | kNotMarked;
+    raw_class = reinterpret_cast<RawClass*>(header_bits);
+  }
+  ObjectKind kind = raw_class->ptr()->instance_kind_;
 
   // Visit the class before visting the fields.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ptr()->class_));
+  if (!IsMarked()) {
+    visitor->VisitPointer(reinterpret_cast<RawObject**>(&ptr()->class_));
+  }
 
   switch (kind) {
 #define RAW_VISITPOINTERS(clazz) \
