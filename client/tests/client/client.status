@@ -22,8 +22,6 @@ json/json_tests: Pass
 samples/swarm/swarm_tests: Pass
 
 [ $component == chromium && $mode == release ]
-samples/dartcombat/dartcombat_tests: Timeout
-samples/swarm/swarm_tests: Timeout
 
 
 # 'client' tests import the DOM library, so they only make sense in
