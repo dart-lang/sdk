@@ -603,6 +603,14 @@ void main() {
         <p>before <code>`tick`</code> after</p>
         ''');
 
+    validate('multiline double backticks with spaces', '''
+        before ``in `tick`
+        another`` after
+        ''', '''
+        <p>before <code>in `tick`
+        another</code> after</p>
+        ''');
+
     validate('ignore markup inside code', '''
         before `*b* _c_` after
         ''', '''
@@ -613,6 +621,12 @@ void main() {
         `<&>`
         ''', '''
         <p><code>&lt;&amp;&gt;</code></p>
+        ''');
+
+    validate('escape HTML tags', '''
+        '*' `<em>`
+        ''', '''
+        <p>'*' <code>&lt;em&gt;</code></p>
         ''');
   });
 
@@ -687,6 +701,11 @@ void main() {
         [a]: http://foo.com
         ''', '''
         <p>links <a href="http://foo.com"><em>are</em></a> awesome</p>
+        ''');
+    validate('inline styles after a bad link are processed', '''
+        [bad] `code`
+        ''', '''
+        <p>[bad] <code>code</code></p>
         ''');
   });
 

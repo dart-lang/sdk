@@ -92,6 +92,28 @@ hr + h2 {
   padding-left: 44px;
 }
 
+.param {
+  font: 600 14px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+}
+
+.crossref {
+  font: 600 15px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+}
+
+.doc h1 {
+  font: 700 17px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  color: #666;
+}
+
+.doc h2 {
+  font: 600 16px/22px 'Open Sans', 'Lucida Sans Unicode',
+      'Lucida Grande', sans-serif;
+  color: #666;
+}
+
 /* Highlight members on hover so you can see which docs are for which member. */
 .method:hover,
 .field:hover {

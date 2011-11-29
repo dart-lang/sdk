@@ -2,12 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** An awesome documentation generator. */
+/**
+ * To use it, from this directory, run:
+ *
+ *     $ dartdoc <path to .dart file>
+ *
+ * This will create a "docs" directory with the docs for your libraries. To do
+ * so, dartdoc parses that library and every library it imports. From each
+ * library, it parses all classes and members, finds the associated doc
+ * comments and builds crosslinked docs from them.
+ */
 #library('dartdoc');
 
 #import('../../frog/lang.dart');
 #import('../../frog/file_system.dart');
 #import('../../frog/file_system_node.dart');
+#import('../markdown/lib.dart', prefix: 'md');
 
 #source('classify.dart');
 
@@ -17,11 +27,23 @@ final corePath = 'lib';
 /** Path to generate html files into. */
 final outdir = 'docs';
 
+/** Set to `true` to include the source code in the generated docs. */
+bool includeSource = true;
+
 /** Special comment position used to store the library-level doc comment. */
 final _libraryDoc = -1;
 
 /** The file currently being written to. */
 StringBuffer _file;
+
+/** The library that we're currently generating docs for. */
+Library _currentLibrary;
+
+/** The type that we're currently generating docs for. */
+Type _currentType;
+
+/** The member that we're currently generating docs for. */
+Member _currentMember;
 
 /**
  * The cached lookup-table to associate doc comments with spans. The outer map
@@ -39,9 +61,7 @@ int _totalMembers = 0;
 FileSystem files;
 
 /**
- * Run this from the frog/samples directory.  Before running, you need
- * to create a docs dir with 'mkdir docs' - since Dart currently doesn't
- * support creating new directories.
+ * Run this from the `utils/dartdoc` directory.
  */
 void main() {
   // The entrypoint of the library to generate docs for.
@@ -49,6 +69,13 @@ void main() {
 
   files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
+
+  // Patch in support for [:...:]-style code to the markdown parser.
+  // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
+  md.InlineParser.syntaxes.insertRange(0, 1,
+      new md.CodeSyntax(@'\[\:((?:.|\n)*?)\:\]'));
+
+  md.setImplicitLinkResolver(resolveNameReference);
 
   final elapsed = time(() {
     initializeDartDoc();
@@ -141,9 +168,7 @@ docIndex(List<Library> libraries) {
   for (final library in sorted) {
     writeln(
         '''
-        <li><a href="${sanitize(library.name)}.html">
-            Library ${library.name}</a>
-        </li>
+        <li><a href="${libraryUrl(library)}">Library ${library.name}</a></li>
         ''');
   }
 
@@ -159,6 +184,7 @@ docIndex(List<Library> libraries) {
 
 docLibrary(Library library) {
   _totalLibraries++;
+  _currentLibrary = library;
 
   startFile();
   writeln(
@@ -180,11 +206,15 @@ docLibrary(Library library) {
   // Look for a comment for the entire library.
   final comment = findCommentInFile(library.baseSource, _libraryDoc);
   if (comment != null) {
-    writeln('<div class="doc"><p>$comment</p></div>');
+    final html = md.markdownToHtml(comment);
+    writeln('<div class="doc">$html</div>');
     needsSeparator = true;
   }
 
-  for (final type in library.types.getValues()) {
+  for (final type in orderValuesByKeys(library.types)) {
+    // Skip private types (for now at least).
+    if ((type.name != null) && type.name.startsWith('_')) continue;
+
     if (needsSeparator) writeln('<hr/>');
     if (docType(type)) needsSeparator = true;
   }
@@ -199,21 +229,24 @@ docLibrary(Library library) {
 }
 
 /**
- * Documents [Type]. Handles top-level members if given an unnamed Type.
- * Returns [:true:] if it wrote anything.
+ * Documents [type]. Handles top-level members if given an unnamed Type.
+ * Returns `true` if it wrote anything.
  */
 bool docType(Type type) {
   _totalTypes++;
+  _currentType = type;
 
   bool wroteSomething = false;
 
   if (type.name != null) {
+    final name = typeName(type);
+
     write(
         '''
-        <h2 id="${type.name}">
-          ${type.isClass ? "Class" : "Interface"} <strong>${type.name}</strong>
-          <a class="anchor-link" href="#${type.name}"
-              title="Permalink to ${type.name}">#</a>
+        <h2 id="${typeAnchor(type)}">
+          ${type.isClass ? "Class" : "Interface"} <strong>$name</strong>
+          <a class="anchor-link" href="${typeUrl(type)}"
+              title="Permalink to $name">#</a>
         </h2>
         ''');
 
@@ -243,12 +276,12 @@ bool docType(Type type) {
 
   if (methods.length > 0) {
     writeln('<h3>Methods</h3>');
-    for (final method in methods) docMethod(type.name, method);
+    for (final method in methods) docMethod(type, method);
   }
 
   if (fields.length > 0) {
     writeln('<h3>Fields</h3>');
-    for (final field in fields) docField(type.name, field);
+    for (final field in fields) docField(type, field);
   }
 
   return wroteSomething || methods.length > 0 || fields.length > 0;
@@ -257,38 +290,38 @@ bool docType(Type type) {
 /** Document the superclass and superinterfaces of [Type]. */
 docInheritance(Type type) {
   // Show the superclass and superinterface(s).
-  if ((type.parent != null) && (type.parent.isObject) ||
-      (type.interfaces != null && type.interfaces.length > 0)) {
+  final isSubclass = (type.parent != null) && !type.parent.isObject;
+
+  if (isSubclass || (type.interfaces != null && type.interfaces.length > 0)) {
     writeln('<p>');
 
-    if (type.parent != null) {
-      write('Extends ${typeRef(type.parent)}. ');
+    if (isSubclass) {
+      write('Extends ${typeReference(type.parent)}. ');
     }
 
     if (type.interfaces != null) {
-      final interfaces = [];
       switch (type.interfaces.length) {
         case 0:
           // Do nothing.
           break;
 
         case 1:
-          write('Implements ${typeRef(type.interfaces[0])}.');
+          write('Implements ${typeReference(type.interfaces[0])}.');
           break;
 
         case 2:
-          write('''Implements ${typeRef(type.interfaces[0])} and
-              ${typeRef(type.interfaces[1])}.''');
+          write('''Implements ${typeReference(type.interfaces[0])} and
+              ${typeReference(type.interfaces[1])}.''');
           break;
 
         default:
           write('Implements ');
           for (final i = 0; i < type.interfaces.length; i++) {
-            write('${typeRef(type.interfaces[i])}');
-            if (i < type.interfaces.length - 1) {
+            write('${typeReference(type.interfaces[i])}');
+            if (i < type.interfaces.length - 2) {
               write(', ');
-            } else {
-              write(' and ');
+            } else if (i < type.interfaces.length - 1) {
+              write(', and ');
             }
           }
           write('.');
@@ -304,28 +337,26 @@ docConstructors(Type type) {
     writeln('<h3>Constructors</h3>');
     for (final name in type.constructors.getKeys()) {
       final constructor = type.constructors[name];
-      docMethod(type.name, constructor, namedConstructor: name);
+      docMethod(type, constructor, constructorName: name);
     }
   }
 }
 
 /**
- * Documents the [method] in a type named [typeName]. Handles all kinds of
- * methods including getters, setters, and constructors.
+ * Documents the [method] in type [type]. Handles all kinds of methods
+ * including getters, setters, and constructors.
  */
-docMethod(String typeName, MethodMember method,
-    [String namedConstructor = null]) {
+docMethod(Type type, MethodMember method, [String constructorName = null]) {
   _totalMembers++;
+  _currentMember = method;
 
-  writeln(
-      '''
-      <div class="method"><h4 id="$typeName.${method.name}">
-        <span class="show-code">Code</span>
-      ''');
+  writeln('<div class="method"><h4 id="${memberAnchor(method)}">');
 
-  // A null typeName means it's a top-level definition which is implicitly
-  // static so doesn't need to annotate it.
-  if (method.isStatic && (typeName != null)) {
+  if (includeSource) {
+    writeln('<span class="show-code">Code</span>');
+  }
+
+  if (method.isStatic && !type.isTop) {
     write('static ');
   }
 
@@ -333,8 +364,8 @@ docMethod(String typeName, MethodMember method,
     write(method.isConst ? 'const ' : 'new ');
   }
 
-  if (namedConstructor == null) {
-    write(optionalTypeRef(method.returnType));
+  if (constructorName == null) {
+    write(annotation(type, method.returnType));
   }
 
   // Translate specially-named methods: getters, setters, operators.
@@ -358,22 +389,19 @@ docMethod(String typeName, MethodMember method,
   write('<strong>$name</strong>');
 
   // Named constructors.
-  if (namedConstructor != null && namedConstructor != '') {
+  if (constructorName != null && constructorName != '') {
     write('.');
-    write(namedConstructor);
+    write(constructorName);
   }
 
   write('(');
-  final paramList = [];
-  if (method.parameters == null) print(method.name);
-  for (final p in method.parameters) {
-    paramList.add('${optionalTypeRef(p.type)}${p.name}');
-  }
-  write(Strings.join(paramList, ", "));
+  final parameters = map(method.parameters,
+      (p) => '${annotation(type, p.type)}${p.name}');
+  write(Strings.join(parameters, ', '));
   write(')');
 
-  write(''' <a class="anchor-link" href="#$typeName.${method.name}"
-            title="Permalink to $typeName.$name">#</a>''');
+  write(''' <a class="anchor-link" href="#${memberAnchor(method)}"
+            title="Permalink to ${type.name}.$name">#</a>''');
   writeln('</h4>');
 
   docCode(method.span, showCode: true);
@@ -381,19 +409,18 @@ docMethod(String typeName, MethodMember method,
   writeln('</div>');
 }
 
-/** Documents the field [field] in a type named [typeName]. */
-docField(String typeName, FieldMember field) {
+/** Documents the field [field] of type [type]. */
+docField(Type type, FieldMember field) {
   _totalMembers++;
+  _currentMember = field;
 
-  writeln(
-      '''
-      <div class="field"><h4 id="$typeName.${field.name}">
-        <span class="show-code">Code</span>
-      ''');
+  writeln('<div class="field"><h4 id="${memberAnchor(field)}">');
 
-  // A null typeName means it's a top-level definition which is implicitly
-  // static so doesn't need to annotate it.
-  if (field.isStatic && (typeName != null)) {
+  if (includeSource) {
+    writeln('<span class="show-code">Code</span>');
+  }
+
+  if (field.isStatic && !type.isTop) {
     write('static ');
   }
 
@@ -403,12 +430,12 @@ docField(String typeName, FieldMember field) {
     write('var ');
   }
 
-  write(optionalTypeRef(field.type));
+  write(annotation(type, field.type));
   write(
       '''
       <strong>${field.name}</strong> <a class="anchor-link"
-          href="#$typeName.${field.name}"
-          title="Permalink to $typeName.${field.name}">#</a>
+          href="#${memberUrl(field)}"
+          title="Permalink to ${type.name}.${field.name}">#</a>
       </h4>
       ''');
 
@@ -416,29 +443,135 @@ docField(String typeName, FieldMember field) {
   writeln('</div>');
 }
 
-/**
- * Writes a type annotation for [type]. Will hyperlink it to that type's
- * documentation if possible.
- */
-typeRef(Type type) {
-  if (type.library != null) {
-    final library = sanitize(type.library.name);
-    return '<a href="${library}.html#${type.name}">${type.name}</a>';
-  } else {
-    return type.name;
+/** Generates a human-friendly string representation for a type. */
+typeName(Type type) {
+  // See if it's a generic type.
+  if (type.isGeneric) {
+    final typeParams = type.genericType.typeParameters;
+    final params = Strings.join(map(typeParams, (p) => p.name), ', ');
+    return '${type.name}&lt;$params&gt;';
   }
+
+  // See if it's an instantiation of a generic type.
+  final typeArgs = type.typeArgsInOrder;
+  if (typeArgs != null) {
+    final args = Strings.join(map(typeArgs, typeName), ', ');
+    return '${type.genericType.name}&lt;$args&gt;';
+  }
+
+  // Regular type.
+  return type.name;
+}
+
+/** Gets the URL to the documentation for [library]. */
+libraryUrl(Library library) => '${sanitize(library.name)}.html';
+
+/** Gets the URL for the documentation for [type]. */
+typeUrl(Type type) => '${libraryUrl(type.library)}#${typeAnchor(type)}';
+
+/** Gets the URL for the documentation for [member]. */
+memberUrl(Member member) => '${typeUrl(member.declaringType)}-${member.name}';
+
+/** Gets the anchor id for the document for [type]. */
+typeAnchor(Type type) {
+  var name = type.name;
+
+  // No name for the special type that contains top-level members.
+  if (type.isTop) return '';
+
+  // Remove any type args or params that have been mangled into the name.
+  var dollar = name.indexOf('\$', 0);
+  if (dollar != -1) name = name.substring(0, dollar);
+
+  return name;
+}
+
+/** Gets the anchor id for the document for [member]. */
+memberAnchor(Member member) {
+  return '${typeAnchor(member.declaringType)}-${member.name}';
+}
+
+/** Writes a linked cross reference to [type]. */
+typeReference(Type type) {
+  // TODO(rnystrom): Do we need to handle ParameterTypes here like
+  // annotation() does?
+  return '<a href="${typeUrl(type)}" class="crossref">${typeName(type)}</a>';
 }
 
 /**
  * Creates a linked string for an optional type annotation. Returns an empty
  * string if the type is Dynamic.
  */
-optionalTypeRef(Type type) {
-  if (type.name == 'Dynamic') {
-    return '';
-  } else {
-    return typeRef(type) + ' ';
+annotation(Type enclosingType, Type type) {
+  if (type.name == 'Dynamic') return '';
+
+  // If we're using a type parameter within the body of a generic class then
+  // just link back up to the class.
+  if (type is ParameterType) {
+    final library = sanitize(enclosingType.library.name);
+    return '<a href="${typeUrl(enclosingType)}">${type.name}</a> ';
   }
+
+  // Link to the type.
+  return '<a href="${typeUrl(type)}">${typeName(type)}</a> ';
+}
+
+/**
+ * This will be called whenever a doc comment hits a `[name]` in square
+ * brackets. It will try to figure out what the name refers to and link or
+ * style it appropriately.
+ */
+md.Node resolveNameReference(String name) {
+  if (_currentMember != null) {
+    // See if it's a parameter of the current method.
+    for (final parameter in _currentMember.parameters) {
+      if (parameter.name == name) {
+        final element = new md.Element.text('span', name);
+        element.attributes['class'] = 'param';
+        return element;
+      }
+    }
+  }
+
+  makeLink(String href) {
+    final anchor = new md.Element.text('a', name);
+    anchor.attributes['href'] = href;
+    anchor.attributes['class'] = 'crossref';
+    return anchor;
+  }
+
+  // See if it's another member of the current type.
+  if (_currentType != null) {
+    var member = _currentType.members[name];
+    if (member != null) {
+      // Special case: if the member we've resolved is a property (i.e. it wraps
+      // a getter and/or setter then *that* member itself won't be on the docs,
+      // just the getter or setter will be. So pick one of those to link to.
+      if (member.isProperty) {
+        if (member.canGet) {
+          member = member.getter;
+        } else {
+          member = member.setter;
+        }
+      }
+
+      return makeLink(memberUrl(member));
+    }
+  }
+
+  // See if it's another type in the current library.
+  if (_currentLibrary != null) {
+    final type = _currentLibrary.types[name];
+    if (type != null) {
+      return makeLink(typeUrl(type));
+    }
+  }
+
+  // TODO(rnystrom): Should also consider:
+  // * Names imported by libraries this library imports.
+  // * Type parameters of the enclosing type.
+
+  return new md.Element.text('code', name);
 }
 
 /**
@@ -452,10 +585,10 @@ docCode(SourceSpan span, [bool showCode = false]) {
   writeln('<div class="doc">');
   final comment = findComment(span);
   if (comment != null) {
-    writeln('<p>$comment</p>');
+    writeln(md.markdownToHtml(comment));
   }
 
-  if (showCode) {
+  if (includeSource && showCode) {
     writeln('<pre class="source">');
     write(formatCode(span));
     writeln('</pre>');
@@ -491,6 +624,15 @@ parseDocComments(SourceFile file) {
       if (text.startsWith('/**')) {
         // Remember that we've encountered a doc comment.
         lastComment = stripComment(token.text);
+      } else if (text.startsWith('///')) {
+        var line = text.substring(3, text.length);
+        // Allow a leading space.
+        if (line.startsWith(' ')) line = line.substring(1, text.length);
+        if (lastComment == null) {
+          lastComment = line;
+        } else {
+          lastComment = '$lastComment$line';
+        }
       }
     } else if (token.kind == TokenKind.WHITESPACE) {
       // Ignore whitespace tokens.
@@ -551,24 +693,24 @@ unindent(String text, int indentation) {
 
 /**
  * Pulls the raw text out of a doc comment (i.e. removes the comment
- * characters.
+ * characters).
  */
-// TODO(rnystrom): Should handle [name] and [:code:] in comments. Should also
-// break empty lines into multiple paragraphs. Other formatting?
-// See dart/compiler/java/com/google/dart/compiler/backend/doc for ideas.
-// (/DartDocumentationVisitor.java#180)
 stripComment(comment) {
   StringBuffer buf = new StringBuffer();
 
   for (final line in comment.split('\n')) {
     line = line.trim();
     if (line.startsWith('/**')) line = line.substring(3, line.length);
-    if (line.endsWith('*/')) line = line.substring(0, line.length-2);
+    if (line.endsWith('*/')) line = line.substring(0, line.length - 2);
     line = line.trim();
-    while (line.startsWith('*')) line = line.substring(1, line.length);
-    line = line.trim();
+    if (line.startsWith('* ')) {
+      line = line.substring(2, line.length);
+    } else if (line.startsWith('*')) {
+      line = line.substring(1, line.length);
+    }
+
     buf.add(line);
-    buf.add(' ');
+    buf.add('\n');
   }
 
   return buf.toString();

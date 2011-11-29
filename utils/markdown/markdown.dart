@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Standalone script for parsing markdown from files and converting to HTML.
-#library('markdown');
+#library('markdown_app');
 
 #import('lib.dart');
 

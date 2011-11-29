@@ -29,6 +29,12 @@ String escapeHtml(String html) {
              .replaceAll('>', '&gt;');
 }
 
+var _implicitLinkResolver;
+
+Node setImplicitLinkResolver(Node resolver(String text)) {
+  _implicitLinkResolver = resolver;
+}
+
 /// Maintains the context needed to parse a markdown document.
 class Document {
   final Map<String, Link> refLinks;
@@ -37,10 +43,10 @@ class Document {
     : refLinks = <String, Link>{};
 
   parseRefLinks(List<String> lines) {
-    /// This is a hideous regex. It matches:
-    /// [id]: http:foo.com "some title"
-    /// Where there may whitespace in there, and where the title may be in
-    /// single quotes, double quotes, or parentheses.
+    // This is a hideous regex. It matches:
+    // [id]: http:foo.com "some title"
+    // Where there may whitespace in there, and where the title may be in
+    // single quotes, double quotes, or parentheses.
     final indent = @'^[ ]{0,3}'; // Leading indentation.
     final id = @'\[([^\]]+)\]';  // Reference id in [brackets].
     final quote = @'"[^"]+"';    // Title in "double quotes".
@@ -96,9 +102,7 @@ class Document {
   /// returning a list of AST nodes. For example, given ``"*this **is** a*
   /// `markdown`"``, returns:
   /// `<em>this <strong>is</strong> a</em> <code>markdown</code>`.
-  List<Node> parseInline(String text) {
-    return new InlineParser(text, this).parse();
-  }
+  List<Node> parseInline(String text) => new InlineParser(text, this).parse();
 }
 
 class Link {

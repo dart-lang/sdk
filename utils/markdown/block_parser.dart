@@ -5,20 +5,20 @@
 /// The line contains only whitespace or is empty.
 final _RE_EMPTY = const RegExp(@'^([ \t]*)$');
 
-/// A series of "=" or "-" (on the next line) define setext-style headers.
+/// A series of `=` or `-` (on the next line) define setext-style headers.
 final _RE_SETEXT = const RegExp(@'^((=+)|(-+))$');
 
-/// Leading (and trailing) "#" define atx-style headers.
+/// Leading (and trailing) `#` define atx-style headers.
 final _RE_HEADER = const RegExp(@'^(#{1,6})(.*?)#*$');
 
-/// The line starts with ">" with one optional space after.
+/// The line starts with `>` with one optional space after.
 final _RE_BLOCKQUOTE = const RegExp(@'^[ ]{0,3}>[ ]?(.*)$');
 
 /// A line indented four spaces. Used for code blocks and lists.
 final _RE_INDENT = const RegExp(@'^(?:    |\t)(.*)$');
 
 /// Three or more hyphens, asterisks or underscores by themselves. Note that
-/// a line like "----" is valid as both HR and SETEXT. In case of a tie,
+/// a line like `----` is valid as both HR and SETEXT. In case of a tie,
 /// SETEXT should win.
 final _RE_HR = const RegExp(@'^[ ]{0,3}((-+[ ]{0,2}){3,}|' +
                                  @'(_+[ ]{0,2}){3,}|' +
@@ -28,12 +28,12 @@ final _RE_HR = const RegExp(@'^[ ]{0,3}((-+[ ]{0,2}){3,}|' +
 /// "<somename".
 final _RE_HTML = const RegExp(@'^<[ ]*\w+[ >]');
 
-/// A line starting with one of these markers: "-", "*", "+". May have up to
+/// A line starting with one of these markers: `-`, `*`, `+`. May have up to
 /// three leading spaces before the marker and any number of spaces or tabs
 /// after.
 final _RE_UL = const RegExp(@'^[ ]{0,3}[*+-][ \t]+(.*)$');
 
-/// A line starting with a number like "123.". May have up to three leading
+/// A line starting with a number like `123.`. May have up to three leading
 /// spaces before the marker and any number of spaces or tabs after.
 final _RE_OL = const RegExp(@'^[ ]{0,3}\d+\.[ \t]+(.*)$');
 
@@ -61,7 +61,10 @@ class BlockParser {
     return lines[pos + 1];
   }
 
-  void advance() => pos++;
+  void advance() {
+    pos++;
+  }
+
   bool get isDone() => pos >= lines.length;
 
   /// Gets whether or not the current line matches the given pattern.
@@ -113,9 +116,9 @@ class BlockSyntax {
 
   abstract Node parse(BlockParser parser);
 
-  List<Node> parseChildLines(BlockParser parser) {
+  List<String> parseChildLines(BlockParser parser) {
     // Grab all of the lines that form the blockquote, stripping off the ">".
-    final childLines = [];
+    final childLines = <String>[];
 
     while (!parser.isDone) {
       final match = pattern.firstMatch(parser.current);
@@ -165,7 +168,7 @@ class SetextHeaderSyntax extends BlockSyntax {
   }
 }
 
-/// Parses atx-style headers: "## Header ##".
+/// Parses atx-style headers: `## Header ##`.
 class HeaderSyntax extends BlockSyntax {
   RegExp get pattern() => _RE_HEADER;
 
@@ -178,7 +181,7 @@ class HeaderSyntax extends BlockSyntax {
   }
 }
 
-/// Parses email-style blockquotes: "> quote".
+/// Parses email-style blockquotes: `> quote`.
 class BlockquoteSyntax extends BlockSyntax {
   RegExp get pattern() => _RE_BLOCKQUOTE;
 
@@ -209,7 +212,7 @@ class CodeBlockSyntax extends BlockSyntax {
   }
 }
 
-/// Parses horizontal rules like "---", "_ _ _", "*  *  *", etc.
+/// Parses horizontal rules like `---`, `_ _ _`, `*  *  *`, etc.
 class HorizontalRuleSyntax extends BlockSyntax {
   RegExp get pattern() => _RE_HR;
 
@@ -224,10 +227,10 @@ class HorizontalRuleSyntax extends BlockSyntax {
 /// implementations in several ways:
 ///
 /// 1.  This one is way way WAY simpler.
-/// 2.  All HTML tags at the block level will be treated as blocks. If you start
-///     a paragraph with <em>, it will not wrap it in a <p> for you. As soon as
-///     it sees something like HTML, it stops mucking with it until it hits the
-///     next block.
+/// 2.  All HTML tags at the block level will be treated as blocks. If you
+///     start a paragraph with `<em>`, it will not wrap it in a `<p>` for you.
+///     As soon as it sees something like HTML, it stops mucking with it until
+///     it hits the next block.
 /// 3.  Absolutely no HTML parsing or validation is done. We're a markdown
 ///     parser not an HTML parser!
 class BlockHtmlSyntax extends BlockSyntax {

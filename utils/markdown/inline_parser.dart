@@ -23,17 +23,17 @@ class InlineParser {
         // Encode "<". (Why not encode ">" too? Gruber is toying with us.)
         new TextSyntax(@'<', sub: '&lt;'),
         // Parse "**strong**" tags.
-        new TagSyntax(@'\*\*',                  tag: 'strong'),
+        new TagSyntax(@'\*\*', tag: 'strong'),
         // Parse "__strong__" tags.
-        new TagSyntax(@'__',                    tag: 'strong'),
+        new TagSyntax(@'__', tag: 'strong'),
         // Parse "*emphasis*" tags.
-        new TagSyntax(@'\*',                    tag: 'em'),
+        new TagSyntax(@'\*', tag: 'em'),
         // Parse "_emphasis_" tags.
         // TODO(rnystrom): Underscores in the middle of a word should not be
         // parsed as emphasis like_in_this.
-        new TagSyntax(@'_',                     tag: 'em'),
+        new TagSyntax(@'_', tag: 'em'),
         // Parse inline code within double backticks: "``code``".
-        new CodeSyntax(@'``[ ]?(.*?)[ ]?``'),
+        new CodeSyntax(@'``\s?((?:.|\n)*?)\s?``'),
         // Parse inline code within backticks: "`code`".
         new CodeSyntax(@'`([^`]*)`')
       ];
@@ -63,7 +63,7 @@ class InlineParser {
 
   List<Node> parse() {
     // Make a fake top tag to hold the results.
-    _stack.add(new TagState(0, null));
+    _stack.add(new TagState(0, 0, null));
 
     while (!isDone) {
       bool matched = false;
@@ -96,8 +96,13 @@ class InlineParser {
   }
 
   writeText() {
-    if (pos > start) {
-      final text = source.substring(start, pos);
+    writeTextRange(start, pos);
+    start = pos;
+  }
+
+  writeTextRange(int start, int end) {
+    if (end > start) {
+      final text = source.substring(start, end);
       final nodes = _stack.last().children;
 
       // If the previous node is text too, just append.
@@ -107,16 +112,7 @@ class InlineParser {
       } else {
         nodes.add(new Text(text));
       }
-
-      start = pos;
     }
-  }
-
-  /// Removes the top tag from the stack, reverts it to plain text and adds it
-  /// to the output.
-  discardUnmatchedTag() {
-    final unfinished = _stack.removeLast();
-    start = unfinished.startPos;
   }
 
   addNode(Node node) {
@@ -129,7 +125,10 @@ class InlineParser {
 
   bool get isDone() => pos == source.length;
 
-  void advanceBy(int length) => pos += length;
+  void advanceBy(int length) {
+    pos += length;
+  }
+
   void consume(int length) {
     pos += length;
     start = pos;
@@ -158,7 +157,7 @@ class InlineSyntax {
     return false;
   }
 
-  abstract bool match(InlineParser parser, Match match);
+  abstract bool onMatch(InlineParser parser, Match match);
 }
 
 /// Matches stuff that should just be passed through as straight text.
@@ -181,7 +180,7 @@ class TextSyntax extends InlineSyntax {
   }
 }
 
-/// Matches autolinks like <http://foo.com>.
+/// Matches autolinks like `<http://foo.com>`.
 class AutolinkSyntax extends InlineSyntax {
   AutolinkSyntax()
     : super(@'<((http|https|ftp)://[^>]*)>');
@@ -198,7 +197,7 @@ class AutolinkSyntax extends InlineSyntax {
   }
 }
 
-/// Matches syntax that has a pair of tags and becomes an element, like '*' for
+/// Matches syntax that has a pair of tags and becomes an element, like `*` for
 /// `<em>`. Allows nested tags.
 class TagSyntax extends InlineSyntax {
   final RegExp endPattern;
@@ -212,7 +211,8 @@ class TagSyntax extends InlineSyntax {
     // TODO(rnystrom): Should use named arg for RegExp multiLine.
 
   bool onMatch(InlineParser parser, Match match) {
-    parser._stack.add(new TagState(parser.pos, this));
+    parser._stack.add(new TagState(parser.pos,
+      parser.pos + match.group(0).length, this));
     return true;
   }
 
@@ -222,17 +222,23 @@ class TagSyntax extends InlineSyntax {
   }
 }
 
-/// Matches inline links like [blah] [id] and [blah] (url).
+/// Matches inline links like `[blah] [id]` and `[blah] (url)`.
 class LinkSyntax extends TagSyntax {
   /// The regex for the end of a link needs to handle both reference style and
   /// inline styles as well as optional titles for inline links. To make that
   /// a bit more palatable, this breaks it into pieces.
   static get linkPattern() {
-    final bracket    = @'\][ \n\t]?';          // "]" with optional space after.
-    final refLink    = @'\[([^\]]*)\]';        // "[id]" reflink id.
-    final title      = @'(?:[ ]*"([^"]+)"|)';  // Optional title in quotes.
-    final inlineLink = '\\(([^ )]+)$title\\)'; // "(url "title")" inline link.
-    return '$bracket(?:$refLink|$inlineLink)';
+    final refLink    = @'\s?\[([^\]]*)\]';        // "[id]" reflink id.
+    final title      = @'(?:[ ]*"([^"]+)"|)';     // Optional title in quotes.
+    final inlineLink = '\\s?\\(([^ )]+)$title\\)'; // "(url "title")" link.
+    return '\](?:($refLink|$inlineLink)|)';
+
+    // The groups matched by this are:
+    // 1: Will be non-empty if it's either a ref or inline link. Will be empty
+    //    if it's just a bare pair of square brackets with nothing after them.
+    // 2: Contains the id inside [] for a reference-style link.
+    // 3: Contains the URL for an inline link.
+    // 4: Contains the title, if present, for an inline link.
   }
 
   LinkSyntax()
@@ -242,10 +248,33 @@ class LinkSyntax extends TagSyntax {
     var url;
     var title;
 
-    if (match.group(2) != '') {
+    // If we didn't match refLink or inlineLink, then it means there was
+    // nothing after the first square bracket, so it isn't a normal markdown
+    // link at all. Instead, we allow users of the library to specify a special
+    // resolver function ([setImplicitLinkResolver]) that may choose to handle
+    // this. Otherwise, it's just treated as plain text.
+    if ((match.group(1) == null) || (match.group(1) == '')) {
+      if (_implicitLinkResolver == null) return false;
+
+      // Only allow implicit links if the content is just text.
+      // TODO(rnystrom): Do we want to relax this?
+      if (state.children.length != 1) return false;
+      if (state.children[0] is! Text) return false;
+
+      Text link = state.children[0];
+
+      // See if we have a resolver that will generate a link for us.
+      final node = _implicitLinkResolver(link.text);
+      if (node == null) return false;
+
+      parser.addNode(node);
+      return true;
+    }
+
+    if ((match.group(3) != null) && (match.group(3) != '')) {
       // Inline link like [foo](url).
-      url = match.group(2);
-      title = match.group(3);
+      url = match.group(3);
+      title = match.group(4);
 
       // For whatever reason, markdown allows angle-bracketed URLs here.
       if (url.startsWith('<') && url.endsWith('>')) {
@@ -253,7 +282,7 @@ class LinkSyntax extends TagSyntax {
       }
     } else {
       // Reference link like [foo] [bar].
-      var id = match.group(1);
+      var id = match.group(2);
       if (id == '') {
         // The id is empty ("[]") so infer it from the contents.
         id = parser.source.substring(state.startPos + 1, parser.pos);
@@ -296,13 +325,16 @@ class TagState {
   /// The point in the original source where this tag started.
   int startPos;
 
+  /// The point in the original source where open tag ended.
+  int endPos;
+
   /// The syntax that created this node.
   final TagSyntax syntax;
 
   /// The children of this node. Will be `null` for text nodes.
   final List<Node> children;
 
-  TagState(this.startPos, this.syntax)
+  TagState(this.startPos, this.endPos, this.syntax)
     : children = <Node>[];
 
   /// Attempts to close this tag by matching the current text against its end
@@ -322,11 +354,25 @@ class TagState {
   /// Will discard any unmatched tags that happen to be above it on the stack.
   /// If this is the last node in the stack, returns its children.
   List<Node> close(InlineParser parser, Match endMatch) {
-    // Found a match. If there is anything above this tag on the stack,
-    // discard it. For example, given '*a _b*...' when we reach the second
-    // '*', '_' will be on the top of the stack. It's mismatched, so we
-    // just treat it as text.
-    while (parser._stack.last() != this) parser.discardUnmatchedTag();
+    // If there are unclosed tags on top of this one when it's closed, that
+    // means they are mismatched. Mismatched tags are treated as plain text in
+    // markdown. So for each tag above this one, we write its start tag as text
+    // and then adds its children to this one's children.
+    int index = parser._stack.indexOf(this);
+
+    // Remove the unmatched children.
+    final unmatchedTags = parser._stack.getRange(index + 1,
+        parser._stack.length - index - 1);
+    parser._stack.removeRange(index + 1, parser._stack.length - index - 1);
+
+    // Flatten them out onto this tag.
+    for (final unmatched in unmatchedTags) {
+      // Write the start tag as text.
+      parser.writeTextRange(unmatched.startPos, unmatched.endPos);
+
+      // Bequeath its children unto this tag.
+      children.addAll(unmatched.children);
+    }
 
     // Pop this off the stack.
     parser.writeText();
