@@ -1336,6 +1336,14 @@ class Function : public Object {
                 const Function& other,
                 const TypeArguments& other_type_arguments) const;
 
+  // Checks the type of the formal parameter at the given position for
+  // assignability relationship between the type of this function and the type
+  // of the other function.
+  bool TestParameterType(intptr_t parameter_position,
+                         const TypeArguments& type_arguments,
+                         const Function& other,
+                         const TypeArguments& other_type_arguments) const;
+
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
 };

@@ -2923,26 +2923,46 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
       (num_opt_params < other_num_opt_params)) {
     return false;
   }
-  // Check that for each optional named parameter of the other function, there
-  // exists an optional named parameter of this function with an identical name.
+  // Check that for each optional named parameter of the other function there is
+  // a corresponding optional named parameter of this function with an identical
+  // name at the same position.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we can
   // compare their raw pointers.
-  const int num_params = num_fixed_params + num_opt_params;
   const int other_num_params = other_num_fixed_params + other_num_opt_params;
-  bool found_param_name;
-  String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-    other_param_name = other.ParameterNameAt(i);
-    found_param_name = false;
-    for (intptr_t j = num_fixed_params; j < num_params; j++) {
-      if (ParameterNameAt(j) == other_param_name.raw()) {
-        found_param_name = true;
-        break;
-      }
-    }
-    if (!found_param_name) {
+    const String& other_param_name = String::Handle(other.ParameterNameAt(i));
+    if (ParameterNameAt(i) != other_param_name.raw()) {
       return false;
     }
+  }
+  return true;
+}
+
+
+bool Function::TestParameterType(
+    intptr_t parameter_position,
+    const TypeArguments& type_arguments,
+    const Function& other,
+    const TypeArguments& other_type_arguments) const {
+  Type& param_type = Type::Handle(ParameterTypeAt(parameter_position));
+  if (!param_type.IsInstantiated()) {
+    param_type = param_type.InstantiateFrom(type_arguments, 0);
+  }
+  if (param_type.IsDynamicType()) {
+    return true;
+  }
+  Type& other_param_type =
+      Type::Handle(other.ParameterTypeAt(parameter_position));
+  if (!other_param_type.IsInstantiated()) {
+    other_param_type =
+        other_param_type.InstantiateFrom(other_type_arguments, 0);
+  }
+  if (other_param_type.IsDynamicType()) {
+    return true;
+  }
+  if (!param_type.IsSubtypeOf(other_param_type) &&
+      !other_param_type.IsSubtypeOf(param_type)) {
+    return false;
   }
   return true;
 }
@@ -2972,126 +2992,53 @@ bool Function::TestType(TypeTestKind test,
       res_type = res_type.InstantiateFrom(type_arguments, 0);
     }
     if (!res_type.IsDynamicType() &&
-        (res_type.IsVoidType() || !res_type.IsAssignableTo(other_res_type))) {
+        (res_type.IsVoidType() ||
+         !(res_type.IsSubtypeOf(other_res_type) ||
+           other_res_type.IsSubtypeOf(res_type)))) {
       return false;
     }
   }
   // Check the types of fixed parameters.
-  Type& param_type = Type::Handle();
-  Type& other_param_type = Type::Handle();
   for (intptr_t i = 0; i < num_fixed_params; i++) {
-    param_type = ParameterTypeAt(i);
-    if (!param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(type_arguments, 0);
-    }
-    if (param_type.IsDynamicType()) {
-      continue;
-    }
-    other_param_type = other.ParameterTypeAt(i);
-    if (!other_param_type.IsInstantiated()) {
-      other_param_type =
-          other_param_type.InstantiateFrom(other_type_arguments, 0);
-    }
-    if (other_param_type.IsDynamicType()) {
-      continue;
-    }
-    // Subtyping and assignability rules are identical when applied to parameter
-    // types.
-    ASSERT((test == Type::kIsSubtypeOf) || (test == Type::kIsAssignableTo));
-    if (!param_type.IsSubtypeOf(other_param_type) &&
-        !other_param_type.IsSubtypeOf(param_type)) {
+    if (!TestParameterType(i, type_arguments, other, other_type_arguments)) {
       return false;
     }
   }
   // Check the names and types of optional parameters.
-  // First, check that for each optional named parameter of type T of the other
-  // function type, there exists an optional named parameter of this function
-  // type with an identical name and with a Type S that is a subtype or
-  // supertype of T.
-  // Note that SetParameterNameAt() guarantees that names are symbols, so we can
-  // compare their raw pointers.
-  const int num_params = num_fixed_params + num_opt_params;
-  const int other_num_params = other_num_fixed_params + other_num_opt_params;
-  bool is_subtype = true;
-  bool found_param_name;
-  String& other_param_name = String::Handle();
-  for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-    other_param_name = other.ParameterNameAt(i);
-    found_param_name = false;
-    for (intptr_t j = num_fixed_params; j < num_params; j++) {
-      if (ParameterNameAt(j) == other_param_name.raw()) {
-        found_param_name = true;
-        param_type = ParameterTypeAt(j);
-        if (!param_type.IsInstantiated()) {
-          param_type = param_type.InstantiateFrom(type_arguments, 0);
-        }
-        if (param_type.IsDynamicType()) {
-          break;
-        }
-        other_param_type = other.ParameterTypeAt(i);
-        if (!other_param_type.IsInstantiated()) {
-          other_param_type =
-              other_param_type.InstantiateFrom(other_type_arguments, 0);
-        }
-        if (other_param_type.IsDynamicType()) {
-          break;
-        }
-        if (!param_type.IsSubtypeOf(other_param_type) &&
-            !other_param_type.IsSubtypeOf(param_type)) {
-          is_subtype = false;
-        }
-        break;
+  if (num_opt_params >= other_num_opt_params) {
+    // Check that for each optional named parameter of type T of the other
+    // function type, there is a corresponding optional named parameter of this
+    // function at the same position with an identical name and with a Type S
+    // that is a subtype or supertype of T.
+    // Note that SetParameterNameAt() guarantees that names are symbols, so we
+    // can compare their raw pointers.
+    const intptr_t other_num_params =
+        other_num_fixed_params + other_num_opt_params;
+    String& other_param_name = String::Handle();
+    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+      other_param_name = other.ParameterNameAt(i);
+      if ((ParameterNameAt(i) != other_param_name.raw()) ||
+          !TestParameterType(i, type_arguments, other, other_type_arguments)) {
+        return false;
       }
     }
-    if (!found_param_name) {
-      is_subtype = false;
-      break;
-    }
-  }
-  // If this first checking step succeeds, return true, otherwise, this function
-  // type is not a subtype of the other function type.
-  if (is_subtype) {
     return true;
   }
-  if (test == Type::kIsSubtypeOf) {
-    return false;
-  }
+  ASSERT((test == Type::kIsAssignableTo) &&
+         (num_opt_params < other_num_opt_params));
   // To verify that this function type is assignable to the other function type,
-  // i.e whether the other function type is a subtype of this function type, we
-  // repeat the checking step above after swapping the other function type with
-  // this function type.
-  ASSERT(test == Type::kIsAssignableTo);
-  String& param_name = String::Handle();
-  is_subtype = true;
+  // check that for each optional named parameter of type T of this function
+  // type, there is a corresponding optional named parameter of the other
+  // function at the same position with an identical name and with a Type S that
+  // is a subtype or supertype of T.
+  // Note that SetParameterNameAt() guarantees that names are symbols, so we
+  // can compare their raw pointers.
+  const intptr_t num_params = num_fixed_params + num_opt_params;
+  String& other_param_name = String::Handle();
   for (intptr_t i = num_fixed_params; i < num_params; i++) {
-    param_name = ParameterNameAt(i);
-    found_param_name = false;
-    for (intptr_t j = other_num_fixed_params; j < other_num_params; j++) {
-      if (other.ParameterNameAt(j) == param_name.raw()) {
-        found_param_name = true;
-        other_param_type = other.ParameterTypeAt(j);
-        if (!other_param_type.IsInstantiated()) {
-          other_param_type =
-              other_param_type.InstantiateFrom(other_type_arguments, 0);
-        }
-        if (other_param_type.IsDynamicType()) {
-          break;
-        }
-        param_type = ParameterTypeAt(i);
-        if (!param_type.IsInstantiated()) {
-          param_type = param_type.InstantiateFrom(type_arguments, 0);
-        }
-        if (param_type.IsDynamicType()) {
-          break;
-        }
-        if (!other_param_type.IsSubtypeOf(param_type) &&
-            !param_type.IsSubtypeOf(other_param_type)) {
-          return false;
-        }
-        break;
-      }
-    }
-    if (!found_param_name) {
+    other_param_name = other.ParameterNameAt(i);
+    if ((ParameterNameAt(i) != other_param_name.raw()) ||
+        !TestParameterType(i, type_arguments, other, other_type_arguments)) {
       return false;
     }
   }

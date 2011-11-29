@@ -86,20 +86,11 @@ LibTest/core/RegExp/firstMatch/Pattern_semantics/15.10.2.10_CharacterEscape/RegE
 LibTest/core/List/List.fromList/*: Fail # Issue co19 - 32
 
 [ $component == vm ]
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail # Issue 444
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t06: Fail # Issue 444
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t07: Fail # Issue 444
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t08: Fail # Issue 444
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t09: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t01: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t03: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t05: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t06: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t13: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t14: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t18: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t20: Fail # Issue 444
-LangSpecTest/13_Types/13_5_Function_Types/A01/t21: Fail # Issue 444
+LangSpecTest/13_Types/13_5_Function_Types/A01/t01: Fail # Issue co19 - 59
+LangSpecTest/13_Types/13_5_Function_Types/A01/t05: Fail # Issue co19 - 60
+LangSpecTest/13_Types/13_5_Function_Types/A01/t13: Fail # Issue co19 - 58
+LangSpecTest/13_Types/13_5_Function_Types/A01/t14: Fail # Issue co19 - 58
+LangSpecTest/13_Types/13_5_Function_Types/A01/t18: Fail # Issue co19 - 57
 LibTest/core/AssertError/column/AssertError/column/A01/t01: Fail # Issue co19 - 38
 LibTest/core/AssertError/column/AssertError/column/A01/t02: Fail # Issue co19 - 38
 LibTest/core/AssertError/failedAssertion/AssertError/failedAssertion/A01/t01: Fail # Issue co19 - 38
@@ -216,9 +207,7 @@ LangSpecTest/13_Types/13_1_Static_Types/A01/t01: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_3_Type_Declarations/13_3_1_Typedef/A01/t01: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_4_Interface_Types/A01/t01: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_4_Interface_Types/A02/t01: Fail # Issue co19 - 37
-LangSpecTest/13_Types/13_4_Interface_Types/A08/t03: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_4_Interface_Types/A09/t01: Fail # Issue co19 - 37
-LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t10: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t11: Fail # Issue co19 - 37
 LibTest/core/BadNumberFormatException/BadNumberFormatException/BadNumberFormatException/A01/t01: Fail # Issue co19 - 37
