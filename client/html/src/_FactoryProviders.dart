@@ -6,14 +6,14 @@
 // These factory methods could all live in one factory provider class but dartc
 // has a bug (5399939) preventing that.
 
-class _FileReaderFactoryProvider {
+class FileReaderFactoryProvider {
 
   factory FileReader() {
     return new dom.FileReader();
   }
 }
 
-class _CSSMatrixFactoryProvider {
+class CSSMatrixFactoryProvider {
 
   factory CSSMatrix([String spec = '']) {
     return new CSSMatrixWrappingImplementation._wrap(
@@ -21,7 +21,7 @@ class _CSSMatrixFactoryProvider {
   }
 }
 
-class _PointFactoryProvider {
+class PointFactoryProvider {
 
   /** @domName Window.createWebKitPoint */
   factory Point(num x, num y) {

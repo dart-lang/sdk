@@ -261,6 +261,7 @@
 #source('src/BodyElementWrappingImplementation.dart');
 #source('src/CloseEventWrappingImplementation.dart');
 #source('src/CompositionEventWrappingImplementation.dart');
+#source('src/CssClassSet.dart');
 #source('src/CSSStyleDeclarationWrappingImplementation.dart');
 #source('src/CustomEventWrappingImplementation.dart');
 #source('src/DataAttributeMap.dart');

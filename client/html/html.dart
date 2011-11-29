@@ -254,7 +254,6 @@
 #source('src/BodyElement.dart');
 #source('src/CloseEvent.dart');
 #source('src/CompositionEvent.dart');
-#source('src/CssClassSet.dart');
 #source('src/CSSStyleDeclaration.dart');
 #source('src/CustomEvent.dart');
 #source('src/DeviceMotionEvent.dart');
