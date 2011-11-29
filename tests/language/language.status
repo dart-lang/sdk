@@ -155,7 +155,7 @@ RegExp3Test: Fail                    # 5299683
 ScopeNegativeTest: Fail      # Bug 4207538.
 StackOverflowTest: Fail      # Bug 4591172.
 StackTraceTest: Fail         # Bug 4971920.
-StringConcatTest: FAIL                   # Bug 5196164
+StringConcatTest: Fail       # Bug 5196164
 SuperOperatorTest: Fail      # Bug 4995463.
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.

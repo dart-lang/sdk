@@ -57,20 +57,18 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 
 void main() {
   int timeout = 2;
-  new RunningProcess(MakeTestCase("PassTest", [PASS]), timeout).start();
-  new RunningProcess(MakeTestCase("FailTest", [FAIL]), timeout).start();
-  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), timeout).start();
+  new RunningProcess(MakeTestCase("PassTest", [PASS])).start();
+  new RunningProcess(MakeTestCase("FailTest", [FAIL])).start();
+  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT])).start();
 
   new RunningProcess(new TestCase("CrashTest",
                                   getProcessTestFileName(),
                                   const ["0", "0", "1", "1"],
                                   timeout,
                                   TestController.processCompletedTest,
-                                  new Set<String>.from([CRASH])),
-                     timeout).start();
+                                  new Set<String>.from([CRASH]))).start();
   Expect.equals(4, TestController.numTests);
   // Throw must be from body of start() function for this test to work.
-  Expect.throws(
-      new RunningProcess(MakeTestCase("PassTest", [SKIP]), timeout).start);
+  Expect.throws(new RunningProcess(MakeTestCase("PassTest", [SKIP])).start);
 }
 

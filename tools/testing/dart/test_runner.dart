@@ -101,7 +101,6 @@ class TestOutput {
 class RunningProcess {
   Process process;
   TestCase testCase;
-  int timeout;
   bool timedOut = false;
   Date startTime;
   Timer timeoutTimer;
@@ -109,7 +108,7 @@ class RunningProcess {
   List<String> stderr;
   List<Function> handlers;
 
-  RunningProcess(this.testCase, [this.timeout = NO_TIMEOUT]);
+  RunningProcess(this.testCase);
 
   void exitHandler(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
@@ -147,9 +146,7 @@ class RunningProcess {
         makeReadHandler(stdoutStringStream, stdout);
     stderrStringStream.dataHandler =
         makeReadHandler(stderrStringStream, stderr);
-    if (timeout != NO_TIMEOUT) {
-      timeoutTimer = new Timer(timeoutHandler, 1000 * timeout, false);
-    }
+    timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout, false);
   }
 
   void timeoutHandler(Timer unusedTimer) {
@@ -159,42 +156,205 @@ class RunningProcess {
 }
 
 
+class DartcBatchRunnerProcess {
+  String _executable;
+
+  Process _process;
+  StringInputStream _stdoutStream;
+  StringInputStream _stderrStream;
+
+  TestCase _currentTest;
+  StringBuffer _testStdout;
+  StringBuffer _testStderr;
+  Date _startTime;
+  Timer _timer;
+
+  DartcBatchRunnerProcess(String this._executable) {
+    _startProcess();
+  }
+
+  bool get active() => _currentTest != null;
+
+  void startTest(TestCase testCase) {
+    _startTime = new Date.now();
+    _currentTest = testCase;
+    _testStdout = new List<String>();
+    _testStderr = new List<String>();
+    _stdoutStream.dataHandler = _readOutput(_stdoutStream, _testStdout);
+    _stderrStream.dataHandler = _readOutput(_stderrStream, _testStderr);
+    _timer = new Timer(_timeoutHandler(testCase),
+                       testCase.timeout * 1000,
+                       false);
+    _process.stdin.write(_createArgumentsLine(testCase.arguments).charCodes());
+  }
+
+  void terminate() {
+    _process.exitHandler = (exitCode) {
+      _process.close();
+    };
+    _process.kill();
+  }
+
+  String _createArgumentsLine(List<String> arguments) {
+    var buffer = new StringBuffer();
+    for (var i = 0; i < arguments.length; i++) {
+      buffer.add("${arguments[i]} ");
+    }
+    buffer.add("\n");
+    return buffer.toString();
+  }
+
+  int _reportResult(String output) {
+    var test = _currentTest;
+    _currentTest = null;
+
+    // output = '>>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}'
+    var outcome = output.split(" ")[2];
+    var exitCode = 0;
+    if (outcome == "CRASH") exitCode = -10;
+    if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
+    new TestOutput(test, exitCode, outcome == "TIMEOUT", _testStdout,
+                   _testStderr, new Date.now().difference(_startTime));
+    test.completed();
+  }
+
+  void _readOutput(StringInputStream stream, List<String> buffer) {
+    return () {
+      var status;
+      var line = stream.readLine();
+      // Drain the input stream to get the error output.
+      while (line != null) {
+        if (line.startsWith('>>> TEST')) {
+          status = line;
+        } else if (line.startsWith('>>> BATCH START')) {
+          // ignore
+        } else if (line.startsWith('>>> ')) {
+          throw new Exception('Unexpected command from dartc batch runner.');
+        } else {
+          buffer.add(line);
+        }
+        line = stream.readLine();
+      }
+      if (status != null) {
+        _timer.cancel();
+        // For crashing processes, let the exit handler deal with it.
+        if (!status.contains("CRASH")) {
+          _reportResult(status);
+        }
+      }
+    };
+  }
+
+  void _exitHandler(exitCode) {
+    if (_timer != null) _timer.cancel();
+    _process.close();
+    _startProcess();
+    _reportResult(">>> TEST CRASH");
+  }
+
+  void _timeoutHandler(TestCase test) {
+    return (ignore) {
+      _process.exitHandler = (exitCode) {
+        _process.close();
+        _startProcess();
+        _reportResult(">>> TEST TIMEOUT");
+      };
+      _process.kill();
+    };
+  }
+
+  void _startProcess() {
+    _process = new Process(_executable, ['-batch']);
+    _stdoutStream = new StringInputStream(_process.stdout);
+    _stderrStream = new StringInputStream(_process.stderr);
+    _testStdout = new List<String>();
+    _testStderr = new List<String>();
+    _stdoutStream.dataHandler = _readOutput(_stdoutStream, _testStdout);
+    _stderrStream.dataHandler = _readOutput(_stderrStream, _testStderr);
+    _process.exitHandler = _exitHandler;
+    _process.start();
+  }
+}
+
+
 class ProcessQueue {
   int _numProcesses = 0;
   int _activeTestListers = 0;
-  final int _maxProcesses;
+  int _maxProcesses;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
+
+  // For dartc batch processing we keep a list of batch processes for
+  // each of debug and release mode. If dartc tests are run in both
+  // release and debug mode this will spawn many processes but only
+  // half of them will be active at a time.
+  Map<String, List<DartcBatchRunnerProcess>> _batchProcessesMap;
 
   ProcessQueue(int this._maxProcesses,
                String progress,
                Date start_time)
       : _tests = new Queue<TestCase>(),
-        _progress = new ProgressIndicator.fromName(progress, start_time);
+        _progress = new ProgressIndicator.fromName(progress, start_time),
+        _batchProcessesMap = new Map<String, List<DartcBatchRunnerProcess>>() {
+    _maxProcesses = _maxProcesses;
+  }
 
-  addTestSuite(TestSuite testSuite) {
+  void addTestSuite(TestSuite testSuite) {
     _activeTestListers++;
     testSuite.forEachTest(_runTest, _testListerDone);
   }
 
-  _testListerDone() {
+  void _testListerDone() {
     _activeTestListers--;
     _checkDone();
   }
 
-  _checkDone() {
+  void _checkDone() {
     if (_activeTestListers == 0 && _tests.isEmpty() && _numProcesses == 0) {
+      _terminateDartcBatchRunners();
       _progress.allDone();
     }
   }
 
-  _runTest(TestCase test) {
+  void _runTest(TestCase test) {
     _progress.testAdded();
     _tests.add(test);
     _tryRunTest();
   }
 
-  _tryRunTest() {
+  void _terminateDartcBatchRunners() {
+    _batchProcessesMap.forEach((key, value) {
+      for (int i = 0; i < value.length; i++) {
+        value[i].terminate();
+      }
+    });
+  }
+
+  DartcBatchRunnerProcess _getDartcBatchRunnerProcess(TestCase test) {
+    var batchProcesses = _batchProcessesMap[test.executablePath];
+    if (batchProcesses == null) {
+      // Dartc batch processing is heavy. Scale down the number of
+      // concurrent tasks to be no more than the actual number of
+      // processors even when running dartc benchmarks in both debug
+      // and release mode.
+      var processors = new Platform().numberOfProcessors();
+      if (_maxProcesses >= (processors / 2)) {
+        _maxProcesses = (processors / 2).toInt();
+      }
+      batchProcesses = new List<DartcBatchRunnerProcess>(_maxProcesses);
+      _batchProcessesMap[test.executablePath] = batchProcesses;
+      for (int i = 0; i < _maxProcesses; i++) {
+        batchProcesses[i] = new DartcBatchRunnerProcess(test.executablePath);
+      }
+    }
+    for (int i = 0; i < batchProcesses.length; i++) {
+      var runner = batchProcesses[i];
+      if (!runner.active) return runner;
+    }
+    throw new Exception('Unable to find inactive batch runner.');
+  }
+
+  void _tryRunTest() {
     _checkDone();
     if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
       TestCase test = _tests.removeFirst();
@@ -207,7 +367,11 @@ class ProcessQueue {
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      new RunningProcess(test, test.timeout).start();
+      if (test.executablePath.contains('dartc_test')) {
+        _getDartcBatchRunnerProcess(test).startTest(test);
+      } else {
+        new RunningProcess(test).start();
+      }
       _numProcesses++;
     }
   }
