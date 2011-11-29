@@ -66,7 +66,7 @@ static const char* kCustomIsolateScriptChars =
     "}\n"
     "\n"
     "main() {\n"
-    "  Isolate isolate = new CustomIsolate(\"isolateMain\");\n"
+    "  var isolate = new CustomIsolate(\"isolateMain\");\n"
     "  isolate.spawn().then((SendPort port) {\n"
     "    port.call(42).receive((message, replyTo) {\n"
     "      echo('Received: ' + message);\n"
