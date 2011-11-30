@@ -19,9 +19,10 @@ int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
 }
 
 
-const char* Disassembler::RegisterName(Register reg) {
+void Disassembler::Disassemble(uword start,
+                               uword end,
+                               DisassemblyFormatter* formatter) {
   UNIMPLEMENTED();
-  return NULL;
 }
 
 }  // namespace dart

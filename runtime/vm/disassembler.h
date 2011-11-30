@@ -27,6 +27,10 @@ class DisassemblyFormatter {
                                   char* human_buffer,
                                   intptr_t human_size,
                                   uword pc) = 0;
+
+  // TODO(regis): Remove Print function once we have a real x64 disassembler.
+  // Print a formatted message.
+  virtual void Print(const char* format, ...) = 0;
 };
 
 
@@ -42,6 +46,8 @@ class DisassembleToStdout : public DisassemblyFormatter {
                                   char* human_buffer,
                                   intptr_t human_size,
                                   uword pc);
+
+  virtual void Print(const char* format, ...);
 
  private:
   DISALLOW_ALLOCATION()
@@ -63,10 +69,6 @@ class Disassembler : public AllStatic {
   }
 
   // Disassemble instructions in a memory region.
-  static void DisassembleMemoryRegionRange(const MemoryRegion& instructions,
-                                           uword from,
-                                           uword to,
-                                           DisassemblyFormatter* formatter);
   static void DisassembleMemoryRegion(const MemoryRegion& instructions,
                                       DisassemblyFormatter* formatter) {
     uword start = instructions.start();
@@ -86,10 +88,6 @@ class Disassembler : public AllStatic {
   static int DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                char* human_buffer, intptr_t human_size,
                                uword pc);
-
-  // Returns the name for the given register. For instance the Register EAX
-  // returns the string "eax".
-  static const char* RegisterName(Register reg);
 
  private:
   static const int kHexadecimalBufferSize = 32;

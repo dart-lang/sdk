@@ -9,7 +9,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // Disassembler only supported on IA32 now.
+// Disassembler only supported on IA32 and X64 now.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 TEST_CASE(Disassembler) {
   Assembler assembler;
   // The used instructions work on all platforms.
