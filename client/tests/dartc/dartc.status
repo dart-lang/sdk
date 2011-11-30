@@ -9,6 +9,7 @@ dom/scripts/idlparser_test.dart: Skip   # Bogus dartc error; references dart/uti
 dom/frog_dom.dart: Skip                 # Frog-only
 dom/frog/frog_dom.dart: Skip            # Frog-only
 testing/unittest/unittest_vm.dart: Skip # Relies on VM libs
+testing/unittest/unittest_node.dart: Skip # Relies on frog syntax
 
 [ $component == vm ]
 *: Skip
