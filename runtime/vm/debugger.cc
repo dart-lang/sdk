@@ -153,7 +153,7 @@ void Debugger::Initialize(Isolate* isolate) {
   }
   String& cname = String::Handle();
   String& fname = String::Handle();
-  char* dot = strchr(FLAG_bpt, '.');
+  const char* dot = strchr(FLAG_bpt, '.');
   if (dot == NULL) {
     fname = String::New(FLAG_bpt);
   } else {
