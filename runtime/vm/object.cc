@@ -2463,7 +2463,10 @@ RawTypeArguments* TypeArguments::NewInstantiatedTypeArguments(
 
 
 const char* TypeArguments::ToCString() const {
-  // TypeArguments is an abstract class.
+  // TypeArguments is an abstract class, however it may wrap a null.
+  if (IsNull()) {
+    return "NULL TypeArguments";
+  }
   UNREACHABLE();
   return "TypeArguments";
 }
