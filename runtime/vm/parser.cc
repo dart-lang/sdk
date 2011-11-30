@@ -2940,6 +2940,17 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
     if (library_.LookupObject(var_name) != Object::null()) {
       ErrorMsg(name_pos, "'%s' is already defined", var_name.ToCString());
     }
+    String& accessor_name = String::Handle(Field::GetterName(var_name));
+    if (library_.LookupObject(accessor_name) != Object::null()) {
+      ErrorMsg(name_pos, "getter for '%s' is already defined",
+               var_name.ToCString());
+    }
+    accessor_name = Field::SetterName(var_name);
+    if (library_.LookupObject(accessor_name) != Object::null()) {
+      ErrorMsg(name_pos, "setter for '%s' is already defined",
+               var_name.ToCString());
+    }
+
     Field& field = Field::ZoneHandle(
         Field::New(var_name, is_static, is_final, name_pos));
     field.set_type(type);
@@ -2991,6 +3002,16 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
 
   if (library_.LookupObject(func_name) != Object::null()) {
     ErrorMsg(name_pos, "'%s' is already defined", func_name.ToCString());
+  }
+  String& accessor_name = String::Handle(Field::GetterName(func_name));
+  if (library_.LookupObject(accessor_name) != Object::null()) {
+    ErrorMsg(name_pos, "'%s' is already defined as getter",
+             func_name.ToCString());
+  }
+  accessor_name = Field::SetterName(func_name);
+  if (library_.LookupObject(accessor_name) != Object::null()) {
+    ErrorMsg(name_pos, "'%s' is already defined as setter",
+             func_name.ToCString());
   }
 
   if (CurrentToken() != Token::kLPAREN) {
@@ -3067,6 +3088,16 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
       (params.num_optional_parameters != 0)) {
     ErrorMsg(name_pos, "illegal %s parameters",
              is_getter ? "getter" : "setter");
+  }
+
+  if (library_.LookupObject(*field_name) != Object::null()) {
+    ErrorMsg(name_pos, "'%s' is already defined in this library",
+             field_name->ToCString());
+  }
+  if (library_.LookupObject(accessor_name) != Object::null()) {
+    ErrorMsg(name_pos, "%s for '%s' is already defined",
+             is_getter ? "getter" : "setter",
+             field_name->ToCString());
   }
 
   if (CurrentToken() == Token::kLBRACE) {
