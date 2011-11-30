@@ -324,6 +324,7 @@ PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
+StringConcatTest: Fail
 
 [ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
