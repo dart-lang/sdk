@@ -452,6 +452,16 @@ class NamingTest {
     Expect.equals(499, EOS + ILLEGAL);
   }
 
+  static testDollar() {
+    Expect.equals(123, $(123).wrapped);
+    var x = new Object(), y = new Object();
+    Expect.identical(x, $(x).wrapped);
+    Expect.identical(y, $(x).$add(y));
+    Expect.identical(x, $(x).$negate());
+    Expect.equals(123, $(x) + x);
+    Expect.equals(444, -$(x));
+  }
+
   static void testMain() {
     count = 0;
     testExceptionNaming();
@@ -464,12 +474,27 @@ class NamingTest {
     Bug4082360.test();
     Hoisting.test();
     testPseudoTokens();
+    testDollar();
   }
 }
 
+// Test that the generated JS names don't conflict with "$"
+class DartQuery {
+  Object wrapped;
+  DartQuery(this.wrapped);
+
+  $add(Object other) => other;
+  $negate() => wrapped;
+
+  operator +(Object other) => 123;
+  operator negate() => 444;
+}
+
+$add(Object first, Object second) => second;
+DartQuery $(Object obj) => new DartQuery(obj);
 
 // Ensure we don't have false positive. named constructor and methods
-// are in different namespaces, therefore it is ok to have a method 
+// are in different namespaces, therefore it is ok to have a method
 // called foo and a named constructor CLASS.foo
 class Naming1Test {
   Naming1Test.foo() { }
@@ -489,7 +514,7 @@ class Naming2Test {
 
   static void main(args) {
     var a = new Naming2Test();
-    a.foo(2);
+    Expect.throws(() => a.foo(2), (e) => e is ObjectNotClosureException);
   }
 }
 
@@ -497,14 +522,17 @@ class Naming2Test {
 class Naming3Test {
   Naming3Test() { }
   operator negate() { }
-  negate() { }
+  negate() => 777;
 
   static void main(args) {
     var a = new Naming3Test();
-    a.negate(3);
+    Expect.equals(777, a.negate());
   }
 }
 
 main() {
   NamingTest.testMain();
+  Naming1Test.main(null);
+  Naming2Test.main(null);
+  Naming3Test.main(null);
 }

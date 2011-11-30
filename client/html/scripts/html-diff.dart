@@ -109,7 +109,7 @@ class HtmlDiff {
       }
       if (domType == null) return new Set();
       if (htmlMember.definition == null) return new Set();
-      if (htmlMember.name == 'get\$on') {
+      if (htmlMember.name == 'get:on') {
         final members = _members(domType.members['addEventListener']);
         members.addAll(_members(domType.members['dispatchEvent']));
         members.addAll(_members(domType.members['removeEventListener']));
