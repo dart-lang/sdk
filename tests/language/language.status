@@ -333,6 +333,7 @@ FinalVarNegativeTest: Fail
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
 StringInterpolate2Test: Fail
+ToplevelCollision2Test/01: Fail # added in r1934 
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
