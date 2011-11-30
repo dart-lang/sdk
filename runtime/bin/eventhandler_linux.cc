@@ -349,7 +349,9 @@ void* EventHandlerImplementation::Poll(void* args) {
     intptr_t millis = handler->GetTimeout();
     intptr_t result = poll(pollfds, pollfds_size, millis);
     if (result == -1) {
-      perror("Poll failed");
+      if (errno != EAGAIN && errno != EINTR) {
+        perror("Poll failed");
+      }
     } else {
       handler->HandleTimeout();
       handler->HandleEvents(pollfds, pollfds_size, result);
