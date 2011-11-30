@@ -163,6 +163,9 @@ ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
 TypeVariableBoundsTest/none: Fail        # Issue 417
 TypeVariableScopeTest/none: Fail         # Issue 417
+ToplevelCollision2Test/none: Fail        # Issue 647
+ToplevelCollision2Test/00: Fail          # Issue 647
+ToplevelCollision2Test/01: Fail          # Issue 647
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
