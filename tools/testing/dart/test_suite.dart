@@ -6,6 +6,8 @@
 
 #import("status_file_parser.dart");
 #import("test_runner.dart");
+#import("multitest.dart");
+
 
 interface TestSuite {
   void forEachTest(Function onTest, [Function onDone]);
@@ -180,25 +182,49 @@ class StandardTestSuite implements TestSuite {
       return;
     }
 
-    int start = filename.lastIndexOf('src' + new Platform().pathSeparator());
-    String testName = filename.substring(start + 4, filename.length - 5);
-    Set<String> expectations = testExpectations.expectations(testName);
 
-    if (expectations.contains(SKIP)) return;
-
-    var optionsFromFile = optionsFromFile(filename);
-    var isNegative = optionsFromFile['isNegative'];
-    var argumentLists = argumentListsFromFile(filename, optionsFromFile);
     var timeout = configuration['timeout'];
+    var optionsFromFile = optionsFromFile(filename);
 
-    for (var args in argumentLists) {
-      doTest(new TestCase(testName,
-                          shellPath,
-                          args,
-                          timeout,
-                          completeHandler,
-                          expectations,
-                          isNegative));
+    Function createTestCase(String filename,
+                            bool isNegative,
+                            [bool isNegativeIfChecked = false]) {
+      // Look up expectations in status files using a modified file path.
+      String pathSeparator = new Platform().pathSeparator();
+      String testName;
+      int start = filename.lastIndexOf('src' + pathSeparator);
+      if (start != -1) {
+        testName = filename.substring(start + 4, filename.length - 5);
+      } else {
+        // Only multitests in a temporary directory should reach here.
+        start = filename.lastIndexOf(pathSeparator);
+        int middle = filename.lastIndexOf('_');
+        testName = filename.substring(start + 1, middle) + pathSeparator +
+            filename.substring(middle + 1, filename.length - 5);
+      }
+      Set<String> expectations = testExpectations.expectations(testName);
+
+      if (expectations.contains(SKIP)) return;
+
+      isNegative = isNegative ||
+          (configuration['checked'] && isNegativeIfChecked);
+      var argumentLists = argumentListsFromFile(filename, optionsFromFile);
+      for (var args in argumentLists) {
+        doTest(new TestCase(testName,
+                            shellPath,
+                            args,
+                            timeout,
+                            completeHandler,
+                            expectations,
+                            isNegative));
+      }
+    }
+
+
+    if (optionsFromFile['isMultitest']) {
+      DoMultitest(filename, createTestCase);
+    } else {
+      createTestCase(filename, optionsFromFile['isNegative']);
     }
   }
 
@@ -210,18 +236,21 @@ class StandardTestSuite implements TestSuite {
                                            Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
 
+    bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
+    List<List<String>> vmOptionsList = optionsFromFile["vmOptions"];
+    Expect.isTrue(!isMultitest || dartOptions == null);
     args.addAll(dartOptions == null ? [filename] : dartOptions);
 
     var result = new List<List<String>>();
-    List<List<String>> vmOptionsList = optionsFromFile["vmOptions"];
-    if (vmOptionsList.isEmpty()) {
-      result.add(args);
-    } else {
-      for (var vmOptions in vmOptionsList) {
-        vmOptions.addAll(args);
-        result.add(vmOptions);
+    Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
+    for (var vmOptions in vmOptionsList) {
+      if (isMultitest) {
+        // Make copy of vmOptions, since we will modify it at each iteration.
+        vmOptions = new List<String>.from(vmOptions);
       }
+      vmOptions.addAll(args);
+      result.add(vmOptions);
     }
 
     return result;
@@ -254,6 +283,7 @@ class StandardTestSuite implements TestSuite {
     for (var match in matches) {
       result.add(match[1].split(' ').filter((e) => e != ''));
     }
+    if (result.isEmpty()) result.add([]);
 
     matches = dartOptionsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -272,9 +302,12 @@ class StandardTestSuite implements TestSuite {
       isNegative = true;
     }
 
+    bool isMultitest = contents.contains("///");
+
     return { "vmOptions": result,
              "dartOptions": dartOptions,
-             "isNegative" : isNegative };
+             "isNegative": isNegative,
+             "isMultitest": isMultitest};
   }
 }
 
