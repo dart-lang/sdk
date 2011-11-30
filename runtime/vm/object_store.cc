@@ -13,24 +13,24 @@ namespace dart {
 
 ObjectStore::ObjectStore()
   : object_class_(Class::null()),
-    function_interface_(Type::null()),
-    number_interface_(Type::null()),
-    int_interface_(Type::null()),
+    function_interface_(ParameterizedType::null()),
+    number_interface_(ParameterizedType::null()),
+    int_interface_(ParameterizedType::null()),
     smi_class_(Class::null()),
     mint_class_(Class::null()),
     bigint_class_(Class::null()),
-    double_interface_(Type::null()),
+    double_interface_(ParameterizedType::null()),
     double_class_(Class::null()),
-    string_interface_(Type::null()),
+    string_interface_(ParameterizedType::null()),
     one_byte_string_class_(Class::null()),
     two_byte_string_class_(Class::null()),
     four_byte_string_class_(Class::null()),
     external_one_byte_string_class_(Class::null()),
     external_two_byte_string_class_(Class::null()),
     external_four_byte_string_class_(Class::null()),
-    bool_interface_(Type::null()),
+    bool_interface_(ParameterizedType::null()),
     bool_class_(Class::null()),
-    list_interface_(Type::null()),
+    list_interface_(ParameterizedType::null()),
     array_class_(Class::null()),
     immutable_array_class_(Class::null()),
     byte_buffer_class_(Class::null()),
@@ -139,7 +139,7 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
 }
 
 
-RawType* ObjectStore::GetType(int index) {
+RawParameterizedType* ObjectStore::GetType(int index) {
   switch (index) {
     case kObjectType: return object_type();
     case kNullType: return null_type();
@@ -155,11 +155,11 @@ RawType* ObjectStore::GetType(int index) {
     default: break;
   }
   UNREACHABLE();
-  return Type::null();
+  return ParameterizedType::null();
 }
 
 
-int ObjectStore::GetTypeIndex(const RawType* raw_type) {
+int ObjectStore::GetTypeIndex(const RawParameterizedType* raw_type) {
   ASSERT(raw_type->IsHeapObject());
   if (raw_type == object_type()) {
     return kObjectType;

@@ -2878,7 +2878,7 @@ RawTypeArguments* Parser::ParseTypeArguments(TypeResolution type_resolution) {
     }
     return NewTypeArray(types);
   }
-  return TypeArguments::null();
+  return TypeArray::null();
 }
 
 
@@ -6039,7 +6039,7 @@ void Parser::TryResolveTypeFromClass(intptr_t type_pos,
     if (!type_parameter.IsNull()) {
       // A type parameter cannot be parameterized, so report an error if type
       // arguments have previously been parsed.
-      if (type->arguments() != TypeArguments::null()) {
+      if (!TypeArguments::Handle(type->arguments()).IsNull()) {
         ErrorMsg(type_pos, "type parameter '%s' cannot be parameterized",
                  type_parameter.ToCString());
       }

@@ -326,7 +326,9 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
       instance.IsInstanceOf(type, type_instantiator) ?
       Bool::True() : Bool::False());
   if (FLAG_trace_type_checks) {
-    const Type& instance_type = Type::Handle(instance.GetType());
+    const ParameterizedType& instance_type =
+        ParameterizedType::Handle(instance.GetType());
+    ASSERT(instance_type.IsInstantiated());
     if (type.IsInstantiated()) {
       OS::Print("InstanceOf: '%s' %s '%s'\n",
                 String::Handle(instance_type.Name()).ToCString(),

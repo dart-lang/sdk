@@ -144,7 +144,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         bool classes_serialized) {
   UNREACHABLE();  // Type is an abstract class.
-  return Type::null();
+  return NULL;
 }
 
 
@@ -288,7 +288,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           bool classes_serialized) {
   UNREACHABLE();  // TypeArguments is an abstract class.
-  return TypeArguments::null();
+  return TypeArray::null();
 }
 
 

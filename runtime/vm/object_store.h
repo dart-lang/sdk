@@ -65,30 +65,42 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, object_class_);
   }
 
-  RawType* object_type() const { return object_type_; }
-  void set_object_type(const Type& value) { object_type_ = value.raw(); }
+  RawParameterizedType* object_type() const { return object_type_; }
+  void set_object_type(const ParameterizedType& value) {
+    object_type_ = value.raw();
+  }
 
-  RawType* null_type() const { return null_type_; }
-  void set_null_type(const Type& value) { null_type_ = value.raw(); }
+  RawParameterizedType* null_type() const { return null_type_; }
+  void set_null_type(const ParameterizedType& value) {
+    null_type_ = value.raw();
+  }
 
-  RawType* dynamic_type() const { return dynamic_type_; }
-  void set_dynamic_type(const Type& value) { dynamic_type_ = value.raw(); }
+  RawParameterizedType* dynamic_type() const { return dynamic_type_; }
+  void set_dynamic_type(const ParameterizedType& value) {
+    dynamic_type_ = value.raw();
+  }
 
-  RawType* void_type() const { return void_type_; }
-  void set_void_type(const Type& value) { void_type_ = value.raw(); }
+  RawParameterizedType* void_type() const { return void_type_; }
+  void set_void_type(const ParameterizedType& value) {
+    void_type_ = value.raw();
+  }
 
-  RawType* function_interface() const { return function_interface_; }
-  void set_function_interface(const Type& value) {
+  RawParameterizedType* function_interface() const {
+    return function_interface_;
+  }
+  void set_function_interface(const ParameterizedType& value) {
     function_interface_ = value.raw();
   }
 
-  RawType* number_interface() const { return number_interface_; }
-  void set_number_interface(const Type& value) {
+  RawParameterizedType* number_interface() const { return number_interface_; }
+  void set_number_interface(const ParameterizedType& value) {
     number_interface_ = value.raw();
   }
 
-  RawType* int_interface() const { return int_interface_; }
-  void set_int_interface(const Type& value) { int_interface_ = value.raw(); }
+  RawParameterizedType* int_interface() const { return int_interface_; }
+  void set_int_interface(const ParameterizedType& value) {
+    int_interface_ = value.raw();
+  }
 
   RawClass* smi_class() const { return smi_class_; }
   void set_smi_class(const Class& value) { smi_class_ = value.raw(); }
@@ -96,8 +108,8 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, smi_class_);
   }
 
-  RawType* double_interface() const { return double_interface_; }
-  void set_double_interface(const Type& value) {
+  RawParameterizedType* double_interface() const { return double_interface_; }
+  void set_double_interface(const ParameterizedType& value) {
     double_interface_ = value.raw();
   }
 
@@ -110,8 +122,8 @@ class ObjectStore {
   RawClass* bigint_class() const { return bigint_class_; }
   void set_bigint_class(const Class& value) { bigint_class_ = value.raw(); }
 
-  RawType* string_interface() const { return string_interface_; }
-  void set_string_interface(const Type& value) {
+  RawParameterizedType* string_interface() const { return string_interface_; }
+  void set_string_interface(const ParameterizedType& value) {
     string_interface_ = value.raw();
   }
 
@@ -151,14 +163,16 @@ class ObjectStore {
     external_four_byte_string_class_ = value.raw();
   }
 
-  RawType* bool_interface() const { return bool_interface_; }
-  void set_bool_interface(const Type& value) { bool_interface_ = value.raw(); }
+  RawParameterizedType* bool_interface() const { return bool_interface_; }
+  void set_bool_interface(const ParameterizedType& value) {
+    bool_interface_ = value.raw();
+  }
 
   RawClass* bool_class() const { return bool_class_; }
   void set_bool_class(const Class& value) { bool_class_ = value.raw(); }
 
-  RawType* list_interface() const { return list_interface_; }
-  void set_list_interface(const Type& value) {
+  RawParameterizedType* list_interface() const { return list_interface_; }
+  void set_list_interface(const ParameterizedType& value) {
     list_interface_ = value.raw();
   }
 
@@ -270,8 +284,8 @@ class ObjectStore {
 
   RawClass* GetClass(int index);
   int GetClassIndex(const RawClass* raw_class);
-  RawType* GetType(int index);
-  int GetTypeIndex(const RawType* raw_type);
+  RawParameterizedType* GetType(int index);
+  int GetTypeIndex(const RawParameterizedType* raw_type);
 
   static void Init(Isolate* isolate);
 
@@ -280,28 +294,28 @@ class ObjectStore {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
   RawClass* object_class_;
-  RawType* object_type_;
-  RawType* null_type_;
-  RawType* dynamic_type_;
-  RawType* void_type_;
-  RawType* function_interface_;
-  RawType* number_interface_;
-  RawType* int_interface_;
+  RawParameterizedType* object_type_;
+  RawParameterizedType* null_type_;
+  RawParameterizedType* dynamic_type_;
+  RawParameterizedType* void_type_;
+  RawParameterizedType* function_interface_;
+  RawParameterizedType* number_interface_;
+  RawParameterizedType* int_interface_;
   RawClass* smi_class_;
   RawClass* mint_class_;
   RawClass* bigint_class_;
-  RawType* double_interface_;
+  RawParameterizedType* double_interface_;
   RawClass* double_class_;
-  RawType* string_interface_;
+  RawParameterizedType* string_interface_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
   RawClass* four_byte_string_class_;
   RawClass* external_one_byte_string_class_;
   RawClass* external_two_byte_string_class_;
   RawClass* external_four_byte_string_class_;
-  RawType* bool_interface_;
+  RawParameterizedType* bool_interface_;
   RawClass* bool_class_;
-  RawType* list_interface_;
+  RawParameterizedType* list_interface_;
   RawClass* array_class_;
   RawClass* immutable_array_class_;
   RawClass* byte_buffer_class_;

@@ -362,7 +362,7 @@ void Object::Init(Isolate* isolate) {
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
-  Type& type = Type::Handle();
+  ParameterizedType& type = ParameterizedType::Handle();
   Array& array = Array::Handle();
 
   // All RawArray fields will be initialized to an empty array, therefore
@@ -1356,7 +1356,7 @@ bool Class::IsMoreSpecificThan(
           // This type is raw, so the uninstantiated type arguments of the
           // interface cannot be instantiated and we must check against a raw
           // interface.
-          interface_args = TypeArguments::null();
+          interface_args = TypeArray::null();
         } else {
           // The type arguments of this type that are referred to by the type
           // parameters of the interface are at the end of the type vector,
@@ -1708,7 +1708,7 @@ RawUnresolvedClass* Type::unresolved_class() const {
 RawTypeArguments* Type::arguments() const  {
   // Type is an abstract class.
   UNREACHABLE();
-  return TypeArguments::null();
+  return NULL;
 }
 
 
@@ -1745,14 +1745,14 @@ RawType* Type::InstantiateFrom(
     intptr_t offset) const {
   // Type is an abstract class.
   UNREACHABLE();
-  return Type::null();
+  return NULL;
 }
 
 
 RawType* Type::Canonicalize() const {
   // Type is an abstract class.
   UNREACHABLE();
-  return Type::null();
+  return NULL;
 }
 
 
@@ -1926,69 +1926,69 @@ bool Type::Test(TypeTestKind test, const Type& other) const {
 }
 
 
-RawType* Type::NullType() {
+RawParameterizedType* Type::NullType() {
   return Isolate::Current()->object_store()->null_type();
 }
 
 
-RawType* Type::DynamicType() {
+RawParameterizedType* Type::DynamicType() {
   return Isolate::Current()->object_store()->dynamic_type();
 }
 
 
-RawType* Type::VoidType() {
+RawParameterizedType* Type::VoidType() {
   return Isolate::Current()->object_store()->void_type();
 }
 
 
-RawType* Type::ObjectType() {
+RawParameterizedType* Type::ObjectType() {
   return Isolate::Current()->object_store()->object_type();
 }
 
 
-RawType* Type::BoolInterface() {
+RawParameterizedType* Type::BoolInterface() {
   return Isolate::Current()->object_store()->bool_interface();
 }
 
 
-RawType* Type::IntInterface() {
+RawParameterizedType* Type::IntInterface() {
   return Isolate::Current()->object_store()->int_interface();
 }
 
 
-RawType* Type::DoubleInterface() {
+RawParameterizedType* Type::DoubleInterface() {
   return Isolate::Current()->object_store()->double_interface();
 }
 
 
-RawType* Type::NumberInterface() {
+RawParameterizedType* Type::NumberInterface() {
   return Isolate::Current()->object_store()->number_interface();
 }
 
 
-RawType* Type::StringInterface() {
+RawParameterizedType* Type::StringInterface() {
   return Isolate::Current()->object_store()->string_interface();
 }
 
 
-RawType* Type::FunctionInterface() {
+RawParameterizedType* Type::FunctionInterface() {
   return Isolate::Current()->object_store()->function_interface();
 }
 
 
-RawType* Type::ListInterface() {
+RawParameterizedType* Type::ListInterface() {
   return Isolate::Current()->object_store()->list_interface();
 }
 
 
-RawType* Type::NewRawType(const Class& type_class) {
+RawParameterizedType* Type::NewRawType(const Class& type_class) {
   const TypeArguments& type_arguments =
       TypeArguments::Handle(type_class.type_parameter_extends());
   return NewParameterizedType(Object::Handle(type_class.raw()), type_arguments);
 }
 
 
-RawType* Type::NewNonParameterizedType(const Class& type_class) {
+RawParameterizedType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(!type_class.HasTypeArguments());
   const TypeArguments& no_type_arguments = TypeArguments::Handle();
   ParameterizedType& type = ParameterizedType::Handle();
@@ -2000,7 +2000,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
 }
 
 
-RawType* Type::NewParameterizedType(const Object& clazz,
+RawParameterizedType* Type::NewParameterizedType(const Object& clazz,
                                     const TypeArguments& arguments) {
   return ParameterizedType::New(clazz, arguments);
 }
@@ -2208,7 +2208,19 @@ void ParameterizedType::set_type_state(int8_t state) const {
 
 
 const char* ParameterizedType::ToCString() const {
-  return "ParameterizedType";
+  if (IsResolved()) {
+    const char* format = "ParameterizedType: class '%s', args:[%s]";
+    const char* class_name =
+        String::Handle(Class::Handle(type_class()).Name()).ToCString();
+    const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+    intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
+    char* chars = reinterpret_cast<char*>(
+        Isolate::Current()->current_zone()->Allocate(len));
+    OS::SNPrint(chars, len, format, class_name, args_cstr);
+    return chars;
+  } else {
+    return "Unresolved ParameterizedType";
+  }
 }
 
 
@@ -2266,7 +2278,13 @@ RawTypeParameter* TypeParameter::New(intptr_t index, const String& name) {
 
 
 const char* TypeParameter::ToCString() const {
-  return "TypeParameter";
+  const char* format = "TypeParameter: name %s; index: %d";
+  const char* name_cstr = String::Handle(Name()).ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, Index()) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, format, name_cstr, Index());
+  return chars;
 }
 
 
@@ -2329,7 +2347,7 @@ intptr_t TypeArguments::Length() const  {
 RawType* TypeArguments::TypeAt(intptr_t index) const {
   // TypeArguments is an abstract class.
   UNREACHABLE();
-  return Type::null();
+  return NULL;
 }
 
 
@@ -2387,7 +2405,7 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     intptr_t offset) const {
   // TypeArguments is an abstract class.
   UNREACHABLE();
-  return TypeArguments::null();
+  return NULL;
 }
 
 
@@ -2567,7 +2585,7 @@ RawTypeArray* TypeArray::New(intptr_t len) {
     result ^= raw;
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
-      *result.TypeAddr(i) = Type::null();
+      *result.TypeAddr(i) = ParameterizedType::null();
     }
   }
   return result.raw();
@@ -2589,7 +2607,20 @@ void TypeArray::SetLength(intptr_t value) {
 
 
 const char* TypeArray::ToCString() const {
-  return "TypeArray";
+  if (IsNull()) {
+    return "NULL TypeArray";
+  }
+  const char* format = "%s [%s]";
+  const char* prev_cstr = "TypeArray:";
+  for (int i = 0; i < Length(); i++) {
+    const char* type_cstr = Type::Handle(TypeAt(i)).ToCString();
+    intptr_t len = OS::SNPrint(NULL, 0, format, prev_cstr, type_cstr) + 1;
+    char* chars = reinterpret_cast<char*>(
+        Isolate::Current()->current_zone()->Allocate(len));
+    OS::SNPrint(chars, len, format, prev_cstr, type_cstr);
+    prev_cstr = chars;
+  }
+  return prev_cstr;
 }
 
 
@@ -2656,7 +2687,20 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::New(
 
 
 const char* InstantiatedTypeArguments::ToCString() const {
-  return "InstantiatedTypeArguments";
+  if (IsNull()) {
+    return "NULL InstantiatedTypeArguments";
+  }
+  const char* format = "InstantiatedTypeArguments: [%s] instantiator: [%s]\n";
+  const char* arg_cstr =
+      TypeArguments::Handle(uninstantiated_type_arguments()).ToCString();
+  const char* instantiator_cstr =
+      TypeArguments::Handle(instantiator_type_arguments()).ToCString();
+  intptr_t len =
+      OS::SNPrint(NULL, 0, format, arg_cstr, instantiator_cstr) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, format, arg_cstr, instantiator_cstr);
+  return chars;
 }
 
 
@@ -4937,9 +4981,9 @@ RawInstance* Instance::Canonicalize() const {
 }
 
 
-RawType* Instance::GetType() const {
+RawParameterizedType* Instance::GetType() const {
   if (IsNull()) {
-    return Type::NullType();
+    return ParameterizedType::NullType();
   }
   const Class& cls = Class::Handle(clazz());
   TypeArguments& type_arguments = TypeArguments::Handle();

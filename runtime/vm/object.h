@@ -717,11 +717,6 @@ class Type : public Object {
   // type.
   RawString* ClassName() const;
 
-  // Check if this type represents the 'null' type.
-  bool IsNullType() const {
-    return HasResolvedTypeClass() && (type_class() == Object::null_class());
-  }
-
   // Check if this type represents the 'Dynamic' type.
   bool IsDynamicType() const {
     return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
@@ -781,48 +776,48 @@ class Type : public Object {
   }
 
   // The type of the literal 'null'.
-  static RawType* NullType();
+  static RawParameterizedType* NullType();
 
   // The 'Dynamic' type.
-  static RawType* DynamicType();
+  static RawParameterizedType* DynamicType();
 
   // The 'void' type.
-  static RawType* VoidType();
+  static RawParameterizedType* VoidType();
 
   // The 'Object' type.
-  static RawType* ObjectType();
+  static RawParameterizedType* ObjectType();
 
   // The 'bool' interface type.
-  static RawType* BoolInterface();
+  static RawParameterizedType* BoolInterface();
 
   // The 'int' interface type.
-  static RawType* IntInterface();
+  static RawParameterizedType* IntInterface();
 
   // The 'double' interface type.
-  static RawType* DoubleInterface();
+  static RawParameterizedType* DoubleInterface();
 
   // The 'num' interface type.
-  static RawType* NumberInterface();
+  static RawParameterizedType* NumberInterface();
 
   // The 'String' interface type.
-  static RawType* StringInterface();
+  static RawParameterizedType* StringInterface();
 
   // The 'Function' interface type.
-  static RawType* FunctionInterface();
+  static RawParameterizedType* FunctionInterface();
 
   // The 'List' interface type.
-  static RawType* ListInterface();
+  static RawParameterizedType* ListInterface();
 
   // The least specific valid raw type of the given class.
   // For example, type A<Dynamic> would be returned for class A<T>, and type
   // B<Dynamic, A<Dynamic>> would be returned for B<U, V extends A>.
-  static RawType* NewRawType(const Class& type_class);
+  static RawParameterizedType* NewRawType(const Class& type_class);
 
   // The finalized type of the given non-parameterized class.
-  static RawType* NewNonParameterizedType(const Class& type_class);
+  static RawParameterizedType* NewNonParameterizedType(const Class& type_class);
 
-  static RawType* NewParameterizedType(const Object& type_class,
-                                       const TypeArguments& arguments);
+  static RawParameterizedType* NewParameterizedType(
+      const Object& type_class, const TypeArguments& arguments);
 
   static RawType* NewTypeParameter(intptr_t index, const String& name);
 
@@ -967,13 +962,6 @@ class InstantiatedType : public Type {
 // Subclasses of TypeArguments are TypeArray and InstantiatedTypes.
 class TypeArguments : public Object {
  public:
-  virtual intptr_t Length() const;
-  virtual RawType* TypeAt(intptr_t index) const;
-  virtual void SetTypeAt(intptr_t index, const Type& value) const;
-  virtual bool IsResolved() const;
-  virtual bool IsInstantiated() const;
-  virtual bool IsUninstantiatedIdentity() const;
-  virtual bool Equals(const TypeArguments& other) const;
   static bool AreEqual(const TypeArguments& arguments,
                        const TypeArguments& other_arguments);
 
@@ -998,6 +986,15 @@ class TypeArguments : public Object {
   static RawTypeArguments* NewInstantiatedTypeArguments(
       const TypeArguments& uninstantiated_type_arguments,
       const TypeArguments& instantiator_type_arguments);
+
+  // UNREACHABLEs as TypeArguments is an abstract class.
+  virtual intptr_t Length() const;
+  virtual RawType* TypeAt(intptr_t index) const;
+  virtual void SetTypeAt(intptr_t index, const Type& value) const;
+  virtual bool IsResolved() const;
+  virtual bool IsInstantiated() const;
+  virtual bool IsUninstantiatedIdentity() const;
+  virtual bool Equals(const TypeArguments& other) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
@@ -2142,7 +2139,7 @@ class Instance : public Object {
     *FieldAddr(field) = value.raw();
   }
 
-  RawType* GetType() const;
+  RawParameterizedType* GetType() const;
 
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;

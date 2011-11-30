@@ -706,7 +706,7 @@ RawType* ClassFinalizer::FinalizeAndCanonicalizeType(const Type& type,
     return type.raw();
   }
   UNREACHABLE();
-  return Type::null();
+  return NULL;
 }
 
 
