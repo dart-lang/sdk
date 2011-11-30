@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(_WIN32)  // Disassembler is not yet supported under WIN32.
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#endif
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
@@ -23,6 +25,7 @@ void Disassembler::Disassemble(uword start,
   // being disassembled from.
   formatter->Print("start: %p  end: %p\n", start, end);
 
+#if !defined(_WIN32)  // Disassembler is not yet supported under WIN32.
   // Write code block to tmp file.
   char tmp[] = "/tmp/codeblock.XXXXXX";
   int fd = mkstemp(tmp);
@@ -92,6 +95,7 @@ void Disassembler::Disassemble(uword start,
   snprintf(tmp_o, sizeof(tmp_o), "%s.o", tmp);
   remove(tmp_o);
 #endif
+#endif  // !defined(_WIN32)
 }
 
 

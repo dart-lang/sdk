@@ -8,7 +8,7 @@
 #if defined(TARGET_ARCH_IA32)
 #include "vm/assembler_macros_ia32.h"
 #elif defined(TARGET_ARCH_X64)
-// Not yet implemented.
+#include "vm/assembler_macros_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 // Not yet implemented.
 #else

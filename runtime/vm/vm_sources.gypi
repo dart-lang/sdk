@@ -18,6 +18,8 @@
     'assembler_macros.h',
     'assembler_macros_ia32.cc',
     'assembler_macros_ia32.h',
+    'assembler_macros_x64.cc',
+    'assembler_macros_x64.h',
     'assembler_x64.cc',
     'assembler_x64.h',
     'assembler_x64_test.cc',
