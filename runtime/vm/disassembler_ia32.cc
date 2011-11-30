@@ -398,7 +398,7 @@ void X86Decoder::PrintAddress(uword addr) {
     if (obj.IsArray()) {
       const Array& arr = Array::CheckedHandle(obj.raw());
       intptr_t len = arr.Length();
-      if (len > 5) len = 5;  // At max print first 5 elements.
+      if (len > 5) len = 5;  // Print a max of 5 elements.
       Print("  Array[");
       int i = 0;
       while (i < len) {

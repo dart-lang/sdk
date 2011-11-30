@@ -1545,6 +1545,38 @@ void StubCode::GenerateInlineCacheStub(Assembler* assembler) {
   __ jmp(EAX);
 }
 
+
+//  ECX: Function object.
+//  EDX: Arguments array.
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
+  __ EnterFrame(0);
+  __ pushl(ECX);
+  __ pushl(EDX);
+  __ CallRuntimeFromStub(kBreakpointHandlerRuntimeEntry);
+  __ popl(EDX);
+  __ popl(ECX);
+  __ LeaveFrame();
+  // Now call the static function.
+  __ jmp(&StubCode::CallStaticFunctionLabel());
+}
+
+
+//  ECX: Inline cache data array.
+//  EDX: Arguments array.
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
+  __ EnterFrame(0);
+  __ pushl(ECX);
+  __ pushl(EDX);
+  __ CallRuntimeFromStub(kBreakpointHandlerRuntimeEntry);
+  __ popl(EDX);
+  __ popl(ECX);
+  __ LeaveFrame();
+  // Now call the dynamic function.
+  __ jmp(&StubCode::InlineCacheLabel());
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

@@ -32,6 +32,8 @@ class RawCode;
   V(OptimizeInvokedFunction)                                                   \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
+  V(BreakpointStatic)                                                          \
+
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -45,6 +47,7 @@ class RawCode;
   V(InvokeDartCode)                                                            \
   V(AllocateContext)                                                           \
   V(InlineCache)                                                               \
+  V(BreakpointDynamic)                                                         \
 
 
 // class StubEntry is used to describe stub methods generated in dart to
@@ -124,6 +127,9 @@ class StubCode {
 #define STUB_CODE_ACCESSOR(name)                                               \
   static StubEntry* name##_entry() {                                           \
     return Isolate::Current()->stub_code()->name##_entry_;                     \
+  }                                                                            \
+  static const ExternalLabel& name##Label() {                                  \
+    return name##_entry()->label();                                            \
   }                                                                            \
   static uword name##EntryPoint() {                                            \
     return name##_entry()->EntryPoint();                                       \

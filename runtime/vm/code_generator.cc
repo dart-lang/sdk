@@ -469,6 +469,24 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
 }
 
 
+// Gets called from debug stub when code reaches a breakpoint.
+DEFINE_RUNTIME_ENTRY(BreakpointHandler, 0) {
+  ASSERT(arguments.Count() == kBreakpointHandlerRuntimeEntry.argument_count());
+  DartFrameIterator iterator;
+  DartFrame* frame = iterator.NextFrame();
+  Function& func = Function::Handle();
+  ASSERT(frame != NULL);
+  OS::Print(">>> Breakpoint at 0x%08x\n", frame->pc());
+  while (frame != NULL) {
+    ASSERT(frame->IsValid());
+    ASSERT(frame->IsDartFrame());
+    func = frame->LookupDartFunction();
+    OS::Print("  func %s\n", String::Handle(func.name()).ToCString());
+    frame = iterator.NextFrame();
+  }
+}
+
+
 // Handles inline cache misses by updating the IC data array of the call
 // site.
 //   Arg0: Receiver object.

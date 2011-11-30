@@ -11,6 +11,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
@@ -97,6 +98,7 @@ static void InvokeStatic(Isolate* isolate,
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
+    isolate->debugger()->Initialize(isolate);
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeStatic(function, args, kNoArgumentNames));

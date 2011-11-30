@@ -11,6 +11,7 @@
 #include "vm/code_index_table.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
+#include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/heap.h"
 #include "vm/message_queue.h"
@@ -57,6 +58,7 @@ Isolate::Isolate()
       api_state_(NULL),
       stub_code_(NULL),
       code_index_table_(NULL),
+      debugger_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
       stack_limit_(0),
@@ -128,6 +130,8 @@ Isolate* Isolate::Init() {
   // main thread.
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort());
+
+  result->debugger_ = new Debugger();
 
   return result;
 }
@@ -302,6 +306,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the top context which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_context_));
+
+  // Visit objects in the debugger.
+  debugger()->VisitObjectPointers(visitor);
 }
 
 }  // namespace dart

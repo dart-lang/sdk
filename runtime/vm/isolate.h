@@ -18,6 +18,7 @@ namespace dart {
 class ApiState;
 class BigintStore;
 class CodeIndexTable;
+class Debugger;
 class HandleScope;
 class Heap;
 class LongJump;
@@ -242,6 +243,8 @@ class Isolate {
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
 
+  Debugger* debugger() const { return debugger_; }
+
  private:
   Isolate();
 
@@ -278,6 +281,7 @@ class Isolate {
   ApiState* api_state_;
   StubCode* stub_code_;
   CodeIndexTable* code_index_table_;
+  Debugger* debugger_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
   uword stack_limit_;
