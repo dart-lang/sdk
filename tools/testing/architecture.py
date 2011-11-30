@@ -449,7 +449,8 @@ class WebDriverArchitecture(FrogChromiumArchitecture):
     f = open(html_output_file, 'w')
     f.write(self.GetHtmlContents())
     f.close()
-    return [selenium_location, html_output_file, browser_flag]
+    return [selenium_location, '--out', html_output_file, '--browser', 
+        browser_flag]
 
 
 class StandaloneArchitecture(Architecture):
