@@ -59,9 +59,9 @@ class Document {
       final match = pattern.firstMatch(lines[i]);
       if (match != null) {
         // Parse the link.
-        final id = match.group(1);
-        final url = match.group(2);
-        var title = match.group(3);
+        final id = match[1];
+        final url = match[2];
+        var title = match[3];
 
         if (title == '') {
           // No title.
