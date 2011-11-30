@@ -1,5 +1,5 @@
 
-class WebKitFlags native "WebKitFlags" {
+class WebKitFlags native "*WebKitFlags" {
 
   bool create;
 

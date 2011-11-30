@@ -9,11 +9,11 @@ class AssertionError {
     throw const UnsupportedOperationException(
         "AssertionError can only be allocated by the VM");
   }
-  static throwNew(int assertionStart, int assertionEnd)
+  static _throwNew(int assertionStart, int assertionEnd)
       native "AssertionError_throwNew";
   String toString() {
-    return "Failed assertion: '$failedAssertion' is not true " +
-        "in $url at line $line, column $column.";
+    return "'$url': Failed assertion: line $line pos $column: " +
+        "'$failedAssertion' is not true.";
   }
   final String failedAssertion;
   final String url;
@@ -26,10 +26,14 @@ class TypeError extends AssertionError {
     throw const UnsupportedOperationException(
         "TypeError can only be allocated by the VM");
   }
+  static _throwNew(int location,
+                   Object src_value,
+                   String dst_type_name,
+                   String dst_name)
+      native "TypeError_throwNew";
   String toString() {
-    return "Failed type check: type $srcType is not assignable to type " +
-        "$dstType of $dstName in $url at line " +
-        "$line, column $column.";
+    return "'$url': Failed type check: line $line pos $column: " +
+        "type '$srcType' is not assignable to type '$dstType' of '$dstName'.";
   }
   final String srcType;
   final String dstType;
@@ -41,9 +45,9 @@ class FallThroughError {
     throw const UnsupportedOperationException(
         "FallThroughError can only be allocated by the VM");
   }
-  static throwNew(int case_clause_pos) native "FallThroughError_throwNew";
+  static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
   String toString() {
-    return "Switch case fall-through in $url at line $line.";
+    return "'$url': Switch case fall-through at line $line.";
   }
   final String url;
   final int line;

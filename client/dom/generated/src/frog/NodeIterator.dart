@@ -1,5 +1,5 @@
 
-class NodeIterator native "NodeIterator" {
+class NodeIterator native "*NodeIterator" {
 
   bool expandEntityReferences;
 

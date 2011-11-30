@@ -3,27 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.parser;
 
+import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartUnit;
-
-import java.util.List;
 
 /**
  * Negative Parser/Syntax tests.
  */
 public class NegativeParserTest extends CompilerTestCase {
-  private void parseExpectErrors(String code, ErrorExpectation... expectedErrors) {
-    List<DartCompilationError> errors = getParseErrors(code);
-    assertErrors(errors, expectedErrors);
-  }
-
-  private List<DartCompilationError> getParseErrors(String code) {
-    return DartParserRunner.parse(getName(), code, Integer.MAX_VALUE, false).getErrors();
-  }
-
   public void testFieldInitializerInRedirectionConstructor1() {
     parseExpectErrors(
         "class A { A(x) { } A.foo() : this(5), y = 5; var y; }",
@@ -207,5 +196,110 @@ public class NegativeParserTest extends CompilerTestCase {
     parseExpectErrors(
         "class A { operator []=(int a, [int b]); }",
         errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 32, 5));
+  }
+
+  /**
+   * If keyword "extends" is mistyped in type parameters declaration, we should report about this
+   * and then recover correctly.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=341
+   */
+  public void test_parseTypeParameter_expectedExtends_mistypedExtends() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "class A {",
+            "}",
+            "class B {",
+            "  factory B<X ex>(){}",
+            "  factory B<X extneds A>(){}",
+            "  factory B<X extneds A, Y extends A>(){}",
+            "}"));
+    // check expected errors
+    assertErrors(
+        parserRunner.getErrors(),
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 4, 15, 2),
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 5, 15, 7),
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 6, 15, 7));
+    // check structure of AST
+    DartUnit dartUnit = parserRunner.getDartUnit();
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit " + getName(),
+            "class A {",
+            "}",
+            "",
+            "class B {",
+            "",
+            "  factory B<X>() { }",
+            "",
+            "  factory B<X extends A>() { }",
+            "",
+            "  factory B<X extends A, Y extends A>() { }",
+            "}"),
+        dartUnit.toDietSource().trim());
+  }
+
+  /**
+   * Type parameters declaration is not finished, stop parsing and restart from next top level
+   * element.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=341
+   */
+  public void test_parseTypeParameter_unfinishedTypeParameters() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "class ClassWithLongEnoughName {",
+            "}",
+            "class B {",
+            "  factory B<X(){}",
+            "}",
+            "class C {",
+            "}"));
+    // check expected errors
+    assertErrors(
+        parserRunner.getErrors(),
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 4, 14, 1),
+        errEx(ParserErrorCode.SKIPPED_SOURCE, 4, 14, 6));
+    // check structure of AST
+    DartUnit dartUnit = parserRunner.getDartUnit();
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit " + getName(),
+            "class ClassWithLongEnoughName {",
+            "}",
+            "",
+            "class C {",
+            "}"),
+        dartUnit.toDietSource().trim());
+  }
+
+  /**
+   * Type parameters declaration is not finished, next top level element beginning encountered. May
+   * be use just types new class declaration before existing one.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=341
+   */
+  public void test_parseTypeParameter_nextTopLevelInTheMiddle() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "class ClassWithLongEnoughName {",
+            "}",
+            "class B {",
+            "  factory B<X",
+            "class C {",
+            "}"));
+    // check expected errors
+    assertErrors(parserRunner.getErrors(), errEx(ParserErrorCode.SKIPPED_SOURCE, 4, 13, 1));
+    // check structure of AST
+    DartUnit dartUnit = parserRunner.getDartUnit();
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit " + getName(),
+            "class ClassWithLongEnoughName {",
+            "}",
+            "",
+            "class C {",
+            "}"),
+        dartUnit.toDietSource().trim());
   }
 }

@@ -1,5 +1,7 @@
 
-class Float64Array extends ArrayBufferView native "Float64Array" {
+class Float64Array extends ArrayBufferView native "*Float64Array" {
+
+  static final int BYTES_PER_ELEMENT = 8;
 
   int length;
 

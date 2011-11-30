@@ -11,53 +11,53 @@ class _HTMLScriptElementWrappingImplementation extends _HTMLElementWrappingImple
     return new _HTMLScriptElementWrappingImplementation();
   }
 
-  bool get async() { return _get__HTMLScriptElement_async(this); }
-  static bool _get__HTMLScriptElement_async(var _this) native;
+  bool get async() { return _get_async(this); }
+  static bool _get_async(var _this) native;
 
-  void set async(bool value) { _set__HTMLScriptElement_async(this, value); }
-  static void _set__HTMLScriptElement_async(var _this, bool value) native;
+  void set async(bool value) { _set_async(this, value); }
+  static void _set_async(var _this, bool value) native;
 
-  String get charset() { return _get__HTMLScriptElement_charset(this); }
-  static String _get__HTMLScriptElement_charset(var _this) native;
+  String get charset() { return _get_charset(this); }
+  static String _get_charset(var _this) native;
 
-  void set charset(String value) { _set__HTMLScriptElement_charset(this, value); }
-  static void _set__HTMLScriptElement_charset(var _this, String value) native;
+  void set charset(String value) { _set_charset(this, value); }
+  static void _set_charset(var _this, String value) native;
 
-  bool get defer() { return _get__HTMLScriptElement_defer(this); }
-  static bool _get__HTMLScriptElement_defer(var _this) native;
+  bool get defer() { return _get_defer(this); }
+  static bool _get_defer(var _this) native;
 
-  void set defer(bool value) { _set__HTMLScriptElement_defer(this, value); }
-  static void _set__HTMLScriptElement_defer(var _this, bool value) native;
+  void set defer(bool value) { _set_defer(this, value); }
+  static void _set_defer(var _this, bool value) native;
 
-  String get event() { return _get__HTMLScriptElement_event(this); }
-  static String _get__HTMLScriptElement_event(var _this) native;
+  String get event() { return _get_event(this); }
+  static String _get_event(var _this) native;
 
-  void set event(String value) { _set__HTMLScriptElement_event(this, value); }
-  static void _set__HTMLScriptElement_event(var _this, String value) native;
+  void set event(String value) { _set_event(this, value); }
+  static void _set_event(var _this, String value) native;
 
-  String get htmlFor() { return _get__HTMLScriptElement_htmlFor(this); }
-  static String _get__HTMLScriptElement_htmlFor(var _this) native;
+  String get htmlFor() { return _get_htmlFor(this); }
+  static String _get_htmlFor(var _this) native;
 
-  void set htmlFor(String value) { _set__HTMLScriptElement_htmlFor(this, value); }
-  static void _set__HTMLScriptElement_htmlFor(var _this, String value) native;
+  void set htmlFor(String value) { _set_htmlFor(this, value); }
+  static void _set_htmlFor(var _this, String value) native;
 
-  String get src() { return _get__HTMLScriptElement_src(this); }
-  static String _get__HTMLScriptElement_src(var _this) native;
+  String get src() { return _get_src(this); }
+  static String _get_src(var _this) native;
 
-  void set src(String value) { _set__HTMLScriptElement_src(this, value); }
-  static void _set__HTMLScriptElement_src(var _this, String value) native;
+  void set src(String value) { _set_src(this, value); }
+  static void _set_src(var _this, String value) native;
 
-  String get text() { return _get__HTMLScriptElement_text(this); }
-  static String _get__HTMLScriptElement_text(var _this) native;
+  String get text() { return _get_text(this); }
+  static String _get_text(var _this) native;
 
-  void set text(String value) { _set__HTMLScriptElement_text(this, value); }
-  static void _set__HTMLScriptElement_text(var _this, String value) native;
+  void set text(String value) { _set_text(this, value); }
+  static void _set_text(var _this, String value) native;
 
-  String get type() { return _get__HTMLScriptElement_type(this); }
-  static String _get__HTMLScriptElement_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
-  void set type(String value) { _set__HTMLScriptElement_type(this, value); }
-  static void _set__HTMLScriptElement_type(var _this, String value) native;
+  void set type(String value) { _set_type(this, value); }
+  static void _set_type(var _this, String value) native;
 
   String get typeName() { return "HTMLScriptElement"; }
 }

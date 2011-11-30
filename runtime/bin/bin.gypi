@@ -9,6 +9,7 @@
     'snapshot_in_cc_file': 'snapshot_in.cc',
     'snapshot_bin_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.bin',
     'snapshot_cc_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.cc',
+    'cygwin_dir': '../../third_party/cygwin',
   },
   'targets': [
     {
@@ -16,7 +17,7 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/../third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
       'sources': [
@@ -123,7 +124,7 @@
       ],
     },
     {
-      # Standalone executable using the shared libdart library.
+      # Completely statically linked dart binary.
       'target_name': 'dart_no_snapshot',
       'type': 'executable',
       'dependencies': [
@@ -135,35 +136,6 @@
       ],
       'sources': [
         'main.cc',
-        'process_script.cc',
-        'process_script.h',
-        'snapshot_empty.cc',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
-          },
-       }]],
-    },
-    {
-      # Completely statically linked dart binary.
-      'target_name': 'dart_no_snapshot_bin',
-      'type': 'executable',
-      'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
-        'libdart_builtin',
-      ],
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        'main.cc',
-        'process_script.cc',
-        'process_script.h',
         'snapshot_empty.cc',
       ],
       'conditions': [
@@ -175,13 +147,10 @@
     },
     {
       # Completely statically linked binary for generating snapshots.
-      'target_name': 'gen_snapshot_bin',
+      'target_name': 'gen_snapshot',
       'type': 'executable',
       'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
+        'libdart',
         'libdart_builtin',
       ],
       'include_dirs': [
@@ -189,8 +158,6 @@
       ],
       'sources': [
         'gen_snapshot.cc',
-        'process_script.cc',
-        'process_script.h',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -205,18 +172,18 @@
       'type': 'none',
       'conditions': [
         ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(DEPTH)/../third_party/cygwin'],
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
       'dependencies': [
-        'gen_snapshot_bin',
+        'gen_snapshot',
       ],
       'actions': [
         {
           'action_name': 'generate_snapshot_file',
           'inputs': [
             '../tools/create_snapshot_file.py',
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot_bin<(EXECUTABLE_SUFFIX)',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
             '<(snapshot_in_cc_file)',
           ],
           'outputs': [
@@ -225,7 +192,7 @@
           'action': [
             'python',
             'tools/create_snapshot_file.py',
-            '--executable', '<(PRODUCT_DIR)/gen_snapshot_bin',
+            '--executable', '<(PRODUCT_DIR)/gen_snapshot',
             '--output_bin', '<(snapshot_bin_file)',
             '--input_cc', '<(snapshot_in_cc_file)',
             '--output', '<(snapshot_cc_file)',
@@ -235,8 +202,6 @@
       ]
     },
     {
-      # Standalone executable using the shared libdart library with a snapshot
-      # of the core and builtin libraries linked in.
       'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
@@ -249,37 +214,6 @@
       ],
       'sources': [
         'main.cc',
-        'process_script.cc',
-        'process_script.h',
-        '<(snapshot_cc_file)',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
-          },
-       }]],
-    },
-    {
-      # Completely statically linked dart binary with a snapshot of the core
-      # and builtin libraries linked in.
-      'target_name': 'dart_bin',
-      'type': 'executable',
-      'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
-        'libdart_builtin',
-        'generate_snapshot_file',
-      ],
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        'main.cc',
-        'process_script.cc',
-        'process_script.h',
         '<(snapshot_cc_file)',
       ],
       'conditions': [
@@ -299,14 +233,8 @@
     {
       'target_name': 'run_vm_tests',
       'type': 'executable',
-      # The unittest framework needs to be able to call the unexported symbols,
-      # which is why it links against the static libraries. In general binaries
-      # should depend on the shared library.
       'dependencies': [
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdart_api',
+        'libdart',
         'generate_snapshot_test_dat_file',
       ],
       'include_dirs': [

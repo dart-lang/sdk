@@ -49,9 +49,13 @@ namespace dart {
       V(OneByteString)                                                         \
       V(TwoByteString)                                                         \
       V(FourByteString)                                                        \
+      V(ExternalOneByteString)                                                 \
+      V(ExternalTwoByteString)                                                 \
+      V(ExternalFourByteString)                                                \
     V(Bool)                                                                    \
     V(Array)                                                                   \
       V(ImmutableArray)                                                        \
+    V(ByteBuffer)                                                              \
     V(Closure)                                                                 \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
@@ -144,6 +148,24 @@ class RawObject {
     return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   }
 
+  // Support for GC marking bit.
+  bool IsMarked() const {
+    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
+    uword mark_bits = header_bits & kMarkingMask;
+    ASSERT((mark_bits == kNotMarked) || (mark_bits == kMarked));
+    return mark_bits == kMarked;
+  }
+  void SetMarkBit() {
+    ASSERT(!IsMarked());
+    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
+    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits | kMarked);
+  }
+  void ClearMarkBit() {
+    ASSERT(IsMarked());
+    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
+    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarked);
+  }
+
   void Validate() const;
   intptr_t Size() const;
   intptr_t VisitPointers(ObjectPointerVisitor* visitor);
@@ -162,6 +184,12 @@ class RawObject {
   RawClass* class_;
 
  private:
+  enum {
+    kMarkingMask = 3,
+    kNotMarked = 1,  // Tagged pointer.
+    kMarked = 3,  // Tagged pointer and forwarding bit set.
+  };
+
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
     return reinterpret_cast<RawObject*>(
@@ -172,6 +200,7 @@ class RawObject {
   friend class Array;
   friend class SnapshotWriter;
   friend class SnapshotReader;
+  friend class MarkingVisitor;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -199,7 +228,7 @@ class RawClass : public RawObject {
   RawArray* type_parameters_;  // Array of String.
   RawTypeArray* type_parameter_extends_;  // DynamicType if no extends clause.
   RawType* super_type_;
-  RawType* factory_type_;
+  RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
@@ -231,8 +260,11 @@ class RawUnresolvedClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->qualifier_);
   }
   RawString* qualifier_;  // Qualifier for the identifier.
-  RawString* ident_;  // name of the unresolved identifier.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->ident_); }
+  RawString* ident_;  // Name of the unresolved identifier.
+  RawClass* factory_signature_class_;  // Expected type parameters for factory.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->factory_signature_class_);
+  }
   intptr_t token_index_;
 };
 
@@ -438,6 +470,13 @@ class RawScript : public RawObject {
 
 
 class RawLibrary : public RawObject {
+  enum LibraryState {
+    kAllocated,       // Initial state.
+    kLoadInProgress,  // Library is in the process of being loaded.
+    kLoaded,          // Library is loaded.
+    kLoadError,       // Error occurred during load of the Library.
+  };
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
@@ -460,7 +499,7 @@ class RawLibrary : public RawObject {
   intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   bool corelib_imported_;
-  bool loaded_;
+  int8_t load_state_;            // Of type LibraryState.
 };
 
 
@@ -685,6 +724,40 @@ class RawFourByteString : public RawString {
 };
 
 
+template<typename T>
+class ExternalStringData {
+ public:
+  typedef void Callback(void* peer);
+  ExternalStringData(const T* data, void* peer, Callback* callback) :
+      data_(data), peer_(peer), callback_(callback) {
+  }
+  const T* data_;
+  void* peer_;
+  Callback* callback_;
+};
+
+
+class RawExternalOneByteString : public RawString {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
+
+  ExternalStringData<uint8_t>* external_data_;
+};
+
+
+class RawExternalTwoByteString : public RawString {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
+
+  ExternalStringData<uint16_t>* external_data_;
+};
+
+
+class RawExternalFourByteString : public RawString {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString);
+
+  ExternalStringData<uint32_t>* external_data_;
+};
+
+
 class RawBool : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bool);
 
@@ -715,6 +788,16 @@ class RawArray : public RawInstance {
 
 class RawImmutableArray : public RawArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray);
+};
+
+
+class RawByteBuffer : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ByteBuffer);
+
+  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  RawSmi* length_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  uint8_t* data_;
 };
 
 

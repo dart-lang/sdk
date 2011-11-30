@@ -1,5 +1,5 @@
 
-class HTMLModElement extends HTMLElement native "HTMLModElement" {
+class HTMLModElement extends HTMLElement native "*HTMLModElement" {
 
   String cite;
 

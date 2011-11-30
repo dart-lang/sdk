@@ -11,11 +11,11 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
     return new _WebGLRenderingContextWrappingImplementation();
   }
 
-  int get drawingBufferHeight() { return _get__WebGLRenderingContext_drawingBufferHeight(this); }
-  static int _get__WebGLRenderingContext_drawingBufferHeight(var _this) native;
+  int get drawingBufferHeight() { return _get_drawingBufferHeight(this); }
+  static int _get_drawingBufferHeight(var _this) native;
 
-  int get drawingBufferWidth() { return _get__WebGLRenderingContext_drawingBufferWidth(this); }
-  static int _get__WebGLRenderingContext_drawingBufferWidth(var _this) native;
+  int get drawingBufferWidth() { return _get_drawingBufferWidth(this); }
+  static int _get_drawingBufferWidth(var _this) native;
 
   void activeTexture(int texture) {
     _activeTexture(this, texture);

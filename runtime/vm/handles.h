@@ -20,7 +20,7 @@ namespace dart {
 // - allocation of handles in the current zone (Handle::AllocateZoneHandle).
 //   Handles allocated in this manner are destroyed when the zone is destroyed.
 // - allocation of handles in a scoped manner (Handle::AllocateHandle).
-//   A new scope can be started using HANDLESCOPE().
+//   A new scope can be started using HANDLESCOPE(isolate).
 //   Handles allocated in this manner are destroyed when the HandleScope
 //   object is destroyed.
 // Code that uses scoped handles typically looks as follows:
@@ -260,7 +260,7 @@ class HandleScope : public StackResource {
 #if defined(DEBUG)
   HandleScope* link_;  // Link to previous scope.
 #endif
-  DISALLOW_COPY_AND_ASSIGN(HandleScope);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(HandleScope);
 };
 
 // Macro to start a new Handle scope.
@@ -287,7 +287,7 @@ class NoHandleScope : public StackResource {
   ~NoHandleScope();
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NoHandleScope);
 };
 #else  // defined(DEBUG)
 class NoHandleScope : public ValueObject {
@@ -296,7 +296,7 @@ class NoHandleScope : public ValueObject {
   ~NoHandleScope() { }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NoHandleScope);
 };
 #endif  // defined(DEBUG)
 

@@ -322,21 +322,26 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
   const TypeArguments& type_instantiator =
       TypeArguments::CheckedHandle(arguments.At(2));
   ASSERT(type.IsFinalized());
-  ASSERT(!instance.IsNull());
   const Bool& result = Bool::Handle(
       instance.IsInstanceOf(type, type_instantiator) ?
       Bool::True() : Bool::False());
   if (FLAG_trace_type_checks) {
     const Type& instance_type = Type::Handle(instance.GetType());
-    Type& instantiated_type = Type::Handle(type.raw());
-    if (!type.IsInstantiated()) {
+    if (type.IsInstantiated()) {
+      OS::Print("InstanceOf: '%s' %s '%s'\n",
+                String::Handle(instance_type.Name()).ToCString(),
+                (result.raw() == Bool::True()) ? "is" : "is !",
+                String::Handle(type.Name()).ToCString());
+    } else {
       // Instantiate type before printing.
-      instantiated_type = type.InstantiateFrom(type_instantiator, 0);
+      const Type& instantiated_type =
+          Type::Handle(type.InstantiateFrom(type_instantiator, 0));
+      OS::Print("InstanceOf: '%s' %s '%s' instantiated from '%s'\n",
+                String::Handle(instance_type.Name()).ToCString(),
+                (result.raw() == Bool::True()) ? "is" : "is !",
+                String::Handle(instantiated_type.Name()).ToCString(),
+                String::Handle(type.Name()).ToCString());
     }
-    OS::Print("InstanceOf: '%s' %s '%s'\n",
-              String::Handle(instance_type.Name()).ToCString(),
-              (result.raw() == Bool::True()) ? "is" : "is !",
-              String::Handle(instantiated_type.Name()).ToCString());
   }
   arguments.SetReturn(result);
 }
@@ -865,8 +870,9 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
 // pc in the unoptimized code.
 // Since both unoptimized and optimized code have the same layout, we need only
 // to patch the pc of the Dart frame and to disable/enable appropriate code.
-DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
+DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   ASSERT(arguments.Count() == kDeoptimizeRuntimeEntry.argument_count());
+  const Smi& deoptimization_reason_id = Smi::CheckedHandle(arguments.At(0));
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -883,9 +889,11 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
   ASSERT(!descriptors.IsNull());
   // Locate node id at deoptimization point inside optimized code.
   intptr_t deopt_node_id = AstNode::kNoId;
+  intptr_t deopt_token_index = 0;
   for (int i = 0; i < descriptors.Length(); i++) {
     if (static_cast<uword>(descriptors.PC(i)) == caller_frame->pc()) {
       deopt_node_id = descriptors.NodeId(i);
+      deopt_token_index = descriptors.TokenIndex(i);
       break;
     }
   }
@@ -894,9 +902,19 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 0) {
       unoptimized_code.GetDeoptPcAtNodeId(deopt_node_id);
   ASSERT(continue_at_pc != 0);
   if (FLAG_trace_deopt) {
-    OS::Print("Deoptimizing at pc 0x%x id %d '%s' -> continue at 0x%x \n",
-        caller_frame->pc(), deopt_node_id, function.ToFullyQualifiedCString(),
+    OS::Print("Deoptimizing (reason %d) at pc 0x%x id %d '%s' "
+        "-> continue at 0x%x \n",
+        deoptimization_reason_id.Value(),
+        caller_frame->pc(),
+        deopt_node_id,
+        function.ToFullyQualifiedCString(),
         continue_at_pc);
+    const Class& cls = Class::Handle(function.owner());
+    const Script& script = Script::Handle(cls.script());
+    intptr_t line, column;
+    script.GetTokenLocation(deopt_token_index, &line, &column);
+    OS::Print("  Line: %d Column: %d ", line, column);
+    OS::Print(">>  %s\n", String::Handle(script.GetLine(line)).ToCString());
   }
   caller_frame->set_pc(continue_at_pc);
   // Clear invocation counter so that the function gets optimized after

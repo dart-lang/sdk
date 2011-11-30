@@ -6,8 +6,7 @@
 
 #import("../../../tools/testing/dart/test_runner.dart");
 #import("../../../tools/testing/dart/status_file_parser.dart");
-
-// TODO(whesse) source("ProcessTestUtil.dart"); when it is committed.
+#source("ProcessTestUtil.dart");
 
 class TestController {
   static final int numTests = 4;
@@ -24,7 +23,7 @@ class TestController {
     for (var line in output.stdout) print(line);
     print("stderr: ");
     for (var line in output.stderr) print(line);
-    
+
     print("Time: ${output.time}");
     print("Exit code: ${output.exitCode}");
 
@@ -36,6 +35,7 @@ class TestController {
   }
 }
 
+
 TestCase MakeTestCase(String testName, List<String> expectations) {
   String test_path = "tests/standalone/src/${testName}.dart";
   // Working directory may be dart/runtime rather than dart.
@@ -45,7 +45,7 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 
   var timeout = 2;
   return new TestCase(testName,
-                      getDartBinName(),
+                      getDartFileName(),
                       <String>["--ignore-unrecognized-flags",
                                "--enable_type_checks",
                                test_path],
@@ -55,52 +55,20 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 }
 
 
-String getDartBinName() {
-  var names = ["out/Debug_ia32/dart_bin",
-               "out/Release_ia32/dart_bin",
-               "xcodebuild/Debug_ia32/dart_bin",
-               "xcodebuild/Release_ia32/dart_bin",
-               "Debug_ia32/dart_bin.exe",
-               "Release_ia32/dart_bin.exe"];
-  for (var name in names) {
-    if (new File(name).existsSync()) {
-      return name;
-    }
-  }
-}
-
-
-String getProcessTestFileName() {
-  var names = ['out/Release_ia32/process_test',
-               'out/Debug_ia32/process_test',
-               'xcodebuild/Release_ia32/process_test',
-               'xcodebuild/Debug_ia32/process_test',
-               'Release_ia32/process_test.exe',
-               'Debug_ia32/process_test.exe'];
-  for (var name in names) {
-    if (new File(name).existsSync()) {
-      return name;
-    }
-  }
-  Expect.fail('Could not find the process_test program.');
-}
-
 void main() {
   int timeout = 2;
-  new RunningProcess(MakeTestCase("PassTest", [PASS]), timeout).start();
-  new RunningProcess(MakeTestCase("FailTest", [FAIL]), timeout).start();
-  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT]), timeout).start();
+  new RunningProcess(MakeTestCase("PassTest", [PASS])).start();
+  new RunningProcess(MakeTestCase("FailTest", [FAIL])).start();
+  new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT])).start();
 
   new RunningProcess(new TestCase("CrashTest",
                                   getProcessTestFileName(),
                                   const ["0", "0", "1", "1"],
                                   timeout,
                                   TestController.processCompletedTest,
-                                  new Set<String>.from([CRASH])),
-                     timeout).start();
+                                  new Set<String>.from([CRASH]))).start();
   Expect.equals(4, TestController.numTests);
   // Throw must be from body of start() function for this test to work.
-  Expect.throws(
-      new RunningProcess(MakeTestCase("PassTest", [SKIP]), timeout).start);
+  Expect.throws(new RunningProcess(MakeTestCase("PassTest", [SKIP])).start);
 }
 

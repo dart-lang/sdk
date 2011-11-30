@@ -11,8 +11,8 @@ class _BarInfoWrappingImplementation extends DOMWrapperBase implements BarInfo {
     return new _BarInfoWrappingImplementation();
   }
 
-  bool get visible() { return _get__BarInfo_visible(this); }
-  static bool _get__BarInfo_visible(var _this) native;
+  bool get visible() { return _get_visible(this); }
+  static bool _get_visible(var _this) native;
 
   String get typeName() { return "BarInfo"; }
 }

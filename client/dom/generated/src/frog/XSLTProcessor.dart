@@ -1,5 +1,5 @@
 
-class XSLTProcessor native "XSLTProcessor" {
+class XSLTProcessor native "*XSLTProcessor" {
 
   void clearParameters() native;
 

@@ -380,8 +380,9 @@ class TimeoutMomentum implements Momentum {
   num _customDecelerationFactor;
   num _defaultDecelerationFactor;
 
-  TimeoutMomentum(this._delegate, [this._defaultDecelerationFactor = 1])
-    : _decelerating = false,
+  TimeoutMomentum(this._delegate, [defaultDecelerationFactor = 1])
+    : _defaultDecelerationFactor = defaultDecelerationFactor,
+      _decelerating = false,
       _moves = new Queue<_Move>(),
       physicsX = new SingleDimensionPhysics(),
       physicsY = new SingleDimensionPhysics();

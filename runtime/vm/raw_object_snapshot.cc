@@ -589,6 +589,8 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   library.raw_ptr()->num_imports_ = reader->Read<intptr_t>();
   library.raw_ptr()->num_imported_into_ = reader->Read<intptr_t>();
   library.raw_ptr()->num_anonymous_ = reader->Read<intptr_t>();
+  library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
+  library.raw_ptr()->load_state_ = reader->Read<int8_t>();
   // The native resolver is not serialized.
   Dart_NativeEntryResolver resolver = reader->Read<Dart_NativeEntryResolver>();
   ASSERT(resolver == NULL);
@@ -621,6 +623,8 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   writer->Write<intptr_t>(ptr()->num_imports_);
   writer->Write<intptr_t>(ptr()->num_imported_into_);
   writer->Write<intptr_t>(ptr()->num_anonymous_);
+  writer->Write<bool>(ptr()->corelib_imported_);
+  writer->Write<int8_t>(ptr()->load_state_);
   // We do not serialize the native resolver over, this needs to be explicitly
   // set after deserialization.
   writer->Write<Dart_NativeEntryResolver>(NULL);
@@ -1109,6 +1113,75 @@ void RawFourByteString::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawExternalOneByteString* ExternalOneByteString::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    bool classes_serialized) {
+  UNREACHABLE();
+  return ExternalOneByteString::null();
+}
+
+
+RawExternalTwoByteString* ExternalTwoByteString::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    bool classes_serialized) {
+  UNREACHABLE();
+  return ExternalTwoByteString::null();
+}
+
+
+RawExternalFourByteString* ExternalFourByteString::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    bool classes_serialized) {
+  UNREACHABLE();
+  return ExternalFourByteString::null();
+}
+
+
+void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
+                                       intptr_t object_id,
+                                       bool serialize_classes) {
+  // Serialize as a non-external one byte string.
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kOneByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->external_data_->data_);
+}
+
+
+void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
+                                       intptr_t object_id,
+                                       bool serialize_classes) {
+  // Serialize as a non-external two byte string.
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kTwoByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->external_data_->data_);
+}
+
+
+void RawExternalFourByteString::WriteTo(SnapshotWriter* writer,
+                                        intptr_t object_id,
+                                        bool serialize_classes) {
+  // Serialize as a non-external four byte string.
+  StringWriteTo(writer,
+                object_id,
+                ObjectStore::kFourByteStringClass,
+                serialize_classes,
+                ptr()->length_,
+                ptr()->hash_,
+                ptr()->external_data_->data_);
+}
+
+
 RawBool* Bool::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
                           bool classes_serialized) {
@@ -1219,6 +1292,21 @@ void RawImmutableArray::WriteTo(SnapshotWriter* writer,
                ptr()->length_,
                ptr()->type_arguments_,
                ptr()->data());
+}
+
+
+RawByteBuffer* ByteBuffer::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    bool classes_serialized) {
+  UNIMPLEMENTED();
+  return ByteBuffer::null();
+}
+
+
+void RawByteBuffer::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            bool serialize_classes) {
+  UNIMPLEMENTED();
 }
 
 

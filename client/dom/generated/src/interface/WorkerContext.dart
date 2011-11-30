@@ -14,9 +14,9 @@ interface WorkerGlobalScope {
 
   void set navigator(WorkerNavigator value);
 
-  EventListener get onerror();
+  WorkerContext get self();
 
-  void set onerror(EventListener value);
+  void set self(WorkerContext value);
 
   NotificationCenter get webkitNotifications();
 

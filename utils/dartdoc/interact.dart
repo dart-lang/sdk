@@ -5,7 +5,7 @@
 /** Provides client-side behavior for generated docs. */
 #library('interact');
 
-#import('../../client/html/html.dart');
+#import('dart:html');
 
 main() {
   window.on.contentLoaded.add((e) {

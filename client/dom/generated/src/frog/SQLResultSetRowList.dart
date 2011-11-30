@@ -1,5 +1,5 @@
 
-class SQLResultSetRowList native "SQLResultSetRowList" {
+class SQLResultSetRowList native "*SQLResultSetRowList" {
 
   int length;
 

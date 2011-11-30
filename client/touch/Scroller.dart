@@ -136,11 +136,13 @@ class Scroller implements Draggable, MomentumDelegate {
 
   Scroller(Element scrollableElem, [this.verticalEnabled = false,
            this.horizontalEnabled = false,
-           this._momentumEnabled = true,
-           this._lookupContentSizeDelegate = null,
+           momentumEnabled = true,
+           lookupContentSizeDelegate = null,
            num defaultDecelerationFactor = 1,
            int scrollTechnique = null, bool capture = false])
-      : _element = scrollableElem,
+      : _momentumEnabled = momentumEnabled,
+        _lookupContentSizeDelegate = lookupContentSizeDelegate,
+        _element = scrollableElem,
         _frame = scrollableElem.parent,
         _scrollTechnique = scrollTechnique !== null
             ? scrollTechnique : ScrollerScrollTechnique.TRANSFORM_3D,

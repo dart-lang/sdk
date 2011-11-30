@@ -11,17 +11,17 @@ class _HTMLPreElementWrappingImplementation extends _HTMLElementWrappingImplemen
     return new _HTMLPreElementWrappingImplementation();
   }
 
-  int get width() { return _get__HTMLPreElement_width(this); }
-  static int _get__HTMLPreElement_width(var _this) native;
+  int get width() { return _get_width(this); }
+  static int _get_width(var _this) native;
 
-  void set width(int value) { _set__HTMLPreElement_width(this, value); }
-  static void _set__HTMLPreElement_width(var _this, int value) native;
+  void set width(int value) { _set_width(this, value); }
+  static void _set_width(var _this, int value) native;
 
-  bool get wrap() { return _get__HTMLPreElement_wrap(this); }
-  static bool _get__HTMLPreElement_wrap(var _this) native;
+  bool get wrap() { return _get_wrap(this); }
+  static bool _get_wrap(var _this) native;
 
-  void set wrap(bool value) { _set__HTMLPreElement_wrap(this, value); }
-  static void _set__HTMLPreElement_wrap(var _this, bool value) native;
+  void set wrap(bool value) { _set_wrap(this, value); }
+  static void _set_wrap(var _this, bool value) native;
 
   String get typeName() { return "HTMLPreElement"; }
 }

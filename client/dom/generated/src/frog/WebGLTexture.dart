@@ -1,5 +1,5 @@
 
-class WebGLTexture native "WebGLTexture" {
+class WebGLTexture native "*WebGLTexture" {
 
   var dartObjectLocalStorage;
 

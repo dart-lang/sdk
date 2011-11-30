@@ -1,5 +1,5 @@
 
-class SharedWorker extends AbstractWorker native "SharedWorker" {
+class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
   MessagePort port;
 }

@@ -6,14 +6,6 @@
 
 interface KeyboardEvent extends UIEvent {
 
-  static final int KEY_LOCATION_LEFT = 0x01;
-
-  static final int KEY_LOCATION_NUMPAD = 0x03;
-
-  static final int KEY_LOCATION_RIGHT = 0x02;
-
-  static final int KEY_LOCATION_STANDARD = 0x00;
-
   bool get altGraphKey();
 
   bool get altKey();
@@ -27,8 +19,6 @@ interface KeyboardEvent extends UIEvent {
   bool get metaKey();
 
   bool get shiftKey();
-
-  bool getModifierState(String keyIdentifierArg);
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }

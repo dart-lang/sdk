@@ -1,5 +1,5 @@
 
-class InspectorFrontendHost native "InspectorFrontendHost" {
+class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void bringToFront() native;
 

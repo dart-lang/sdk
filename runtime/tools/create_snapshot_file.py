@@ -122,6 +122,7 @@ def Main():
   if (pipe.returncode != 0):
     print out, error
     print "Snapshot generation failed"
+    print "(Command was: '", ' '.join(command), "')"
     return -1
 
   if not makeFile(options.output, options.input_cc, options.output_bin):

@@ -1,5 +1,5 @@
 
-class WebGLShader native "WebGLShader" {
+class WebGLShader native "*WebGLShader" {
 
   var dartObjectLocalStorage;
 

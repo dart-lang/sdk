@@ -1,5 +1,5 @@
 
-class WebKitCSSKeyframeRule extends CSSRule native "WebKitCSSKeyframeRule" {
+class WebKitCSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 
   String keyText;
 

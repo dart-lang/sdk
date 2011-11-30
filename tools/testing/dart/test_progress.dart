@@ -7,20 +7,20 @@
 #import("test_runner.dart");
 
 class ProgressIndicator {
-  ProgressIndicator() : _startTime = new Date.now();
+  ProgressIndicator(this._startTime);
 
-  factory ProgressIndicator.fromName(String name) {
+  factory ProgressIndicator.fromName(String name, Date startTime) {
     switch (name) {
       case 'compact':
-        return new CompactProgressIndicator();
+        return new CompactProgressIndicator(startTime);
       case 'line':
-        return new LineProgressIndicator();
+        return new LineProgressIndicator(startTime);
       case 'verbose':
-        return new VerboseProgressIndicator();
+        return new VerboseProgressIndicator(startTime);
       case 'status':
-        return new StatusProgressIndicator();
+        return new StatusProgressIndicator(startTime);
       case 'buildbot':
-        return new BuildbotProgressIndicator();
+        return new BuildbotProgressIndicator(startTime);
       default:
         assert(false);
         break;
@@ -69,7 +69,7 @@ class ProgressIndicator {
   String _timeString() {
     Duration d = (new Date.now()).difference(_startTime);
     var min = d.inMinutes;
-    var sec = d.inSeconds;
+    var sec = d.inSeconds % 60;
     return '${_padTime(min)}:${_padTime(sec)}';
   }
 
@@ -116,7 +116,10 @@ class ProgressIndicator {
 
 
 class CompactProgressIndicator extends ProgressIndicator {
+  CompactProgressIndicator(Date startTime) : super(startTime);
+
   void allDone() {
+    stdout.write('\n'.charCodes());
   }
 
   void _printProgress() {
@@ -136,6 +139,8 @@ class CompactProgressIndicator extends ProgressIndicator {
 
 
 class LineProgressIndicator extends ProgressIndicator {
+  LineProgressIndicator(Date startTime) : super(startTime);
+
   void allDone() {
     _printStatus();
   }
@@ -154,6 +159,8 @@ class LineProgressIndicator extends ProgressIndicator {
 
 
 class VerboseProgressIndicator extends ProgressIndicator {
+  VerboseProgressIndicator(Date startTime) : super(startTime);
+
   void allDone() {
     _printStatus();
   }
@@ -173,6 +180,8 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
 
 class StatusProgressIndicator extends ProgressIndicator {
+  StatusProgressIndicator(Date startTime) : super(startTime);
+
   void allDone() {
     _printStatus();
   }
@@ -186,6 +195,8 @@ class StatusProgressIndicator extends ProgressIndicator {
 
 
 class BuildbotProgressIndicator extends ProgressIndicator {
+  BuildbotProgressIndicator(Date startTime) : super(startTime);
+
   void allDone() {
     _printStatus();
   }

@@ -1,5 +1,5 @@
 
-class HTMLStyleElement extends HTMLElement native "HTMLStyleElement" {
+class HTMLStyleElement extends HTMLElement native "*HTMLStyleElement" {
 
   bool disabled;
 

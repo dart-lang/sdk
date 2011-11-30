@@ -1,5 +1,5 @@
 
-class HTMLIFrameElement extends HTMLElement native "HTMLIFrameElement" {
+class HTMLIFrameElement extends HTMLElement native "*HTMLIFrameElement" {
 
   String align;
 

@@ -11,8 +11,8 @@ class _SpeechInputResultListWrappingImplementation extends DOMWrapperBase implem
     return new _SpeechInputResultListWrappingImplementation();
   }
 
-  int get length() { return _get__SpeechInputResultList_length(this); }
-  static int _get__SpeechInputResultList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   SpeechInputResult item(int index) {
     return _item(this, index);

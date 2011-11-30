@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
@@ -39,6 +40,7 @@ public class MemberBuilder {
     exec(unit, context, libraryElement.getScope(), typeProvider);
   }
 
+  @VisibleForTesting
   public void exec(DartUnit unit, DartCompilerContext compilerContext, Scope scope,
                    CoreTypeProvider typeProvider) {
     topLevelContext = new ResolutionContext(scope, compilerContext, typeProvider);
@@ -180,8 +182,7 @@ public class MemberBuilder {
             return Elements.constructorFromMethodNode(
                 method, node.getPropertyName(), (ClassElement) currentHolder, (ClassElement) element);
           } else {
-            topLevelContext.internalError(node,
-                "Library prefixes not implemented yet");
+            // Nothing else is valid. Already warned in getMethodKind().
             return getTypeProvider().getDynamicType().getElement();
           }
         }
@@ -387,12 +388,17 @@ public class MemberBuilder {
         }
       } else {
         DartPropertyAccess property = (DartPropertyAccess) name;
-        DartIdentifier qualifier = (DartIdentifier) property.getQualifier();
-        if (qualifier.getTargetName().equals(currentHolder.getName())) {
-          return ElementKind.CONSTRUCTOR;
-        } else {
+        if (property.getQualifier() instanceof DartIdentifier) {
+          DartIdentifier qualifier = (DartIdentifier) property.getQualifier();
+          if (qualifier.getTargetName().equals(currentHolder.getName())) {
+            return ElementKind.CONSTRUCTOR;
+          }
           resolutionError(method.getName(),
                           ResolverErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
+        } else {
+          // Multiple qualifiers (Foo.bar.baz)
+          resolutionError(method.getName(),
+                          ResolverErrorCode.TOO_MANY_QUALIFIERS_FOR_METHOD);
         }
       }
 

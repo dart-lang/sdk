@@ -200,10 +200,8 @@ static void PrintEventMask(struct pollfd* pollfd) {
   if ((pollfd->revents & POLLOUT) != 0) printf("POLLOUT ");
   if ((pollfd->revents & POLLERR) != 0) printf("POLLERR ");
   if ((pollfd->revents & POLLHUP) != 0) printf("POLLHUP ");
-  if ((pollfd->revents & POLLRDHUP) != 0) printf("POLLRDHUP ");
   if ((pollfd->revents & POLLNVAL) != 0) printf("POLLNVAL ");
-  int all_events = POLLIN | POLLPRI | POLLOUT |
-                   POLLERR | POLLHUP | POLLRDHUP | POLLNVAL;
+  int all_events = POLLIN | POLLPRI | POLLOUT | POLLERR | POLLHUP | POLLNVAL;
   if ((pollfd->revents & ~all_events) != 0) {
     printf("(and %08x) ", pollfd->revents & ~all_events);
   }
@@ -266,7 +264,8 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       }
     }
 
-    // On pipes POLLHUP is reported without POLLIN.
+    // On pipes POLLHUP is reported without POLLIN when there is no
+    // more data to read.
     if (sd->IsPipe()) {
       if (((pollfd->revents & POLLIN) == 0) &&
           ((pollfd->revents & POLLHUP) != 0)) {
@@ -275,7 +274,14 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       }
     }
 
-    if ((pollfd->revents & POLLOUT) != 0) event_mask |= (1 << kOutEvent);
+    if ((pollfd->revents & POLLOUT) != 0) {
+      if ((pollfd->revents & POLLERR) != 0) {
+        event_mask = (1 << kErrorEvent);
+        sd->MarkClosedWrite();
+      } else {
+        event_mask |= (1 << kOutEvent);
+      }
+    }
   }
 
   return event_mask;

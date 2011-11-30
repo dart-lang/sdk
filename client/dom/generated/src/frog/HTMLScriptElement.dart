@@ -1,5 +1,5 @@
 
-class HTMLScriptElement extends HTMLElement native "HTMLScriptElement" {
+class HTMLScriptElement extends HTMLElement native "*HTMLScriptElement" {
 
   bool async;
 

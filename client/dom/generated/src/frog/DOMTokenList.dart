@@ -1,5 +1,5 @@
 
-class DOMTokenList native "DOMTokenList" {
+class DOMTokenList native "*DOMTokenList" {
 
   int length;
 
@@ -10,6 +10,8 @@ class DOMTokenList native "DOMTokenList" {
   String item(int index) native;
 
   void remove(String token) native;
+
+  String toString() native;
 
   bool toggle(String token) native;
 

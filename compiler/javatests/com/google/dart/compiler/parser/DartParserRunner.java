@@ -112,18 +112,18 @@ public class DartParserRunner extends DartCompilerListener implements Runnable {
     }
   }
 
-  boolean apiParsing;
-  DartUnit dartUnit;
-  List<DartCompilationError> errors = new ArrayList<DartCompilationError>();
-  String name;
+  private boolean apiParsing;
+  private DartUnit dartUnit;
+  private List<DartCompilationError> errors = new ArrayList<DartCompilationError>();
+  private String name;
 
-  Thread parserWorker;
+  private Thread parserWorker;
 
-  String sourceCode;
+  private String sourceCode;
 
-  int timeoutInMillis = DEFAULT_TIMEOUT_IN_MILISECONDS;
+  private int timeoutInMillis = DEFAULT_TIMEOUT_IN_MILISECONDS;
 
-  AtomicReference<Throwable> workerException = new AtomicReference<Throwable>();
+  private AtomicReference<Throwable> workerException = new AtomicReference<Throwable>();
 
   private boolean wantWarnings;
 
@@ -136,6 +136,10 @@ public class DartParserRunner extends DartCompilerListener implements Runnable {
     this.sourceCode = sourceCode;
     this.parserWorker = new Thread(this);
     this.apiParsing = apiParsing;
+  }
+
+  public DartUnit getDartUnit() {
+    return dartUnit;
   }
 
   @Override

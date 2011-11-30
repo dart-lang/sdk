@@ -1,5 +1,5 @@
 
-class Geoposition native "Geoposition" {
+class Geoposition native "*Geoposition" {
 
   Coordinates coords;
 

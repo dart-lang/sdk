@@ -482,7 +482,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             case DYNAMIC:
               return member.getType();
             default:
-              return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN,
+              return typeError(diagnosticNode, TypeErrorCode.USE_ASSIGNMENT_ON_SETTER,
                                name, receiver);
           }
           break;

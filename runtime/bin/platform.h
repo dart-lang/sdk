@@ -9,6 +9,9 @@
 
 class Platform {
  public:
+  // Perform platform specific initialization.
+  static bool Initialize();
+
   // Returns the number of processors on the machine.
   static int NumberOfProcessors();
 

@@ -11,8 +11,8 @@ class _HTMLAllCollectionWrappingImplementation extends DOMWrapperBase implements
     return new _HTMLAllCollectionWrappingImplementation();
   }
 
-  int get length() { return _get__HTMLAllCollection_length(this); }
-  static int _get__HTMLAllCollection_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Node item(int index) {
     return _item(this, index);

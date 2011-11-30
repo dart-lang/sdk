@@ -11,11 +11,11 @@ class _CSSMediaRuleWrappingImplementation extends _CSSRuleWrappingImplementation
     return new _CSSMediaRuleWrappingImplementation();
   }
 
-  CSSRuleList get cssRules() { return _get__CSSMediaRule_cssRules(this); }
-  static CSSRuleList _get__CSSMediaRule_cssRules(var _this) native;
+  CSSRuleList get cssRules() { return _get_cssRules(this); }
+  static CSSRuleList _get_cssRules(var _this) native;
 
-  MediaList get media() { return _get__CSSMediaRule_media(this); }
-  static MediaList _get__CSSMediaRule_media(var _this) native;
+  MediaList get media() { return _get_media(this); }
+  static MediaList _get_media(var _this) native;
 
   void deleteRule(int index) {
     _deleteRule(this, index);

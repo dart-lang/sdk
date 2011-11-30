@@ -168,11 +168,9 @@ TEST_CASE(Interface) {
       Class::Handle(Class::NewInterface(interface_name, script));
   EXPECT(interface.is_interface());
   EXPECT(!factory_class.is_interface());
-  EXPECT_EQ(Object::null(), interface.factory_type());
-  const Type& factory_type =
-      Type::Handle(Type::NewNonParameterizedType(factory_class));
-  interface.set_factory_type(factory_type);
-  EXPECT_EQ(factory_type.raw(), interface.factory_type());
+  EXPECT(!interface.HasFactoryClass());
+  interface.set_factory_class(factory_class);
+  EXPECT_EQ(factory_class.raw(), interface.FactoryClass());
 }
 
 
@@ -1490,6 +1488,107 @@ TEST_CASE(StringFromUtf8Literal) {
 }
 
 
+TEST_CASE(ExternalOneByteString) {
+  uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(!str.IsOneByteString());
+  EXPECT(str.IsExternalOneByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("\xC3\xB6\xC3\xB1\xC3\xA9"));
+
+  const String& copy = String::Handle(String::SubString(str, 0, len));
+  EXPECT(!copy.IsExternalOneByteString());
+  EXPECT(copy.IsOneByteString());
+  EXPECT_EQ(len, copy.Length());
+  EXPECT(copy.Equals(str));
+
+  const String& concat = String::Handle(String::Concat(str, str));
+  EXPECT(!concat.IsExternalOneByteString());
+  EXPECT(concat.IsOneByteString());
+  EXPECT_EQ(len * 2, concat.Length());
+  EXPECT(concat.Equals("\xC3\xB6\xC3\xB1\xC3\xA9\xC3\xB6\xC3\xB1\xC3\xA9"));
+
+  const String& substr = String::Handle(String::SubString(str, 1, 1));
+  EXPECT(!substr.IsExternalOneByteString());
+  EXPECT(substr.IsOneByteString());
+  EXPECT_EQ(1, substr.Length());
+  EXPECT(substr.Equals("\xC3\xB1"));
+}
+
+
+TEST_CASE(ExternalTwoByteString) {
+  uint16_t characters[] = { 0x1E6B, 0x1E85, 0x1E53 };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(!str.IsTwoByteString());
+  EXPECT(str.IsExternalTwoByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
+
+  const String& copy = String::Handle(String::SubString(str, 0, len));
+  EXPECT(!copy.IsExternalTwoByteString());
+  EXPECT(copy.IsTwoByteString());
+  EXPECT_EQ(len, copy.Length());
+  EXPECT(copy.Equals(str));
+
+  const String& concat = String::Handle(String::Concat(str, str));
+  EXPECT(!concat.IsExternalTwoByteString());
+  EXPECT(concat.IsTwoByteString());
+  EXPECT_EQ(len * 2, concat.Length());
+  EXPECT(concat.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"
+                       "\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
+
+  const String& substr = String::Handle(String::SubString(str, 1, 1));
+  EXPECT(!substr.IsExternalTwoByteString());
+  EXPECT(substr.IsTwoByteString());
+  EXPECT_EQ(1, substr.Length());
+  EXPECT(substr.Equals("\xE1\xBA\x85"));
+}
+
+
+TEST_CASE(ExternalFourByteString) {
+  uint32_t characters[] = { 0x1D5BF, 0x1D5C8, 0x1D5CE, 0x1D5CB };
+  intptr_t len = ARRAY_SIZE(characters);
+
+  const String& str =
+      String::Handle(
+          ExternalFourByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  EXPECT(!str.IsFourByteString());
+  EXPECT(str.IsExternalFourByteString());
+  EXPECT_EQ(str.Length(), len);
+  EXPECT(str.Equals("\xF0\x9D\x96\xBF\xF0\x9D\x97\x88"
+                    "\xF0\x9D\x97\x8E\xF0\x9D\x97\x8B"));
+
+  const String& copy = String::Handle(String::SubString(str, 0, len));
+  EXPECT(!copy.IsExternalFourByteString());
+  EXPECT(copy.IsFourByteString());
+  EXPECT_EQ(len, copy.Length());
+  EXPECT(copy.Equals(str));
+
+  const String& concat = String::Handle(String::Concat(str, str));
+  EXPECT(!concat.IsExternalFourByteString());
+  EXPECT(concat.IsFourByteString());
+  EXPECT_EQ(len * 2, concat.Length());
+  EXPECT(concat.Equals("\xF0\x9D\x96\xBF\xF0\x9D\x97\x88"
+                       "\xF0\x9D\x97\x8E\xF0\x9D\x97\x8B"
+                       "\xF0\x9D\x96\xBF\xF0\x9D\x97\x88"
+                       "\xF0\x9D\x97\x8E\xF0\x9D\x97\x8B"));
+
+  const String& substr = String::Handle(String::SubString(str, 1, 2));
+  EXPECT(!substr.IsExternalFourByteString());
+  EXPECT(substr.IsFourByteString());
+  EXPECT_EQ(2, substr.Length());
+  EXPECT(substr.Equals("\xF0\x9D\x97\x88\xF0\x9D\x97\x8E"));
+}
+
+
 TEST_CASE(Symbol) {
   const String& one = String::Handle(String::NewSymbol("Eins"));
   EXPECT(one.IsSymbol());
@@ -1589,6 +1688,172 @@ TEST_CASE(Array) {
   EXPECT(!array.Equals(other_array));
 
   EXPECT_EQ(0, Array::Handle(Array::Empty()).Length());
+}
+
+
+TEST_CASE(ByteBuffer) {
+  uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
+  intptr_t data_length = ARRAY_SIZE(data);
+
+  const ByteBuffer& array1 =
+      ByteBuffer::Handle(ByteBuffer::New(data, data_length));
+  EXPECT(!array1.IsNull());
+  EXPECT_EQ(data_length, array1.Length());
+  EXPECT_EQ(-3, array1.At<int8_t>(0));
+  EXPECT_EQ(253, array1.At<uint8_t>(0));
+  EXPECT_EQ(-2, array1.At<int8_t>(1));
+  EXPECT_EQ(254, array1.At<uint8_t>(1));
+  EXPECT_EQ(-1, array1.At<int8_t>(2));
+  EXPECT_EQ(255, array1.At<uint8_t>(2));
+  EXPECT_EQ(0, array1.At<int8_t>(3));
+  EXPECT_EQ(0, array1.At<uint8_t>(3));
+  EXPECT_EQ(1, array1.At<int8_t>(4));
+  EXPECT_EQ(1, array1.At<uint8_t>(4));
+  EXPECT_EQ(2, array1.At<int8_t>(5));
+  EXPECT_EQ(2, array1.At<uint8_t>(5));
+
+  const ByteBuffer& array2 =
+      ByteBuffer::Handle(ByteBuffer::New(data, data_length));
+  EXPECT(!array1.IsNull());
+  EXPECT_EQ(data_length, array2.Length());
+  EXPECT(array1.Equals(array2));
+  EXPECT(array2.Equals(array1));
+
+  array1.SetAt<uint8_t>(0, 123);
+  array2.SetAt<int8_t>(2, -123);
+  EXPECT(array1.Equals(array2));
+  EXPECT(array2.Equals(array1));
+}
+
+
+TEST_CASE(ByteBufferAlignedAccess) {
+  intptr_t length = 16;
+  uint8_t* data = new uint8_t[length];
+
+  const ByteBuffer& array1 =
+      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  EXPECT(!array1.IsNull());
+  EXPECT_EQ(length, array1.Length());
+
+  const ByteBuffer& array2 =
+      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  EXPECT(!array2.IsNull());
+  EXPECT_EQ(length, array2.Length());
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetAt<float>(0, FLT_MIN);
+  array1.SetAt<float>(4, FLT_MAX);
+  EXPECT_EQ(FLT_MIN, array2.At<float>(0));
+  EXPECT_EQ(FLT_MAX, array2.At<float>(4));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetAt<float>(0, 0.0f);
+  EXPECT_EQ(0.0f, array2.At<float>(0));
+  array1.SetAt<float>(4, 1.0f);
+  EXPECT_EQ(1.0f, array2.At<float>(4));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetAt<double>(0, DBL_MIN);
+  EXPECT_EQ(DBL_MIN, array2.At<double>(0));
+  array1.SetAt<double>(8, DBL_MAX);
+  EXPECT_EQ(DBL_MAX, array2.At<double>(8));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetAt<double>(0, 0.0);
+  EXPECT_EQ(0.0, array2.At<double>(0));
+  array1.SetAt<double>(8, 1.0);
+  EXPECT_EQ(1.0, array2.At<double>(8));
+
+  delete[] data;
+}
+
+
+TEST_CASE(ByteBufferUnlignedAccess) {
+  intptr_t length = 24;
+  uint8_t* data = new uint8_t[length];
+
+  const ByteBuffer& array1 =
+      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  EXPECT(!array1.IsNull());
+  EXPECT_EQ(length, array1.Length());
+
+  const ByteBuffer& array2 =
+      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  EXPECT(!array2.IsNull());
+  EXPECT_EQ(length, array2.Length());
+
+  int float_misalign = 3;
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<float>(float_misalign, FLT_MIN);
+  array1.SetUnalignedAt<float>(4 + float_misalign, FLT_MAX);
+  EXPECT_EQ(FLT_MIN, array2.UnalignedAt<float>(float_misalign));
+  EXPECT_EQ(FLT_MAX, array2.UnalignedAt<float>(4 + float_misalign));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<float>(float_misalign, 0.0f);
+  EXPECT_EQ(0.0f, array2.UnalignedAt<float>(float_misalign));
+  array1.SetUnalignedAt<float>(4 + float_misalign, 1.0f);
+  EXPECT_EQ(1.0f, array2.UnalignedAt<float>(4 + float_misalign));
+
+  int double_misalign = 5;
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<double>(double_misalign, DBL_MIN);
+  EXPECT_EQ(DBL_MIN, array2.UnalignedAt<double>(double_misalign));
+  array1.SetUnalignedAt<double>(8 + double_misalign, DBL_MAX);
+  EXPECT_EQ(DBL_MAX,
+            array2.UnalignedAt<double>(8 + double_misalign));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<double>(double_misalign, 0.0);
+  EXPECT_EQ(0.0, array2.UnalignedAt<double>(double_misalign));
+  array1.SetUnalignedAt<double>(8 + double_misalign, 1.0);
+  EXPECT_EQ(1.0, array2.UnalignedAt<double>(8 + double_misalign));
+
+  delete[] data;
+}
+
+
+TEST_CASE(ByteBufferSkewedUnalignedBaseAccess) {
+  intptr_t length = 24;
+  uint8_t* data = new uint8_t[length];
+
+  int skew = 2;
+
+  const ByteBuffer& array1 =
+      ByteBuffer::Handle(ByteBuffer::New(data + 3, length));
+  EXPECT(!array1.IsNull());
+  EXPECT_EQ(length, array1.Length());
+
+  const ByteBuffer& array2 =
+      ByteBuffer::Handle(ByteBuffer::New(data + 1, length));
+  EXPECT(!array2.IsNull());
+  EXPECT_EQ(length, array2.Length());
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<float>(0, FLT_MIN);
+  array1.SetUnalignedAt<float>(4, FLT_MAX);
+  EXPECT_EQ(FLT_MIN, array2.UnalignedAt<float>(0 + skew));
+  EXPECT_EQ(FLT_MAX, array2.UnalignedAt<float>(4 + skew));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<float>(0, 0.0f);
+  EXPECT_EQ(0.0f, array2.UnalignedAt<float>(0 + skew));
+  array2.SetUnalignedAt<float>(4 + skew, 1.0f);
+  EXPECT_EQ(1.0f, array1.UnalignedAt<float>(4));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<double>(0, DBL_MIN);
+  EXPECT_EQ(DBL_MIN, array2.UnalignedAt<double>(0 + skew));
+  array2.SetUnalignedAt<double>(8 + skew, DBL_MAX);
+  EXPECT_EQ(DBL_MAX, array1.UnalignedAt<double>(8));
+
+  memset(data, 0xAA, ARRAY_SIZE(data));
+  array1.SetUnalignedAt<double>(0, 0.0);
+  EXPECT_EQ(0.0, array2.UnalignedAt<double>(0 + skew));
+  array2.SetUnalignedAt<double>(8 + skew, 1.0);
+  EXPECT_EQ(1.0, array1.UnalignedAt<double>(8));
+
+  delete[] data;
 }
 
 

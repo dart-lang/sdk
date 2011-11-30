@@ -1,5 +1,5 @@
 
-class TimeRanges native "TimeRanges" {
+class TimeRanges native "*TimeRanges" {
 
   int length;
 

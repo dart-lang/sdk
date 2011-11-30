@@ -1,5 +1,5 @@
 
-class CompositionEvent extends UIEvent native "CompositionEvent" {
+class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
   String data;
 

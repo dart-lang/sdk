@@ -11,17 +11,17 @@ class _HTMLOptGroupElementWrappingImplementation extends _HTMLElementWrappingImp
     return new _HTMLOptGroupElementWrappingImplementation();
   }
 
-  bool get disabled() { return _get__HTMLOptGroupElement_disabled(this); }
-  static bool _get__HTMLOptGroupElement_disabled(var _this) native;
+  bool get disabled() { return _get_disabled(this); }
+  static bool _get_disabled(var _this) native;
 
-  void set disabled(bool value) { _set__HTMLOptGroupElement_disabled(this, value); }
-  static void _set__HTMLOptGroupElement_disabled(var _this, bool value) native;
+  void set disabled(bool value) { _set_disabled(this, value); }
+  static void _set_disabled(var _this, bool value) native;
 
-  String get label() { return _get__HTMLOptGroupElement_label(this); }
-  static String _get__HTMLOptGroupElement_label(var _this) native;
+  String get label() { return _get_label(this); }
+  static String _get_label(var _this) native;
 
-  void set label(String value) { _set__HTMLOptGroupElement_label(this, value); }
-  static void _set__HTMLOptGroupElement_label(var _this, String value) native;
+  void set label(String value) { _set_label(this, value); }
+  static void _set_label(var _this, String value) native;
 
   String get typeName() { return "HTMLOptGroupElement"; }
 }

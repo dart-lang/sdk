@@ -11,83 +11,107 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
     return new _CanvasRenderingContext2DWrappingImplementation();
   }
 
-  String get font() { return _get__CanvasRenderingContext2D_font(this); }
-  static String _get__CanvasRenderingContext2D_font(var _this) native;
+  Object get fillStyle() { return _get_fillStyle(this); }
+  static Object _get_fillStyle(var _this) native;
 
-  void set font(String value) { _set__CanvasRenderingContext2D_font(this, value); }
-  static void _set__CanvasRenderingContext2D_font(var _this, String value) native;
+  void set fillStyle(Object value) { _set_fillStyle(this, value); }
+  static void _set_fillStyle(var _this, Object value) native;
 
-  num get globalAlpha() { return _get__CanvasRenderingContext2D_globalAlpha(this); }
-  static num _get__CanvasRenderingContext2D_globalAlpha(var _this) native;
+  String get font() { return _get_font(this); }
+  static String _get_font(var _this) native;
 
-  void set globalAlpha(num value) { _set__CanvasRenderingContext2D_globalAlpha(this, value); }
-  static void _set__CanvasRenderingContext2D_globalAlpha(var _this, num value) native;
+  void set font(String value) { _set_font(this, value); }
+  static void _set_font(var _this, String value) native;
 
-  String get globalCompositeOperation() { return _get__CanvasRenderingContext2D_globalCompositeOperation(this); }
-  static String _get__CanvasRenderingContext2D_globalCompositeOperation(var _this) native;
+  num get globalAlpha() { return _get_globalAlpha(this); }
+  static num _get_globalAlpha(var _this) native;
 
-  void set globalCompositeOperation(String value) { _set__CanvasRenderingContext2D_globalCompositeOperation(this, value); }
-  static void _set__CanvasRenderingContext2D_globalCompositeOperation(var _this, String value) native;
+  void set globalAlpha(num value) { _set_globalAlpha(this, value); }
+  static void _set_globalAlpha(var _this, num value) native;
 
-  String get lineCap() { return _get__CanvasRenderingContext2D_lineCap(this); }
-  static String _get__CanvasRenderingContext2D_lineCap(var _this) native;
+  String get globalCompositeOperation() { return _get_globalCompositeOperation(this); }
+  static String _get_globalCompositeOperation(var _this) native;
 
-  void set lineCap(String value) { _set__CanvasRenderingContext2D_lineCap(this, value); }
-  static void _set__CanvasRenderingContext2D_lineCap(var _this, String value) native;
+  void set globalCompositeOperation(String value) { _set_globalCompositeOperation(this, value); }
+  static void _set_globalCompositeOperation(var _this, String value) native;
 
-  String get lineJoin() { return _get__CanvasRenderingContext2D_lineJoin(this); }
-  static String _get__CanvasRenderingContext2D_lineJoin(var _this) native;
+  String get lineCap() { return _get_lineCap(this); }
+  static String _get_lineCap(var _this) native;
 
-  void set lineJoin(String value) { _set__CanvasRenderingContext2D_lineJoin(this, value); }
-  static void _set__CanvasRenderingContext2D_lineJoin(var _this, String value) native;
+  void set lineCap(String value) { _set_lineCap(this, value); }
+  static void _set_lineCap(var _this, String value) native;
 
-  num get lineWidth() { return _get__CanvasRenderingContext2D_lineWidth(this); }
-  static num _get__CanvasRenderingContext2D_lineWidth(var _this) native;
+  String get lineJoin() { return _get_lineJoin(this); }
+  static String _get_lineJoin(var _this) native;
 
-  void set lineWidth(num value) { _set__CanvasRenderingContext2D_lineWidth(this, value); }
-  static void _set__CanvasRenderingContext2D_lineWidth(var _this, num value) native;
+  void set lineJoin(String value) { _set_lineJoin(this, value); }
+  static void _set_lineJoin(var _this, String value) native;
 
-  num get miterLimit() { return _get__CanvasRenderingContext2D_miterLimit(this); }
-  static num _get__CanvasRenderingContext2D_miterLimit(var _this) native;
+  num get lineWidth() { return _get_lineWidth(this); }
+  static num _get_lineWidth(var _this) native;
 
-  void set miterLimit(num value) { _set__CanvasRenderingContext2D_miterLimit(this, value); }
-  static void _set__CanvasRenderingContext2D_miterLimit(var _this, num value) native;
+  void set lineWidth(num value) { _set_lineWidth(this, value); }
+  static void _set_lineWidth(var _this, num value) native;
 
-  num get shadowBlur() { return _get__CanvasRenderingContext2D_shadowBlur(this); }
-  static num _get__CanvasRenderingContext2D_shadowBlur(var _this) native;
+  num get miterLimit() { return _get_miterLimit(this); }
+  static num _get_miterLimit(var _this) native;
 
-  void set shadowBlur(num value) { _set__CanvasRenderingContext2D_shadowBlur(this, value); }
-  static void _set__CanvasRenderingContext2D_shadowBlur(var _this, num value) native;
+  void set miterLimit(num value) { _set_miterLimit(this, value); }
+  static void _set_miterLimit(var _this, num value) native;
 
-  String get shadowColor() { return _get__CanvasRenderingContext2D_shadowColor(this); }
-  static String _get__CanvasRenderingContext2D_shadowColor(var _this) native;
+  num get shadowBlur() { return _get_shadowBlur(this); }
+  static num _get_shadowBlur(var _this) native;
 
-  void set shadowColor(String value) { _set__CanvasRenderingContext2D_shadowColor(this, value); }
-  static void _set__CanvasRenderingContext2D_shadowColor(var _this, String value) native;
+  void set shadowBlur(num value) { _set_shadowBlur(this, value); }
+  static void _set_shadowBlur(var _this, num value) native;
 
-  num get shadowOffsetX() { return _get__CanvasRenderingContext2D_shadowOffsetX(this); }
-  static num _get__CanvasRenderingContext2D_shadowOffsetX(var _this) native;
+  String get shadowColor() { return _get_shadowColor(this); }
+  static String _get_shadowColor(var _this) native;
 
-  void set shadowOffsetX(num value) { _set__CanvasRenderingContext2D_shadowOffsetX(this, value); }
-  static void _set__CanvasRenderingContext2D_shadowOffsetX(var _this, num value) native;
+  void set shadowColor(String value) { _set_shadowColor(this, value); }
+  static void _set_shadowColor(var _this, String value) native;
 
-  num get shadowOffsetY() { return _get__CanvasRenderingContext2D_shadowOffsetY(this); }
-  static num _get__CanvasRenderingContext2D_shadowOffsetY(var _this) native;
+  num get shadowOffsetX() { return _get_shadowOffsetX(this); }
+  static num _get_shadowOffsetX(var _this) native;
 
-  void set shadowOffsetY(num value) { _set__CanvasRenderingContext2D_shadowOffsetY(this, value); }
-  static void _set__CanvasRenderingContext2D_shadowOffsetY(var _this, num value) native;
+  void set shadowOffsetX(num value) { _set_shadowOffsetX(this, value); }
+  static void _set_shadowOffsetX(var _this, num value) native;
 
-  String get textAlign() { return _get__CanvasRenderingContext2D_textAlign(this); }
-  static String _get__CanvasRenderingContext2D_textAlign(var _this) native;
+  num get shadowOffsetY() { return _get_shadowOffsetY(this); }
+  static num _get_shadowOffsetY(var _this) native;
 
-  void set textAlign(String value) { _set__CanvasRenderingContext2D_textAlign(this, value); }
-  static void _set__CanvasRenderingContext2D_textAlign(var _this, String value) native;
+  void set shadowOffsetY(num value) { _set_shadowOffsetY(this, value); }
+  static void _set_shadowOffsetY(var _this, num value) native;
 
-  String get textBaseline() { return _get__CanvasRenderingContext2D_textBaseline(this); }
-  static String _get__CanvasRenderingContext2D_textBaseline(var _this) native;
+  Object get strokeStyle() { return _get_strokeStyle(this); }
+  static Object _get_strokeStyle(var _this) native;
 
-  void set textBaseline(String value) { _set__CanvasRenderingContext2D_textBaseline(this, value); }
-  static void _set__CanvasRenderingContext2D_textBaseline(var _this, String value) native;
+  void set strokeStyle(Object value) { _set_strokeStyle(this, value); }
+  static void _set_strokeStyle(var _this, Object value) native;
+
+  String get textAlign() { return _get_textAlign(this); }
+  static String _get_textAlign(var _this) native;
+
+  void set textAlign(String value) { _set_textAlign(this, value); }
+  static void _set_textAlign(var _this, String value) native;
+
+  String get textBaseline() { return _get_textBaseline(this); }
+  static String _get_textBaseline(var _this) native;
+
+  void set textBaseline(String value) { _set_textBaseline(this, value); }
+  static void _set_textBaseline(var _this, String value) native;
+
+  List get webkitLineDash() { return _get_webkitLineDash(this); }
+  static List _get_webkitLineDash(var _this) native;
+
+  void set webkitLineDash(List value) { _set_webkitLineDash(this, value); }
+  static void _set_webkitLineDash(var _this, List value) native;
+
+  num get webkitLineDashOffset() { return _get_webkitLineDashOffset(this); }
+  static num _get_webkitLineDashOffset(var _this) native;
+
+  void set webkitLineDashOffset(num value) { _set_webkitLineDashOffset(this, value); }
+  static void _set_webkitLineDashOffset(var _this, num value) native;
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) {
     _arc(this, x, y, radius, startAngle, endAngle, anticlockwise);
@@ -558,27 +582,6 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   static void _setFillColor_5(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native;
   static void _setFillColor_6(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native;
 
-  void setFillStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _setFillStyle(this, color_OR_gradient_OR_pattern);
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _setFillStyle_2(this, color_OR_gradient_OR_pattern);
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _setFillStyle_3(this, color_OR_gradient_OR_pattern);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-  static void _setFillStyle(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setFillStyle_2(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setFillStyle_3(receiver, color_OR_gradient_OR_pattern) native;
-
   void setLineCap(String cap) {
     _setLineCap(this, cap);
     return;
@@ -738,27 +741,6 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   static void _setStrokeColor_4(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native;
   static void _setStrokeColor_5(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native;
   static void _setStrokeColor_6(receiver, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native;
-
-  void setStrokeStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _setStrokeStyle(this, color_OR_gradient_OR_pattern);
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _setStrokeStyle_2(this, color_OR_gradient_OR_pattern);
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _setStrokeStyle_3(this, color_OR_gradient_OR_pattern);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-  static void _setStrokeStyle(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setStrokeStyle_2(receiver, color_OR_gradient_OR_pattern) native;
-  static void _setStrokeStyle_3(receiver, color_OR_gradient_OR_pattern) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) {
     _setTransform(this, m11, m12, m21, m22, dx, dy);

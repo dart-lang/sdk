@@ -483,10 +483,10 @@ int Handle::Write(const void* buffer, int num_bytes) {
     if (num_bytes > 4096) num_bytes = 4096;
     pending_write_ = IOBuffer::AllocateWriteBuffer(num_bytes);
     pending_write_->Write(buffer, num_bytes);
-    IssueWrite();
+    if (!IssueWrite()) return -1;
     return num_bytes;
   } else {
-    DWORD bytes_written;
+    DWORD bytes_written = -1;
     BOOL ok = WriteFile(handle_,
                         buffer,
                         num_bytes,

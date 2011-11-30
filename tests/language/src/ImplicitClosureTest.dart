@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing invocation of implicit closures.
+// VMOptions=
+// VMOptions=--use_slow_path
 
 class First {
   First(this.i) {}

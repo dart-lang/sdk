@@ -1,15 +1,7 @@
 
-class Notification native "Notification" {
+class Notification native "*Notification" {
 
   String dir;
-
-  EventListener onclick;
-
-  EventListener onclose;
-
-  EventListener ondisplay;
-
-  EventListener onerror;
 
   String replaceId;
 

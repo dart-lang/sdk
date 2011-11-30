@@ -36,6 +36,10 @@ interface HTMLLinkElement extends HTMLElement {
 
   StyleSheet get sheet();
 
+  DOMSettableTokenList get sizes();
+
+  void set sizes(DOMSettableTokenList value);
+
   String get target();
 
   void set target(String value);

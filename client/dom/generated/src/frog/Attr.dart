@@ -1,5 +1,5 @@
 
-class Attr extends Node native "Attr" {
+class Attr extends Node native "*Attr" {
 
   bool isId;
 

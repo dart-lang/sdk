@@ -1,7 +1,5 @@
 
-class AbstractWorker native "AbstractWorker" {
-
-  EventListener onerror;
+class AbstractWorker native "*AbstractWorker" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

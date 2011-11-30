@@ -1,5 +1,5 @@
 
-class ValidityState native "ValidityState" {
+class ValidityState native "*ValidityState" {
 
   bool customError;
 

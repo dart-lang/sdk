@@ -1,5 +1,5 @@
 
-class TreeWalker native "TreeWalker" {
+class TreeWalker native "*TreeWalker" {
 
   Node currentNode;
 

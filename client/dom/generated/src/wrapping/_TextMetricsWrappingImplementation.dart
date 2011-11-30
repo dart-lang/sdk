@@ -11,8 +11,8 @@ class _TextMetricsWrappingImplementation extends DOMWrapperBase implements TextM
     return new _TextMetricsWrappingImplementation();
   }
 
-  num get width() { return _get__TextMetrics_width(this); }
-  static num _get__TextMetrics_width(var _this) native;
+  num get width() { return _get_width(this); }
+  static num _get_width(var _this) native;
 
   String get typeName() { return "TextMetrics"; }
 }

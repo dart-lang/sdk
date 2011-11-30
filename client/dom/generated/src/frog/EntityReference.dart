@@ -1,3 +1,3 @@
 
-class EntityReference extends Node native "EntityReference" {
+class EntityReference extends Node native "*EntityReference" {
 }

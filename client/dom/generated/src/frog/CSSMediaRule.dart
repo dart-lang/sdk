@@ -1,5 +1,5 @@
 
-class CSSMediaRule extends CSSRule native "CSSMediaRule" {
+class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
   CSSRuleList cssRules;
 

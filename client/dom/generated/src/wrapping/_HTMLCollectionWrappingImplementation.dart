@@ -11,8 +11,8 @@ class _HTMLCollectionWrappingImplementation extends DOMWrapperBase implements HT
     return new _HTMLCollectionWrappingImplementation();
   }
 
-  int get length() { return _get__HTMLCollection_length(this); }
-  static int _get__HTMLCollection_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Node operator[](int index) {
     return item(index);

@@ -1,5 +1,5 @@
 
-class HTMLObjectElement extends HTMLElement native "HTMLObjectElement" {
+class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
   String align;
 

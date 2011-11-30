@@ -11,20 +11,20 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
     return new _EntryWrappingImplementation();
   }
 
-  DOMFileSystem get filesystem() { return _get__Entry_filesystem(this); }
-  static DOMFileSystem _get__Entry_filesystem(var _this) native;
+  DOMFileSystem get filesystem() { return _get_filesystem(this); }
+  static DOMFileSystem _get_filesystem(var _this) native;
 
-  String get fullPath() { return _get__Entry_fullPath(this); }
-  static String _get__Entry_fullPath(var _this) native;
+  String get fullPath() { return _get_fullPath(this); }
+  static String _get_fullPath(var _this) native;
 
-  bool get isDirectory() { return _get__Entry_isDirectory(this); }
-  static bool _get__Entry_isDirectory(var _this) native;
+  bool get isDirectory() { return _get_isDirectory(this); }
+  static bool _get_isDirectory(var _this) native;
 
-  bool get isFile() { return _get__Entry_isFile(this); }
-  static bool _get__Entry_isFile(var _this) native;
+  bool get isFile() { return _get_isFile(this); }
+  static bool _get_isFile(var _this) native;
 
-  String get name() { return _get__Entry_name(this); }
-  static String _get__Entry_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
   void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (name === null) {

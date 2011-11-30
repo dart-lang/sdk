@@ -6,15 +6,17 @@
 
 interface MessageEvent extends Event {
 
-  String get data();
+  Object get data();
 
   String get lastEventId();
 
-  MessagePort get messagePort();
-
   String get origin();
+
+  List get ports();
 
   DOMWindow get source();
 
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, MessagePort messagePort);
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List messagePorts);
+
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List transferables);
 }

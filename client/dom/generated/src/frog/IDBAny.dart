@@ -1,5 +1,5 @@
 
-class IDBAny native "IDBAny" {
+class IDBAny native "*IDBAny" {
 
   var dartObjectLocalStorage;
 

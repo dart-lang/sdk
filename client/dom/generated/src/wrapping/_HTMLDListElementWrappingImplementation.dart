@@ -11,11 +11,11 @@ class _HTMLDListElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLDListElementWrappingImplementation();
   }
 
-  bool get compact() { return _get__HTMLDListElement_compact(this); }
-  static bool _get__HTMLDListElement_compact(var _this) native;
+  bool get compact() { return _get_compact(this); }
+  static bool _get_compact(var _this) native;
 
-  void set compact(bool value) { _set__HTMLDListElement_compact(this, value); }
-  static void _set__HTMLDListElement_compact(var _this, bool value) native;
+  void set compact(bool value) { _set_compact(this, value); }
+  static void _set_compact(var _this, bool value) native;
 
   String get typeName() { return "HTMLDListElement"; }
 }

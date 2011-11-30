@@ -18,6 +18,7 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
   XMLHttpRequestWrappingImplementation._wrap(
       dom.XMLHttpRequest ptr) : super._wrap(ptr);
 
+  /** @domName Window.createXMLHttpRequest */
   factory XMLHttpRequestWrappingImplementation() {
     return new XMLHttpRequestWrappingImplementation._wrap(
         new dom.XMLHttpRequest());

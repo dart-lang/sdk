@@ -5,6 +5,12 @@
 #include "bin/platform.h"
 
 
+bool Platform::Initialize() {
+  // Nothing to do on Windows.
+  return true;
+}
+
+
 int Platform::NumberOfProcessors() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);

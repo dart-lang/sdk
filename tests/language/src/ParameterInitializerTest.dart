@@ -5,11 +5,28 @@
 class ParameterInitializerTest {
 
   static testMain() {
-    new Foo.untyped(1);
-    new Foo.supertype(1);
-    new Foo.subtype(1);
+    var obj = new Foo.untyped(1);
+    Expect.equals(1, obj.x);
 
-    var obj = new Foo(1);
+    obj = new Foo.supertype(9);
+    Expect.equals(9, obj.x);
+
+    obj = new Foo.subtype(7);
+    Expect.equals(7, obj.x);
+
+    obj = new Foo.optional(x: 111);
+    Expect.equals(111, obj.x);
+
+    obj = new Foo.optional();
+    Expect.equals(5, obj.x);
+
+    obj = new Foo.optional_private(_y: 222);
+    Expect.equals(222, obj._y);
+
+    obj = new Foo.optional_private();
+    Expect.equals(77, obj._y);
+
+    obj = new Foo(1);
     Expect.equals(2, obj.x);
 
     obj = new SubFoo(42);
@@ -30,8 +47,11 @@ class Foo {
   Foo.untyped(this.x) {}
   Foo.supertype(Object this.x) {}
   Foo.subtype(int this.x) {}
+  Foo.optional([this.x = 5]) {}
+  Foo.optional_private([this._y = 77]) {}
 
   num x;
+  num _y;
 }
 
 class SubFoo extends Foo {

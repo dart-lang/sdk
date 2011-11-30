@@ -11,8 +11,8 @@ class _TextEventWrappingImplementation extends _UIEventWrappingImplementation im
     return new _TextEventWrappingImplementation();
   }
 
-  String get data() { return _get__TextEvent_data(this); }
-  static String _get__TextEvent_data(var _this) native;
+  String get data() { return _get_data(this); }
+  static String _get_data(var _this) native;
 
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg) {
     _initTextEvent(this, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);

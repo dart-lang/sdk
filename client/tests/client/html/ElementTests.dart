@@ -256,95 +256,95 @@ void testElement() {
     final rawElement = unwrapDomObject(element);
 
     testEventHelper(on.abort, 'abort',
-        (listener) => rawElement.onabort = listener);
+        (listener) => rawElement.addEventListener('abort', listener, true));
     testEventHelper(on.beforeCopy, 'beforecopy',
-        (listener) => rawElement.onbeforecopy = listener);
+        (listener) => rawElement.addEventListener('beforecopy', listener, true));
     testEventHelper(on.beforeCut, 'beforecut',
-        (listener) => rawElement.onbeforecut = listener);
+        (listener) => rawElement.addEventListener('beforecut', listener, true));
     testEventHelper(on.beforePaste, 'beforepaste',
-        (listener) => rawElement.onbeforepaste = listener);
+        (listener) => rawElement.addEventListener('beforepaste', listener, true));
     testEventHelper(on.blur, 'blur',
-        (listener) => rawElement.onblur = listener);
+        (listener) => rawElement.addEventListener('blur', listener, true));
     testEventHelper(on.change, 'change',
-        (listener) => rawElement.onchange = listener);
+        (listener) => rawElement.addEventListener('change', listener, true));
     testEventHelper(on.click, 'click',
-        (listener) => rawElement.onclick = listener);
+        (listener) => rawElement.addEventListener('click', listener, true));
     testEventHelper(on.contextMenu, 'contextmenu',
-        (listener) => rawElement.oncontextmenu = listener);
+        (listener) => rawElement.addEventListener('contextmenu', listener, true));
     testEventHelper(on.copy, 'copy',
-        (listener) => rawElement.oncopy = listener);
+        (listener) => rawElement.addEventListener('copy', listener, true));
     testEventHelper(on.cut, 'cut',
-        (listener) => rawElement.oncut = listener);
+        (listener) => rawElement.addEventListener('cut', listener, true));
     testEventHelper(on.dblClick, 'dblclick',
-        (listener) => rawElement.ondblclick = listener);
+        (listener) => rawElement.addEventListener('dblclick', listener, true));
     testEventHelper(on.drag, 'drag',
-        (listener) => rawElement.ondrag = listener);
+        (listener) => rawElement.addEventListener('drag', listener, true));
     testEventHelper(on.dragEnd, 'dragend',
-        (listener) => rawElement.ondragend = listener);
+        (listener) => rawElement.addEventListener('dragend', listener, true));
     testEventHelper(on.dragEnter, 'dragenter',
-        (listener) => rawElement.ondragenter = listener);
+        (listener) => rawElement.addEventListener('dragenter', listener, true));
     testEventHelper(on.dragLeave, 'dragleave',
-        (listener) => rawElement.ondragleave = listener);
+        (listener) => rawElement.addEventListener('dragleave', listener, true));
     testEventHelper(on.dragOver, 'dragover',
-        (listener) => rawElement.ondragover = listener);
+        (listener) => rawElement.addEventListener('dragover', listener, true));
     testEventHelper(on.dragStart, 'dragstart',
-        (listener) => rawElement.ondragstart = listener);
+        (listener) => rawElement.addEventListener('dragstart', listener, true));
     testEventHelper(on.drop, 'drop',
-        (listener) => rawElement.ondrop = listener);
+        (listener) => rawElement.addEventListener('drop', listener, true));
     testEventHelper(on.error, 'error',
-        (listener) => rawElement.onerror = listener);
+        (listener) => rawElement.addEventListener('error', listener, true));
     testEventHelper(on.focus, 'focus',
-        (listener) => rawElement.onfocus = listener);
+        (listener) => rawElement.addEventListener('focus', listener, true));
     testEventHelper(on.input, 'input',
-        (listener) => rawElement.oninput = listener);
+        (listener) => rawElement.addEventListener('input', listener, true));
     testEventHelper(on.invalid, 'invalid',
-        (listener) => rawElement.oninvalid = listener);
+        (listener) => rawElement.addEventListener('invalid', listener, true));
     testEventHelper(on.keyDown, 'keydown',
-        (listener) => rawElement.onkeydown = listener);
+        (listener) => rawElement.addEventListener('keydown', listener, true));
     testEventHelper(on.keyPress, 'keypress',
-        (listener) => rawElement.onkeypress = listener);
+        (listener) => rawElement.addEventListener('keypress', listener, true));
     testEventHelper(on.keyUp, 'keyup',
-        (listener) => rawElement.onkeyup = listener);
+        (listener) => rawElement.addEventListener('keyup', listener, true));
     testEventHelper(on.load, 'load',
-        (listener) => rawElement.onload = listener);
+        (listener) => rawElement.addEventListener('load', listener, true));
     testEventHelper(on.mouseDown, 'mousedown',
-        (listener) => rawElement.onmousedown = listener);
+        (listener) => rawElement.addEventListener('mousedown', listener, true));
     testEventHelper(on.mouseMove, 'mousemove',
-        (listener) => rawElement.onmousemove = listener);
+        (listener) => rawElement.addEventListener('mousemove', listener, true));
     testEventHelper(on.mouseOut, 'mouseout',
-        (listener) => rawElement.onmouseout = listener);
+        (listener) => rawElement.addEventListener('mouseout', listener, true));
     testEventHelper(on.mouseOver, 'mouseover',
-        (listener) => rawElement.onmouseover = listener);
+        (listener) => rawElement.addEventListener('mouseover', listener, true));
     testEventHelper(on.mouseUp, 'mouseup',
-        (listener) => rawElement.onmouseup = listener);
+        (listener) => rawElement.addEventListener('mouseup', listener, true));
     testEventHelper(on.mouseWheel, 'mousewheel',
-        (listener) => rawElement.onmousewheel = listener);
+        (listener) => rawElement.addEventListener('mousewheel', listener, true));
     testEventHelper(on.paste, 'paste',
-        (listener) => rawElement.onpaste = listener);
+        (listener) => rawElement.addEventListener('paste', listener, true));
     testEventHelper(on.reset, 'reset',
-        (listener) => rawElement.onreset = listener);
+        (listener) => rawElement.addEventListener('reset', listener, true));
     testEventHelper(on.scroll, 'scroll',
-        (listener) => rawElement.onscroll = listener);
+        (listener) => rawElement.addEventListener('scroll', listener, true));
     testEventHelper(on.search, 'search',
-        (listener) => rawElement.onsearch = listener);
+        (listener) => rawElement.addEventListener('search', listener, true));
     testEventHelper(on.select, 'select',
-        (listener) => rawElement.onselect = listener);
+        (listener) => rawElement.addEventListener('select', listener, true));
     testEventHelper(on.selectStart, 'selectstart',
-        (listener) => rawElement.onselectstart = listener);
+        (listener) => rawElement.addEventListener('selectstart', listener, true));
     testEventHelper(on.submit, 'submit',
-        (listener) => rawElement.onsubmit = listener);
+        (listener) => rawElement.addEventListener('submit', listener, true));
     testEventHelper(on.touchCancel, 'touchcancel',
-        (listener) => rawElement.ontouchcancel = listener);
+        (listener) => rawElement.addEventListener('touchcancel', listener, true));
     testEventHelper(on.touchEnd, 'touchend',
-        (listener) => rawElement.ontouchend = listener);
+        (listener) => rawElement.addEventListener('touchend', listener, true));
     testEventHelper(on.touchLeave, 'touchleave');
     testEventHelper(on.touchMove, 'touchmove',
-        (listener) => rawElement.ontouchmove = listener);
+        (listener) => rawElement.addEventListener('touchmove', listener, true));
     testEventHelper(on.touchStart, 'touchstart',
-        (listener) => rawElement.ontouchstart = listener);
+        (listener) => rawElement.addEventListener('touchstart', listener, true));
     testEventHelper(on.transitionEnd, 'webkitTransitionEnd');
     testEventHelper(on.fullscreenChange, 'webkitfullscreenchange',
-        (listener) => rawElement.onwebkitfullscreenchange = listener);
+        (listener) => rawElement.addEventListener('webkitfullscreenchange', listener, true));
   });
 
   test('attributes', () {

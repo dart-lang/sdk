@@ -71,6 +71,7 @@
     'cpu_x64.cc',
     'cpu_arm.cc',
     'cpu_test.cc',
+    'custom_isolate_test.cc',
     'dart.cc',
     'dart.h',
     'dart_api_impl.h',

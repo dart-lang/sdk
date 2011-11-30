@@ -79,6 +79,9 @@ class Scanner : ValueObject {
   // Allocated a private key which is used for name mangling.
   static RawString* AllocatePrivateKey(const Library& library);
 
+  // Return true if str is an identifier.
+  static bool IsIdent(const String& str);
+
  private:
   struct ScanContext {
     ScanContext* next;
@@ -99,6 +102,9 @@ class Scanner : ValueObject {
 
   // Reads next lookahead character.
   void ReadChar();
+
+  // Read and discard characters up to end of line.
+  void SkipLine();
 
   // Recognizes token 'kind' and reads next character in input.
   void Recognize(Token::Kind kind) {

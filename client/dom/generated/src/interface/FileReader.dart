@@ -16,30 +16,6 @@ interface FileReader factory _FileReaderFactoryProvider {
 
   FileError get error();
 
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onload();
-
-  void set onload(EventListener value);
-
-  EventListener get onloadend();
-
-  void set onloadend(EventListener value);
-
-  EventListener get onloadstart();
-
-  void set onloadstart(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
-
   int get readyState();
 
   Object get result();

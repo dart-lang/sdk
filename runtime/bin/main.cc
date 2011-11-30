@@ -9,9 +9,10 @@
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/globals.h"
-#include "bin/process_script.h"
+#include "bin/platform.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
@@ -157,6 +158,52 @@ static void DumpPprofSymbolInfo() {
 }
 
 
+static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+                                     Dart_Handle library,
+                                     Dart_Handle url) {
+  if (!Dart_IsLibrary(library)) {
+    return Dart_Error("not a library");
+  }
+  if (!Dart_IsString8(url)) {
+    return Dart_Error("url is not a string");
+  }
+  const char* url_string = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_string);
+  if (Dart_IsError(result)) {
+    return Dart_Error("accessing url characters failed");
+  }
+  bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
+  if (tag == kCanonicalizeUrl) {
+    // If this is a Dart Scheme URL then it is not modified as it will be
+    // handled by the VM internally.
+    if (is_dart_scheme_url) {
+      return url;
+    }
+    // Create a canonical path based on the including library and current url.
+    return DartUtils::CanonicalizeURL(NULL, library, url_string);
+  }
+  if (is_dart_scheme_url) {
+    return Dart_Error("Do not know how to load '%s'", url_string);
+  }
+  result = DartUtils::LoadSource(NULL, library, url, tag, url_string);
+  if (!Dart_IsError(result) && (tag == kImportTag)) {
+    Builtin_ImportLibrary(result);
+  }
+  return result;
+}
+
+
+static Dart_Handle LoadScript(const char* script_name) {
+  Dart_Handle source = DartUtils::ReadStringFromFile(script_name);
+  if (Dart_IsError(source)) {
+    return source;
+  }
+  Dart_Handle url = Dart_NewString(script_name);
+
+  return Dart_LoadScript(url, source, LibraryTagHandler);
+}
+
+
 static void* MainIsolateInitCallback(void* data) {
   const char* script_name = reinterpret_cast<const char*>(data);
   Dart_Handle library;
@@ -170,7 +217,6 @@ static void* MainIsolateInitCallback(void* data) {
     Dart_ExitScope();
     exit(255);
   }
-
   if (!Dart_IsLibrary(library)) {
     fprintf(stderr,
             "Expected a library when loading script: %s",
@@ -178,9 +224,7 @@ static void* MainIsolateInitCallback(void* data) {
     Dart_ExitScope();
     exit(255);
   }
-  Builtin_ImportLibrary(library);
-  // Setup the native resolver for built in library functions.
-  Builtin_SetNativeResolver();
+  Builtin_ImportLibrary(library);  // Import builtin library.
 
   Dart_ExitScope();
   return data;
@@ -208,6 +252,11 @@ int main(int argc, char** argv) {
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
 
+  // Perform platform specific initialization.
+  if (!Platform::Initialize()) {
+    fprintf(stderr, "Initialization failed\n");
+  }
+
   // Parse command line arguments.
   if (ParseArguments(argc,
                      argv,
@@ -221,7 +270,7 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM (TODO(asiva) - remove const_cast once
   // dart API is fixed to take a const char** in Dart_Initialize).
   Dart_Initialize(vm_options.count(),
-                  const_cast<char**>(vm_options.arguments()),
+                  vm_options.arguments(),
                   MainIsolateInitCallback);
 
   // Create an isolate. As a side effect, MainIsolateInitCallback
@@ -239,6 +288,12 @@ int main(int argc, char** argv) {
   }
 
   Dart_EnterScope();
+
+  if (snapshot_buffer != NULL) {
+    // Setup the native resolver as the snapshot does not carry it.
+    Builtin_SetNativeResolver();
+  }
+
   if (HasCompileAll(vm_options)) {
     Dart_Handle result = Dart_CompileAll();
     if (Dart_IsError(result)) {

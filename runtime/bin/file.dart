@@ -36,6 +36,18 @@ interface File factory _File {
   void createSync();
 
   /**
+   * Delete the file. The [deleteHandler] is called when the file has
+   * been successfully deleted. The [errorHandler] is called if the
+   * file cannot be deleted.
+   */
+  void delete();
+
+  /**
+   * Synchronously delete the file.
+   */
+  void deleteSync();
+
+  /**
    * Open the file for random access operations. When the file is
    * opened the openHandler is called. Opened files must be closed
    * using the [close] method. By default writable is false.
@@ -126,15 +138,37 @@ interface File factory _File {
   int writeStringSync(String string);
 
   /**
-   * Get the current position of the file. When the operation
+   * Get the current byte position in the file. When the operation
    * completes the [positionHandler] is called with the position.
    */
   void position();
 
   /**
-   * Synchronously get the current position of the file.
+   * Synchronously get the current byte position in the file.
    */
   int positionSync();
+
+  /**
+   * Set the byte position in the file. When the operation completes
+   * the [setPositionHandler] is called.
+   */
+  void setPosition(int position);
+
+  /**
+   * Synchronously set the byte position in the file.
+   */
+  void setPositionSync(int position);
+
+  /**
+   * Truncate (or extend) the file to [length] bytes. When the
+   * operation completes successfully the [truncateHandler] is called.
+   */
+  void truncate(int length);
+
+  /**
+   * Synchronously truncate (or extend) the file to [length] bytes.
+   */
+  void truncateSync(int length);
 
   /**
    * Get the length of the file. When the operation completes the
@@ -191,12 +225,15 @@ interface File factory _File {
   // Event handlers.
   void set existsHandler(void handler(bool exists));
   void set createHandler(void handler());
+  void set deleteHandler(void handler());
   void set openHandler(void handler());
   void set closeHandler(void handler());
   void set readByteHandler(void handler(int byte));
   void set readListHandler(void handler(int read));
   void set noPendingWriteHandler(void handler());
   void set positionHandler(void handler(int position));
+  void set setPositionHandler(void handler());
+  void set truncateHandler(void handler());
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
   void set fullPathHandler(void handler(String path));

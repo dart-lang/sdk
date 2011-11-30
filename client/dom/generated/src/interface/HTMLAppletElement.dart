@@ -30,9 +30,9 @@ interface HTMLAppletElement extends HTMLElement {
 
   void set height(String value);
 
-  int get hspace();
+  String get hspace();
 
-  void set hspace(int value);
+  void set hspace(String value);
 
   String get name();
 
@@ -42,9 +42,9 @@ interface HTMLAppletElement extends HTMLElement {
 
   void set object(String value);
 
-  int get vspace();
+  String get vspace();
 
-  void set vspace(int value);
+  void set vspace(String value);
 
   String get width();
 

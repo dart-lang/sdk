@@ -1,5 +1,5 @@
 
-class DOMImplementation native "DOMImplementation" {
+class DOMImplementation native "*DOMImplementation" {
 
   CSSStyleSheet createCSSStyleSheet(String title, String media) native;
 

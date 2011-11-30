@@ -31,9 +31,12 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method %s"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
+  CIRCULAR_REFERENCE(
+      "Circular reference detected:  compile-time constants cannot reference themselves."),
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
   CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE("Generative constructors cannot have return type"),
+  CONST_AND_NONCONST_CONSTRUCTOR("cont reference to non-const constructor."),
   CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
@@ -98,6 +101,7 @@ public enum ResolverErrorCode implements ErrorCode {
   STATIC_METHOD_ACCESS_SUPER("Cannot use 'super' in a static method"),
   STATIC_METHOD_ACCESS_THIS("Cannot use 'this' in a static method"),
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),
+  TOO_MANY_QUALIFIERS_FOR_METHOD("Too many qualifiers for method or constructor"),
   TOP_LEVEL_METHOD_ACCESS_SUPER("Cannot use 'super' in a top-level method"),
   TOP_LEVEL_METHOD_ACCESS_THIS("Cannot use 'this' in a top-level method"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
@@ -121,14 +125,17 @@ public enum ResolverErrorCode implements ErrorCode {
     this.message = message;
   }
 
+  @Override
   public String getMessage() {
     return message;
   }
 
+  @Override
   public ErrorSeverity getErrorSeverity() {
     return severity;
   }
 
+  @Override
   public SubSystem getSubSystem() {
     return SubSystem.RESOLVER;
   }

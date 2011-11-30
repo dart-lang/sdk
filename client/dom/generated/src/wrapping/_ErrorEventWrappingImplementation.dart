@@ -11,14 +11,14 @@ class _ErrorEventWrappingImplementation extends _EventWrappingImplementation imp
     return new _ErrorEventWrappingImplementation();
   }
 
-  String get filename() { return _get__ErrorEvent_filename(this); }
-  static String _get__ErrorEvent_filename(var _this) native;
+  String get filename() { return _get_filename(this); }
+  static String _get_filename(var _this) native;
 
-  int get lineno() { return _get__ErrorEvent_lineno(this); }
-  static int _get__ErrorEvent_lineno(var _this) native;
+  int get lineno() { return _get_lineno(this); }
+  static int _get_lineno(var _this) native;
 
-  String get message() { return _get__ErrorEvent_message(this); }
-  static String _get__ErrorEvent_message(var _this) native;
+  String get message() { return _get_message(this); }
+  static String _get_message(var _this) native;
 
   void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg) {
     _initErrorEvent(this, typeArg, canBubbleArg, cancelableArg, messageArg, filenameArg, linenoArg);

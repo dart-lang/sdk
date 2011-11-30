@@ -1,5 +1,5 @@
 
-class PositionErrorCallback native "PositionErrorCallback" {
+class PositionErrorCallback native "*PositionErrorCallback" {
 
   bool handleEvent(PositionError error) native;
 

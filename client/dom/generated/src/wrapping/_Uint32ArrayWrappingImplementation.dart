@@ -11,8 +11,8 @@ class _Uint32ArrayWrappingImplementation extends _ArrayBufferViewWrappingImpleme
     return new _Uint32ArrayWrappingImplementation();
   }
 
-  int get length() { return _get__Uint32Array_length(this); }
-  static int _get__Uint32Array_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Uint32Array subarray(int start, [int end = null]) {
     if (end === null) {

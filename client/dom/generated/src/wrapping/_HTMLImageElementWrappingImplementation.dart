@@ -11,104 +11,104 @@ class _HTMLImageElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLImageElementWrappingImplementation();
   }
 
-  String get align() { return _get__HTMLImageElement_align(this); }
-  static String _get__HTMLImageElement_align(var _this) native;
+  String get align() { return _get_align(this); }
+  static String _get_align(var _this) native;
 
-  void set align(String value) { _set__HTMLImageElement_align(this, value); }
-  static void _set__HTMLImageElement_align(var _this, String value) native;
+  void set align(String value) { _set_align(this, value); }
+  static void _set_align(var _this, String value) native;
 
-  String get alt() { return _get__HTMLImageElement_alt(this); }
-  static String _get__HTMLImageElement_alt(var _this) native;
+  String get alt() { return _get_alt(this); }
+  static String _get_alt(var _this) native;
 
-  void set alt(String value) { _set__HTMLImageElement_alt(this, value); }
-  static void _set__HTMLImageElement_alt(var _this, String value) native;
+  void set alt(String value) { _set_alt(this, value); }
+  static void _set_alt(var _this, String value) native;
 
-  String get border() { return _get__HTMLImageElement_border(this); }
-  static String _get__HTMLImageElement_border(var _this) native;
+  String get border() { return _get_border(this); }
+  static String _get_border(var _this) native;
 
-  void set border(String value) { _set__HTMLImageElement_border(this, value); }
-  static void _set__HTMLImageElement_border(var _this, String value) native;
+  void set border(String value) { _set_border(this, value); }
+  static void _set_border(var _this, String value) native;
 
-  bool get complete() { return _get__HTMLImageElement_complete(this); }
-  static bool _get__HTMLImageElement_complete(var _this) native;
+  bool get complete() { return _get_complete(this); }
+  static bool _get_complete(var _this) native;
 
-  String get crossOrigin() { return _get__HTMLImageElement_crossOrigin(this); }
-  static String _get__HTMLImageElement_crossOrigin(var _this) native;
+  String get crossOrigin() { return _get_crossOrigin(this); }
+  static String _get_crossOrigin(var _this) native;
 
-  void set crossOrigin(String value) { _set__HTMLImageElement_crossOrigin(this, value); }
-  static void _set__HTMLImageElement_crossOrigin(var _this, String value) native;
+  void set crossOrigin(String value) { _set_crossOrigin(this, value); }
+  static void _set_crossOrigin(var _this, String value) native;
 
-  int get height() { return _get__HTMLImageElement_height(this); }
-  static int _get__HTMLImageElement_height(var _this) native;
+  int get height() { return _get_height(this); }
+  static int _get_height(var _this) native;
 
-  void set height(int value) { _set__HTMLImageElement_height(this, value); }
-  static void _set__HTMLImageElement_height(var _this, int value) native;
+  void set height(int value) { _set_height(this, value); }
+  static void _set_height(var _this, int value) native;
 
-  int get hspace() { return _get__HTMLImageElement_hspace(this); }
-  static int _get__HTMLImageElement_hspace(var _this) native;
+  int get hspace() { return _get_hspace(this); }
+  static int _get_hspace(var _this) native;
 
-  void set hspace(int value) { _set__HTMLImageElement_hspace(this, value); }
-  static void _set__HTMLImageElement_hspace(var _this, int value) native;
+  void set hspace(int value) { _set_hspace(this, value); }
+  static void _set_hspace(var _this, int value) native;
 
-  bool get isMap() { return _get__HTMLImageElement_isMap(this); }
-  static bool _get__HTMLImageElement_isMap(var _this) native;
+  bool get isMap() { return _get_isMap(this); }
+  static bool _get_isMap(var _this) native;
 
-  void set isMap(bool value) { _set__HTMLImageElement_isMap(this, value); }
-  static void _set__HTMLImageElement_isMap(var _this, bool value) native;
+  void set isMap(bool value) { _set_isMap(this, value); }
+  static void _set_isMap(var _this, bool value) native;
 
-  String get longDesc() { return _get__HTMLImageElement_longDesc(this); }
-  static String _get__HTMLImageElement_longDesc(var _this) native;
+  String get longDesc() { return _get_longDesc(this); }
+  static String _get_longDesc(var _this) native;
 
-  void set longDesc(String value) { _set__HTMLImageElement_longDesc(this, value); }
-  static void _set__HTMLImageElement_longDesc(var _this, String value) native;
+  void set longDesc(String value) { _set_longDesc(this, value); }
+  static void _set_longDesc(var _this, String value) native;
 
-  String get lowsrc() { return _get__HTMLImageElement_lowsrc(this); }
-  static String _get__HTMLImageElement_lowsrc(var _this) native;
+  String get lowsrc() { return _get_lowsrc(this); }
+  static String _get_lowsrc(var _this) native;
 
-  void set lowsrc(String value) { _set__HTMLImageElement_lowsrc(this, value); }
-  static void _set__HTMLImageElement_lowsrc(var _this, String value) native;
+  void set lowsrc(String value) { _set_lowsrc(this, value); }
+  static void _set_lowsrc(var _this, String value) native;
 
-  String get name() { return _get__HTMLImageElement_name(this); }
-  static String _get__HTMLImageElement_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  void set name(String value) { _set__HTMLImageElement_name(this, value); }
-  static void _set__HTMLImageElement_name(var _this, String value) native;
+  void set name(String value) { _set_name(this, value); }
+  static void _set_name(var _this, String value) native;
 
-  int get naturalHeight() { return _get__HTMLImageElement_naturalHeight(this); }
-  static int _get__HTMLImageElement_naturalHeight(var _this) native;
+  int get naturalHeight() { return _get_naturalHeight(this); }
+  static int _get_naturalHeight(var _this) native;
 
-  int get naturalWidth() { return _get__HTMLImageElement_naturalWidth(this); }
-  static int _get__HTMLImageElement_naturalWidth(var _this) native;
+  int get naturalWidth() { return _get_naturalWidth(this); }
+  static int _get_naturalWidth(var _this) native;
 
-  String get src() { return _get__HTMLImageElement_src(this); }
-  static String _get__HTMLImageElement_src(var _this) native;
+  String get src() { return _get_src(this); }
+  static String _get_src(var _this) native;
 
-  void set src(String value) { _set__HTMLImageElement_src(this, value); }
-  static void _set__HTMLImageElement_src(var _this, String value) native;
+  void set src(String value) { _set_src(this, value); }
+  static void _set_src(var _this, String value) native;
 
-  String get useMap() { return _get__HTMLImageElement_useMap(this); }
-  static String _get__HTMLImageElement_useMap(var _this) native;
+  String get useMap() { return _get_useMap(this); }
+  static String _get_useMap(var _this) native;
 
-  void set useMap(String value) { _set__HTMLImageElement_useMap(this, value); }
-  static void _set__HTMLImageElement_useMap(var _this, String value) native;
+  void set useMap(String value) { _set_useMap(this, value); }
+  static void _set_useMap(var _this, String value) native;
 
-  int get vspace() { return _get__HTMLImageElement_vspace(this); }
-  static int _get__HTMLImageElement_vspace(var _this) native;
+  int get vspace() { return _get_vspace(this); }
+  static int _get_vspace(var _this) native;
 
-  void set vspace(int value) { _set__HTMLImageElement_vspace(this, value); }
-  static void _set__HTMLImageElement_vspace(var _this, int value) native;
+  void set vspace(int value) { _set_vspace(this, value); }
+  static void _set_vspace(var _this, int value) native;
 
-  int get width() { return _get__HTMLImageElement_width(this); }
-  static int _get__HTMLImageElement_width(var _this) native;
+  int get width() { return _get_width(this); }
+  static int _get_width(var _this) native;
 
-  void set width(int value) { _set__HTMLImageElement_width(this, value); }
-  static void _set__HTMLImageElement_width(var _this, int value) native;
+  void set width(int value) { _set_width(this, value); }
+  static void _set_width(var _this, int value) native;
 
-  int get x() { return _get__HTMLImageElement_x(this); }
-  static int _get__HTMLImageElement_x(var _this) native;
+  int get x() { return _get_x(this); }
+  static int _get_x(var _this) native;
 
-  int get y() { return _get__HTMLImageElement_y(this); }
-  static int _get__HTMLImageElement_y(var _this) native;
+  int get y() { return _get_y(this); }
+  static int _get_y(var _this) native;
 
   String get typeName() { return "HTMLImageElement"; }
 }

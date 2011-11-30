@@ -11,8 +11,8 @@ class _EntryArraySyncWrappingImplementation extends DOMWrapperBase implements En
     return new _EntryArraySyncWrappingImplementation();
   }
 
-  int get length() { return _get__EntryArraySync_length(this); }
-  static int _get__EntryArraySync_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   EntrySync item(int index) {
     return _item(this, index);

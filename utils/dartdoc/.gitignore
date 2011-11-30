@@ -1,3 +1,5 @@
 # Generated output.
-/docs/*.html
-/docs/interact.js
+/docs/
+
+# Generated from interact.dart
+static/interact.js

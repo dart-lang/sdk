@@ -47,4 +47,6 @@ interface Location {
   void reload();
 
   void replace(String url);
+
+  String toString();
 }

@@ -1,5 +1,5 @@
 
-class CSSFontFaceRule extends CSSRule native "CSSFontFaceRule" {
+class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 
   CSSStyleDeclaration style;
 }

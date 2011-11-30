@@ -17,7 +17,6 @@
       'type': 'none',
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
-        'runtime/dart-runtime.gyp:dart_bin',
         'runtime/dart-runtime.gyp:run_vm_tests',
         'runtime/dart-runtime.gyp:process_test',
       ],

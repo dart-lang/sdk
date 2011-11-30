@@ -399,6 +399,60 @@ UNIT_TEST_CASE(ArrayValues) {
 }
 
 
+UNIT_TEST_CASE(IsString) {
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+
+  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
+
+  Dart_Handle str8 = Dart_NewString8(data8, ARRAY_SIZE(data8));
+  EXPECT_VALID(str8);
+  EXPECT(Dart_IsString(str8));
+  EXPECT(Dart_IsString8(str8));
+  EXPECT(Dart_IsString16(str8));
+
+  Dart_Handle ext8 = Dart_NewExternalString8(data8, ARRAY_SIZE(data8),
+                                             NULL, NULL);
+  EXPECT_VALID(ext8);
+  EXPECT(Dart_IsString(ext8));
+  EXPECT(Dart_IsString8(ext8));
+  EXPECT(Dart_IsString16(ext8));
+
+  uint16_t data16[] = { 't', 'w', 'o', 0xFFFF };
+
+  Dart_Handle str16 = Dart_NewString16(data16, ARRAY_SIZE(data16));
+  EXPECT_VALID(str16);
+  EXPECT(Dart_IsString(str16));
+  EXPECT(!Dart_IsString8(str16));
+  EXPECT(Dart_IsString16(str16));
+
+  Dart_Handle ext16 = Dart_NewExternalString16(data16, ARRAY_SIZE(data16),
+                                               NULL, NULL);
+  EXPECT_VALID(ext16);
+  EXPECT(Dart_IsString(ext16));
+  EXPECT(!Dart_IsString8(ext16));
+  EXPECT(Dart_IsString16(ext16));
+
+  uint32_t data32[] = { 'f', 'o', 'u', 'r', 0x10FFFF };
+
+  Dart_Handle str32 = Dart_NewString32(data32, ARRAY_SIZE(data32));
+  EXPECT_VALID(str32);
+  EXPECT(Dart_IsString(str32));
+  EXPECT(!Dart_IsString8(str32));
+  EXPECT(!Dart_IsString16(str32));
+
+  Dart_Handle ext32 = Dart_NewExternalString32(data32, ARRAY_SIZE(data32),
+                                               NULL, NULL);
+  EXPECT_VALID(ext32);
+  EXPECT(Dart_IsString(ext32));
+  EXPECT(!Dart_IsString8(ext32));
+  EXPECT(!Dart_IsString16(ext32));
+
+  Dart_ExitScope();  // Exit the Dart API scope.
+  Dart_ShutdownIsolate();
+}
+
+
 #if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
 
 UNIT_TEST_CASE(ListAccess) {
@@ -988,6 +1042,17 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
 }
 
 
+void NativeFieldLookup(Dart_NativeArguments args) {
+  UNREACHABLE();
+}
+
+
+static Dart_NativeFunction native_field_lookup(Dart_Handle name,
+                                               int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&NativeFieldLookup);
+}
+
+
 UNIT_TEST_CASE(InjectNativeFields1) {
   const char* kScriptChars =
       "class NativeFields extends NativeFieldsWrapper {\n"
@@ -1007,12 +1072,12 @@ UNIT_TEST_CASE(InjectNativeFields1) {
 
   Dart_CreateIsolate(NULL, NULL);
   {
-    DARTSCOPE(Isolate::Current());
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     const int kNumNativeFields = 4;
 
     // Create a test library.
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
+                                               native_field_lookup);
 
     // Create a native wrapper class with native fields.
     result = Dart_CreateNativeWrapperClass(
@@ -1029,6 +1094,7 @@ UNIT_TEST_CASE(InjectNativeFields1) {
                                0,
                                NULL);
     EXPECT_VALID(result);
+    DARTSCOPE(Isolate::Current());
     Instance& obj = Instance::Handle();
     obj ^= Api::UnwrapHandle(result);
     const Class& cls = Class::Handle(obj.clazz());
@@ -1089,6 +1155,175 @@ UNIT_TEST_CASE(InjectNativeFields2) {
 }
 
 
+UNIT_TEST_CASE(InjectNativeFields3) {
+  const char* kScriptChars =
+      "#import('dart:nativewrappers');"
+      "class NativeFields extends NativeFieldWrapperClass2 {\n"
+      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld1;\n"
+      "  final int fld2;\n"
+      "  static int fld3;\n"
+      "  static final int fld4 = 10;\n"
+      "}\n"
+      "class NativeFieldsTest {\n"
+      "  static NativeFields testMain() {\n"
+      "    NativeFields obj = new NativeFields(10, 20);\n"
+      "    return obj;\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    const int kNumNativeFields = 2;
+
+    // Load up a test script in the test library.
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
+                                               native_field_lookup);
+
+    // Invoke a function which returns an object of type NativeFields.
+    result = Dart_InvokeStatic(lib,
+                               Dart_NewString("NativeFieldsTest"),
+                               Dart_NewString("testMain"),
+                               0,
+                               NULL);
+    EXPECT_VALID(result);
+    DARTSCOPE(Isolate::Current());
+    Instance& obj = Instance::Handle();
+    obj ^= Api::UnwrapHandle(result);
+    const Class& cls = Class::Handle(obj.clazz());
+    // We expect the newly created "NativeFields" object to have
+    // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
+    // Hence the size of an instance of "NativeFields" should be
+    // (kNumNativeFields + 2) * kWordSize + sizeof the header word.
+    // We check to make sure the instance size computed by the VM matches
+    // our expectations.
+    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + kWordSize,
+                             kObjectAlignment),
+              cls.instance_size());
+
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(InjectNativeFields4) {
+  const char* kScriptChars =
+      "#import('dart:nativewrappers');"
+      "class NativeFields extends NativeFieldWrapperClass2 {\n"
+      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld1;\n"
+      "  final int fld2;\n"
+      "  static int fld3;\n"
+      "  static final int fld4 = 10;\n"
+      "}\n"
+      "class NativeFieldsTest {\n"
+      "  static NativeFields testMain() {\n"
+      "    NativeFields obj = new NativeFields(10, 20);\n"
+      "    return obj;\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle result;
+
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Load up a test script in the test library.
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+    // Invoke a function which returns an object of type NativeFields.
+    result = Dart_InvokeStatic(lib,
+                               Dart_NewString("NativeFieldsTest"),
+                               Dart_NewString("testMain"),
+                               0,
+                               NULL);
+    // We expect the test script to fail finalization with the error below:
+    EXPECT(Dart_IsError(result));
+    Dart_Handle expected_error = Dart_Error(
+        "'dart:test-lib': Error: class 'NativeFields' is trying to extend a "
+        "native fields class, but library '%s' has no native resolvers",
+        TestCase::url());
+    EXPECT_STREQ(Dart_GetError(expected_error), Dart_GetError(result));
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
+
+
+static void TestNativeFields(Dart_Handle retobj) {
+  // Access and set various instance fields of the object.
+  Dart_Handle result = Dart_GetInstanceField(retobj, Dart_NewString("fld3"));
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
+  EXPECT_VALID(result);
+  int64_t value = 0;
+  result = Dart_IntegerValue(result, &value);
+  EXPECT_EQ(10, value);
+  result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
+  EXPECT_VALID(result);
+  result = Dart_IntegerValue(result, &value);
+  EXPECT_EQ(20, value);
+  result = Dart_SetInstanceField(retobj,
+                                 Dart_NewString("fld2"),
+                                 Dart_NewInteger(40));
+  EXPECT(Dart_IsError(result));
+  result = Dart_SetInstanceField(retobj,
+                                 Dart_NewString("fld1"),
+                                 Dart_NewInteger(40));
+  EXPECT_VALID(result);
+  result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
+  EXPECT_VALID(result);
+  result = Dart_IntegerValue(result, &value);
+  EXPECT_EQ(40, value);
+
+  // Now access and set various native instance fields of the returned object.
+  const int kNativeFld0 = 0;
+  const int kNativeFld1 = 1;
+  const int kNativeFld2 = 2;
+  const int kNativeFld3 = 3;
+  const int kNativeFld4 = 4;
+  intptr_t field_value = 0;
+  result = Dart_GetNativeInstanceField(retobj, kNativeFld4, &field_value);
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetNativeInstanceField(retobj, kNativeFld0, &field_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, field_value);
+  result = Dart_GetNativeInstanceField(retobj, kNativeFld1, &field_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, field_value);
+  result = Dart_GetNativeInstanceField(retobj, kNativeFld2, &field_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, field_value);
+  result = Dart_SetNativeInstanceField(retobj, kNativeFld4, 40);
+  EXPECT(Dart_IsError(result));
+  result = Dart_SetNativeInstanceField(retobj, kNativeFld0, 4);
+  EXPECT_VALID(result);
+  result = Dart_SetNativeInstanceField(retobj, kNativeFld1, 40);
+  EXPECT_VALID(result);
+  result = Dart_SetNativeInstanceField(retobj, kNativeFld2, 400);
+  EXPECT_VALID(result);
+  result = Dart_SetNativeInstanceField(retobj, kNativeFld3, 4000);
+  EXPECT_VALID(result);
+  result = Dart_GetNativeInstanceField(retobj, kNativeFld3, &field_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(4000, field_value);
+
+  // Now re-access various dart instance fields of the returned object
+  // to ensure that there was no corruption while setting native fields.
+  result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
+  EXPECT_VALID(result);
+  result = Dart_IntegerValue(result, &value);
+  EXPECT_EQ(40, value);
+  result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
+  EXPECT_VALID(result);
+  result = Dart_IntegerValue(result, &value);
+  EXPECT_EQ(20, value);
+}
+
+
 UNIT_TEST_CASE(NativeFieldAccess) {
   const char* kScriptChars =
       "class NativeFields extends NativeFieldsWrapper {\n"
@@ -1112,7 +1347,8 @@ UNIT_TEST_CASE(NativeFieldAccess) {
     const int kNumNativeFields = 4;
 
     // Create a test library.
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
+                                               native_field_lookup);
 
     // Create a native wrapper class with native fields.
     result = Dart_CreateNativeWrapperClass(
@@ -1131,72 +1367,48 @@ UNIT_TEST_CASE(NativeFieldAccess) {
     EXPECT_VALID(retobj);
 
     // Now access and set various instance fields of the returned object.
-    result = Dart_GetInstanceField(retobj, Dart_NewString("fld3"));
-    EXPECT(Dart_IsError(result));
-    result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT_VALID(result);
-    int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
-    EXPECT_EQ(10, value);
-    result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
-    EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
-    EXPECT_EQ(20, value);
-    result = Dart_SetInstanceField(retobj,
-                                   Dart_NewString("fld2"),
-                                   Dart_NewInteger(40));
-    EXPECT(Dart_IsError(result));
-    result = Dart_SetInstanceField(retobj,
-                                   Dart_NewString("fld1"),
-                                   Dart_NewInteger(40));
-    EXPECT_VALID(result);
-    result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
-    EXPECT_EQ(40, value);
+    TestNativeFields(retobj);
 
-    // Now access and set various native instance fields of the returned object.
-    const int kNativeFld0 = 0;
-    const int kNativeFld1 = 1;
-    const int kNativeFld2 = 2;
-    const int kNativeFld3 = 3;
-    const int kNativeFld4 = 4;
-    intptr_t field_value = 0;
-    result = Dart_GetNativeInstanceField(retobj, kNativeFld4, &field_value);
-    EXPECT(Dart_IsError(result));
-    result = Dart_GetNativeInstanceField(retobj, kNativeFld0, &field_value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(0, field_value);
-    result = Dart_GetNativeInstanceField(retobj, kNativeFld1, &field_value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(0, field_value);
-    result = Dart_GetNativeInstanceField(retobj, kNativeFld2, &field_value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(0, field_value);
-    result = Dart_SetNativeInstanceField(retobj, kNativeFld4, 40);
-    EXPECT(Dart_IsError(result));
-    result = Dart_SetNativeInstanceField(retobj, kNativeFld0, 4);
-    EXPECT_VALID(result);
-    result = Dart_SetNativeInstanceField(retobj, kNativeFld1, 40);
-    EXPECT_VALID(result);
-    result = Dart_SetNativeInstanceField(retobj, kNativeFld2, 400);
-    EXPECT_VALID(result);
-    result = Dart_SetNativeInstanceField(retobj, kNativeFld3, 4000);
-    EXPECT_VALID(result);
-    result = Dart_GetNativeInstanceField(retobj, kNativeFld3, &field_value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(4000, field_value);
+    Dart_ExitScope();  // Exit the Dart API scope.
+  }
+  Dart_ShutdownIsolate();
+}
 
-    // Now re-access various dart instance fields of the returned object
-    // to ensure that there was no corruption while setting native fields.
-    result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
-    EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
-    EXPECT_EQ(40, value);
-    result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
-    EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
-    EXPECT_EQ(20, value);
+
+UNIT_TEST_CASE(ImplicitNativeFieldAccess) {
+  const char* kScriptChars =
+      "#import('dart:nativewrappers');"
+      "class NativeFields extends NativeFieldWrapperClass4 {\n"
+      "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld1;\n"
+      "  final int fld2;\n"
+      "  static int fld3;\n"
+      "  static final int fld4 = 10;\n"
+      "}\n"
+      "class NativeFieldsTest {\n"
+      "  static NativeFields testMain() {\n"
+      "    NativeFields obj = new NativeFields(10, 20);\n"
+      "    return obj;\n"
+      "  }\n"
+      "}\n";
+  Dart_CreateIsolate(NULL, NULL);
+  {
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Load up a test script in the test library.
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
+                                               native_field_lookup);
+
+    // Invoke a function which returns an object of type NativeFields.
+    Dart_Handle retobj = Dart_InvokeStatic(lib,
+                                           Dart_NewString("NativeFieldsTest"),
+                                           Dart_NewString("testMain"),
+                                           0,
+                                           NULL);
+    EXPECT_VALID(retobj);
+
+    // Now access and set various instance fields of the returned object.
+    TestNativeFields(retobj);
 
     Dart_ExitScope();  // Exit the Dart API scope.
   }
@@ -1812,6 +2024,94 @@ static Dart_Handle library_handler(Dart_LibraryTag tag,
 }
 
 
+UNIT_TEST_CASE(LoadScript) {
+  const char* kScriptChars =
+      "main() {"
+      "  return 12345;"
+      "}";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle result;
+
+  result = Dart_LoadScript(Dart_Null(), source, library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadScript expects argument 'url' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LoadScript(Dart_True(), source, library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadScript expects argument 'url' to be of type String.",
+               Dart_GetError(result));
+
+  result = Dart_LoadScript(error, source, library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LoadScript(url, Dart_Null(), library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadScript expects argument 'source' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LoadScript(url, Dart_True(), library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LoadScript expects argument 'source' to be of type String.",
+      Dart_GetError(result));
+
+  result = Dart_LoadScript(url, error, library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  // Load a script successfully.
+  result = Dart_LoadScript(url, source, library_handler);
+  EXPECT_VALID(result);
+
+  result = Dart_InvokeStatic(result,
+                             Dart_NewString(""),
+                             Dart_NewString("main"),
+                             0,
+                             NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_EQ(12345, value);
+
+  // Further calls to LoadScript are errors.
+  result = Dart_LoadScript(url, source, library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadScript: "
+               "A script has already been loaded from 'dart:test-lib'.",
+               Dart_GetError(result));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(LoadScript_CompileError) {
+  const char* kScriptChars =
+      ")";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle result = Dart_LoadScript(url, source, library_handler);
+  EXPECT(Dart_IsError(result));
+  EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
 UNIT_TEST_CASE(LookupLibrary) {
   const char* kScriptChars =
       "#import('library1.dart');"
@@ -1848,15 +2148,414 @@ UNIT_TEST_CASE(LookupLibrary) {
       "Dart_LookupLibrary expects argument 'url' to be of type String.",
       Dart_GetError(result));
 
-  result = Dart_LookupLibrary(Dart_Error("incoming error pass-thru"));
+  result = Dart_LookupLibrary(Dart_Error("incoming error"));
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("incoming error pass-thru", Dart_GetError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
 
   url = Dart_NewString("noodles.dart");
   result = Dart_LookupLibrary(url);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LookupLibrary: library 'noodles.dart' not found.",
                Dart_GetError(result));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(LibraryUrl) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  Dart_Handle error = Dart_Error("incoming error");
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_LibraryUrl(Dart_Null());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LibraryUrl expects argument 'library' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LibraryUrl(Dart_True());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LibraryUrl expects argument 'library' to be of type Library.",
+      Dart_GetError(result));
+
+  result = Dart_LibraryUrl(error);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LibraryUrl(lib);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  const char* cstr = NULL;
+  EXPECT_VALID(Dart_StringToCString(result, &cstr));
+  EXPECT_STREQ("library1_url", cstr);
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(LibraryImportLibrary) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');";
+  const char* kLibrary2Chars =
+      "#library('library2_name');";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle result;
+
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib1 = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib1);
+
+  url = Dart_NewString("library2_url");
+  source = Dart_NewString(kLibrary2Chars);
+  Dart_Handle lib2 = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib2);
+
+  result = Dart_LibraryImportLibrary(Dart_Null(), lib2);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LibraryImportLibrary expects argument 'library' to be non-null.",
+      Dart_GetError(result));
+
+  result = Dart_LibraryImportLibrary(Dart_True(), lib2);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LibraryImportLibrary expects argument 'library' to be of "
+               "type Library.",
+               Dart_GetError(result));
+
+  result = Dart_LibraryImportLibrary(error, lib2);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LibraryImportLibrary(lib1, Dart_Null());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LibraryImportLibrary expects argument 'import' to be non-null.",
+      Dart_GetError(result));
+
+  result = Dart_LibraryImportLibrary(lib1, Dart_True());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LibraryImportLibrary expects argument 'import' to be of "
+               "type Library.",
+               Dart_GetError(result));
+
+  result = Dart_LibraryImportLibrary(lib1, error);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LibraryImportLibrary(lib1, lib2);
+  EXPECT_VALID(result);
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+
+UNIT_TEST_CASE(LoadLibrary) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle result;
+
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+
+  result = Dart_LoadLibrary(Dart_Null(), source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadLibrary expects argument 'url' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LoadLibrary(Dart_True(), source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadLibrary expects argument 'url' to be of type String.",
+               Dart_GetError(result));
+
+  result = Dart_LoadLibrary(error, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LoadLibrary(url, Dart_Null());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadLibrary expects argument 'source' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LoadLibrary(url, Dart_True());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LoadLibrary expects argument 'source' to be of type String.",
+      Dart_GetError(result));
+
+  result = Dart_LoadLibrary(url, error);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  // Success.
+  result = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsLibrary(result));
+
+  // Duplicate library load fails.
+  result = Dart_LoadLibrary(url, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LoadLibrary: library 'library1_url' has already been loaded.",
+      Dart_GetError(result));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(LoadLibrary_CompileError) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');"
+      ")";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle result = Dart_LoadLibrary(url, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(LoadSource) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');";
+  const char* kSourceChars =
+      "// Something innocuous";
+  const char* kBadSourceChars =
+      ")";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle result;
+
+  // Load up a library.
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+
+  url = Dart_NewString("source_url");
+  source = Dart_NewString(kSourceChars);
+
+  result = Dart_LoadSource(Dart_Null(), url, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadSource expects argument 'library' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LoadSource(Dart_True(), url, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LoadSource expects argument 'library' to be of type Library.",
+      Dart_GetError(result));
+
+  result = Dart_LoadSource(error, url, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LoadSource(lib, Dart_Null(), source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadSource expects argument 'url' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LoadSource(lib, Dart_True(), source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadSource expects argument 'url' to be of type String.",
+               Dart_GetError(result));
+
+  result = Dart_LoadSource(lib, error, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LoadSource(lib, url, Dart_Null());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LoadSource expects argument 'source' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LoadSource(lib, url, Dart_True());
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LoadSource expects argument 'source' to be of type String.",
+      Dart_GetError(result));
+
+  result = Dart_LoadSource(lib, error, source);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  // Success.
+  result = Dart_LoadSource(lib, url, source);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsLibrary(result));
+  bool same = false;
+  EXPECT_VALID(Dart_IsSame(lib, result, &same));
+  EXPECT(same);
+
+  // Duplicate calls are okay.
+  result = Dart_LoadSource(lib, url, source);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsLibrary(result));
+  same = false;
+  EXPECT_VALID(Dart_IsSame(lib, result, &same));
+  EXPECT(same);
+
+  // Language errors are detected.
+  source = Dart_NewString(kBadSourceChars);
+  result = Dart_LoadSource(lib, url, source);
+  EXPECT(Dart_IsError(result));
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+static void MyNativeFunction1(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(args, Dart_NewInteger(654321));
+  Dart_ExitScope();
+}
+
+
+static void MyNativeFunction2(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(args, Dart_NewInteger(123456));
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction MyNativeResolver1(Dart_Handle name,
+                                             int arg_count) {
+  return &MyNativeFunction1;
+}
+
+
+static Dart_NativeFunction MyNativeResolver2(Dart_Handle name,
+                                             int arg_count) {
+  return &MyNativeFunction2;
+}
+
+
+UNIT_TEST_CASE(SetNativeResolver) {
+  const char* kScriptChars =
+      "class Test {"
+      "  static foo() native \"SomeNativeFunction\";"
+      "  static bar() native \"SomeNativeFunction2\";"
+      "  static baz() native \"SomeNativeFunction3\";"
+      "}";
+
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle result;
+
+  // Load a test script.
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle lib = Dart_LoadScript(url, source, library_handler);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+
+  result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_SetNativeResolver expects argument 'library' to be non-null.",
+      Dart_GetError(result));
+
+  result = Dart_SetNativeResolver(Dart_True(), &MyNativeResolver1);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_SetNativeResolver expects argument 'library' to be of "
+               "type Library.",
+               Dart_GetError(result));
+
+  result = Dart_SetNativeResolver(error, &MyNativeResolver1);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_SetNativeResolver(lib, &MyNativeResolver1);
+  EXPECT_VALID(result);
+
+  // Call a function and make sure native resolution works.
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString("Test"),
+                             Dart_NewString("foo"),
+                             0,
+                             NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_EQ(654321, value);
+
+  // A second call succeeds.
+  result = Dart_SetNativeResolver(lib, &MyNativeResolver2);
+  EXPECT_VALID(result);
+
+  // 'foo' has already been resolved so gets the old value.
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString("Test"),
+                             Dart_NewString("foo"),
+                             0,
+                             NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  value = 0;
+  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_EQ(654321, value);
+
+  // 'bar' has not yet been resolved so gets the new value.
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString("Test"),
+                             Dart_NewString("bar"),
+                             0,
+                             NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  value = 0;
+  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_EQ(123456, value);
+
+  // A NULL resolver is okay, but resolution will fail.
+  result = Dart_SetNativeResolver(lib, NULL);
+  EXPECT_VALID(result);
+
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString("Test"),
+                             Dart_NewString("baz"),
+                             0,
+                             NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(strstr(Dart_GetError(result),
+                "native function 'SomeNativeFunction3' cannot be found"));
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
@@ -2123,6 +2822,80 @@ UNIT_TEST_CASE(ImportLibrary5) {
   }
   Dart_ShutdownIsolate();
 }
+
+
+static void* RunLoopTest_InitCallback(void* data) {
+  const char* kScriptChars =
+      "#import('builtin');\n"
+      "class MyIsolate extends Isolate {\n"
+      "  MyIsolate() : super() { }\n"
+      "  void main() {\n"
+      "    port.receive((message, replyTo) {\n"
+      "      if (message) {\n"
+      "        throw new Exception('MakeVMExit');\n"
+      "      } else {\n"
+      "        replyTo.call('hello');\n"
+      "        port.close();\n"
+      "      }\n"
+      "    });\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "void main(message) {\n"
+      "  new MyIsolate().spawn().then((port) {\n"
+      "    port.call(message).receive((message, replyTo) {\n"
+      "      if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
+      "    });\n"
+      "  });\n"
+      "}\n";
+
+  Dart_EnterScope();
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle lib = Dart_LoadScript(url, source, library_handler);
+  EXPECT_VALID(lib);
+  Dart_ExitScope();
+  return NULL;
+}
+
+
+// Common code for RunLoop_Success/RunLoop_Failure.
+static void RunLoopTest(bool throw_exception) {
+  Dart_IsolateInitCallback saved = Isolate::InitCallback();
+  Isolate::SetInitCallback(RunLoopTest_InitCallback);
+  Dart_CreateIsolate(NULL, NULL);
+  Dart_EnterScope();
+
+  Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
+  EXPECT_VALID(lib);
+  Dart_Handle result;
+  Dart_Handle args[1];
+  args[0] = (throw_exception ? Dart_True() : Dart_False());
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString(""),
+                             Dart_NewString("main"),
+                             1,
+                             args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+
+  Isolate::SetInitCallback(saved);
+}
+
+
+UNIT_TEST_CASE(RunLoop_Success) {
+  RunLoopTest(false);
+}
+
+
+UNIT_TEST_CASE(RunLoop_Exception) {
+  RunLoopTest(true);
+}
+
 #endif  // TARGET_ARCH_IA32.
 
 }  // namespace dart

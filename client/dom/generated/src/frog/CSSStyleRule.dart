@@ -1,5 +1,5 @@
 
-class CSSStyleRule extends CSSRule native "CSSStyleRule" {
+class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 
   String selectorText;
 

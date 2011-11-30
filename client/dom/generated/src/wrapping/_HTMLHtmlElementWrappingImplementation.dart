@@ -11,17 +11,17 @@ class _HTMLHtmlElementWrappingImplementation extends _HTMLElementWrappingImpleme
     return new _HTMLHtmlElementWrappingImplementation();
   }
 
-  String get manifest() { return _get__HTMLHtmlElement_manifest(this); }
-  static String _get__HTMLHtmlElement_manifest(var _this) native;
+  String get manifest() { return _get_manifest(this); }
+  static String _get_manifest(var _this) native;
 
-  void set manifest(String value) { _set__HTMLHtmlElement_manifest(this, value); }
-  static void _set__HTMLHtmlElement_manifest(var _this, String value) native;
+  void set manifest(String value) { _set_manifest(this, value); }
+  static void _set_manifest(var _this, String value) native;
 
-  String get version() { return _get__HTMLHtmlElement_version(this); }
-  static String _get__HTMLHtmlElement_version(var _this) native;
+  String get version() { return _get_version(this); }
+  static String _get_version(var _this) native;
 
-  void set version(String value) { _set__HTMLHtmlElement_version(this, value); }
-  static void _set__HTMLHtmlElement_version(var _this, String value) native;
+  void set version(String value) { _set_version(this, value); }
+  static void _set_version(var _this, String value) native;
 
   String get typeName() { return "HTMLHtmlElement"; }
 }

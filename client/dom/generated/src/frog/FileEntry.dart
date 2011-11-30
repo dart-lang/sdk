@@ -1,5 +1,5 @@
 
-class FileEntry extends Entry native "FileEntry" {
+class FileEntry extends Entry native "*FileEntry" {
 
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native;
 

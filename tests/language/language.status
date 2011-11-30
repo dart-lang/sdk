@@ -21,35 +21,27 @@ prefix language
 [ $component == vm || $component == dartium ]
 ClassTest: Fail             # Bug 4504458 (pseudo keyword)
 NamingTest: Fail            # Bug 4504458 (pseudo keyword)
-TypeVariableBoundsTest/none: Fail # Bug 5257789
-TypeVariableBoundsTest/02: Fail # Bug 5257789
-TypeVariableBoundsTest/03: Fail # Bug 5257789
-TypeVariableBoundsTest/04: Fail # Bug 5257789
-TypeVariableBoundsTest/07: Fail # Bug 5257789
-TypeVariableScopeTest/03: Fail # Bug 5349550, was 5316513
-TypeVariableScopeTest/04: Fail # Bug 5349550, was 5316513
+TypeVariableBoundsTest/01: Skip # Issue 483 (testing framework issue)
+TypeVariableBoundsTest/02: Skip # Issue 483
+TypeVariableBoundsTest/05: Skip # Issue 483
+TypeVariableBoundsTest/06: Skip # Issue 483
 ImpliedInterfaceTest: Fail # Bug 5349944
+FBoundedQuantificationTest: Skip # Issue 439
+DefaultFactoryLibraryTest: Fail  # Issue 514
 
-# These bugs refer currently ongoing language discussions.
-Constructor5Test: Fail          # Bug 8440015
-Constructor6Test: Fail          # Bug 8440015
-
-# Regular bugs which should be fixed.
-ManyEchoServerTest: Skip        # Bug 5103754
-
-NonParameterizedFactory2Test: Fail # Bug 5257789
-
-WrongNumberTypeArgumentsTest: Fail # Bug 5532690
-Prefix18NegativeTest: Fail # Issue 307
-Prefix20NegativeTest: Fail # Issue 307
-
-ImplicitThisTest/01: Fail # Issue 374
+ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
 ImplicitThisTest/02: Fail # Issue 374
 ImplicitThisTest/03: Fail # Issue 374
 ImplicitThisTest/04: Fail # Issue 374
 ImplicitThisTest/none: Fail # Issue 374
 
-NonParameterizedFactoryTest: Fail # Bug 5257789
+# These bugs refer currently ongoing language discussions.
+Constructor5Test: Fail          # (Discussion ongoing)
+Constructor6Test: Fail          # (Discussion ongoing)
+
+# Regular bugs which should be fixed.
+
+WrongNumberTypeArgumentsTest: Fail # Issue 441
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
@@ -64,102 +56,24 @@ NonParameterizedFactoryTest: Fail # Bug 5257789
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]
-MethodInvocationTest: Fail               # Bug  5392266
-Label2NegativeTest: Crash                # Bug 5318228
-NullPointerExceptionTest: Fail           # Bug 5391976
-CallThroughNullGetterTest: Fail          # Bug 5391976
-Private3Test: Fail                       # Bug 5391976
-Switch3NegativeTest: Crash               # Bug 5318228
 BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not throwing NSME
 CTConst2Test: Fail                       # Codesite issue 124
+CallThroughNullGetterTest: Fail          # Bug 5391976
+Label2NegativeTest: Crash                # Bug 5318228
+MethodInvocationTest: Fail               # Bug  5392266
+NullPointerExceptionTest: Fail           # Bug 5391976
+Private3Test: Fail                       # Bug 5391976
+Switch3NegativeTest: Crash               # Bug 5318228
 
 # Problems specific to dartc debug mode
 [ ($component == dartc || $component == chromium) && $mode == debug ]
 
 
 [ $component == dartc || $component == chromium ]
-CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+FactoryImplementationTest: Fail # Issue 521
 
-Library4NegativeTest: Fail               # Bug 5406175
-Prefix3NegativeTest: Fail                # Bug 5406175
-Prefix11NegativeTest: Fail               # Bug 5406175
-Prefix12NegativeTest: Fail               # Bug 5406175
-Prefix14Test: Fail                       # Bug 5406175
-Prefix15Test: Skip                       # Bug 5406175
-Prefix16NegativeTest: Fail               # Bug 5532534
-ConstConstructor1NegativeTest: FAIL      # Bug 5142545
-ConstConstructor2NegativeTest: FAIL      # Bug 5142545
-CTConst3Test: Fail                       # Codesite Issue 120
-FactoryNegativeTest: Fail                # Issue 417
-
-
-StringConcatTest: FAIL                   # Bug 5196164
-NamedParametersTypeTest: Fail            # Implementation in progress.
-NamedParametersNegativeTest: Fail    # Implementation in progress.
-NamedParameters2NegativeTest: Fail   # Implementation in progress.
-NamedParameters3NegativeTest: Fail   # Implementation in progress.
-NamedParameters4NegativeTest: Fail   # Implementation in progress.
-RegExp3Test: Fail                    # 5299683
-InterfaceFactory3NegativeTest: Fail      # Bug 5387405
-GenericParameterizedExtendsTest: Skip  # Bug 5392297
-ConstObjectsAreImmutableTest: Fail  # Bug 5202940
-NullToStringTest: Fail       # Bug 5421978
-FunctionTypeAliasTest: Crash # Bug 4519208.
-
-# Other bugs (or unimplemented features) in dartc.
-For2Test: Fail               # Bug 4995208.
-SuperOperatorTest: Fail      # Bug 4995463.
-GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
-Throw7NegativeTest: Fail     # Bug 4208459.
-SwitchLabelTest: Fail        # Bug 4208467.
-Switch7NegativeTest: Fail    # Bug 4208467.
-StackOverflowTest: Fail      # Bug 4591172.
-ScopeNegativeTest: Fail      # Bug 4207538.
-PseudoKWNegativeTest: Fail   # Bug 4979760.
-OverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-NoSuchMethodTest: Fail       # Bug 4202974.
-NumbersTest: Fail            # Fails because numbers are mapped to doubles.
-LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
-LocalFunction3Test: Fail     # Bug 4202974.
-MethodOverrideTest: Crash    # Bug 5516001.
-DynamicTest: Crash            # Bug 5527899.
-
-FieldNegativeTest: Fail      # Bug 4207626.
-FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
-ExampleConstructorTest: Fail # Bug 4205742.
-CTConstTest: Fail            # Bug 4510015.
-Constructor2NegativeTest: Fail  # Bug 4208594.
-Constructor2Test: Fail       # Issue 255
-Constructor3Test: Fail       # Issue 257
-Constructor4Test: Fail       # Issue 286
-Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
-Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
-ClassOverrideNegativeTest: Fail  # Bug 4205768.
+AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
-ListLiteral3Test: Fail      # Bug 4510015.
-ListTest: Fail              # Bug 5146975.
-StackTraceTest: Fail         # Bug 4971920.
-ExpectTest: Fail             # Missing extensions to class Expect.
-DivByZeroTest: Fail          # Bug 5184183
-OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
-FieldOverrideTest/01: Fail       # Bug 5215249
-FieldOverrideTest/02: Fail       # Bug 5215249
-OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
-OverrideFieldTest/04: Fail       # Bug 5215249
-CharEscapeTest: Fail
-GetterClosureExecutionOrderTest: Fail # Bug 5481595
-
-# The following tests use missing error classes. Bug 4385894.
-AssertTest: Fail             # Uses AssertError class.
-
-ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
-
 BlackListedTest/01: Fail # Bug 5469684
 BlackListedTest/02: Fail # Bug 5469684
 BlackListedTest/03: Fail # Bug 5469684
@@ -174,8 +88,81 @@ BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
 BlackListedTest/13: Crash # Bug 5469684
 BlackListedTest/14: Crash # Bug 5469684
-
+CTConstTest: Fail            # Bug 4510015.
+CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+CharEscapeTest: Fail
+ClassOverrideNegativeTest: Fail  # Bug 4205768.
+DefaultFactoryLibraryTest: Fail          # Issue 514
+ConstObjectsAreImmutableTest: Fail  # Bug 5202940
+Constructor2NegativeTest: Fail  # Bug 4208594.
+Constructor2Test: Fail       # Issue 255
+Constructor3Test: Fail       # Issue 257
+Constructor4Test: Fail       # Issue 286
+Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+DivByZeroTest: Fail          # Bug 5184183
+DynamicTest: Crash            # Bug 5527899.
+ExampleConstructorTest: Fail # Bug 4205742.
+ExpectTest: Fail             # Missing extensions to class Expect.
+FactoryNegativeTest: Fail                # Issue 417
+FieldNegativeTest: Fail      # Bug 4207626.
+FieldOverrideTest/01: Fail       # Bug 5215249
+FieldOverrideTest/02: Fail       # Bug 5215249
+For2Test: Fail               # Bug 4995208.
+FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
+FunctionTypeAliasTest: Crash # Bug 4519208.
+GenericParameterizedExtendsTest: Skip  # Bug 5392297
+GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
+GetterClosureExecutionOrderTest: Fail # Bug 5481595
 ImplicitThisTest/none: Fail # Issue 375
+InterfaceFactory3NegativeTest: Fail      # Bug 5387405
+IsObjectTest: Skip # Hasn't be tested on DartC yet
+Library4NegativeTest: Fail               # Bug 5406175
+ListLiteral1NegativeTest: Skip # Issue 220
+ListLiteral3Test: Fail # Issue 220
+ListLiteral4Test: Fail # Issue 220
+ListTest: Fail              # Bug 5146975.
+LocalFunction3Test: Fail     # Bug 4202974.
+LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
+MapLiteral3Test: Fail # Issue 221
+MapLiteral4Test: Fail # Issue 221
+ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
+MethodOverrideTest: Crash    # Bug 5516001.
+NamedParameters2NegativeTest: Fail   # Implementation in progress.
+NamedParameters3NegativeTest: Fail   # Implementation in progress.
+NamedParameters4NegativeTest: Fail   # Implementation in progress.
+NamedParametersNegativeTest: Fail    # Implementation in progress.
+NamedParametersTypeTest: Fail            # Implementation in progress.
+NoSuchMethodTest: Fail       # Bug 4202974.
+NullToStringTest: Fail       # Bug 5421978
+NumbersTest: Fail            # Fails because numbers are mapped to doubles.
+OverriddenNoSuchMethodTest: Fail  # Bug 4202974.
+OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
+OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
+OverrideFieldTest/04: Fail       # Bug 5215249
+OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
+Prefix11NegativeTest: Fail               # Bug 5406175
+Prefix12NegativeTest: Fail               # Bug 5406175
+Prefix14NegativeTest: Fail               # Issue 575
+Prefix16NegativeTest: Fail               # Bug 5532534
+Prefix3NegativeTest: Fail                # Bug 5406175
+PseudoKWNegativeTest: Fail   # Bug 4979760.
+RegExp3Test: Fail                    # 5299683
+ScopeNegativeTest: Fail      # Bug 4207538.
+StackOverflowTest: Fail      # Bug 4591172.
+StackTraceTest: Fail         # Bug 4971920.
+StringConcatTest: Fail       # Bug 5196164
+SuperOperatorTest: Fail      # Bug 4995463.
+Switch7NegativeTest: Fail    # Bug 4208467.
+SwitchLabelTest: Fail        # Bug 4208467.
+ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
+Throw7NegativeTest: Fail     # Bug 4208459.
+TypeVariableBoundsTest/none: Fail        # Issue 417
+TypeVariableScopeTest/none: Fail         # Issue 417
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -192,7 +179,6 @@ RichardsTest: Fail
 UnboundGetterTest: Fail
 Private2Test: Fail
 Private3Test: Fail
-
 TypedMessageTest: Fail # Bug 5246195
 
 
@@ -200,8 +186,13 @@ TypedMessageTest: Fail # Bug 5246195
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 [ $component == frogsh ||  $component == frog || $component == leg || $component == webdriver || $component == frogium ]
+# TODO(efortuna): Distinguish between specific browser being run for webdriver
+# (by flag option) to specify which tests pass.
 FactoryNegativeTest: Fail # Issue 417
+Factory3Test: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+
+FactoryImplementationTest: Fail # Issue 523
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
@@ -216,19 +207,17 @@ CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerE
 
 BitOperationsTest: Fail  # relies on big integers not available in JS
 CallThroughGetterTest: Fail
-CanonicalConstTest: Fail # type in const array allocation is erased
 CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
-ClosuresWithComplexParamsTest: Fail
+ClosureSharedStateTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
-ConstructorDefaultTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
+DefaultFactoryLibraryTest: Fail    # Issue 514
 DynamicTest: Fail
 ExampleConstructorTest: Fail
 Constructor2Test: Fail
 Constructor3Test: Fail
-Constructor4Test: Fail
 Constructor5Test: Fail    # Order of initializers.
 Constructor6Test: Fail    # Parse failure in initializers.
 ExecuteFinally6Test: Fail
@@ -265,22 +254,31 @@ InstanceofTest: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail
-LibraryPrefixesTest: Fail
 Library1NegativeTest: Fail # issue with test see #354
 Library4NegativeTest: Fail # issue with test see #354
 Library5NegativeTest: Fail # issue with test see #354
 Library6NegativeTest: Fail # issue with test see #354
-ListLiteral3Test: Fail
+ListLiteral1NegativeTest: Fail # Issue 220
+ListLiteral2NegativeTest: Fail # Issue 220
+ListLiteral3Test: Fail # Issue 220
+ListLiteral4Test: Fail # Issue 220
 ListTest: Fail         # array bound checks not implemented
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
+MapLiteral1NegativeTest: Fail # Issue 221
+MapLiteral2NegativeTest: Fail # Issue 221
+MapLiteral4Test: Fail # Issue 221
 MathTest: Fail
+MethodBindingTest: Fail
 MethodOverrideTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NamingTest: Fail
+NativeClassInheritance2FrogTest: Fail
+NativeClassIsCheck1FrogTest: Fail
+NativeClassIsCheck2FrogTest: Fail
 NonConstSuperNegativeTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
@@ -290,6 +288,7 @@ NumbersTest: Fail
 OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
+ParameterInitializer5NegativeTest: Fail  # Issue 581
 Prefix3NegativeTest: Fail
 Prefix7NegativeTest: Fail
 Prefix8NegativeTest: Fail
@@ -307,25 +306,22 @@ ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
 StringConcatTest: Fail
 StringEscapesTest: Fail
-StringInterpolate1NegativeTest: Fail
-StringInterpolate2Test: Fail
-StringInterpolateTest: Fail
 StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
-TypeVariableBoundsTest/00: Fail # Is the test syntax valid? VM gives an error.
-TypeVariableBoundsTest/05: Fail # issue with test filed as #354
-UnboundGetterTest: Fail
-VarInitTest: Fail
+TypeVariableBoundsTest/none: Fail # Issue 417
+TypeVariableBoundsTest/00: Fail # Issue 417
+TypeVariableBoundsTest/03: Fail # Issue 417
+TypeVariableBoundsTest/04: Fail # Issue 417
+TypeVariableScopeTest/none: Fail # Issue 417
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
-FinalVarNegativeTest: Fail
 
 [ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
@@ -337,8 +333,10 @@ PrivateMemberTest/04: Fail # test seems bad - see issue #353
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == leg ]
+FinalVarNegativeTest: Fail
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
+StringInterpolate2Test: Fail
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate

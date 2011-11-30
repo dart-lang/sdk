@@ -11,11 +11,11 @@ class _SQLExceptionWrappingImplementation extends DOMWrapperBase implements SQLE
     return new _SQLExceptionWrappingImplementation();
   }
 
-  int get code() { return _get__SQLException_code(this); }
-  static int _get__SQLException_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
-  String get message() { return _get__SQLException_message(this); }
-  static String _get__SQLException_message(var _this) native;
+  String get message() { return _get_message(this); }
+  static String _get_message(var _this) native;
 
   String get typeName() { return "SQLException"; }
 }

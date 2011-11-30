@@ -1,21 +1,17 @@
 
-class DOMApplicationCache native "DOMApplicationCache" {
+class DOMApplicationCache native "*DOMApplicationCache" {
 
-  EventListener oncached;
+  static final int CHECKING = 2;
 
-  EventListener onchecking;
+  static final int DOWNLOADING = 3;
 
-  EventListener ondownloading;
+  static final int IDLE = 1;
 
-  EventListener onerror;
+  static final int OBSOLETE = 5;
 
-  EventListener onnoupdate;
+  static final int UNCACHED = 0;
 
-  EventListener onobsolete;
-
-  EventListener onprogress;
-
-  EventListener onupdateready;
+  static final int UPDATEREADY = 4;
 
   int status;
 

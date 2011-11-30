@@ -11,17 +11,17 @@ class _HTMLCanvasElementWrappingImplementation extends _HTMLElementWrappingImple
     return new _HTMLCanvasElementWrappingImplementation();
   }
 
-  int get height() { return _get__HTMLCanvasElement_height(this); }
-  static int _get__HTMLCanvasElement_height(var _this) native;
+  int get height() { return _get_height(this); }
+  static int _get_height(var _this) native;
 
-  void set height(int value) { _set__HTMLCanvasElement_height(this, value); }
-  static void _set__HTMLCanvasElement_height(var _this, int value) native;
+  void set height(int value) { _set_height(this, value); }
+  static void _set_height(var _this, int value) native;
 
-  int get width() { return _get__HTMLCanvasElement_width(this); }
-  static int _get__HTMLCanvasElement_width(var _this) native;
+  int get width() { return _get_width(this); }
+  static int _get_width(var _this) native;
 
-  void set width(int value) { _set__HTMLCanvasElement_width(this, value); }
-  static void _set__HTMLCanvasElement_width(var _this, int value) native;
+  void set width(int value) { _set_width(this, value); }
+  static void _set_width(var _this, int value) native;
 
   Object getContext(String contextId) {
     return _getContext(this, contextId);

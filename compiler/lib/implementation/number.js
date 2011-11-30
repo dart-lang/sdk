@@ -5,42 +5,52 @@
 
 
 function native_NumberImplementation_BIT_OR(other) {
+  "use strict";
   return this | other;
 }
 
 function native_NumberImplementation_BIT_XOR(other) {
+  "use strict";
   return this ^ other;
 }
 
 function native_NumberImplementation_BIT_AND(other) {
+  "use strict";
   return this & other;
 }
 
 function native_NumberImplementation_SHL(other) {
+  "use strict";
   return this << other;
 }
 
 function native_NumberImplementation_SAR(other) {
+  "use strict";
   return this >> other;
 }
 
 function native_NumberImplementation_ADD(other) {
+  "use strict";
   return this + other;
 }
 
 function native_NumberImplementation_SUB(other) {
-  return this - other;
+  "use strict";
+   return this - other;
 }
 
 function native_NumberImplementation_MUL(other) {
+  "use strict";
   return this * other;
 }
 
 function native_NumberImplementation_DIV(other) {
+  "use strict";
   return this / other;
 }
 
 function native_NumberImplementation_TRUNC(other) {
+  "use strict";
   var tmp = this / other;
   if (tmp < 0) {
     return Math.ceil(tmp);
@@ -64,61 +74,97 @@ function number$euclideanModulo(a, b) {
 }
 
 function native_NumberImplementation_MOD(other) {
+  "use strict";
   return number$euclideanModulo(this, other);
 }
 
 function native_NumberImplementation_LT(other) {
+  "use strict";
   return this < other;
 }
 
 function native_NumberImplementation_GT(other) {
+  "use strict";
   return this > other;
 }
 
 function native_NumberImplementation_LTE(other) {
+  "use strict";
   return this <= other;
 }
 
 function native_NumberImplementation_GTE(other) {
+  "use strict";
   return this >= other;
 }
 
 function native_NumberImplementation_EQ(other) {
+  "use strict";
   return typeof other == 'number' && this == other;
 }
 
 function native_NumberImplementation_BIT_NOT() {
+  "use strict";
   return ~this;
 }
 
-function native_NumberImplementation_negate() { return -this; }
+function native_NumberImplementation_negate() {
+  "use strict";
+  return -this;
+}
 
 function native_NumberImplementation_remainder(other) {
+  "use strict";
   return this % other;
 }
 
-function native_NumberImplementation_abs() { return Math.abs(this); }
+function native_NumberImplementation_abs() {
+  "use strict";
+  return Math.abs(this);
+}
 
-function native_NumberImplementation_round() { return Math.round(this); }
-function native_NumberImplementation_floor() { return Math.floor(this); }
-function native_NumberImplementation_ceil() { return Math.ceil(this); }
+function native_NumberImplementation_round() {
+  "use strict";
+  return Math.round(this);
+}
+function native_NumberImplementation_floor() {
+  "use strict";
+  return Math.floor(this);
+}
+function native_NumberImplementation_ceil() {
+  "use strict";
+  return Math.ceil(this);
+}
 function native_NumberImplementation_truncate() {
+  "use strict";
   return (this < 0) ? Math.ceil(this) : Math.floor(this);
 }
 function native_NumberImplementation_isNegative() {
+  "use strict";
   // TODO(floitsch): is there a faster way to detect -0?
   if (this == 0) return (1 / this) < 0;
   return this < 0;
 }
-function native_NumberImplementation_isEven() { return ((this & 1) == 0); }
-function native_NumberImplementation_isOdd() { return ((this & 1) == 1); }
-function native_NumberImplementation_isNaN() { return isNaN(this); }
+function native_NumberImplementation_isEven() {
+  "use strict";
+  return ((this & 1) == 0);
+}
+function native_NumberImplementation_isOdd() {
+  "use strict";
+  return ((this & 1) == 1);
+}
+function native_NumberImplementation_isNaN() {
+  "use strict";
+  return isNaN(this);
+}
 function native_NumberImplementation_isInfinite() {
+  "use strict";
   return (this == Infinity) || (this == -Infinity);
 }
 
 function native_NumberImplementation_toDouble() {
-  return this.valueOf();
+  "use strict";
+  return +this;
 }
 
 function native_NumberImplementation_toString() {
@@ -138,5 +184,6 @@ function native_NumberImplementation_toRadixString(radix) {
 }
 
 function native_NumberImplementation_hashCode() {
+  "use strict";
   return this & 0xFFFFFFF;
 }

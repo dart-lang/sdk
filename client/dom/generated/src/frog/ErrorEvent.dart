@@ -1,5 +1,5 @@
 
-class ErrorEvent extends Event native "ErrorEvent" {
+class ErrorEvent extends Event native "*ErrorEvent" {
 
   String filename;
 

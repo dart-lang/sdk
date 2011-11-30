@@ -11,14 +11,14 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
     return new _MediaListWrappingImplementation();
   }
 
-  int get length() { return _get__MediaList_length(this); }
-  static int _get__MediaList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
-  String get mediaText() { return _get__MediaList_mediaText(this); }
-  static String _get__MediaList_mediaText(var _this) native;
+  String get mediaText() { return _get_mediaText(this); }
+  static String _get_mediaText(var _this) native;
 
-  void set mediaText(String value) { _set__MediaList_mediaText(this, value); }
-  static void _set__MediaList_mediaText(var _this, String value) native;
+  void set mediaText(String value) { _set_mediaText(this, value); }
+  static void _set_mediaText(var _this, String value) native;
 
   String operator[](int index) {
     return item(index);

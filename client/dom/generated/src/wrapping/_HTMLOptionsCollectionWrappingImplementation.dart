@@ -11,17 +11,17 @@ class _HTMLOptionsCollectionWrappingImplementation extends _HTMLCollectionWrappi
     return new _HTMLOptionsCollectionWrappingImplementation();
   }
 
-  int get length() { return _get__HTMLOptionsCollection_length(this); }
-  static int _get__HTMLOptionsCollection_length(var _this) native;
+  int get length() { return _get_length_HTMLOptionsCollection(this); }
+  static int _get_length_HTMLOptionsCollection(var _this) native;
 
-  void set length(int value) { _set__HTMLOptionsCollection_length(this, value); }
-  static void _set__HTMLOptionsCollection_length(var _this, int value) native;
+  void set length(int value) { _set_length_HTMLOptionsCollection(this, value); }
+  static void _set_length_HTMLOptionsCollection(var _this, int value) native;
 
-  int get selectedIndex() { return _get__HTMLOptionsCollection_selectedIndex(this); }
-  static int _get__HTMLOptionsCollection_selectedIndex(var _this) native;
+  int get selectedIndex() { return _get_selectedIndex(this); }
+  static int _get_selectedIndex(var _this) native;
 
-  void set selectedIndex(int value) { _set__HTMLOptionsCollection_selectedIndex(this, value); }
-  static void _set__HTMLOptionsCollection_selectedIndex(var _this, int value) native;
+  void set selectedIndex(int value) { _set_selectedIndex(this, value); }
+  static void _set_selectedIndex(var _this, int value) native;
 
   void remove(int index) {
     _remove(this, index);

@@ -6,8 +6,8 @@
  * A [Map] is an associative container, mapping a key to a value.
  * Null values are supported.
  */
-interface Map<K, V> factory HashMapImplementation/* <K, V> */ {
-// Bug 5408808: Factory should be HashMapImplementation<K, V>.
+interface Map<K, V> factory HashMapImplementation/*<K extends Hashable, V>*/ {
+// See issue 417. Works in the vm, fails in dartc and frog.
 
   /**
    * Creates a map with the default implementation.
@@ -95,8 +95,8 @@ interface Map<K, V> factory HashMapImplementation/* <K, V> */ {
  * and [getValues].
  */
 interface HashMap<K extends Hashable, V> extends Map<K, V>
-    factory HashMapImplementation/* <K, V> */ {
-// Bug 5408808: Factory should be HashMapImplementation<K, V>.
+    factory HashMapImplementation/*<K extends Hashable, V>*/ {
+// See issue 417. Works in the vm, fails in dartc and frog.
 
   /**
    * Creates a map with the default implementation.
@@ -114,8 +114,8 @@ interface HashMap<K extends Hashable, V> extends Map<K, V>
  * order.
  */
 interface LinkedHashMap<K extends Hashable, V> extends HashMap<K, V>
-    factory LinkedHashMapImplementation /* <K, V> */ {
-// Bug 5408808: Factory should be LinkedHashMapImplementation<K, V>.
+    factory LinkedHashMapImplementation/*<K extends Hashable, V>*/ {
+// See issue 417. Works in the vm, fails in dartc and frog.
 
   /**
    * Creates a map with the default implementation.

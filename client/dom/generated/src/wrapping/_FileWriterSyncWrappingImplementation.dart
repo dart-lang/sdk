@@ -11,11 +11,11 @@ class _FileWriterSyncWrappingImplementation extends DOMWrapperBase implements Fi
     return new _FileWriterSyncWrappingImplementation();
   }
 
-  int get length() { return _get__FileWriterSync_length(this); }
-  static int _get__FileWriterSync_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
-  int get position() { return _get__FileWriterSync_position(this); }
-  static int _get__FileWriterSync_position(var _this) native;
+  int get position() { return _get_position(this); }
+  static int _get_position(var _this) native;
 
   void seek(int position) {
     _seek(this, position);

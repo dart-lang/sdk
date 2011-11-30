@@ -1,5 +1,5 @@
 
-class WebGLContextEvent extends Event native "WebGLContextEvent" {
+class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
   String statusMessage;
 }

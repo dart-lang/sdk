@@ -1,5 +1,5 @@
 
-class FileWriterCallback native "FileWriterCallback" {
+class FileWriterCallback native "*FileWriterCallback" {
 
   bool handleEvent(FileWriter fileWriter) native;
 

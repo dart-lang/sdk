@@ -11,8 +11,8 @@ class _CSSPrimitiveValueWrappingImplementation extends _CSSValueWrappingImplemen
     return new _CSSPrimitiveValueWrappingImplementation();
   }
 
-  int get primitiveType() { return _get__CSSPrimitiveValue_primitiveType(this); }
-  static int _get__CSSPrimitiveValue_primitiveType(var _this) native;
+  int get primitiveType() { return _get_primitiveType(this); }
+  static int _get_primitiveType(var _this) native;
 
   Counter getCounterValue() {
     return _getCounterValue(this);

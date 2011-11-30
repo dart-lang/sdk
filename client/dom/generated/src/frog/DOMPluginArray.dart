@@ -1,5 +1,5 @@
 
-class DOMPluginArray native "DOMPluginArray" {
+class DOMPluginArray native "*DOMPluginArray" {
 
   int length;
 

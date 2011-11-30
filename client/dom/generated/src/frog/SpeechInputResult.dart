@@ -1,5 +1,5 @@
 
-class SpeechInputResult native "SpeechInputResult" {
+class SpeechInputResult native "*SpeechInputResult" {
 
   num confidence;
 

@@ -1,5 +1,5 @@
 
-class XPathExpression native "XPathExpression" {
+class XPathExpression native "*XPathExpression" {
 
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 

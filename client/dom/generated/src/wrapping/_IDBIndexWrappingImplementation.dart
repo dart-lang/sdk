@@ -11,17 +11,17 @@ class _IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex
     return new _IDBIndexWrappingImplementation();
   }
 
-  String get keyPath() { return _get__IDBIndex_keyPath(this); }
-  static String _get__IDBIndex_keyPath(var _this) native;
+  String get keyPath() { return _get_keyPath(this); }
+  static String _get_keyPath(var _this) native;
 
-  String get name() { return _get__IDBIndex_name(this); }
-  static String _get__IDBIndex_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  IDBObjectStore get objectStore() { return _get__IDBIndex_objectStore(this); }
-  static IDBObjectStore _get__IDBIndex_objectStore(var _this) native;
+  IDBObjectStore get objectStore() { return _get_objectStore(this); }
+  static IDBObjectStore _get_objectStore(var _this) native;
 
-  bool get unique() { return _get__IDBIndex_unique(this); }
-  static bool _get__IDBIndex_unique(var _this) native;
+  bool get unique() { return _get_unique(this); }
+  static bool _get_unique(var _this) native;
 
   IDBRequest getObject(IDBKey key) {
     return _getObject(this, key);

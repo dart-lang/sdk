@@ -1,5 +1,5 @@
 
-class CustomEvent extends Event native "CustomEvent" {
+class CustomEvent extends Event native "*CustomEvent" {
 
   Object detail;
 

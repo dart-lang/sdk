@@ -11,17 +11,17 @@ class _RectWrappingImplementation extends DOMWrapperBase implements Rect {
     return new _RectWrappingImplementation();
   }
 
-  CSSPrimitiveValue get bottom() { return _get__Rect_bottom(this); }
-  static CSSPrimitiveValue _get__Rect_bottom(var _this) native;
+  CSSPrimitiveValue get bottom() { return _get_bottom(this); }
+  static CSSPrimitiveValue _get_bottom(var _this) native;
 
-  CSSPrimitiveValue get left() { return _get__Rect_left(this); }
-  static CSSPrimitiveValue _get__Rect_left(var _this) native;
+  CSSPrimitiveValue get left() { return _get_left(this); }
+  static CSSPrimitiveValue _get_left(var _this) native;
 
-  CSSPrimitiveValue get right() { return _get__Rect_right(this); }
-  static CSSPrimitiveValue _get__Rect_right(var _this) native;
+  CSSPrimitiveValue get right() { return _get_right(this); }
+  static CSSPrimitiveValue _get_right(var _this) native;
 
-  CSSPrimitiveValue get top() { return _get__Rect_top(this); }
-  static CSSPrimitiveValue _get__Rect_top(var _this) native;
+  CSSPrimitiveValue get top() { return _get_top(this); }
+  static CSSPrimitiveValue _get_top(var _this) native;
 
   String get typeName() { return "Rect"; }
 }

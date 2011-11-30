@@ -1,5 +1,5 @@
 
-class HashChangeEvent extends Event native "HashChangeEvent" {
+class HashChangeEvent extends Event native "*HashChangeEvent" {
 
   String newURL;
 

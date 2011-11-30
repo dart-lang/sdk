@@ -13,8 +13,8 @@ class Socket {
  public:
   static bool Initialize();
   static intptr_t Available(intptr_t fd);
-  static intptr_t Read(intptr_t fd, void* buffer, intptr_t num_bytes);
-  static intptr_t Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
+  static int Read(intptr_t fd, void* buffer, intptr_t num_bytes);
+  static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
   static intptr_t CreateConnect(const char* host, const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
   static intptr_t GetStdioHandle(int num);

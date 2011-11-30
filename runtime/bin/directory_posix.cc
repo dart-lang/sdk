@@ -253,6 +253,33 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
+char* Directory::CreateTemp(const char* const_template, int64_t number) {
+  // Returns a new, unused directory name, modifying the contents of
+  // dir_template.  Creates the directory with the permissions specified
+  // by the process umask.
+  // The return value must be freed by the caller.
+  char* path = static_cast<char*>(malloc(PATH_MAX + 1));
+  strncpy(path, const_template, PATH_MAX + 1);
+  path[PATH_MAX] = '\0';
+  int path_length = strlen(path);
+  if (path_length > 0) {
+    if (path[path_length - 1] == '/') {
+      snprintf(path + path_length, PATH_MAX - path_length, "temp_dir_XXXXXX");
+    } else {
+      snprintf(path + path_length, PATH_MAX - path_length, "XXXXXX");
+    }
+  } else {
+    snprintf(path, PATH_MAX, "/tmp/temp_dir1_XXXXXX");
+  }
+  char* result = mkdtemp(path);
+  if (result == NULL) {
+    // Return the empty string, but as a freeable array.
+    path[0] = '\0';
+  }
+  return path;
+}
+
+
 bool Directory::Delete(const char* dir_name) {
   return (rmdir(dir_name) == 0);
 }

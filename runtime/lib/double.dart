@@ -90,14 +90,6 @@ class Double implements double {
 
   bool greaterThanFromInteger(int other) native "Double_greaterThanFromInteger";
 
-  bool isEven() {
-    // TODO(floitsch): find more efficient way to implement Double.isEven.
-    return this % 2.0 == 0.0;
-  }
-  bool isOdd() {
-    // TODO(floitsch): find more efficient way to implement Double.isOdd.
-    return this % 2.0 == 1.0;
-  }
   bool isNegative() native "Double_isNegative";
   bool isInfinite() native "Double_isInfinite";
   bool isNaN() native "Double_isNaN";

@@ -1,5 +1,5 @@
 
-class HTMLImageElement extends HTMLElement native "HTMLImageElement" {
+class HTMLImageElement extends HTMLElement native "*HTMLImageElement" {
 
   String align;
 

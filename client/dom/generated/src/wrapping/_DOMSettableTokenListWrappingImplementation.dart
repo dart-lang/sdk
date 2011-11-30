@@ -11,11 +11,11 @@ class _DOMSettableTokenListWrappingImplementation extends _DOMTokenListWrappingI
     return new _DOMSettableTokenListWrappingImplementation();
   }
 
-  String get value() { return _get__DOMSettableTokenList_value(this); }
-  static String _get__DOMSettableTokenList_value(var _this) native;
+  String get value() { return _get_value(this); }
+  static String _get_value(var _this) native;
 
-  void set value(String value) { _set__DOMSettableTokenList_value(this, value); }
-  static void _set__DOMSettableTokenList_value(var _this, String value) native;
+  void set value(String value) { _set_value(this, value); }
+  static void _set_value(var _this, String value) native;
 
   String get typeName() { return "DOMSettableTokenList"; }
 }

@@ -1,5 +1,5 @@
 
-class HTMLDivElement extends HTMLElement native "HTMLDivElement" {
+class HTMLDivElement extends HTMLElement native "*HTMLDivElement" {
 
   String align;
 }

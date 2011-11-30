@@ -6,6 +6,10 @@
 
 interface IDBFactory {
 
+  int cmp(IDBKey first, IDBKey second);
+
+  IDBVersionChangeRequest deleteDatabase(String name);
+
   IDBRequest getDatabaseNames();
 
   IDBRequest open(String name);

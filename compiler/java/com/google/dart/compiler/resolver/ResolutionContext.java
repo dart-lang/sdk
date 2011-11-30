@@ -278,17 +278,16 @@ public class ResolutionContext implements ResolutionErrorListener {
     @Override
     public Element visitPropertyAccess(DartPropertyAccess node) {
       Element element = node.getQualifier().accept(this);
-      switch (element.getKind()) {
-        case LIBRARY:
-          Scope elementScope = ((LibraryElement) element).getScope();
-          return elementScope.findElement(scope.getLibrary(), node.getPropertyName());
-
-        case CLASS:
-          return Elements.findElement((ClassElement) element, node.getPropertyName());
-
-        default:
-          return null;
+      if (element != null) {
+        switch (element.getKind()) {
+          case LIBRARY :
+            Scope elementScope = ((LibraryElement) element).getScope();
+            return elementScope.findElement(scope.getLibrary(), node.getPropertyName());
+          case CLASS :
+            return Elements.findElement((ClassElement) element, node.getPropertyName());
+        }
       }
+      return null;
     }
 
     @Override

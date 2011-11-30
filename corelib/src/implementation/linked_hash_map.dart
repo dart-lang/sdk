@@ -28,10 +28,11 @@ class LinkedHashMapImplementation<K extends Hashable, V>
     _list = new DoubleLinkedQueue<KeyValuePair<K, V>>();
   }
 
-  // See bug 5257789.
-  factory LinkedHashMapImplementation/* <K, V> */.from(Map/* <K, V> */other) {
-    Map/* <K, V> */ result = new LinkedHashMapImplementation/* <K, V> */();
-    other.forEach((/* K */ key, /* V */ value) { result[key] = value; });
+  // See issue 417. Works in the vm, fails in dartc and frog.
+  factory LinkedHashMapImplementation/*<K extends Hashable, V>*/
+      .from(Map/*<K, V>*/ other) {
+    Map/*<K, V>*/ result = new LinkedHashMapImplementation/*<K, V>*/();
+    other.forEach((/*K*/ key, /*V*/ value) { result[key] = value; });
     return result;
   }
 

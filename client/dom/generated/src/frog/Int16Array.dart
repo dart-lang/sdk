@@ -1,5 +1,7 @@
 
-class Int16Array extends ArrayBufferView native "Int16Array" {
+class Int16Array extends ArrayBufferView native "*Int16Array" {
+
+  static final int BYTES_PER_ELEMENT = 2;
 
   int length;
 

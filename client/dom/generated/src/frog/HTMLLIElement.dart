@@ -1,5 +1,5 @@
 
-class HTMLLIElement extends HTMLElement native "HTMLLIElement" {
+class HTMLLIElement extends HTMLElement native "*HTMLLIElement" {
 
   String type;
 

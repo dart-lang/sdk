@@ -11,26 +11,26 @@ class _XPathResultWrappingImplementation extends DOMWrapperBase implements XPath
     return new _XPathResultWrappingImplementation();
   }
 
-  bool get booleanValue() { return _get__XPathResult_booleanValue(this); }
-  static bool _get__XPathResult_booleanValue(var _this) native;
+  bool get booleanValue() { return _get_booleanValue(this); }
+  static bool _get_booleanValue(var _this) native;
 
-  bool get invalidIteratorState() { return _get__XPathResult_invalidIteratorState(this); }
-  static bool _get__XPathResult_invalidIteratorState(var _this) native;
+  bool get invalidIteratorState() { return _get_invalidIteratorState(this); }
+  static bool _get_invalidIteratorState(var _this) native;
 
-  num get numberValue() { return _get__XPathResult_numberValue(this); }
-  static num _get__XPathResult_numberValue(var _this) native;
+  num get numberValue() { return _get_numberValue(this); }
+  static num _get_numberValue(var _this) native;
 
-  int get resultType() { return _get__XPathResult_resultType(this); }
-  static int _get__XPathResult_resultType(var _this) native;
+  int get resultType() { return _get_resultType(this); }
+  static int _get_resultType(var _this) native;
 
-  Node get singleNodeValue() { return _get__XPathResult_singleNodeValue(this); }
-  static Node _get__XPathResult_singleNodeValue(var _this) native;
+  Node get singleNodeValue() { return _get_singleNodeValue(this); }
+  static Node _get_singleNodeValue(var _this) native;
 
-  int get snapshotLength() { return _get__XPathResult_snapshotLength(this); }
-  static int _get__XPathResult_snapshotLength(var _this) native;
+  int get snapshotLength() { return _get_snapshotLength(this); }
+  static int _get_snapshotLength(var _this) native;
 
-  String get stringValue() { return _get__XPathResult_stringValue(this); }
-  static String _get__XPathResult_stringValue(var _this) native;
+  String get stringValue() { return _get_stringValue(this); }
+  static String _get_stringValue(var _this) native;
 
   Node iterateNext() {
     return _iterateNext(this);

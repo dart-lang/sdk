@@ -11,17 +11,17 @@ class _IDBCursorWrappingImplementation extends DOMWrapperBase implements IDBCurs
     return new _IDBCursorWrappingImplementation();
   }
 
-  int get direction() { return _get__IDBCursor_direction(this); }
-  static int _get__IDBCursor_direction(var _this) native;
+  int get direction() { return _get_direction(this); }
+  static int _get_direction(var _this) native;
 
-  IDBKey get key() { return _get__IDBCursor_key(this); }
-  static IDBKey _get__IDBCursor_key(var _this) native;
+  IDBKey get key() { return _get_key(this); }
+  static IDBKey _get_key(var _this) native;
 
-  IDBKey get primaryKey() { return _get__IDBCursor_primaryKey(this); }
-  static IDBKey _get__IDBCursor_primaryKey(var _this) native;
+  IDBKey get primaryKey() { return _get_primaryKey(this); }
+  static IDBKey _get_primaryKey(var _this) native;
 
-  IDBAny get source() { return _get__IDBCursor_source(this); }
-  static IDBAny _get__IDBCursor_source(var _this) native;
+  IDBAny get source() { return _get_source(this); }
+  static IDBAny _get_source(var _this) native;
 
   void continueFunction([IDBKey key = null]) {
     if (key === null) {

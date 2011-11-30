@@ -52,6 +52,8 @@ interface Event {
 
   bool get cancelable();
 
+  Clipboard get clipboardData();
+
   EventTarget get currentTarget();
 
   bool get defaultPrevented();

@@ -1,9 +1,11 @@
 
-class IDBObjectStore native "IDBObjectStore" {
+class IDBObjectStore native "*IDBObjectStore" {
 
   String keyPath;
 
   String name;
+
+  IDBTransaction transaction;
 
   IDBRequest add(String value, [IDBKey key = null]) native;
 

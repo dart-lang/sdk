@@ -28,8 +28,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, expose_core_impl, false,
-    "Enables access to core implementation library (only for testing).");
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 
@@ -465,6 +463,21 @@ void Object::Init(Isolate* isolate) {
   RegisterClass(cls, "FourByteString", impl_script, core_impl_lib);
   pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
+  cls = Class::New<ExternalOneByteString>();
+  object_store->set_external_one_byte_string_class(cls);
+  RegisterClass(cls, "ExternalOneByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
+  cls = Class::New<ExternalTwoByteString>();
+  object_store->set_external_two_byte_string_class(cls);
+  RegisterClass(cls, "ExternalTwoByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
+  cls = Class::New<ExternalFourByteString>();
+  object_store->set_external_four_byte_string_class(cls);
+  RegisterClass(cls, "ExternalFourByteString", impl_script, core_impl_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+
   cls = Class::New<UnhandledException>();
   object_store->set_unhandled_exception_class(cls);
   RegisterClass(cls, "UnhandledException", impl_script, core_impl_lib);
@@ -485,7 +498,8 @@ void Object::Init(Isolate* isolate) {
   const Script& script = Script::Handle(Bootstrap::LoadScript());
 
   // Allocate and initialize the Object class and type.
-  // Object class is the only pre-allocated non-interface in the core library.
+  // The Object and ByteBuffer classes are the only pre-allocated
+  // non-interface classes in the core library.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
   cls.set_name(String::Handle(String::NewSymbol("Object")));
@@ -494,6 +508,12 @@ void Object::Init(Isolate* isolate) {
   pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
+
+  cls = Class::New<ByteBuffer>();
+  object_store->set_byte_buffer_class(cls);
+  cls.set_name(String::Handle(String::NewSymbol("ByteBuffer")));
+  cls.set_script(script);
+  core_lib.AddClass(cls);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -566,6 +586,11 @@ void Object::Init(Isolate* isolate) {
   bool_value = Bool::New(false);
   object_store->set_false_value(bool_value);
 
+  // Setup some default native field classes which can be extended for
+  // specifying native fields in dart classes.
+  Library::InitNativeWrappersLibrary(isolate);
+  ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
+
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
   Bootstrap::Compile(core_lib, script);
@@ -601,6 +626,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
 
+  cls = Class::New<ByteBuffer>();
+  object_store->set_byte_buffer_class(cls);
+
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
 
@@ -624,6 +652,15 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
+
+  cls = Class::New<ExternalOneByteString>();
+  object_store->set_external_one_byte_string_class(cls);
+
+  cls = Class::New<ExternalTwoByteString>();
+  object_store->set_external_two_byte_string_class(cls);
+
+  cls = Class::New<ExternalFourByteString>();
+  object_store->set_external_four_byte_string_class(cls);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
@@ -878,17 +915,37 @@ void Class::set_super_type(const Type& value) const {
 }
 
 
-RawClass* Class::FactoryClass() const {
-  const Type& fact_type = Type::Handle(factory_type());
-  if (fact_type.IsNull()) {
-    return Class::null();
-  }
-  return fact_type.type_class();
+bool Class::HasFactoryClass() const {
+  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
+  return !factory_class.IsNull();
 }
 
 
-void Class::set_factory_type(const Type& value) const {
-  StorePointer(&raw_ptr()->factory_type_, value.raw());
+bool Class::HasResolvedFactoryClass() const {
+  ASSERT(HasFactoryClass());
+  const Object& factory_class = Object::Handle(raw_ptr()->factory_class_);
+  return factory_class.IsClass();
+}
+
+
+RawClass* Class::FactoryClass() const {
+  ASSERT(HasResolvedFactoryClass());
+  Class& type_class = Class::Handle();
+  type_class ^= raw_ptr()->factory_class_;
+  return type_class.raw();
+}
+
+
+RawUnresolvedClass* Class::UnresolvedFactoryClass() const {
+  ASSERT(!HasResolvedFactoryClass());
+  UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle();
+  unresolved_factory_class ^= raw_ptr()->factory_class_;
+  return unresolved_factory_class.raw();
+}
+
+
+void Class::set_factory_class(const Object& value) const {
+  StorePointer(&raw_ptr()->factory_class_, value.raw());
 }
 
 
@@ -1103,6 +1160,15 @@ RawClass* Class::GetClass(ObjectKind kind) {
     case kFourByteString:
       ASSERT(object_store->four_byte_string_class() != Class::null());
       return object_store->four_byte_string_class();
+    case kExternalOneByteString:
+      ASSERT(object_store->external_one_byte_string_class() != Class::null());
+      return object_store->external_one_byte_string_class();
+    case kExternalTwoByteString:
+      ASSERT(object_store->external_two_byte_string_class() != Class::null());
+      return object_store->external_two_byte_string_class();
+    case kExternalFourByteString:
+      ASSERT(object_store->external_four_byte_string_class() != Class::null());
+      return object_store->external_four_byte_string_class();
     case kBool:
       ASSERT(object_store->bool_class() != Class::null());
       return object_store->bool_class();
@@ -1112,6 +1178,9 @@ RawClass* Class::GetClass(ObjectKind kind) {
     case kImmutableArray:
       ASSERT(object_store->immutable_array_class() != Class::null());
       return object_store->immutable_array_class();
+    case kByteBuffer:
+      ASSERT(object_store->byte_buffer_class() != Class::null());
+      return object_store->byte_buffer_class();
     case kStacktrace:
       ASSERT(object_store->stacktrace_class() != Class::null());
       return object_store->stacktrace_class();
@@ -1582,6 +1651,11 @@ void UnresolvedClass::set_qualifier(const String& qualifier) const {
 }
 
 
+void UnresolvedClass::set_factory_signature_class(const Class& value) const {
+  StorePointer(&raw_ptr()->factory_signature_class_, value.raw());
+}
+
+
 RawString* UnresolvedClass::Name() const {
   if (qualifier() != String::null()) {
     String& name = String::Handle();
@@ -1965,6 +2039,9 @@ void ParameterizedType::set_is_being_finalized() const {
 
 
 bool ParameterizedType::IsResolved() const {
+  if (IsFinalized()) {
+    return true;
+  }
   if (!HasResolvedTypeClass()) {
     return false;
   }
@@ -2562,7 +2639,7 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::New() {
       Class::Handle(Object::instantiated_type_arguments_class());
   RawObject* raw = Object::Allocate(instantiated_type_arguments_class,
                                     InstantiatedTypeArguments::InstanceSize(),
-                                    Heap::kOld);
+                                    Heap::kNew);
   return reinterpret_cast<RawInstantiatedTypeArguments*>(raw);
 }
 
@@ -2846,26 +2923,46 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
       (num_opt_params < other_num_opt_params)) {
     return false;
   }
-  // Check that for each optional named parameter of the other function, there
-  // exists an optional named parameter of this function with an identical name.
+  // Check that for each optional named parameter of the other function there is
+  // a corresponding optional named parameter of this function with an identical
+  // name at the same position.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we can
   // compare their raw pointers.
-  const int num_params = num_fixed_params + num_opt_params;
   const int other_num_params = other_num_fixed_params + other_num_opt_params;
-  bool found_param_name;
-  String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-    other_param_name = other.ParameterNameAt(i);
-    found_param_name = false;
-    for (intptr_t j = num_fixed_params; j < num_params; j++) {
-      if (ParameterNameAt(j) == other_param_name.raw()) {
-        found_param_name = true;
-        break;
-      }
-    }
-    if (!found_param_name) {
+    const String& other_param_name = String::Handle(other.ParameterNameAt(i));
+    if (ParameterNameAt(i) != other_param_name.raw()) {
       return false;
     }
+  }
+  return true;
+}
+
+
+bool Function::TestParameterType(
+    intptr_t parameter_position,
+    const TypeArguments& type_arguments,
+    const Function& other,
+    const TypeArguments& other_type_arguments) const {
+  Type& param_type = Type::Handle(ParameterTypeAt(parameter_position));
+  if (!param_type.IsInstantiated()) {
+    param_type = param_type.InstantiateFrom(type_arguments, 0);
+  }
+  if (param_type.IsDynamicType()) {
+    return true;
+  }
+  Type& other_param_type =
+      Type::Handle(other.ParameterTypeAt(parameter_position));
+  if (!other_param_type.IsInstantiated()) {
+    other_param_type =
+        other_param_type.InstantiateFrom(other_type_arguments, 0);
+  }
+  if (other_param_type.IsDynamicType()) {
+    return true;
+  }
+  if (!param_type.IsSubtypeOf(other_param_type) &&
+      !other_param_type.IsSubtypeOf(param_type)) {
+    return false;
   }
   return true;
 }
@@ -2895,126 +2992,53 @@ bool Function::TestType(TypeTestKind test,
       res_type = res_type.InstantiateFrom(type_arguments, 0);
     }
     if (!res_type.IsDynamicType() &&
-        (res_type.IsVoidType() || !res_type.IsAssignableTo(other_res_type))) {
+        (res_type.IsVoidType() ||
+         !(res_type.IsSubtypeOf(other_res_type) ||
+           other_res_type.IsSubtypeOf(res_type)))) {
       return false;
     }
   }
   // Check the types of fixed parameters.
-  Type& param_type = Type::Handle();
-  Type& other_param_type = Type::Handle();
   for (intptr_t i = 0; i < num_fixed_params; i++) {
-    param_type = ParameterTypeAt(i);
-    if (!param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(type_arguments, 0);
-    }
-    if (param_type.IsDynamicType()) {
-      continue;
-    }
-    other_param_type = other.ParameterTypeAt(i);
-    if (!other_param_type.IsInstantiated()) {
-      other_param_type =
-          other_param_type.InstantiateFrom(other_type_arguments, 0);
-    }
-    if (other_param_type.IsDynamicType()) {
-      continue;
-    }
-    // Subtyping and assignability rules are identical when applied to parameter
-    // types.
-    ASSERT((test == Type::kIsSubtypeOf) || (test == Type::kIsAssignableTo));
-    if (!param_type.IsSubtypeOf(other_param_type) &&
-        !other_param_type.IsSubtypeOf(param_type)) {
+    if (!TestParameterType(i, type_arguments, other, other_type_arguments)) {
       return false;
     }
   }
   // Check the names and types of optional parameters.
-  // First, check that for each optional named parameter of type T of the other
-  // function type, there exists an optional named parameter of this function
-  // type with an identical name and with a Type S that is a subtype or
-  // supertype of T.
-  // Note that SetParameterNameAt() guarantees that names are symbols, so we can
-  // compare their raw pointers.
-  const int num_params = num_fixed_params + num_opt_params;
-  const int other_num_params = other_num_fixed_params + other_num_opt_params;
-  bool is_subtype = true;
-  bool found_param_name;
-  String& other_param_name = String::Handle();
-  for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-    other_param_name = other.ParameterNameAt(i);
-    found_param_name = false;
-    for (intptr_t j = num_fixed_params; j < num_params; j++) {
-      if (ParameterNameAt(j) == other_param_name.raw()) {
-        found_param_name = true;
-        param_type = ParameterTypeAt(j);
-        if (!param_type.IsInstantiated()) {
-          param_type = param_type.InstantiateFrom(type_arguments, 0);
-        }
-        if (param_type.IsDynamicType()) {
-          break;
-        }
-        other_param_type = other.ParameterTypeAt(i);
-        if (!other_param_type.IsInstantiated()) {
-          other_param_type =
-              other_param_type.InstantiateFrom(other_type_arguments, 0);
-        }
-        if (other_param_type.IsDynamicType()) {
-          break;
-        }
-        if (!param_type.IsSubtypeOf(other_param_type) &&
-            !other_param_type.IsSubtypeOf(param_type)) {
-          is_subtype = false;
-        }
-        break;
+  if (num_opt_params >= other_num_opt_params) {
+    // Check that for each optional named parameter of type T of the other
+    // function type, there is a corresponding optional named parameter of this
+    // function at the same position with an identical name and with a Type S
+    // that is a subtype or supertype of T.
+    // Note that SetParameterNameAt() guarantees that names are symbols, so we
+    // can compare their raw pointers.
+    const intptr_t other_num_params =
+        other_num_fixed_params + other_num_opt_params;
+    String& other_param_name = String::Handle();
+    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+      other_param_name = other.ParameterNameAt(i);
+      if ((ParameterNameAt(i) != other_param_name.raw()) ||
+          !TestParameterType(i, type_arguments, other, other_type_arguments)) {
+        return false;
       }
     }
-    if (!found_param_name) {
-      is_subtype = false;
-      break;
-    }
-  }
-  // If this first checking step succeeds, return true, otherwise, this function
-  // type is not a subtype of the other function type.
-  if (is_subtype) {
     return true;
   }
-  if (test == Type::kIsSubtypeOf) {
-    return false;
-  }
+  ASSERT((test == Type::kIsAssignableTo) &&
+         (num_opt_params < other_num_opt_params));
   // To verify that this function type is assignable to the other function type,
-  // i.e whether the other function type is a subtype of this function type, we
-  // repeat the checking step above after swapping the other function type with
-  // this function type.
-  ASSERT(test == Type::kIsAssignableTo);
-  String& param_name = String::Handle();
-  is_subtype = true;
+  // check that for each optional named parameter of type T of this function
+  // type, there is a corresponding optional named parameter of the other
+  // function at the same position with an identical name and with a Type S that
+  // is a subtype or supertype of T.
+  // Note that SetParameterNameAt() guarantees that names are symbols, so we
+  // can compare their raw pointers.
+  const intptr_t num_params = num_fixed_params + num_opt_params;
+  String& other_param_name = String::Handle();
   for (intptr_t i = num_fixed_params; i < num_params; i++) {
-    param_name = ParameterNameAt(i);
-    found_param_name = false;
-    for (intptr_t j = other_num_fixed_params; j < other_num_params; j++) {
-      if (other.ParameterNameAt(j) == param_name.raw()) {
-        found_param_name = true;
-        other_param_type = other.ParameterTypeAt(j);
-        if (!other_param_type.IsInstantiated()) {
-          other_param_type =
-              other_param_type.InstantiateFrom(other_type_arguments, 0);
-        }
-        if (other_param_type.IsDynamicType()) {
-          break;
-        }
-        param_type = ParameterTypeAt(i);
-        if (!param_type.IsInstantiated()) {
-          param_type = param_type.InstantiateFrom(type_arguments, 0);
-        }
-        if (param_type.IsDynamicType()) {
-          break;
-        }
-        if (!other_param_type.IsSubtypeOf(param_type) &&
-            !param_type.IsSubtypeOf(other_param_type)) {
-          return false;
-        }
-        break;
-      }
-    }
-    if (!found_param_name) {
+    other_param_name = other.ParameterNameAt(i);
+    if ((ParameterNameAt(i) != other_param_name.raw()) ||
+        !TestParameterType(i, type_arguments, other, other_type_arguments)) {
       return false;
     }
   }
@@ -3671,9 +3695,30 @@ void ClassDictionaryIterator::MoveToNextClass() {
 
 void Library::SetName(const String& name) const {
   // Only set name once.
-  ASSERT(raw_ptr()->name_ == raw_ptr()->url_);
+  ASSERT(!Loaded());
   ASSERT(name.IsSymbol());
   StorePointer(&raw_ptr()->name_, name.raw());
+}
+
+
+void Library::SetLoadInProgress() const {
+  // Should not be already loaded.
+  ASSERT(raw_ptr()->load_state_ == RawLibrary::kAllocated);
+  raw_ptr()->load_state_ = RawLibrary::kLoadInProgress;
+}
+
+
+void Library::SetLoaded() const {
+  // Should not be already loaded or just allocated.
+  ASSERT(LoadInProgress());
+  raw_ptr()->load_state_ = RawLibrary::kLoaded;
+}
+
+
+void Library::SetLoadError() const {
+  // Should not be already loaded or just allocated.
+  ASSERT(LoadInProgress());
+  raw_ptr()->load_state_ = RawLibrary::kLoadError;
 }
 
 
@@ -4062,7 +4107,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->next_registered_ = Library::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
-  result.raw_ptr()->loaded_ = false;
+  result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
   result.InitClassDictionary();
   result.InitImportList();
   result.InitImportedIntoList();
@@ -4070,10 +4115,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
     result.AddImport(core_lib);
-    if (FLAG_expose_core_impl) {
-      // Make implementation corelib visible to Dart code.
-      result.AddImport(Library::Handle(Library::CoreImplLibrary()));
-    }
   }
   return result.raw();
 }
@@ -4099,6 +4140,32 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   core_lib.AddImport(core_impl_lib);
   core_impl_lib.AddImport(core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
+}
+
+
+void Library::InitNativeWrappersLibrary(Isolate* isolate) {
+  static const int kNumNativeWrappersClasses = 4;
+  ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
+  const String& native_flds_lib_url = String::Handle(
+      String::NewSymbol("dart:nativewrappers"));
+  Library& native_flds_lib = Library::Handle(
+      Library::NewLibraryHelper(native_flds_lib_url, false));
+  native_flds_lib.Register();
+  isolate->object_store()->set_native_wrappers_library(native_flds_lib);
+  static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
+  static const int kNameLength = 25;
+  ASSERT(kNameLength == (strlen(kNativeWrappersClass) + 1 + 1));
+  char name_buffer[kNameLength];
+  String& cls_name = String::Handle();
+  for (int fld_cnt = 1; fld_cnt <= kNumNativeWrappersClasses; fld_cnt++) {
+    OS::SNPrint(name_buffer,
+                kNameLength,
+                "%s%d",
+                kNativeWrappersClass,
+                fld_cnt);
+    cls_name = String::NewSymbol(name_buffer);
+    Class::NewNativeWrapper(&native_flds_lib, cls_name, fld_cnt);
+  }
 }
 
 
@@ -4169,6 +4236,11 @@ RawLibrary* Library::CoreLibrary() {
 
 RawLibrary* Library::CoreImplLibrary() {
   return Isolate::Current()->object_store()->core_impl_library();
+}
+
+
+RawLibrary* Library::NativeWrappersLibrary() {
+  return Isolate::Current()->object_store()->native_wrappers_library();
 }
 
 
@@ -4907,14 +4979,19 @@ bool Instance::TestType(TypeTestKind test,
   ASSERT(!other.IsVoidType());
   if (IsNull()) {
     if (test == Type::kIsSubtypeOf) {
-      const Type& object_type =
-          Type::Handle(Isolate::Current()->object_store()->object_type());
-      if (other.IsInstantiated() && object_type.IsSubtypeOf(other)) {
-        ASSERT(other_instantiator.IsNull());
-        // null is an instance of the Object class.
-        return true;
+      Class& other_class = Class::Handle();
+      if (other.IsTypeParameter()) {
+        if (other_instantiator.IsNull()) {
+          return true;  // Other type is uninstantiated, i.e. Dynamic.
+        }
+        const Type& instantiated_other =
+            Type::Handle(other_instantiator.TypeAt(other.Index()));
+        ASSERT(instantiated_other.IsInstantiated());
+        other_class = instantiated_other.type_class();
+      } else {
+        other_class = other.type_class();
       }
-      return false;
+      return other_class.IsObjectClass() || other_class.IsDynamicClass();
     } else {
       ASSERT(test == Type::kIsAssignableTo);
       return true;
@@ -5277,6 +5354,11 @@ RawDouble* Double::New(double d, Heap::Space space) {
 }
 
 
+static bool IsWhiteSpace(char ch) {
+  return ch == '\0' || ch == '\n' || ch == '\r' || ch == ' ' || ch == '\t';
+}
+
+
 RawDouble* Double::New(const String& str, Heap::Space space) {
   // TODO(regis): For now, we use strtod to convert a string to double.
   const char* nptr = str.ToCString();
@@ -5284,7 +5366,7 @@ RawDouble* Double::New(const String& str, Heap::Space space) {
   double double_value = strtod(nptr, &endptr);
   // We do not treat overflow or underflow as an error and therefore do not
   // check errno for ERANGE.
-  if ((*endptr != '\0')) {
+  if (!IsWhiteSpace(*endptr)) {
     return Double::Handle().raw();
   }
   return New(double_value, space);
@@ -5482,6 +5564,13 @@ intptr_t String::Hash(const uint32_t* characters, intptr_t len) {
 
 
 int32_t String::CharAt(intptr_t index) const {
+  // String is an abstract class.
+  UNREACHABLE();
+  return 0;
+}
+
+
+intptr_t String::CharSize() const {
   // String is an abstract class.
   UNREACHABLE();
   return 0;
@@ -5751,19 +5840,46 @@ RawString* String::New(const String& str, Heap::Space space) {
   // Once we have external string support, this will also create a heap copy of
   // the string if necessary. Some optimizations are possible, such as not
   // copying internal strings into the same space.
-  if (str.IsOneByteString()) {
-    OneByteString& one_byte_str = OneByteString::Handle();
-    one_byte_str ^= str.raw();
-    return OneByteString::New(one_byte_str, space);
-  } else if (str.IsTwoByteString()) {
-    TwoByteString& two_byte_str = TwoByteString::Handle();
-    two_byte_str ^= str.raw();
-    return TwoByteString::New(two_byte_str, space);
+  intptr_t len = str.Length();
+  String& result = String::Handle();
+  intptr_t char_size = str.CharSize();
+  if (char_size == kOneByteChar) {
+    result ^= OneByteString::New(len, space);
+  } else if (char_size == kTwoByteChar) {
+    result ^= TwoByteString::New(len, space);
+  } else {
+    ASSERT(char_size == kFourByteChar);
+    result ^= FourByteString::New(len, space);
   }
-  ASSERT(str.IsFourByteString());
-  FourByteString& four_byte_str = FourByteString::Handle();
-  four_byte_str ^= str.raw();
-  return FourByteString::New(four_byte_str, space);
+  String::Copy(result, 0, str, 0, len);
+  return result.raw();
+}
+
+
+RawString* String::NewExternal(const uint8_t* characters,
+                               intptr_t len,
+                               void* peer,
+                               PeerFinalizer callback,
+                               Heap::Space space) {
+  return ExternalOneByteString::New(characters, len, peer, callback, space);
+}
+
+
+RawString* String::NewExternal(const uint16_t* characters,
+                               intptr_t len,
+                               void* peer,
+                               PeerFinalizer callback,
+                               Heap::Space space) {
+  return ExternalTwoByteString::New(characters, len, peer, callback, space);
+}
+
+
+RawString* String::NewExternal(const uint32_t* characters,
+                               intptr_t len,
+                               void* peer,
+                               PeerFinalizer callback,
+                               Heap::Space space) {
+  return ExternalFourByteString::New(characters, len, peer, callback, space);
 }
 
 
@@ -5875,22 +5991,47 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(len <= (dst.Length() - dst_offset));
   ASSERT(len <= (src.Length() - src_offset));
   if (len > 0) {
-    if (src.IsOneByteString()) {
-      OneByteString& onestr = OneByteString::Handle();
-      onestr ^= src.raw();
-      NoGCScope no_gc;
-      String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
-    } else if (src.IsTwoByteString()) {
-      TwoByteString& twostr = TwoByteString::Handle();
-      twostr ^= src.raw();
-      NoGCScope no_gc;
-      String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+    intptr_t char_size = src.CharSize();
+    if (char_size == kOneByteChar) {
+      if (src.IsOneByteString()) {
+        OneByteString& onestr = OneByteString::Handle();
+        onestr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
+      } else {
+        ASSERT(src.IsExternalOneByteString());
+        ExternalOneByteString& onestr = ExternalOneByteString::Handle();
+        onestr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
+      }
+    } else if (char_size == kTwoByteChar) {
+      if (src.IsTwoByteString()) {
+        TwoByteString& twostr = TwoByteString::Handle();
+        twostr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+      } else {
+        ASSERT(src.IsExternalTwoByteString());
+        ExternalTwoByteString& twostr = ExternalTwoByteString::Handle();
+        twostr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
+      }
     } else {
-      ASSERT(src.IsFourByteString());
-      FourByteString& fourstr = FourByteString::Handle();
-      fourstr ^= src.raw();
-      NoGCScope no_gc;
-      String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
+      ASSERT(char_size == kFourByteChar);
+      if (src.IsFourByteString()) {
+        FourByteString& fourstr = FourByteString::Handle();
+        fourstr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
+      } else {
+        ASSERT(src.IsExternalFourByteString());
+        ExternalFourByteString& fourstr = ExternalFourByteString::Handle();
+        fourstr ^= src.raw();
+        NoGCScope no_gc;
+        String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
+      }
     }
   }
 }
@@ -6052,13 +6193,13 @@ RawString* String::Concat(const String& str1,
                           const String& str2,
                           Heap::Space space) {
   ASSERT(!str1.IsNull() && !str2.IsNull());
-  if (str1.IsFourByteString() || str2.IsFourByteString()) {
+  intptr_t char_size = Utils::Maximum(str1.CharSize(), str2.CharSize());
+  if (char_size == kFourByteChar) {
     return FourByteString::Concat(str1, str2, space);
   }
-  if (str1.IsTwoByteString() || str2.IsTwoByteString()) {
+  if (char_size == kTwoByteChar) {
     return TwoByteString::Concat(str1, str2, space);
   }
-  ASSERT(str1.IsOneByteString() && str2.IsOneByteString());
   return OneByteString::Concat(str1, str2, space);
 }
 
@@ -6066,26 +6207,21 @@ RawString* String::Concat(const String& str1,
 RawString* String::ConcatAll(const Array& strings,
                              Heap::Space space) {
   ASSERT(!strings.IsNull());
-  bool is_one_byte_string = true;
-  bool is_two_byte_string = true;
   intptr_t result_len = 0;
   intptr_t strings_len = strings.Length();
   String& str = String::Handle();
+  intptr_t char_size = kOneByteChar;
   for (intptr_t i = 0; i < strings_len; i++) {
     str ^= strings.At(i);
     result_len += str.Length();
-    if (str.IsFourByteString()) {
-      is_one_byte_string = false;
-      is_two_byte_string = false;
-    } else if (str.IsTwoByteString()) {
-      is_one_byte_string = false;
-    }
+    char_size = Utils::Maximum(char_size, str.CharSize());
   }
-  if (is_one_byte_string) {
+  if (char_size == kOneByteChar) {
     return OneByteString::ConcatAll(strings, result_len, space);
-  } else if (is_two_byte_string) {
+  } else if (char_size == kTwoByteChar) {
     return TwoByteString::ConcatAll(strings, result_len, space);
   }
+  ASSERT(char_size == kFourByteChar);
   return FourByteString::ConcatAll(strings, result_len, space);
 }
 
@@ -6111,19 +6247,37 @@ RawString* String::SubString(const String& str,
   if (begin_index >= str.Length()) {
     return String::null();
   }
-  if (str.IsOneByteString()) {
-    OneByteString& obstr = OneByteString::Handle();
-    obstr ^= str.raw();
-    return OneByteString::SubString(obstr, begin_index, length, space);
-  } else if (str.IsTwoByteString()) {
-    TwoByteString& twostr = TwoByteString::Handle();
-    twostr ^= str.raw();
-    return TwoByteString::SubString(twostr, begin_index, length, space);
+  String& result = String::Handle();
+  bool is_one_byte_string = true;
+  bool is_two_byte_string = true;
+  intptr_t char_size = str.CharSize();
+  if (char_size == kTwoByteChar) {
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+        break;
+      }
+    }
+  } else if (char_size == kFourByteChar) {
+    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
+      if (str.CharAt(i) > 0xFFFF) {
+        is_one_byte_string = false;
+        is_two_byte_string = false;
+        break;
+      } else if (str.CharAt(i) > 0xFF) {
+        is_one_byte_string = false;
+      }
+    }
   }
-  ASSERT(str.IsFourByteString());
-  FourByteString& fourstr = FourByteString::Handle();
-  fourstr ^= str.raw();
-  return FourByteString::SubString(fourstr, begin_index, length, space);
+  if (is_one_byte_string) {
+    result ^= OneByteString::New(length, space);
+  } else if (is_two_byte_string) {
+    result ^= TwoByteString::New(length, space);
+  } else {
+    result ^= FourByteString::New(length, space);
+  }
+  String::Copy(result, 0, str, begin_index, length);
+  return result.raw();
 }
 
 
@@ -6271,22 +6425,6 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
 }
 
 
-RawString* OneByteString::SubString(const OneByteString& str,
-                                    intptr_t begin_index,
-                                    intptr_t length,
-                                    Heap::Space space) {
-  ASSERT(!str.IsNull());
-  ASSERT(begin_index < str.Length());
-  OneByteString& result = OneByteString::Handle();
-  if (length <= (str.Length() - begin_index)) {
-    result ^= OneByteString::New(length, space);
-    String::Copy(result, 0, str, begin_index, length);
-  }
-  // TODO(5418937): return a non-null object on error.
-  return result.raw();
-}
-
-
 RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            const String& str,
                                            Heap::Space space) {
@@ -6390,33 +6528,6 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
 }
 
 
-RawString* TwoByteString::SubString(const TwoByteString& str,
-                                    intptr_t begin_index,
-                                    intptr_t length,
-                                    Heap::Space space) {
-  ASSERT(!str.IsNull());
-  ASSERT(begin_index < str.Length());
-  String& result = String::Handle();
-  if (length <= (str.Length() - begin_index)) {
-    bool is_one_byte_string = true;
-    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFF) {
-        is_one_byte_string = false;
-        break;
-      }
-    }
-    if (is_one_byte_string) {
-      result ^= OneByteString::New(length, space);
-    } else {
-      result ^= TwoByteString::New(length, space);
-    }
-    String::Copy(result, 0, str, begin_index, length);
-  }
-  // TODO(5418937): return a non-null object on error.
-  return result.raw();
-}
-
-
 RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
                                            const String& str,
                                            Heap::Space space) {
@@ -6508,39 +6619,6 @@ RawFourByteString* FourByteString::ConcatAll(const Array& strings,
 }
 
 
-RawString* FourByteString::SubString(const FourByteString& str,
-                                     intptr_t begin_index,
-                                     intptr_t length,
-                                     Heap::Space space) {
-  ASSERT(!str.IsNull());
-  ASSERT(begin_index < str.Length());
-  String& result = String::Handle();
-  if (length <= (str.Length() - begin_index)) {
-    bool is_one_byte_string = true;
-    bool is_two_byte_string = true;
-    for (intptr_t i = begin_index; i < begin_index + length; ++i) {
-      if (str.CharAt(i) > 0xFFFF) {
-        is_one_byte_string = false;
-        is_two_byte_string = false;
-        break;
-      } else if (str.CharAt(i) > 0xFF) {
-        is_one_byte_string = false;
-      }
-    }
-    if (is_one_byte_string) {
-      result ^= OneByteString::New(length, space);
-    } else if (is_two_byte_string) {
-      result ^= TwoByteString::New(length, space);
-    } else {
-      result ^= FourByteString::New(length, space);
-    }
-    String::Copy(result, 0, str, begin_index, length);
-  }
-  // TODO(5418937): return a non-null object on error.
-  return result.raw();
-}
-
-
 RawFourByteString* FourByteString::Transform(int32_t (*mapping)(int32_t ch),
                                              const String& str,
                                              Heap::Space space) {
@@ -6558,6 +6636,99 @@ RawFourByteString* FourByteString::Transform(int32_t (*mapping)(int32_t ch),
 
 
 const char* FourByteString::ToCString() const {
+  return String::ToCString();
+}
+
+
+RawExternalOneByteString* ExternalOneByteString::New(const uint8_t* data,
+                                                     intptr_t len,
+                                                     void* peer,
+                                                     PeerFinalizer callback,
+                                                     Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+
+  const Class& cls =
+      Class::Handle(isolate->object_store()->external_one_byte_string_class());
+  ExternalOneByteString& result = ExternalOneByteString::Handle();
+  {
+    ExternalStringData<uint8_t>* external_data =
+        new ExternalStringData<uint8_t>(data, peer, callback);
+    RawObject* raw = Object::Allocate(cls,
+                                      ExternalOneByteString::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetHash(0);
+    result.SetExternalData(external_data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalOneByteString::ToCString() const {
+  return String::ToCString();
+}
+
+
+RawExternalTwoByteString* ExternalTwoByteString::New(const uint16_t* data,
+                                                     intptr_t len,
+                                                     void* peer,
+                                                     PeerFinalizer callback,
+                                                     Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+
+  const Class& cls =
+      Class::Handle(isolate->object_store()->external_two_byte_string_class());
+  ExternalTwoByteString& result = ExternalTwoByteString::Handle();
+  {
+    ExternalStringData<uint16_t>* external_data =
+        new ExternalStringData<uint16_t>(data, peer, callback);
+    RawObject* raw = Object::Allocate(cls,
+                                      ExternalTwoByteString::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetHash(0);
+    result.SetExternalData(external_data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalTwoByteString::ToCString() const {
+  return String::ToCString();
+}
+
+
+RawExternalFourByteString* ExternalFourByteString::New(const uint32_t* data,
+                                                       intptr_t len,
+                                                       void* peer,
+                                                       PeerFinalizer callback,
+                                                       Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+
+  const Class& cls =
+      Class::Handle(isolate->object_store()->external_four_byte_string_class());
+  ExternalFourByteString& result = ExternalFourByteString::Handle();
+  {
+    ExternalStringData<uint32_t>* external_data =
+        new ExternalStringData<uint32_t>(data, peer, callback);
+    RawObject* raw = Object::Allocate(cls,
+                                      ExternalFourByteString::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetHash(0);
+    result.SetExternalData(external_data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalFourByteString::ToCString() const {
   return String::ToCString();
 }
 
@@ -6690,6 +6861,53 @@ RawArray* Array::Empty() {
 
 const char* ImmutableArray::ToCString() const {
   return "ImmutableArray";
+}
+
+
+RawByteBuffer* ByteBuffer::New(uint8_t* data,
+                               intptr_t len,
+                               Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  const Class& byte_buffer_class =
+      Class::Handle(isolate->object_store()->byte_buffer_class());
+  ByteBuffer& result = ByteBuffer::Handle();
+  {
+    RawObject* raw = Object::Allocate(byte_buffer_class,
+                                      ByteBuffer::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetData(data);
+  }
+  return result.raw();
+}
+
+
+bool ByteBuffer::Equals(const Instance& other) const {
+  if (this->raw() == other.raw()) {
+    // Both handles point to the same raw instance.
+    return true;
+  }
+
+  if (!other.IsByteBuffer() || other.IsNull()) {
+    return false;
+  }
+
+  ByteBuffer& other_array = ByteBuffer::Handle();
+  other_array ^= other.raw();
+
+  intptr_t len = this->Length();
+  if (len != other_array.Length()) {
+    return false;
+  }
+
+  return memcmp(this->Addr<uint8_t>(0), other_array.Addr<uint8_t>(0), len) == 0;
+}
+
+
+const char* ByteBuffer::ToCString() const {
+  return "ByteBuffer";
 }
 
 

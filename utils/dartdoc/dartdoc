@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# To generate docs for a library, run this script with the path to an entrypoint
+# .dart file as the only argument, like:
+#
+# $ dartdoc foo.dart
+
+# Run from dartdoc directory to get correct relative paths.
+startdir=$PWD
+pushd `dirname "$0"` >>/dev/null
+
+# Generate the client-side .js file from interact.dart if we haven't already or
+# if it's out of date.
+if [ "interact.dart" -nt "static/interact.js" ]
+  then
+  ../../frog/frogsh --libdir=../../frog/lib \
+    --out=static/interact.js --compile-only interact.dart
+  echo "Compiled interact.dart."
+fi
+
+# Generate the user's docs.
+../../frog/frogsh --libdir=../../frog/lib dartdoc.dart "$startdir/$1"
+
+popd >>/dev/null

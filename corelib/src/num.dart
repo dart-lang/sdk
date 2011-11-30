@@ -24,8 +24,6 @@ interface num extends Comparable, Hashable {
   bool operator >=(num other);
 
   // Predicates.
-  bool isEven();
-  bool isOdd();
   bool isNaN();
   bool isNegative();
   bool isInfinite();

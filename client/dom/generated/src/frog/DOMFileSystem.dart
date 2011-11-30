@@ -1,5 +1,5 @@
 
-class DOMFileSystem native "DOMFileSystem" {
+class DOMFileSystem native "*DOMFileSystem" {
 
   String name;
 

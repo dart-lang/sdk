@@ -1,5 +1,5 @@
 
-class MutationRecord native "MutationRecord" {
+class MutationRecord native "*MutationRecord" {
 
   NodeList addedNodes;
 

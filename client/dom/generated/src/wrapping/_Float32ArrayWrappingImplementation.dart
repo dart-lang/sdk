@@ -11,8 +11,8 @@ class _Float32ArrayWrappingImplementation extends _ArrayBufferViewWrappingImplem
     return new _Float32ArrayWrappingImplementation();
   }
 
-  int get length() { return _get__Float32Array_length(this); }
-  static int _get__Float32Array_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Float32Array subarray(int start, [int end = null]) {
     if (end === null) {

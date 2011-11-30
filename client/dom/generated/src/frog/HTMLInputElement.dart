@@ -1,5 +1,5 @@
 
-class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
+class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
 
   String accept;
 
@@ -52,8 +52,6 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
   bool multiple;
 
   String name;
-
-  EventListener onwebkitspeechchange;
 
   String pattern;
 
@@ -108,8 +106,6 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
   void setCustomValidity(String error) native;
 
   void setSelectionRange(int start, int end, [String direction = null]) native;
-
-  void setValueForUser(String value) native;
 
   void stepDown([int n = null]) native;
 

@@ -1,5 +1,5 @@
 
-class DOMWindow native "DOMWindow" {
+class DOMWindow native "*DOMWindow" {
 
   DOMApplicationCache applicationCache;
 
@@ -12,6 +12,8 @@ class DOMWindow native "DOMWindow" {
   Crypto crypto;
 
   String defaultStatus;
+
+  String defaultstatus;
 
   num devicePixelRatio;
 
@@ -44,152 +46,6 @@ class DOMWindow native "DOMWindow" {
   Navigator navigator;
 
   bool offscreenBuffering;
-
-  EventListener onabort;
-
-  EventListener onbeforeunload;
-
-  EventListener onblur;
-
-  EventListener oncanplay;
-
-  EventListener oncanplaythrough;
-
-  EventListener onchange;
-
-  EventListener onclick;
-
-  EventListener oncontextmenu;
-
-  EventListener ondblclick;
-
-  EventListener ondevicemotion;
-
-  EventListener ondeviceorientation;
-
-  EventListener ondrag;
-
-  EventListener ondragend;
-
-  EventListener ondragenter;
-
-  EventListener ondragleave;
-
-  EventListener ondragover;
-
-  EventListener ondragstart;
-
-  EventListener ondrop;
-
-  EventListener ondurationchange;
-
-  EventListener onemptied;
-
-  EventListener onended;
-
-  EventListener onerror;
-
-  EventListener onfocus;
-
-  EventListener onhashchange;
-
-  EventListener oninput;
-
-  EventListener oninvalid;
-
-  EventListener onkeydown;
-
-  EventListener onkeypress;
-
-  EventListener onkeyup;
-
-  EventListener onload;
-
-  EventListener onloadeddata;
-
-  EventListener onloadedmetadata;
-
-  EventListener onloadstart;
-
-  EventListener onmessage;
-
-  EventListener onmousedown;
-
-  EventListener onmousemove;
-
-  EventListener onmouseout;
-
-  EventListener onmouseover;
-
-  EventListener onmouseup;
-
-  EventListener onmousewheel;
-
-  EventListener onoffline;
-
-  EventListener ononline;
-
-  EventListener onpagehide;
-
-  EventListener onpageshow;
-
-  EventListener onpause;
-
-  EventListener onplay;
-
-  EventListener onplaying;
-
-  EventListener onpopstate;
-
-  EventListener onprogress;
-
-  EventListener onratechange;
-
-  EventListener onreset;
-
-  EventListener onresize;
-
-  EventListener onscroll;
-
-  EventListener onsearch;
-
-  EventListener onseeked;
-
-  EventListener onseeking;
-
-  EventListener onselect;
-
-  EventListener onstalled;
-
-  EventListener onstorage;
-
-  EventListener onsubmit;
-
-  EventListener onsuspend;
-
-  EventListener ontimeupdate;
-
-  EventListener ontouchcancel;
-
-  EventListener ontouchend;
-
-  EventListener ontouchmove;
-
-  EventListener ontouchstart;
-
-  EventListener onunload;
-
-  EventListener onvolumechange;
-
-  EventListener onwaiting;
-
-  EventListener onwebkitanimationend;
-
-  EventListener onwebkitanimationiteration;
-
-  EventListener onwebkitanimationstart;
-
-  EventListener onwebkittransitionend;
 
   DOMWindow opener;
 
@@ -239,6 +95,8 @@ class DOMWindow native "DOMWindow" {
 
   NotificationCenter webkitNotifications;
 
+  DOMURL webkitURL;
+
   DOMWindow window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -269,6 +127,8 @@ class DOMWindow native "DOMWindow" {
 
   CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native;
 
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) native;
+
   DOMSelection getSelection() native;
 
   MediaQueryList matchMedia(String query) native;
@@ -279,7 +139,7 @@ class DOMWindow native "DOMWindow" {
 
   DOMWindow open(String url, String name, [String options = null]) native;
 
-  void postMessage(String message, var messagePort_OR_targetOrigin, [String targetOrigin = null]) native;
+  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) native;
 
   void print() native;
 
@@ -312,6 +172,8 @@ class DOMWindow native "DOMWindow" {
   WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p) native;
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) native;
+
+  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
 

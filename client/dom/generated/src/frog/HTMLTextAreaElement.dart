@@ -1,5 +1,5 @@
 
-class HTMLTextAreaElement extends HTMLElement native "HTMLTextAreaElement" {
+class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
   String accessKey;
 

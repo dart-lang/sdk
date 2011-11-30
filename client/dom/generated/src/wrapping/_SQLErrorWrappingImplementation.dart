@@ -11,11 +11,11 @@ class _SQLErrorWrappingImplementation extends DOMWrapperBase implements SQLError
     return new _SQLErrorWrappingImplementation();
   }
 
-  int get code() { return _get__SQLError_code(this); }
-  static int _get__SQLError_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
-  String get message() { return _get__SQLError_message(this); }
-  static String _get__SQLError_message(var _this) native;
+  String get message() { return _get_message(this); }
+  static String _get_message(var _this) native;
 
   String get typeName() { return "SQLError"; }
 }

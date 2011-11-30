@@ -1,5 +1,5 @@
 
-class Clipboard native "Clipboard" {
+class Clipboard native "*Clipboard" {
 
   String dropEffect;
 
@@ -7,7 +7,9 @@ class Clipboard native "Clipboard" {
 
   FileList files;
 
-  DataTransferItems items;
+  DataTransferItemList items;
+
+  List types;
 
   void clearData([String type = null]) native;
 

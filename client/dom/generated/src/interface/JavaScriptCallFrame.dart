@@ -24,6 +24,8 @@ interface JavaScriptCallFrame {
 
   int get line();
 
+  List get scopeChain();
+
   int get sourceID();
 
   String get type();

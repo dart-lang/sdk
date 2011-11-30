@@ -5,6 +5,11 @@
 class GrowableObjectArray<T> implements List<T> {
   ObjectArray<T> backingArray;
 
+  factory GrowableObjectArray<T>._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "GrowableObjectArray can only be allocated by the VM");
+  }
+
   void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
     Arrays.copy(src, srcStart, this, dstStart, count);
   }
@@ -47,7 +52,7 @@ class GrowableObjectArray<T> implements List<T> {
     if (start < 0 || start > this.length) {
       throw new IndexOutOfRangeException(start);
     }
-    if (this.length + length >= backingArray.length) {
+    if (this.length + length > backingArray.length) {
       grow(backingArray.length + length);
     }
     Arrays.copy(backingArray,
@@ -72,8 +77,10 @@ class GrowableObjectArray<T> implements List<T> {
     return list;
   }
 
-  // The length of this growable array. It is always less than the
-  // length of the backing array.
+  // The length of this growable array. It is always less than or equal to the
+  // length of the backing array, which itself is always greater than 0, so that
+  // grow() does not have to check for a zero length backing array before
+  // doubling its size.
   int _length;
 
   GrowableObjectArray()
@@ -87,16 +94,8 @@ class GrowableObjectArray<T> implements List<T> {
     backingArray = new ObjectArray<T>(capacity);
   }
 
-  GrowableObjectArray._usingArray(List<T> array) {
-    backingArray = array;
-    _length = array.length;
-    if (_length == 0) {
-      grow(4);
-    }
-  }
-
-  factory GrowableObjectArray.from(Collection<T> other) {
-    List result = new GrowableObjectArray();
+  factory GrowableObjectArray<T>.from(Collection<T> other) {
+    List<T> result = new GrowableObjectArray<T>();
     result.addAll(other);
     return result;
   }
@@ -106,7 +105,7 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   void set length(int new_length) {
-    if (new_length >= backingArray.length) {
+    if (new_length > backingArray.length) {
       grow(new_length);
     } else {
       for (int i = new_length; i < _length; i++) {

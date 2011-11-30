@@ -1,7 +1,9 @@
 
-class ScriptProfileNode native "ScriptProfileNode" {
+class ScriptProfileNode native "*ScriptProfileNode" {
 
   int callUID;
+
+  List children;
 
   String functionName;
 

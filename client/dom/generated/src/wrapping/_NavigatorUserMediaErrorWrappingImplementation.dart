@@ -11,8 +11,8 @@ class _NavigatorUserMediaErrorWrappingImplementation extends DOMWrapperBase impl
     return new _NavigatorUserMediaErrorWrappingImplementation();
   }
 
-  int get code() { return _get__NavigatorUserMediaError_code(this); }
-  static int _get__NavigatorUserMediaError_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
   String get typeName() { return "NavigatorUserMediaError"; }
 }

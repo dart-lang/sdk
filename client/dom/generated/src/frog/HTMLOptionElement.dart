@@ -1,5 +1,5 @@
 
-class HTMLOptionElement extends HTMLElement native "HTMLOptionElement" {
+class HTMLOptionElement extends HTMLElement native "*HTMLOptionElement" {
 
   bool defaultSelected;
 

@@ -1,5 +1,5 @@
 
-class DOMPlugin native "DOMPlugin" {
+class DOMPlugin native "*DOMPlugin" {
 
   String description;
 

@@ -11,14 +11,14 @@ class _CounterWrappingImplementation extends DOMWrapperBase implements Counter {
     return new _CounterWrappingImplementation();
   }
 
-  String get identifier() { return _get__Counter_identifier(this); }
-  static String _get__Counter_identifier(var _this) native;
+  String get identifier() { return _get_identifier(this); }
+  static String _get_identifier(var _this) native;
 
-  String get listStyle() { return _get__Counter_listStyle(this); }
-  static String _get__Counter_listStyle(var _this) native;
+  String get listStyle() { return _get_listStyle(this); }
+  static String _get_listStyle(var _this) native;
 
-  String get separator() { return _get__Counter_separator(this); }
-  static String _get__Counter_separator(var _this) native;
+  String get separator() { return _get_separator(this); }
+  static String _get_separator(var _this) native;
 
   String get typeName() { return "Counter"; }
 }

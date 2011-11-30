@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class TextWrappingImplementation extends CharacterDataWrappingImplementation implements Text {
+  /** @domName Document.createTextNode */
   factory TextWrappingImplementation(String content) {
     return new TextWrappingImplementation._wrap(
         dom.document.createTextNode(content));

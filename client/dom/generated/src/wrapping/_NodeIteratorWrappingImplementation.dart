@@ -11,23 +11,23 @@ class _NodeIteratorWrappingImplementation extends DOMWrapperBase implements Node
     return new _NodeIteratorWrappingImplementation();
   }
 
-  bool get expandEntityReferences() { return _get__NodeIterator_expandEntityReferences(this); }
-  static bool _get__NodeIterator_expandEntityReferences(var _this) native;
+  bool get expandEntityReferences() { return _get_expandEntityReferences(this); }
+  static bool _get_expandEntityReferences(var _this) native;
 
-  NodeFilter get filter() { return _get__NodeIterator_filter(this); }
-  static NodeFilter _get__NodeIterator_filter(var _this) native;
+  NodeFilter get filter() { return _get_filter(this); }
+  static NodeFilter _get_filter(var _this) native;
 
-  bool get pointerBeforeReferenceNode() { return _get__NodeIterator_pointerBeforeReferenceNode(this); }
-  static bool _get__NodeIterator_pointerBeforeReferenceNode(var _this) native;
+  bool get pointerBeforeReferenceNode() { return _get_pointerBeforeReferenceNode(this); }
+  static bool _get_pointerBeforeReferenceNode(var _this) native;
 
-  Node get referenceNode() { return _get__NodeIterator_referenceNode(this); }
-  static Node _get__NodeIterator_referenceNode(var _this) native;
+  Node get referenceNode() { return _get_referenceNode(this); }
+  static Node _get_referenceNode(var _this) native;
 
-  Node get root() { return _get__NodeIterator_root(this); }
-  static Node _get__NodeIterator_root(var _this) native;
+  Node get root() { return _get_root(this); }
+  static Node _get_root(var _this) native;
 
-  int get whatToShow() { return _get__NodeIterator_whatToShow(this); }
-  static int _get__NodeIterator_whatToShow(var _this) native;
+  int get whatToShow() { return _get_whatToShow(this); }
+  static int _get_whatToShow(var _this) native;
 
   void detach() {
     _detach(this);

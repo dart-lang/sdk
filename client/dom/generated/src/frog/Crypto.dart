@@ -1,5 +1,5 @@
 
-class Crypto native "Crypto" {
+class Crypto native "*Crypto" {
 
   void getRandomValues(ArrayBufferView array) native;
 

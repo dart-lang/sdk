@@ -11,8 +11,8 @@ class _StyleSheetListWrappingImplementation extends DOMWrapperBase implements St
     return new _StyleSheetListWrappingImplementation();
   }
 
-  int get length() { return _get__StyleSheetList_length(this); }
-  static int _get__StyleSheetList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   StyleSheet operator[](int index) {
     return item(index);

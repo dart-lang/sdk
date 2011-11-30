@@ -1,5 +1,5 @@
 
-class Rect native "Rect" {
+class Rect native "*Rect" {
 
   CSSPrimitiveValue bottom;
 

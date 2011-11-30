@@ -29,6 +29,7 @@ ManyEchoServerTest: Skip # Uses Socket
 SocketCloseTest: Skip # Uses Socket
 SocketExceptionTest: Skip # Uses Socket
 SocketManyConnectionsTest: Skip # Uses Socket
+ReadIntoConstList: Skip # Uses File
 FileTest: Skip
 ManyEchoServerTest: Skip  # Uses Socket
 TimerTest: Skip # Uses EventHandler

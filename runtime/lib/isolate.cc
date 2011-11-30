@@ -87,7 +87,8 @@ static void ThrowErrorException(Exceptions::ExceptionType type,
 RawInstance* ReceivePortCreate(intptr_t port_id) {
   const String& class_name =
       String::Handle(String::NewSymbol("ReceivePortImpl"));
-  const String& function_name = String::Handle(String::NewSymbol("create_"));
+  const String& function_name =
+      String::Handle(String::NewSymbol("_get_or_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
@@ -105,6 +106,8 @@ RawInstance* ReceivePortCreate(intptr_t port_id) {
     UnhandledException& uhe = UnhandledException::Handle();
     uhe ^= result.raw();
     ProcessUnhandledException(uhe);
+  } else {
+    PortMap::SetLive(port_id);
   }
   return result.raw();
 }
@@ -112,7 +115,7 @@ RawInstance* ReceivePortCreate(intptr_t port_id) {
 
 static RawInstance* SendPortCreate(intptr_t port_id) {
   const String& class_name = String::Handle(String::NewSymbol("SendPortImpl"));
-  const String& function_name = String::Handle(String::NewSymbol("create_"));
+  const String& function_name = String::Handle(String::NewSymbol("_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
@@ -276,7 +279,7 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
     // Check arguments to see if the specified library and classes are
     // loaded, this check will throw an exception if they are not loaded.
     if (init_successful && CheckArguments(library_url, class_name)) {
-      port_id = PortMap::CreatePort();
+      port_id = spawned_isolate->main_port();
       uword data = reinterpret_cast<uword>(
           new IsolateStartData(spawned_isolate,
                                strdup(library_url),

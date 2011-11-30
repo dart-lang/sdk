@@ -425,16 +425,23 @@ class DartiumArchitecture(BrowserArchitecture):
     return 0
 
 
-class WebDriverArchiecture(FrogChromiumArchitecture):
+class WebDriverArchitecture(FrogChromiumArchitecture):
   """Architecture that runs compiled dart->JS (via frog) through a variety of
   real browsers using WebDriver."""
 
   def __init__(self, root_path, arch, mode, component, test):
-    super(WebDriverArchiecture, self).__init__(root_path, arch, mode,
+    super(WebDriverArchitecture, self).__init__(root_path, arch, mode,
         component, test)
 
   def GetRunCommand(self, fatal_static_type_errors=False):
     """Returns a command line to execute for the test."""
+    flags = self.vm_options
+    browser_flag = 'chrome'
+    if 'ff' in flags or 'firefox' in flags:
+      browser_flag = 'ff'
+    elif 'ie' in flags or 'explorer' in flags or 'internet-explorer' in flags:
+      browser_flag = 'ie'
+
     selenium_location = os.path.join(self.root_path, 'tools', 'testing',
                                 'run_selenium.py')
     
@@ -442,7 +449,7 @@ class WebDriverArchiecture(FrogChromiumArchitecture):
     f = open(html_output_file, 'w')
     f.write(self.GetHtmlContents())
     f.close()
-    return [selenium_location, html_output_file]
+    return [selenium_location, html_output_file, browser_flag]
 
 
 class StandaloneArchitecture(Architecture):
@@ -552,7 +559,7 @@ def GetArchitecture(arch, mode, component, test):
     return FrogChromiumArchitecture(root_path, arch, mode, component, test)
 
   elif component == 'webdriver':
-    return WebDriverArchiecture(root_path, arch, mode, component, test)
+    return WebDriverArchitecture(root_path, arch, mode, component, test)
 
   elif component in ['vm', 'frog', 'frogsh']:
     return StandaloneArchitecture(root_path, arch, mode, component, test)

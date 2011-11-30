@@ -11,8 +11,8 @@ class _TextWrappingImplementation extends _CharacterDataWrappingImplementation i
     return new _TextWrappingImplementation();
   }
 
-  String get wholeText() { return _get__Text_wholeText(this); }
-  static String _get__Text_wholeText(var _this) native;
+  String get wholeText() { return _get_wholeText(this); }
+  static String _get_wholeText(var _this) native;
 
   Text replaceWholeText(String content) {
     return _replaceWholeText(this, content);

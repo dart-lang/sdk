@@ -1,5 +1,5 @@
 
-class TextMetrics native "TextMetrics" {
+class TextMetrics native "*TextMetrics" {
 
   num width;
 

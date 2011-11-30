@@ -6,15 +6,13 @@
 #define VM_DART_API_IMPL_H_
 
 #include "vm/allocation.h"
+#include "vm/object.h"
 
 namespace dart {
 
 class ApiState;
 class LocalHandle;
-class Object;
 class PersistentHandle;
-class RawObject;
-
 
 #define DARTSCOPE(isolate)                                                    \
   ASSERT(isolate != NULL);                                                    \
@@ -28,6 +26,13 @@ class Api : AllStatic {
 
   // Unwraps the raw object from the handle.
   static RawObject* UnwrapHandle(Dart_Handle object);
+
+  // Unwraps a raw Type from the handle.  The handle will be null if
+  // the object was not of the requested Type.
+#define DECLARE_UNWRAP(Type)                                                  \
+  static const Type& Unwrap##Type##Handle(Dart_Handle object);
+  CLASS_LIST_NO_OBJECT(DECLARE_UNWRAP)
+#undef DECLARE_UNWRAP
 
   // Validates and converts the passed in handle as a local handle.
   static LocalHandle* UnwrapAsLocalHandle(const ApiState& state,

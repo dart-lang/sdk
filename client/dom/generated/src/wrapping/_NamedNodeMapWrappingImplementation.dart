@@ -11,8 +11,8 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
     return new _NamedNodeMapWrappingImplementation();
   }
 
-  int get length() { return _get__NamedNodeMap_length(this); }
-  static int _get__NamedNodeMap_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Node operator[](int index) {
     return item(index);

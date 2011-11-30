@@ -11,14 +11,14 @@ class _CSSValueWrappingImplementation extends DOMWrapperBase implements CSSValue
     return new _CSSValueWrappingImplementation();
   }
 
-  String get cssText() { return _get__CSSValue_cssText(this); }
-  static String _get__CSSValue_cssText(var _this) native;
+  String get cssText() { return _get_cssText(this); }
+  static String _get_cssText(var _this) native;
 
-  void set cssText(String value) { _set__CSSValue_cssText(this, value); }
-  static void _set__CSSValue_cssText(var _this, String value) native;
+  void set cssText(String value) { _set_cssText(this, value); }
+  static void _set_cssText(var _this, String value) native;
 
-  int get cssValueType() { return _get__CSSValue_cssValueType(this); }
-  static int _get__CSSValue_cssValueType(var _this) native;
+  int get cssValueType() { return _get_cssValueType(this); }
+  static int _get_cssValueType(var _this) native;
 
   String get typeName() { return "CSSValue"; }
 }

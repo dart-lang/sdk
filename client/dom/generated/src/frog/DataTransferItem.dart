@@ -1,5 +1,5 @@
 
-class DataTransferItem native "DataTransferItem" {
+class DataTransferItem native "*DataTransferItem" {
 
   String kind;
 

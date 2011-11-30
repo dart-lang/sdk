@@ -75,6 +75,15 @@ Dart_Port PortMap::AllocatePort() {
 }
 
 
+void PortMap::SetLive(Dart_Port port) {
+  MutexLocker ml(mutex_);
+  intptr_t index = FindPort(port);
+  ASSERT(index >= 0);
+  map_[index].live = true;
+  map_[index].isolate->increment_live_ports();
+}
+
+
 void PortMap::MaintainInvariants() {
   intptr_t empty = capacity_ - used_ - deleted_;
   if (used_ > ((capacity_ / 4) * 3)) {
@@ -90,12 +99,12 @@ void PortMap::MaintainInvariants() {
 
 Dart_Port PortMap::CreatePort() {
   Isolate* isolate = Isolate::Current();
-
   MutexLocker ml(mutex_);
 
   Entry entry;
   entry.port = AllocatePort();
   entry.isolate = isolate;
+  entry.live = false;
 
   // Search for the first unused slot. Make use of the knowledge that here is
   // currently no port with this id in the port map.
@@ -119,7 +128,7 @@ Dart_Port PortMap::CreatePort() {
     deleted_--;
   }
   map_[index] = entry;
-  isolate->increment_active_ports();
+  isolate->increment_num_ports();
 
   // Increment number of used slots and grow if necessary.
   used_++;
@@ -145,7 +154,10 @@ void PortMap::ClosePort(Dart_Port port) {
     // pending messages below.
     map_[index].port = 0;
     map_[index].isolate = deleted_entry_;
-    isolate->decrement_active_ports();
+    isolate->decrement_num_ports();
+    if (map_[index].live) {
+      isolate->decrement_live_ports();
+    }
 
     used_--;
     deleted_++;
@@ -169,7 +181,7 @@ void PortMap::ClosePorts() {
         // Mark the slot as deleted.
         map_[i].port = 0;
         map_[i].isolate = deleted_entry_;
-        isolate->decrement_active_ports();
+        isolate->decrement_num_ports();
 
         used_--;
         deleted_++;
@@ -182,12 +194,6 @@ void PortMap::ClosePorts() {
   Dart_ClosePortCallback callback = isolate->close_port_callback();
   ASSERT(callback);
   (*callback)(isolate, kCloseAllPorts);
-}
-
-
-bool PortMap::IsActivePort(Dart_Port port) {
-  MutexLocker ml(mutex_);
-  return (FindPort(port) >= 0);
 }
 
 

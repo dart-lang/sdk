@@ -1,5 +1,5 @@
 
-class FileSystemCallback native "FileSystemCallback" {
+class FileSystemCallback native "*FileSystemCallback" {
 
   bool handleEvent(DOMFileSystem fileSystem) native;
 

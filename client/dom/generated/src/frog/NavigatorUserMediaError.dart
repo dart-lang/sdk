@@ -1,5 +1,7 @@
 
-class NavigatorUserMediaError native "NavigatorUserMediaError" {
+class NavigatorUserMediaError native "*NavigatorUserMediaError" {
+
+  static final int PERMISSION_DENIED = 1;
 
   int code;
 

@@ -1,5 +1,5 @@
 
-class BarInfo native "BarInfo" {
+class BarInfo native "*BarInfo" {
 
   bool visible;
 

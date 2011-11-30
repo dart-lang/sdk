@@ -1,5 +1,5 @@
 
-class StorageInfoUsageCallback native "StorageInfoUsageCallback" {
+class StorageInfoUsageCallback native "*StorageInfoUsageCallback" {
 
   bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes) native;
 

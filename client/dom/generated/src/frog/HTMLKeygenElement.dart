@@ -1,5 +1,5 @@
 
-class HTMLKeygenElement extends HTMLElement native "HTMLKeygenElement" {
+class HTMLKeygenElement extends HTMLElement native "*HTMLKeygenElement" {
 
   bool autofocus;
 

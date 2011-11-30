@@ -1,5 +1,5 @@
 
-class HTMLParamElement extends HTMLElement native "HTMLParamElement" {
+class HTMLParamElement extends HTMLElement native "*HTMLParamElement" {
 
   String name;
 

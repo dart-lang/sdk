@@ -1,5 +1,5 @@
 
-class HTMLButtonElement extends HTMLElement native "HTMLButtonElement" {
+class HTMLButtonElement extends HTMLElement native "*HTMLButtonElement" {
 
   String accessKey;
 

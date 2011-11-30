@@ -11,8 +11,8 @@ class _StorageWrappingImplementation extends DOMWrapperBase implements Storage {
     return new _StorageWrappingImplementation();
   }
 
-  int get length() { return _get__Storage_length(this); }
-  static int _get__Storage_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   void clear() {
     _clear(this);

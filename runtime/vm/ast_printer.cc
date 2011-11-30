@@ -128,6 +128,17 @@ void AstPrinter::VisitTypeNode(TypeNode* node) {
 }
 
 
+void AstPrinter::VisitAssignableNode(AssignableNode* node) {
+  OS::Print("(assignable ");
+  node->expr()->Visit(this);
+  const Type& type = node->type();
+  const String& dst_name = node->dst_name();
+  OS::Print(" to type '%s' of '%s')",
+            String::Handle(type.Name()).ToCString(),
+            dst_name.ToCString());
+}
+
+
 void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
   OS::Print("***** PRIMARY NODE IN AST ***** (%s '%s')",
       node->Name(), node->primary().ToCString());
@@ -418,7 +429,7 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
 
 
 void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
-  HANDLESCOPE();
+  HANDLESCOPE(Isolate::Current());
   const Function& function = parsed_function.function();
   const Array& default_parameter_values =
       parsed_function.default_parameter_values();
@@ -463,7 +474,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
 
 
 void AstPrinter::PrintFunctionNodes(const ParsedFunction& parsed_function) {
-  HANDLESCOPE();
+  HANDLESCOPE(Isolate::Current());
   SequenceNode* node_sequence = parsed_function.node_sequence();
   ASSERT(node_sequence != NULL);
   AstPrinter ast_printer;

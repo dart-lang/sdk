@@ -11,23 +11,23 @@ class _TreeWalkerWrappingImplementation extends DOMWrapperBase implements TreeWa
     return new _TreeWalkerWrappingImplementation();
   }
 
-  Node get currentNode() { return _get__TreeWalker_currentNode(this); }
-  static Node _get__TreeWalker_currentNode(var _this) native;
+  Node get currentNode() { return _get_currentNode(this); }
+  static Node _get_currentNode(var _this) native;
 
-  void set currentNode(Node value) { _set__TreeWalker_currentNode(this, value); }
-  static void _set__TreeWalker_currentNode(var _this, Node value) native;
+  void set currentNode(Node value) { _set_currentNode(this, value); }
+  static void _set_currentNode(var _this, Node value) native;
 
-  bool get expandEntityReferences() { return _get__TreeWalker_expandEntityReferences(this); }
-  static bool _get__TreeWalker_expandEntityReferences(var _this) native;
+  bool get expandEntityReferences() { return _get_expandEntityReferences(this); }
+  static bool _get_expandEntityReferences(var _this) native;
 
-  NodeFilter get filter() { return _get__TreeWalker_filter(this); }
-  static NodeFilter _get__TreeWalker_filter(var _this) native;
+  NodeFilter get filter() { return _get_filter(this); }
+  static NodeFilter _get_filter(var _this) native;
 
-  Node get root() { return _get__TreeWalker_root(this); }
-  static Node _get__TreeWalker_root(var _this) native;
+  Node get root() { return _get_root(this); }
+  static Node _get_root(var _this) native;
 
-  int get whatToShow() { return _get__TreeWalker_whatToShow(this); }
-  static int _get__TreeWalker_whatToShow(var _this) native;
+  int get whatToShow() { return _get_whatToShow(this); }
+  static int _get_whatToShow(var _this) native;
 
   Node firstChild() {
     return _firstChild(this);

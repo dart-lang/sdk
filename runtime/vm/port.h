@@ -13,19 +13,22 @@ namespace dart {
 
 class Isolate;
 class Mutex;
+class PortMapTestPeer;
 
 class PortMap: public AllStatic {
  public:
   // Allocate a port in the current isolate and return its VM-global id.
   static Dart_Port CreatePort();
 
+  // Indicates that a port has had a ReceivePort created for it at the
+  // dart language level.  The port remains live until it is closed.
+  static void SetLive(Dart_Port id);
+
   // Close the port with id. All pending messages will be dropped.
   static void ClosePort(Dart_Port id);
 
   // Close all the ports of the current isolate.
   static void ClosePorts();
-
-  static bool IsActivePort(Dart_Port id);
 
   // Enqueues the message in the port with id. Returns false if the port is not
   // active any longer.
@@ -39,16 +42,22 @@ class PortMap: public AllStatic {
   static void InitOnce();
 
  private:
+  friend class dart::PortMapTestPeer;
+
   // Mapping between port numbers and isolates.
   // Free entries have id == 0 and isolate == NULL. Deleted entries have id == 0
   // and isolate == deleted_entry_.
   typedef struct {
     Dart_Port port;
     Isolate* isolate;
+    bool live;
   } Entry;
 
   // Allocate a new unique port.
   static Dart_Port AllocatePort();
+
+  static bool IsActivePort(Dart_Port id);
+  static bool IsLivePort(Dart_Port id);
 
   static intptr_t FindPort(Dart_Port port);
   static void Rehash(intptr_t new_capacity);

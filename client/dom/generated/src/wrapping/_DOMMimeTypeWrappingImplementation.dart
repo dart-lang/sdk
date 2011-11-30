@@ -11,17 +11,17 @@ class _DOMMimeTypeWrappingImplementation extends DOMWrapperBase implements DOMMi
     return new _DOMMimeTypeWrappingImplementation();
   }
 
-  String get description() { return _get__DOMMimeType_description(this); }
-  static String _get__DOMMimeType_description(var _this) native;
+  String get description() { return _get_description(this); }
+  static String _get_description(var _this) native;
 
-  DOMPlugin get enabledPlugin() { return _get__DOMMimeType_enabledPlugin(this); }
-  static DOMPlugin _get__DOMMimeType_enabledPlugin(var _this) native;
+  DOMPlugin get enabledPlugin() { return _get_enabledPlugin(this); }
+  static DOMPlugin _get_enabledPlugin(var _this) native;
 
-  String get suffixes() { return _get__DOMMimeType_suffixes(this); }
-  static String _get__DOMMimeType_suffixes(var _this) native;
+  String get suffixes() { return _get_suffixes(this); }
+  static String _get_suffixes(var _this) native;
 
-  String get type() { return _get__DOMMimeType_type(this); }
-  static String _get__DOMMimeType_type(var _this) native;
+  String get type() { return _get_type(this); }
+  static String _get_type(var _this) native;
 
   String get typeName() { return "DOMMimeType"; }
 }

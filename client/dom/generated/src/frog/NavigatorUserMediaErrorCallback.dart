@@ -1,5 +1,5 @@
 
-class NavigatorUserMediaErrorCallback native "NavigatorUserMediaErrorCallback" {
+class NavigatorUserMediaErrorCallback native "*NavigatorUserMediaErrorCallback" {
 
   bool handleEvent(NavigatorUserMediaError error) native;
 

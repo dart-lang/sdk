@@ -13,7 +13,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
-DECLARE_FLAG(bool, expose_core_impl);
 
 void Scanner::InitKeywordTable() {
   for (int i = 0; i < Token::numKeywords; i++) {
@@ -114,6 +113,22 @@ bool Scanner::IsIdentStartChar(int32_t c) {
 
 bool Scanner::IsIdentChar(int32_t c) {
   return IsLetter(c) || IsDecimalDigit(c) || (c == '_') || (c == '$');
+}
+
+
+bool Scanner::IsIdent(const String& str) {
+  if (!str.IsOneByteString()) {
+    return false;
+  }
+  if (str.Length() == 0 || !IsIdentStartChar(str.CharAt(0))) {
+    return false;
+  }
+  for (int i =  1; i < str.Length(); i++) {
+    if (!IsIdentChar(str.CharAt(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -236,7 +251,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   current_token_.kind = Token::kIDENT;
   String& literal =
       String::ZoneHandle(String::NewSymbol(source_, ident_pos, ident_length));
-  if ((ident_char0 == kPrivateIdentifierStart) && !FLAG_expose_core_impl) {
+  if (ident_char0 == kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per script basis.
     literal = String::Concat(literal, private_key_);
     literal = String::NewSymbol(literal);
@@ -313,15 +328,25 @@ RawString* Scanner::ConsumeIdentChars(bool allow_dollar) {
 }
 
 
+void Scanner::SkipLine() {
+  while (c0_ != '\n' && c0_ != '\0') {
+    ReadChar();
+  }
+}
+
+
 void Scanner::ScanLibraryTag() {
   ReadChar();
   if (c0_ == '!') {
+    Recognize(Token::kSCRIPTTAG);
     // The script tag extends to the end of the line. Just treat this
     // similar to a line comment.
-    while (c0_ != '\n' && c0_ != '\0') {
-      ReadChar();
-    }
-    Recognize(Token::kSCRIPTTAG);
+    SkipLine();
+    return;
+  }
+  if (!IsIdentStartChar(c0_)) {
+    ErrorMsg("Unrecognized library tag");
+    SkipLine();
     return;
   }
   const String& kLibrary = String::Handle(String::NewSymbol("library"));
@@ -341,6 +366,7 @@ void Scanner::ScanLibraryTag() {
     return;
   }
   ErrorMsg("Unrecognized library token");
+  SkipLine();
 }
 
 

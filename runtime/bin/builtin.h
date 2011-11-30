@@ -34,7 +34,8 @@
 #define DECLARE_FUNCTION(name, count)                                          \
   extern void FUNCTION_NAME(name)(Dart_NativeArguments args);
 
-extern void Builtin_LoadLibrary();
+extern Dart_Handle Builtin_Source();
+extern void Builtin_SetupLibrary(Dart_Handle builtin_lib);
 extern void Builtin_ImportLibrary(Dart_Handle library);
 extern void Builtin_SetNativeResolver();
 extern void PrintString(FILE* out, Dart_Handle object);

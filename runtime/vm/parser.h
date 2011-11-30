@@ -68,8 +68,6 @@ class ParsedFunction : ValueObject {
 
 class Parser : ValueObject {
  public:
-  static const int kErrorBuflen = 512;
-
   Parser(const Script& script, const Library& library);
   Parser(const Script& script,
          const Function& function,
@@ -82,11 +80,15 @@ class Parser : ValueObject {
 
   static void ParseFunction(ParsedFunction* parsed_function);
 
-  static void ReportMsg(const Script& script,
-                        intptr_t token_index,
-                        const char* msg_type,
-                        char* message,
-                        const char* format, va_list args);
+  // Format an error or warning message into the message_buffer.
+  // A null script means no source and a negative token_index means no position.
+  static void FormatMessage(const Script& script,
+                            intptr_t token_index,
+                            const char* message_header,
+                            char* message_buffer,
+                            intptr_t message_buffer_size,
+                            const char* format,
+                            va_list args);
 
  private:
   struct Block;
@@ -160,7 +162,7 @@ class Parser : ValueObject {
   void SkipNewOperator();
   void SkipActualParameters();
   void SkipMapLiteral();
-  void SkipArrayLiteral();
+  void SkipListLiteral();
   void SkipFunctionLiteral();
   void SkipStringLiteral();
 
@@ -171,6 +173,7 @@ class Parser : ValueObject {
   void ErrorMsg(const char* msg, ...);
   void ErrorMsg(intptr_t token_index, const char* msg, ...);
   void Warning(const char* msg, ...);
+  void Warning(intptr_t token_index, const char* msg, ...);
   void Unimplemented(const char* msg);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
@@ -199,7 +202,7 @@ class Parser : ValueObject {
   void ParseLibraryImport();
   void ParseLibraryInclude();
 
-  bool ResolveTypeFromClass(intptr_t type_pos, const Class& cls, Type* type);
+  void TryResolveTypeFromClass(intptr_t type_pos, const Class& cls, Type* type);
   enum TypeResolution {
     kDoNotResolve,  // Type resolution is postponed.
     kCanResolve,  // Type resolution is optional.
@@ -339,9 +342,9 @@ class Parser : ValueObject {
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral();
   AstNode* ParseCompoundLiteral();
-  AstNode* ParseArrayLiteral(intptr_t type_pos,
-                             bool is_const,
-                             const TypeArguments& type_arguments);
+  AstNode* ParseListLiteral(intptr_t type_pos,
+                            bool is_const,
+                            const TypeArguments& type_arguments);
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
                            const TypeArguments& type_arguments);
@@ -368,8 +371,8 @@ class Parser : ValueObject {
                              TypeResolution type_resolution);
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
-  void CheckTypeParameterReference(intptr_t type_parameter_pos,
-                                   const String& type_parameter_name);
+  RawClass* TypeParametersScopeClass();
+  bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,
                                 AstNode** node);
@@ -441,8 +444,6 @@ class Parser : ValueObject {
   // code at all points in the try block where an exit from the block is
   // done using 'return', 'break' or 'continue' statements.
   TryBlocks* try_blocks_list_;
-
-  char error_msg_[kErrorBuflen];
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

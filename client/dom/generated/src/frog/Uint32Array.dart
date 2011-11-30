@@ -1,5 +1,7 @@
 
-class Uint32Array extends ArrayBufferView native "Uint32Array" {
+class Uint32Array extends ArrayBufferView native "*Uint32Array" {
+
+  static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 

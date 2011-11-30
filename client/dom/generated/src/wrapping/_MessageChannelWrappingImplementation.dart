@@ -11,11 +11,11 @@ class _MessageChannelWrappingImplementation extends DOMWrapperBase implements Me
     return new _MessageChannelWrappingImplementation();
   }
 
-  MessagePort get port1() { return _get__MessageChannel_port1(this); }
-  static MessagePort _get__MessageChannel_port1(var _this) native;
+  MessagePort get port1() { return _get_port1(this); }
+  static MessagePort _get_port1(var _this) native;
 
-  MessagePort get port2() { return _get__MessageChannel_port2(this); }
-  static MessagePort _get__MessageChannel_port2(var _this) native;
+  MessagePort get port2() { return _get_port2(this); }
+  static MessagePort _get_port2(var _this) native;
 
   String get typeName() { return "MessageChannel"; }
 }

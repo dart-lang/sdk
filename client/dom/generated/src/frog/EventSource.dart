@@ -1,13 +1,13 @@
 
-class EventSource native "EventSource" {
+class EventSource native "*EventSource" {
+
+  static final int CLOSED = 2;
+
+  static final int CONNECTING = 0;
+
+  static final int OPEN = 1;
 
   String URL;
-
-  EventListener onerror;
-
-  EventListener onmessage;
-
-  EventListener onopen;
 
   int readyState;
 

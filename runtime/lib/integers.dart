@@ -5,6 +5,10 @@
 // TODO(srdjan): fix limitations.
 // - shift amount must be a Smi.
 class IntegerImplementation {
+  factory IntegerImplementation._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "IntegerImplementation can only be allocated by the VM");
+  }
   num operator +(num other) {
     return other.addFromInteger(this);
   }
@@ -24,7 +28,7 @@ class IntegerImplementation {
     return this.toDouble() / other.toDouble();
   }
   num operator %(num other) {
-    if (other == 0) {
+    if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
     return other.moduloFromInteger(this);
@@ -118,12 +122,15 @@ class IntegerImplementation {
   }
 
   String toStringAsFixed(int fractionDigits) {
+    // Issue 460.
     throw "IntegerImplementation.toStringAsFixed not implemented";
   }
   String toStringAsExponential(int fractionDigits) {
+    // Issue 460.
     throw "IntegerImplementation.toStringAsExponential not implemented";
   }
   String toStringAsPrecision(int precision) {
+    // Issue 460.
     throw "IntegerImplementation.toStringAsPrecision not implemented";
   }
   String toRadixString(int radix) {
@@ -153,6 +160,10 @@ class IntegerImplementation {
 }
 
 class Smi extends IntegerImplementation implements int {
+  factory Smi._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "Smi can only be allocated by the VM");
+  }
   int hashCode() {
     return this;
   }
@@ -163,6 +174,10 @@ class Smi extends IntegerImplementation implements int {
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 class Mint extends IntegerImplementation implements int {
+  factory Mint._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "Mint can only be allocated by the VM");
+  }
   int hashCode() {
     return this;
   }
@@ -172,6 +187,10 @@ class Mint extends IntegerImplementation implements int {
 // A number that can be represented as Smi or Mint will never be represented as
 // Bigint.
 class Bigint extends IntegerImplementation implements int {
+  factory Bigint._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "Bigint can only be allocated by the VM");
+  }
   int hashCode() {
     return this;
   }

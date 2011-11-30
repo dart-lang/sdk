@@ -11,20 +11,20 @@ class _EntrySyncWrappingImplementation extends DOMWrapperBase implements EntrySy
     return new _EntrySyncWrappingImplementation();
   }
 
-  DOMFileSystemSync get filesystem() { return _get__EntrySync_filesystem(this); }
-  static DOMFileSystemSync _get__EntrySync_filesystem(var _this) native;
+  DOMFileSystemSync get filesystem() { return _get_filesystem(this); }
+  static DOMFileSystemSync _get_filesystem(var _this) native;
 
-  String get fullPath() { return _get__EntrySync_fullPath(this); }
-  static String _get__EntrySync_fullPath(var _this) native;
+  String get fullPath() { return _get_fullPath(this); }
+  static String _get_fullPath(var _this) native;
 
-  bool get isDirectory() { return _get__EntrySync_isDirectory(this); }
-  static bool _get__EntrySync_isDirectory(var _this) native;
+  bool get isDirectory() { return _get_isDirectory(this); }
+  static bool _get_isDirectory(var _this) native;
 
-  bool get isFile() { return _get__EntrySync_isFile(this); }
-  static bool _get__EntrySync_isFile(var _this) native;
+  bool get isFile() { return _get_isFile(this); }
+  static bool _get_isFile(var _this) native;
 
-  String get name() { return _get__EntrySync_name(this); }
-  static String _get__EntrySync_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
   EntrySync copyTo(DirectoryEntrySync parent, String name) {
     return _copyTo(this, parent, name);

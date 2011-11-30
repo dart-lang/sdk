@@ -1,5 +1,5 @@
 
-class Performance native "Performance" {
+class Performance native "*Performance" {
 
   MemoryInfo memory;
 

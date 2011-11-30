@@ -16,15 +16,12 @@ touch/touch_tests: Skip  # Issue 157.
 [ $component == frogium ]
 touch/touch_tests: Fail  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
-html/html_tests: Fail
+html/html_tests: Skip # mostly passing, an issue with DocumentFragment elements
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
-samples/swarm/swarm_tests: Skip
-json/json_tests: Fail
+json/json_tests: Pass
+samples/swarm/swarm_tests: Pass
 
 [ $component == chromium && $mode == release ]
-html/html_tests: Timeout
-samples/dartcombat/dartcombat_tests: Timeout
-samples/swarm/swarm_tests: Timeout
 
 
 # 'client' tests import the DOM library, so they only make sense in

@@ -11,8 +11,8 @@ class _CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements 
     return new _CanvasPixelArrayWrappingImplementation();
   }
 
-  int get length() { return _get__CanvasPixelArray_length(this); }
-  static int _get__CanvasPixelArray_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   int operator[](int index) {
     return item(index);

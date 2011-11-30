@@ -1,5 +1,5 @@
 
-class History native "History" {
+class History native "*History" {
 
   int length;
 

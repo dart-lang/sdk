@@ -1,5 +1,5 @@
 
-class StyleMedia native "StyleMedia" {
+class StyleMedia native "*StyleMedia" {
 
   String type;
 

@@ -6,8 +6,9 @@
  * This class is the public interface of a set. A set is a collection
  * without duplicates.
  */
-interface Set<E> extends Collection<E> factory HashSetImplementation/* <E> */ {
-// Bug 5408808: Factory should be HashSetImplementation<E>
+interface Set<E> extends Collection<E>
+    factory HashSetImplementation/*<E extends Hashable>*/ {
+// See issue 417. Works in the vm, fails in dartc and frog.
   Set();
 
   /**
@@ -69,8 +70,8 @@ interface Set<E> extends Collection<E> factory HashSetImplementation/* <E> */ {
 }
 
 interface HashSet<E extends Hashable> extends Set<E>
-    factory HashSetImplementation /* <E> */ {
-// Bug 5408808: Factory should be HashSetImplementation<E>
+    factory HashSetImplementation/*<E extends Hashable>*/ {
+// See issue 417. Works in the vm, fails in dartc and frog.
   HashSet();
 
   /**

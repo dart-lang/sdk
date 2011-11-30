@@ -11,35 +11,35 @@ class _WebKitAnimationWrappingImplementation extends DOMWrapperBase implements W
     return new _WebKitAnimationWrappingImplementation();
   }
 
-  num get delay() { return _get__WebKitAnimation_delay(this); }
-  static num _get__WebKitAnimation_delay(var _this) native;
+  num get delay() { return _get_delay(this); }
+  static num _get_delay(var _this) native;
 
-  int get direction() { return _get__WebKitAnimation_direction(this); }
-  static int _get__WebKitAnimation_direction(var _this) native;
+  int get direction() { return _get_direction(this); }
+  static int _get_direction(var _this) native;
 
-  num get duration() { return _get__WebKitAnimation_duration(this); }
-  static num _get__WebKitAnimation_duration(var _this) native;
+  num get duration() { return _get_duration(this); }
+  static num _get_duration(var _this) native;
 
-  num get elapsedTime() { return _get__WebKitAnimation_elapsedTime(this); }
-  static num _get__WebKitAnimation_elapsedTime(var _this) native;
+  num get elapsedTime() { return _get_elapsedTime(this); }
+  static num _get_elapsedTime(var _this) native;
 
-  void set elapsedTime(num value) { _set__WebKitAnimation_elapsedTime(this, value); }
-  static void _set__WebKitAnimation_elapsedTime(var _this, num value) native;
+  void set elapsedTime(num value) { _set_elapsedTime(this, value); }
+  static void _set_elapsedTime(var _this, num value) native;
 
-  bool get ended() { return _get__WebKitAnimation_ended(this); }
-  static bool _get__WebKitAnimation_ended(var _this) native;
+  bool get ended() { return _get_ended(this); }
+  static bool _get_ended(var _this) native;
 
-  int get fillMode() { return _get__WebKitAnimation_fillMode(this); }
-  static int _get__WebKitAnimation_fillMode(var _this) native;
+  int get fillMode() { return _get_fillMode(this); }
+  static int _get_fillMode(var _this) native;
 
-  int get iterationCount() { return _get__WebKitAnimation_iterationCount(this); }
-  static int _get__WebKitAnimation_iterationCount(var _this) native;
+  int get iterationCount() { return _get_iterationCount(this); }
+  static int _get_iterationCount(var _this) native;
 
-  String get name() { return _get__WebKitAnimation_name(this); }
-  static String _get__WebKitAnimation_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  bool get paused() { return _get__WebKitAnimation_paused(this); }
-  static bool _get__WebKitAnimation_paused(var _this) native;
+  bool get paused() { return _get_paused(this); }
+  static bool _get_paused(var _this) native;
 
   void pause() {
     _pause(this);

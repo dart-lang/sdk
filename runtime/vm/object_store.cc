@@ -25,11 +25,15 @@ ObjectStore::ObjectStore()
     one_byte_string_class_(Class::null()),
     two_byte_string_class_(Class::null()),
     four_byte_string_class_(Class::null()),
+    external_one_byte_string_class_(Class::null()),
+    external_two_byte_string_class_(Class::null()),
+    external_four_byte_string_class_(Class::null()),
     bool_interface_(Type::null()),
     bool_class_(Class::null()),
     list_interface_(Type::null()),
     array_class_(Class::null()),
     immutable_array_class_(Class::null()),
+    byte_buffer_class_(Class::null()),
     unhandled_exception_class_(Class::null()),
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
@@ -39,6 +43,7 @@ ObjectStore::ObjectStore()
     symbol_table_(Array::null()),
     core_library_(Library::null()),
     core_impl_library_(Library::null()),
+    native_wrappers_library_(Library::null()),
     root_library_(Library::null()),
     registered_libraries_(Library::null()),
     pending_classes_(Array::null()),
@@ -74,9 +79,13 @@ RawClass* ObjectStore::GetClass(int index) {
     case kOneByteStringClass: return one_byte_string_class_;
     case kTwoByteStringClass: return two_byte_string_class_;
     case kFourByteStringClass: return four_byte_string_class_;
+    case kExternalOneByteStringClass: return external_one_byte_string_class_;
+    case kExternalTwoByteStringClass: return external_two_byte_string_class_;
+    case kExternalFourByteStringClass: return external_four_byte_string_class_;
     case kBoolClass: return bool_class_;
     case kArrayClass: return array_class_;
     case kImmutableArrayClass: return immutable_array_class_;
+    case kByteBufferClass: return byte_buffer_class_;
     case kUnhandledExceptionClass: return unhandled_exception_class_;
     case kStacktraceClass: return stacktrace_class_;
     case kJSRegExpClass: return jsregexp_class_;
@@ -105,12 +114,20 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
     return kTwoByteStringClass;
   } else if (raw_class == four_byte_string_class_) {
     return kFourByteStringClass;
+  } else if (raw_class == external_one_byte_string_class_) {
+    return kExternalOneByteStringClass;
+  } else if (raw_class == external_two_byte_string_class_) {
+    return kExternalTwoByteStringClass;
+  } else if (raw_class == external_four_byte_string_class_) {
+    return kExternalFourByteStringClass;
   } else if (raw_class == bool_class_) {
     return kBoolClass;
   } else if (raw_class == array_class_) {
     return kArrayClass;
   } else if (raw_class == immutable_array_class_) {
     return kImmutableArrayClass;
+  } else if (raw_class == byte_buffer_class_) {
+    return kByteBufferClass;
   } else if (raw_class == unhandled_exception_class_) {
     return kUnhandledExceptionClass;
   } else if (raw_class == stacktrace_class_) {

@@ -11,11 +11,11 @@ class _DOMFileSystemWrappingImplementation extends DOMWrapperBase implements DOM
     return new _DOMFileSystemWrappingImplementation();
   }
 
-  String get name() { return _get__DOMFileSystem_name(this); }
-  static String _get__DOMFileSystem_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  DirectoryEntry get root() { return _get__DOMFileSystem_root(this); }
-  static DirectoryEntry _get__DOMFileSystem_root(var _this) native;
+  DirectoryEntry get root() { return _get_root(this); }
+  static DirectoryEntry _get_root(var _this) native;
 
   String get typeName() { return "DOMFileSystem"; }
 }

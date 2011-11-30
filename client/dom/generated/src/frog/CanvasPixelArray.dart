@@ -1,5 +1,5 @@
 
-class CanvasPixelArray native "CanvasPixelArray" {
+class CanvasPixelArray native "*CanvasPixelArray" {
 
   int length;
 

@@ -72,6 +72,18 @@ off_t File::Position() {
 }
 
 
+bool File::SetPosition(int64_t position) {
+  ASSERT(handle_->fd() >= 0);
+  return (lseek(handle_->fd(), position, SEEK_SET) != -1);
+}
+
+
+bool File::Truncate(int64_t length) {
+  ASSERT(handle_->fd() >= 0);
+  return (ftruncate(handle_->fd(), length) != -1);
+}
+
+
 void File::Flush() {
   ASSERT(handle_->fd() >= 0);
   fsync(handle_->fd());
@@ -120,6 +132,15 @@ bool File::Create(const char* name) {
     return false;
   }
   return (close(fd) == 0);
+}
+
+
+bool File::Delete(const char* name) {
+  int status = remove(name);
+  if (status == -1) {
+    return false;
+  }
+  return true;
 }
 
 

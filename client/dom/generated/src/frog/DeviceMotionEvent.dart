@@ -1,5 +1,5 @@
 
-class DeviceMotionEvent extends Event native "DeviceMotionEvent" {
+class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
   num interval;
 }

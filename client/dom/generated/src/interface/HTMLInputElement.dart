@@ -102,10 +102,6 @@ interface HTMLInputElement extends HTMLElement {
 
   void set name(String value);
 
-  EventListener get onwebkitspeechchange();
-
-  void set onwebkitspeechchange(EventListener value);
-
   String get pattern();
 
   void set pattern(String value);
@@ -195,8 +191,6 @@ interface HTMLInputElement extends HTMLElement {
   void setCustomValidity(String error);
 
   void setSelectionRange(int start, int end, [String direction]);
-
-  void setValueForUser(String value);
 
   void stepDown([int n]);
 

@@ -11,32 +11,32 @@ class _HTMLTableSectionElementWrappingImplementation extends _HTMLElementWrappin
     return new _HTMLTableSectionElementWrappingImplementation();
   }
 
-  String get align() { return _get__HTMLTableSectionElement_align(this); }
-  static String _get__HTMLTableSectionElement_align(var _this) native;
+  String get align() { return _get_align(this); }
+  static String _get_align(var _this) native;
 
-  void set align(String value) { _set__HTMLTableSectionElement_align(this, value); }
-  static void _set__HTMLTableSectionElement_align(var _this, String value) native;
+  void set align(String value) { _set_align(this, value); }
+  static void _set_align(var _this, String value) native;
 
-  String get ch() { return _get__HTMLTableSectionElement_ch(this); }
-  static String _get__HTMLTableSectionElement_ch(var _this) native;
+  String get ch() { return _get_ch(this); }
+  static String _get_ch(var _this) native;
 
-  void set ch(String value) { _set__HTMLTableSectionElement_ch(this, value); }
-  static void _set__HTMLTableSectionElement_ch(var _this, String value) native;
+  void set ch(String value) { _set_ch(this, value); }
+  static void _set_ch(var _this, String value) native;
 
-  String get chOff() { return _get__HTMLTableSectionElement_chOff(this); }
-  static String _get__HTMLTableSectionElement_chOff(var _this) native;
+  String get chOff() { return _get_chOff(this); }
+  static String _get_chOff(var _this) native;
 
-  void set chOff(String value) { _set__HTMLTableSectionElement_chOff(this, value); }
-  static void _set__HTMLTableSectionElement_chOff(var _this, String value) native;
+  void set chOff(String value) { _set_chOff(this, value); }
+  static void _set_chOff(var _this, String value) native;
 
-  HTMLCollection get rows() { return _get__HTMLTableSectionElement_rows(this); }
-  static HTMLCollection _get__HTMLTableSectionElement_rows(var _this) native;
+  HTMLCollection get rows() { return _get_rows(this); }
+  static HTMLCollection _get_rows(var _this) native;
 
-  String get vAlign() { return _get__HTMLTableSectionElement_vAlign(this); }
-  static String _get__HTMLTableSectionElement_vAlign(var _this) native;
+  String get vAlign() { return _get_vAlign(this); }
+  static String _get_vAlign(var _this) native;
 
-  void set vAlign(String value) { _set__HTMLTableSectionElement_vAlign(this, value); }
-  static void _set__HTMLTableSectionElement_vAlign(var _this, String value) native;
+  void set vAlign(String value) { _set_vAlign(this, value); }
+  static void _set_vAlign(var _this, String value) native;
 
   void deleteRow(int index) {
     _deleteRow(this, index);

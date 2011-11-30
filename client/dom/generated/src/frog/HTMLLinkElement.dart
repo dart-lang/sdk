@@ -1,5 +1,5 @@
 
-class HTMLLinkElement extends HTMLElement native "HTMLLinkElement" {
+class HTMLLinkElement extends HTMLElement native "*HTMLLinkElement" {
 
   String charset;
 
@@ -16,6 +16,8 @@ class HTMLLinkElement extends HTMLElement native "HTMLLinkElement" {
   String rev;
 
   StyleSheet sheet;
+
+  DOMSettableTokenList sizes;
 
   String target;
 

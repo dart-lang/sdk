@@ -1,5 +1,5 @@
 
-class WebKitBlobBuilder native "WebKitBlobBuilder" {
+class WebKitBlobBuilder native "*WebKitBlobBuilder" {
 
   void append(var blob_OR_value, [String endings = null]) native;
 

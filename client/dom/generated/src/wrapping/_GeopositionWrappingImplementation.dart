@@ -11,11 +11,11 @@ class _GeopositionWrappingImplementation extends DOMWrapperBase implements Geopo
     return new _GeopositionWrappingImplementation();
   }
 
-  Coordinates get coords() { return _get__Geoposition_coords(this); }
-  static Coordinates _get__Geoposition_coords(var _this) native;
+  Coordinates get coords() { return _get_coords(this); }
+  static Coordinates _get_coords(var _this) native;
 
-  int get timestamp() { return _get__Geoposition_timestamp(this); }
-  static int _get__Geoposition_timestamp(var _this) native;
+  int get timestamp() { return _get_timestamp(this); }
+  static int _get_timestamp(var _this) native;
 
   String get typeName() { return "Geoposition"; }
 }

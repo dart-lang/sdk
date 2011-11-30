@@ -451,12 +451,20 @@ class Class : public Object {
   // Asserts that the class of the super type has been resolved.
   RawClass* SuperClass() const;
 
-  // The factory type of this interface, null if not specified.
-  RawType* factory_type() const { return raw_ptr()->factory_type_; }
-  void set_factory_type(const Type& value) const;
+  // Return true if this interface has a factory class.
+  bool HasFactoryClass() const;
 
-  // Asserts that the class of the factory type has been resolved.
+  // Return true if the factory class of this interface is resolved.
+  bool HasResolvedFactoryClass() const;
+
+  // Return the resolved factory class of this interface.
   RawClass* FactoryClass() const;
+
+  // Return the unresolved factory class of this interface.
+  RawUnresolvedClass* UnresolvedFactoryClass() const;
+
+  // Set the resolved or unresolved factory class of this interface.
+  void set_factory_class(const Object& value) const;
 
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
@@ -643,6 +651,11 @@ class UnresolvedClass : public Object {
   RawString* qualifier() const { return raw_ptr()->qualifier_; }
   RawString* ident() const { return raw_ptr()->ident_; }
   intptr_t token_index() const { return raw_ptr()->token_index_; }
+
+  RawClass* factory_signature_class() const {
+    return raw_ptr()->factory_signature_class_;
+  }
+  void set_factory_signature_class(const Class& value) const;
 
   RawString* Name() const;
 
@@ -1323,6 +1336,14 @@ class Function : public Object {
                 const Function& other,
                 const TypeArguments& other_type_arguments) const;
 
+  // Checks the type of the formal parameter at the given position for
+  // assignability relationship between the type of this function and the type
+  // of the other function.
+  bool TestParameterType(intptr_t parameter_position,
+                         const TypeArguments& type_arguments,
+                         const Function& other,
+                         const TypeArguments& other_type_arguments) const;
+
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
 };
@@ -1519,6 +1540,19 @@ class Library : public Object {
 
   RawString* url() const { return raw_ptr()->url_; }
   RawString* private_key() const { return raw_ptr()->private_key_; }
+  bool LoadNotStarted() const {
+    return raw_ptr()->load_state_ == RawLibrary::kAllocated;
+  }
+  bool LoadInProgress() const {
+    return raw_ptr()->load_state_ == RawLibrary::kLoadInProgress;
+  }
+  void SetLoadInProgress() const;
+  bool Loaded() const { return raw_ptr()->load_state_ == RawLibrary::kLoaded; }
+  void SetLoaded() const;
+  bool LoadError() const {
+    return raw_ptr()->load_state_ == RawLibrary::kLoadError;
+  }
+  void SetLoadError() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));
@@ -1556,6 +1590,8 @@ class Library : public Object {
   static void InitCoreLibrary(Isolate* isolate);
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
+  static void InitNativeWrappersLibrary(Isolate* isolate);
+  static RawLibrary* NativeWrappersLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static void CompileAll();
@@ -2111,13 +2147,6 @@ class Instance : public Object {
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
 
-  // Short version of IsInstanceOf with an instantiated type.
-  bool Is(const Type& type) const {
-    ASSERT(type.IsInstantiated());
-    const TypeArguments& no_instantiator = TypeArguments::Handle();
-    return TestType(kIsSubtypeOf, type, no_instantiator);
-  }
-
   // Check if this instance is an instance of the given type.
   bool IsInstanceOf(const Type& type,
                     const TypeArguments& type_instantiator) const {
@@ -2396,9 +2425,15 @@ class Double : public Number {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
+  typedef void (*PeerFinalizer)(void *peer);
+
   // We use 30 bits for the hash code so that we consistently use a
   // 32bit Smi representation for the hash code on all architectures.
   static const intptr_t kHashBits = 30;
+
+  static const intptr_t kOneByteChar = 1;
+  static const intptr_t kTwoByteChar = 2;
+  static const intptr_t kFourByteChar = 4;
 
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
@@ -2411,6 +2446,8 @@ class String : public Instance {
   static intptr_t Hash(const uint32_t* characters, intptr_t len);
 
   virtual int32_t CharAt(intptr_t index) const;
+
+  virtual intptr_t CharSize() const;
 
   bool Equals(const String& str, intptr_t begin_index, intptr_t len) const;
   bool Equals(const char* str) const;
@@ -2439,6 +2476,22 @@ class String : public Instance {
                         intptr_t len,
                         Heap::Space space = Heap::kNew);
   static RawString* New(const String& str, Heap::Space space = Heap::kNew);
+
+  static RawString* NewExternal(const uint8_t* characters,
+                                intptr_t len,
+                                void* peer,
+                                PeerFinalizer callback,
+                                Heap::Space = Heap::kNew);
+  static RawString* NewExternal(const uint16_t* characters,
+                                intptr_t len,
+                                void* peer,
+                                PeerFinalizer callback,
+                                Heap::Space = Heap::kNew);
+  static RawString* NewExternal(const uint32_t* characters,
+                                intptr_t len,
+                                void* peer,
+                                PeerFinalizer callback,
+                                Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
                    intptr_t dst_offset,
@@ -2522,6 +2575,10 @@ class OneByteString : public String {
     return *CharAddr(index);
   }
 
+  virtual intptr_t CharSize() const {
+    return kOneByteChar;
+  }
+
   static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
 
   static intptr_t InstanceSize() {
@@ -2554,11 +2611,6 @@ class OneByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawString* SubString(const OneByteString& str,
-                              intptr_t begin_index,
-                              intptr_t length,
-                              Heap::Space space);
-
   static RawOneByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
                                      Heap::Space space);
@@ -2580,6 +2632,10 @@ class TwoByteString : public String {
  public:
   virtual int32_t CharAt(intptr_t index) const {
     return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kTwoByteChar;
   }
 
   static intptr_t InstanceSize() {
@@ -2609,11 +2665,6 @@ class TwoByteString : public String {
                                      intptr_t len,
                                      Heap::Space space);
 
-  static RawString* SubString(const TwoByteString& str,
-                              intptr_t begin_index,
-                              intptr_t length,
-                              Heap::Space space);
-
   static RawTwoByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
                                      Heap::Space space);
@@ -2634,6 +2685,10 @@ class FourByteString : public String {
  public:
   virtual int32_t CharAt(intptr_t index) const {
     return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kFourByteChar;
   }
 
   static intptr_t InstanceSize() {
@@ -2660,11 +2715,6 @@ class FourByteString : public String {
                                       intptr_t len,
                                       Heap::Space space);
 
-  static RawString* SubString(const FourByteString& str,
-                              intptr_t begin_index,
-                              intptr_t length,
-                              Heap::Space space);
-
   static RawFourByteString* Transform(int32_t (*mapping)(int32_t ch),
                                       const String& str,
                                       Heap::Space space);
@@ -2676,6 +2726,117 @@ class FourByteString : public String {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(FourByteString, String);
+  friend class Class;
+  friend class String;
+};
+
+
+class ExternalOneByteString : public String {
+ public:
+  virtual int32_t CharAt(intptr_t index) const {
+    return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kOneByteChar;
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalOneByteString));
+  }
+
+  static RawExternalOneByteString* New(const uint8_t* characters,
+                                       intptr_t len,
+                                       void* peer,
+                                       PeerFinalizer callback,
+                                       Heap::Space space);
+
+ private:
+  const uint8_t* CharAddr(intptr_t index) const {
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((index >= 0) && (index < Length()));
+    return &(raw_ptr()->external_data_->data_[index]);
+  }
+
+  void SetExternalData(ExternalStringData<uint8_t>* data) {
+    raw_ptr()->external_data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString, String);
+  friend class Class;
+  friend class String;
+};
+
+
+class ExternalTwoByteString : public String {
+ public:
+  virtual int32_t CharAt(intptr_t index) const {
+    return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kTwoByteChar;
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalTwoByteString));
+  }
+
+  static RawExternalTwoByteString* New(const uint16_t* characters,
+                                       intptr_t len,
+                                       void* peer,
+                                       PeerFinalizer callback,
+                                       Heap::Space space = Heap::kNew);
+
+ private:
+  const uint16_t* CharAddr(intptr_t index) const {
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((index >= 0) && (index < Length()));
+    return &(raw_ptr()->external_data_->data_[index]);
+  }
+
+  void SetExternalData(ExternalStringData<uint16_t>* data) {
+    raw_ptr()->external_data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString, String);
+  friend class Class;
+  friend class String;
+};
+
+
+class ExternalFourByteString : public String {
+ public:
+  virtual int32_t CharAt(intptr_t index) const {
+    return *CharAddr(index);
+  }
+
+  virtual intptr_t CharSize() const {
+    return kFourByteChar;
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalFourByteString));
+  }
+
+  static RawExternalFourByteString* New(const uint32_t* characters,
+                                        intptr_t len,
+                                        void* peer,
+                                        PeerFinalizer callback,
+                                        Heap::Space space = Heap::kNew);
+
+ private:
+  const uint32_t* CharAddr(intptr_t index) const {
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((index >= 0) && (index < Length()));
+    return &(raw_ptr()->external_data_->data_[index]);
+  }
+
+  void SetExternalData(ExternalStringData<uint32_t>* data) {
+    raw_ptr()->external_data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString, String);
   friend class Class;
   friend class String;
 };
@@ -2802,6 +2963,70 @@ class ImmutableArray : public Array {
 
  private:
   HEAP_OBJECT_IMPLEMENTATION(ImmutableArray, Array);
+  friend class Class;
+};
+
+
+class ByteBuffer : public Instance {
+ public:
+  intptr_t Length() const {
+    ASSERT(!IsNull());
+    return Smi::Value(raw_ptr()->length_);
+  }
+
+  template<typename T>
+  T At(intptr_t byte_offset) const {
+    T* addr = Addr<T>(byte_offset);
+    ASSERT(Utils::IsAligned(reinterpret_cast<intptr_t>(addr), sizeof(T)));
+    return *addr;
+  }
+  template<typename T>
+  void SetAt(intptr_t byte_offset, T value) const {
+    T* addr = Addr<T>(byte_offset);
+    ASSERT(Utils::IsAligned(reinterpret_cast<intptr_t>(addr), sizeof(T)));
+    *addr = value;
+  }
+
+  template<typename T>
+  T UnalignedAt(intptr_t byte_offset) const {
+    T result;
+    memmove(&result, Addr<T>(byte_offset), sizeof(T));
+    return result;
+  }
+  template<typename T>
+  void SetUnalignedAt(intptr_t byte_offset, T value) const {
+    memmove(Addr<T>(byte_offset), &value, sizeof(T));
+  }
+
+  virtual bool Equals(const Instance& other) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawByteBuffer));
+  }
+
+  static RawByteBuffer* New(uint8_t* data,
+                            intptr_t len,
+                            Heap::Space space = Heap::kNew);
+
+ private:
+  template<typename T>
+  T* Addr(intptr_t byte_offset) const {
+    intptr_t limit = byte_offset + sizeof(T);
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((byte_offset >= 0) && (limit <= Length()));
+    uint8_t* addr = &raw_ptr()->data_[byte_offset];
+    return reinterpret_cast<T*>(addr);
+  }
+
+  void SetLength(intptr_t value) {
+    raw_ptr()->length_ = Smi::New(value);
+  }
+
+  void SetData(uint8_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(ByteBuffer, Instance);
   friend class Class;
 };
 

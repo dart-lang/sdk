@@ -22,6 +22,19 @@ interface Directory factory _Directory {
   void createSync();
 
   /**
+   * Creates a temporary directory with a name based on the current path.
+   * This name and path is used as a template, and additional characters are
+   * appended to it by the call to make a unique directory name.  If the
+   * path is the empty string, a default system temp directory and name
+   * are used for the template.
+   * The path is modified to be the path of the new directory.
+   * After the new directory is created, and the path modified, the callback
+   * createTempHandler will be called.  The error handler is called if
+   * the temporary directory cannot be created.
+   */
+  void createTemp();
+
+  /**
    * Deletes the directory with this name. Throws an exception
    * if the directory is not empty or if deletion failed.
    */
@@ -59,7 +72,14 @@ interface Directory factory _Directory {
   void set doneHandler(void doneHandler(bool completed));
 
   /**
-   * Sets the handler that is called on error listing directories.
+   * Set the handler that is called when a temporary directory is
+   * successfully created.
+   */
+  void set createTempHandler(void doneHandler(bool completed));
+
+  /**
+   * Sets the handler that is called if there is an error while listing
+   * or creating directories.
    */
   void set errorHandler(void errorHandler(String error));
 

@@ -1,3 +1,3 @@
 
-class CSSUnknownRule extends CSSRule native "CSSUnknownRule" {
+class CSSUnknownRule extends CSSRule native "*CSSUnknownRule" {
 }

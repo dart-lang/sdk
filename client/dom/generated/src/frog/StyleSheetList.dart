@@ -1,5 +1,5 @@
 
-class StyleSheetList native "StyleSheetList" {
+class StyleSheetList native "*StyleSheetList" {
 
   int length;
 

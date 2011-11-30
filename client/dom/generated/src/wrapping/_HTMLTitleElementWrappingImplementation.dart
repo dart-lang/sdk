@@ -11,11 +11,11 @@ class _HTMLTitleElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLTitleElementWrappingImplementation();
   }
 
-  String get text() { return _get__HTMLTitleElement_text(this); }
-  static String _get__HTMLTitleElement_text(var _this) native;
+  String get text() { return _get_text(this); }
+  static String _get_text(var _this) native;
 
-  void set text(String value) { _set__HTMLTitleElement_text(this, value); }
-  static void _set__HTMLTitleElement_text(var _this, String value) native;
+  void set text(String value) { _set_text(this, value); }
+  static void _set_text(var _this, String value) native;
 
   String get typeName() { return "HTMLTitleElement"; }
 }

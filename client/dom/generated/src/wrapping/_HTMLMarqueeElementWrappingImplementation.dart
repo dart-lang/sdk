@@ -11,71 +11,71 @@ class _HTMLMarqueeElementWrappingImplementation extends _HTMLElementWrappingImpl
     return new _HTMLMarqueeElementWrappingImplementation();
   }
 
-  String get behavior() { return _get__HTMLMarqueeElement_behavior(this); }
-  static String _get__HTMLMarqueeElement_behavior(var _this) native;
+  String get behavior() { return _get_behavior(this); }
+  static String _get_behavior(var _this) native;
 
-  void set behavior(String value) { _set__HTMLMarqueeElement_behavior(this, value); }
-  static void _set__HTMLMarqueeElement_behavior(var _this, String value) native;
+  void set behavior(String value) { _set_behavior(this, value); }
+  static void _set_behavior(var _this, String value) native;
 
-  String get bgColor() { return _get__HTMLMarqueeElement_bgColor(this); }
-  static String _get__HTMLMarqueeElement_bgColor(var _this) native;
+  String get bgColor() { return _get_bgColor(this); }
+  static String _get_bgColor(var _this) native;
 
-  void set bgColor(String value) { _set__HTMLMarqueeElement_bgColor(this, value); }
-  static void _set__HTMLMarqueeElement_bgColor(var _this, String value) native;
+  void set bgColor(String value) { _set_bgColor(this, value); }
+  static void _set_bgColor(var _this, String value) native;
 
-  String get direction() { return _get__HTMLMarqueeElement_direction(this); }
-  static String _get__HTMLMarqueeElement_direction(var _this) native;
+  String get direction() { return _get_direction(this); }
+  static String _get_direction(var _this) native;
 
-  void set direction(String value) { _set__HTMLMarqueeElement_direction(this, value); }
-  static void _set__HTMLMarqueeElement_direction(var _this, String value) native;
+  void set direction(String value) { _set_direction(this, value); }
+  static void _set_direction(var _this, String value) native;
 
-  String get height() { return _get__HTMLMarqueeElement_height(this); }
-  static String _get__HTMLMarqueeElement_height(var _this) native;
+  String get height() { return _get_height(this); }
+  static String _get_height(var _this) native;
 
-  void set height(String value) { _set__HTMLMarqueeElement_height(this, value); }
-  static void _set__HTMLMarqueeElement_height(var _this, String value) native;
+  void set height(String value) { _set_height(this, value); }
+  static void _set_height(var _this, String value) native;
 
-  int get hspace() { return _get__HTMLMarqueeElement_hspace(this); }
-  static int _get__HTMLMarqueeElement_hspace(var _this) native;
+  int get hspace() { return _get_hspace(this); }
+  static int _get_hspace(var _this) native;
 
-  void set hspace(int value) { _set__HTMLMarqueeElement_hspace(this, value); }
-  static void _set__HTMLMarqueeElement_hspace(var _this, int value) native;
+  void set hspace(int value) { _set_hspace(this, value); }
+  static void _set_hspace(var _this, int value) native;
 
-  int get loop() { return _get__HTMLMarqueeElement_loop(this); }
-  static int _get__HTMLMarqueeElement_loop(var _this) native;
+  int get loop() { return _get_loop(this); }
+  static int _get_loop(var _this) native;
 
-  void set loop(int value) { _set__HTMLMarqueeElement_loop(this, value); }
-  static void _set__HTMLMarqueeElement_loop(var _this, int value) native;
+  void set loop(int value) { _set_loop(this, value); }
+  static void _set_loop(var _this, int value) native;
 
-  int get scrollAmount() { return _get__HTMLMarqueeElement_scrollAmount(this); }
-  static int _get__HTMLMarqueeElement_scrollAmount(var _this) native;
+  int get scrollAmount() { return _get_scrollAmount(this); }
+  static int _get_scrollAmount(var _this) native;
 
-  void set scrollAmount(int value) { _set__HTMLMarqueeElement_scrollAmount(this, value); }
-  static void _set__HTMLMarqueeElement_scrollAmount(var _this, int value) native;
+  void set scrollAmount(int value) { _set_scrollAmount(this, value); }
+  static void _set_scrollAmount(var _this, int value) native;
 
-  int get scrollDelay() { return _get__HTMLMarqueeElement_scrollDelay(this); }
-  static int _get__HTMLMarqueeElement_scrollDelay(var _this) native;
+  int get scrollDelay() { return _get_scrollDelay(this); }
+  static int _get_scrollDelay(var _this) native;
 
-  void set scrollDelay(int value) { _set__HTMLMarqueeElement_scrollDelay(this, value); }
-  static void _set__HTMLMarqueeElement_scrollDelay(var _this, int value) native;
+  void set scrollDelay(int value) { _set_scrollDelay(this, value); }
+  static void _set_scrollDelay(var _this, int value) native;
 
-  bool get trueSpeed() { return _get__HTMLMarqueeElement_trueSpeed(this); }
-  static bool _get__HTMLMarqueeElement_trueSpeed(var _this) native;
+  bool get trueSpeed() { return _get_trueSpeed(this); }
+  static bool _get_trueSpeed(var _this) native;
 
-  void set trueSpeed(bool value) { _set__HTMLMarqueeElement_trueSpeed(this, value); }
-  static void _set__HTMLMarqueeElement_trueSpeed(var _this, bool value) native;
+  void set trueSpeed(bool value) { _set_trueSpeed(this, value); }
+  static void _set_trueSpeed(var _this, bool value) native;
 
-  int get vspace() { return _get__HTMLMarqueeElement_vspace(this); }
-  static int _get__HTMLMarqueeElement_vspace(var _this) native;
+  int get vspace() { return _get_vspace(this); }
+  static int _get_vspace(var _this) native;
 
-  void set vspace(int value) { _set__HTMLMarqueeElement_vspace(this, value); }
-  static void _set__HTMLMarqueeElement_vspace(var _this, int value) native;
+  void set vspace(int value) { _set_vspace(this, value); }
+  static void _set_vspace(var _this, int value) native;
 
-  String get width() { return _get__HTMLMarqueeElement_width(this); }
-  static String _get__HTMLMarqueeElement_width(var _this) native;
+  String get width() { return _get_width(this); }
+  static String _get_width(var _this) native;
 
-  void set width(String value) { _set__HTMLMarqueeElement_width(this, value); }
-  static void _set__HTMLMarqueeElement_width(var _this, String value) native;
+  void set width(String value) { _set_width(this, value); }
+  static void _set_width(var _this, String value) native;
 
   void start() {
     _start(this);

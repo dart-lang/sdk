@@ -2,17 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+String getPlatformOutDir() {
+  var os = new Platform().operatingSystem();
+  if (os == 'linux') return 'out/';
+  if (os == 'macos') return 'xcodebuild/';
+  return '';  // Windows.
+}
+
+String getPlatformExecutableExtension() {
+  var os = new Platform().operatingSystem();
+  if (os == 'windows') return '.exe';
+  return '';  // Linux and Mac OS.
+}
+
 String getProcessTestFileName() {
-  var names = ['out/Release_ia32/process_test',
-               'out/Debug_ia32/process_test',
-               'xcodebuild/Release_ia32/process_test',
-               'xcodebuild/Debug_ia32/process_test',
-               'Release_ia32/process_test.exe',
-               'Debug_ia32/process_test.exe'];
+  var outDir = getPlatformOutDir();
+  var extension = getPlatformExecutableExtension();
+  var names = ['${outDir}Release_ia32/process_test$extension',
+               '${outDir}Debug_ia32/process_test$extension'];
+
   for (var name in names) {
     if (new File(name).existsSync()) {
       return name;
     }
   }
-  Expect.fail('Could not find the process_test program.');
+  Expect.fail('Could not find the process_test executable.');
+}
+
+String getDartFileName() {
+  var outDir = getPlatformOutDir();
+  var extension = getPlatformExecutableExtension();
+  var names = ['${outDir}Release_ia32/dart$extension',
+               '${outDir}Debug_ia32/dart$extension'];
+
+  for (var name in names) {
+    if (new File(name).existsSync()) {
+      return name;
+    }
+  }
+  Expect.fail('Could not find the dart executable.');
 }

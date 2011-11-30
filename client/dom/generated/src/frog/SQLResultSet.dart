@@ -1,5 +1,5 @@
 
-class SQLResultSet native "SQLResultSet" {
+class SQLResultSet native "*SQLResultSet" {
 
   int insertId;
 

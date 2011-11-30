@@ -55,6 +55,8 @@ interface Selection {
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset);
 
   void setPosition(Node node, int offset);
+
+  String toString();
 }
 
 interface DOMSelection extends Selection {

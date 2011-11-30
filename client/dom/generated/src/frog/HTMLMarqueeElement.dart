@@ -1,5 +1,5 @@
 
-class HTMLMarqueeElement extends HTMLElement native "HTMLMarqueeElement" {
+class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
 
   String behavior;
 

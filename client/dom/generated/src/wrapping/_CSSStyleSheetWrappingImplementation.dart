@@ -11,14 +11,14 @@ class _CSSStyleSheetWrappingImplementation extends _StyleSheetWrappingImplementa
     return new _CSSStyleSheetWrappingImplementation();
   }
 
-  CSSRuleList get cssRules() { return _get__CSSStyleSheet_cssRules(this); }
-  static CSSRuleList _get__CSSStyleSheet_cssRules(var _this) native;
+  CSSRuleList get cssRules() { return _get_cssRules(this); }
+  static CSSRuleList _get_cssRules(var _this) native;
 
-  CSSRule get ownerRule() { return _get__CSSStyleSheet_ownerRule(this); }
-  static CSSRule _get__CSSStyleSheet_ownerRule(var _this) native;
+  CSSRule get ownerRule() { return _get_ownerRule(this); }
+  static CSSRule _get_ownerRule(var _this) native;
 
-  CSSRuleList get rules() { return _get__CSSStyleSheet_rules(this); }
-  static CSSRuleList _get__CSSStyleSheet_rules(var _this) native;
+  CSSRuleList get rules() { return _get_rules(this); }
+  static CSSRuleList _get_rules(var _this) native;
 
   int addRule(String selector, String style, [int index = null]) {
     if (index === null) {

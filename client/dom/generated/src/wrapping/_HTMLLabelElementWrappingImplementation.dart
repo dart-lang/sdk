@@ -11,23 +11,23 @@ class _HTMLLabelElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLLabelElementWrappingImplementation();
   }
 
-  String get accessKey() { return _get__HTMLLabelElement_accessKey(this); }
-  static String _get__HTMLLabelElement_accessKey(var _this) native;
+  String get accessKey() { return _get_accessKey(this); }
+  static String _get_accessKey(var _this) native;
 
-  void set accessKey(String value) { _set__HTMLLabelElement_accessKey(this, value); }
-  static void _set__HTMLLabelElement_accessKey(var _this, String value) native;
+  void set accessKey(String value) { _set_accessKey(this, value); }
+  static void _set_accessKey(var _this, String value) native;
 
-  HTMLElement get control() { return _get__HTMLLabelElement_control(this); }
-  static HTMLElement _get__HTMLLabelElement_control(var _this) native;
+  HTMLElement get control() { return _get_control(this); }
+  static HTMLElement _get_control(var _this) native;
 
-  HTMLFormElement get form() { return _get__HTMLLabelElement_form(this); }
-  static HTMLFormElement _get__HTMLLabelElement_form(var _this) native;
+  HTMLFormElement get form() { return _get_form(this); }
+  static HTMLFormElement _get_form(var _this) native;
 
-  String get htmlFor() { return _get__HTMLLabelElement_htmlFor(this); }
-  static String _get__HTMLLabelElement_htmlFor(var _this) native;
+  String get htmlFor() { return _get_htmlFor(this); }
+  static String _get_htmlFor(var _this) native;
 
-  void set htmlFor(String value) { _set__HTMLLabelElement_htmlFor(this, value); }
-  static void _set__HTMLLabelElement_htmlFor(var _this, String value) native;
+  void set htmlFor(String value) { _set_htmlFor(this, value); }
+  static void _set_htmlFor(var _this, String value) native;
 
   String get typeName() { return "HTMLLabelElement"; }
 }

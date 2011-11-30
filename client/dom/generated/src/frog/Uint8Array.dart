@@ -1,5 +1,7 @@
 
-class Uint8Array extends ArrayBufferView native "Uint8Array" {
+class Uint8Array extends ArrayBufferView native "*Uint8Array" {
+
+  static final int BYTES_PER_ELEMENT = 1;
 
   int length;
 

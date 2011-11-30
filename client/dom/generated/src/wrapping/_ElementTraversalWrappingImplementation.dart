@@ -11,20 +11,20 @@ class _ElementTraversalWrappingImplementation extends DOMWrapperBase implements 
     return new _ElementTraversalWrappingImplementation();
   }
 
-  int get childElementCount() { return _get__ElementTraversal_childElementCount(this); }
-  static int _get__ElementTraversal_childElementCount(var _this) native;
+  int get childElementCount() { return _get_childElementCount(this); }
+  static int _get_childElementCount(var _this) native;
 
-  Element get firstElementChild() { return _get__ElementTraversal_firstElementChild(this); }
-  static Element _get__ElementTraversal_firstElementChild(var _this) native;
+  Element get firstElementChild() { return _get_firstElementChild(this); }
+  static Element _get_firstElementChild(var _this) native;
 
-  Element get lastElementChild() { return _get__ElementTraversal_lastElementChild(this); }
-  static Element _get__ElementTraversal_lastElementChild(var _this) native;
+  Element get lastElementChild() { return _get_lastElementChild(this); }
+  static Element _get_lastElementChild(var _this) native;
 
-  Element get nextElementSibling() { return _get__ElementTraversal_nextElementSibling(this); }
-  static Element _get__ElementTraversal_nextElementSibling(var _this) native;
+  Element get nextElementSibling() { return _get_nextElementSibling(this); }
+  static Element _get_nextElementSibling(var _this) native;
 
-  Element get previousElementSibling() { return _get__ElementTraversal_previousElementSibling(this); }
-  static Element _get__ElementTraversal_previousElementSibling(var _this) native;
+  Element get previousElementSibling() { return _get_previousElementSibling(this); }
+  static Element _get_previousElementSibling(var _this) native;
 
   String get typeName() { return "ElementTraversal"; }
 }

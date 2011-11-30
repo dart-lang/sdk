@@ -4,7 +4,9 @@
 
 #library("test_options_parser");
 
-List<String> defaultTestSelectors = const ['standalone', 'corelib'];
+List<String> defaultTestSelectors =
+    const ['samples', 'standalone', 'corelib', 'co19', 'language',
+           'isolate', 'stub-generator', 'vm'];
 
 /**
  * Specification of a single test option.
@@ -18,7 +20,7 @@ class _TestOptionSpecification {
                            this.keys,
                            this.values,
                            this.defaultValue,
-                           [this.type = 'string']);
+                           [type = 'string']) : this.type = type;
   String name;
   String description;
   List<String> keys;
@@ -57,9 +59,9 @@ class TestOptionsParser {
               ['all', 'ia32', 'x64', 'simarm'],
               'ia32'),
           new _TestOptionSpecification(
-              'os',
+              'system',
               'The operating system to run tests on',
-              ['-o', '--os'],
+              ['-s', '--system'],
               ['linux', 'macos', 'windows'],
               new Platform().operatingSystem()),
           new _TestOptionSpecification(
@@ -145,11 +147,15 @@ class TestOptionsParser {
         }
         value = arguments[++i];
       } else {
-        // The option name does not start with '-' or '--' so we
-        // assume that the rest of the arguments specify tests or test
-        // suites to run.
-        configuration['patterns'] = arguments.getRange(i, numArguments - i);
-        return _expandConfigurations(configuration);
+        // The argument does not start with '-' or '--' and is
+        // therefore not an option. We use it as a test selection
+        // pattern.
+        var patterns = configuration['patterns'];
+        if (patterns == null) {
+          configuration['patterns'] = patterns = new List();
+        }
+        patterns.add(arg);
+        continue;
       }
       // Find the option specification for the name.
       var spec = _getSpecification(name);
@@ -192,6 +198,14 @@ class TestOptionsParser {
    * into a list of configurations with exactly one value per key.
    */
   List<Map> _expandConfigurations(Map configuration) {
+
+    // TODO(ager): Get rid of this. This is for backwards
+    // compatibility with the python test scripts. They use system
+    // 'win32' for Windows.
+    if (configuration['system'] == 'windows') {
+      configuration['system'] = 'win32';
+    }
+
     // Expand the pseudo-values such as 'all'.
     if (configuration['architecture'] == 'all') {
       configuration['architecture'] = 'ia32,x64,simarm';
@@ -203,6 +217,10 @@ class TestOptionsParser {
       configuration['component'] = 'vm,dartc';
     }
 
+    // Create the artificial 'unchecked' option that test status files
+    // expect.
+    configuration['unchecked'] = !configuration['checked'];
+
     // Expand the test selectors into simple regular expressions to be
     // used on the full path of a test file. If no selectors are
     // explicitly given use the default suite patterns.
@@ -211,6 +229,7 @@ class TestOptionsParser {
       patterns = new List.from(defaultTestSelectors);
     }
     for (var i = 0; i < patterns.length; i++) {
+      if (patterns[i] is RegExp) continue;
       patterns[i] = patterns[i].replaceAll('*', '.*');
       patterns[i] = patterns[i].replaceAll('/', '.*');
       patterns[i] = new RegExp(patterns[i]);
@@ -280,7 +299,7 @@ class TestOptionsParser {
    * Print out usage information.
    */
   void _printHelp() {
-    print('usage: dart_bin test.dart [options]\n');
+    print('usage: dart test.dart [options]\n');
     print('Options:\n');
     for (var option in _options) {
       print('${option.name}: ${option.description}.');

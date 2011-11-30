@@ -1,7 +1,5 @@
 
-class MessagePort native "MessagePort" {
-
-  EventListener onmessage;
+class MessagePort native "*MessagePort" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -9,13 +7,13 @@ class MessagePort native "MessagePort" {
 
   bool dispatchEvent(Event evt) native;
 
-  void postMessage(String message) native;
+  void postMessage(String message, [List messagePorts = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void start() native;
 
-  void webkitPostMessage(String message) native;
+  void webkitPostMessage(String message, [List transfer = null]) native;
 
   var dartObjectLocalStorage;
 

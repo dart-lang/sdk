@@ -11,8 +11,8 @@ class _CanvasRenderingContextWrappingImplementation extends DOMWrapperBase imple
     return new _CanvasRenderingContextWrappingImplementation();
   }
 
-  HTMLCanvasElement get canvas() { return _get__CanvasRenderingContext_canvas(this); }
-  static HTMLCanvasElement _get__CanvasRenderingContext_canvas(var _this) native;
+  HTMLCanvasElement get canvas() { return _get_canvas(this); }
+  static HTMLCanvasElement _get_canvas(var _this) native;
 
   String get typeName() { return "CanvasRenderingContext"; }
 }

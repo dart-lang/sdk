@@ -35,6 +35,10 @@ class CodePatcher : public AllStatic {
   // that there are no conflicts with object pointers).
   static bool CodeIsPatchable(const Code& code);
 
+  // Returns true if the code before return_address is a static
+  // or dynamic Dart call.
+  static bool IsDartCall(uword return_address);
+
   // Get static call information.
   static void GetStaticCallAt(uword return_address,
                               Function* function,

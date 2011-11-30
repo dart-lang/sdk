@@ -11,8 +11,8 @@ class _MediaErrorWrappingImplementation extends DOMWrapperBase implements MediaE
     return new _MediaErrorWrappingImplementation();
   }
 
-  int get code() { return _get__MediaError_code(this); }
-  static int _get__MediaError_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
   String get typeName() { return "MediaError"; }
 }

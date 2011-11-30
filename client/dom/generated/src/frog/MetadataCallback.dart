@@ -1,5 +1,5 @@
 
-class MetadataCallback native "MetadataCallback" {
+class MetadataCallback native "*MetadataCallback" {
 
   bool handleEvent(Metadata metadata) native;
 

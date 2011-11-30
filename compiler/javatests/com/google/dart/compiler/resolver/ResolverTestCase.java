@@ -49,18 +49,34 @@ abstract class ResolverTestCase extends TestCase {
     resetParseErrors();
   }
 
-  static Scope resolve(DartUnit unit, TestCompilerContext context) {
-    Scope scope = new Scope("library", null);
+  private static CoreTypeProvider setupTypeProvider(DartUnit unit, TestCompilerContext context, Scope scope) {
     new TopLevelElementBuilder().exec(unit, context);
     new TopLevelElementBuilder().fillInUnitScope(unit, context, scope);
     ClassElement object = (ClassElement) scope.findElement(null, "Object");
     assertNotNull("Cannot resolve Object", object);
-    CoreTypeProvider typeProvider = new MockCoreTypeProvider(object);
+    return new MockCoreTypeProvider(object);
+  }
+
+  static Scope resolve(DartUnit unit, TestCompilerContext context) {
+    Scope scope = new Scope("library", null);
+    CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
     new MemberBuilder().exec(unit, context, scope, typeProvider);
     new Resolver(context, scope, typeProvider).exec(unit);
     return scope;
   }
+
+  static Scope resolveCompileTimeConst (DartUnit unit, TestCompilerContext context) {
+    Scope scope = new Scope("library", null);
+    CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
+    new SupertypeResolver().exec(unit, context, scope, typeProvider);
+    new MemberBuilder().exec(unit, context, scope, typeProvider);
+    // Substitute the lightweight CTConst resolver
+    new CompileTimeConstantResolver().exec(unit, context, scope, typeProvider);
+    new CompileTimeConstantAnalyzer(typeProvider, context).exec(unit);
+    return scope;
+  }
+
 
   static DartClass makeClass(String name, DartTypeNode supertype, String... typeParameters) {
     return makeClass(name, supertype, Collections.<DartTypeNode>emptyList(), typeParameters);
@@ -365,7 +381,7 @@ abstract class ResolverTestCase extends TestCase {
    */
   protected void printEncountered(List<DartCompilationError> encountered) {
     for (DartCompilationError error : encountered) {
-      ErrorCode errorCode = (ErrorCode) error.getErrorCode();
+      ErrorCode errorCode = error.getErrorCode();
       String msg =
           String.format(
               "%s > %s (%d:%d)",
@@ -379,7 +395,7 @@ abstract class ResolverTestCase extends TestCase {
 
   /**
    * Convenience method to parse and resolve a code snippet, then test for error codes.
-   * 
+   *
    * @return resolve errors.
    */
   protected List<DartCompilationError> resolveAndTest(String source, ErrorCode... errorCodes) {
@@ -401,6 +417,34 @@ abstract class ResolverTestCase extends TestCase {
     };
     // resolve and check errors
     resolve(unit, ctx);
+    checkExpectedErrors(resolveErrors, errorCodes, source);
+    return resolveErrors;
+  }
+
+  /**
+   * Convenience method to parse and resolve a code snippet, then test for error codes.
+   *
+   * @return resolve errors.
+   */
+  protected List<DartCompilationError> resolveAndTestCtConst(String source, ErrorCode... errorCodes) {
+    // parse DartUnit
+    DartUnit unit = parseUnit(source);
+    if (parseErrors.size() != 0) {
+      printSource(source);
+      printEncountered(parseErrors);
+      assertEquals("Expected no errors in parse step:", 0, parseErrors.size());
+    }
+    // prepare for recording resolving errors
+    resetParseErrors();
+    final List<DartCompilationError> resolveErrors = Lists.newArrayList();
+    TestCompilerContext ctx =  new TestCompilerContext() {
+      @Override
+      public void onError(DartCompilationError event) {
+        resolveErrors.add(event);
+      }
+    };
+    // resolve and check errors
+    resolveCompileTimeConst(unit, ctx);
     checkExpectedErrors(resolveErrors, errorCodes, source);
     return resolveErrors;
   }

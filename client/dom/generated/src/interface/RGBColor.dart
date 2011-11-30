@@ -6,8 +6,6 @@
 
 interface RGBColor {
 
-  CSSPrimitiveValue get alpha();
-
   CSSPrimitiveValue get blue();
 
   CSSPrimitiveValue get green();

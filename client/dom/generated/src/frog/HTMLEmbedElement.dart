@@ -1,9 +1,9 @@
 
-class HTMLEmbedElement extends HTMLElement native "HTMLEmbedElement" {
+class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
 
   String align;
 
-  int height;
+  String height;
 
   String name;
 
@@ -11,5 +11,5 @@ class HTMLEmbedElement extends HTMLElement native "HTMLEmbedElement" {
 
   String type;
 
-  int width;
+  String width;
 }

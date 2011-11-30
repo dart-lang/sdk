@@ -1,5 +1,5 @@
 
-class DatabaseCallback native "DatabaseCallback" {
+class DatabaseCallback native "*DatabaseCallback" {
 
   bool handleEvent(var database) native;
 

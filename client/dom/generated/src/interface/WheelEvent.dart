@@ -26,6 +26,8 @@ interface WheelEvent extends UIEvent {
 
   bool get shiftKey();
 
+  bool get webkitDirectionInvertedFromDevice();
+
   int get wheelDelta();
 
   int get wheelDeltaX();
@@ -36,5 +38,5 @@ interface WheelEvent extends UIEvent {
 
   int get y();
 
-  void initWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }

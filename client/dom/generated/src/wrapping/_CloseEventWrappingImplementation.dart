@@ -11,14 +11,14 @@ class _CloseEventWrappingImplementation extends _EventWrappingImplementation imp
     return new _CloseEventWrappingImplementation();
   }
 
-  int get code() { return _get__CloseEvent_code(this); }
-  static int _get__CloseEvent_code(var _this) native;
+  int get code() { return _get_code(this); }
+  static int _get_code(var _this) native;
 
-  String get reason() { return _get__CloseEvent_reason(this); }
-  static String _get__CloseEvent_reason(var _this) native;
+  String get reason() { return _get_reason(this); }
+  static String _get_reason(var _this) native;
 
-  bool get wasClean() { return _get__CloseEvent_wasClean(this); }
-  static bool _get__CloseEvent_wasClean(var _this) native;
+  bool get wasClean() { return _get_wasClean(this); }
+  static bool _get_wasClean(var _this) native;
 
   void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg) {
     _initCloseEvent(this, typeArg, canBubbleArg, cancelableArg, wasCleanArg, codeArg, reasonArg);

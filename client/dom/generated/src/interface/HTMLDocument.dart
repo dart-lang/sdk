@@ -12,6 +12,10 @@ interface HTMLDocument extends Document {
 
   void set alinkColor(String value);
 
+  HTMLAllCollection get all();
+
+  void set all(HTMLAllCollection value);
+
   String get bgColor();
 
   void set bgColor(String value);

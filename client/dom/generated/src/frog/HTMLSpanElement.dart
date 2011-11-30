@@ -1,3 +1,3 @@
 
-class HTMLSpanElement extends HTMLElement native "HTMLSpanElement" {
+class HTMLSpanElement extends HTMLElement native "*HTMLSpanElement" {
 }

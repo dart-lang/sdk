@@ -190,7 +190,8 @@ class DartCompiler(object):
           'frog', 'bin', 'frogsh'))
       if not exists(binary):
         raise ConverterException(FROG_NOT_FOUND_ERROR % DART_PATH)
-      cmd = [binary, '--compile-only',
+      cmd = [binary, '--compile-only', 
+             '--libdir=' + join(DART_PATH, 'frog', 'lib'),
              '--out=' + self.outputFileName(inputfile, outdir)]
     if self.extra_flags != "":
       cmd.append(self.extra_flags);

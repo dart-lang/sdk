@@ -1,19 +1,19 @@
 
-class XMLHttpRequest native "XMLHttpRequest" {
+class XMLHttpRequest native "*XMLHttpRequest" {
+  XMLHttpRequest() native;
+
+
+  static final int DONE = 4;
+
+  static final int HEADERS_RECEIVED = 2;
+
+  static final int LOADING = 3;
+
+  static final int OPENED = 1;
+
+  static final int UNSENT = 0;
 
   bool asBlob;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
-
-  EventListener onreadystatechange;
 
   int readyState;
 
@@ -43,7 +43,7 @@ class XMLHttpRequest native "XMLHttpRequest" {
 
   String getResponseHeader(String header) native;
 
-  void open(String method, String url, bool async, [String user = null, String password = null]) native;
+  void open(String method, String url, [bool async = null, String user = null, String password = null]) native;
 
   void overrideMimeType(String override) native;
 

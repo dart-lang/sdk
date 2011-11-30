@@ -11,41 +11,41 @@ class _HTMLTableColElementWrappingImplementation extends _HTMLElementWrappingImp
     return new _HTMLTableColElementWrappingImplementation();
   }
 
-  String get align() { return _get__HTMLTableColElement_align(this); }
-  static String _get__HTMLTableColElement_align(var _this) native;
+  String get align() { return _get_align(this); }
+  static String _get_align(var _this) native;
 
-  void set align(String value) { _set__HTMLTableColElement_align(this, value); }
-  static void _set__HTMLTableColElement_align(var _this, String value) native;
+  void set align(String value) { _set_align(this, value); }
+  static void _set_align(var _this, String value) native;
 
-  String get ch() { return _get__HTMLTableColElement_ch(this); }
-  static String _get__HTMLTableColElement_ch(var _this) native;
+  String get ch() { return _get_ch(this); }
+  static String _get_ch(var _this) native;
 
-  void set ch(String value) { _set__HTMLTableColElement_ch(this, value); }
-  static void _set__HTMLTableColElement_ch(var _this, String value) native;
+  void set ch(String value) { _set_ch(this, value); }
+  static void _set_ch(var _this, String value) native;
 
-  String get chOff() { return _get__HTMLTableColElement_chOff(this); }
-  static String _get__HTMLTableColElement_chOff(var _this) native;
+  String get chOff() { return _get_chOff(this); }
+  static String _get_chOff(var _this) native;
 
-  void set chOff(String value) { _set__HTMLTableColElement_chOff(this, value); }
-  static void _set__HTMLTableColElement_chOff(var _this, String value) native;
+  void set chOff(String value) { _set_chOff(this, value); }
+  static void _set_chOff(var _this, String value) native;
 
-  int get span() { return _get__HTMLTableColElement_span(this); }
-  static int _get__HTMLTableColElement_span(var _this) native;
+  int get span() { return _get_span(this); }
+  static int _get_span(var _this) native;
 
-  void set span(int value) { _set__HTMLTableColElement_span(this, value); }
-  static void _set__HTMLTableColElement_span(var _this, int value) native;
+  void set span(int value) { _set_span(this, value); }
+  static void _set_span(var _this, int value) native;
 
-  String get vAlign() { return _get__HTMLTableColElement_vAlign(this); }
-  static String _get__HTMLTableColElement_vAlign(var _this) native;
+  String get vAlign() { return _get_vAlign(this); }
+  static String _get_vAlign(var _this) native;
 
-  void set vAlign(String value) { _set__HTMLTableColElement_vAlign(this, value); }
-  static void _set__HTMLTableColElement_vAlign(var _this, String value) native;
+  void set vAlign(String value) { _set_vAlign(this, value); }
+  static void _set_vAlign(var _this, String value) native;
 
-  String get width() { return _get__HTMLTableColElement_width(this); }
-  static String _get__HTMLTableColElement_width(var _this) native;
+  String get width() { return _get_width(this); }
+  static String _get_width(var _this) native;
 
-  void set width(String value) { _set__HTMLTableColElement_width(this, value); }
-  static void _set__HTMLTableColElement_width(var _this, String value) native;
+  void set width(String value) { _set_width(this, value); }
+  static void _set_width(var _this, String value) native;
 
   String get typeName() { return "HTMLTableColElement"; }
 }

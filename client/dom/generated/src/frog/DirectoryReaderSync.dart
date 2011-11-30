@@ -1,5 +1,5 @@
 
-class DirectoryReaderSync native "DirectoryReaderSync" {
+class DirectoryReaderSync native "*DirectoryReaderSync" {
 
   EntryArraySync readEntries() native;
 

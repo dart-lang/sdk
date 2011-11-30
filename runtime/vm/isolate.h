@@ -63,16 +63,33 @@ class Isolate {
   MessageQueue* message_queue() const { return message_queue_; }
   void set_message_queue(MessageQueue* value) { message_queue_ = value; }
 
-  // The count of active ports is only correct when read from the current
-  // isolate. This value is not protected from being updated concurrently.
-  intptr_t active_ports() const { return active_ports_; }
-  void increment_active_ports() {
+  // The number of ports is only correct when read from the current
+  // isolate. This value is not protected from being updated
+  // concurrently.
+  intptr_t num_ports() const { return num_ports_; }
+  void increment_num_ports() {
     ASSERT(this == Isolate::Current());
-    active_ports_++;
+    num_ports_++;
   }
-  void decrement_active_ports() {
+  void decrement_num_ports() {
     ASSERT(this == Isolate::Current());
-    active_ports_--;
+    num_ports_--;
+  }
+
+  intptr_t live_ports() const { return live_ports_; }
+  void increment_live_ports() {
+    ASSERT(this == Isolate::Current());
+    live_ports_++;
+  }
+  void decrement_live_ports() {
+    ASSERT(this == Isolate::Current());
+    live_ports_--;
+  }
+
+  Dart_Port main_port() { return main_port_; }
+  void set_main_port(Dart_Port port) {
+    ASSERT(main_port_ == 0);  // Only set main port once.
+    main_port_ = port;
   }
 
   Heap* heap() const { return heap_; }
@@ -240,7 +257,9 @@ class Isolate {
   MessageQueue* message_queue_;
   Dart_PostMessageCallback post_message_callback_;
   Dart_ClosePortCallback close_port_callback_;
-  intptr_t active_ports_;
+  intptr_t num_ports_;
+  intptr_t live_ports_;
+  Dart_Port main_port_;
   Heap* heap_;
   ObjectStore* object_store_;
   StackResource* top_resource_;

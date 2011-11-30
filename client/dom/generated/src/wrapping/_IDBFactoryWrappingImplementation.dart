@@ -11,6 +11,16 @@ class _IDBFactoryWrappingImplementation extends DOMWrapperBase implements IDBFac
     return new _IDBFactoryWrappingImplementation();
   }
 
+  int cmp(IDBKey first, IDBKey second) {
+    return _cmp(this, first, second);
+  }
+  static int _cmp(receiver, first, second) native;
+
+  IDBVersionChangeRequest deleteDatabase(String name) {
+    return _deleteDatabase(this, name);
+  }
+  static IDBVersionChangeRequest _deleteDatabase(receiver, name) native;
+
   IDBRequest getDatabaseNames() {
     return _getDatabaseNames(this);
   }

@@ -1,5 +1,5 @@
 
-class HTMLMeterElement extends HTMLElement native "HTMLMeterElement" {
+class HTMLMeterElement extends HTMLElement native "*HTMLMeterElement" {
 
   HTMLFormElement form;
 

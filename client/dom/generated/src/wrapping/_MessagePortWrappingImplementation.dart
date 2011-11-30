@@ -11,23 +11,17 @@ class _MessagePortWrappingImplementation extends DOMWrapperBase implements Messa
     return new _MessagePortWrappingImplementation();
   }
 
-  EventListener get onmessage() { return _get__MessagePort_onmessage(this); }
-  static EventListener _get__MessagePort_onmessage(var _this) native;
-
-  void set onmessage(EventListener value) { _set__MessagePort_onmessage(this, value); }
-  static void _set__MessagePort_onmessage(var _this, EventListener value) native;
-
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
-      _addEventListener(this, type, listener);
+      _addEventListener_MessagePort(this, type, listener);
       return;
     } else {
-      _addEventListener_2(this, type, listener, useCapture);
+      _addEventListener_MessagePort_2(this, type, listener, useCapture);
       return;
     }
   }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+  static void _addEventListener_MessagePort(receiver, type, listener) native;
+  static void _addEventListener_MessagePort_2(receiver, type, listener, useCapture) native;
 
   void close() {
     _close(this);
@@ -36,27 +30,33 @@ class _MessagePortWrappingImplementation extends DOMWrapperBase implements Messa
   static void _close(receiver) native;
 
   bool dispatchEvent(Event evt) {
-    return _dispatchEvent(this, evt);
+    return _dispatchEvent_MessagePort(this, evt);
   }
-  static bool _dispatchEvent(receiver, evt) native;
+  static bool _dispatchEvent_MessagePort(receiver, evt) native;
 
-  void postMessage(String message) {
-    _postMessage(this, message);
-    return;
-  }
-  static void _postMessage(receiver, message) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _removeEventListener(this, type, listener);
+  void postMessage(String message, [List messagePorts = null]) {
+    if (messagePorts === null) {
+      _postMessage(this, message);
       return;
     } else {
-      _removeEventListener_2(this, type, listener, useCapture);
+      _postMessage_2(this, message, messagePorts);
       return;
     }
   }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
+  static void _postMessage(receiver, message) native;
+  static void _postMessage_2(receiver, message, messagePorts) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _removeEventListener_MessagePort(this, type, listener);
+      return;
+    } else {
+      _removeEventListener_MessagePort_2(this, type, listener, useCapture);
+      return;
+    }
+  }
+  static void _removeEventListener_MessagePort(receiver, type, listener) native;
+  static void _removeEventListener_MessagePort_2(receiver, type, listener, useCapture) native;
 
   void start() {
     _start(this);
@@ -64,11 +64,17 @@ class _MessagePortWrappingImplementation extends DOMWrapperBase implements Messa
   }
   static void _start(receiver) native;
 
-  void webkitPostMessage(String message) {
-    _webkitPostMessage(this, message);
-    return;
+  void webkitPostMessage(String message, [List transfer = null]) {
+    if (transfer === null) {
+      _webkitPostMessage(this, message);
+      return;
+    } else {
+      _webkitPostMessage_2(this, message, transfer);
+      return;
+    }
   }
   static void _webkitPostMessage(receiver, message) native;
+  static void _webkitPostMessage_2(receiver, message, transfer) native;
 
   String get typeName() { return "MessagePort"; }
 }

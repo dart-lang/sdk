@@ -32,7 +32,7 @@ class _Process implements Process {
     _in = new _Socket._internalReadOnly();  // stdout coming from process.
     _out = new _Socket._internalWriteOnly();  // stdin going to process.
     _err = new _Socket._internalReadOnly();  // stderr coming from process.
-    _exitHandler = new _Socket._internal();
+    _exitHandler = new _Socket._internalReadOnly();
     _closed = false;
     _killed = false;
     _started = false;

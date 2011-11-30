@@ -1,7 +1,5 @@
 
-class NavigatorUserMediaSuccessCallback native "NavigatorUserMediaSuccessCallback" {
-
-  bool handleEvent(LocalMediaStream stream) native;
+class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallback" {
 
   var dartObjectLocalStorage;
 

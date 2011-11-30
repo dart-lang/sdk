@@ -1,11 +1,11 @@
 
-class IDBRequest native "IDBRequest" {
+class IDBRequest native "*IDBRequest" {
+
+  static final int DONE = 2;
+
+  static final int LOADING = 1;
 
   int errorCode;
-
-  EventListener onerror;
-
-  EventListener onsuccess;
 
   int readyState;
 

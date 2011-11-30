@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface CSSMatrix factory _CSSMatrixFactoryProvider {
+interface CSSMatrix factory CSSMatrixFactoryProvider {
 
   CSSMatrix([String spec]);
 

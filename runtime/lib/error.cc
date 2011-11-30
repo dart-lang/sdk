@@ -142,7 +142,12 @@ static void ThrowTypeError(intptr_t location,
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
   if (FLAG_print_stack_trace_at_throw) {
-    OS::Print("Type %s is not assignable to type %s of %s.\n",
+    intptr_t line, column;
+    script.GetTokenLocation(location, &line, &column);
+    OS::Print("'%s': Failed type check: line %d pos %d: "
+              "type '%s' is not assignable to type '%s' of '%s'.\n",
+              String::Handle(script.url()).ToCString(),
+              line, column,
               src_type_name.ToCString(),
               dst_type_name.ToCString(),
               dst_name.ToCString());
@@ -150,6 +155,23 @@ static void ThrowTypeError(intptr_t location,
   // Throw TypeError instance.
   Exceptions::Throw(type_error);
   UNREACHABLE();
+}
+
+
+// Allocate and throw a new TypeError.
+// Arg0: index of the token of the failed type check.
+// Arg1: src value.
+// Arg2: dst type name.
+// Arg3: dst name.
+// Return value: none, throws an exception.
+DEFINE_NATIVE_ENTRY(TypeError_throwNew, 4) {
+  intptr_t location = Smi::CheckedHandle(arguments->At(0)).Value();
+  const Instance& src_value = Instance::CheckedHandle(arguments->At(1));
+  const String& dst_type_name = String::CheckedHandle(arguments->At(2));
+  const String& dst_name = String::CheckedHandle(arguments->At(3));
+  const String& src_type_name =
+      String::Handle(Type::Handle(src_value.GetType()).Name());
+  ThrowTypeError(location, src_type_name, dst_type_name, dst_name);
 }
 
 

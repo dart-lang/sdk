@@ -11,8 +11,8 @@ class _WebKitAnimationListWrappingImplementation extends DOMWrapperBase implemen
     return new _WebKitAnimationListWrappingImplementation();
   }
 
-  int get length() { return _get__WebKitAnimationList_length(this); }
-  static int _get__WebKitAnimationList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   WebKitAnimation item(int index) {
     return _item(this, index);

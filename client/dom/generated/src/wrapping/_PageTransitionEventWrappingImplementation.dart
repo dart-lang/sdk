@@ -11,8 +11,8 @@ class _PageTransitionEventWrappingImplementation extends _EventWrappingImplement
     return new _PageTransitionEventWrappingImplementation();
   }
 
-  bool get persisted() { return _get__PageTransitionEvent_persisted(this); }
-  static bool _get__PageTransitionEvent_persisted(var _this) native;
+  bool get persisted() { return _get_persisted(this); }
+  static bool _get_persisted(var _this) native;
 
   void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted) {
     _initPageTransitionEvent(this, typeArg, canBubbleArg, cancelableArg, persisted);

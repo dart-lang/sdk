@@ -1,15 +1,5 @@
 
-class XMLHttpRequestUpload native "XMLHttpRequestUpload" {
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
+class XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

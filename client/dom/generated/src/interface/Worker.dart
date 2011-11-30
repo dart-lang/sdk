@@ -6,11 +6,9 @@
 
 interface Worker extends AbstractWorker {
 
-  EventListener get onmessage();
-
-  void set onmessage(EventListener value);
-
-  void postMessage(String message, [MessagePort messagePort]);
+  void postMessage(String message, [List messagePorts]);
 
   void terminate();
+
+  void webkitPostMessage(String message, [List messagePorts]);
 }

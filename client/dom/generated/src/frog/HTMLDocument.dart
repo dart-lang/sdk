@@ -1,9 +1,11 @@
 
-class HTMLDocument extends Document native "HTMLDocument" {
+class HTMLDocument extends Document native "*HTMLDocument" {
 
   Element activeElement;
 
   String alinkColor;
+
+  HTMLAllCollection all;
 
   String bgColor;
 

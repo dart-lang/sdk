@@ -1,3 +1,3 @@
 
-class HTMLAudioElement extends HTMLMediaElement native "HTMLAudioElement" {
+class HTMLAudioElement extends HTMLMediaElement native "*HTMLAudioElement" {
 }

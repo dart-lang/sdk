@@ -1,5 +1,5 @@
 
-class DOMFileSystemSync native "DOMFileSystemSync" {
+class DOMFileSystemSync native "*DOMFileSystemSync" {
 
   String name;
 

@@ -1,5 +1,5 @@
 
-class Location native "Location" {
+class Location native "*Location" {
 
   String hash;
 
@@ -26,6 +26,8 @@ class Location native "Location" {
   void reload() native;
 
   void replace(String url) native;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 

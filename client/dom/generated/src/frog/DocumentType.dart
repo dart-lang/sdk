@@ -1,5 +1,5 @@
 
-class DocumentType extends Node native "DocumentType" {
+class DocumentType extends Node native "*DocumentType" {
 
   NamedNodeMap entities;
 

@@ -8,18 +8,6 @@ interface IDBDatabase {
 
   String get name();
 
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onversionchange();
-
-  void set onversionchange(EventListener value);
-
   String get version();
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -35,4 +23,6 @@ interface IDBDatabase {
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   IDBVersionChangeRequest setVersion(String version);
+
+  IDBTransaction transaction(String storeName, int mode);
 }

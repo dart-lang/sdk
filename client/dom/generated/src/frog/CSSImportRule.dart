@@ -1,5 +1,5 @@
 
-class CSSImportRule extends CSSRule native "CSSImportRule" {
+class CSSImportRule extends CSSRule native "*CSSImportRule" {
 
   String href;
 

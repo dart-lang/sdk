@@ -1,7 +1,9 @@
 
-class ArrayBuffer native "ArrayBuffer" {
+class ArrayBuffer native "*ArrayBuffer" {
 
   int byteLength;
+
+  ArrayBuffer slice(int begin, [int end = null]) native;
 
   var dartObjectLocalStorage;
 

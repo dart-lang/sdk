@@ -7,10 +7,6 @@
 interface SharedWorkerGlobalScope extends WorkerContext {
 
   String get name();
-
-  EventListener get onconnect();
-
-  void set onconnect(EventListener value);
 }
 
 interface SharedWorkercontext extends SharedWorkerGlobalScope {

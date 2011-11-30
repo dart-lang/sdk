@@ -1,5 +1,5 @@
 
-class Entry native "Entry" {
+class Entry native "*Entry" {
 
   DOMFileSystem filesystem;
 

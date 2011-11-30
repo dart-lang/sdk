@@ -1,5 +1,5 @@
 
-class IDBKeyRange native "IDBKeyRange" {
+class IDBKeyRange native "*IDBKeyRange" {
 
   IDBKey lower;
 

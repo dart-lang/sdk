@@ -16,30 +16,6 @@ interface FileWriter {
 
   int get length();
 
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
-
-  EventListener get onwrite();
-
-  void set onwrite(EventListener value);
-
-  EventListener get onwriteend();
-
-  void set onwriteend(EventListener value);
-
-  EventListener get onwritestart();
-
-  void set onwritestart(EventListener value);
-
   int get position();
 
   int get readyState();

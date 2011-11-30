@@ -1,5 +1,5 @@
 
-class HTMLHRElement extends HTMLElement native "HTMLHRElement" {
+class HTMLHRElement extends HTMLElement native "*HTMLHRElement" {
 
   String align;
 

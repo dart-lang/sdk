@@ -1,5 +1,5 @@
 
-class HTMLTrackElement extends HTMLElement native "HTMLTrackElement" {
+class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
 
   bool isDefault;
 
@@ -10,4 +10,6 @@ class HTMLTrackElement extends HTMLElement native "HTMLTrackElement" {
   String src;
 
   String srclang;
+
+  TextTrack track;
 }

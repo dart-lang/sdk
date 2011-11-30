@@ -115,7 +115,7 @@ function $bind3_1(fn, thisObj, scope1, scope2, scope3) {
 }
 function $bind3_2(fn, thisObj, scope1, scope2, scope3) {
   return function(arg1, arg2) {
-    return fn.call(thisObj, scope1, scope2, arg1, arg2);
+    return fn.call(thisObj, scope1, scope2, scope3, arg1, arg2);
   }
 }
 function $bind3_3(fn, thisObj, scope1, scope2, scope3) {

@@ -1,5 +1,5 @@
 
-class DOMSelection native "DOMSelection" {
+class DOMSelection native "*DOMSelection" {
 
   Node anchorNode;
 
@@ -50,6 +50,8 @@ class DOMSelection native "DOMSelection" {
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
 
   void setPosition(Node node, int offset) native;
+
+  String toString() native;
 
   var dartObjectLocalStorage;
 

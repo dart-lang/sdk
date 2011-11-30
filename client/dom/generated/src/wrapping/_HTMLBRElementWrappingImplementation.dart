@@ -11,11 +11,11 @@ class _HTMLBRElementWrappingImplementation extends _HTMLElementWrappingImplement
     return new _HTMLBRElementWrappingImplementation();
   }
 
-  String get clear() { return _get__HTMLBRElement_clear(this); }
-  static String _get__HTMLBRElement_clear(var _this) native;
+  String get clear() { return _get_clear(this); }
+  static String _get_clear(var _this) native;
 
-  void set clear(String value) { _set__HTMLBRElement_clear(this, value); }
-  static void _set__HTMLBRElement_clear(var _this, String value) native;
+  void set clear(String value) { _set_clear(this, value); }
+  static void _set_clear(var _this, String value) native;
 
   String get typeName() { return "HTMLBRElement"; }
 }

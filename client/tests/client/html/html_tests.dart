@@ -5,6 +5,7 @@
 #library('html_tests');
 
 #import('dart:html');
+#import('dart:htmlimpl');
 #import('../../../base/base.dart');
 #import('../../../testing/unittest/unittest.dart');
 #import('../../../util/utilslib.dart');

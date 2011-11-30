@@ -1,5 +1,5 @@
 
-class HTMLIsIndexElement extends HTMLInputElement native "HTMLIsIndexElement" {
+class HTMLIsIndexElement extends HTMLInputElement native "*HTMLIsIndexElement" {
 
   HTMLFormElement form;
 

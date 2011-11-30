@@ -1,5 +1,5 @@
 
-class HTMLProgressElement extends HTMLElement native "HTMLProgressElement" {
+class HTMLProgressElement extends HTMLElement native "*HTMLProgressElement" {
 
   HTMLFormElement form;
 

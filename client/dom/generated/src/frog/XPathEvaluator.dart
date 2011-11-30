@@ -1,5 +1,5 @@
 
-class XPathEvaluator native "XPathEvaluator" {
+class XPathEvaluator native "*XPathEvaluator" {
 
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
 

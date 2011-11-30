@@ -1,5 +1,5 @@
 
-class PerformanceTiming native "PerformanceTiming" {
+class PerformanceTiming native "*PerformanceTiming" {
 
   int connectEnd;
 

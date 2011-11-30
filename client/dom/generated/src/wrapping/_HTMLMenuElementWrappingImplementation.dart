@@ -11,11 +11,11 @@ class _HTMLMenuElementWrappingImplementation extends _HTMLElementWrappingImpleme
     return new _HTMLMenuElementWrappingImplementation();
   }
 
-  bool get compact() { return _get__HTMLMenuElement_compact(this); }
-  static bool _get__HTMLMenuElement_compact(var _this) native;
+  bool get compact() { return _get_compact(this); }
+  static bool _get_compact(var _this) native;
 
-  void set compact(bool value) { _set__HTMLMenuElement_compact(this, value); }
-  static void _set__HTMLMenuElement_compact(var _this, bool value) native;
+  void set compact(bool value) { _set_compact(this, value); }
+  static void _set_compact(var _this, bool value) native;
 
   String get typeName() { return "HTMLMenuElement"; }
 }

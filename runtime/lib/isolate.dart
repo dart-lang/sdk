@@ -32,7 +32,13 @@ class ReceivePortImpl implements ReceivePort {
 
   /**** Internal implementation details ****/
   // Called from the VM to create a new ReceivePort instance.
-  static ReceivePortImpl create_(int id) {
+  static ReceivePortImpl _get_or_create(int id) {
+    if (_portMap !== null) {
+      ReceivePortImpl port = _portMap[id];
+      if (port !== null) {
+        return port;
+      }
+    }
     return new ReceivePortImpl._internal(id);
   }
   ReceivePortImpl._internal(int id) : _id = id {
@@ -43,7 +49,7 @@ class ReceivePortImpl implements ReceivePort {
   }
 
   // Called from the VM to dispatch to the handler.
-  static void handleMessage_(int id, int replyId, var message) {
+  static void _handleMessage(int id, int replyId, var message) {
     assert(_portMap !== null);
     ReceivePort port = _portMap[id];
     SendPort replyTo = (replyId == 0) ? null : new SendPortImpl(replyId);
@@ -119,9 +125,9 @@ class SendPortImpl implements SendPort {
   /*--- private implementation ---*/
   const SendPortImpl(int id) : _id = id;
 
-  // SendPortImpl.create_ is called from the VM when a new SendPort instance is
+  // SendPortImpl._create is called from the VM when a new SendPort instance is
   // needed by the VM code.
-  static SendPort create_(int id) {
+  static SendPort _create(int id) {
     return new SendPortImpl(id);
   }
 

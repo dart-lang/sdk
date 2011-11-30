@@ -1,19 +1,15 @@
 
-class FileReader native "FileReader" {
+class FileReader native "*FileReader" {
+  FileReader() native;
+
+
+  static final int DONE = 2;
+
+  static final int EMPTY = 0;
+
+  static final int LOADING = 1;
 
   FileError error;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadend;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
 
   int readyState;
 

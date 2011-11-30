@@ -1,5 +1,5 @@
 
-class FileReaderSync native "FileReaderSync" {
+class FileReaderSync native "*FileReaderSync" {
 
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
 

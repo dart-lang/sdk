@@ -11,11 +11,11 @@ class _WebKitTransitionEventWrappingImplementation extends _EventWrappingImpleme
     return new _WebKitTransitionEventWrappingImplementation();
   }
 
-  num get elapsedTime() { return _get__WebKitTransitionEvent_elapsedTime(this); }
-  static num _get__WebKitTransitionEvent_elapsedTime(var _this) native;
+  num get elapsedTime() { return _get_elapsedTime(this); }
+  static num _get_elapsedTime(var _this) native;
 
-  String get propertyName() { return _get__WebKitTransitionEvent_propertyName(this); }
-  static String _get__WebKitTransitionEvent_propertyName(var _this) native;
+  String get propertyName() { return _get_propertyName(this); }
+  static String _get_propertyName(var _this) native;
 
   void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg) {
     _initWebKitTransitionEvent(this, typeArg, canBubbleArg, cancelableArg, propertyNameArg, elapsedTimeArg);

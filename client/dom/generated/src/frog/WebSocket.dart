@@ -1,5 +1,13 @@
 
-class WebSocket native "WebSocket" {
+class WebSocket native "*WebSocket" {
+
+  static final int CLOSED = 3;
+
+  static final int CLOSING = 2;
+
+  static final int CONNECTING = 0;
+
+  static final int OPEN = 1;
 
   String URL;
 
@@ -7,13 +15,7 @@ class WebSocket native "WebSocket" {
 
   int bufferedAmount;
 
-  EventListener onclose;
-
-  EventListener onerror;
-
-  EventListener onmessage;
-
-  EventListener onopen;
+  String extensions;
 
   String protocol;
 

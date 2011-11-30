@@ -11,10 +11,5 @@ class _NavigatorUserMediaSuccessCallbackWrappingImplementation extends DOMWrappe
     return new _NavigatorUserMediaSuccessCallbackWrappingImplementation();
   }
 
-  bool handleEvent(LocalMediaStream stream) {
-    return _handleEvent(this, stream);
-  }
-  static bool _handleEvent(receiver, stream) native;
-
   String get typeName() { return "NavigatorUserMediaSuccessCallback"; }
 }

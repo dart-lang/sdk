@@ -11,41 +11,41 @@ class _WebGLContextAttributesWrappingImplementation extends DOMWrapperBase imple
     return new _WebGLContextAttributesWrappingImplementation();
   }
 
-  bool get alpha() { return _get__WebGLContextAttributes_alpha(this); }
-  static bool _get__WebGLContextAttributes_alpha(var _this) native;
+  bool get alpha() { return _get_alpha(this); }
+  static bool _get_alpha(var _this) native;
 
-  void set alpha(bool value) { _set__WebGLContextAttributes_alpha(this, value); }
-  static void _set__WebGLContextAttributes_alpha(var _this, bool value) native;
+  void set alpha(bool value) { _set_alpha(this, value); }
+  static void _set_alpha(var _this, bool value) native;
 
-  bool get antialias() { return _get__WebGLContextAttributes_antialias(this); }
-  static bool _get__WebGLContextAttributes_antialias(var _this) native;
+  bool get antialias() { return _get_antialias(this); }
+  static bool _get_antialias(var _this) native;
 
-  void set antialias(bool value) { _set__WebGLContextAttributes_antialias(this, value); }
-  static void _set__WebGLContextAttributes_antialias(var _this, bool value) native;
+  void set antialias(bool value) { _set_antialias(this, value); }
+  static void _set_antialias(var _this, bool value) native;
 
-  bool get depth() { return _get__WebGLContextAttributes_depth(this); }
-  static bool _get__WebGLContextAttributes_depth(var _this) native;
+  bool get depth() { return _get_depth(this); }
+  static bool _get_depth(var _this) native;
 
-  void set depth(bool value) { _set__WebGLContextAttributes_depth(this, value); }
-  static void _set__WebGLContextAttributes_depth(var _this, bool value) native;
+  void set depth(bool value) { _set_depth(this, value); }
+  static void _set_depth(var _this, bool value) native;
 
-  bool get premultipliedAlpha() { return _get__WebGLContextAttributes_premultipliedAlpha(this); }
-  static bool _get__WebGLContextAttributes_premultipliedAlpha(var _this) native;
+  bool get premultipliedAlpha() { return _get_premultipliedAlpha(this); }
+  static bool _get_premultipliedAlpha(var _this) native;
 
-  void set premultipliedAlpha(bool value) { _set__WebGLContextAttributes_premultipliedAlpha(this, value); }
-  static void _set__WebGLContextAttributes_premultipliedAlpha(var _this, bool value) native;
+  void set premultipliedAlpha(bool value) { _set_premultipliedAlpha(this, value); }
+  static void _set_premultipliedAlpha(var _this, bool value) native;
 
-  bool get preserveDrawingBuffer() { return _get__WebGLContextAttributes_preserveDrawingBuffer(this); }
-  static bool _get__WebGLContextAttributes_preserveDrawingBuffer(var _this) native;
+  bool get preserveDrawingBuffer() { return _get_preserveDrawingBuffer(this); }
+  static bool _get_preserveDrawingBuffer(var _this) native;
 
-  void set preserveDrawingBuffer(bool value) { _set__WebGLContextAttributes_preserveDrawingBuffer(this, value); }
-  static void _set__WebGLContextAttributes_preserveDrawingBuffer(var _this, bool value) native;
+  void set preserveDrawingBuffer(bool value) { _set_preserveDrawingBuffer(this, value); }
+  static void _set_preserveDrawingBuffer(var _this, bool value) native;
 
-  bool get stencil() { return _get__WebGLContextAttributes_stencil(this); }
-  static bool _get__WebGLContextAttributes_stencil(var _this) native;
+  bool get stencil() { return _get_stencil(this); }
+  static bool _get_stencil(var _this) native;
 
-  void set stencil(bool value) { _set__WebGLContextAttributes_stencil(this, value); }
-  static void _set__WebGLContextAttributes_stencil(var _this, bool value) native;
+  void set stencil(bool value) { _set_stencil(this, value); }
+  static void _set_stencil(var _this, bool value) native;
 
   String get typeName() { return "WebGLContextAttributes"; }
 }

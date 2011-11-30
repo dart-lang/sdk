@@ -66,8 +66,6 @@ function DOM$fixMembers(cls, keys) {
 
 function DOM$fixClass$AbstractWorker(c) {
   if (c.prototype) {
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
   }
   DOM$fixMembers(c, [
     'addEventListener',
@@ -80,6 +78,7 @@ function DOM$fixClass$ArrayBuffer(c) {
   if (c.prototype) {
     c.prototype.byteLength$getter = function() { return DOM$EnsureDartNull(this.byteLength); };
   }
+  DOM$fixMembers(c, ['slice']);
   c.$implements$ArrayBuffer$Dart = 1;
 }
 function DOM$fixClass$ArrayBufferView(c) {
@@ -317,6 +316,8 @@ function DOM$fixClass$CanvasRenderingContext(c) {
 }
 function DOM$fixClass$CanvasRenderingContext2D(c) {
   if (c.prototype) {
+    c.prototype.fillStyle$getter = function() { return DOM$EnsureDartNull(this.fillStyle); };
+    c.prototype.fillStyle$setter = function(value) { this.fillStyle = value; };
     c.prototype.font$getter = function() { return DOM$EnsureDartNull(this.font); };
     c.prototype.font$setter = function(value) { this.font = value; };
     c.prototype.globalAlpha$getter = function() { return DOM$EnsureDartNull(this.globalAlpha); };
@@ -339,10 +340,16 @@ function DOM$fixClass$CanvasRenderingContext2D(c) {
     c.prototype.shadowOffsetX$setter = function(value) { this.shadowOffsetX = value; };
     c.prototype.shadowOffsetY$getter = function() { return DOM$EnsureDartNull(this.shadowOffsetY); };
     c.prototype.shadowOffsetY$setter = function(value) { this.shadowOffsetY = value; };
+    c.prototype.strokeStyle$getter = function() { return DOM$EnsureDartNull(this.strokeStyle); };
+    c.prototype.strokeStyle$setter = function(value) { this.strokeStyle = value; };
     c.prototype.textAlign$getter = function() { return DOM$EnsureDartNull(this.textAlign); };
     c.prototype.textAlign$setter = function(value) { this.textAlign = value; };
     c.prototype.textBaseline$getter = function() { return DOM$EnsureDartNull(this.textBaseline); };
     c.prototype.textBaseline$setter = function(value) { this.textBaseline = value; };
+    c.prototype.webkitLineDash$getter = function() { return DOM$EnsureDartNull(this.webkitLineDash); };
+    c.prototype.webkitLineDash$setter = function(value) { this.webkitLineDash = value; };
+    c.prototype.webkitLineDashOffset$getter = function() { return DOM$EnsureDartNull(this.webkitLineDashOffset); };
+    c.prototype.webkitLineDashOffset$setter = function(value) { this.webkitLineDashOffset = value; };
   }
   DOM$fixMembers(c, [
     'arc',
@@ -375,14 +382,12 @@ function DOM$fixClass$CanvasRenderingContext2D(c) {
     'setAlpha',
     'setCompositeOperation',
     'setFillColor',
-    'setFillStyle',
     'setLineCap',
     'setLineJoin',
     'setLineWidth',
     'setMiterLimit',
     'setShadow',
     'setStrokeColor',
-    'setStrokeStyle',
     'setTransform',
     'stroke',
     'strokeRect',
@@ -440,6 +445,7 @@ function DOM$fixClass$Clipboard(c) {
     c.prototype.effectAllowed$setter = function(value) { this.effectAllowed = value; };
     c.prototype.files$getter = function() { return DOM$EnsureDartNull(this.files); };
     c.prototype.items$getter = function() { return DOM$EnsureDartNull(this.items); };
+    c.prototype.types$getter = function() { return DOM$EnsureDartNull(this.types); };
   }
   DOM$fixMembers(c, [
     'clearData',
@@ -537,22 +543,6 @@ function DOM$fixClass$CustomEvent(c) {
 }
 function DOM$fixClass$DOMApplicationCache(c) {
   if (c.prototype) {
-    c.prototype.oncached$getter = function() { return DOM$EnsureDartNull(this.oncached); };
-    c.prototype.oncached$setter = function(value) { this.oncached = value; };
-    c.prototype.onchecking$getter = function() { return DOM$EnsureDartNull(this.onchecking); };
-    c.prototype.onchecking$setter = function(value) { this.onchecking = value; };
-    c.prototype.ondownloading$getter = function() { return DOM$EnsureDartNull(this.ondownloading); };
-    c.prototype.ondownloading$setter = function(value) { this.ondownloading = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onnoupdate$getter = function() { return DOM$EnsureDartNull(this.onnoupdate); };
-    c.prototype.onnoupdate$setter = function(value) { this.onnoupdate = value; };
-    c.prototype.onobsolete$getter = function() { return DOM$EnsureDartNull(this.onobsolete); };
-    c.prototype.onobsolete$setter = function(value) { this.onobsolete = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onupdateready$getter = function() { return DOM$EnsureDartNull(this.onupdateready); };
-    c.prototype.onupdateready$setter = function(value) { this.onupdateready = value; };
     c.prototype.status$getter = function() { return DOM$EnsureDartNull(this.status); };
   }
   DOM$fixMembers(c, [
@@ -570,6 +560,7 @@ function DOM$fixClass$DOMException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$DOMException$Dart = 1;
 }
 function DOM$fixClass$DOMFileSystem(c) {
@@ -677,7 +668,8 @@ function DOM$fixClass$DOMSelection(c) {
     'removeAllRanges',
     'selectAllChildren',
     'setBaseAndExtent',
-    'setPosition']);
+    'setPosition',
+    'toString']);
   c.$implements$DOMSelection$Dart = 1;
 }
 function DOM$fixClass$DOMSettableTokenList(c) {
@@ -697,6 +689,7 @@ function DOM$fixClass$DOMTokenList(c) {
     'contains',
     'item',
     'remove',
+    'toString',
     'toggle']);
   c.$implements$DOMTokenList$Dart = 1;
 }
@@ -719,6 +712,8 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.crypto$getter = function() { return DOM$EnsureDartNull(this.crypto); };
     c.prototype.defaultStatus$getter = function() { return DOM$EnsureDartNull(this.defaultStatus); };
     c.prototype.defaultStatus$setter = function(value) { this.defaultStatus = value; };
+    c.prototype.defaultstatus$getter = function() { return DOM$EnsureDartNull(this.defaultstatus); };
+    c.prototype.defaultstatus$setter = function(value) { this.defaultstatus = value; };
     c.prototype.devicePixelRatio$getter = function() { return DOM$EnsureDartNull(this.devicePixelRatio); };
     c.prototype.devicePixelRatio$setter = function(value) { this.devicePixelRatio = value; };
     c.prototype.document$getter = function() { return DOM$EnsureDartNull(this.document); };
@@ -748,152 +743,6 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.navigator$setter = function(value) { this.navigator = value; };
     c.prototype.offscreenBuffering$getter = function() { return DOM$EnsureDartNull(this.offscreenBuffering); };
     c.prototype.offscreenBuffering$setter = function(value) { this.offscreenBuffering = value; };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onbeforeunload$getter = function() { return DOM$EnsureDartNull(this.onbeforeunload); };
-    c.prototype.onbeforeunload$setter = function(value) { this.onbeforeunload = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.oncanplay$getter = function() { return DOM$EnsureDartNull(this.oncanplay); };
-    c.prototype.oncanplay$setter = function(value) { this.oncanplay = value; };
-    c.prototype.oncanplaythrough$getter = function() { return DOM$EnsureDartNull(this.oncanplaythrough); };
-    c.prototype.oncanplaythrough$setter = function(value) { this.oncanplaythrough = value; };
-    c.prototype.onchange$getter = function() { return DOM$EnsureDartNull(this.onchange); };
-    c.prototype.onchange$setter = function(value) { this.onchange = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.oncontextmenu$getter = function() { return DOM$EnsureDartNull(this.oncontextmenu); };
-    c.prototype.oncontextmenu$setter = function(value) { this.oncontextmenu = value; };
-    c.prototype.ondblclick$getter = function() { return DOM$EnsureDartNull(this.ondblclick); };
-    c.prototype.ondblclick$setter = function(value) { this.ondblclick = value; };
-    c.prototype.ondevicemotion$getter = function() { return DOM$EnsureDartNull(this.ondevicemotion); };
-    c.prototype.ondevicemotion$setter = function(value) { this.ondevicemotion = value; };
-    c.prototype.ondeviceorientation$getter = function() { return DOM$EnsureDartNull(this.ondeviceorientation); };
-    c.prototype.ondeviceorientation$setter = function(value) { this.ondeviceorientation = value; };
-    c.prototype.ondrag$getter = function() { return DOM$EnsureDartNull(this.ondrag); };
-    c.prototype.ondrag$setter = function(value) { this.ondrag = value; };
-    c.prototype.ondragend$getter = function() { return DOM$EnsureDartNull(this.ondragend); };
-    c.prototype.ondragend$setter = function(value) { this.ondragend = value; };
-    c.prototype.ondragenter$getter = function() { return DOM$EnsureDartNull(this.ondragenter); };
-    c.prototype.ondragenter$setter = function(value) { this.ondragenter = value; };
-    c.prototype.ondragleave$getter = function() { return DOM$EnsureDartNull(this.ondragleave); };
-    c.prototype.ondragleave$setter = function(value) { this.ondragleave = value; };
-    c.prototype.ondragover$getter = function() { return DOM$EnsureDartNull(this.ondragover); };
-    c.prototype.ondragover$setter = function(value) { this.ondragover = value; };
-    c.prototype.ondragstart$getter = function() { return DOM$EnsureDartNull(this.ondragstart); };
-    c.prototype.ondragstart$setter = function(value) { this.ondragstart = value; };
-    c.prototype.ondrop$getter = function() { return DOM$EnsureDartNull(this.ondrop); };
-    c.prototype.ondrop$setter = function(value) { this.ondrop = value; };
-    c.prototype.ondurationchange$getter = function() { return DOM$EnsureDartNull(this.ondurationchange); };
-    c.prototype.ondurationchange$setter = function(value) { this.ondurationchange = value; };
-    c.prototype.onemptied$getter = function() { return DOM$EnsureDartNull(this.onemptied); };
-    c.prototype.onemptied$setter = function(value) { this.onemptied = value; };
-    c.prototype.onended$getter = function() { return DOM$EnsureDartNull(this.onended); };
-    c.prototype.onended$setter = function(value) { this.onended = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.onhashchange$getter = function() { return DOM$EnsureDartNull(this.onhashchange); };
-    c.prototype.onhashchange$setter = function(value) { this.onhashchange = value; };
-    c.prototype.oninput$getter = function() { return DOM$EnsureDartNull(this.oninput); };
-    c.prototype.oninput$setter = function(value) { this.oninput = value; };
-    c.prototype.oninvalid$getter = function() { return DOM$EnsureDartNull(this.oninvalid); };
-    c.prototype.oninvalid$setter = function(value) { this.oninvalid = value; };
-    c.prototype.onkeydown$getter = function() { return DOM$EnsureDartNull(this.onkeydown); };
-    c.prototype.onkeydown$setter = function(value) { this.onkeydown = value; };
-    c.prototype.onkeypress$getter = function() { return DOM$EnsureDartNull(this.onkeypress); };
-    c.prototype.onkeypress$setter = function(value) { this.onkeypress = value; };
-    c.prototype.onkeyup$getter = function() { return DOM$EnsureDartNull(this.onkeyup); };
-    c.prototype.onkeyup$setter = function(value) { this.onkeyup = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadeddata$getter = function() { return DOM$EnsureDartNull(this.onloadeddata); };
-    c.prototype.onloadeddata$setter = function(value) { this.onloadeddata = value; };
-    c.prototype.onloadedmetadata$getter = function() { return DOM$EnsureDartNull(this.onloadedmetadata); };
-    c.prototype.onloadedmetadata$setter = function(value) { this.onloadedmetadata = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onmousedown$getter = function() { return DOM$EnsureDartNull(this.onmousedown); };
-    c.prototype.onmousedown$setter = function(value) { this.onmousedown = value; };
-    c.prototype.onmousemove$getter = function() { return DOM$EnsureDartNull(this.onmousemove); };
-    c.prototype.onmousemove$setter = function(value) { this.onmousemove = value; };
-    c.prototype.onmouseout$getter = function() { return DOM$EnsureDartNull(this.onmouseout); };
-    c.prototype.onmouseout$setter = function(value) { this.onmouseout = value; };
-    c.prototype.onmouseover$getter = function() { return DOM$EnsureDartNull(this.onmouseover); };
-    c.prototype.onmouseover$setter = function(value) { this.onmouseover = value; };
-    c.prototype.onmouseup$getter = function() { return DOM$EnsureDartNull(this.onmouseup); };
-    c.prototype.onmouseup$setter = function(value) { this.onmouseup = value; };
-    c.prototype.onmousewheel$getter = function() { return DOM$EnsureDartNull(this.onmousewheel); };
-    c.prototype.onmousewheel$setter = function(value) { this.onmousewheel = value; };
-    c.prototype.onoffline$getter = function() { return DOM$EnsureDartNull(this.onoffline); };
-    c.prototype.onoffline$setter = function(value) { this.onoffline = value; };
-    c.prototype.ononline$getter = function() { return DOM$EnsureDartNull(this.ononline); };
-    c.prototype.ononline$setter = function(value) { this.ononline = value; };
-    c.prototype.onpagehide$getter = function() { return DOM$EnsureDartNull(this.onpagehide); };
-    c.prototype.onpagehide$setter = function(value) { this.onpagehide = value; };
-    c.prototype.onpageshow$getter = function() { return DOM$EnsureDartNull(this.onpageshow); };
-    c.prototype.onpageshow$setter = function(value) { this.onpageshow = value; };
-    c.prototype.onpause$getter = function() { return DOM$EnsureDartNull(this.onpause); };
-    c.prototype.onpause$setter = function(value) { this.onpause = value; };
-    c.prototype.onplay$getter = function() { return DOM$EnsureDartNull(this.onplay); };
-    c.prototype.onplay$setter = function(value) { this.onplay = value; };
-    c.prototype.onplaying$getter = function() { return DOM$EnsureDartNull(this.onplaying); };
-    c.prototype.onplaying$setter = function(value) { this.onplaying = value; };
-    c.prototype.onpopstate$getter = function() { return DOM$EnsureDartNull(this.onpopstate); };
-    c.prototype.onpopstate$setter = function(value) { this.onpopstate = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onratechange$getter = function() { return DOM$EnsureDartNull(this.onratechange); };
-    c.prototype.onratechange$setter = function(value) { this.onratechange = value; };
-    c.prototype.onreset$getter = function() { return DOM$EnsureDartNull(this.onreset); };
-    c.prototype.onreset$setter = function(value) { this.onreset = value; };
-    c.prototype.onresize$getter = function() { return DOM$EnsureDartNull(this.onresize); };
-    c.prototype.onresize$setter = function(value) { this.onresize = value; };
-    c.prototype.onscroll$getter = function() { return DOM$EnsureDartNull(this.onscroll); };
-    c.prototype.onscroll$setter = function(value) { this.onscroll = value; };
-    c.prototype.onsearch$getter = function() { return DOM$EnsureDartNull(this.onsearch); };
-    c.prototype.onsearch$setter = function(value) { this.onsearch = value; };
-    c.prototype.onseeked$getter = function() { return DOM$EnsureDartNull(this.onseeked); };
-    c.prototype.onseeked$setter = function(value) { this.onseeked = value; };
-    c.prototype.onseeking$getter = function() { return DOM$EnsureDartNull(this.onseeking); };
-    c.prototype.onseeking$setter = function(value) { this.onseeking = value; };
-    c.prototype.onselect$getter = function() { return DOM$EnsureDartNull(this.onselect); };
-    c.prototype.onselect$setter = function(value) { this.onselect = value; };
-    c.prototype.onstalled$getter = function() { return DOM$EnsureDartNull(this.onstalled); };
-    c.prototype.onstalled$setter = function(value) { this.onstalled = value; };
-    c.prototype.onstorage$getter = function() { return DOM$EnsureDartNull(this.onstorage); };
-    c.prototype.onstorage$setter = function(value) { this.onstorage = value; };
-    c.prototype.onsubmit$getter = function() { return DOM$EnsureDartNull(this.onsubmit); };
-    c.prototype.onsubmit$setter = function(value) { this.onsubmit = value; };
-    c.prototype.onsuspend$getter = function() { return DOM$EnsureDartNull(this.onsuspend); };
-    c.prototype.onsuspend$setter = function(value) { this.onsuspend = value; };
-    c.prototype.ontimeupdate$getter = function() { return DOM$EnsureDartNull(this.ontimeupdate); };
-    c.prototype.ontimeupdate$setter = function(value) { this.ontimeupdate = value; };
-    c.prototype.ontouchcancel$getter = function() { return DOM$EnsureDartNull(this.ontouchcancel); };
-    c.prototype.ontouchcancel$setter = function(value) { this.ontouchcancel = value; };
-    c.prototype.ontouchend$getter = function() { return DOM$EnsureDartNull(this.ontouchend); };
-    c.prototype.ontouchend$setter = function(value) { this.ontouchend = value; };
-    c.prototype.ontouchmove$getter = function() { return DOM$EnsureDartNull(this.ontouchmove); };
-    c.prototype.ontouchmove$setter = function(value) { this.ontouchmove = value; };
-    c.prototype.ontouchstart$getter = function() { return DOM$EnsureDartNull(this.ontouchstart); };
-    c.prototype.ontouchstart$setter = function(value) { this.ontouchstart = value; };
-    c.prototype.onunload$getter = function() { return DOM$EnsureDartNull(this.onunload); };
-    c.prototype.onunload$setter = function(value) { this.onunload = value; };
-    c.prototype.onvolumechange$getter = function() { return DOM$EnsureDartNull(this.onvolumechange); };
-    c.prototype.onvolumechange$setter = function(value) { this.onvolumechange = value; };
-    c.prototype.onwaiting$getter = function() { return DOM$EnsureDartNull(this.onwaiting); };
-    c.prototype.onwaiting$setter = function(value) { this.onwaiting = value; };
-    c.prototype.onwebkitanimationend$getter = function() { return DOM$EnsureDartNull(this.onwebkitanimationend); };
-    c.prototype.onwebkitanimationend$setter = function(value) { this.onwebkitanimationend = value; };
-    c.prototype.onwebkitanimationiteration$getter = function() { return DOM$EnsureDartNull(this.onwebkitanimationiteration); };
-    c.prototype.onwebkitanimationiteration$setter = function(value) { this.onwebkitanimationiteration = value; };
-    c.prototype.onwebkitanimationstart$getter = function() { return DOM$EnsureDartNull(this.onwebkitanimationstart); };
-    c.prototype.onwebkitanimationstart$setter = function(value) { this.onwebkitanimationstart = value; };
-    c.prototype.onwebkittransitionend$getter = function() { return DOM$EnsureDartNull(this.onwebkittransitionend); };
-    c.prototype.onwebkittransitionend$setter = function(value) { this.onwebkittransitionend = value; };
     c.prototype.opener$getter = function() { return DOM$EnsureDartNull(this.opener); };
     c.prototype.opener$setter = function(value) { this.opener = value; };
     c.prototype.outerHeight$getter = function() { return DOM$EnsureDartNull(this.outerHeight); };
@@ -937,6 +786,7 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.top$getter = function() { return DOM$EnsureDartNull(this.top); };
     c.prototype.top$setter = function(value) { this.top = value; };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
+    c.prototype.webkitURL$getter = function() { return DOM$EnsureDartNull(this.webkitURL); };
     c.prototype.window$getter = function() { return DOM$EnsureDartNull(this.window); };
   }
   DOM$fixMembers(c, [
@@ -954,6 +804,7 @@ function DOM$fixClass$DOMWindow(c) {
     'find',
     'focus',
     'getComputedStyle',
+    'getMatchedCSSRules',
     'getSelection',
     'matchMedia',
     'moveBy',
@@ -976,6 +827,7 @@ function DOM$fixClass$DOMWindow(c) {
     'webkitCancelRequestAnimationFrame',
     'webkitConvertPointFromNodeToPage',
     'webkitConvertPointFromPageToNode',
+    'webkitPostMessage',
     'webkitRequestAnimationFrame']);
   c.$implements$DOMWindow$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -990,7 +842,7 @@ function DOM$fixClass$DataTransferItem(c) {
     'getAsString']);
   c.$implements$DataTransferItem$Dart = 1;
 }
-function DOM$fixClass$DataTransferItems(c) {
+function DOM$fixClass$DataTransferItemList(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
   }
@@ -998,7 +850,7 @@ function DOM$fixClass$DataTransferItems(c) {
     'add',
     'clear',
     'item']);
-  c.$implements$DataTransferItems$Dart = 1;
+  c.$implements$DataTransferItemList$Dart = 1;
 }
 function DOM$fixClass$DataView(c) {
   if (c.prototype) {
@@ -1051,8 +903,6 @@ function DOM$fixClass$DatabaseSync(c) {
 }
 function DOM$fixClass$DedicatedWorkerContext(c) {
   if (c.prototype) {
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
   DOM$fixMembers(c, [
     'postMessage',
@@ -1131,6 +981,7 @@ function DOM$fixClass$Document(c) {
     c.prototype.documentURI$getter = function() { return DOM$EnsureDartNull(this.documentURI); };
     c.prototype.documentURI$setter = function(value) { this.documentURI = value; };
     c.prototype.domain$getter = function() { return DOM$EnsureDartNull(this.domain); };
+    c.prototype.domain$setter = function(value) { this.domain = value; };
     c.prototype.forms$getter = function() { return DOM$EnsureDartNull(this.forms); };
     c.prototype.head$getter = function() { return DOM$EnsureDartNull(this.head); };
     c.prototype.images$getter = function() { return DOM$EnsureDartNull(this.images); };
@@ -1138,98 +989,8 @@ function DOM$fixClass$Document(c) {
     c.prototype.inputEncoding$getter = function() { return DOM$EnsureDartNull(this.inputEncoding); };
     c.prototype.lastModified$getter = function() { return DOM$EnsureDartNull(this.lastModified); };
     c.prototype.links$getter = function() { return DOM$EnsureDartNull(this.links); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onbeforecopy$getter = function() { return DOM$EnsureDartNull(this.onbeforecopy); };
-    c.prototype.onbeforecopy$setter = function(value) { this.onbeforecopy = value; };
-    c.prototype.onbeforecut$getter = function() { return DOM$EnsureDartNull(this.onbeforecut); };
-    c.prototype.onbeforecut$setter = function(value) { this.onbeforecut = value; };
-    c.prototype.onbeforepaste$getter = function() { return DOM$EnsureDartNull(this.onbeforepaste); };
-    c.prototype.onbeforepaste$setter = function(value) { this.onbeforepaste = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onchange$getter = function() { return DOM$EnsureDartNull(this.onchange); };
-    c.prototype.onchange$setter = function(value) { this.onchange = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.oncontextmenu$getter = function() { return DOM$EnsureDartNull(this.oncontextmenu); };
-    c.prototype.oncontextmenu$setter = function(value) { this.oncontextmenu = value; };
-    c.prototype.oncopy$getter = function() { return DOM$EnsureDartNull(this.oncopy); };
-    c.prototype.oncopy$setter = function(value) { this.oncopy = value; };
-    c.prototype.oncut$getter = function() { return DOM$EnsureDartNull(this.oncut); };
-    c.prototype.oncut$setter = function(value) { this.oncut = value; };
-    c.prototype.ondblclick$getter = function() { return DOM$EnsureDartNull(this.ondblclick); };
-    c.prototype.ondblclick$setter = function(value) { this.ondblclick = value; };
-    c.prototype.ondrag$getter = function() { return DOM$EnsureDartNull(this.ondrag); };
-    c.prototype.ondrag$setter = function(value) { this.ondrag = value; };
-    c.prototype.ondragend$getter = function() { return DOM$EnsureDartNull(this.ondragend); };
-    c.prototype.ondragend$setter = function(value) { this.ondragend = value; };
-    c.prototype.ondragenter$getter = function() { return DOM$EnsureDartNull(this.ondragenter); };
-    c.prototype.ondragenter$setter = function(value) { this.ondragenter = value; };
-    c.prototype.ondragleave$getter = function() { return DOM$EnsureDartNull(this.ondragleave); };
-    c.prototype.ondragleave$setter = function(value) { this.ondragleave = value; };
-    c.prototype.ondragover$getter = function() { return DOM$EnsureDartNull(this.ondragover); };
-    c.prototype.ondragover$setter = function(value) { this.ondragover = value; };
-    c.prototype.ondragstart$getter = function() { return DOM$EnsureDartNull(this.ondragstart); };
-    c.prototype.ondragstart$setter = function(value) { this.ondragstart = value; };
-    c.prototype.ondrop$getter = function() { return DOM$EnsureDartNull(this.ondrop); };
-    c.prototype.ondrop$setter = function(value) { this.ondrop = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.oninput$getter = function() { return DOM$EnsureDartNull(this.oninput); };
-    c.prototype.oninput$setter = function(value) { this.oninput = value; };
-    c.prototype.oninvalid$getter = function() { return DOM$EnsureDartNull(this.oninvalid); };
-    c.prototype.oninvalid$setter = function(value) { this.oninvalid = value; };
-    c.prototype.onkeydown$getter = function() { return DOM$EnsureDartNull(this.onkeydown); };
-    c.prototype.onkeydown$setter = function(value) { this.onkeydown = value; };
-    c.prototype.onkeypress$getter = function() { return DOM$EnsureDartNull(this.onkeypress); };
-    c.prototype.onkeypress$setter = function(value) { this.onkeypress = value; };
-    c.prototype.onkeyup$getter = function() { return DOM$EnsureDartNull(this.onkeyup); };
-    c.prototype.onkeyup$setter = function(value) { this.onkeyup = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmousedown$getter = function() { return DOM$EnsureDartNull(this.onmousedown); };
-    c.prototype.onmousedown$setter = function(value) { this.onmousedown = value; };
-    c.prototype.onmousemove$getter = function() { return DOM$EnsureDartNull(this.onmousemove); };
-    c.prototype.onmousemove$setter = function(value) { this.onmousemove = value; };
-    c.prototype.onmouseout$getter = function() { return DOM$EnsureDartNull(this.onmouseout); };
-    c.prototype.onmouseout$setter = function(value) { this.onmouseout = value; };
-    c.prototype.onmouseover$getter = function() { return DOM$EnsureDartNull(this.onmouseover); };
-    c.prototype.onmouseover$setter = function(value) { this.onmouseover = value; };
-    c.prototype.onmouseup$getter = function() { return DOM$EnsureDartNull(this.onmouseup); };
-    c.prototype.onmouseup$setter = function(value) { this.onmouseup = value; };
-    c.prototype.onmousewheel$getter = function() { return DOM$EnsureDartNull(this.onmousewheel); };
-    c.prototype.onmousewheel$setter = function(value) { this.onmousewheel = value; };
-    c.prototype.onpaste$getter = function() { return DOM$EnsureDartNull(this.onpaste); };
-    c.prototype.onpaste$setter = function(value) { this.onpaste = value; };
-    c.prototype.onreadystatechange$getter = function() { return DOM$EnsureDartNull(this.onreadystatechange); };
-    c.prototype.onreadystatechange$setter = function(value) { this.onreadystatechange = value; };
-    c.prototype.onreset$getter = function() { return DOM$EnsureDartNull(this.onreset); };
-    c.prototype.onreset$setter = function(value) { this.onreset = value; };
-    c.prototype.onscroll$getter = function() { return DOM$EnsureDartNull(this.onscroll); };
-    c.prototype.onscroll$setter = function(value) { this.onscroll = value; };
-    c.prototype.onsearch$getter = function() { return DOM$EnsureDartNull(this.onsearch); };
-    c.prototype.onsearch$setter = function(value) { this.onsearch = value; };
-    c.prototype.onselect$getter = function() { return DOM$EnsureDartNull(this.onselect); };
-    c.prototype.onselect$setter = function(value) { this.onselect = value; };
-    c.prototype.onselectionchange$getter = function() { return DOM$EnsureDartNull(this.onselectionchange); };
-    c.prototype.onselectionchange$setter = function(value) { this.onselectionchange = value; };
-    c.prototype.onselectstart$getter = function() { return DOM$EnsureDartNull(this.onselectstart); };
-    c.prototype.onselectstart$setter = function(value) { this.onselectstart = value; };
-    c.prototype.onsubmit$getter = function() { return DOM$EnsureDartNull(this.onsubmit); };
-    c.prototype.onsubmit$setter = function(value) { this.onsubmit = value; };
-    c.prototype.ontouchcancel$getter = function() { return DOM$EnsureDartNull(this.ontouchcancel); };
-    c.prototype.ontouchcancel$setter = function(value) { this.ontouchcancel = value; };
-    c.prototype.ontouchend$getter = function() { return DOM$EnsureDartNull(this.ontouchend); };
-    c.prototype.ontouchend$setter = function(value) { this.ontouchend = value; };
-    c.prototype.ontouchmove$getter = function() { return DOM$EnsureDartNull(this.ontouchmove); };
-    c.prototype.ontouchmove$setter = function(value) { this.ontouchmove = value; };
-    c.prototype.ontouchstart$getter = function() { return DOM$EnsureDartNull(this.ontouchstart); };
-    c.prototype.ontouchstart$setter = function(value) { this.ontouchstart = value; };
-    c.prototype.onwebkitfullscreenchange$getter = function() { return DOM$EnsureDartNull(this.onwebkitfullscreenchange); };
-    c.prototype.onwebkitfullscreenchange$setter = function(value) { this.onwebkitfullscreenchange = value; };
+    c.prototype.location$getter = function() { return DOM$EnsureDartNull(this.location); };
+    c.prototype.location$setter = function(value) { this.location = value; };
     c.prototype.preferredStylesheetSet$getter = function() { return DOM$EnsureDartNull(this.preferredStylesheetSet); };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.referrer$getter = function() { return DOM$EnsureDartNull(this.referrer); };
@@ -1252,19 +1013,21 @@ function DOM$fixClass$Document(c) {
     'createAttribute',
     'createAttributeNS',
     'createCDATASection',
-    'createCSSStyleDeclaration',
     'createComment',
     'createDocumentFragment',
     'createElement',
     'createElementNS',
     'createEntityReference',
     'createEvent',
+    'createExpression',
+    'createNSResolver',
     'createNodeIterator',
     'createProcessingInstruction',
     'createRange',
     'createTextNode',
     'createTreeWalker',
     'elementFromPoint',
+    'evaluate',
     'execCommand',
     'getCSSCanvasContext',
     'getElementById',
@@ -1273,6 +1036,7 @@ function DOM$fixClass$Document(c) {
     'getElementsByTagName',
     'getElementsByTagNameNS',
     'getOverrideStyle',
+    'getSelection',
     'importNode',
     'queryCommandEnabled',
     'queryCommandIndeterm',
@@ -1325,94 +1089,6 @@ function DOM$fixClass$Element(c) {
     c.prototype.offsetParent$getter = function() { return DOM$EnsureDartNull(this.offsetParent); };
     c.prototype.offsetTop$getter = function() { return DOM$EnsureDartNull(this.offsetTop); };
     c.prototype.offsetWidth$getter = function() { return DOM$EnsureDartNull(this.offsetWidth); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onbeforecopy$getter = function() { return DOM$EnsureDartNull(this.onbeforecopy); };
-    c.prototype.onbeforecopy$setter = function(value) { this.onbeforecopy = value; };
-    c.prototype.onbeforecut$getter = function() { return DOM$EnsureDartNull(this.onbeforecut); };
-    c.prototype.onbeforecut$setter = function(value) { this.onbeforecut = value; };
-    c.prototype.onbeforepaste$getter = function() { return DOM$EnsureDartNull(this.onbeforepaste); };
-    c.prototype.onbeforepaste$setter = function(value) { this.onbeforepaste = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onchange$getter = function() { return DOM$EnsureDartNull(this.onchange); };
-    c.prototype.onchange$setter = function(value) { this.onchange = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.oncontextmenu$getter = function() { return DOM$EnsureDartNull(this.oncontextmenu); };
-    c.prototype.oncontextmenu$setter = function(value) { this.oncontextmenu = value; };
-    c.prototype.oncopy$getter = function() { return DOM$EnsureDartNull(this.oncopy); };
-    c.prototype.oncopy$setter = function(value) { this.oncopy = value; };
-    c.prototype.oncut$getter = function() { return DOM$EnsureDartNull(this.oncut); };
-    c.prototype.oncut$setter = function(value) { this.oncut = value; };
-    c.prototype.ondblclick$getter = function() { return DOM$EnsureDartNull(this.ondblclick); };
-    c.prototype.ondblclick$setter = function(value) { this.ondblclick = value; };
-    c.prototype.ondrag$getter = function() { return DOM$EnsureDartNull(this.ondrag); };
-    c.prototype.ondrag$setter = function(value) { this.ondrag = value; };
-    c.prototype.ondragend$getter = function() { return DOM$EnsureDartNull(this.ondragend); };
-    c.prototype.ondragend$setter = function(value) { this.ondragend = value; };
-    c.prototype.ondragenter$getter = function() { return DOM$EnsureDartNull(this.ondragenter); };
-    c.prototype.ondragenter$setter = function(value) { this.ondragenter = value; };
-    c.prototype.ondragleave$getter = function() { return DOM$EnsureDartNull(this.ondragleave); };
-    c.prototype.ondragleave$setter = function(value) { this.ondragleave = value; };
-    c.prototype.ondragover$getter = function() { return DOM$EnsureDartNull(this.ondragover); };
-    c.prototype.ondragover$setter = function(value) { this.ondragover = value; };
-    c.prototype.ondragstart$getter = function() { return DOM$EnsureDartNull(this.ondragstart); };
-    c.prototype.ondragstart$setter = function(value) { this.ondragstart = value; };
-    c.prototype.ondrop$getter = function() { return DOM$EnsureDartNull(this.ondrop); };
-    c.prototype.ondrop$setter = function(value) { this.ondrop = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.oninput$getter = function() { return DOM$EnsureDartNull(this.oninput); };
-    c.prototype.oninput$setter = function(value) { this.oninput = value; };
-    c.prototype.oninvalid$getter = function() { return DOM$EnsureDartNull(this.oninvalid); };
-    c.prototype.oninvalid$setter = function(value) { this.oninvalid = value; };
-    c.prototype.onkeydown$getter = function() { return DOM$EnsureDartNull(this.onkeydown); };
-    c.prototype.onkeydown$setter = function(value) { this.onkeydown = value; };
-    c.prototype.onkeypress$getter = function() { return DOM$EnsureDartNull(this.onkeypress); };
-    c.prototype.onkeypress$setter = function(value) { this.onkeypress = value; };
-    c.prototype.onkeyup$getter = function() { return DOM$EnsureDartNull(this.onkeyup); };
-    c.prototype.onkeyup$setter = function(value) { this.onkeyup = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmousedown$getter = function() { return DOM$EnsureDartNull(this.onmousedown); };
-    c.prototype.onmousedown$setter = function(value) { this.onmousedown = value; };
-    c.prototype.onmousemove$getter = function() { return DOM$EnsureDartNull(this.onmousemove); };
-    c.prototype.onmousemove$setter = function(value) { this.onmousemove = value; };
-    c.prototype.onmouseout$getter = function() { return DOM$EnsureDartNull(this.onmouseout); };
-    c.prototype.onmouseout$setter = function(value) { this.onmouseout = value; };
-    c.prototype.onmouseover$getter = function() { return DOM$EnsureDartNull(this.onmouseover); };
-    c.prototype.onmouseover$setter = function(value) { this.onmouseover = value; };
-    c.prototype.onmouseup$getter = function() { return DOM$EnsureDartNull(this.onmouseup); };
-    c.prototype.onmouseup$setter = function(value) { this.onmouseup = value; };
-    c.prototype.onmousewheel$getter = function() { return DOM$EnsureDartNull(this.onmousewheel); };
-    c.prototype.onmousewheel$setter = function(value) { this.onmousewheel = value; };
-    c.prototype.onpaste$getter = function() { return DOM$EnsureDartNull(this.onpaste); };
-    c.prototype.onpaste$setter = function(value) { this.onpaste = value; };
-    c.prototype.onreset$getter = function() { return DOM$EnsureDartNull(this.onreset); };
-    c.prototype.onreset$setter = function(value) { this.onreset = value; };
-    c.prototype.onscroll$getter = function() { return DOM$EnsureDartNull(this.onscroll); };
-    c.prototype.onscroll$setter = function(value) { this.onscroll = value; };
-    c.prototype.onsearch$getter = function() { return DOM$EnsureDartNull(this.onsearch); };
-    c.prototype.onsearch$setter = function(value) { this.onsearch = value; };
-    c.prototype.onselect$getter = function() { return DOM$EnsureDartNull(this.onselect); };
-    c.prototype.onselect$setter = function(value) { this.onselect = value; };
-    c.prototype.onselectstart$getter = function() { return DOM$EnsureDartNull(this.onselectstart); };
-    c.prototype.onselectstart$setter = function(value) { this.onselectstart = value; };
-    c.prototype.onsubmit$getter = function() { return DOM$EnsureDartNull(this.onsubmit); };
-    c.prototype.onsubmit$setter = function(value) { this.onsubmit = value; };
-    c.prototype.ontouchcancel$getter = function() { return DOM$EnsureDartNull(this.ontouchcancel); };
-    c.prototype.ontouchcancel$setter = function(value) { this.ontouchcancel = value; };
-    c.prototype.ontouchend$getter = function() { return DOM$EnsureDartNull(this.ontouchend); };
-    c.prototype.ontouchend$setter = function(value) { this.ontouchend = value; };
-    c.prototype.ontouchmove$getter = function() { return DOM$EnsureDartNull(this.ontouchmove); };
-    c.prototype.ontouchmove$setter = function(value) { this.ontouchmove = value; };
-    c.prototype.ontouchstart$getter = function() { return DOM$EnsureDartNull(this.ontouchstart); };
-    c.prototype.ontouchstart$setter = function(value) { this.ontouchstart = value; };
-    c.prototype.onwebkitfullscreenchange$getter = function() { return DOM$EnsureDartNull(this.onwebkitfullscreenchange); };
-    c.prototype.onwebkitfullscreenchange$setter = function(value) { this.onwebkitfullscreenchange = value; };
     c.prototype.previousElementSibling$getter = function() { return DOM$EnsureDartNull(this.previousElementSibling); };
     c.prototype.scrollHeight$getter = function() { return DOM$EnsureDartNull(this.scrollHeight); };
     c.prototype.scrollLeft$getter = function() { return DOM$EnsureDartNull(this.scrollLeft); };
@@ -1456,6 +1132,16 @@ function DOM$fixClass$Element(c) {
   c.$implements$EventTarget$Dart = 1;
   c.$implements$NodeSelector$Dart = 1;
   c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$ElementTimeControl(c) {
+  if (c.prototype) {
+  }
+  DOM$fixMembers(c, [
+    'beginElement',
+    'beginElementAt',
+    'endElement',
+    'endElementAt']);
+  c.$implements$ElementTimeControl$Dart = 1;
 }
 function DOM$fixClass$ElementTraversal(c) {
   if (c.prototype) {
@@ -1566,6 +1252,7 @@ function DOM$fixClass$Event(c) {
     c.prototype.cancelBubble$getter = function() { return DOM$EnsureDartNull(this.cancelBubble); };
     c.prototype.cancelBubble$setter = function(value) { this.cancelBubble = value; };
     c.prototype.cancelable$getter = function() { return DOM$EnsureDartNull(this.cancelable); };
+    c.prototype.clipboardData$getter = function() { return DOM$EnsureDartNull(this.clipboardData); };
     c.prototype.currentTarget$getter = function() { return DOM$EnsureDartNull(this.currentTarget); };
     c.prototype.defaultPrevented$getter = function() { return DOM$EnsureDartNull(this.defaultPrevented); };
     c.prototype.eventPhase$getter = function() { return DOM$EnsureDartNull(this.eventPhase); };
@@ -1589,17 +1276,12 @@ function DOM$fixClass$EventException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$EventException$Dart = 1;
 }
 function DOM$fixClass$EventSource(c) {
   if (c.prototype) {
     c.prototype.URL$getter = function() { return DOM$EnsureDartNull(this.URL); };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onopen$getter = function() { return DOM$EnsureDartNull(this.onopen); };
-    c.prototype.onopen$setter = function(value) { this.onopen = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
   DOM$fixMembers(c, [
@@ -1665,6 +1347,7 @@ function DOM$fixClass$FileException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$FileException$Dart = 1;
 }
 function DOM$fixClass$FileList(c) {
@@ -1677,18 +1360,6 @@ function DOM$fixClass$FileList(c) {
 function DOM$fixClass$FileReader(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadend$getter = function() { return DOM$EnsureDartNull(this.onloadend); };
-    c.prototype.onloadend$setter = function(value) { this.onloadend = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
   }
@@ -1720,18 +1391,6 @@ function DOM$fixClass$FileWriter(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onwrite$getter = function() { return DOM$EnsureDartNull(this.onwrite); };
-    c.prototype.onwrite$setter = function(value) { this.onwrite = value; };
-    c.prototype.onwriteend$getter = function() { return DOM$EnsureDartNull(this.onwriteend); };
-    c.prototype.onwriteend$setter = function(value) { this.onwriteend = value; };
-    c.prototype.onwritestart$getter = function() { return DOM$EnsureDartNull(this.onwritestart); };
-    c.prototype.onwritestart$setter = function(value) { this.onwritestart = value; };
     c.prototype.position$getter = function() { return DOM$EnsureDartNull(this.position); };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
@@ -1846,7 +1505,9 @@ function DOM$fixClass$HTMLAnchorElement(c) {
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
     c.prototype.type$setter = function(value) { this.type = value; };
   }
-  DOM$fixMembers(c, ['getParameter']);
+  DOM$fixMembers(c, [
+    'getParameter',
+    'toString']);
   c.$implements$HTMLAnchorElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -1989,34 +1650,6 @@ function DOM$fixClass$HTMLBodyElement(c) {
     c.prototype.bgColor$setter = function(value) { this.bgColor = value; };
     c.prototype.link$getter = function() { return DOM$EnsureDartNull(this.link); };
     c.prototype.link$setter = function(value) { this.link = value; };
-    c.prototype.onbeforeunload$getter = function() { return DOM$EnsureDartNull(this.onbeforeunload); };
-    c.prototype.onbeforeunload$setter = function(value) { this.onbeforeunload = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.onhashchange$getter = function() { return DOM$EnsureDartNull(this.onhashchange); };
-    c.prototype.onhashchange$setter = function(value) { this.onhashchange = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onoffline$getter = function() { return DOM$EnsureDartNull(this.onoffline); };
-    c.prototype.onoffline$setter = function(value) { this.onoffline = value; };
-    c.prototype.ononline$getter = function() { return DOM$EnsureDartNull(this.ononline); };
-    c.prototype.ononline$setter = function(value) { this.ononline = value; };
-    c.prototype.onorientationchange$getter = function() { return DOM$EnsureDartNull(this.onorientationchange); };
-    c.prototype.onorientationchange$setter = function(value) { this.onorientationchange = value; };
-    c.prototype.onpopstate$getter = function() { return DOM$EnsureDartNull(this.onpopstate); };
-    c.prototype.onpopstate$setter = function(value) { this.onpopstate = value; };
-    c.prototype.onresize$getter = function() { return DOM$EnsureDartNull(this.onresize); };
-    c.prototype.onresize$setter = function(value) { this.onresize = value; };
-    c.prototype.onstorage$getter = function() { return DOM$EnsureDartNull(this.onstorage); };
-    c.prototype.onstorage$setter = function(value) { this.onstorage = value; };
-    c.prototype.onunload$getter = function() { return DOM$EnsureDartNull(this.onunload); };
-    c.prototype.onunload$setter = function(value) { this.onunload = value; };
     c.prototype.text$getter = function() { return DOM$EnsureDartNull(this.text); };
     c.prototype.text$setter = function(value) { this.text = value; };
     c.prototype.vLink$getter = function() { return DOM$EnsureDartNull(this.vLink); };
@@ -2169,6 +1802,8 @@ function DOM$fixClass$HTMLDocument(c) {
     c.prototype.activeElement$getter = function() { return DOM$EnsureDartNull(this.activeElement); };
     c.prototype.alinkColor$getter = function() { return DOM$EnsureDartNull(this.alinkColor); };
     c.prototype.alinkColor$setter = function(value) { this.alinkColor = value; };
+    c.prototype.all$getter = function() { return DOM$EnsureDartNull(this.all); };
+    c.prototype.all$setter = function(value) { this.all = value; };
     c.prototype.bgColor$getter = function() { return DOM$EnsureDartNull(this.bgColor); };
     c.prototype.bgColor$setter = function(value) { this.bgColor = value; };
     c.prototype.compatMode$getter = function() { return DOM$EnsureDartNull(this.compatMode); };
@@ -2224,6 +1859,15 @@ function DOM$fixClass$HTMLElement(c) {
     c.prototype.innerText$getter = function() { return DOM$EnsureDartNull(this.innerText); };
     c.prototype.innerText$setter = function(value) { this.innerText = value; };
     c.prototype.isContentEditable$getter = function() { return DOM$EnsureDartNull(this.isContentEditable); };
+    c.prototype.itemId$getter = function() { return DOM$EnsureDartNull(this.itemId); };
+    c.prototype.itemId$setter = function(value) { this.itemId = value; };
+    c.prototype.itemProp$getter = function() { return DOM$EnsureDartNull(this.itemProp); };
+    c.prototype.itemRef$getter = function() { return DOM$EnsureDartNull(this.itemRef); };
+    c.prototype.itemScope$getter = function() { return DOM$EnsureDartNull(this.itemScope); };
+    c.prototype.itemScope$setter = function(value) { this.itemScope = value; };
+    c.prototype.itemType$getter = function() { return DOM$EnsureDartNull(this.itemType); };
+    c.prototype.itemValue$getter = function() { return DOM$EnsureDartNull(this.itemValue); };
+    c.prototype.itemValue$setter = function(value) { this.itemValue = value; };
     c.prototype.lang$getter = function() { return DOM$EnsureDartNull(this.lang); };
     c.prototype.lang$setter = function(value) { this.lang = value; };
     c.prototype.outerHTML$getter = function() { return DOM$EnsureDartNull(this.outerHTML); };
@@ -2333,8 +1977,10 @@ function DOM$fixClass$HTMLFormElement(c) {
   }
   DOM$fixMembers(c, [
     'checkValidity',
-    'reset',
-    'submit']);
+    'reset']);
+  c.prototype.submit$member = function() {
+    return DOM$EnsureDartNull(this.submitFromJavaScript.apply(this, arguments));
+  };
   c.$implements$HTMLFormElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2380,34 +2026,6 @@ function DOM$fixClass$HTMLFrameSetElement(c) {
   if (c.prototype) {
     c.prototype.cols$getter = function() { return DOM$EnsureDartNull(this.cols); };
     c.prototype.cols$setter = function(value) { this.cols = value; };
-    c.prototype.onbeforeunload$getter = function() { return DOM$EnsureDartNull(this.onbeforeunload); };
-    c.prototype.onbeforeunload$setter = function(value) { this.onbeforeunload = value; };
-    c.prototype.onblur$getter = function() { return DOM$EnsureDartNull(this.onblur); };
-    c.prototype.onblur$setter = function(value) { this.onblur = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onfocus$getter = function() { return DOM$EnsureDartNull(this.onfocus); };
-    c.prototype.onfocus$setter = function(value) { this.onfocus = value; };
-    c.prototype.onhashchange$getter = function() { return DOM$EnsureDartNull(this.onhashchange); };
-    c.prototype.onhashchange$setter = function(value) { this.onhashchange = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onoffline$getter = function() { return DOM$EnsureDartNull(this.onoffline); };
-    c.prototype.onoffline$setter = function(value) { this.onoffline = value; };
-    c.prototype.ononline$getter = function() { return DOM$EnsureDartNull(this.ononline); };
-    c.prototype.ononline$setter = function(value) { this.ononline = value; };
-    c.prototype.onorientationchange$getter = function() { return DOM$EnsureDartNull(this.onorientationchange); };
-    c.prototype.onorientationchange$setter = function(value) { this.onorientationchange = value; };
-    c.prototype.onpopstate$getter = function() { return DOM$EnsureDartNull(this.onpopstate); };
-    c.prototype.onpopstate$setter = function(value) { this.onpopstate = value; };
-    c.prototype.onresize$getter = function() { return DOM$EnsureDartNull(this.onresize); };
-    c.prototype.onresize$setter = function(value) { this.onresize = value; };
-    c.prototype.onstorage$getter = function() { return DOM$EnsureDartNull(this.onstorage); };
-    c.prototype.onstorage$setter = function(value) { this.onstorage = value; };
-    c.prototype.onunload$getter = function() { return DOM$EnsureDartNull(this.onunload); };
-    c.prototype.onunload$setter = function(value) { this.onunload = value; };
     c.prototype.rows$getter = function() { return DOM$EnsureDartNull(this.rows); };
     c.prototype.rows$setter = function(value) { this.rows = value; };
   }
@@ -2608,8 +2226,6 @@ function DOM$fixClass$HTMLInputElement(c) {
     c.prototype.multiple$setter = function(value) { this.multiple = value; };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
     c.prototype.name$setter = function(value) { this.name = value; };
-    c.prototype.onwebkitspeechchange$getter = function() { return DOM$EnsureDartNull(this.onwebkitspeechchange); };
-    c.prototype.onwebkitspeechchange$setter = function(value) { this.onwebkitspeechchange = value; };
     c.prototype.pattern$getter = function() { return DOM$EnsureDartNull(this.pattern); };
     c.prototype.pattern$setter = function(value) { this.pattern = value; };
     c.prototype.placeholder$getter = function() { return DOM$EnsureDartNull(this.placeholder); };
@@ -2657,7 +2273,6 @@ function DOM$fixClass$HTMLInputElement(c) {
     'select',
     'setCustomValidity',
     'setSelectionRange',
-    'setValueForUser',
     'stepDown',
     'stepUp']);
   c.$implements$HTMLInputElement$Dart = 1;
@@ -2778,6 +2393,8 @@ function DOM$fixClass$HTMLLinkElement(c) {
     c.prototype.rev$getter = function() { return DOM$EnsureDartNull(this.rev); };
     c.prototype.rev$setter = function(value) { this.rev = value; };
     c.prototype.sheet$getter = function() { return DOM$EnsureDartNull(this.sheet); };
+    c.prototype.sizes$getter = function() { return DOM$EnsureDartNull(this.sizes); };
+    c.prototype.sizes$setter = function(value) { this.sizes = value; };
     c.prototype.target$getter = function() { return DOM$EnsureDartNull(this.target); };
     c.prototype.target$setter = function(value) { this.target = value; };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
@@ -3067,6 +2684,7 @@ function DOM$fixClass$HTMLOptionElement(c) {
     c.prototype.selected$getter = function() { return DOM$EnsureDartNull(this.selected); };
     c.prototype.selected$setter = function(value) { this.selected = value; };
     c.prototype.text$getter = function() { return DOM$EnsureDartNull(this.text); };
+    c.prototype.text$setter = function(value) { this.text = value; };
     c.prototype.value$getter = function() { return DOM$EnsureDartNull(this.value); };
     c.prototype.value$setter = function(value) { this.value = value; };
   }
@@ -3563,6 +3181,7 @@ function DOM$fixClass$HTMLTrackElement(c) {
     c.prototype.src$setter = function(value) { this.src = value; };
     c.prototype.srclang$getter = function() { return DOM$EnsureDartNull(this.srclang); };
     c.prototype.srclang$setter = function(value) { this.srclang = value; };
+    c.prototype.track$getter = function() { return DOM$EnsureDartNull(this.track); };
   }
   c.$implements$HTMLTrackElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
@@ -3678,12 +3297,6 @@ function DOM$fixClass$IDBCursorWithValue(c) {
 function DOM$fixClass$IDBDatabase(c) {
   if (c.prototype) {
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onversionchange$getter = function() { return DOM$EnsureDartNull(this.onversionchange); };
-    c.prototype.onversionchange$setter = function(value) { this.onversionchange = value; };
     c.prototype.version$getter = function() { return DOM$EnsureDartNull(this.version); };
   }
   DOM$fixMembers(c, [
@@ -3693,7 +3306,8 @@ function DOM$fixClass$IDBDatabase(c) {
     'deleteObjectStore',
     'dispatchEvent',
     'removeEventListener',
-    'setVersion']);
+    'setVersion',
+    'transaction']);
   c.$implements$IDBDatabase$Dart = 1;
 }
 function DOM$fixClass$IDBDatabaseError(c) {
@@ -3711,12 +3325,15 @@ function DOM$fixClass$IDBDatabaseException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$IDBDatabaseException$Dart = 1;
 }
 function DOM$fixClass$IDBFactory(c) {
   if (c.prototype) {
   }
   DOM$fixMembers(c, [
+    'cmp',
+    'deleteDatabase',
     'getDatabaseNames',
     'open']);
   c.$implements$IDBFactory$Dart = 1;
@@ -3760,6 +3377,7 @@ function DOM$fixClass$IDBObjectStore(c) {
   if (c.prototype) {
     c.prototype.keyPath$getter = function() { return DOM$EnsureDartNull(this.keyPath); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.transaction$getter = function() { return DOM$EnsureDartNull(this.transaction); };
   }
   DOM$fixMembers(c, [
     'add',
@@ -3780,10 +3398,6 @@ function DOM$fixClass$IDBObjectStore(c) {
 function DOM$fixClass$IDBRequest(c) {
   if (c.prototype) {
     c.prototype.errorCode$getter = function() { return DOM$EnsureDartNull(this.errorCode); };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onsuccess$getter = function() { return DOM$EnsureDartNull(this.onsuccess); };
-    c.prototype.onsuccess$setter = function(value) { this.onsuccess = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
     c.prototype.source$getter = function() { return DOM$EnsureDartNull(this.source); };
@@ -3800,12 +3414,6 @@ function DOM$fixClass$IDBTransaction(c) {
   if (c.prototype) {
     c.prototype.db$getter = function() { return DOM$EnsureDartNull(this.db); };
     c.prototype.mode$getter = function() { return DOM$EnsureDartNull(this.mode); };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.oncomplete$getter = function() { return DOM$EnsureDartNull(this.oncomplete); };
-    c.prototype.oncomplete$setter = function(value) { this.oncomplete = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
   }
   DOM$fixMembers(c, [
     'abort',
@@ -3824,8 +3432,6 @@ function DOM$fixClass$IDBVersionChangeEvent(c) {
 }
 function DOM$fixClass$IDBVersionChangeRequest(c) {
   if (c.prototype) {
-    c.prototype.onblocked$getter = function() { return DOM$EnsureDartNull(this.onblocked); };
-    c.prototype.onblocked$setter = function(value) { this.onblocked = value; };
   }
   c.$implements$IDBVersionChangeRequest$Dart = 1;
   c.$implements$IDBRequest$Dart = 1;
@@ -3928,6 +3534,7 @@ function DOM$fixClass$JavaScriptCallFrame(c) {
     c.prototype.column$getter = function() { return DOM$EnsureDartNull(this.column); };
     c.prototype.functionName$getter = function() { return DOM$EnsureDartNull(this.functionName); };
     c.prototype.line$getter = function() { return DOM$EnsureDartNull(this.line); };
+    c.prototype.scopeChain$getter = function() { return DOM$EnsureDartNull(this.scopeChain); };
     c.prototype.sourceID$getter = function() { return DOM$EnsureDartNull(this.sourceID); };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
   }
@@ -3946,19 +3553,10 @@ function DOM$fixClass$KeyboardEvent(c) {
     c.prototype.metaKey$getter = function() { return DOM$EnsureDartNull(this.metaKey); };
     c.prototype.shiftKey$getter = function() { return DOM$EnsureDartNull(this.shiftKey); };
   }
-  DOM$fixMembers(c, [
-    'getModifierState',
-    'initKeyboardEvent']);
+  DOM$fixMembers(c, ['initKeyboardEvent']);
   c.$implements$KeyboardEvent$Dart = 1;
   c.$implements$UIEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
-}
-function DOM$fixClass$LocalMediaStream(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['stop']);
-  c.$implements$LocalMediaStream$Dart = 1;
-  c.$implements$MediaStream$Dart = 1;
 }
 function DOM$fixClass$Location(c) {
   if (c.prototype) {
@@ -3985,6 +3583,9 @@ function DOM$fixClass$Location(c) {
     'getParameter',
     'reload',
     'replace']);
+  c.prototype.toString$member = function() {
+    return DOM$EnsureDartNull(this.toStringFunction.apply(this, arguments));
+  };
   c.$implements$Location$Dart = 1;
 }
 function DOM$fixClass$MediaError(c) {
@@ -4023,43 +3624,6 @@ function DOM$fixClass$MediaQueryListListener(c) {
   DOM$fixMembers(c, ['queryChanged']);
   c.$implements$MediaQueryListListener$Dart = 1;
 }
-function DOM$fixClass$MediaStream(c) {
-  if (c.prototype) {
-    c.prototype.label$getter = function() { return DOM$EnsureDartNull(this.label); };
-    c.prototype.onended$getter = function() { return DOM$EnsureDartNull(this.onended); };
-    c.prototype.onended$setter = function(value) { this.onended = value; };
-    c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
-    c.prototype.tracks$getter = function() { return DOM$EnsureDartNull(this.tracks); };
-  }
-  DOM$fixMembers(c, [
-    'addEventListener',
-    'dispatchEvent',
-    'removeEventListener']);
-  c.$implements$MediaStream$Dart = 1;
-}
-function DOM$fixClass$MediaStreamList(c) {
-  if (c.prototype) {
-    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-  }
-  DOM$fixMembers(c, ['item']);
-  c.$implements$MediaStreamList$Dart = 1;
-}
-function DOM$fixClass$MediaStreamTrack(c) {
-  if (c.prototype) {
-    c.prototype.enabled$getter = function() { return DOM$EnsureDartNull(this.enabled); };
-    c.prototype.enabled$setter = function(value) { this.enabled = value; };
-    c.prototype.kind$getter = function() { return DOM$EnsureDartNull(this.kind); };
-    c.prototype.label$getter = function() { return DOM$EnsureDartNull(this.label); };
-  }
-  c.$implements$MediaStreamTrack$Dart = 1;
-}
-function DOM$fixClass$MediaStreamTrackList(c) {
-  if (c.prototype) {
-    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-  }
-  DOM$fixMembers(c, ['item']);
-  c.$implements$MediaStreamTrackList$Dart = 1;
-}
 function DOM$fixClass$MemoryInfo(c) {
   if (c.prototype) {
     c.prototype.jsHeapSizeLimit$getter = function() { return DOM$EnsureDartNull(this.jsHeapSizeLimit); };
@@ -4079,18 +3643,18 @@ function DOM$fixClass$MessageEvent(c) {
   if (c.prototype) {
     c.prototype.data$getter = function() { return DOM$EnsureDartNull(this.data); };
     c.prototype.lastEventId$getter = function() { return DOM$EnsureDartNull(this.lastEventId); };
-    c.prototype.messagePort$getter = function() { return DOM$EnsureDartNull(this.messagePort); };
     c.prototype.origin$getter = function() { return DOM$EnsureDartNull(this.origin); };
+    c.prototype.ports$getter = function() { return DOM$EnsureDartNull(this.ports); };
     c.prototype.source$getter = function() { return DOM$EnsureDartNull(this.source); };
   }
-  DOM$fixMembers(c, ['initMessageEvent']);
+  DOM$fixMembers(c, [
+    'initMessageEvent',
+    'webkitInitMessageEvent']);
   c.$implements$MessageEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
 function DOM$fixClass$MessagePort(c) {
   if (c.prototype) {
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
   DOM$fixMembers(c, [
     'addEventListener',
@@ -4122,6 +3686,7 @@ function DOM$fixClass$MouseEvent(c) {
     c.prototype.clientX$getter = function() { return DOM$EnsureDartNull(this.clientX); };
     c.prototype.clientY$getter = function() { return DOM$EnsureDartNull(this.clientY); };
     c.prototype.ctrlKey$getter = function() { return DOM$EnsureDartNull(this.ctrlKey); };
+    c.prototype.dataTransfer$getter = function() { return DOM$EnsureDartNull(this.dataTransfer); };
     c.prototype.fromElement$getter = function() { return DOM$EnsureDartNull(this.fromElement); };
     c.prototype.metaKey$getter = function() { return DOM$EnsureDartNull(this.metaKey); };
     c.prototype.offsetX$getter = function() { return DOM$EnsureDartNull(this.offsetX); };
@@ -4138,6 +3703,11 @@ function DOM$fixClass$MouseEvent(c) {
   c.$implements$MouseEvent$Dart = 1;
   c.$implements$UIEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
+}
+function DOM$fixClass$MutationCallback(c) {
+  if (c.prototype) {
+  }
+  c.$implements$MutationCallback$Dart = 1;
 }
 function DOM$fixClass$MutationEvent(c) {
   if (c.prototype) {
@@ -4218,7 +3788,6 @@ function DOM$fixClass$NavigatorUserMediaErrorCallback(c) {
 function DOM$fixClass$NavigatorUserMediaSuccessCallback(c) {
   if (c.prototype) {
   }
-  DOM$fixMembers(c, ['handleEvent']);
   c.$implements$NavigatorUserMediaSuccessCallback$Dart = 1;
 }
 function DOM$fixClass$Node(c) {
@@ -4318,14 +3887,6 @@ function DOM$fixClass$Notification(c) {
   if (c.prototype) {
     c.prototype.dir$getter = function() { return DOM$EnsureDartNull(this.dir); };
     c.prototype.dir$setter = function(value) { this.dir = value; };
-    c.prototype.onclick$getter = function() { return DOM$EnsureDartNull(this.onclick); };
-    c.prototype.onclick$setter = function(value) { this.onclick = value; };
-    c.prototype.onclose$getter = function() { return DOM$EnsureDartNull(this.onclose); };
-    c.prototype.onclose$setter = function(value) { this.onclose = value; };
-    c.prototype.ondisplay$getter = function() { return DOM$EnsureDartNull(this.ondisplay); };
-    c.prototype.ondisplay$setter = function(value) { this.ondisplay = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
     c.prototype.replaceId$getter = function() { return DOM$EnsureDartNull(this.replaceId); };
     c.prototype.replaceId$setter = function(value) { this.replaceId = value; };
   }
@@ -4412,6 +3973,7 @@ function DOM$fixClass$OperationNotAllowedException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$OperationNotAllowedException$Dart = 1;
 }
 function DOM$fixClass$OverflowEvent(c) {
@@ -4523,7 +4085,6 @@ function DOM$fixClass$ProgressEvent(c) {
 }
 function DOM$fixClass$RGBColor(c) {
   if (c.prototype) {
-    c.prototype.alpha$getter = function() { return DOM$EnsureDartNull(this.alpha); };
     c.prototype.blue$getter = function() { return DOM$EnsureDartNull(this.blue); };
     c.prototype.green$getter = function() { return DOM$EnsureDartNull(this.green); };
     c.prototype.red$getter = function() { return DOM$EnsureDartNull(this.red); };
@@ -4538,7 +4099,6 @@ function DOM$fixClass$Range(c) {
     c.prototype.endOffset$getter = function() { return DOM$EnsureDartNull(this.endOffset); };
     c.prototype.startContainer$getter = function() { return DOM$EnsureDartNull(this.startContainer); };
     c.prototype.startOffset$getter = function() { return DOM$EnsureDartNull(this.startOffset); };
-    c.prototype.text$getter = function() { return DOM$EnsureDartNull(this.text); };
   }
   DOM$fixMembers(c, [
     'cloneContents',
@@ -4551,6 +4111,8 @@ function DOM$fixClass$Range(c) {
     'detach',
     'expand',
     'extractContents',
+    'getBoundingClientRect',
+    'getClientRects',
     'insertNode',
     'intersectsNode',
     'isPointInRange',
@@ -4572,6 +4134,7 @@ function DOM$fixClass$RangeException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$RangeException$Dart = 1;
 }
 function DOM$fixClass$Rect(c) {
@@ -4652,6 +4215,2825 @@ function DOM$fixClass$SQLTransactionSyncCallback(c) {
   DOM$fixMembers(c, ['handleEvent']);
   c.$implements$SQLTransactionSyncCallback$Dart = 1;
 }
+function DOM$fixClass$SVGAElement(c) {
+  if (c.prototype) {
+    c.prototype.target$getter = function() { return DOM$EnsureDartNull(this.target); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGAElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGAltGlyphDefElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGAltGlyphDefElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGAltGlyphElement(c) {
+  if (c.prototype) {
+    c.prototype.format$getter = function() { return DOM$EnsureDartNull(this.format); };
+    c.prototype.format$setter = function(value) { this.format = value; };
+    c.prototype.glyphRef$getter = function() { return DOM$EnsureDartNull(this.glyphRef); };
+    c.prototype.glyphRef$setter = function(value) { this.glyphRef = value; };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+  }
+  c.$implements$SVGAltGlyphElement$Dart = 1;
+  c.$implements$SVGTextPositioningElement$Dart = 1;
+  c.$implements$SVGTextContentElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+}
+function DOM$fixClass$SVGAltGlyphItemElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGAltGlyphItemElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGAngle(c) {
+  if (c.prototype) {
+    c.prototype.unitType$getter = function() { return DOM$EnsureDartNull(this.unitType); };
+    c.prototype.value$getter = function() { return DOM$EnsureDartNull(this.value); };
+    c.prototype.value$setter = function(value) { this.value = value; };
+    c.prototype.valueAsString$getter = function() { return DOM$EnsureDartNull(this.valueAsString); };
+    c.prototype.valueAsString$setter = function(value) { this.valueAsString = value; };
+    c.prototype.valueInSpecifiedUnits$getter = function() { return DOM$EnsureDartNull(this.valueInSpecifiedUnits); };
+    c.prototype.valueInSpecifiedUnits$setter = function(value) { this.valueInSpecifiedUnits = value; };
+  }
+  DOM$fixMembers(c, [
+    'convertToSpecifiedUnits',
+    'newValueSpecifiedUnits']);
+  c.$implements$SVGAngle$Dart = 1;
+}
+function DOM$fixClass$SVGAnimateColorElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGAnimateColorElement$Dart = 1;
+  c.$implements$SVGAnimationElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$ElementTimeControl$Dart = 1;
+}
+function DOM$fixClass$SVGAnimateElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGAnimateElement$Dart = 1;
+  c.$implements$SVGAnimationElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$ElementTimeControl$Dart = 1;
+}
+function DOM$fixClass$SVGAnimateMotionElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGAnimateMotionElement$Dart = 1;
+  c.$implements$SVGAnimationElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$ElementTimeControl$Dart = 1;
+}
+function DOM$fixClass$SVGAnimateTransformElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGAnimateTransformElement$Dart = 1;
+  c.$implements$SVGAnimationElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$ElementTimeControl$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedAngle(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+  }
+  c.$implements$SVGAnimatedAngle$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedBoolean(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+    c.prototype.baseVal$setter = function(value) { this.baseVal = value; };
+  }
+  c.$implements$SVGAnimatedBoolean$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedEnumeration(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+    c.prototype.baseVal$setter = function(value) { this.baseVal = value; };
+  }
+  c.$implements$SVGAnimatedEnumeration$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedInteger(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+    c.prototype.baseVal$setter = function(value) { this.baseVal = value; };
+  }
+  c.$implements$SVGAnimatedInteger$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedLength(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+  }
+  c.$implements$SVGAnimatedLength$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedLengthList(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+  }
+  c.$implements$SVGAnimatedLengthList$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedNumber(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+    c.prototype.baseVal$setter = function(value) { this.baseVal = value; };
+  }
+  c.$implements$SVGAnimatedNumber$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedNumberList(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+  }
+  c.$implements$SVGAnimatedNumberList$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedPreserveAspectRatio(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+  }
+  c.$implements$SVGAnimatedPreserveAspectRatio$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedRect(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+  }
+  c.$implements$SVGAnimatedRect$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedString(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+    c.prototype.baseVal$setter = function(value) { this.baseVal = value; };
+  }
+  c.$implements$SVGAnimatedString$Dart = 1;
+}
+function DOM$fixClass$SVGAnimatedTransformList(c) {
+  if (c.prototype) {
+    c.prototype.animVal$getter = function() { return DOM$EnsureDartNull(this.animVal); };
+    c.prototype.baseVal$getter = function() { return DOM$EnsureDartNull(this.baseVal); };
+  }
+  c.$implements$SVGAnimatedTransformList$Dart = 1;
+}
+function DOM$fixClass$SVGAnimationElement(c) {
+  if (c.prototype) {
+    c.prototype.targetElement$getter = function() { return DOM$EnsureDartNull(this.targetElement); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+  }
+  DOM$fixMembers(c, [
+    'getCurrentTime',
+    'getSimpleDuration',
+    'getStartTime',
+    'hasExtension',
+    'beginElement',
+    'beginElementAt',
+    'endElement',
+    'endElementAt']);
+  c.$implements$SVGAnimationElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$ElementTimeControl$Dart = 1;
+}
+function DOM$fixClass$SVGCircleElement(c) {
+  if (c.prototype) {
+    c.prototype.cx$getter = function() { return DOM$EnsureDartNull(this.cx); };
+    c.prototype.cy$getter = function() { return DOM$EnsureDartNull(this.cy); };
+    c.prototype.r$getter = function() { return DOM$EnsureDartNull(this.r); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGCircleElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGClipPathElement(c) {
+  if (c.prototype) {
+    c.prototype.clipPathUnits$getter = function() { return DOM$EnsureDartNull(this.clipPathUnits); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGClipPathElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGColor(c) {
+  if (c.prototype) {
+    c.prototype.colorType$getter = function() { return DOM$EnsureDartNull(this.colorType); };
+    c.prototype.rgbColor$getter = function() { return DOM$EnsureDartNull(this.rgbColor); };
+  }
+  DOM$fixMembers(c, [
+    'setColor',
+    'setRGBColor',
+    'setRGBColorICCColor']);
+  c.$implements$SVGColor$Dart = 1;
+  c.$implements$CSSValue$Dart = 1;
+}
+function DOM$fixClass$SVGComponentTransferFunctionElement(c) {
+  if (c.prototype) {
+    c.prototype.amplitude$getter = function() { return DOM$EnsureDartNull(this.amplitude); };
+    c.prototype.exponent$getter = function() { return DOM$EnsureDartNull(this.exponent); };
+    c.prototype.intercept$getter = function() { return DOM$EnsureDartNull(this.intercept); };
+    c.prototype.offset$getter = function() { return DOM$EnsureDartNull(this.offset); };
+    c.prototype.slope$getter = function() { return DOM$EnsureDartNull(this.slope); };
+    c.prototype.tableValues$getter = function() { return DOM$EnsureDartNull(this.tableValues); };
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+  }
+  c.$implements$SVGComponentTransferFunctionElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGCursorElement(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+  }
+  DOM$fixMembers(c, ['hasExtension']);
+  c.$implements$SVGCursorElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+}
+function DOM$fixClass$SVGDefsElement(c) {
+  if (c.prototype) {
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGDefsElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGDescElement(c) {
+  if (c.prototype) {
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGDescElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGDocument(c) {
+  if (c.prototype) {
+    c.prototype.rootElement$getter = function() { return DOM$EnsureDartNull(this.rootElement); };
+  }
+  DOM$fixMembers(c, ['createEvent']);
+  c.$implements$SVGDocument$Dart = 1;
+  c.$implements$Document$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+}
+function DOM$fixClass$SVGElement(c) {
+  if (c.prototype) {
+    c.prototype.id$getter = function() { return DOM$EnsureDartNull(this.id); };
+    c.prototype.id$setter = function(value) { this.id = value; };
+    c.prototype.ownerSVGElement$getter = function() { return DOM$EnsureDartNull(this.ownerSVGElement); };
+    c.prototype.viewportElement$getter = function() { return DOM$EnsureDartNull(this.viewportElement); };
+    c.prototype.xmlbase$getter = function() { return DOM$EnsureDartNull(this.xmlbase); };
+    c.prototype.xmlbase$setter = function(value) { this.xmlbase = value; };
+  }
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGElementInstance(c) {
+  if (c.prototype) {
+    c.prototype.childNodes$getter = function() { return DOM$EnsureDartNull(this.childNodes); };
+    c.prototype.correspondingElement$getter = function() { return DOM$EnsureDartNull(this.correspondingElement); };
+    c.prototype.correspondingUseElement$getter = function() { return DOM$EnsureDartNull(this.correspondingUseElement); };
+    c.prototype.firstChild$getter = function() { return DOM$EnsureDartNull(this.firstChild); };
+    c.prototype.lastChild$getter = function() { return DOM$EnsureDartNull(this.lastChild); };
+    c.prototype.nextSibling$getter = function() { return DOM$EnsureDartNull(this.nextSibling); };
+    c.prototype.parentNode$getter = function() { return DOM$EnsureDartNull(this.parentNode); };
+    c.prototype.previousSibling$getter = function() { return DOM$EnsureDartNull(this.previousSibling); };
+  }
+  DOM$fixMembers(c, [
+    'addEventListener',
+    'dispatchEvent',
+    'removeEventListener']);
+  c.$implements$SVGElementInstance$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+}
+function DOM$fixClass$SVGElementInstanceList(c) {
+  if (c.prototype) {
+    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+  }
+  DOM$fixMembers(c, ['item']);
+  c.$implements$SVGElementInstanceList$Dart = 1;
+}
+function DOM$fixClass$SVGEllipseElement(c) {
+  if (c.prototype) {
+    c.prototype.cx$getter = function() { return DOM$EnsureDartNull(this.cx); };
+    c.prototype.cy$getter = function() { return DOM$EnsureDartNull(this.cy); };
+    c.prototype.rx$getter = function() { return DOM$EnsureDartNull(this.rx); };
+    c.prototype.ry$getter = function() { return DOM$EnsureDartNull(this.ry); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGEllipseElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGException(c) {
+  if (c.prototype) {
+    c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
+    c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
+    c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+  }
+  DOM$fixMembers(c, ['toString']);
+  c.$implements$SVGException$Dart = 1;
+}
+function DOM$fixClass$SVGExternalResourcesRequired(c) {
+  if (c.prototype) {
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+  }
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+}
+function DOM$fixClass$SVGFEBlendElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.in2$getter = function() { return DOM$EnsureDartNull(this.in2); };
+    c.prototype.mode$getter = function() { return DOM$EnsureDartNull(this.mode); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEBlendElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEColorMatrixElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+    c.prototype.values$getter = function() { return DOM$EnsureDartNull(this.values); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEColorMatrixElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEComponentTransferElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEComponentTransferElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFECompositeElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.in2$getter = function() { return DOM$EnsureDartNull(this.in2); };
+    c.prototype.k1$getter = function() { return DOM$EnsureDartNull(this.k1); };
+    c.prototype.k2$getter = function() { return DOM$EnsureDartNull(this.k2); };
+    c.prototype.k3$getter = function() { return DOM$EnsureDartNull(this.k3); };
+    c.prototype.k4$getter = function() { return DOM$EnsureDartNull(this.k4); };
+    c.prototype.operator$getter = function() { return DOM$EnsureDartNull(this.operator); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFECompositeElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEConvolveMatrixElement(c) {
+  if (c.prototype) {
+    c.prototype.bias$getter = function() { return DOM$EnsureDartNull(this.bias); };
+    c.prototype.divisor$getter = function() { return DOM$EnsureDartNull(this.divisor); };
+    c.prototype.edgeMode$getter = function() { return DOM$EnsureDartNull(this.edgeMode); };
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.kernelMatrix$getter = function() { return DOM$EnsureDartNull(this.kernelMatrix); };
+    c.prototype.kernelUnitLengthX$getter = function() { return DOM$EnsureDartNull(this.kernelUnitLengthX); };
+    c.prototype.kernelUnitLengthY$getter = function() { return DOM$EnsureDartNull(this.kernelUnitLengthY); };
+    c.prototype.orderX$getter = function() { return DOM$EnsureDartNull(this.orderX); };
+    c.prototype.orderY$getter = function() { return DOM$EnsureDartNull(this.orderY); };
+    c.prototype.preserveAlpha$getter = function() { return DOM$EnsureDartNull(this.preserveAlpha); };
+    c.prototype.targetX$getter = function() { return DOM$EnsureDartNull(this.targetX); };
+    c.prototype.targetY$getter = function() { return DOM$EnsureDartNull(this.targetY); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEConvolveMatrixElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEDiffuseLightingElement(c) {
+  if (c.prototype) {
+    c.prototype.diffuseConstant$getter = function() { return DOM$EnsureDartNull(this.diffuseConstant); };
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.kernelUnitLengthX$getter = function() { return DOM$EnsureDartNull(this.kernelUnitLengthX); };
+    c.prototype.kernelUnitLengthY$getter = function() { return DOM$EnsureDartNull(this.kernelUnitLengthY); };
+    c.prototype.surfaceScale$getter = function() { return DOM$EnsureDartNull(this.surfaceScale); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEDiffuseLightingElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEDisplacementMapElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.in2$getter = function() { return DOM$EnsureDartNull(this.in2); };
+    c.prototype.scale$getter = function() { return DOM$EnsureDartNull(this.scale); };
+    c.prototype.xChannelSelector$getter = function() { return DOM$EnsureDartNull(this.xChannelSelector); };
+    c.prototype.yChannelSelector$getter = function() { return DOM$EnsureDartNull(this.yChannelSelector); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEDisplacementMapElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEDistantLightElement(c) {
+  if (c.prototype) {
+    c.prototype.azimuth$getter = function() { return DOM$EnsureDartNull(this.azimuth); };
+    c.prototype.elevation$getter = function() { return DOM$EnsureDartNull(this.elevation); };
+  }
+  c.$implements$SVGFEDistantLightElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFEDropShadowElement(c) {
+  if (c.prototype) {
+    c.prototype.dx$getter = function() { return DOM$EnsureDartNull(this.dx); };
+    c.prototype.dy$getter = function() { return DOM$EnsureDartNull(this.dy); };
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.stdDeviationX$getter = function() { return DOM$EnsureDartNull(this.stdDeviationX); };
+    c.prototype.stdDeviationY$getter = function() { return DOM$EnsureDartNull(this.stdDeviationY); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, [
+    'setStdDeviation',
+    'getPresentationAttribute']);
+  c.$implements$SVGFEDropShadowElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEFloodElement(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEFloodElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEFuncAElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFEFuncAElement$Dart = 1;
+  c.$implements$SVGComponentTransferFunctionElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFEFuncBElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFEFuncBElement$Dart = 1;
+  c.$implements$SVGComponentTransferFunctionElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFEFuncGElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFEFuncGElement$Dart = 1;
+  c.$implements$SVGComponentTransferFunctionElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFEFuncRElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFEFuncRElement$Dart = 1;
+  c.$implements$SVGComponentTransferFunctionElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFEGaussianBlurElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.stdDeviationX$getter = function() { return DOM$EnsureDartNull(this.stdDeviationX); };
+    c.prototype.stdDeviationY$getter = function() { return DOM$EnsureDartNull(this.stdDeviationY); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, [
+    'setStdDeviation',
+    'getPresentationAttribute']);
+  c.$implements$SVGFEGaussianBlurElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEImageElement(c) {
+  if (c.prototype) {
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEImageElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEMergeElement(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEMergeElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEMergeNodeElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+  }
+  c.$implements$SVGFEMergeNodeElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFEMorphologyElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.operator$getter = function() { return DOM$EnsureDartNull(this.operator); };
+    c.prototype.radiusX$getter = function() { return DOM$EnsureDartNull(this.radiusX); };
+    c.prototype.radiusY$getter = function() { return DOM$EnsureDartNull(this.radiusY); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, [
+    'setRadius',
+    'getPresentationAttribute']);
+  c.$implements$SVGFEMorphologyElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEOffsetElement(c) {
+  if (c.prototype) {
+    c.prototype.dx$getter = function() { return DOM$EnsureDartNull(this.dx); };
+    c.prototype.dy$getter = function() { return DOM$EnsureDartNull(this.dy); };
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFEOffsetElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFEPointLightElement(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.z$getter = function() { return DOM$EnsureDartNull(this.z); };
+  }
+  c.$implements$SVGFEPointLightElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFESpecularLightingElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.specularConstant$getter = function() { return DOM$EnsureDartNull(this.specularConstant); };
+    c.prototype.specularExponent$getter = function() { return DOM$EnsureDartNull(this.specularExponent); };
+    c.prototype.surfaceScale$getter = function() { return DOM$EnsureDartNull(this.surfaceScale); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFESpecularLightingElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFESpotLightElement(c) {
+  if (c.prototype) {
+    c.prototype.limitingConeAngle$getter = function() { return DOM$EnsureDartNull(this.limitingConeAngle); };
+    c.prototype.pointsAtX$getter = function() { return DOM$EnsureDartNull(this.pointsAtX); };
+    c.prototype.pointsAtY$getter = function() { return DOM$EnsureDartNull(this.pointsAtY); };
+    c.prototype.pointsAtZ$getter = function() { return DOM$EnsureDartNull(this.pointsAtZ); };
+    c.prototype.specularExponent$getter = function() { return DOM$EnsureDartNull(this.specularExponent); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.z$getter = function() { return DOM$EnsureDartNull(this.z); };
+  }
+  c.$implements$SVGFESpotLightElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFETileElement(c) {
+  if (c.prototype) {
+    c.prototype.in1$getter = function() { return DOM$EnsureDartNull(this.in1); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFETileElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFETurbulenceElement(c) {
+  if (c.prototype) {
+    c.prototype.baseFrequencyX$getter = function() { return DOM$EnsureDartNull(this.baseFrequencyX); };
+    c.prototype.baseFrequencyY$getter = function() { return DOM$EnsureDartNull(this.baseFrequencyY); };
+    c.prototype.numOctaves$getter = function() { return DOM$EnsureDartNull(this.numOctaves); };
+    c.prototype.seed$getter = function() { return DOM$EnsureDartNull(this.seed); };
+    c.prototype.stitchTiles$getter = function() { return DOM$EnsureDartNull(this.stitchTiles); };
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGFETurbulenceElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFilterElement(c) {
+  if (c.prototype) {
+    c.prototype.filterResX$getter = function() { return DOM$EnsureDartNull(this.filterResX); };
+    c.prototype.filterResY$getter = function() { return DOM$EnsureDartNull(this.filterResY); };
+    c.prototype.filterUnits$getter = function() { return DOM$EnsureDartNull(this.filterUnits); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.primitiveUnits$getter = function() { return DOM$EnsureDartNull(this.primitiveUnits); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, [
+    'setFilterRes',
+    'getPresentationAttribute']);
+  c.$implements$SVGFilterElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFilterPrimitiveStandardAttributes(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+  }
+  c.$implements$SVGFilterPrimitiveStandardAttributes$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGFitToViewBox(c) {
+  if (c.prototype) {
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.viewBox$getter = function() { return DOM$EnsureDartNull(this.viewBox); };
+  }
+  c.$implements$SVGFitToViewBox$Dart = 1;
+}
+function DOM$fixClass$SVGFontElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFontElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFontFaceElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFontFaceElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFontFaceFormatElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFontFaceFormatElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFontFaceNameElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFontFaceNameElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFontFaceSrcElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFontFaceSrcElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGFontFaceUriElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGFontFaceUriElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGForeignObjectElement(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGForeignObjectElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGGElement(c) {
+  if (c.prototype) {
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGGElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGGlyphElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGGlyphElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGGlyphRefElement(c) {
+  if (c.prototype) {
+    c.prototype.dx$getter = function() { return DOM$EnsureDartNull(this.dx); };
+    c.prototype.dx$setter = function(value) { this.dx = value; };
+    c.prototype.dy$getter = function() { return DOM$EnsureDartNull(this.dy); };
+    c.prototype.dy$setter = function(value) { this.dy = value; };
+    c.prototype.format$getter = function() { return DOM$EnsureDartNull(this.format); };
+    c.prototype.format$setter = function(value) { this.format = value; };
+    c.prototype.glyphRef$getter = function() { return DOM$EnsureDartNull(this.glyphRef); };
+    c.prototype.glyphRef$setter = function(value) { this.glyphRef = value; };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGGlyphRefElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGGradientElement(c) {
+  if (c.prototype) {
+    c.prototype.gradientTransform$getter = function() { return DOM$EnsureDartNull(this.gradientTransform); };
+    c.prototype.gradientUnits$getter = function() { return DOM$EnsureDartNull(this.gradientUnits); };
+    c.prototype.spreadMethod$getter = function() { return DOM$EnsureDartNull(this.spreadMethod); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGGradientElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGHKernElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGHKernElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGImageElement(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGImageElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGLangSpace(c) {
+  if (c.prototype) {
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+  }
+  c.$implements$SVGLangSpace$Dart = 1;
+}
+function DOM$fixClass$SVGLength(c) {
+  if (c.prototype) {
+    c.prototype.unitType$getter = function() { return DOM$EnsureDartNull(this.unitType); };
+    c.prototype.value$getter = function() { return DOM$EnsureDartNull(this.value); };
+    c.prototype.value$setter = function(value) { this.value = value; };
+    c.prototype.valueAsString$getter = function() { return DOM$EnsureDartNull(this.valueAsString); };
+    c.prototype.valueAsString$setter = function(value) { this.valueAsString = value; };
+    c.prototype.valueInSpecifiedUnits$getter = function() { return DOM$EnsureDartNull(this.valueInSpecifiedUnits); };
+    c.prototype.valueInSpecifiedUnits$setter = function(value) { this.valueInSpecifiedUnits = value; };
+  }
+  DOM$fixMembers(c, [
+    'convertToSpecifiedUnits',
+    'newValueSpecifiedUnits']);
+  c.$implements$SVGLength$Dart = 1;
+}
+function DOM$fixClass$SVGLengthList(c) {
+  if (c.prototype) {
+    c.prototype.numberOfItems$getter = function() { return DOM$EnsureDartNull(this.numberOfItems); };
+  }
+  DOM$fixMembers(c, [
+    'appendItem',
+    'clear',
+    'getItem',
+    'initialize',
+    'insertItemBefore',
+    'removeItem',
+    'replaceItem']);
+  c.$implements$SVGLengthList$Dart = 1;
+}
+function DOM$fixClass$SVGLineElement(c) {
+  if (c.prototype) {
+    c.prototype.x1$getter = function() { return DOM$EnsureDartNull(this.x1); };
+    c.prototype.x2$getter = function() { return DOM$EnsureDartNull(this.x2); };
+    c.prototype.y1$getter = function() { return DOM$EnsureDartNull(this.y1); };
+    c.prototype.y2$getter = function() { return DOM$EnsureDartNull(this.y2); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGLineElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGLinearGradientElement(c) {
+  if (c.prototype) {
+    c.prototype.x1$getter = function() { return DOM$EnsureDartNull(this.x1); };
+    c.prototype.x2$getter = function() { return DOM$EnsureDartNull(this.x2); };
+    c.prototype.y1$getter = function() { return DOM$EnsureDartNull(this.y1); };
+    c.prototype.y2$getter = function() { return DOM$EnsureDartNull(this.y2); };
+  }
+  c.$implements$SVGLinearGradientElement$Dart = 1;
+  c.$implements$SVGGradientElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGLocatable(c) {
+  if (c.prototype) {
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGMPathElement(c) {
+  if (c.prototype) {
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+  }
+  c.$implements$SVGMPathElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+}
+function DOM$fixClass$SVGMarkerElement(c) {
+  if (c.prototype) {
+    c.prototype.markerHeight$getter = function() { return DOM$EnsureDartNull(this.markerHeight); };
+    c.prototype.markerUnits$getter = function() { return DOM$EnsureDartNull(this.markerUnits); };
+    c.prototype.markerWidth$getter = function() { return DOM$EnsureDartNull(this.markerWidth); };
+    c.prototype.orientAngle$getter = function() { return DOM$EnsureDartNull(this.orientAngle); };
+    c.prototype.orientType$getter = function() { return DOM$EnsureDartNull(this.orientType); };
+    c.prototype.refX$getter = function() { return DOM$EnsureDartNull(this.refX); };
+    c.prototype.refY$getter = function() { return DOM$EnsureDartNull(this.refY); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.viewBox$getter = function() { return DOM$EnsureDartNull(this.viewBox); };
+  }
+  DOM$fixMembers(c, [
+    'setOrientToAngle',
+    'setOrientToAuto',
+    'getPresentationAttribute']);
+  c.$implements$SVGMarkerElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGFitToViewBox$Dart = 1;
+}
+function DOM$fixClass$SVGMaskElement(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.maskContentUnits$getter = function() { return DOM$EnsureDartNull(this.maskContentUnits); };
+    c.prototype.maskUnits$getter = function() { return DOM$EnsureDartNull(this.maskUnits); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute']);
+  c.$implements$SVGMaskElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGMatrix(c) {
+  if (c.prototype) {
+    c.prototype.a$getter = function() { return DOM$EnsureDartNull(this.a); };
+    c.prototype.a$setter = function(value) { this.a = value; };
+    c.prototype.b$getter = function() { return DOM$EnsureDartNull(this.b); };
+    c.prototype.b$setter = function(value) { this.b = value; };
+    c.prototype.c$getter = function() { return DOM$EnsureDartNull(this.c); };
+    c.prototype.c$setter = function(value) { this.c = value; };
+    c.prototype.d$getter = function() { return DOM$EnsureDartNull(this.d); };
+    c.prototype.d$setter = function(value) { this.d = value; };
+    c.prototype.e$getter = function() { return DOM$EnsureDartNull(this.e); };
+    c.prototype.e$setter = function(value) { this.e = value; };
+    c.prototype.f$getter = function() { return DOM$EnsureDartNull(this.f); };
+    c.prototype.f$setter = function(value) { this.f = value; };
+  }
+  DOM$fixMembers(c, [
+    'flipX',
+    'flipY',
+    'inverse',
+    'multiply',
+    'rotate',
+    'rotateFromVector',
+    'scale',
+    'scaleNonUniform',
+    'skewX',
+    'skewY',
+    'translate']);
+  c.$implements$SVGMatrix$Dart = 1;
+}
+function DOM$fixClass$SVGMetadataElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGMetadataElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGMissingGlyphElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGMissingGlyphElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGNumber(c) {
+  if (c.prototype) {
+    c.prototype.value$getter = function() { return DOM$EnsureDartNull(this.value); };
+    c.prototype.value$setter = function(value) { this.value = value; };
+  }
+  c.$implements$SVGNumber$Dart = 1;
+}
+function DOM$fixClass$SVGNumberList(c) {
+  if (c.prototype) {
+    c.prototype.numberOfItems$getter = function() { return DOM$EnsureDartNull(this.numberOfItems); };
+  }
+  DOM$fixMembers(c, [
+    'appendItem',
+    'clear',
+    'getItem',
+    'initialize',
+    'insertItemBefore',
+    'removeItem',
+    'replaceItem']);
+  c.$implements$SVGNumberList$Dart = 1;
+}
+function DOM$fixClass$SVGPaint(c) {
+  if (c.prototype) {
+    c.prototype.paintType$getter = function() { return DOM$EnsureDartNull(this.paintType); };
+    c.prototype.uri$getter = function() { return DOM$EnsureDartNull(this.uri); };
+  }
+  DOM$fixMembers(c, [
+    'setPaint',
+    'setUri']);
+  c.$implements$SVGPaint$Dart = 1;
+  c.$implements$SVGColor$Dart = 1;
+  c.$implements$CSSValue$Dart = 1;
+}
+function DOM$fixClass$SVGPathElement(c) {
+  if (c.prototype) {
+    c.prototype.animatedNormalizedPathSegList$getter = function() { return DOM$EnsureDartNull(this.animatedNormalizedPathSegList); };
+    c.prototype.animatedPathSegList$getter = function() { return DOM$EnsureDartNull(this.animatedPathSegList); };
+    c.prototype.normalizedPathSegList$getter = function() { return DOM$EnsureDartNull(this.normalizedPathSegList); };
+    c.prototype.pathLength$getter = function() { return DOM$EnsureDartNull(this.pathLength); };
+    c.prototype.pathSegList$getter = function() { return DOM$EnsureDartNull(this.pathSegList); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'createSVGPathSegArcAbs',
+    'createSVGPathSegArcRel',
+    'createSVGPathSegClosePath',
+    'createSVGPathSegCurvetoCubicAbs',
+    'createSVGPathSegCurvetoCubicRel',
+    'createSVGPathSegCurvetoCubicSmoothAbs',
+    'createSVGPathSegCurvetoCubicSmoothRel',
+    'createSVGPathSegCurvetoQuadraticAbs',
+    'createSVGPathSegCurvetoQuadraticRel',
+    'createSVGPathSegCurvetoQuadraticSmoothAbs',
+    'createSVGPathSegCurvetoQuadraticSmoothRel',
+    'createSVGPathSegLinetoAbs',
+    'createSVGPathSegLinetoHorizontalAbs',
+    'createSVGPathSegLinetoHorizontalRel',
+    'createSVGPathSegLinetoRel',
+    'createSVGPathSegLinetoVerticalAbs',
+    'createSVGPathSegLinetoVerticalRel',
+    'createSVGPathSegMovetoAbs',
+    'createSVGPathSegMovetoRel',
+    'getPathSegAtLength',
+    'getPointAtLength',
+    'getTotalLength',
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGPathElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGPathSeg(c) {
+  if (c.prototype) {
+    c.prototype.pathSegType$getter = function() { return DOM$EnsureDartNull(this.pathSegType); };
+    c.prototype.pathSegTypeAsLetter$getter = function() { return DOM$EnsureDartNull(this.pathSegTypeAsLetter); };
+  }
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegArcAbs(c) {
+  if (c.prototype) {
+    c.prototype.angle$getter = function() { return DOM$EnsureDartNull(this.angle); };
+    c.prototype.angle$setter = function(value) { this.angle = value; };
+    c.prototype.largeArcFlag$getter = function() { return DOM$EnsureDartNull(this.largeArcFlag); };
+    c.prototype.largeArcFlag$setter = function(value) { this.largeArcFlag = value; };
+    c.prototype.r1$getter = function() { return DOM$EnsureDartNull(this.r1); };
+    c.prototype.r1$setter = function(value) { this.r1 = value; };
+    c.prototype.r2$getter = function() { return DOM$EnsureDartNull(this.r2); };
+    c.prototype.r2$setter = function(value) { this.r2 = value; };
+    c.prototype.sweepFlag$getter = function() { return DOM$EnsureDartNull(this.sweepFlag); };
+    c.prototype.sweepFlag$setter = function(value) { this.sweepFlag = value; };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegArcAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegArcRel(c) {
+  if (c.prototype) {
+    c.prototype.angle$getter = function() { return DOM$EnsureDartNull(this.angle); };
+    c.prototype.angle$setter = function(value) { this.angle = value; };
+    c.prototype.largeArcFlag$getter = function() { return DOM$EnsureDartNull(this.largeArcFlag); };
+    c.prototype.largeArcFlag$setter = function(value) { this.largeArcFlag = value; };
+    c.prototype.r1$getter = function() { return DOM$EnsureDartNull(this.r1); };
+    c.prototype.r1$setter = function(value) { this.r1 = value; };
+    c.prototype.r2$getter = function() { return DOM$EnsureDartNull(this.r2); };
+    c.prototype.r2$setter = function(value) { this.r2 = value; };
+    c.prototype.sweepFlag$getter = function() { return DOM$EnsureDartNull(this.sweepFlag); };
+    c.prototype.sweepFlag$setter = function(value) { this.sweepFlag = value; };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegArcRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegClosePath(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGPathSegClosePath$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoCubicAbs(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.x1$getter = function() { return DOM$EnsureDartNull(this.x1); };
+    c.prototype.x1$setter = function(value) { this.x1 = value; };
+    c.prototype.x2$getter = function() { return DOM$EnsureDartNull(this.x2); };
+    c.prototype.x2$setter = function(value) { this.x2 = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+    c.prototype.y1$getter = function() { return DOM$EnsureDartNull(this.y1); };
+    c.prototype.y1$setter = function(value) { this.y1 = value; };
+    c.prototype.y2$getter = function() { return DOM$EnsureDartNull(this.y2); };
+    c.prototype.y2$setter = function(value) { this.y2 = value; };
+  }
+  c.$implements$SVGPathSegCurvetoCubicAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoCubicRel(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.x1$getter = function() { return DOM$EnsureDartNull(this.x1); };
+    c.prototype.x1$setter = function(value) { this.x1 = value; };
+    c.prototype.x2$getter = function() { return DOM$EnsureDartNull(this.x2); };
+    c.prototype.x2$setter = function(value) { this.x2 = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+    c.prototype.y1$getter = function() { return DOM$EnsureDartNull(this.y1); };
+    c.prototype.y1$setter = function(value) { this.y1 = value; };
+    c.prototype.y2$getter = function() { return DOM$EnsureDartNull(this.y2); };
+    c.prototype.y2$setter = function(value) { this.y2 = value; };
+  }
+  c.$implements$SVGPathSegCurvetoCubicRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoCubicSmoothAbs(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.x2$getter = function() { return DOM$EnsureDartNull(this.x2); };
+    c.prototype.x2$setter = function(value) { this.x2 = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+    c.prototype.y2$getter = function() { return DOM$EnsureDartNull(this.y2); };
+    c.prototype.y2$setter = function(value) { this.y2 = value; };
+  }
+  c.$implements$SVGPathSegCurvetoCubicSmoothAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoCubicSmoothRel(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.x2$getter = function() { return DOM$EnsureDartNull(this.x2); };
+    c.prototype.x2$setter = function(value) { this.x2 = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+    c.prototype.y2$getter = function() { return DOM$EnsureDartNull(this.y2); };
+    c.prototype.y2$setter = function(value) { this.y2 = value; };
+  }
+  c.$implements$SVGPathSegCurvetoCubicSmoothRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoQuadraticAbs(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.x1$getter = function() { return DOM$EnsureDartNull(this.x1); };
+    c.prototype.x1$setter = function(value) { this.x1 = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+    c.prototype.y1$getter = function() { return DOM$EnsureDartNull(this.y1); };
+    c.prototype.y1$setter = function(value) { this.y1 = value; };
+  }
+  c.$implements$SVGPathSegCurvetoQuadraticAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoQuadraticRel(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.x1$getter = function() { return DOM$EnsureDartNull(this.x1); };
+    c.prototype.x1$setter = function(value) { this.x1 = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+    c.prototype.y1$getter = function() { return DOM$EnsureDartNull(this.y1); };
+    c.prototype.y1$setter = function(value) { this.y1 = value; };
+  }
+  c.$implements$SVGPathSegCurvetoQuadraticRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoQuadraticSmoothAbs(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegCurvetoQuadraticSmoothAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegCurvetoQuadraticSmoothRel(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegCurvetoQuadraticSmoothRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegLinetoAbs(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegLinetoAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegLinetoHorizontalAbs(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+  }
+  c.$implements$SVGPathSegLinetoHorizontalAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegLinetoHorizontalRel(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+  }
+  c.$implements$SVGPathSegLinetoHorizontalRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegLinetoRel(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegLinetoRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegLinetoVerticalAbs(c) {
+  if (c.prototype) {
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegLinetoVerticalAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegLinetoVerticalRel(c) {
+  if (c.prototype) {
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegLinetoVerticalRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegList(c) {
+  if (c.prototype) {
+    c.prototype.numberOfItems$getter = function() { return DOM$EnsureDartNull(this.numberOfItems); };
+  }
+  DOM$fixMembers(c, [
+    'appendItem',
+    'clear',
+    'getItem',
+    'initialize',
+    'insertItemBefore',
+    'removeItem',
+    'replaceItem']);
+  c.$implements$SVGPathSegList$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegMovetoAbs(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegMovetoAbs$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPathSegMovetoRel(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGPathSegMovetoRel$Dart = 1;
+  c.$implements$SVGPathSeg$Dart = 1;
+}
+function DOM$fixClass$SVGPatternElement(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.patternContentUnits$getter = function() { return DOM$EnsureDartNull(this.patternContentUnits); };
+    c.prototype.patternTransform$getter = function() { return DOM$EnsureDartNull(this.patternTransform); };
+    c.prototype.patternUnits$getter = function() { return DOM$EnsureDartNull(this.patternUnits); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.viewBox$getter = function() { return DOM$EnsureDartNull(this.viewBox); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute']);
+  c.$implements$SVGPatternElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGFitToViewBox$Dart = 1;
+}
+function DOM$fixClass$SVGPoint(c) {
+  if (c.prototype) {
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  DOM$fixMembers(c, ['matrixTransform']);
+  c.$implements$SVGPoint$Dart = 1;
+}
+function DOM$fixClass$SVGPointList(c) {
+  if (c.prototype) {
+    c.prototype.numberOfItems$getter = function() { return DOM$EnsureDartNull(this.numberOfItems); };
+  }
+  DOM$fixMembers(c, [
+    'appendItem',
+    'clear',
+    'getItem',
+    'initialize',
+    'insertItemBefore',
+    'removeItem',
+    'replaceItem']);
+  c.$implements$SVGPointList$Dart = 1;
+}
+function DOM$fixClass$SVGPolygonElement(c) {
+  if (c.prototype) {
+    c.prototype.animatedPoints$getter = function() { return DOM$EnsureDartNull(this.animatedPoints); };
+    c.prototype.points$getter = function() { return DOM$EnsureDartNull(this.points); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGPolygonElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGPolylineElement(c) {
+  if (c.prototype) {
+    c.prototype.animatedPoints$getter = function() { return DOM$EnsureDartNull(this.animatedPoints); };
+    c.prototype.points$getter = function() { return DOM$EnsureDartNull(this.points); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGPolylineElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGPreserveAspectRatio(c) {
+  if (c.prototype) {
+    c.prototype.align$getter = function() { return DOM$EnsureDartNull(this.align); };
+    c.prototype.align$setter = function(value) { this.align = value; };
+    c.prototype.meetOrSlice$getter = function() { return DOM$EnsureDartNull(this.meetOrSlice); };
+    c.prototype.meetOrSlice$setter = function(value) { this.meetOrSlice = value; };
+  }
+  c.$implements$SVGPreserveAspectRatio$Dart = 1;
+}
+function DOM$fixClass$SVGRadialGradientElement(c) {
+  if (c.prototype) {
+    c.prototype.cx$getter = function() { return DOM$EnsureDartNull(this.cx); };
+    c.prototype.cy$getter = function() { return DOM$EnsureDartNull(this.cy); };
+    c.prototype.fx$getter = function() { return DOM$EnsureDartNull(this.fx); };
+    c.prototype.fy$getter = function() { return DOM$EnsureDartNull(this.fy); };
+    c.prototype.r$getter = function() { return DOM$EnsureDartNull(this.r); };
+  }
+  c.$implements$SVGRadialGradientElement$Dart = 1;
+  c.$implements$SVGGradientElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGRect(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.height$setter = function(value) { this.height = value; };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.width$setter = function(value) { this.width = value; };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.x$setter = function(value) { this.x = value; };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.y$setter = function(value) { this.y = value; };
+  }
+  c.$implements$SVGRect$Dart = 1;
+}
+function DOM$fixClass$SVGRectElement(c) {
+  if (c.prototype) {
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.rx$getter = function() { return DOM$EnsureDartNull(this.rx); };
+    c.prototype.ry$getter = function() { return DOM$EnsureDartNull(this.ry); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGRectElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGRenderingIntent(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGRenderingIntent$Dart = 1;
+}
+function DOM$fixClass$SVGSVGElement(c) {
+  if (c.prototype) {
+    c.prototype.contentScriptType$getter = function() { return DOM$EnsureDartNull(this.contentScriptType); };
+    c.prototype.contentScriptType$setter = function(value) { this.contentScriptType = value; };
+    c.prototype.contentStyleType$getter = function() { return DOM$EnsureDartNull(this.contentStyleType); };
+    c.prototype.contentStyleType$setter = function(value) { this.contentStyleType = value; };
+    c.prototype.currentScale$getter = function() { return DOM$EnsureDartNull(this.currentScale); };
+    c.prototype.currentScale$setter = function(value) { this.currentScale = value; };
+    c.prototype.currentTranslate$getter = function() { return DOM$EnsureDartNull(this.currentTranslate); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.pixelUnitToMillimeterX$getter = function() { return DOM$EnsureDartNull(this.pixelUnitToMillimeterX); };
+    c.prototype.pixelUnitToMillimeterY$getter = function() { return DOM$EnsureDartNull(this.pixelUnitToMillimeterY); };
+    c.prototype.screenPixelToMillimeterX$getter = function() { return DOM$EnsureDartNull(this.screenPixelToMillimeterX); };
+    c.prototype.screenPixelToMillimeterY$getter = function() { return DOM$EnsureDartNull(this.screenPixelToMillimeterY); };
+    c.prototype.useCurrentView$getter = function() { return DOM$EnsureDartNull(this.useCurrentView); };
+    c.prototype.useCurrentView$setter = function(value) { this.useCurrentView = value; };
+    c.prototype.viewport$getter = function() { return DOM$EnsureDartNull(this.viewport); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.viewBox$getter = function() { return DOM$EnsureDartNull(this.viewBox); };
+    c.prototype.zoomAndPan$getter = function() { return DOM$EnsureDartNull(this.zoomAndPan); };
+    c.prototype.zoomAndPan$setter = function(value) { this.zoomAndPan = value; };
+  }
+  DOM$fixMembers(c, [
+    'animationsPaused',
+    'checkEnclosure',
+    'checkIntersection',
+    'createSVGAngle',
+    'createSVGLength',
+    'createSVGMatrix',
+    'createSVGNumber',
+    'createSVGPoint',
+    'createSVGRect',
+    'createSVGTransform',
+    'createSVGTransformFromMatrix',
+    'deselectAll',
+    'forceRedraw',
+    'getCurrentTime',
+    'getElementById',
+    'getEnclosureList',
+    'getIntersectionList',
+    'pauseAnimations',
+    'setCurrentTime',
+    'suspendRedraw',
+    'unpauseAnimations',
+    'unsuspendRedraw',
+    'unsuspendRedrawAll',
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGSVGElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+  c.$implements$SVGFitToViewBox$Dart = 1;
+  c.$implements$SVGZoomAndPan$Dart = 1;
+}
+function DOM$fixClass$SVGScriptElement(c) {
+  if (c.prototype) {
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+    c.prototype.type$setter = function(value) { this.type = value; };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+  }
+  c.$implements$SVGScriptElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+}
+function DOM$fixClass$SVGSetElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGSetElement$Dart = 1;
+  c.$implements$SVGAnimationElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$ElementTimeControl$Dart = 1;
+}
+function DOM$fixClass$SVGStopElement(c) {
+  if (c.prototype) {
+    c.prototype.offset$getter = function() { return DOM$EnsureDartNull(this.offset); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGStopElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGStringList(c) {
+  if (c.prototype) {
+    c.prototype.numberOfItems$getter = function() { return DOM$EnsureDartNull(this.numberOfItems); };
+  }
+  DOM$fixMembers(c, [
+    'appendItem',
+    'clear',
+    'getItem',
+    'initialize',
+    'insertItemBefore',
+    'removeItem',
+    'replaceItem']);
+  c.$implements$SVGStringList$Dart = 1;
+}
+function DOM$fixClass$SVGStylable(c) {
+  if (c.prototype) {
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGStyleElement(c) {
+  if (c.prototype) {
+    c.prototype.media$getter = function() { return DOM$EnsureDartNull(this.media); };
+    c.prototype.media$setter = function(value) { this.media = value; };
+    c.prototype.title$getter = function() { return DOM$EnsureDartNull(this.title); };
+    c.prototype.title$setter = function(value) { this.title = value; };
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+    c.prototype.type$setter = function(value) { this.type = value; };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+  }
+  c.$implements$SVGStyleElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+}
+function DOM$fixClass$SVGSwitchElement(c) {
+  if (c.prototype) {
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGSwitchElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGSymbolElement(c) {
+  if (c.prototype) {
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.viewBox$getter = function() { return DOM$EnsureDartNull(this.viewBox); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGSymbolElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGFitToViewBox$Dart = 1;
+}
+function DOM$fixClass$SVGTRefElement(c) {
+  if (c.prototype) {
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+  }
+  c.$implements$SVGTRefElement$Dart = 1;
+  c.$implements$SVGTextPositioningElement$Dart = 1;
+  c.$implements$SVGTextContentElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+}
+function DOM$fixClass$SVGTSpanElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGTSpanElement$Dart = 1;
+  c.$implements$SVGTextPositioningElement$Dart = 1;
+  c.$implements$SVGTextContentElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGTests(c) {
+  if (c.prototype) {
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+  }
+  DOM$fixMembers(c, ['hasExtension']);
+  c.$implements$SVGTests$Dart = 1;
+}
+function DOM$fixClass$SVGTextContentElement(c) {
+  if (c.prototype) {
+    c.prototype.lengthAdjust$getter = function() { return DOM$EnsureDartNull(this.lengthAdjust); };
+    c.prototype.textLength$getter = function() { return DOM$EnsureDartNull(this.textLength); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, [
+    'getCharNumAtPosition',
+    'getComputedTextLength',
+    'getEndPositionOfChar',
+    'getExtentOfChar',
+    'getNumberOfChars',
+    'getRotationOfChar',
+    'getStartPositionOfChar',
+    'getSubStringLength',
+    'selectSubString',
+    'hasExtension',
+    'getPresentationAttribute']);
+  c.$implements$SVGTextContentElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGTextElement(c) {
+  if (c.prototype) {
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGTextElement$Dart = 1;
+  c.$implements$SVGTextPositioningElement$Dart = 1;
+  c.$implements$SVGTextContentElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGTextPathElement(c) {
+  if (c.prototype) {
+    c.prototype.method$getter = function() { return DOM$EnsureDartNull(this.method); };
+    c.prototype.spacing$getter = function() { return DOM$EnsureDartNull(this.spacing); };
+    c.prototype.startOffset$getter = function() { return DOM$EnsureDartNull(this.startOffset); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+  }
+  c.$implements$SVGTextPathElement$Dart = 1;
+  c.$implements$SVGTextContentElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+}
+function DOM$fixClass$SVGTextPositioningElement(c) {
+  if (c.prototype) {
+    c.prototype.dx$getter = function() { return DOM$EnsureDartNull(this.dx); };
+    c.prototype.dy$getter = function() { return DOM$EnsureDartNull(this.dy); };
+    c.prototype.rotate$getter = function() { return DOM$EnsureDartNull(this.rotate); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+  }
+  c.$implements$SVGTextPositioningElement$Dart = 1;
+  c.$implements$SVGTextContentElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGTitleElement(c) {
+  if (c.prototype) {
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+  }
+  DOM$fixMembers(c, ['getPresentationAttribute']);
+  c.$implements$SVGTitleElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+}
+function DOM$fixClass$SVGTransform(c) {
+  if (c.prototype) {
+    c.prototype.angle$getter = function() { return DOM$EnsureDartNull(this.angle); };
+    c.prototype.matrix$getter = function() { return DOM$EnsureDartNull(this.matrix); };
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+  }
+  DOM$fixMembers(c, [
+    'setMatrix',
+    'setRotate',
+    'setScale',
+    'setSkewX',
+    'setSkewY',
+    'setTranslate']);
+  c.$implements$SVGTransform$Dart = 1;
+}
+function DOM$fixClass$SVGTransformList(c) {
+  if (c.prototype) {
+    c.prototype.numberOfItems$getter = function() { return DOM$EnsureDartNull(this.numberOfItems); };
+  }
+  DOM$fixMembers(c, [
+    'appendItem',
+    'clear',
+    'consolidate',
+    'createSVGTransformFromMatrix',
+    'getItem',
+    'initialize',
+    'insertItemBefore',
+    'removeItem',
+    'replaceItem']);
+  c.$implements$SVGTransformList$Dart = 1;
+}
+function DOM$fixClass$SVGTransformable(c) {
+  if (c.prototype) {
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+  }
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGURIReference(c) {
+  if (c.prototype) {
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+  }
+  c.$implements$SVGURIReference$Dart = 1;
+}
+function DOM$fixClass$SVGUnitTypes(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGUnitTypes$Dart = 1;
+}
+function DOM$fixClass$SVGUseElement(c) {
+  if (c.prototype) {
+    c.prototype.animatedInstanceRoot$getter = function() { return DOM$EnsureDartNull(this.animatedInstanceRoot); };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
+    c.prototype.instanceRoot$getter = function() { return DOM$EnsureDartNull(this.instanceRoot); };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
+    c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
+    c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
+    c.prototype.href$getter = function() { return DOM$EnsureDartNull(this.href); };
+    c.prototype.requiredExtensions$getter = function() { return DOM$EnsureDartNull(this.requiredExtensions); };
+    c.prototype.requiredFeatures$getter = function() { return DOM$EnsureDartNull(this.requiredFeatures); };
+    c.prototype.systemLanguage$getter = function() { return DOM$EnsureDartNull(this.systemLanguage); };
+    c.prototype.xmllang$getter = function() { return DOM$EnsureDartNull(this.xmllang); };
+    c.prototype.xmllang$setter = function(value) { this.xmllang = value; };
+    c.prototype.xmlspace$getter = function() { return DOM$EnsureDartNull(this.xmlspace); };
+    c.prototype.xmlspace$setter = function(value) { this.xmlspace = value; };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
+    c.prototype.style$getter = function() { return DOM$EnsureDartNull(this.style); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.farthestViewportElement$getter = function() { return DOM$EnsureDartNull(this.farthestViewportElement); };
+    c.prototype.nearestViewportElement$getter = function() { return DOM$EnsureDartNull(this.nearestViewportElement); };
+  }
+  DOM$fixMembers(c, [
+    'hasExtension',
+    'getPresentationAttribute',
+    'getBBox',
+    'getCTM',
+    'getScreenCTM',
+    'getTransformToElement']);
+  c.$implements$SVGUseElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGURIReference$Dart = 1;
+  c.$implements$SVGTests$Dart = 1;
+  c.$implements$SVGLangSpace$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGStylable$Dart = 1;
+  c.$implements$SVGTransformable$Dart = 1;
+  c.$implements$SVGLocatable$Dart = 1;
+}
+function DOM$fixClass$SVGVKernElement(c) {
+  if (c.prototype) {
+  }
+  c.$implements$SVGVKernElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+}
+function DOM$fixClass$SVGViewElement(c) {
+  if (c.prototype) {
+    c.prototype.viewTarget$getter = function() { return DOM$EnsureDartNull(this.viewTarget); };
+    c.prototype.externalResourcesRequired$getter = function() { return DOM$EnsureDartNull(this.externalResourcesRequired); };
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.viewBox$getter = function() { return DOM$EnsureDartNull(this.viewBox); };
+    c.prototype.zoomAndPan$getter = function() { return DOM$EnsureDartNull(this.zoomAndPan); };
+    c.prototype.zoomAndPan$setter = function(value) { this.zoomAndPan = value; };
+  }
+  c.$implements$SVGViewElement$Dart = 1;
+  c.$implements$SVGElement$Dart = 1;
+  c.$implements$Element$Dart = 1;
+  c.$implements$Node$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
+  c.$implements$NodeSelector$Dart = 1;
+  c.$implements$ElementTraversal$Dart = 1;
+  c.$implements$SVGExternalResourcesRequired$Dart = 1;
+  c.$implements$SVGFitToViewBox$Dart = 1;
+  c.$implements$SVGZoomAndPan$Dart = 1;
+}
+function DOM$fixClass$SVGViewSpec(c) {
+  if (c.prototype) {
+    c.prototype.preserveAspectRatioString$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatioString); };
+    c.prototype.transform$getter = function() { return DOM$EnsureDartNull(this.transform); };
+    c.prototype.transformString$getter = function() { return DOM$EnsureDartNull(this.transformString); };
+    c.prototype.viewBoxString$getter = function() { return DOM$EnsureDartNull(this.viewBoxString); };
+    c.prototype.viewTarget$getter = function() { return DOM$EnsureDartNull(this.viewTarget); };
+    c.prototype.viewTargetString$getter = function() { return DOM$EnsureDartNull(this.viewTargetString); };
+    c.prototype.preserveAspectRatio$getter = function() { return DOM$EnsureDartNull(this.preserveAspectRatio); };
+    c.prototype.viewBox$getter = function() { return DOM$EnsureDartNull(this.viewBox); };
+  }
+  c.$implements$SVGViewSpec$Dart = 1;
+  c.$implements$SVGZoomAndPan$Dart = 1;
+  c.$implements$SVGFitToViewBox$Dart = 1;
+}
+function DOM$fixClass$SVGZoomAndPan(c) {
+  if (c.prototype) {
+    c.prototype.zoomAndPan$getter = function() { return DOM$EnsureDartNull(this.zoomAndPan); };
+    c.prototype.zoomAndPan$setter = function(value) { this.zoomAndPan = value; };
+  }
+  c.$implements$SVGZoomAndPan$Dart = 1;
+}
+function DOM$fixClass$SVGZoomEvent(c) {
+  if (c.prototype) {
+    c.prototype.newScale$getter = function() { return DOM$EnsureDartNull(this.newScale); };
+    c.prototype.newTranslate$getter = function() { return DOM$EnsureDartNull(this.newTranslate); };
+    c.prototype.previousScale$getter = function() { return DOM$EnsureDartNull(this.previousScale); };
+    c.prototype.previousTranslate$getter = function() { return DOM$EnsureDartNull(this.previousTranslate); };
+    c.prototype.zoomRectScreen$getter = function() { return DOM$EnsureDartNull(this.zoomRectScreen); };
+  }
+  c.$implements$SVGZoomEvent$Dart = 1;
+  c.$implements$UIEvent$Dart = 1;
+  c.$implements$Event$Dart = 1;
+}
 function DOM$fixClass$Screen(c) {
   if (c.prototype) {
     c.prototype.availHeight$getter = function() { return DOM$EnsureDartNull(this.availHeight); };
@@ -4676,6 +7058,7 @@ function DOM$fixClass$ScriptProfile(c) {
 function DOM$fixClass$ScriptProfileNode(c) {
   if (c.prototype) {
     c.prototype.callUID$getter = function() { return DOM$EnsureDartNull(this.callUID); };
+    c.prototype.children$getter = function() { return DOM$EnsureDartNull(this.children); };
     c.prototype.functionName$getter = function() { return DOM$EnsureDartNull(this.functionName); };
     c.prototype.lineNumber$getter = function() { return DOM$EnsureDartNull(this.lineNumber); };
     c.prototype.numberOfCalls$getter = function() { return DOM$EnsureDartNull(this.numberOfCalls); };
@@ -4697,8 +7080,6 @@ function DOM$fixClass$SharedWorker(c) {
 function DOM$fixClass$SharedWorkercontext(c) {
   if (c.prototype) {
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
-    c.prototype.onconnect$getter = function() { return DOM$EnsureDartNull(this.onconnect); };
-    c.prototype.onconnect$setter = function(value) { this.onconnect = value; };
   }
   c.$implements$SharedWorkercontext$Dart = 1;
   c.$implements$WorkerContext$Dart = 1;
@@ -4835,6 +7216,50 @@ function DOM$fixClass$TextMetrics(c) {
     c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
   }
   c.$implements$TextMetrics$Dart = 1;
+}
+function DOM$fixClass$TextTrack(c) {
+  if (c.prototype) {
+    c.prototype.activeCues$getter = function() { return DOM$EnsureDartNull(this.activeCues); };
+    c.prototype.cues$getter = function() { return DOM$EnsureDartNull(this.cues); };
+    c.prototype.kind$getter = function() { return DOM$EnsureDartNull(this.kind); };
+    c.prototype.label$getter = function() { return DOM$EnsureDartNull(this.label); };
+    c.prototype.language$getter = function() { return DOM$EnsureDartNull(this.language); };
+    c.prototype.mode$getter = function() { return DOM$EnsureDartNull(this.mode); };
+    c.prototype.mode$setter = function(value) { this.mode = value; };
+    c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
+  }
+  DOM$fixMembers(c, [
+    'addCue',
+    'removeCue']);
+  c.$implements$TextTrack$Dart = 1;
+}
+function DOM$fixClass$TextTrackCue(c) {
+  if (c.prototype) {
+    c.prototype.alignment$getter = function() { return DOM$EnsureDartNull(this.alignment); };
+    c.prototype.direction$getter = function() { return DOM$EnsureDartNull(this.direction); };
+    c.prototype.endTime$getter = function() { return DOM$EnsureDartNull(this.endTime); };
+    c.prototype.id$getter = function() { return DOM$EnsureDartNull(this.id); };
+    c.prototype.linePosition$getter = function() { return DOM$EnsureDartNull(this.linePosition); };
+    c.prototype.pauseOnExit$getter = function() { return DOM$EnsureDartNull(this.pauseOnExit); };
+    c.prototype.size$getter = function() { return DOM$EnsureDartNull(this.size); };
+    c.prototype.snapToLines$getter = function() { return DOM$EnsureDartNull(this.snapToLines); };
+    c.prototype.startTime$getter = function() { return DOM$EnsureDartNull(this.startTime); };
+    c.prototype.textPosition$getter = function() { return DOM$EnsureDartNull(this.textPosition); };
+    c.prototype.track$getter = function() { return DOM$EnsureDartNull(this.track); };
+  }
+  DOM$fixMembers(c, [
+    'getCueAsHTML',
+    'getCueAsSource']);
+  c.$implements$TextTrackCue$Dart = 1;
+}
+function DOM$fixClass$TextTrackCueList(c) {
+  if (c.prototype) {
+    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+  }
+  DOM$fixMembers(c, [
+    'getCueById',
+    'item']);
+  c.$implements$TextTrackCueList$Dart = 1;
 }
 function DOM$fixClass$TimeRanges(c) {
   if (c.prototype) {
@@ -5037,6 +7462,17 @@ function DOM$fixClass$WebGLContextEvent(c) {
   }
   c.$implements$WebGLContextEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
+}
+function DOM$fixClass$WebGLDebugRendererInfo(c) {
+  if (c.prototype) {
+  }
+  c.$implements$WebGLDebugRendererInfo$Dart = 1;
+}
+function DOM$fixClass$WebGLDebugShaders(c) {
+  if (c.prototype) {
+  }
+  DOM$fixMembers(c, ['getTranslatedShaderSource']);
+  c.$implements$WebGLDebugShaders$Dart = 1;
 }
 function DOM$fixClass$WebGLFramebuffer(c) {
   if (c.prototype) {
@@ -5258,6 +7694,14 @@ function DOM$fixClass$WebKitBlobBuilder(c) {
     'getBlob']);
   c.$implements$WebKitBlobBuilder$Dart = 1;
 }
+function DOM$fixClass$WebKitCSSFilterValue(c) {
+  if (c.prototype) {
+    c.prototype.operationType$getter = function() { return DOM$EnsureDartNull(this.operationType); };
+  }
+  c.$implements$WebKitCSSFilterValue$Dart = 1;
+  c.$implements$CSSValueList$Dart = 1;
+  c.$implements$CSSValue$Dart = 1;
+}
 function DOM$fixClass$WebKitCSSKeyframeRule(c) {
   if (c.prototype) {
     c.prototype.keyText$getter = function() { return DOM$EnsureDartNull(this.keyText); };
@@ -5365,6 +7809,12 @@ function DOM$fixClass$WebKitLoseContext(c) {
     'restoreContext']);
   c.$implements$WebKitLoseContext$Dart = 1;
 }
+function DOM$fixClass$WebKitMutationObserver(c) {
+  if (c.prototype) {
+  }
+  DOM$fixMembers(c, ['disconnect']);
+  c.$implements$WebKitMutationObserver$Dart = 1;
+}
 function DOM$fixClass$WebKitPoint(c) {
   if (c.prototype) {
     c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
@@ -5389,14 +7839,7 @@ function DOM$fixClass$WebSocket(c) {
     c.prototype.binaryType$getter = function() { return DOM$EnsureDartNull(this.binaryType); };
     c.prototype.binaryType$setter = function(value) { this.binaryType = value; };
     c.prototype.bufferedAmount$getter = function() { return DOM$EnsureDartNull(this.bufferedAmount); };
-    c.prototype.onclose$getter = function() { return DOM$EnsureDartNull(this.onclose); };
-    c.prototype.onclose$setter = function(value) { this.onclose = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
-    c.prototype.onopen$getter = function() { return DOM$EnsureDartNull(this.onopen); };
-    c.prototype.onopen$setter = function(value) { this.onopen = value; };
+    c.prototype.extensions$getter = function() { return DOM$EnsureDartNull(this.extensions); };
     c.prototype.protocol$getter = function() { return DOM$EnsureDartNull(this.protocol); };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
@@ -5421,25 +7864,25 @@ function DOM$fixClass$WheelEvent(c) {
     c.prototype.screenX$getter = function() { return DOM$EnsureDartNull(this.screenX); };
     c.prototype.screenY$getter = function() { return DOM$EnsureDartNull(this.screenY); };
     c.prototype.shiftKey$getter = function() { return DOM$EnsureDartNull(this.shiftKey); };
+    c.prototype.webkitDirectionInvertedFromDevice$getter = function() { return DOM$EnsureDartNull(this.webkitDirectionInvertedFromDevice); };
     c.prototype.wheelDelta$getter = function() { return DOM$EnsureDartNull(this.wheelDelta); };
     c.prototype.wheelDeltaX$getter = function() { return DOM$EnsureDartNull(this.wheelDeltaX); };
     c.prototype.wheelDeltaY$getter = function() { return DOM$EnsureDartNull(this.wheelDeltaY); };
     c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
     c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
   }
-  DOM$fixMembers(c, ['initWheelEvent']);
+  DOM$fixMembers(c, ['initWebKitWheelEvent']);
   c.$implements$WheelEvent$Dart = 1;
   c.$implements$UIEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
 function DOM$fixClass$Worker(c) {
   if (c.prototype) {
-    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
-    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
   DOM$fixMembers(c, [
     'postMessage',
-    'terminate']);
+    'terminate',
+    'webkitPostMessage']);
   c.$implements$Worker$Dart = 1;
   c.$implements$AbstractWorker$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -5450,8 +7893,8 @@ function DOM$fixClass$WorkerContext(c) {
     c.prototype.location$setter = function(value) { this.location = value; };
     c.prototype.navigator$getter = function() { return DOM$EnsureDartNull(this.navigator); };
     c.prototype.navigator$setter = function(value) { this.navigator = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
+    c.prototype.self$getter = function() { return DOM$EnsureDartNull(this.self); };
+    c.prototype.self$setter = function(value) { this.self = value; };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
     c.prototype.webkitURL$getter = function() { return DOM$EnsureDartNull(this.webkitURL); };
   }
@@ -5495,18 +7938,6 @@ function DOM$fixClass$XMLHttpRequest(c) {
   if (c.prototype) {
     c.prototype.asBlob$getter = function() { return DOM$EnsureDartNull(this.asBlob); };
     c.prototype.asBlob$setter = function(value) { this.asBlob = value; };
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
-    c.prototype.onreadystatechange$getter = function() { return DOM$EnsureDartNull(this.onreadystatechange); };
-    c.prototype.onreadystatechange$setter = function(value) { this.onreadystatechange = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.responseBlob$getter = function() { return DOM$EnsureDartNull(this.responseBlob); };
     c.prototype.responseText$getter = function() { return DOM$EnsureDartNull(this.responseText); };
@@ -5539,6 +7970,7 @@ function DOM$fixClass$XMLHttpRequestException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$XMLHttpRequestException$Dart = 1;
 }
 function DOM$fixClass$XMLHttpRequestProgressEvent(c) {
@@ -5552,16 +7984,6 @@ function DOM$fixClass$XMLHttpRequestProgressEvent(c) {
 }
 function DOM$fixClass$XMLHttpRequestUpload(c) {
   if (c.prototype) {
-    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
-    c.prototype.onabort$setter = function(value) { this.onabort = value; };
-    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
-    c.prototype.onerror$setter = function(value) { this.onerror = value; };
-    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
-    c.prototype.onload$setter = function(value) { this.onload = value; };
-    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
-    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
-    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
-    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
   }
   DOM$fixMembers(c, [
     'addEventListener',
@@ -5591,6 +8013,7 @@ function DOM$fixClass$XPathException(c) {
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
   }
+  DOM$fixMembers(c, ['toString']);
   c.$implements$XPathException$Dart = 1;
 }
 function DOM$fixClass$XPathExpression(c) {
@@ -5888,6 +8311,9 @@ var _;
     w.DOMTokenList$Dart = _;
     DOM$fixClass$DOMTokenList(_);
   }
+  if (!w.DOMURL && (_ = w.webkitURL) && (_ = _.__proto__) && (_ = {prototype: _})) {
+    w.DOMURL = _;
+  }
   if ((_ = w.DOMURL)) {
     w.DOMURL$Dart = _;
     DOM$fixClass$DOMURL(_);
@@ -5903,9 +8329,9 @@ var _;
     w.DataTransferItem$Dart = _;
     DOM$fixClass$DataTransferItem(_);
   }
-  if ((_ = w.DataTransferItems)) {
-    w.DataTransferItems$Dart = _;
-    DOM$fixClass$DataTransferItems(_);
+  if ((_ = w.DataTransferItemList)) {
+    w.DataTransferItemList$Dart = _;
+    DOM$fixClass$DataTransferItemList(_);
   }
   if ((_ = w.DataView)) {
     w.DataView$Dart = _;
@@ -5972,6 +8398,10 @@ var _;
   if ((_ = w.Element)) {
     w.Element$Dart = _;
     DOM$fixClass$Element(_);
+  }
+  if ((_ = w.ElementTimeControl)) {
+    w.ElementTimeControl$Dart = _;
+    DOM$fixClass$ElementTimeControl(_);
   }
   if ((_ = w.ElementTraversal)) {
     w.ElementTraversal$Dart = _;
@@ -6499,10 +8929,6 @@ var _;
     w.KeyboardEvent$Dart = _;
     DOM$fixClass$KeyboardEvent(_);
   }
-  if ((_ = w.LocalMediaStream)) {
-    w.LocalMediaStream$Dart = _;
-    DOM$fixClass$LocalMediaStream(_);
-  }
   if (!w.Location && (_ = w.location) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.Location = _;
   }
@@ -6525,22 +8951,6 @@ var _;
   if ((_ = w.MediaQueryListListener)) {
     w.MediaQueryListListener$Dart = _;
     DOM$fixClass$MediaQueryListListener(_);
-  }
-  if ((_ = w.MediaStream)) {
-    w.MediaStream$Dart = _;
-    DOM$fixClass$MediaStream(_);
-  }
-  if ((_ = w.MediaStreamList)) {
-    w.MediaStreamList$Dart = _;
-    DOM$fixClass$MediaStreamList(_);
-  }
-  if ((_ = w.MediaStreamTrack)) {
-    w.MediaStreamTrack$Dart = _;
-    DOM$fixClass$MediaStreamTrack(_);
-  }
-  if ((_ = w.MediaStreamTrackList)) {
-    w.MediaStreamTrackList$Dart = _;
-    DOM$fixClass$MediaStreamTrackList(_);
   }
   if ((_ = w.MemoryInfo)) {
     w.MemoryInfo$Dart = _;
@@ -6569,6 +8979,10 @@ var _;
   if ((_ = w.MouseEvent)) {
     w.MouseEvent$Dart = _;
     DOM$fixClass$MouseEvent(_);
+  }
+  if ((_ = w.MutationCallback)) {
+    w.MutationCallback$Dart = _;
+    DOM$fixClass$MutationCallback(_);
   }
   if ((_ = w.MutationEvent)) {
     w.MutationEvent$Dart = _;
@@ -6765,6 +9179,614 @@ var _;
     w.SQLTransactionSyncCallback$Dart = _;
     DOM$fixClass$SQLTransactionSyncCallback(_);
   }
+  if ((_ = w.SVGAElement)) {
+    w.SVGAElement$Dart = _;
+    DOM$fixClass$SVGAElement(_);
+  }
+  if ((_ = w.SVGAltGlyphDefElement)) {
+    w.SVGAltGlyphDefElement$Dart = _;
+    DOM$fixClass$SVGAltGlyphDefElement(_);
+  }
+  if ((_ = w.SVGAltGlyphElement)) {
+    w.SVGAltGlyphElement$Dart = _;
+    DOM$fixClass$SVGAltGlyphElement(_);
+  }
+  if ((_ = w.SVGAltGlyphItemElement)) {
+    w.SVGAltGlyphItemElement$Dart = _;
+    DOM$fixClass$SVGAltGlyphItemElement(_);
+  }
+  if ((_ = w.SVGAngle)) {
+    w.SVGAngle$Dart = _;
+    DOM$fixClass$SVGAngle(_);
+  }
+  if ((_ = w.SVGAnimateColorElement)) {
+    w.SVGAnimateColorElement$Dart = _;
+    DOM$fixClass$SVGAnimateColorElement(_);
+  }
+  if ((_ = w.SVGAnimateElement)) {
+    w.SVGAnimateElement$Dart = _;
+    DOM$fixClass$SVGAnimateElement(_);
+  }
+  if ((_ = w.SVGAnimateMotionElement)) {
+    w.SVGAnimateMotionElement$Dart = _;
+    DOM$fixClass$SVGAnimateMotionElement(_);
+  }
+  if ((_ = w.SVGAnimateTransformElement)) {
+    w.SVGAnimateTransformElement$Dart = _;
+    DOM$fixClass$SVGAnimateTransformElement(_);
+  }
+  if ((_ = w.SVGAnimatedAngle)) {
+    w.SVGAnimatedAngle$Dart = _;
+    DOM$fixClass$SVGAnimatedAngle(_);
+  }
+  if ((_ = w.SVGAnimatedBoolean)) {
+    w.SVGAnimatedBoolean$Dart = _;
+    DOM$fixClass$SVGAnimatedBoolean(_);
+  }
+  if ((_ = w.SVGAnimatedEnumeration)) {
+    w.SVGAnimatedEnumeration$Dart = _;
+    DOM$fixClass$SVGAnimatedEnumeration(_);
+  }
+  if ((_ = w.SVGAnimatedInteger)) {
+    w.SVGAnimatedInteger$Dart = _;
+    DOM$fixClass$SVGAnimatedInteger(_);
+  }
+  if ((_ = w.SVGAnimatedLength)) {
+    w.SVGAnimatedLength$Dart = _;
+    DOM$fixClass$SVGAnimatedLength(_);
+  }
+  if ((_ = w.SVGAnimatedLengthList)) {
+    w.SVGAnimatedLengthList$Dart = _;
+    DOM$fixClass$SVGAnimatedLengthList(_);
+  }
+  if ((_ = w.SVGAnimatedNumber)) {
+    w.SVGAnimatedNumber$Dart = _;
+    DOM$fixClass$SVGAnimatedNumber(_);
+  }
+  if ((_ = w.SVGAnimatedNumberList)) {
+    w.SVGAnimatedNumberList$Dart = _;
+    DOM$fixClass$SVGAnimatedNumberList(_);
+  }
+  if ((_ = w.SVGAnimatedPreserveAspectRatio)) {
+    w.SVGAnimatedPreserveAspectRatio$Dart = _;
+    DOM$fixClass$SVGAnimatedPreserveAspectRatio(_);
+  }
+  if ((_ = w.SVGAnimatedRect)) {
+    w.SVGAnimatedRect$Dart = _;
+    DOM$fixClass$SVGAnimatedRect(_);
+  }
+  if ((_ = w.SVGAnimatedString)) {
+    w.SVGAnimatedString$Dart = _;
+    DOM$fixClass$SVGAnimatedString(_);
+  }
+  if ((_ = w.SVGAnimatedTransformList)) {
+    w.SVGAnimatedTransformList$Dart = _;
+    DOM$fixClass$SVGAnimatedTransformList(_);
+  }
+  if ((_ = w.SVGAnimationElement)) {
+    w.SVGAnimationElement$Dart = _;
+    DOM$fixClass$SVGAnimationElement(_);
+  }
+  if ((_ = w.SVGCircleElement)) {
+    w.SVGCircleElement$Dart = _;
+    DOM$fixClass$SVGCircleElement(_);
+  }
+  if ((_ = w.SVGClipPathElement)) {
+    w.SVGClipPathElement$Dart = _;
+    DOM$fixClass$SVGClipPathElement(_);
+  }
+  if ((_ = w.SVGColor)) {
+    w.SVGColor$Dart = _;
+    DOM$fixClass$SVGColor(_);
+  }
+  if ((_ = w.SVGComponentTransferFunctionElement)) {
+    w.SVGComponentTransferFunctionElement$Dart = _;
+    DOM$fixClass$SVGComponentTransferFunctionElement(_);
+  }
+  if ((_ = w.SVGCursorElement)) {
+    w.SVGCursorElement$Dart = _;
+    DOM$fixClass$SVGCursorElement(_);
+  }
+  if ((_ = w.SVGDefsElement)) {
+    w.SVGDefsElement$Dart = _;
+    DOM$fixClass$SVGDefsElement(_);
+  }
+  if ((_ = w.SVGDescElement)) {
+    w.SVGDescElement$Dart = _;
+    DOM$fixClass$SVGDescElement(_);
+  }
+  if ((_ = w.SVGDocument)) {
+    w.SVGDocument$Dart = _;
+    DOM$fixClass$SVGDocument(_);
+  }
+  if ((_ = w.SVGElement)) {
+    w.SVGElement$Dart = _;
+    DOM$fixClass$SVGElement(_);
+  }
+  if ((_ = w.SVGElementInstance)) {
+    w.SVGElementInstance$Dart = _;
+    DOM$fixClass$SVGElementInstance(_);
+  }
+  if ((_ = w.SVGElementInstanceList)) {
+    w.SVGElementInstanceList$Dart = _;
+    DOM$fixClass$SVGElementInstanceList(_);
+  }
+  if ((_ = w.SVGEllipseElement)) {
+    w.SVGEllipseElement$Dart = _;
+    DOM$fixClass$SVGEllipseElement(_);
+  }
+  if ((_ = w.SVGException)) {
+    w.SVGException$Dart = _;
+    DOM$fixClass$SVGException(_);
+  }
+  if ((_ = w.SVGExternalResourcesRequired)) {
+    w.SVGExternalResourcesRequired$Dart = _;
+    DOM$fixClass$SVGExternalResourcesRequired(_);
+  }
+  if ((_ = w.SVGFEBlendElement)) {
+    w.SVGFEBlendElement$Dart = _;
+    DOM$fixClass$SVGFEBlendElement(_);
+  }
+  if ((_ = w.SVGFEColorMatrixElement)) {
+    w.SVGFEColorMatrixElement$Dart = _;
+    DOM$fixClass$SVGFEColorMatrixElement(_);
+  }
+  if ((_ = w.SVGFEComponentTransferElement)) {
+    w.SVGFEComponentTransferElement$Dart = _;
+    DOM$fixClass$SVGFEComponentTransferElement(_);
+  }
+  if ((_ = w.SVGFECompositeElement)) {
+    w.SVGFECompositeElement$Dart = _;
+    DOM$fixClass$SVGFECompositeElement(_);
+  }
+  if ((_ = w.SVGFEConvolveMatrixElement)) {
+    w.SVGFEConvolveMatrixElement$Dart = _;
+    DOM$fixClass$SVGFEConvolveMatrixElement(_);
+  }
+  if ((_ = w.SVGFEDiffuseLightingElement)) {
+    w.SVGFEDiffuseLightingElement$Dart = _;
+    DOM$fixClass$SVGFEDiffuseLightingElement(_);
+  }
+  if ((_ = w.SVGFEDisplacementMapElement)) {
+    w.SVGFEDisplacementMapElement$Dart = _;
+    DOM$fixClass$SVGFEDisplacementMapElement(_);
+  }
+  if ((_ = w.SVGFEDistantLightElement)) {
+    w.SVGFEDistantLightElement$Dart = _;
+    DOM$fixClass$SVGFEDistantLightElement(_);
+  }
+  if ((_ = w.SVGFEDropShadowElement)) {
+    w.SVGFEDropShadowElement$Dart = _;
+    DOM$fixClass$SVGFEDropShadowElement(_);
+  }
+  if ((_ = w.SVGFEFloodElement)) {
+    w.SVGFEFloodElement$Dart = _;
+    DOM$fixClass$SVGFEFloodElement(_);
+  }
+  if ((_ = w.SVGFEFuncAElement)) {
+    w.SVGFEFuncAElement$Dart = _;
+    DOM$fixClass$SVGFEFuncAElement(_);
+  }
+  if ((_ = w.SVGFEFuncBElement)) {
+    w.SVGFEFuncBElement$Dart = _;
+    DOM$fixClass$SVGFEFuncBElement(_);
+  }
+  if ((_ = w.SVGFEFuncGElement)) {
+    w.SVGFEFuncGElement$Dart = _;
+    DOM$fixClass$SVGFEFuncGElement(_);
+  }
+  if ((_ = w.SVGFEFuncRElement)) {
+    w.SVGFEFuncRElement$Dart = _;
+    DOM$fixClass$SVGFEFuncRElement(_);
+  }
+  if ((_ = w.SVGFEGaussianBlurElement)) {
+    w.SVGFEGaussianBlurElement$Dart = _;
+    DOM$fixClass$SVGFEGaussianBlurElement(_);
+  }
+  if ((_ = w.SVGFEImageElement)) {
+    w.SVGFEImageElement$Dart = _;
+    DOM$fixClass$SVGFEImageElement(_);
+  }
+  if ((_ = w.SVGFEMergeElement)) {
+    w.SVGFEMergeElement$Dart = _;
+    DOM$fixClass$SVGFEMergeElement(_);
+  }
+  if ((_ = w.SVGFEMergeNodeElement)) {
+    w.SVGFEMergeNodeElement$Dart = _;
+    DOM$fixClass$SVGFEMergeNodeElement(_);
+  }
+  if ((_ = w.SVGFEMorphologyElement)) {
+    w.SVGFEMorphologyElement$Dart = _;
+    DOM$fixClass$SVGFEMorphologyElement(_);
+  }
+  if ((_ = w.SVGFEOffsetElement)) {
+    w.SVGFEOffsetElement$Dart = _;
+    DOM$fixClass$SVGFEOffsetElement(_);
+  }
+  if ((_ = w.SVGFEPointLightElement)) {
+    w.SVGFEPointLightElement$Dart = _;
+    DOM$fixClass$SVGFEPointLightElement(_);
+  }
+  if ((_ = w.SVGFESpecularLightingElement)) {
+    w.SVGFESpecularLightingElement$Dart = _;
+    DOM$fixClass$SVGFESpecularLightingElement(_);
+  }
+  if ((_ = w.SVGFESpotLightElement)) {
+    w.SVGFESpotLightElement$Dart = _;
+    DOM$fixClass$SVGFESpotLightElement(_);
+  }
+  if ((_ = w.SVGFETileElement)) {
+    w.SVGFETileElement$Dart = _;
+    DOM$fixClass$SVGFETileElement(_);
+  }
+  if ((_ = w.SVGFETurbulenceElement)) {
+    w.SVGFETurbulenceElement$Dart = _;
+    DOM$fixClass$SVGFETurbulenceElement(_);
+  }
+  if ((_ = w.SVGFilterElement)) {
+    w.SVGFilterElement$Dart = _;
+    DOM$fixClass$SVGFilterElement(_);
+  }
+  if ((_ = w.SVGFilterPrimitiveStandardAttributes)) {
+    w.SVGFilterPrimitiveStandardAttributes$Dart = _;
+    DOM$fixClass$SVGFilterPrimitiveStandardAttributes(_);
+  }
+  if ((_ = w.SVGFitToViewBox)) {
+    w.SVGFitToViewBox$Dart = _;
+    DOM$fixClass$SVGFitToViewBox(_);
+  }
+  if ((_ = w.SVGFontElement)) {
+    w.SVGFontElement$Dart = _;
+    DOM$fixClass$SVGFontElement(_);
+  }
+  if ((_ = w.SVGFontFaceElement)) {
+    w.SVGFontFaceElement$Dart = _;
+    DOM$fixClass$SVGFontFaceElement(_);
+  }
+  if ((_ = w.SVGFontFaceFormatElement)) {
+    w.SVGFontFaceFormatElement$Dart = _;
+    DOM$fixClass$SVGFontFaceFormatElement(_);
+  }
+  if ((_ = w.SVGFontFaceNameElement)) {
+    w.SVGFontFaceNameElement$Dart = _;
+    DOM$fixClass$SVGFontFaceNameElement(_);
+  }
+  if ((_ = w.SVGFontFaceSrcElement)) {
+    w.SVGFontFaceSrcElement$Dart = _;
+    DOM$fixClass$SVGFontFaceSrcElement(_);
+  }
+  if ((_ = w.SVGFontFaceUriElement)) {
+    w.SVGFontFaceUriElement$Dart = _;
+    DOM$fixClass$SVGFontFaceUriElement(_);
+  }
+  if ((_ = w.SVGForeignObjectElement)) {
+    w.SVGForeignObjectElement$Dart = _;
+    DOM$fixClass$SVGForeignObjectElement(_);
+  }
+  if ((_ = w.SVGGElement)) {
+    w.SVGGElement$Dart = _;
+    DOM$fixClass$SVGGElement(_);
+  }
+  if ((_ = w.SVGGlyphElement)) {
+    w.SVGGlyphElement$Dart = _;
+    DOM$fixClass$SVGGlyphElement(_);
+  }
+  if ((_ = w.SVGGlyphRefElement)) {
+    w.SVGGlyphRefElement$Dart = _;
+    DOM$fixClass$SVGGlyphRefElement(_);
+  }
+  if ((_ = w.SVGGradientElement)) {
+    w.SVGGradientElement$Dart = _;
+    DOM$fixClass$SVGGradientElement(_);
+  }
+  if ((_ = w.SVGHKernElement)) {
+    w.SVGHKernElement$Dart = _;
+    DOM$fixClass$SVGHKernElement(_);
+  }
+  if ((_ = w.SVGImageElement)) {
+    w.SVGImageElement$Dart = _;
+    DOM$fixClass$SVGImageElement(_);
+  }
+  if ((_ = w.SVGLangSpace)) {
+    w.SVGLangSpace$Dart = _;
+    DOM$fixClass$SVGLangSpace(_);
+  }
+  if ((_ = w.SVGLength)) {
+    w.SVGLength$Dart = _;
+    DOM$fixClass$SVGLength(_);
+  }
+  if ((_ = w.SVGLengthList)) {
+    w.SVGLengthList$Dart = _;
+    DOM$fixClass$SVGLengthList(_);
+  }
+  if ((_ = w.SVGLineElement)) {
+    w.SVGLineElement$Dart = _;
+    DOM$fixClass$SVGLineElement(_);
+  }
+  if ((_ = w.SVGLinearGradientElement)) {
+    w.SVGLinearGradientElement$Dart = _;
+    DOM$fixClass$SVGLinearGradientElement(_);
+  }
+  if ((_ = w.SVGLocatable)) {
+    w.SVGLocatable$Dart = _;
+    DOM$fixClass$SVGLocatable(_);
+  }
+  if ((_ = w.SVGMPathElement)) {
+    w.SVGMPathElement$Dart = _;
+    DOM$fixClass$SVGMPathElement(_);
+  }
+  if ((_ = w.SVGMarkerElement)) {
+    w.SVGMarkerElement$Dart = _;
+    DOM$fixClass$SVGMarkerElement(_);
+  }
+  if ((_ = w.SVGMaskElement)) {
+    w.SVGMaskElement$Dart = _;
+    DOM$fixClass$SVGMaskElement(_);
+  }
+  if ((_ = w.SVGMatrix)) {
+    w.SVGMatrix$Dart = _;
+    DOM$fixClass$SVGMatrix(_);
+  }
+  if ((_ = w.SVGMetadataElement)) {
+    w.SVGMetadataElement$Dart = _;
+    DOM$fixClass$SVGMetadataElement(_);
+  }
+  if ((_ = w.SVGMissingGlyphElement)) {
+    w.SVGMissingGlyphElement$Dart = _;
+    DOM$fixClass$SVGMissingGlyphElement(_);
+  }
+  if ((_ = w.SVGNumber)) {
+    w.SVGNumber$Dart = _;
+    DOM$fixClass$SVGNumber(_);
+  }
+  if ((_ = w.SVGNumberList)) {
+    w.SVGNumberList$Dart = _;
+    DOM$fixClass$SVGNumberList(_);
+  }
+  if ((_ = w.SVGPaint)) {
+    w.SVGPaint$Dart = _;
+    DOM$fixClass$SVGPaint(_);
+  }
+  if ((_ = w.SVGPathElement)) {
+    w.SVGPathElement$Dart = _;
+    DOM$fixClass$SVGPathElement(_);
+  }
+  if ((_ = w.SVGPathSeg)) {
+    w.SVGPathSeg$Dart = _;
+    DOM$fixClass$SVGPathSeg(_);
+  }
+  if ((_ = w.SVGPathSegArcAbs)) {
+    w.SVGPathSegArcAbs$Dart = _;
+    DOM$fixClass$SVGPathSegArcAbs(_);
+  }
+  if ((_ = w.SVGPathSegArcRel)) {
+    w.SVGPathSegArcRel$Dart = _;
+    DOM$fixClass$SVGPathSegArcRel(_);
+  }
+  if ((_ = w.SVGPathSegClosePath)) {
+    w.SVGPathSegClosePath$Dart = _;
+    DOM$fixClass$SVGPathSegClosePath(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoCubicAbs)) {
+    w.SVGPathSegCurvetoCubicAbs$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoCubicAbs(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoCubicRel)) {
+    w.SVGPathSegCurvetoCubicRel$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoCubicRel(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoCubicSmoothAbs)) {
+    w.SVGPathSegCurvetoCubicSmoothAbs$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoCubicSmoothAbs(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoCubicSmoothRel)) {
+    w.SVGPathSegCurvetoCubicSmoothRel$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoCubicSmoothRel(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoQuadraticAbs)) {
+    w.SVGPathSegCurvetoQuadraticAbs$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoQuadraticAbs(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoQuadraticRel)) {
+    w.SVGPathSegCurvetoQuadraticRel$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoQuadraticRel(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoQuadraticSmoothAbs)) {
+    w.SVGPathSegCurvetoQuadraticSmoothAbs$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoQuadraticSmoothAbs(_);
+  }
+  if ((_ = w.SVGPathSegCurvetoQuadraticSmoothRel)) {
+    w.SVGPathSegCurvetoQuadraticSmoothRel$Dart = _;
+    DOM$fixClass$SVGPathSegCurvetoQuadraticSmoothRel(_);
+  }
+  if ((_ = w.SVGPathSegLinetoAbs)) {
+    w.SVGPathSegLinetoAbs$Dart = _;
+    DOM$fixClass$SVGPathSegLinetoAbs(_);
+  }
+  if ((_ = w.SVGPathSegLinetoHorizontalAbs)) {
+    w.SVGPathSegLinetoHorizontalAbs$Dart = _;
+    DOM$fixClass$SVGPathSegLinetoHorizontalAbs(_);
+  }
+  if ((_ = w.SVGPathSegLinetoHorizontalRel)) {
+    w.SVGPathSegLinetoHorizontalRel$Dart = _;
+    DOM$fixClass$SVGPathSegLinetoHorizontalRel(_);
+  }
+  if ((_ = w.SVGPathSegLinetoRel)) {
+    w.SVGPathSegLinetoRel$Dart = _;
+    DOM$fixClass$SVGPathSegLinetoRel(_);
+  }
+  if ((_ = w.SVGPathSegLinetoVerticalAbs)) {
+    w.SVGPathSegLinetoVerticalAbs$Dart = _;
+    DOM$fixClass$SVGPathSegLinetoVerticalAbs(_);
+  }
+  if ((_ = w.SVGPathSegLinetoVerticalRel)) {
+    w.SVGPathSegLinetoVerticalRel$Dart = _;
+    DOM$fixClass$SVGPathSegLinetoVerticalRel(_);
+  }
+  if ((_ = w.SVGPathSegList)) {
+    w.SVGPathSegList$Dart = _;
+    DOM$fixClass$SVGPathSegList(_);
+  }
+  if ((_ = w.SVGPathSegMovetoAbs)) {
+    w.SVGPathSegMovetoAbs$Dart = _;
+    DOM$fixClass$SVGPathSegMovetoAbs(_);
+  }
+  if ((_ = w.SVGPathSegMovetoRel)) {
+    w.SVGPathSegMovetoRel$Dart = _;
+    DOM$fixClass$SVGPathSegMovetoRel(_);
+  }
+  if ((_ = w.SVGPatternElement)) {
+    w.SVGPatternElement$Dart = _;
+    DOM$fixClass$SVGPatternElement(_);
+  }
+  if ((_ = w.SVGPoint)) {
+    w.SVGPoint$Dart = _;
+    DOM$fixClass$SVGPoint(_);
+  }
+  if ((_ = w.SVGPointList)) {
+    w.SVGPointList$Dart = _;
+    DOM$fixClass$SVGPointList(_);
+  }
+  if ((_ = w.SVGPolygonElement)) {
+    w.SVGPolygonElement$Dart = _;
+    DOM$fixClass$SVGPolygonElement(_);
+  }
+  if ((_ = w.SVGPolylineElement)) {
+    w.SVGPolylineElement$Dart = _;
+    DOM$fixClass$SVGPolylineElement(_);
+  }
+  if ((_ = w.SVGPreserveAspectRatio)) {
+    w.SVGPreserveAspectRatio$Dart = _;
+    DOM$fixClass$SVGPreserveAspectRatio(_);
+  }
+  if ((_ = w.SVGRadialGradientElement)) {
+    w.SVGRadialGradientElement$Dart = _;
+    DOM$fixClass$SVGRadialGradientElement(_);
+  }
+  if ((_ = w.SVGRect)) {
+    w.SVGRect$Dart = _;
+    DOM$fixClass$SVGRect(_);
+  }
+  if ((_ = w.SVGRectElement)) {
+    w.SVGRectElement$Dart = _;
+    DOM$fixClass$SVGRectElement(_);
+  }
+  if ((_ = w.SVGRenderingIntent)) {
+    w.SVGRenderingIntent$Dart = _;
+    DOM$fixClass$SVGRenderingIntent(_);
+  }
+  if ((_ = w.SVGSVGElement)) {
+    w.SVGSVGElement$Dart = _;
+    DOM$fixClass$SVGSVGElement(_);
+  }
+  if ((_ = w.SVGScriptElement)) {
+    w.SVGScriptElement$Dart = _;
+    DOM$fixClass$SVGScriptElement(_);
+  }
+  if ((_ = w.SVGSetElement)) {
+    w.SVGSetElement$Dart = _;
+    DOM$fixClass$SVGSetElement(_);
+  }
+  if ((_ = w.SVGStopElement)) {
+    w.SVGStopElement$Dart = _;
+    DOM$fixClass$SVGStopElement(_);
+  }
+  if ((_ = w.SVGStringList)) {
+    w.SVGStringList$Dart = _;
+    DOM$fixClass$SVGStringList(_);
+  }
+  if ((_ = w.SVGStylable)) {
+    w.SVGStylable$Dart = _;
+    DOM$fixClass$SVGStylable(_);
+  }
+  if ((_ = w.SVGStyleElement)) {
+    w.SVGStyleElement$Dart = _;
+    DOM$fixClass$SVGStyleElement(_);
+  }
+  if ((_ = w.SVGSwitchElement)) {
+    w.SVGSwitchElement$Dart = _;
+    DOM$fixClass$SVGSwitchElement(_);
+  }
+  if ((_ = w.SVGSymbolElement)) {
+    w.SVGSymbolElement$Dart = _;
+    DOM$fixClass$SVGSymbolElement(_);
+  }
+  if ((_ = w.SVGTRefElement)) {
+    w.SVGTRefElement$Dart = _;
+    DOM$fixClass$SVGTRefElement(_);
+  }
+  if ((_ = w.SVGTSpanElement)) {
+    w.SVGTSpanElement$Dart = _;
+    DOM$fixClass$SVGTSpanElement(_);
+  }
+  if ((_ = w.SVGTests)) {
+    w.SVGTests$Dart = _;
+    DOM$fixClass$SVGTests(_);
+  }
+  if ((_ = w.SVGTextContentElement)) {
+    w.SVGTextContentElement$Dart = _;
+    DOM$fixClass$SVGTextContentElement(_);
+  }
+  if ((_ = w.SVGTextElement)) {
+    w.SVGTextElement$Dart = _;
+    DOM$fixClass$SVGTextElement(_);
+  }
+  if ((_ = w.SVGTextPathElement)) {
+    w.SVGTextPathElement$Dart = _;
+    DOM$fixClass$SVGTextPathElement(_);
+  }
+  if ((_ = w.SVGTextPositioningElement)) {
+    w.SVGTextPositioningElement$Dart = _;
+    DOM$fixClass$SVGTextPositioningElement(_);
+  }
+  if ((_ = w.SVGTitleElement)) {
+    w.SVGTitleElement$Dart = _;
+    DOM$fixClass$SVGTitleElement(_);
+  }
+  if ((_ = w.SVGTransform)) {
+    w.SVGTransform$Dart = _;
+    DOM$fixClass$SVGTransform(_);
+  }
+  if ((_ = w.SVGTransformList)) {
+    w.SVGTransformList$Dart = _;
+    DOM$fixClass$SVGTransformList(_);
+  }
+  if ((_ = w.SVGTransformable)) {
+    w.SVGTransformable$Dart = _;
+    DOM$fixClass$SVGTransformable(_);
+  }
+  if ((_ = w.SVGURIReference)) {
+    w.SVGURIReference$Dart = _;
+    DOM$fixClass$SVGURIReference(_);
+  }
+  if ((_ = w.SVGUnitTypes)) {
+    w.SVGUnitTypes$Dart = _;
+    DOM$fixClass$SVGUnitTypes(_);
+  }
+  if ((_ = w.SVGUseElement)) {
+    w.SVGUseElement$Dart = _;
+    DOM$fixClass$SVGUseElement(_);
+  }
+  if ((_ = w.SVGVKernElement)) {
+    w.SVGVKernElement$Dart = _;
+    DOM$fixClass$SVGVKernElement(_);
+  }
+  if ((_ = w.SVGViewElement)) {
+    w.SVGViewElement$Dart = _;
+    DOM$fixClass$SVGViewElement(_);
+  }
+  if ((_ = w.SVGViewSpec)) {
+    w.SVGViewSpec$Dart = _;
+    DOM$fixClass$SVGViewSpec(_);
+  }
+  if ((_ = w.SVGZoomAndPan)) {
+    w.SVGZoomAndPan$Dart = _;
+    DOM$fixClass$SVGZoomAndPan(_);
+  }
+  if ((_ = w.SVGZoomEvent)) {
+    w.SVGZoomEvent$Dart = _;
+    DOM$fixClass$SVGZoomEvent(_);
+  }
   if (!w.Screen && (_ = w.screen) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.Screen = _;
   }
@@ -6858,6 +9880,18 @@ var _;
     w.TextMetrics$Dart = _;
     DOM$fixClass$TextMetrics(_);
   }
+  if ((_ = w.TextTrack)) {
+    w.TextTrack$Dart = _;
+    DOM$fixClass$TextTrack(_);
+  }
+  if ((_ = w.TextTrackCue)) {
+    w.TextTrackCue$Dart = _;
+    DOM$fixClass$TextTrackCue(_);
+  }
+  if ((_ = w.TextTrackCueList)) {
+    w.TextTrackCueList$Dart = _;
+    DOM$fixClass$TextTrackCueList(_);
+  }
   if ((_ = w.TimeRanges)) {
     w.TimeRanges$Dart = _;
     DOM$fixClass$TimeRanges(_);
@@ -6918,6 +9952,14 @@ var _;
     w.WebGLContextEvent$Dart = _;
     DOM$fixClass$WebGLContextEvent(_);
   }
+  if ((_ = w.WebGLDebugRendererInfo)) {
+    w.WebGLDebugRendererInfo$Dart = _;
+    DOM$fixClass$WebGLDebugRendererInfo(_);
+  }
+  if ((_ = w.WebGLDebugShaders)) {
+    w.WebGLDebugShaders$Dart = _;
+    DOM$fixClass$WebGLDebugShaders(_);
+  }
   if ((_ = w.WebGLFramebuffer)) {
     w.WebGLFramebuffer$Dart = _;
     DOM$fixClass$WebGLFramebuffer(_);
@@ -6966,6 +10008,10 @@ var _;
     w.WebKitBlobBuilder$Dart = _;
     DOM$fixClass$WebKitBlobBuilder(_);
   }
+  if ((_ = w.WebKitCSSFilterValue)) {
+    w.WebKitCSSFilterValue$Dart = _;
+    DOM$fixClass$WebKitCSSFilterValue(_);
+  }
   if ((_ = w.WebKitCSSKeyframeRule)) {
     w.WebKitCSSKeyframeRule$Dart = _;
     DOM$fixClass$WebKitCSSKeyframeRule(_);
@@ -6989,6 +10035,10 @@ var _;
   if ((_ = w.WebKitLoseContext)) {
     w.WebKitLoseContext$Dart = _;
     DOM$fixClass$WebKitLoseContext(_);
+  }
+  if ((_ = w.WebKitMutationObserver)) {
+    w.WebKitMutationObserver$Dart = _;
+    DOM$fixClass$WebKitMutationObserver(_);
   }
   if ((_ = w.WebKitPoint)) {
     w.WebKitPoint$Dart = _;
@@ -7070,36 +10120,6 @@ var _;
   if (tmpLocation) {
     w.Location = tmpLocation;
   }
-
-  // TODO(vsm): Refactor additional implementation code to a separate file.
-  w.DOMWindow.prototype.createXMLHttpRequest = function() {
-    return new XMLHttpRequest();
-  };
-
-  w.DOMWindow.prototype.createWebKitCSSMatrix = function(opt_value) {
-    if (typeof opt_value === "undefined")
-      return new WebKitCSSMatrix();
-    else
-      return new WebKitCSSMatrix(opt_value);
-  };
-
-  w.DOMWindow.prototype.createWebKitPoint = function(x, y) {
-    return new WebKitPoint(x, y);
-  };
-
-  w.DOMWindow.prototype.createFileReader = function() {
-    return new FileReader();
-  };
-
-  // TODO(vsm): These will eventually be changed to attributes
-  // with a getter and setter (see b/4341558).
-  w.CanvasRenderingContext2D.prototype.setFillStyle = function(value) {
-    this.fillStyle = value;
-  };
-
-  w.CanvasRenderingContext2D.prototype.setStrokeStyle = function(value) {
-    this.strokeStyle = value;
-  };
 
   // Chrome still uses initWebKitWheelEvent.
   if (w && w.WheelEvent && w.WheelEvent.prototype &&

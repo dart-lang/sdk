@@ -1,5 +1,5 @@
 
-class WebGLFramebuffer native "WebGLFramebuffer" {
+class WebGLFramebuffer native "*WebGLFramebuffer" {
 
   var dartObjectLocalStorage;
 

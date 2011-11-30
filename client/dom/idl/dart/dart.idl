@@ -32,26 +32,6 @@ module dom {
   Element implements ElementTraversal;
 };
 
-module window {
-  [Supplemental]
-  interface Window {
-    // Provide a different signature for postMessage.  Because one of the
-    // desired signatures conflicts with an existing option, it is simpler to
-    // completely suppress postMessage and introduce a new
-    // postMessage_replacement that is renamed as postMessage.
-    [Suppressed] void postMessage(in SerializedScriptValue message, [Optional] in MessagePort messagePort, in DOMString targetOrigin)
-        raises(DOMException);
-
-    [DartName=postMessage, ImplementationFunction=postMessage]
-    void postMessage_replacement(in SerializedScriptValue message, in DOMString targetOrigin)
-      raises(DOMException);
-    [DartName=postMessage, ImplementationFunction=postMessage]
-    void postMessage_replacement(in SerializedScriptValue message, in MessagePort messagePort, in DOMString targetOrigin)
-      raises(DOMException);
-
-  };
-};
-
 module html {
   [Supplemental]
   interface Console {

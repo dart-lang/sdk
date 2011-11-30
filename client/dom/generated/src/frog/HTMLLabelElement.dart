@@ -1,5 +1,5 @@
 
-class HTMLLabelElement extends HTMLElement native "HTMLLabelElement" {
+class HTMLLabelElement extends HTMLElement native "*HTMLLabelElement" {
 
   String accessKey;
 

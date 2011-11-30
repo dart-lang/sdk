@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Point factory _PointFactoryProvider {
+interface Point factory PointFactoryProvider {
 
   Point(num x, num y);
 

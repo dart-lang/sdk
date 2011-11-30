@@ -43,9 +43,13 @@ class ObjectStore {
     kOneByteStringClass,
     kTwoByteStringClass,
     kFourByteStringClass,
+    kExternalOneByteStringClass,
+    kExternalTwoByteStringClass,
+    kExternalFourByteStringClass,
     kBoolClass,
     kArrayClass,
     kImmutableArrayClass,
+    kByteBufferClass,
     kUnhandledExceptionClass,
     kStacktraceClass,
     kJSRegExpClass,
@@ -126,6 +130,27 @@ class ObjectStore {
     four_byte_string_class_ = value.raw();
   }
 
+  RawClass* external_one_byte_string_class() const {
+    return external_one_byte_string_class_;
+  }
+  void set_external_one_byte_string_class(const Class& value) {
+    external_one_byte_string_class_ = value.raw();
+  }
+
+  RawClass* external_two_byte_string_class() const {
+    return external_two_byte_string_class_;
+  }
+  void set_external_two_byte_string_class(const Class& value) {
+    external_two_byte_string_class_ = value.raw();
+  }
+
+  RawClass* external_four_byte_string_class() const {
+    return external_four_byte_string_class_;
+  }
+  void set_external_four_byte_string_class(const Class& value) {
+    external_four_byte_string_class_ = value.raw();
+  }
+
   RawType* bool_interface() const { return bool_interface_; }
   void set_bool_interface(const Type& value) { bool_interface_ = value.raw(); }
 
@@ -146,6 +171,11 @@ class ObjectStore {
   RawClass* immutable_array_class() const { return immutable_array_class_; }
   void set_immutable_array_class(const Class& value) {
     immutable_array_class_ = value.raw();
+  }
+
+  RawClass* byte_buffer_class() const { return byte_buffer_class_; }
+  void set_byte_buffer_class(const Class& value) {
+    byte_buffer_class_ = value.raw();
   }
 
   RawClass* unhandled_exception_class() const {
@@ -189,6 +219,13 @@ class ObjectStore {
   RawLibrary* core_impl_library() const { return core_impl_library_; }
   void set_core_impl_library(const Library& value) {
     core_impl_library_ = value.raw();
+  }
+
+  RawLibrary* native_wrappers_library() const {
+    return native_wrappers_library_;
+  }
+  void set_native_wrappers_library(const Library& value) {
+    native_wrappers_library_ = value.raw();
   }
 
   RawLibrary* root_library() const { return root_library_; }
@@ -259,11 +296,15 @@ class ObjectStore {
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
   RawClass* four_byte_string_class_;
+  RawClass* external_one_byte_string_class_;
+  RawClass* external_two_byte_string_class_;
+  RawClass* external_four_byte_string_class_;
   RawType* bool_interface_;
   RawClass* bool_class_;
   RawType* list_interface_;
   RawClass* array_class_;
   RawClass* immutable_array_class_;
+  RawClass* byte_buffer_class_;
   RawClass* unhandled_exception_class_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
@@ -273,6 +314,7 @@ class ObjectStore {
   RawArray* symbol_table_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
+  RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* registered_libraries_;
   RawArray* pending_classes_;

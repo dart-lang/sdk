@@ -7,14 +7,16 @@
 class WhatchamaCallIt {
   WhatchamaCallIt() { }
 
-  void foo() {
-    return "Hansel and $name";  // Field name is defined in subclass.
+  String foo() {
+    // Test $this and Field name is defined in subclass.
+    return "$this and $name";
   }
 }
 
 class ThingamaBob extends WhatchamaCallIt {
   ThingamaBob(String s) : super(), name = s { }
   String name;
+  toString() => "Hansel";
 }
 
 class StringInterpolateTest {
@@ -28,7 +30,7 @@ class StringInterpolateTest {
   static testMain() {
     Printers = "Printers: $A and $B";
     AAR_Printers  = "AAR has $N $Printers.";
-    
+
     var x = 1;
     var s = "eins und \$x macht zwei.";
     print(s);

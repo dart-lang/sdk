@@ -21,6 +21,12 @@ void CodePatcher::PatchStaticCallAt(uword return_address, uword new_target) {
 }
 
 
+bool CodePatcher::IsDartCall(uword return_address) {
+  UNIMPLEMENTED();
+  return false;
+}
+
+
 void CodePatcher::GetInstanceCallAt(uword return_address,
                                     String* function_name,
                                     int* num_arguments,

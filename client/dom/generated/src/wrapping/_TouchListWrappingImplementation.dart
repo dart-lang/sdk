@@ -11,8 +11,8 @@ class _TouchListWrappingImplementation extends DOMWrapperBase implements TouchLi
     return new _TouchListWrappingImplementation();
   }
 
-  int get length() { return _get__TouchList_length(this); }
-  static int _get__TouchList_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   Touch operator[](int index) {
     return item(index);

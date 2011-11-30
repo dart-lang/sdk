@@ -124,7 +124,7 @@ public class Elements {
   }
 
   @VisibleForTesting
-  public static MethodElement methodFromMethodNode(DartMethodDefinition node, 
+  public static MethodElement methodFromMethodNode(DartMethodDefinition node,
       EnclosingElement holder) {
     return MethodElementImplementation.fromMethodNode(node, holder);
   }

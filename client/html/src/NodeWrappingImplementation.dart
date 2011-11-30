@@ -57,8 +57,9 @@ class _ChildrenNodeList implements NodeList {
     return false;
   }
 
+  /** @domName Node.hasChildNodes */
   bool isEmpty() {
-    return _node.hasChildNodes();
+    return !_node.hasChildNodes();
   }
 
   int get length() {
@@ -77,6 +78,7 @@ class _ChildrenNodeList implements NodeList {
      throw new UnsupportedOperationException('');
    }
 
+  /** @domName Node.appendChild */
   Node add(Node value) {
     _node.appendChild(LevelDom.unwrap(value));
     return value;
@@ -196,6 +198,7 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
     return this;
   }
 
+  /** @domName contains */
   bool contains(Node otherNode) {
     // TODO: Feature detect and use built in.
     while (otherNode != null && otherNode != this) {

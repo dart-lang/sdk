@@ -1,5 +1,5 @@
 
-class CanvasRenderingContext native "CanvasRenderingContext" {
+class CanvasRenderingContext native "*CanvasRenderingContext" {
 
   HTMLCanvasElement canvas;
 

@@ -1,13 +1,7 @@
 
-class IDBDatabase native "IDBDatabase" {
+class IDBDatabase native "*IDBDatabase" {
 
   String name;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onversionchange;
 
   String version;
 
@@ -24,6 +18,8 @@ class IDBDatabase native "IDBDatabase" {
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   IDBVersionChangeRequest setVersion(String version) native;
+
+  IDBTransaction transaction(String storeName, int mode) native;
 
   var dartObjectLocalStorage;
 

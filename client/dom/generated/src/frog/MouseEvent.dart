@@ -1,5 +1,5 @@
 
-class MouseEvent extends UIEvent native "MouseEvent" {
+class MouseEvent extends UIEvent native "*MouseEvent" {
 
   bool altKey;
 
@@ -10,6 +10,8 @@ class MouseEvent extends UIEvent native "MouseEvent" {
   int clientY;
 
   bool ctrlKey;
+
+  Clipboard dataTransfer;
 
   Node fromElement;
 

@@ -1,5 +1,5 @@
 
-class HTMLSelectElement extends HTMLElement native "HTMLSelectElement" {
+class HTMLSelectElement extends HTMLElement native "*HTMLSelectElement" {
 
   bool autofocus;
 
@@ -41,7 +41,7 @@ class HTMLSelectElement extends HTMLElement native "HTMLSelectElement" {
 
   Node namedItem(String name) native;
 
-  void remove(int index) native;
+  void remove(var index_OR_option) native;
 
   void setCustomValidity(String error) native;
 }

@@ -11,26 +11,26 @@ class _HTMLProgressElementWrappingImplementation extends _HTMLElementWrappingImp
     return new _HTMLProgressElementWrappingImplementation();
   }
 
-  HTMLFormElement get form() { return _get__HTMLProgressElement_form(this); }
-  static HTMLFormElement _get__HTMLProgressElement_form(var _this) native;
+  HTMLFormElement get form() { return _get_form(this); }
+  static HTMLFormElement _get_form(var _this) native;
 
-  NodeList get labels() { return _get__HTMLProgressElement_labels(this); }
-  static NodeList _get__HTMLProgressElement_labels(var _this) native;
+  NodeList get labels() { return _get_labels(this); }
+  static NodeList _get_labels(var _this) native;
 
-  num get max() { return _get__HTMLProgressElement_max(this); }
-  static num _get__HTMLProgressElement_max(var _this) native;
+  num get max() { return _get_max(this); }
+  static num _get_max(var _this) native;
 
-  void set max(num value) { _set__HTMLProgressElement_max(this, value); }
-  static void _set__HTMLProgressElement_max(var _this, num value) native;
+  void set max(num value) { _set_max(this, value); }
+  static void _set_max(var _this, num value) native;
 
-  num get position() { return _get__HTMLProgressElement_position(this); }
-  static num _get__HTMLProgressElement_position(var _this) native;
+  num get position() { return _get_position(this); }
+  static num _get_position(var _this) native;
 
-  num get value() { return _get__HTMLProgressElement_value(this); }
-  static num _get__HTMLProgressElement_value(var _this) native;
+  num get value() { return _get_value(this); }
+  static num _get_value(var _this) native;
 
-  void set value(num value) { _set__HTMLProgressElement_value(this, value); }
-  static void _set__HTMLProgressElement_value(var _this, num value) native;
+  void set value(num value) { _set_value(this, value); }
+  static void _set_value(var _this, num value) native;
 
   String get typeName() { return "HTMLProgressElement"; }
 }

@@ -11,14 +11,14 @@ class _WebKitCSSKeyframesRuleWrappingImplementation extends _CSSRuleWrappingImpl
     return new _WebKitCSSKeyframesRuleWrappingImplementation();
   }
 
-  CSSRuleList get cssRules() { return _get__WebKitCSSKeyframesRule_cssRules(this); }
-  static CSSRuleList _get__WebKitCSSKeyframesRule_cssRules(var _this) native;
+  CSSRuleList get cssRules() { return _get_cssRules(this); }
+  static CSSRuleList _get_cssRules(var _this) native;
 
-  String get name() { return _get__WebKitCSSKeyframesRule_name(this); }
-  static String _get__WebKitCSSKeyframesRule_name(var _this) native;
+  String get name() { return _get_name(this); }
+  static String _get_name(var _this) native;
 
-  void set name(String value) { _set__WebKitCSSKeyframesRule_name(this, value); }
-  static void _set__WebKitCSSKeyframesRule_name(var _this, String value) native;
+  void set name(String value) { _set_name(this, value); }
+  static void _set_name(var _this, String value) native;
 
   void deleteRule(String key) {
     _deleteRule(this, key);

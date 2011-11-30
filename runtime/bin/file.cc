@@ -159,8 +159,9 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
     if (total_bytes_read >= 0) {
       result =
           Dart_ListSetAsBytes(buffer_obj, offset, buffer, total_bytes_read);
-      ASSERT(!Dart_IsError(result));
-      return_value = total_bytes_read;
+      if (!Dart_IsError(result)) {
+        return_value = total_bytes_read;
+      }
     }
     delete[] buffer;
   }
@@ -215,6 +216,38 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  bool return_value = false;
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
+  if (file != NULL) {
+    int64_t position =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+    return_value = file->SetPosition(position);
+  }
+  Dart_SetReturnValue(args, Dart_NewBoolean(return_value));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  bool return_value = false;
+  intptr_t value =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = reinterpret_cast<File*>(value);
+  if (file != NULL) {
+    int64_t length =
+        DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+    return_value = file->Truncate(length);
+  }
+  Dart_SetReturnValue(args, Dart_NewBoolean(return_value));
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t return_value = -1;
@@ -249,6 +282,16 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::Create(str);
+  Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  bool result = File::Delete(str);
   Dart_SetReturnValue(args, Dart_NewBoolean(result));
   Dart_ExitScope();
 }

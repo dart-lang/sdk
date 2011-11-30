@@ -1,3 +1,3 @@
 
-class Comment extends CharacterData native "Comment" {
+class Comment extends CharacterData native "*Comment" {
 }

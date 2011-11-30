@@ -10,6 +10,24 @@
 
 namespace dart {
 
+// Provides private access to PortMap for testing.
+class PortMapTestPeer {
+ public:
+  static bool IsActivePort(Dart_Port port) {
+    MutexLocker ml(PortMap::mutex_);
+    return (PortMap::FindPort(port) >= 0);
+  }
+
+  static bool IsLivePort(Dart_Port port) {
+    MutexLocker ml(PortMap::mutex_);
+    intptr_t index = PortMap::FindPort(port);
+    if (index < 0) {
+      return false;
+    }
+    return PortMap::map_[index].live;
+  }
+};
+
 
 // Intercept the post message callback and just store a copy of the message.
 static const int kMaxSavedMsg = 80;
@@ -45,10 +63,10 @@ TEST_CASE(PortMap_CreateAndCloseOnePort) {
   InitPortMapTest();
   intptr_t port = PortMap::CreatePort();
   EXPECT_NE(0, port);
-  EXPECT(PortMap::IsActivePort(port));
+  EXPECT(PortMapTestPeer::IsActivePort(port));
 
   PortMap::ClosePort(port);
-  EXPECT(!PortMap::IsActivePort(port));
+  EXPECT(!PortMapTestPeer::IsActivePort(port));
 
   // Embedder was notified of port closure.
   EXPECT_EQ(port, saved_port);
@@ -59,20 +77,20 @@ TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
   InitPortMapTest();
   Dart_Port port1 = PortMap::CreatePort();
   Dart_Port port2 = PortMap::CreatePort();
-  EXPECT(PortMap::IsActivePort(port1));
-  EXPECT(PortMap::IsActivePort(port2));
+  EXPECT(PortMapTestPeer::IsActivePort(port1));
+  EXPECT(PortMapTestPeer::IsActivePort(port2));
 
   // Uniqueness.
   EXPECT_NE(port1, port2);
 
   PortMap::ClosePort(port1);
-  EXPECT(!PortMap::IsActivePort(port1));
-  EXPECT(PortMap::IsActivePort(port2));
+  EXPECT(!PortMapTestPeer::IsActivePort(port1));
+  EXPECT(PortMapTestPeer::IsActivePort(port2));
   EXPECT_EQ(port1, saved_port);
 
   PortMap::ClosePort(port2);
-  EXPECT(!PortMap::IsActivePort(port1));
-  EXPECT(!PortMap::IsActivePort(port2));
+  EXPECT(!PortMapTestPeer::IsActivePort(port1));
+  EXPECT(!PortMapTestPeer::IsActivePort(port2));
   EXPECT_EQ(port2, saved_port);
 }
 
@@ -81,13 +99,13 @@ TEST_CASE(PortMap_ClosePorts) {
   InitPortMapTest();
   Dart_Port port1 = PortMap::CreatePort();
   Dart_Port port2 = PortMap::CreatePort();
-  EXPECT(PortMap::IsActivePort(port1));
-  EXPECT(PortMap::IsActivePort(port2));
+  EXPECT(PortMapTestPeer::IsActivePort(port1));
+  EXPECT(PortMapTestPeer::IsActivePort(port2));
 
   // Close all ports at once.
   PortMap::ClosePorts();
-  EXPECT(!PortMap::IsActivePort(port1));
-  EXPECT(!PortMap::IsActivePort(port2));
+  EXPECT(!PortMapTestPeer::IsActivePort(port1));
+  EXPECT(!PortMapTestPeer::IsActivePort(port2));
 
   // Embedder is notified to close all ports as well.
   EXPECT_EQ(kCloseAllPorts, saved_port);
@@ -98,10 +116,30 @@ TEST_CASE(PortMap_CreateManyPorts) {
   InitPortMapTest();
   for (int i = 0; i < 32; i++) {
     Dart_Port port = PortMap::CreatePort();
-    EXPECT(PortMap::IsActivePort(port));
+    EXPECT(PortMapTestPeer::IsActivePort(port));
     PortMap::ClosePort(port);
-    EXPECT(!PortMap::IsActivePort(port));
+    EXPECT(!PortMapTestPeer::IsActivePort(port));
   }
+}
+
+
+TEST_CASE(PortMap_SetLive) {
+  InitPortMapTest();
+  intptr_t port = PortMap::CreatePort();
+  EXPECT_NE(0, port);
+  EXPECT(PortMapTestPeer::IsActivePort(port));
+  EXPECT(!PortMapTestPeer::IsLivePort(port));
+
+  PortMap::SetLive(port);
+  EXPECT(PortMapTestPeer::IsActivePort(port));
+  EXPECT(PortMapTestPeer::IsLivePort(port));
+
+  PortMap::ClosePort(port);
+  EXPECT(!PortMapTestPeer::IsActivePort(port));
+  EXPECT(!PortMapTestPeer::IsLivePort(port));
+
+  // Embedder was notified of port closure.
+  EXPECT_EQ(port, saved_port);
 }
 
 

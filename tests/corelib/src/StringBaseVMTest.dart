@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing class 'StringBase' (currently VM specific).
-// We use that flag to disable privacy.
-// VMOptions=--expose_core_impl
 
 #library("StringBaseTest.dart");
 #import("dart:coreimpl");
@@ -25,18 +23,14 @@ class StringBaseTest {
   }
 
   static testInterpolation() {
-    Expect.equals("", StringBase._interpolate([]));
-    Expect.equals("Hello World",
-        StringBase._interpolate(["Hello", " ", "World"]));
-    Expect.equals("Hello StringBase Tester!",
-        StringBase._interpolate(["Hello ", new StringBaseTest(), "!"]));
-
     var answer = 40 + 2;
     var s = "The answer is $answer.";
     Expect.equals("The answer is 42.", s);
 
-    int numBottles = 99;
+    int numBottles = 33;
     String wall = "wall";
+    s = "${numBottles*3} bottles of beer on the $wall.";
+    Expect.equals("99 bottles of beer on the wall.", s);
   }
 
   static testCreation() {

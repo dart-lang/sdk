@@ -1,5 +1,5 @@
 
-class WebGLContextAttributes native "WebGLContextAttributes" {
+class WebGLContextAttributes native "*WebGLContextAttributes" {
 
   bool alpha;
 

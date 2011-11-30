@@ -1,5 +1,5 @@
 
-class CSSStyleSheet extends StyleSheet native "CSSStyleSheet" {
+class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
   CSSRuleList cssRules;
 

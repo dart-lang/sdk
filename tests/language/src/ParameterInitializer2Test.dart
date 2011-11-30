@@ -76,6 +76,7 @@ class F {
   int az_;
 }
 
+
 main() {
   ParameterInitializer2Test.testMain();
 }

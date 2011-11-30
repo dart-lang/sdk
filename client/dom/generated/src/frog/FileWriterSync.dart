@@ -1,5 +1,5 @@
 
-class FileWriterSync native "FileWriterSync" {
+class FileWriterSync native "*FileWriterSync" {
 
   int length;
 

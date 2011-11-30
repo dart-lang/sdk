@@ -15,4 +15,6 @@ interface XPathException {
   String get message();
 
   String get name();
+
+  String toString();
 }

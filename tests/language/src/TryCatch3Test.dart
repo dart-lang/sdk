@@ -9,15 +9,16 @@ interface TestException {
 }
 
 class MyException implements TestException {
-  const MyException([String this.message_ = ""]);
-  String getMessage() { return message_; }
-  final String message_;
+  const MyException([String message = ""]) : this._message = message;
+  String getMessage() { return _message; }
+  final String _message;
 }
 
 class MyParameterizedException<U, V> implements TestException {
-  const MyParameterizedException([String this.message_ = ""]);
-  String getMessage() { return message_; }
-  final String message_;
+  const MyParameterizedException([String message = ""])
+      : this._message = message;
+  String getMessage() { return _message; }
+  final String _message;
 }
 
 class StackTrace {

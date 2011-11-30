@@ -1,11 +1,11 @@
 
-class WorkerContext native "WorkerContext" {
+class WorkerContext native "*WorkerContext" {
 
   WorkerLocation location;
 
   WorkerNavigator navigator;
 
-  EventListener onerror;
+  WorkerContext self;
 
   NotificationCenter webkitNotifications;
 

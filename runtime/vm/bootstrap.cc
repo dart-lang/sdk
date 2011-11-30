@@ -81,7 +81,9 @@ void Bootstrap::Compile(const Library& library, const Script& script) {
         String::Handle(script.url()).ToCString(),
         String::Handle(script.source()).ToCString());
   }
+  library.SetLoadInProgress();
   Compiler::Compile(library, script);
+  library.SetLoaded();
 }
 
 

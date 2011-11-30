@@ -1,5 +1,5 @@
 
-class ImageData native "ImageData" {
+class ImageData native "*ImageData" {
 
   CanvasPixelArray data;
 

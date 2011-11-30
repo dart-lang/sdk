@@ -1,5 +1,5 @@
 
-class HTMLPreElement extends HTMLElement native "HTMLPreElement" {
+class HTMLPreElement extends HTMLElement native "*HTMLPreElement" {
 
   int width;
 

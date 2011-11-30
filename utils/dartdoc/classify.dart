@@ -48,7 +48,7 @@ String classifySource(SourceFile src) {
     }
 
     final kind = classify(token);
-    final text = htmlEscape(token.text);
+    final text = md.escapeHtml(token.text);
     if (kind != null) {
       // Add a secondary class to tokens appearing within a string so that
       // we can highlight tokens in an interpolation specially.
@@ -64,12 +64,6 @@ String classifySource(SourceFile src) {
     }
   }
   return html.toString();
-}
-
-// TODO(rnystrom): should exist in standard lib somewhere
-String htmlEscape(String text) {
-  return text.replaceAll('&', '&amp;').replaceAll(
-      '>', '&gt;').replaceAll('<', '&lt;');
 }
 
 bool _looksLikeType(String name) {

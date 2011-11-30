@@ -1,5 +1,5 @@
 
-class EntrySync native "EntrySync" {
+class EntrySync native "*EntrySync" {
 
   DOMFileSystemSync filesystem;
 

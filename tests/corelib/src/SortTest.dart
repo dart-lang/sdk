@@ -7,13 +7,6 @@
 #import("dart:coreimpl");
 #source("SortHelper.dart");
 
-void checkListEquals(List expected, List actual) {
-  Expect.equals(expected.length, actual.length);
-  for (int i = 0; i < expected.length; i++) {
-    Expect.equals(expected[i], actual[i]);
-  }
-}
-
 main() {
   var compare = (a, b) => a.compareTo(b);
   var sort = (list) => DualPivotQuicksort.sort(list, compare);
@@ -30,17 +23,17 @@ main() {
               1/**/, 1, 1, 1, 1, 1, 1, 1/**/, 1, 1, 1, 1, 1, 1, 1/**/,
               2, 2, 2, 2, 2, 2, 2, 2/**/, 2, 2, 2, 2, 2, 2, 2];
   list.sort(compare);
-  checkListEquals(list, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
+  Expect.listEquals(list, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                           2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
 
   list = [0, 0, 0, 0, 0, 0, 0, 1/**/, 0, 0, 0, 0, 0, 0, 0,
           0/**/, 1, 1, 1, 1, 1, 1, 0/**/, 1, 1, 1, 1, 1, 1, 0/**/,
           2/**/, 2, 2, 2, 2, 2, 2, 2/**/, 2, 2, 2, 2, 2, 2, 2];
   list.sort(compare);
-  checkListEquals(list, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                         0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
+  Expect.listEquals(list, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                           2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
 
   // Pivots: 1 and 8.
   // The second partition will be big (more than 2/3 of the list), and an
@@ -49,7 +42,7 @@ main() {
           1/**/, 4, 5, 2, 5, 0, 1, 8/**/, 8, 8, 5, 2, 2, 9, 8/**/,
           8, 4, 4, 1, 5, 3, 2, 8/**/, 5, 1, 2, 8, 5, 6, 8];
   list.sort(compare);
-  checkListEquals(list, [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2,
-                         2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5,
-                         6, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9]);
+  Expect.listEquals(list, [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2,
+                           2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5,
+                           6, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9]);
 }

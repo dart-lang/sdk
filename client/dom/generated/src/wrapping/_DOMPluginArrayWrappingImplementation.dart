@@ -11,8 +11,8 @@ class _DOMPluginArrayWrappingImplementation extends DOMWrapperBase implements DO
     return new _DOMPluginArrayWrappingImplementation();
   }
 
-  int get length() { return _get__DOMPluginArray_length(this); }
-  static int _get__DOMPluginArray_length(var _this) native;
+  int get length() { return _get_length(this); }
+  static int _get_length(var _this) native;
 
   DOMPlugin item(int index) {
     return _item(this, index);

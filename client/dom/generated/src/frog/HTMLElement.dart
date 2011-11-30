@@ -1,5 +1,5 @@
 
-class HTMLElement extends Element native "HTMLElement" {
+class HTMLElement extends Element native "*HTMLElement" {
 
   HTMLCollection children;
 
@@ -22,6 +22,18 @@ class HTMLElement extends Element native "HTMLElement" {
   String innerText;
 
   bool isContentEditable;
+
+  String itemId;
+
+  DOMSettableTokenList itemProp;
+
+  DOMSettableTokenList itemRef;
+
+  bool itemScope;
+
+  DOMSettableTokenList itemType;
+
+  Object itemValue;
 
   String lang;
 

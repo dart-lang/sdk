@@ -1,5 +1,5 @@
 
-class DeviceOrientationEvent extends Event native "DeviceOrientationEvent" {
+class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
   num alpha;
 

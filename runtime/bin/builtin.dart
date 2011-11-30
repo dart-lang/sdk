@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("builtin");
+#import("dart:nativewrappers");
+#import("dart:coreimpl");
 
 void print(arg) {
   _Logger._printString(arg.toString());
@@ -16,7 +18,7 @@ void exit(int status) {
 }
 
 Socket _stdin;
-OutputStream get stdin() {
+InputStream get stdin() {
   if (_stdin == null) {
     _stdin = new _Socket._internalReadOnly();
     _getStdioHandle(_stdin, 0);
