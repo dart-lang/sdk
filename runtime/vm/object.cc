@@ -2209,15 +2209,27 @@ void ParameterizedType::set_type_state(int8_t state) const {
 
 const char* ParameterizedType::ToCString() const {
   if (IsResolved()) {
-    const char* format = "ParameterizedType: class '%s', args:[%s]";
-    const char* class_name =
-        String::Handle(Class::Handle(type_class()).Name()).ToCString();
-    const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-    intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
-    char* chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len));
-    OS::SNPrint(chars, len, format, class_name, args_cstr);
-    return chars;
+    const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+    if (type_arguments.IsNull()) {
+      const char* format = "ParameterizedType: class '%s'";
+      const char* class_name =
+          String::Handle(Class::Handle(type_class()).Name()).ToCString();
+      intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
+      char* chars = reinterpret_cast<char*>(
+          Isolate::Current()->current_zone()->Allocate(len));
+      OS::SNPrint(chars, len, format, class_name);
+      return chars;
+    } else {
+      const char* format = "ParameterizedType: class '%s', args:[%s]";
+      const char* class_name =
+          String::Handle(Class::Handle(type_class()).Name()).ToCString();
+      const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
+      intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
+      char* chars = reinterpret_cast<char*>(
+          Isolate::Current()->current_zone()->Allocate(len));
+      OS::SNPrint(chars, len, format, class_name, args_cstr);
+      return chars;
+    }
   } else {
     return "Unresolved ParameterizedType";
   }
@@ -2463,10 +2475,7 @@ RawTypeArguments* TypeArguments::NewInstantiatedTypeArguments(
 
 
 const char* TypeArguments::ToCString() const {
-  // TypeArguments is an abstract class, however it may wrap a null.
-  if (IsNull()) {
-    return "NULL TypeArguments";
-  }
+  // TypeArguments is an abstract class.
   UNREACHABLE();
   return "TypeArguments";
 }
