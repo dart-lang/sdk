@@ -540,21 +540,24 @@ md.Node resolveNameReference(String name) {
     return anchor;
   }
 
+  findMember(Type type) {
+    final member = type.members[name];
+    if (member == null) return null;
+
+    // Special case: if the member we've resolved is a property (i.e. it wraps
+    // a getter and/or setter then *that* member itself won't be on the docs,
+    // just the getter or setter will be. So pick one of those to link to.
+    if (member.isProperty) {
+      return member.canGet ? member.getter : member.setter;
+    }
+
+    return member;
+  }
+
   // See if it's another member of the current type.
   if (_currentType != null) {
-    var member = _currentType.members[name];
+    final member = findMember(_currentType);
     if (member != null) {
-      // Special case: if the member we've resolved is a property (i.e. it wraps
-      // a getter and/or setter then *that* member itself won't be on the docs,
-      // just the getter or setter will be. So pick one of those to link to.
-      if (member.isProperty) {
-        if (member.canGet) {
-          member = member.getter;
-        } else {
-          member = member.setter;
-        }
-      }
-
       return makeLink(memberUrl(member));
     }
   }
@@ -564,6 +567,12 @@ md.Node resolveNameReference(String name) {
     final type = _currentLibrary.types[name];
     if (type != null) {
       return makeLink(typeUrl(type));
+    }
+
+    // See if it's a top-level member in the current library.
+    final member = findMember(_currentLibrary.topType);
+    if (member != null) {
+      return makeLink(memberUrl(member));
     }
   }
 
