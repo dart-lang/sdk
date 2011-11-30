@@ -1346,6 +1346,15 @@ void CodeGenerator::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
 }
 
 
+static const Class* CoreClass(const char* c_name) {
+  const String& class_name = String::Handle(String::NewSymbol(c_name));
+  const Class& cls = Class::ZoneHandle(Library::Handle(
+      Library::CoreImplLibrary()).LookupClass(class_name));
+  ASSERT(!cls.IsNull());
+  return &cls;
+}
+
+
 // Optimize instanceof type test by adding inlined tests for:
 // - NULL -> return false.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
@@ -1407,7 +1416,18 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       __ j(ZERO, &runtime_call, Assembler::kNearJump);
       // Object not Smi.
       if (is_raw_type) {
-        if (!type_class.is_interface()) {
+        if (type.IsListInterface()) {
+          Label push_result;
+          // TODO(srdjan) also accept List<Object>.
+          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+          __ CompareObject(ECX, *CoreClass("ObjectArray"));
+          __ j(EQUAL, &push_result, Assembler::kNearJump);
+          __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
+          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+          __ Bind(&push_result);
+          __ PushObject(negate_result ? bool_false : bool_true);
+          __ jmp(&done, Assembler::kNearJump);
+        } else if (!type_class.is_interface()) {
           __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
           __ CompareObject(ECX, type_class);
           __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
@@ -1489,15 +1509,6 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
   __ CompareObject(ECX, cls);
   __ j(EQUAL, label, Assembler::kNearJump);
-}
-
-
-static const Class* CoreClass(const char* c_name) {
-  const String& class_name = String::Handle(String::NewSymbol(c_name));
-  const Class& cls = Class::ZoneHandle(Library::Handle(
-      Library::CoreImplLibrary()).LookupClass(class_name));
-  ASSERT(!cls.IsNull());
-  return &cls;
 }
 
 
