@@ -276,9 +276,6 @@ NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NamingTest: Fail
-NativeClassInheritance2FrogTest: Fail
-NativeClassIsCheck1FrogTest: Fail
-NativeClassIsCheck2FrogTest: Fail
 NonConstSuperNegativeTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
@@ -304,7 +301,6 @@ PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
 RegExp3Test: Fail
 ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
-StringConcatTest: Fail
 StringEscapesTest: Fail
 StringTest: Fail
 SuperImplicitClosureTest: Fail
