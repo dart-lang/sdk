@@ -6,13 +6,17 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartVariable;
@@ -225,5 +229,46 @@ public class Elements {
    */
   public static boolean needsImplicitDefaultConstructor(ClassElement classElement) {
     return !classElement.isObject() && classElement.getConstructors().isEmpty();
+  }
+
+  /**
+   * @return <code>true</code> if {@link #classElement} implements {@link #interfaceElement}.
+   */
+  public static boolean implementsType(ClassElement classElement, ClassElement interfaceElement) {
+    try {
+      for (InterfaceType supertype : classElement.getAllSupertypes()) {
+        if (supertype.getElement().equals(interfaceElement)) {
+          return true;
+        }
+      }
+    } catch (Throwable e) {
+    }
+    return false;
+  }
+
+  /**
+   * @return the "name" or "qualifier.name" raw name of {@link DartMethodDefinition} which
+   *         corresponds the given {@link MethodElement}.
+   */
+  public static String getRawMethodName(MethodElement methodElement) {
+    DartMethodDefinition method = (DartMethodDefinition) methodElement.getNode();
+    // Synthetic method (implicit default constructor).
+    if (method == null) {
+      return methodElement.getEnclosingElement().getName();
+    }
+    // Real method.
+    DartExpression nameExpression = method.getName();
+    return getRawName(nameExpression);
+  }
+
+  private static String getRawName(DartNode name) {
+    if (name instanceof DartIdentifier) {
+      return ((DartIdentifier) name).getTargetName();
+    } else if (name instanceof DartParameterizedNode) {
+      return getRawName(((DartParameterizedNode) name).getExpression());
+    } else {
+      DartPropertyAccess propertyAccess = (DartPropertyAccess) name;
+      return getRawName(propertyAccess.getQualifier()) + "." + getRawName(propertyAccess.getName());
+    }
   }
 }

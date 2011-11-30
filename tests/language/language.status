@@ -70,8 +70,6 @@ Switch3NegativeTest: Crash               # Bug 5318228
 
 
 [ $component == dartc || $component == chromium ]
-FactoryImplementationTest: Fail # Issue 521
-
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
 BlackListedTest/01: Fail # Bug 5469684

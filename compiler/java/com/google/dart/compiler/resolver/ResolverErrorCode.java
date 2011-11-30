@@ -79,8 +79,9 @@ public enum ResolverErrorCode implements ErrorCode {
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   NAME_CLASHES_EXISTING_MEMBER(
       "name clashes with a previously defined member at %sline %d column %d"),
-  NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
+  NEW_EXPRESSION_FACTORY_CONSTRUCTOR("Can not resolve constructor with name '%s' in factory '%s'"),
+  NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
   NOT_A_CLASS("\"%s\" is not a class"),
