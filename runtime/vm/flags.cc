@@ -16,6 +16,8 @@ DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
 // List of registered flags.
 Flag* Flags::flags_ = NULL;
 
+bool Flags::initialized_ = false;
+
 class Flag {
  public:
   enum Type {
@@ -225,8 +227,14 @@ static bool IsValidFlag(const char* name,
 }
 
 
-void Flags::ProcessCommandLineFlags(int number_of_vm_flags,
+bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
                                     const char** vm_flags) {
+  if (initialized_) {
+    return false;
+  }
+
+  initialized_ = true;
+
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
@@ -265,6 +273,8 @@ void Flags::ProcessCommandLineFlags(int number_of_vm_flags,
       flag = flag->next_;
     }
   }
+
+  return true;
 }
 
 }  // namespace dart

@@ -220,10 +220,12 @@ int main(int argc, char** argv) {
     return 255;
   }
 
+  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
-  Dart_Initialize(vm_options.count(), vm_options.arguments(), NULL);
+  Dart_Initialize(NULL);
 
   char* error;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, &error);

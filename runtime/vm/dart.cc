@@ -23,20 +23,19 @@ namespace dart {
 Isolate* Dart::vm_isolate_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
-bool Dart::InitOnce(int argc, const char** argv,
-                    Dart_IsolateCreateCallback callback) {
+bool Dart::InitOnce(Dart_IsolateCreateCallback callback) {
   // TODO(iposva): Fix race condition here.
-  if (vm_isolate_ != NULL) {
+  if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return false;
   }
   OS::InitOnce();
-  Flags::ProcessCommandLineFlags(argc, argv);
   VirtualMemory::InitOnce();
   Isolate::InitOnce();
   PortMap::InitOnce();
   // Create the VM isolate and finish the VM initialization.
   {
     ASSERT(vm_isolate_ == NULL);
+    ASSERT(Flags::Initialized());
     vm_isolate_ = Isolate::Init();
     Zone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);

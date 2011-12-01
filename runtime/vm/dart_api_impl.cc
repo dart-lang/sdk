@@ -520,12 +520,13 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object) {
 
 
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
-DART_EXPORT bool Dart_Initialize(int argc,
-                                 const char** argv,
-                                 Dart_IsolateCreateCallback callback) {
-  return Dart::InitOnce(argc, argv, callback);
+DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback callback) {
+  return Dart::InitOnce(callback);
 }
 
+DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
+  return Flags::ProcessCommandLineFlags(argc, argv);
+}
 
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
   if (Flags::Lookup(flag_name) != NULL) {

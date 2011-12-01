@@ -246,17 +246,24 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
 typedef bool (*Dart_IsolateCreateCallback)(void* callback_data, char** error);
 
 /**
- * Initializes the VM with the given commmand line flags.
+ * Initializes the VM.
  *
- * \param argc The length of the arguments array.
- * \param argv An array of arguments.
  * \param callback A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
  *
  * \return True if initialization is successful.
  */
-DART_EXPORT bool Dart_Initialize(int argc, const char** argv,
-                                 Dart_IsolateCreateCallback callback);
+DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback callback);
+
+/**
+ * Sets command line flags. Should be called before Dart_Initialize.
+ *
+ * \param argc The length of the arguments array.
+ * \param argv An array of arguments.
+ *
+ * \return True if VM flags set successfully.
+ */
+DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv);
 
 /**
  * Returns true if the named VM flag is set.
