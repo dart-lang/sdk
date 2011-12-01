@@ -6,18 +6,20 @@
 
 #import('PrivateMemberLibB.dart');
 
-#source('PrivateMemberLibA.dart');
+class A {
+  int i;
+  int _instanceField;
+  static int _staticField;
+  int _fun1() { return 1; }
+  void _fun2(int i) { }
+}
 
 class Test extends B {
   test() {
-    i = _private1;
-    b = _private1;  /// 01: compile-time error
-    i = _static1;
-    b = _static1;  /// 02: compile-time error
+    i = _instanceField;
+    i = _staticField;
     i = _fun1();
-    b = _fun1();  /// 03: compile-time error
-    _fun4(42);
-    _fun4(true);  /// 04: compile-time error
+    _fun2(42);
   }
 }
 

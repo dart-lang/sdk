@@ -4,11 +4,8 @@
 
 #library('PrivateMemberLibB');
 
-#import('PrivateMemberTest.dart');
+#import('PrivateMember3NegativeTest.dart');
 
 class B extends A {
-  bool _instanceField;
-  static bool _staticField;
-  bool _fun1(bool b) { return true; }
-  void _fun2() { }
+  bool _fun() { return true; }
 }

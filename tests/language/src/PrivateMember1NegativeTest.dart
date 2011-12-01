@@ -2,13 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('PrivateMemberLibB');
+#library('PrivateMemberLibA');
 
-#import('PrivateMemberTest.dart');
+#import('PrivateMemberLibB1.dart');
 
-class B extends A {
-  bool _instanceField;
-  static bool _staticField;
-  bool _fun1(bool b) { return true; }
-  void _fun2() { }
+class A {}
+
+class Test extends B {
+  test() {
+    _instanceField = true;
+  }
+}
+
+void main() {
+  new Test().test();
 }

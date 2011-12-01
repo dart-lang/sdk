@@ -295,6 +295,9 @@ Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
 Prefix15Test: Fail
 Private3Test: Fail
+PrivateMemberTest: Fail
+PrivateMember2NegativeTest: Fail
+PrivateMember3NegativeTest: Fail
 PrivateTest: Fail
 PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
 RegExp3Test: Fail
