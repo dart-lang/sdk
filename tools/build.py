@@ -43,7 +43,7 @@ def ProcessOptions(options):
   if options.arch == 'all':
     options.arch = 'ia32,x64,simarm'
   if options.mode == 'all':
-    options.mode = 'debug,release'
+    options.mode = 'release,debug'
   options.mode = options.mode.split(',')
   options.arch = options.arch.split(',')
   for mode in options.mode:
