@@ -144,6 +144,8 @@ class StandardTestSuite implements TestSuite {
 
   void complexStatusMatching() => false;
 
+  List<String> additionalOptions() => [];
+
   void forEachTest(Function onTest, [Function onDone = null]) {
     doTest = onTest;
     doDone = (ignore) => (onDone != null) ? onDone() : null;
@@ -231,10 +233,10 @@ class StandardTestSuite implements TestSuite {
   void completeHandler(TestCase testCase) {
   }
 
-
   List<List<String>> argumentListsFromFile(String filename,
                                            Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
+    args.addAll(additionalOptions());
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];

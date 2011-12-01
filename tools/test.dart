@@ -16,6 +16,9 @@
 #import("../tests/stub-generator/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
+#import("../frog/tests/frog/test_config.dart");
+#import("../frog/tests/leg/test_config.dart");
+#import("../frog/tests/leg_only/test_config.dart");
 
 main() {
   var startTime = new Date.now();
@@ -37,6 +40,15 @@ main() {
     queue.addTestSuite(new StubGeneratorTestSuite(conf));
     if (conf["component"] == "vm") {
       queue.addTestSuite(new VMTestSuite(conf));
+    }
+    if (conf["patterns"].some((regexp) => regexp.pattern == 'frog')) {
+      queue.addTestSuite(new FrogTestSuite(conf));
+    }
+    if (conf["patterns"].some((regexp) => regexp.pattern == 'leg')) {
+      queue.addTestSuite(new LegTestSuite(conf));
+    }
+    if (conf["patterns"].some((regexp) => regexp.pattern == 'leg_only')) {
+      queue.addTestSuite(new LegOnlyTestSuite(conf));
     }
   }
 }
