@@ -76,7 +76,7 @@ def GetBuildInfo():
 def RunDartcCompiler(mode, outdir):
   """Compiles the client code to javascript for dartc tests."""
   return subprocess.call(
-      [sys.executable, './tools/build.py', '--mode=' + mode])
+      [sys.executable, './tools/build.py', '--mode=' + mode, 'compiler'])
 
 def RunBrowserTests(component, mode, platform):
   """Runs the Dart client tests."""
