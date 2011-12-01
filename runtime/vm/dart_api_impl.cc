@@ -28,15 +28,13 @@
 
 namespace dart {
 
-static const char* CanonicalFunction(const char* func) {
+const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
     return func + 6;
   } else {
     return func;
   }
 }
-
-#define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
 #define RETURN_TYPE_ERROR(dart_handle, Type)                                  \
   do {                                                                        \
@@ -218,7 +216,7 @@ Dart_Handle Api::Success() {
 
 
 Dart_Handle Api::Error(const char* format, ...) {
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE_NOCHECKS(Isolate::Current());
 
   va_list args;
   va_start(args, format);
@@ -238,7 +236,7 @@ Dart_Handle Api::Error(const char* format, ...) {
 
 
 Dart_Handle Api::ErrorFromException(const Object& obj) {
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE_NOCHECKS(Isolate::Current());
 
   ASSERT(obj.IsUnhandledException());
   if (obj.IsUnhandledException()) {
@@ -491,7 +489,8 @@ DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
 
 DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
+  DARTSCOPE_NOCHECKS(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
@@ -503,7 +502,7 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
@@ -553,7 +552,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
   Isolate* isolate = Dart::CreateIsolate();
-  ASSERT(isolate != NULL);
+  assert(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -564,7 +563,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
     return reinterpret_cast<Dart_Isolate>(isolate);
   } else {
     {
-      DARTSCOPE(isolate);
+      DARTSCOPE_NOCHECKS(isolate);
       const String& errmsg =
           String::Handle(isolate->object_store()->sticky_error());
       *error = strdup(errmsg.ToCString());
@@ -576,7 +575,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
 
 
 DART_EXPORT void Dart_ShutdownIsolate() {
-  ASSERT(Isolate::Current() != NULL);
+  CHECK_ISOLATE(Isolate::Current());
   STOP_TIMER(time_total_runtime);
   Dart::ShutdownIsolate();
 }
@@ -588,14 +587,14 @@ DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
 
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate dart_isolate) {
+  CHECK_NO_ISOLATE(Isolate::Current());
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
-  ASSERT(Isolate::Current() == NULL);
   Isolate::SetCurrent(isolate);
 }
 
 
 DART_EXPORT void Dart_ExitIsolate() {
-  ASSERT(Isolate::Current() != NULL);
+  CHECK_ISOLATE(Isolate::Current());
   Isolate::SetCurrent(NULL);
 }
 
@@ -638,7 +637,7 @@ DART_EXPORT void Dart_SetMessageCallbacks(
     Dart_PostMessageCallback post_message_callback,
     Dart_ClosePortCallback close_port_callback) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   ASSERT(post_message_callback != NULL);
   ASSERT(close_port_callback != NULL);
   isolate->set_post_message_callback(post_message_callback);
@@ -740,7 +739,9 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
 
 
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
-  DARTSCOPE(Isolate::Current());
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  DARTSCOPE_NOCHECKS(isolate);
   const Object& object = Object::Handle(Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
   SnapshotWriter writer(false, &data, &allocator);
@@ -800,7 +801,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
 
 DART_EXPORT Dart_Port Dart_GetMainPortId() {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate);
+  CHECK_ISOLATE(isolate);
   return isolate->main_port();
 }
 
@@ -809,7 +810,7 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
 
 DART_EXPORT void Dart_EnterScope() {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* new_scope = new ApiLocalScope(state->top_scope(),
@@ -821,11 +822,10 @@ DART_EXPORT void Dart_EnterScope() {
 
 DART_EXPORT void Dart_ExitScope() {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE_SCOPE(isolate);
   ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
   ApiLocalScope* scope = state->top_scope();
-  ASSERT(scope != NULL);
+
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
   delete scope;  // Free up the old scope which we have just exited.
 }
@@ -835,6 +835,7 @@ DART_EXPORT void Dart_ExitScope() {
 
 
 DART_EXPORT Dart_Handle Dart_Null() {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return Api::Null();
 }
 
@@ -996,11 +997,13 @@ DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
 
 
 DART_EXPORT Dart_Handle Dart_True() {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return Api::True();
 }
 
 
 DART_EXPORT Dart_Handle Dart_False() {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return Api::False();
 }
 
@@ -1013,6 +1016,7 @@ DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
 
 
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return value ? Api::True() : Api::False();
 }
 
@@ -2056,7 +2060,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
 DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
@@ -2088,6 +2092,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
+  CHECK_ISOLATE(Isolate::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   return arguments->Count();
 }

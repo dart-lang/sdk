@@ -107,7 +107,7 @@ UNIT_TEST_CASE(IsSame) {
 
   // Non-instance objects.
   {
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
     const Object& cls1 = Object::Handle(Object::null_class());
     const Object& cls2 = Object::Handle(Object::class_class());
     Dart_Handle class1 = Api::NewLocalHandle(cls1);
@@ -542,7 +542,7 @@ UNIT_TEST_CASE(EnterExitScope) {
   Dart_EnterScope();
   {
     EXPECT(state->top_scope() != NULL);
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewLocalHandle(str1);
     String& str2 = String::Handle();
@@ -567,7 +567,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_Handle handles[2000];
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     const String& str1 = String::Handle(String::New(kTestString1));
     Dart_Handle ref1 = Api::NewLocalHandle(str1);
     for (int i = 0; i < 1000; i++) {
@@ -593,7 +593,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   }
   Dart_ExitScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
@@ -660,7 +660,7 @@ UNIT_TEST_CASE(LocalHandles) {
   ApiLocalScope* scope = state->top_scope();
   Dart_Handle handles[300];
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     Smi& val = Smi::Handle();
 
     // Start a new scope and allocate some local handles.
@@ -1026,7 +1026,7 @@ UNIT_TEST_CASE(InjectNativeFields1) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
     Instance& obj = Instance::Handle();
     obj ^= Api::UnwrapHandle(result);
     const Class& cls = Class::Handle(obj.clazz());
@@ -1112,7 +1112,7 @@ UNIT_TEST_CASE(InjectNativeFields3) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
     Instance& obj = Instance::Handle();
     obj ^= Api::UnwrapHandle(result);
     const Class& cls = Class::Handle(obj.clazz());
@@ -1345,7 +1345,7 @@ UNIT_TEST_CASE(NegativeNativeFieldAccess) {
 
   TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -1517,7 +1517,7 @@ UNIT_TEST_CASE(InvokeDynamic) {
 
   TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -1582,7 +1582,7 @@ UNIT_TEST_CASE(InvokeClosure) {
 
   TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -1859,7 +1859,7 @@ UNIT_TEST_CASE(InstanceOf) {
 UNIT_TEST_CASE(NullReceiver) {
   TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     Dart_Handle function_name = Dart_NewString("toString");
     const int number_of_arguments = 0;
@@ -2658,6 +2658,9 @@ static bool RunLoopTestCallback(void* data, char** error) {
       "  });\n"
       "}\n";
 
+  if (Dart_CurrentIsolate() != NULL) {
+    Dart_ExitIsolate();
+  }
   Dart_Isolate isolate = TestCase::CreateTestIsolate();
   ASSERT(isolate != NULL);
   Dart_EnterScope();
