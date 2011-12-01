@@ -31,15 +31,8 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.
-void GenerateEmbedSmiInCode(Assembler* assembler, int value) {
+void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
   __ Unimplemented("GenerateEmbedSmiInCode");
-}
-
-
-// Generate code for a simple static dart function that returns 42.
-// This is used to test invocation of dart functions from C++.
-void GenerateReturn42(Assembler* assembler) {
-  __ Unimplemented("GenerateReturn42");
 }
 
 }  // namespace dart

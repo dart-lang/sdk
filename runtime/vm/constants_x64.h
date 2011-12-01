@@ -57,6 +57,7 @@ enum XmmRegister {
 
 
 // Register aliases.
+const Register TMP = R11;  // Used as scratch register by the assembler.
 const Register CTX = R12;  // Caches current context in generated code.
 
 // Exception object is passed in this register to the catch handlers when an

@@ -43,8 +43,8 @@ void Assembler::call(Label* label) {
 
 
 void Assembler::call(const ExternalLabel* label) {
-  movq(R11, Immediate(label->address()));
-  call(R11);
+  movq(TMP, Immediate(label->address()));
+  call(TMP);
 }
 
 
@@ -1075,8 +1075,8 @@ void Assembler::jmp(Label* label, bool near) {
 
 
 void Assembler::jmp(const ExternalLabel* label) {
-  movq(R11, Immediate(label->address()));
-  jmp(R11);
+  movq(TMP, Immediate(label->address()));
+  jmp(TMP);
 }
 
 
@@ -1124,35 +1124,24 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
-  UNIMPLEMENTED();
   ASSERT(object.IsZoneHandle());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xB8 + dst);
+  EmitRegisterREX(dst, REX_W);
+  EmitUint8(0xB8 | (dst & 7));
   buffer_.EmitObject(object);
 }
 
 
 void Assembler::PushObject(const Object& object) {
-  UNIMPLEMENTED();
-  ASSERT(object.IsZoneHandle());
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x68);
-  buffer_.EmitObject(object);
+  LoadObject(TMP, object);
+  pushq(TMP);
 }
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  UNIMPLEMENTED();
-  ASSERT(object.IsZoneHandle());
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  if (reg == RAX) {
-    EmitUint8(0x05 + (7 << 3));
-    buffer_.EmitObject(object);
-  } else {
-    EmitUint8(0x81);
-    EmitOperand(7, Operand(reg));
-    buffer_.EmitObject(object);
-  }
+  ASSERT(reg != TMP);
+  LoadObject(TMP, object);
+  cmpq(reg, TMP);
 }
 
 

@@ -1012,6 +1012,31 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, entry) {
   EXPECT_FLOAT_EQ(14.7, res, 0.001);
 }
 
+
+ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  const Object& obj = Object::ZoneHandle(object_store->smi_class());
+  Label fail;
+  __ LoadObject(RAX, obj);
+  __ CompareObject(RAX, obj);
+  __ j(NOT_EQUAL, &fail);
+  __ LoadObject(RCX, obj);
+  __ CompareObject(RCX, obj);
+  __ j(NOT_EQUAL, &fail);
+  __ movl(RAX, Immediate(1));  // OK
+  __ ret();
+  __ Bind(&fail);
+  __ movl(RAX, Immediate(0));  // Fail.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestObjectCompare, entry) {
+  typedef bool (*TestObjectCompare)();
+  bool res = reinterpret_cast<TestObjectCompare>(entry)();
+  EXPECT_EQ(true, res);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

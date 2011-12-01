@@ -2065,7 +2065,8 @@ TEST_CASE(CheckedHandle) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 // Test for Code and Instruction object creation.
 TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler* assembler);
@@ -2104,8 +2105,8 @@ TEST_CASE(EmbedStringInCode) {
 
 // Test for Embedded Smi object in the instructions.
 TEST_CASE(EmbedSmiInCode) {
-  extern void GenerateEmbedSmiInCode(Assembler* assembler, int value);
-  const int kSmiTestValue = 5;
+  extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
+  const intptr_t kSmiTestValue = 5;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   Code& code = Code::Handle(
@@ -2116,6 +2117,24 @@ TEST_CASE(EmbedSmiInCode) {
       reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
   EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
 }
+
+
+#if defined(ARCH_IS_64_BIT)
+// Test for Embedded Smi object in the instructions.
+TEST_CASE(EmbedSmiIn64BitCode) {
+  extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
+  const intptr_t kSmiTestValue = 5L << 32;
+  Assembler _assembler_;
+  GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
+  Code& code = Code::Handle(
+      Code::FinalizeCode("Test_EmbedSmiIn64BitCode", &_assembler_));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  typedef intptr_t (*EmbedSmiCode)();
+  intptr_t retval =
+      reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
+  EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
+}
+#endif
 
 
 TEST_CASE(ExceptionHandlers) {
@@ -2218,6 +2237,6 @@ TEST_CASE(ClassDictionaryIterator) {
   ASSERT(count == 2);
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart
