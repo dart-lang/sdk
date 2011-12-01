@@ -222,16 +222,18 @@ class RawClass : public RawObject {
   RawString* name_;
   RawArray* functions_;
   RawArray* fields_;
+  // TODO(srdjan): RawTypeArguments* interfaces_;  // Array of Type.
   RawArray* interfaces_;  // Array of AbstractType.
   RawScript* script_;
   RawLibrary* library_;
   RawArray* type_parameters_;  // Array of String.
   RawTypeArray* type_parameter_extends_;  // DynamicType if no extends clause.
-  RawAbstractType* super_type_;
+  RawType* super_type_;
   RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
+  // TODO(srdjan): RawTypeArguments* canonical_types_;
   RawArray* canonical_types_;  // Canonicalized types of this class.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {

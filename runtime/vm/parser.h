@@ -213,7 +213,6 @@ class Parser : ValueObject {
   RawAbstractType* ParseType(TypeResolution type_resolution);
   void ParseTypeParameters(const Class& cls);
   RawTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
-  RawAbstractType* ParseInterface();
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
@@ -236,6 +235,7 @@ class Parser : ValueObject {
   void ParseConstructorRedirection(const Class& cls, LocalVariable* receiver);
   void ParseInitializers(const Class& cls, LocalVariable* receiver);
   String& ParseNativeDeclaration();
+  // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* ParseInterfaceList();
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,

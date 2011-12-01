@@ -873,8 +873,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         signature_function.set_signature_class(signature_class);
       }
       ASSERT(signature_function.signature_class() == signature_class.raw());
-      AbstractType& signature_type =
-          AbstractType::ZoneHandle(signature_class.SignatureType());
+      Type& signature_type = Type::ZoneHandle(signature_class.SignatureType());
       if (!is_top_level_ && !signature_type.IsFinalized()) {
         String& errmsg = String::Handle();
         signature_type =
@@ -2474,10 +2473,10 @@ void Parser::ParseClassDefinition(GrowableArray<const Class*>* classes) {
   ASSERT(cls.functions() == Array::Empty());
   set_current_class(cls);
   ParseTypeParameters(cls);
-  AbstractType& super_type = AbstractType::Handle();
+  Type& super_type = Type::Handle();
   if (CurrentToken() == Token::kEXTENDS) {
     ConsumeToken();
-    super_type = ParseType(kCanResolve);
+    super_type ^= ParseType(kCanResolve);
     if (super_type.IsInterfaceType()) {
       ErrorMsg("class '%s' may implement, but cannot extend interface '%s'",
                class_name.ToCString(),
@@ -3729,8 +3728,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // Patch the function type now that the signature is known.
     // We need to create a new type for proper finalization, since the existing
     // type is already marked as finalized.
-    AbstractType& signature_type =
-        AbstractType::Handle(signature_class.SignatureType());
+    Type& signature_type = Type::Handle(signature_class.SignatureType());
     const TypeArguments& signature_type_arguments = TypeArguments::Handle(
         signature_type.arguments());
 
@@ -6574,7 +6572,7 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   }
   TypeArguments& type_arguments =
       TypeArguments::Handle(ParseTypeArguments(type_resolution));
-  AbstractType& type = AbstractType::Handle(
+  Type& type = Type::Handle(
       Type::NewParameterizedType(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
     ASSERT(type_class.IsClass());  // Must be resolved.
@@ -7118,7 +7116,7 @@ AstNode* Parser::ParseNewOperator() {
       ASSERT(signature_class.raw() == type_class.raw());
     }
     // TODO(regis): Temporary type should be allocated in new gen heap.
-    AbstractType& type = Type::Handle(
+    Type& type = Type::Handle(
         Type::NewParameterizedType(signature_class, type_arguments));
     String& errmsg = String::Handle();
     type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);

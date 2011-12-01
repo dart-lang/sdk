@@ -292,20 +292,12 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
   if (cls.is_finalized()) {
     return;
   }
-  AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  Type& super_type = Type::Handle(cls.super_type());
   if (super_type.IsNull()) {
     return;
   }
   // Resolve failures lead to a longjmp.
-  super_type = ResolveType(cls, super_type);
-  if (super_type.IsTypeParameter()) {
-    String& class_name = String::Handle(cls.Name());
-    String& type_parameter_name = String::Handle(super_type.Name());
-    ReportError("'%s' cannot extend or implement type parameter '%s'.\n",
-                class_name.ToCString(),
-                type_parameter_name.ToCString());
-  }
-  cls.set_super_type(super_type);
+  ResolveType(cls, super_type);
   const Class& super_class = Class::Handle(super_type.type_class());
   if (cls.is_interface() != super_class.is_interface()) {
     String& class_name = String::Handle(cls.Name());
@@ -441,12 +433,9 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
 }
 
 
-// TODO(regis): Now that we do not resolve type parameters anymore, we could
-// make this function void and resolve the type in place.
-RawAbstractType* ClassFinalizer::ResolveType(
-    const Class& cls, const AbstractType& type) {
+void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
   if (type.IsResolved()) {
-    return type.raw();
+    return;
   }
   if (FLAG_trace_type_finalization) {
     OS::Print("Resolve type '%s'\n", String::Handle(type.Name()).ToCString());
@@ -480,11 +469,9 @@ RawAbstractType* ClassFinalizer::ResolveType(
     AbstractType& type_argument = AbstractType::Handle();
     for (intptr_t i = 0; i < num_arguments; i++) {
       type_argument = arguments.TypeAt(i);
-      type_argument = ResolveType(cls, type_argument);
-      arguments.SetTypeAt(i, type_argument);
+      ResolveType(cls, type_argument);
     }
   }
-  return type.raw();
 }
 
 
@@ -505,9 +492,9 @@ RawAbstractType* ClassFinalizer::ResolveType(
 void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                                            const TypeArguments& arguments) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
-  AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    super_type = FinalizeType(super_type);
+    super_type ^= FinalizeType(super_type);
     cls.set_super_type(super_type);
     const Class& super_class = Class::Handle(super_type.type_class());
     const TypeArguments& super_type_args =
@@ -568,7 +555,7 @@ void ClassFinalizer::VerifyUpperBounds(const Class& cls,
       }
     }
   }
-  AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  const Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     ASSERT(super_type.IsFinalized());
     const Class& super_class = Class::Handle(super_type.type_class());
@@ -688,16 +675,16 @@ RawAbstractType* ClassFinalizer::FinalizeType(const AbstractType& type) {
 }
 
 
-RawAbstractType* ClassFinalizer::FinalizeAndCanonicalizeType(
-    const AbstractType& type, String* errmsg) {
+RawType* ClassFinalizer::FinalizeAndCanonicalizeType(const Type& type,
+                                                     String* errmsg) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    const AbstractType& canonical_type =
-        AbstractType::Handle(FinalizeType(type));
+    Type& canonical_type = Type::Handle();
+    canonical_type ^= FinalizeType(type);
     isolate->set_long_jump_base(base);
     *errmsg = String::null();
     return canonical_type.raw();
@@ -727,8 +714,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
           Class::Handle(unresolved_type_class.factory_signature_class());
       ASSERT(!factory_signature_class.IsNull());
       function.set_signature_class(factory_signature_class);
-      type = ResolveType(cls, type);
-      function.set_result_type(type);
+      ResolveType(cls, type);
       const Class& type_class = Class::Handle(type.type_class());
       // Verify that the factory signature declares the same number of type
       // parameters as the return type class or interface.
@@ -761,8 +747,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
         }
       }
     } else {
-      type = ResolveType(cls, type);
-      function.set_result_type(type);
+      ResolveType(cls, type);
     }
   }
   type = FinalizeType(type);
@@ -771,8 +756,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   const intptr_t num_parameters = function.NumberOfParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    type = ResolveType(cls, type);
-    function.SetParameterTypeAt(i, type);
+    ResolveType(cls, type);
     type = FinalizeType(type);
     function.SetParameterTypeAt(i, type);
   }
@@ -828,8 +812,7 @@ void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
          (extends_array.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_extends = extends_array.TypeAt(i);
-    type_extends = ResolveType(cls, type_extends);
-    extends_array.SetTypeAt(i, type_extends);
+    ResolveType(cls, type_extends);
     type_extends = FinalizeType(type_extends);
     extends_array.SetTypeAt(i, type_extends);
   }
@@ -858,8 +841,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
-    type = ResolveType(cls, type);
-    field.set_type(type);
+    ResolveType(cls, type);
     type = FinalizeType(type);
     field.set_type(type);
     name = field.name();
@@ -1004,12 +986,12 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   }
   GrowableArray<const Class*> visited;
   ResolveInterfaces(cls, &visited);
-  AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     const Class& super_class = Class::Handle(super_type.type_class());
     // Finalize super class and super type.
     FinalizeClass(super_class, generating_snapshot);
-    super_type = FinalizeType(super_type);
+    super_type ^= FinalizeType(super_type);
     cls.set_super_type(super_type);
   }
   if (cls.is_interface()) {
@@ -1156,8 +1138,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
   AbstractType& interface = AbstractType::Handle();
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
     interface ^= super_interfaces.At(i);
-    interface = ResolveType(cls, interface);
-    super_interfaces.SetAt(i, interface);
+    ResolveType(cls, interface);
     if (interface.IsTypeParameter()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, -1,

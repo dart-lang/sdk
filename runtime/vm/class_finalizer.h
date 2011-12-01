@@ -15,8 +15,10 @@ class Class;
 class Function;
 class RawAbstractType;
 class RawClass;
+class RawType;
 class Script;
 class String;
+class Type;
 class TypeArguments;
 class UnresolvedClass;
 
@@ -41,8 +43,7 @@ class ClassFinalizer : public AllStatic {
 
   // Finalize and canonicalize type while parsing.
   // Set the error message on failure (to String::null() if no error).
-  static RawAbstractType* FinalizeAndCanonicalizeType(
-      const AbstractType& type, String* errmsg);
+  static RawType* FinalizeAndCanonicalizeType(const Type& type, String* errmsg);
 
   // Pending classes are classes that need to be finalized.
   static void AddPendingClasses(const GrowableArray<const Class*>& classes);
@@ -78,8 +79,7 @@ class ClassFinalizer : public AllStatic {
                                 GrowableArray<const Class*>* visited);
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments);
-  static RawAbstractType* ResolveType(
-      const Class& cls, const AbstractType& type);
+  static void ResolveType(const Class& cls, const AbstractType& type);
   static RawAbstractType* FinalizeType(const AbstractType& type);
   static void ResolveAndFinalizeUpperBounds(const Class& cls);
   static void VerifyUpperBounds(const Class& cls,

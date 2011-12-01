@@ -408,7 +408,7 @@ class Class : public Object {
   // '<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
   // type with this class as the type class and type parameters 'T' and 'R'
   // as its type argument vector.
-  RawAbstractType* SignatureType() const;
+  RawType* SignatureType() const;
 
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
@@ -445,8 +445,8 @@ class Class : public Object {
   }
 
   // The super type of this class, Object type if not explicitly specified.
-  RawAbstractType* super_type() const { return raw_ptr()->super_type_; }
-  void set_super_type(const AbstractType& value) const;
+  RawType* super_type() const { return raw_ptr()->super_type_; }
+  void set_super_type(const Type& value) const;
 
   // Asserts that the class of the super type has been resolved.
   RawClass* SuperClass() const;
@@ -467,6 +467,7 @@ class Class : public Object {
   void set_factory_class(const Object& value) const;
 
   // Interfaces is an array of Types.
+  // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
 

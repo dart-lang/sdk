@@ -600,7 +600,7 @@ void Object::Init(Isolate* isolate) {
   // Remove the Object superclass cycle by setting the super type to null (not
   // to the type of null).
   cls = object_store->object_class();
-  cls.set_super_type(AbstractType::Handle());
+  cls.set_super_type(Type::Handle());
 
   ClassFinalizer::VerifyBootstrapClasses();
 }
@@ -724,11 +724,11 @@ RawString* Class::Name() const {
 }
 
 
-RawAbstractType* Class::SignatureType() const {
+RawType* Class::SignatureType() const {
   // Return the first canonical signature type if already computed.
   const Array& signature_types = Array::Handle(canonical_types());
   if (signature_types.Length() > 0) {
-    AbstractType& signature_type = AbstractType::Handle();
+    Type& signature_type = Type::Handle();
     signature_type ^= signature_types.At(0);
     if (!signature_type.IsNull()) {
       return signature_type.raw();
@@ -901,7 +901,7 @@ bool Class::HasTypeArguments() const {
 
 
 RawClass* Class::SuperClass() const {
-  const AbstractType& sup_type = AbstractType::Handle(super_type());
+  const Type& sup_type = Type::Handle(super_type());
   if (sup_type.IsNull()) {
     return Class::null();
   }
@@ -909,7 +909,7 @@ RawClass* Class::SuperClass() const {
 }
 
 
-void Class::set_super_type(const AbstractType& value) const {
+void Class::set_super_type(const Type& value) const {
   StorePointer(&raw_ptr()->super_type_, value.raw());
 }
 
@@ -1123,8 +1123,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   // Instances of a signature class can only be closures.
   ASSERT(result.instance_size() == Closure::InstanceSize());
   // Cache the signature type as the first canonicalized type in result.
-  const AbstractType& signature_type =
-      AbstractType::Handle(result.SignatureType());
+  const Type& signature_type = Type::Handle(result.SignatureType());
   ASSERT(!signature_type.IsFinalized());
   const Array& new_canonical_types = Array::Handle(Array::New(1, Heap::kOld));
   new_canonical_types.SetAt(0, signature_type);
@@ -2135,7 +2134,7 @@ RawAbstractType* Type::Canonicalize() const {
   const intptr_t canonical_types_len = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
-  AbstractType& type = AbstractType::Handle();
+  Type& type = Type::Handle();
   intptr_t index = 0;
   while (index < canonical_types_len) {
     type ^= canonical_types.At(index);
@@ -3224,8 +3223,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   } else {
     closure_function.set_signature_class(signature_class);
   }
-  const AbstractType& signature_type =
-      AbstractType::Handle(signature_class.SignatureType());
+  const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
     String& errmsg = String::Handle();
     ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
