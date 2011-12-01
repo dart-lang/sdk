@@ -10410,7 +10410,6 @@ class CSSMatrixFactoryProvider {
 
 class PointFactoryProvider {
 
-  /** @domName Window.createWebKitPoint */
   factory Point(num x, num y) {
     return new PointWrappingImplementation._wrap(new dom.WebKitPoint(x, y));
   }
@@ -17191,7 +17190,6 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
   XMLHttpRequestWrappingImplementation._wrap(
       dom.XMLHttpRequest ptr) : super._wrap(ptr);
 
-  /** @domName Window.createXMLHttpRequest */
   factory XMLHttpRequestWrappingImplementation() {
     return new XMLHttpRequestWrappingImplementation._wrap(
         new dom.XMLHttpRequest());

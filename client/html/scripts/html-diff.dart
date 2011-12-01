@@ -20,10 +20,13 @@ void main() {
   diff.run();
 
   diff.domToDart.forEach((domMember, htmlMember) {
-    if (domMember.name != htmlMember.name) {
-      var domTypeName = domMember.declaringType.name;
-      var htmlTypeName = htmlMember.declaringType.name.
-        replaceFirst('WrappingImplementation', '');
+    var domTypeName = domMember.declaringType.name;
+    if (domTypeName == 'DOMWindow') domTypeName = 'Window';
+    var htmlTypeName = htmlMember.declaringType.name.
+      replaceFirst('WrappingImplementation', '');
+    if (domMember.name != htmlMember.name ||
+        domTypeName.replaceFirst(new RegExp('^(HTML|WebKit)'), '') !=
+          htmlTypeName) {
       var htmlName = '$htmlTypeName.${htmlMember.name}';
       if (htmlMember.isConstructor || htmlMember.isFactory) {
         final separator = htmlMember.name == '' ? '' : '.';
@@ -52,21 +55,22 @@ class HtmlDiff {
   static void initWorld(String frogDir, FileSystem files) {
     parseOptions(frogDir, [] /* args */, files);
     initializeWorld(files);
-    world.processScript('dart:html');
+    world.processDartScript('dart:htmlimpl');
     world.resolveAll();
   }
 
   HtmlDiff() : domToDart = <Member, Member>{};
 
   void run() {
-    final htmlLib = world.libraries['dart:html'];
+    final htmlLib = world.libraries['dart:htmlimpl'];
     for (var htmlType in htmlLib.types.getValues()) {
       final domType = htmlToDomType(htmlType);
       final members = new List.from(htmlType.members.getValues());
       members.addAll(htmlType.constructors.getValues());
       htmlType.factories.forEach((f) => members.add(f));
       for (var member in members) {
-        htmlToDomMembers(member, domType).forEach((m) => domToDart[m] = member);
+        var members = htmlToDomMembers(member, domType);
+        members.forEach((m) => domToDart[m] = member);
       }
     }
   }
@@ -76,7 +80,7 @@ class HtmlDiff {
     final tags = _getTags(findComment(htmlType.span));
 
     if (tags.containsKey('domName')) {
-      final domName = tags['domName'];
+      var domName = tags['domName'];
       if (domName == 'none') return;
       // DOMWindow is Chrome-specific, so we don't use it in our annotations.
       if (domName == 'Window') domName = 'DOMWindow';
@@ -92,7 +96,8 @@ class HtmlDiff {
       }
       if (domType == null) domType = world.dom.types['WebKit$domName'];
       if (domType == null) {
-        print('Warning: no dart:dom type matches dart:html ${htmlType.name}');
+        print('Warning: no dart:dom type matches dart:htmlimpl ' +
+            htmlType.name);
       }
       return domType;
     }
@@ -152,14 +157,16 @@ class HtmlDiff {
       print('Warning: invalid member name ${name}');
       return new Set();
     }
-    final type = library.types[splitName[0]];
+    var typeName = splitName[0];
+    if (typeName == 'Window') typeName = 'DOMWindow';
+    final type = library.types[typeName];
     if (type == null) {
       print('Warning: no ${library.name} type named ${splitName[0]}');
       return new Set();
     }
     final member = type.members[splitName[1]];
     if (member == null) {
-      print('Warning: no member named $name');
+      print('Warning: no ${library.name} member named $name');
     }
     return _members(member);
   }
