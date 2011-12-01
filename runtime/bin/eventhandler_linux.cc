@@ -215,7 +215,6 @@ static void PrintEventMask(struct pollfd* pollfd) {
 
 intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
 #ifdef DEBUG_POLL
-  printf("Poll events:\n");
   if (pollfd->fd != interrupt_fds_[0]) PrintEventMask(pollfd);
 #endif
   intptr_t event_mask = 0;

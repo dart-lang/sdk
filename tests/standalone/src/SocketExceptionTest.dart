@@ -25,16 +25,6 @@ class SocketExceptionTest {
     }
     Expect.equals(false, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
-    exceptionCaught = false;
-    try {
-      server.accept();
-    } catch (SocketIOException ex) {
-      exceptionCaught = true;
-    } catch (Exception ex) {
-      wrongExceptionCaught = true;
-    }
-    Expect.equals(true, exceptionCaught);
-    Expect.equals(true, !wrongExceptionCaught);
   }
 
   static void clientSocketExceptionTest() {
