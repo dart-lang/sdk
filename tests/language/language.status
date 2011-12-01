@@ -274,7 +274,6 @@ MethodOverrideTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
-NamingTest: Fail
 NonConstSuperNegativeTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
@@ -319,6 +318,11 @@ ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
+[ $component == frog && $unchecked ]
+NamingTest: Pass # get this passing on other configurations
+[ $component == frogsh || $component == leg || $component == frogium || ($component == frog && $checked) ]
+NamingTest: Fail # get this passing on other configurations
+
 [ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
@@ -334,7 +338,7 @@ FinalVarNegativeTest: Fail
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
 StringInterpolate2Test: Fail
-ToplevelCollision2Test/01: Fail # added in r1934 
+ToplevelCollision2Test/01: Fail # added in r1934
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
