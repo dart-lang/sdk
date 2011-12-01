@@ -1404,7 +1404,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
       Dart_Handle result;
       indexobj = Integer::New(index);
       element = GetListAt(isolate, instance, indexobj, function, &result);
-      if (Dart_IsError(result)) {
+      if (::Dart_IsError(result)) {
         return result;  // Error condition.
       }
       return Api::NewLocalHandle(element);
@@ -1528,7 +1528,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       for (int i = 0; i < length; i++) {
         intobj = Integer::New(offset + i);
         element = GetListAt(isolate, instance, intobj, function, &result);
-        if (Dart_IsError(result)) {
+        if (::Dart_IsError(result)) {
           return result;  // Error condition.
         }
         if (!element.IsInteger()) {
@@ -1586,7 +1586,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
         indexobj = Integer::New(offset + i);
         valueobj = Integer::New(native_array[i]);
         SetListAt(isolate, instance, indexobj, valueobj, function, &result);
-        if (Dart_IsError(result)) {
+        if (::Dart_IsError(result)) {
           return result;  // Error condition.
         }
       }
