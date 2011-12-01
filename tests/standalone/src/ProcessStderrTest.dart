@@ -9,6 +9,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+#library("ProcessStderrTest");
 #source("ProcessTestUtil.dart");
 
 void test(Process process) {

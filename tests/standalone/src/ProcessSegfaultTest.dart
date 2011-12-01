@@ -4,6 +4,7 @@
 //
 // Process test program to test process communication.
 
+#library("ProcessSegfaultTest");
 #source("ProcessTestUtil.dart");
 
 class ProcessSegfaultTest {

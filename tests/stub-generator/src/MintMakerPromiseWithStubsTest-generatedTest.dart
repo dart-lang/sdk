@@ -4,6 +4,7 @@
 
 // IsolateStubs=MintMakerPromiseWithStubsTest.dart:Mint,Purse
 
+#library("MintMakerPromiseWithStubsTest-generatedTest.dart");
 #import("../../isolate/src/TestFramework.dart");
 
 /* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 9) */

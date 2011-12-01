@@ -4,6 +4,7 @@
 
 // IsolateStubs=MintMakerPromiseWithStubsTest.dart:Mint,Purse
 
+#library("MintMakerPromiseWithStubsTest");
 #import("../../isolate/src/TestFramework.dart");
 
 interface Mint factory MintImpl {
