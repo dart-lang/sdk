@@ -263,7 +263,19 @@ class StandardTestSuite implements TestSuite {
     List<String> dartOptions = optionsFromFile["dartOptions"];
     List<List<String>> vmOptionsList = optionsFromFile["vmOptions"];
     Expect.isTrue(!isMultitest || dartOptions == null);
-    args.addAll(dartOptions == null ? [filename] : dartOptions);
+    if (dartOptions == null) {
+      args.add(filename);
+    } else {
+      var filename = dartOptions[0];
+      // TODO(ager): Get rid of this hack when the runtime checkout goes away.
+      var file = new File(filename);
+      if (!file.existsSync()) {
+        filename = '../$filename';
+        Expect.isTrue(new File(filename).existsSync());
+        dartOptions[0] = filename;
+      }
+      args.addAll(dartOptions);
+    }
 
     var result = new List<List<String>>();
     Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");

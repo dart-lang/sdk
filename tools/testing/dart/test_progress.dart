@@ -120,6 +120,7 @@ class CompactProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     stdout.write('\n'.charCodes());
+    stdout.close();
   }
 
   void _printProgress() {

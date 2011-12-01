@@ -188,12 +188,10 @@ String CreateMultitestDirectory(String buildDir, String testDir) {
   if (!parent_dir.existsSync()) {
     parent_dir.createSync();
   }
-  final String prefix = 'tests/';
-  final String suffix = '/src';
-  Expect.isTrue(testDir.startsWith(prefix));
-  Expect.isTrue(testDir.endsWith(suffix));
-  String path = parent_dir.path +
-      testDir.substring(prefix.length, testDir.length - suffix.length);
+  var split = testDir.split(new Platform().pathSeparator());
+  var lastComponent = split.removeLast();
+  Expect.isTrue(lastComponent == 'src');
+  String path = parent_dir.path + split.last();
   Directory dir = new Directory(path);
   if (!dir.existsSync()) {
     dir.createSync();
