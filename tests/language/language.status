@@ -318,11 +318,6 @@ ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
-[ $component == frog && $unchecked ]
-NamingTest: Pass # get this passing on other configurations
-[ $component == frogsh || $component == leg || $component == frogium || ($component == frog && $checked) ]
-NamingTest: Fail # get this passing on other configurations
-
 [ ($component == frogsh ||  $component == frog || $component == leg || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
