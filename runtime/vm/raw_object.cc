@@ -104,11 +104,11 @@ intptr_t RawObject::Size() const {
         instance_size = Array::InstanceSize(array_length);
         break;
       }
-      case kTypeArray: {
-        const RawTypeArray* raw_array =
-            reinterpret_cast<const RawTypeArray*>(this);
+      case kTypeArguments: {
+        const RawTypeArguments* raw_array =
+            reinterpret_cast<const RawTypeArguments*>(this);
         intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
-        instance_size = TypeArray::InstanceSize(array_length);
+        instance_size = TypeArguments::InstanceSize(array_length);
         break;
       }
       case kPcDescriptors: {
@@ -175,6 +175,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
     CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
 #undef RAW_VISITPOINTERS
     default:
+      OS::Print("Kind: %d\n", kind);
       UNREACHABLE();
       break;
   }
@@ -227,19 +228,19 @@ intptr_t RawInstantiatedType::VisitInstantiatedTypePointers(
 }
 
 
-intptr_t RawTypeArguments::VisitTypeArgumentsPointers(
-    RawTypeArguments* raw_obj, ObjectPointerVisitor* visitor) {
-  // RawTypeArguments is an abstract class.
+intptr_t RawAbstractTypeArguments::VisitAbstractTypeArgumentsPointers(
+    RawAbstractTypeArguments* raw_obj, ObjectPointerVisitor* visitor) {
+  // RawAbstractTypeArguments is an abstract class.
   UNREACHABLE();
   return 0;
 }
 
 
-intptr_t RawTypeArray::VisitTypeArrayPointers(RawTypeArray* raw_obj,
-                                              ObjectPointerVisitor* visitor) {
+intptr_t RawTypeArguments::VisitTypeArgumentsPointers(
+    RawTypeArguments* raw_obj, ObjectPointerVisitor* visitor) {
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
   visitor->VisitPointers(raw_obj->from(), raw_obj->to(length));
-  return TypeArray::InstanceSize(length);
+  return TypeArguments::InstanceSize(length);
 }
 
 

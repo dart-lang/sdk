@@ -215,8 +215,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
   const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(2));
-  const TypeArguments& dst_type_instantiator =
-      TypeArguments::CheckedHandle(arguments.At(3));
+  const AbstractTypeArguments& dst_type_instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(3));
   const String& dst_name = String::CheckedHandle(arguments.At(4));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
@@ -292,8 +292,8 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
   const Array& rest_array = Array::CheckedHandle(arguments.At(1));
   const AbstractType& element_type =
       AbstractType::CheckedHandle(arguments.At(2));
-  const TypeArguments& element_type_instantiator =
-      TypeArguments::CheckedHandle(arguments.At(3));
+  const AbstractTypeArguments& element_type_instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(3));
   const String& rest_name = String::CheckedHandle(arguments.At(4));
   ASSERT(!element_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!rest_array.IsNull());

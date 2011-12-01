@@ -84,8 +84,9 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 }
 
 
-static RawTypeArray* NewTypeArray(const GrowableArray<AbstractType*>& objs) {
-  TypeArray& a = TypeArray::Handle(TypeArray::New(objs.length()));
+static RawTypeArguments* NewTypeArguments(
+    const GrowableArray<AbstractType*>& objs) {
+  TypeArguments& a = TypeArguments::Handle(TypeArguments::New(objs.length()));
   for (int i = 0; i < objs.length(); i++) {
     a.SetTypeAt(i, *objs[i]);
   }
@@ -1782,8 +1783,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   // Static functions do not have a receiver.
   // An instance closure may capture and access the receiver, but via the
   // context and not via the first formal parameter.
-  // The first parameter of a factory is the TypeArguments vector of the type
-  // of the instance to be allocated. We name this hidden parameter 'this'.
+  // The first parameter of a factory is the AbstractTypeArguments vector of the
+  // type of the instance to be allocated. We name this hidden parameter 'this'.
   const bool has_receiver = !func.IsClosureFunction() &&
                             (!func.is_static() || func.IsFactory());
   const bool allow_explicit_default_values = true;
@@ -1980,7 +1981,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
 
   // Parse the formal parameters.
   // The first parameter of factory methods is an implicit parameter called
-  // 'this' of type TypeArguments.
+  // 'this' of type AbstractTypeArguments.
   const bool has_this_param =
       !method->has_static || method->IsConstructor() || method->has_factory;
   const bool are_implicitly_final = method->has_const;
@@ -2851,8 +2852,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
       ErrorMsg("right angle bracket expected");
     }
     cls.set_type_parameters(Array::Handle(NewArray<String>(type_parameters)));
-    const TypeArray& extends_array =
-        TypeArray::Handle(NewTypeArray(type_parameter_extends));
+    const TypeArguments& extends_array =
+        TypeArguments::Handle(NewTypeArguments(type_parameter_extends));
     cls.set_type_parameter_extends(extends_array);
     // Try to resolve the upper bounds, which will at least resolve the
     // referenced type parameters.
@@ -2867,7 +2868,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
 }
 
 
-RawTypeArguments* Parser::ParseTypeArguments(TypeResolution type_resolution) {
+RawAbstractTypeArguments* Parser::ParseTypeArguments(
+    TypeResolution type_resolution) {
   if (CurrentToken() == Token::kLT) {
     GrowableArray<AbstractType*> types;
     do {
@@ -2883,9 +2885,9 @@ RawTypeArguments* Parser::ParseTypeArguments(TypeResolution type_resolution) {
     } else {
       ErrorMsg("right angle bracket expected");
     }
-    return NewTypeArray(types);
+    return NewTypeArguments(types);
   }
-  return TypeArray::null();
+  return TypeArguments::null();
 }
 
 
@@ -3729,8 +3731,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // We need to create a new type for proper finalization, since the existing
     // type is already marked as finalized.
     Type& signature_type = Type::Handle(signature_class.SignatureType());
-    const TypeArguments& signature_type_arguments = TypeArguments::Handle(
-        signature_type.arguments());
+    const AbstractTypeArguments& signature_type_arguments =
+        AbstractTypeArguments::Handle(signature_type.arguments());
 
     // Since the signature type is cached by the signature class, it may have
     // been finalized already.
@@ -6048,7 +6050,7 @@ void Parser::TryResolveTypeFromClass(intptr_t type_pos,
     if (!type_parameter.IsNull()) {
       // A type parameter cannot be parameterized, so report an error if type
       // arguments have previously been parsed.
-      if (!TypeArguments::Handle(type->arguments()).IsNull()) {
+      if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
         ErrorMsg(type_pos, "type parameter '%s' cannot be parameterized",
                  type_parameter.ToCString());
       }
@@ -6067,7 +6069,8 @@ void Parser::TryResolveTypeFromClass(intptr_t type_pos,
     }
   }
   // Resolve type arguments, if any.
-  const TypeArguments& arguments = TypeArguments::Handle(type->arguments());
+  const AbstractTypeArguments& arguments =
+      AbstractTypeArguments::Handle(type->arguments());
   if (!arguments.IsNull()) {
     const intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
@@ -6243,7 +6246,7 @@ void Parser::RunStaticFieldInitializer(const Field& field) {
 
 RawInstance* Parser::EvaluateConstConstructorCall(
     const Class& type_class,
-    const TypeArguments& type_arguments,
+    const AbstractTypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
   // +2 for implicit receiver and construction phase arguments.
@@ -6570,8 +6573,8 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     // Try to resolve the type class.
     type_class = LookupTypeClass(type_name, type_resolution);
   }
-  TypeArguments& type_arguments =
-      TypeArguments::Handle(ParseTypeArguments(type_resolution));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(ParseTypeArguments(type_resolution));
   Type& type = Type::Handle(
       Type::NewParameterizedType(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
@@ -6587,7 +6590,8 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
 
 
 void Parser::CheckConstructorCallTypeArguments(
-    intptr_t pos, Function& constructor, const TypeArguments& type_arguments) {
+    intptr_t pos, Function& constructor,
+    const AbstractTypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
     Class& signature_class = Class::Handle();
     if (constructor.IsFactory()) {
@@ -6612,7 +6616,7 @@ void Parser::CheckConstructorCallTypeArguments(
 // as one token of type Token::kINDEX.
 AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                                   bool is_const,
-                                  const TypeArguments& type_arguments) {
+                                  const AbstractTypeArguments& type_arguments) {
   TRACE_PARSER("ParseListLiteral");
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACK || CurrentToken() == Token::kINDEX);
@@ -6642,7 +6646,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
 
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
-  ArrayNode* list = new ArrayNode(token_index_, TypeArguments::ZoneHandle());
+  ArrayNode* list =
+      new ArrayNode(token_index_, TypeArguments::ZoneHandle());
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const String& dst_name = String::ZoneHandle(
@@ -6755,7 +6760,7 @@ static void AddKeyValuePair(ArrayNode* pairs,
 
 AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                  bool is_const,
-                                 const TypeArguments& type_arguments) {
+                                 const AbstractTypeArguments& type_arguments) {
   TRACE_PARSER("ParseMapLiteral");
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACE);
@@ -6763,8 +6768,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   ConsumeToken();
 
   AbstractType& value_type = Type::ZoneHandle(Type::DynamicType());
-  TypeArguments& map_type_arguments =
-      TypeArguments::ZoneHandle(type_arguments.raw());
+  AbstractTypeArguments& map_type_arguments =
+      AbstractTypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
   // equivalent to using Dynamic as the type argument for the value type.
   if (!map_type_arguments.IsNull()) {
@@ -6788,7 +6793,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
               "the value type");
       value_type = map_type_arguments.TypeAt(1);
     } else {
-      TypeArray& type_array = TypeArray::Handle(TypeArray::New(2));
+      TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(2));
       type_array.SetTypeAt(0, Type::Handle(Type::StringInterface()));
       type_array.SetTypeAt(1, value_type);
       map_type_arguments = type_array.raw();
@@ -6933,8 +6938,8 @@ AstNode* Parser::ParseCompoundLiteral() {
     ConsumeToken();
   }
   const intptr_t type_pos = token_index_;
-  TypeArguments& type_arguments =
-      TypeArguments::ZoneHandle(ParseTypeArguments(kMustResolve));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::ZoneHandle(ParseTypeArguments(kMustResolve));
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
@@ -7014,7 +7019,7 @@ AstNode* Parser::ParseNewOperator() {
   type_class ^= LookupTypeClass(type_name, kMustResolve);
   String& type_class_name = String::Handle();
   type_class_name = type_class.Name();
-  TypeArguments& type_arguments = TypeArguments::ZoneHandle();
+  AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
   // Type arguments are not allowed after the optional constructor name.
   if (named_constructor == NULL) {
     type_arguments = ParseTypeArguments(kMustResolve);

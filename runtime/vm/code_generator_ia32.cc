@@ -973,7 +973,7 @@ void CodeGenerator::VisitArrayNode(ArrayNode* node) {
   //   EDX : Array length as Smi.
   //   ECX : element type for the array.
   __ movl(EDX, Immediate(Smi::RawValue(node->length())));
-  const TypeArguments& element_type = node->type_arguments();
+  const AbstractTypeArguments& element_type = node->type_arguments();
   ASSERT(element_type.IsNull() || element_type.IsInstantiated());
   __ LoadObject(ECX, element_type);
   GenerateCall(node->token_index(), &StubCode::AllocateArrayLabel());
@@ -1407,8 +1407,8 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class or with a raw dst type of a parameterized class.
     if (requires_type_arguments) {
-      const TypeArguments& type_arguments =
-          TypeArguments::Handle(type.arguments());
+      const AbstractTypeArguments& type_arguments =
+          AbstractTypeArguments::Handle(type.arguments());
       const bool is_raw_type = type_arguments.IsNull() ||
           type_arguments.IsDynamicTypes(type_arguments.Length());
       Label runtime_call;
@@ -1561,8 +1561,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class or with a raw dst type of a parameterized class.
     if (dst_class_has_type_arguments) {
-      const TypeArguments& dst_type_arguments =
-          TypeArguments::Handle(dst_type.arguments());
+      const AbstractTypeArguments& dst_type_arguments =
+          AbstractTypeArguments::Handle(dst_type.arguments());
       const bool is_raw_dst_type = dst_type_arguments.IsNull() ||
           dst_type_arguments.IsDynamicTypes(dst_type_arguments.Length());
       if (is_raw_dst_type) {
@@ -2256,7 +2256,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   }
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
-    TypeArguments& type_arguments = TypeArguments::ZoneHandle();
+    AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
@@ -2273,9 +2273,9 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     if (!outer_function.IsFactory()) {
       __ popl(EAX);  // Pop instantiator.
       // The instantiator is the receiver of the caller, which is not a factory.
-      // The receiver cannot be null; extract its TypeArguments object.
+      // The receiver cannot be null; extract its AbstractTypeArguments object.
       // Note that in the factory case, the instantiator is the first parameter
-      // of the factory, i.e. already a TypeArguments object.
+      // of the factory, i.e. already an AbstractTypeArguments object.
       intptr_t type_arguments_instance_field_offset =
           instantiator_class.type_arguments_instance_field_offset();
       ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
@@ -2318,7 +2318,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     ASSERT(requires_type_arguments);
     GenerateInstantiatorTypeArguments(node->token_index());
     __ popl(EAX);  // Pop instantiator.
-    // EAX is the instantiator TypeArguments object (or null).
+    // EAX is the instantiator AbstractTypeArguments object (or null).
     // If EAX is null, no need to instantiate the type arguments, use null, and
     // allocate an object of a raw type.
     Label type_arguments_instantiated, type_arguments_uninstantiated;
@@ -2327,14 +2327,15 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
     // Instantiate non-null type arguments.
     if (node->type_arguments().IsUninstantiatedIdentity()) {
-      // Check if the instantiator type argument vector is a TypeArray of a
+      // Check if the instantiator type argument vector is a TypeArguments of a
       // matching length and, if so, use it as the instantiated type_arguments.
-      __ LoadObject(ECX, Class::ZoneHandle(Object::type_array_class()));
+      __ LoadObject(ECX, Class::ZoneHandle(Object::type_arguments_class()));
       __ cmpl(ECX, FieldAddress(EAX, Object::class_offset()));
       __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
       Immediate arguments_length = Immediate(reinterpret_cast<int32_t>(
           Smi::New(node->type_arguments().Length())));
-      __ cmpl(FieldAddress(EAX, TypeArray::length_offset()), arguments_length);
+      __ cmpl(FieldAddress(EAX, TypeArguments::length_offset()),
+          arguments_length);
       __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
     }
     __ Bind(&type_arguments_uninstantiated);
@@ -2374,7 +2375,8 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     const bool requires_type_arguments = true;  // Always first arg to factory.
     GenerateTypeArguments(node, requires_type_arguments);
-    // The top of stack is an instantiated TypeArguments object (or null).
+    // The top of stack is an instantiated AbstractTypeArguments object
+    // (or null).
     int num_args = node->arguments()->length() + 1;  // +1 to include type args.
     node->arguments()->Visit(this);
     // Call the factory.

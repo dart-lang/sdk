@@ -283,22 +283,23 @@ void RawInstantiatedType::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
-                                          intptr_t object_id,
-                                          bool classes_serialized) {
-  UNREACHABLE();  // TypeArguments is an abstract class.
-  return TypeArray::null();
+RawAbstractTypeArguments* AbstractTypeArguments::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    bool classes_serialized) {
+  UNREACHABLE();  // AbstractTypeArguments is an abstract class.
+  return TypeArguments::null();
 }
 
 
-void RawTypeArguments::WriteTo(SnapshotWriter* writer,
+void RawAbstractTypeArguments::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                bool serialize_classes) {
-  UNREACHABLE();  // TypeArguments is an abstract class.
+  UNREACHABLE();  // AbstractTypeArguments is an abstract class.
 }
 
 
-RawTypeArray* TypeArray::ReadFrom(SnapshotReader* reader,
+RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   bool classes_serialized) {
   ASSERT(reader != NULL);
@@ -307,7 +308,7 @@ RawTypeArray* TypeArray::ReadFrom(SnapshotReader* reader,
   RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
   intptr_t len = Smi::Value(smi_len);
 
-  TypeArray& type_array = TypeArray::Handle(TypeArray::New(len));
+  TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(len));
   reader->AddBackwardReference(object_id, &type_array);
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
@@ -318,16 +319,16 @@ RawTypeArray* TypeArray::ReadFrom(SnapshotReader* reader,
 }
 
 
-void RawTypeArray::WriteTo(SnapshotWriter* writer,
-                           intptr_t object_id,
-                           bool serialize_classes) {
+void RawTypeArguments::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               bool serialize_classes) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
   writer->WriteObjectHeader(kInlined, object_id);
 
   // Write out the class information.
-  writer->WriteObjectHeader(kObjectId, Object::kTypeArrayClass);
+  writer->WriteObjectHeader(kObjectId, Object::kTypeArgumentsClass);
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -1209,7 +1210,7 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
                                classes_serialized ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &result);
 
-  TypeArguments& type_arguments = TypeArguments::Handle();
+  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   type_arguments ^= reader->ReadObject();
   result.SetTypeArguments(type_arguments);
 
@@ -1244,7 +1245,7 @@ static void ArrayWriteTo(SnapshotWriter* writer,
                          bool serialize_classes,
                          intptr_t kind,
                          RawSmi* length,
-                         RawTypeArguments* type_arguments,
+                         RawAbstractTypeArguments* type_arguments,
                          RawObject* data[]) {
   ASSERT(writer != NULL);
   intptr_t len = Smi::Value(length);

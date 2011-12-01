@@ -404,10 +404,10 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
       Array::Handle(factory_signature_class.type_parameters());
   const Array& actual_type_names =
       Array::Handle(factory_class.type_parameters());
-  const TypeArray& expected_extends_array =
-      TypeArray::Handle(factory_signature_class.type_parameter_extends());
-  const TypeArray& actual_extends_array =
-      TypeArray::Handle(factory_class.type_parameter_extends());
+  const TypeArguments& expected_extends_array =
+      TypeArguments::Handle(factory_signature_class.type_parameter_extends());
+  const TypeArguments& actual_extends_array =
+      TypeArguments::Handle(factory_class.type_parameter_extends());
   for (intptr_t i = 0; !mismatch && (i < num_type_params); i++) {
     expected_type_name ^= expected_type_names.At(i);
     actual_type_name ^= actual_type_names.At(i);
@@ -463,7 +463,8 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
   }
 
   // Resolve type arguments, if any.
-  const TypeArguments& arguments = TypeArguments::Handle(type.arguments());
+  const AbstractTypeArguments& arguments =
+      AbstractTypeArguments::Handle(type.arguments());
   if (!arguments.IsNull()) {
     intptr_t num_arguments = arguments.Length();
     AbstractType& type_argument = AbstractType::Handle();
@@ -489,16 +490,16 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
 //             cls = C, arguments = [null, null, String, double],
 //             i.e. cls_args = [String, double], offset = 2, length = 2.
 //   Output:   arguments = [int, double, String, double]
-void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
-                                           const TypeArguments& arguments) {
+void ClassFinalizer::FinalizeTypeArguments(
+    const Class& cls, const AbstractTypeArguments& arguments) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     super_type ^= FinalizeType(super_type);
     cls.set_super_type(super_type);
     const Class& super_class = Class::Handle(super_type.type_class());
-    const TypeArguments& super_type_args =
-        TypeArguments::Handle(super_type.arguments());
+    const AbstractTypeArguments& super_type_args =
+        AbstractTypeArguments::Handle(super_type.arguments());
     const intptr_t num_super_type_params = super_class.NumTypeParameters();
     const intptr_t offset = super_class.NumTypeArguments();
     const intptr_t super_offset = offset - num_super_type_params;
@@ -519,15 +520,15 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
 
 // Verify the upper bounds of the type arguments of class cls.
 void ClassFinalizer::VerifyUpperBounds(const Class& cls,
-                                       const TypeArguments& arguments) {
+                                       const AbstractTypeArguments& arguments) {
   ASSERT(FLAG_enable_type_checks);
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   const intptr_t num_type_params = cls.NumTypeParameters();
   const intptr_t offset = cls.NumTypeArguments() - num_type_params;
   AbstractType& type = AbstractType::Handle();
   AbstractType& type_extends = AbstractType::Handle();
-  const TypeArguments& extends_array =
-      TypeArguments::Handle(cls.type_parameter_extends());
+  const AbstractTypeArguments& extends_array =
+      AbstractTypeArguments::Handle(cls.type_parameter_extends());
   ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
          (extends_array.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
@@ -587,8 +588,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const AbstractType& type) {
 
   // Finalize the current type arguments of the type, which are still the
   // parsed type arguments.
-  TypeArguments& arguments =
-      TypeArguments::Handle(parameterized_type.arguments());
+  AbstractTypeArguments& arguments =
+      AbstractTypeArguments::Handle(parameterized_type.arguments());
   if (!arguments.IsNull()) {
     intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
@@ -636,7 +637,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const AbstractType& type) {
   // type arguments, followed by the parsed type arguments.
   if (num_type_arguments > 0) {
     const TypeArguments& full_arguments = TypeArguments::Handle(
-        TypeArguments::NewTypeArray(num_type_arguments));
+        TypeArguments::New(num_type_arguments));
     // Copy the parsed type arguments at the correct offset in the full type
     // argument vector.
     const intptr_t offset = num_type_arguments - num_type_parameters;
@@ -806,8 +807,8 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
 void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
   const intptr_t num_type_params = cls.NumTypeParameters();
   AbstractType& type_extends = AbstractType::Handle();
-  const TypeArguments& extends_array =
-      TypeArguments::Handle(cls.type_parameter_extends());
+  const AbstractTypeArguments& extends_array =
+      AbstractTypeArguments::Handle(cls.type_parameter_extends());
   ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
          (extends_array.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {

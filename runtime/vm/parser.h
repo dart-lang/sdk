@@ -167,7 +167,9 @@ class Parser : ValueObject {
   void SkipStringLiteral();
 
   void CheckConstructorCallTypeArguments(
-    intptr_t pos, Function& constructor, const TypeArguments& type_arguments);
+    intptr_t pos,
+    Function& constructor,
+    const AbstractTypeArguments& type_arguments);
 
   // Reports error message at location of current token.
   void ErrorMsg(const char* msg, ...);
@@ -178,10 +180,11 @@ class Parser : ValueObject {
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   void RunStaticFieldInitializer(const Field& field);
-  RawInstance* EvaluateConstConstructorCall(const Class& type_class,
-                                            const TypeArguments& type_arguments,
-                                            const Function& constructor,
-                                            ArgumentListNode* arguments);
+  RawInstance* EvaluateConstConstructorCall(
+      const Class& type_class,
+      const AbstractTypeArguments& type_arguments,
+      const Function& constructor,
+      ArgumentListNode* arguments);
   AstNode* FoldConstExpr(intptr_t expr_pos, AstNode* expr);
 
   // Support for parsing of scripts.
@@ -212,7 +215,7 @@ class Parser : ValueObject {
   };
   RawAbstractType* ParseType(TypeResolution type_resolution);
   void ParseTypeParameters(const Class& cls);
-  RawTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
+  RawAbstractTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
@@ -346,10 +349,10 @@ class Parser : ValueObject {
   AstNode* ParseCompoundLiteral();
   AstNode* ParseListLiteral(intptr_t type_pos,
                             bool is_const,
-                            const TypeArguments& type_arguments);
+                            const AbstractTypeArguments& type_arguments);
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
-                           const TypeArguments& type_arguments);
+                           const AbstractTypeArguments& type_arguments);
   AstNode* ParseNewOperator();
 
   // An implicit argument, if non-null, is prepended to the returned list.

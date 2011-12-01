@@ -168,8 +168,8 @@ TEST_CASE(SerializeSingletons) {
   writer.WriteObject(Object::type_class());
   writer.WriteObject(Object::type_parameter_class());
   writer.WriteObject(Object::instantiated_type_class());
+  writer.WriteObject(Object::abstract_type_arguments_class());
   writer.WriteObject(Object::type_arguments_class());
-  writer.WriteObject(Object::type_array_class());
   writer.WriteObject(Object::instantiated_type_arguments_class());
   writer.WriteObject(Object::function_class());
   writer.WriteObject(Object::field_class());
@@ -195,8 +195,8 @@ TEST_CASE(SerializeSingletons) {
   EXPECT(Object::type_class() == reader.ReadObject());
   EXPECT(Object::type_parameter_class() == reader.ReadObject());
   EXPECT(Object::instantiated_type_class() == reader.ReadObject());
+  EXPECT(Object::abstract_type_arguments_class() == reader.ReadObject());
   EXPECT(Object::type_arguments_class() == reader.ReadObject());
-  EXPECT(Object::type_array_class() == reader.ReadObject());
   EXPECT(Object::instantiated_type_arguments_class() == reader.ReadObject());
   EXPECT(Object::function_class() == reader.ReadObject());
   EXPECT(Object::field_class() == reader.ReadObject());

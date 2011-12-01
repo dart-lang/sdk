@@ -14,7 +14,7 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->At(0)).IsNull());
+  ASSERT(AbstractTypeArguments::CheckedHandle(arguments->At(0)).IsNull());
   const Integer& value = Integer::CheckedHandle(arguments->At(1));
   const Double& result = Double::Handle(Double::New(value.AsDoubleValue()));
   arguments->SetReturn(result);

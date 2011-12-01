@@ -22,7 +22,7 @@ static void CheckAndThrowExceptionIfNull(const Instance& obj) {
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
-  ASSERT(TypeArguments::CheckedHandle(arguments->At(0)).IsNull());
+  ASSERT(AbstractTypeArguments::CheckedHandle(arguments->At(0)).IsNull());
   const String& pattern = String::CheckedHandle(arguments->At(1));
   CheckAndThrowExceptionIfNull(pattern);
   const Instance& handle_multi_line = Instance::CheckedHandle(arguments->At(2));

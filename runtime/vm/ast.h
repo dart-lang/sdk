@@ -285,7 +285,7 @@ class  ArgumentListNode : public AstNode {
 
 class ArrayNode : public AstNode {
  public:
-  ArrayNode(intptr_t token_index, const TypeArguments& type_arguments)
+  ArrayNode(intptr_t token_index, const AbstractTypeArguments& type_arguments)
       : AstNode(token_index),
         type_arguments_(type_arguments),
         elements_(4) {
@@ -303,12 +303,14 @@ class ArrayNode : public AstNode {
   }
   void AddElement(AstNode* expr) { elements_.Add(expr); }
 
-  const TypeArguments& type_arguments() const { return type_arguments_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return type_arguments_;
+  }
 
   DECLARE_COMMON_NODE_FUNCTIONS(ArrayNode);
 
  private:
-  const TypeArguments& type_arguments_;
+  const AbstractTypeArguments& type_arguments_;
   GrowableArray<AstNode*> elements_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ArrayNode);
@@ -1698,7 +1700,7 @@ class ClosureCallNode : public AstNode {
 class ConstructorCallNode : public AstNode {
  public:
   ConstructorCallNode(intptr_t token_index,
-                      const TypeArguments& type_arguments,
+                      const AbstractTypeArguments& type_arguments,
                       const Function& constructor,
                       ArgumentListNode* arguments)
       : AstNode(token_index),
@@ -1710,7 +1712,9 @@ class ConstructorCallNode : public AstNode {
     ASSERT(arguments_ != NULL);
   }
 
-  const TypeArguments& type_arguments() const { return type_arguments_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return type_arguments_;
+  }
   const Function& constructor() const { return constructor_; }
   ArgumentListNode* arguments() const { return arguments_; }
 
@@ -1721,7 +1725,7 @@ class ConstructorCallNode : public AstNode {
   DECLARE_COMMON_NODE_FUNCTIONS(ConstructorCallNode);
 
  private:
-  const TypeArguments& type_arguments_;
+  const AbstractTypeArguments& type_arguments_;
   const Function& constructor_;
   ArgumentListNode* arguments_;
 

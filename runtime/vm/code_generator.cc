@@ -110,16 +110,17 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 3) {
   const Smi& length = Smi::CheckedHandle(arguments.At(0));
   const Array& array = Array::Handle(Array::New(length.Value()));
   arguments.SetReturn(array);
-  TypeArguments& element_type = TypeArguments::CheckedHandle(arguments.At(1));
+  AbstractTypeArguments& element_type =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   if (element_type.IsNull()) {
     // No instantiator required for a raw type.
-    ASSERT(TypeArguments::CheckedHandle(arguments.At(2)).IsNull());
+    ASSERT(AbstractTypeArguments::CheckedHandle(arguments.At(2)).IsNull());
     return;
   }
   // An Array takes only one type argument.
   ASSERT(element_type.Length() == 1);
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   if (instantiator.IsNull()) {
     // Either the type element is instantiated (use it), or the instantiator is
     // of a raw type and we cannot instantiate the element type (leave as null).
@@ -131,12 +132,13 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 3) {
   ASSERT(!element_type.IsInstantiated());
   // If possible, use the instantiator as the type argument vector.
   if (element_type.IsUninstantiatedIdentity() && (instantiator.Length() == 1)) {
-    // No need to check that the instantiator is a TypeArray, since the virtual
-    // call to Length() handles other cases that are harder to inline.
+    // No need to check that the instantiator is a TypeArguments, since the
+    // virtual call to Length() handles other cases that are harder to inline.
     element_type = instantiator.raw();
   } else {
-    element_type = TypeArguments::NewInstantiatedTypeArguments(element_type,
-                                                               instantiator);
+    element_type =
+        AbstractTypeArguments::NewInstantiatedTypeArguments(element_type,
+                                                            instantiator);
   }
   array.SetTypeArguments(element_type);
 }
@@ -157,15 +159,16 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
     ASSERT(Instance::CheckedHandle(arguments.At(1)).IsNull());
     return;
   }
-  TypeArguments& type_arguments = TypeArguments::CheckedHandle(arguments.At(1));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   if (type_arguments.IsNull()) {
     // No instantiator is required for a raw type.
     ASSERT(Instance::CheckedHandle(arguments.At(2)).IsNull());
     return;
   }
   ASSERT(type_arguments.Length() == cls.NumTypeArguments());
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   if (instantiator.IsNull()) {
     // Either the type argument vector is instantiated (use it), or the
     // instantiator is of a raw type and we cannot instantiate the type argument
@@ -177,21 +180,22 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   }
   ASSERT(!type_arguments.IsInstantiated());
   // If possible, use the instantiator as the type argument vector.
-  if (instantiator.IsTypeArray()) {
+  if (instantiator.IsTypeArguments()) {
     // Code inlined in the caller should have optimized the case where the
-    // instantiator is a TypeArray and can be used as type argument vector.
+    // instantiator is a TypeArguments and can be used as type argument vector.
     ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
            (instantiator.Length() != type_arguments.Length()));
-    type_arguments = TypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                                 instantiator);
+    type_arguments =
+        AbstractTypeArguments::NewInstantiatedTypeArguments(type_arguments,
+                                                            instantiator);
   } else {
     if (type_arguments.IsUninstantiatedIdentity() &&
         (instantiator.Length() == type_arguments.Length())) {
       type_arguments = instantiator.raw();
     } else {
       type_arguments =
-          TypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                      instantiator);
+          AbstractTypeArguments::NewInstantiatedTypeArguments(type_arguments,
+                                                              instantiator);
     }
   }
   instance.SetTypeArguments(type_arguments);
@@ -205,19 +209,21 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
 DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   ASSERT(arguments.Count() ==
          kInstantiateTypeArgumentsRuntimeEntry.argument_count());
-  TypeArguments& type_arguments = TypeArguments::CheckedHandle(arguments.At(0));
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.At(1));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(0));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   ASSERT(!type_arguments.IsNull() &&
          !type_arguments.IsInstantiated() &&
          !instantiator.IsNull());
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be used as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
-         !instantiator.IsTypeArray() ||
+         !instantiator.IsTypeArguments() ||
          (instantiator.Length() != type_arguments.Length()));
-  type_arguments = TypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                               instantiator);
+  type_arguments =
+      AbstractTypeArguments::NewInstantiatedTypeArguments(type_arguments,
+                                                          instantiator);
   arguments.SetReturn(type_arguments);
 }
 
@@ -230,8 +236,8 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   ASSERT(arguments.Count() == kAllocateClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
   ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.At(1));
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   // The current context was saved in the Isolate structure when entering the
   // runtime.
@@ -252,6 +258,7 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
   const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(!function.IsNull());
   ASSERT(function.IsImplicitStaticClosureFunction());
   const Context& context = Context::Handle(object_store->empty_context());
   arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
@@ -269,8 +276,8 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
   const Function& function = Function::CheckedHandle(arguments.At(0));
   ASSERT(function.IsImplicitInstanceClosureFunction());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(1));
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   Context& context = Context::Handle();
   context = Context::New(1);
@@ -319,8 +326,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
   ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
   const Instance& instance = Instance::CheckedHandle(arguments.At(0));
   const AbstractType& type = AbstractType::CheckedHandle(arguments.At(1));
-  const TypeArguments& type_instantiator =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& type_instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   ASSERT(type.IsFinalized());
   const Bool& result = Bool::Handle(
       instance.IsInstanceOf(type, type_instantiator) ?
@@ -610,8 +617,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   context.SetAt(0, receiver);
   closure = Closure::New(implicit_closure_function, context);
   if (receiver_class.HasTypeArguments()) {
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(receiver.GetTypeArguments());
+    const AbstractTypeArguments& type_arguments =
+        AbstractTypeArguments::Handle(receiver.GetTypeArguments());
     closure.SetTypeArguments(type_arguments);
   }
   arguments.SetReturn(closure);
