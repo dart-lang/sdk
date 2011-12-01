@@ -10,9 +10,6 @@ prefix co19
 #
 
 [ $component == dartc && $system == macos ]
-LangSpecTest/13_Types/13_4_Interface_Types/A11/t01: Crash # Out of memory
-LangSpecTest/13_Types/13_4_Interface_Types/A11/t02: Crash # Out of memory
-
 LibTest/core/Math/acos/Math/acos/A01/t01: Fail # Issue co19 - 44
 LibTest/core/Math/asin/Math/asin/A01/t01: Fail # Issue co19 - 44
 LibTest/core/Math/atan/Math/atan/A01/t01: Fail  # Issue co19 - 44

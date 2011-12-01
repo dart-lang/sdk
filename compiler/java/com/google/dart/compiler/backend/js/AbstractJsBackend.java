@@ -12,8 +12,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
-import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.common.io.Closeables;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartClass;
@@ -358,7 +358,6 @@ public abstract class AbstractJsBackend extends AbstractBackend {
       GenerateJavascriptAST nonClassGenerator = null;
       TranslationContext nonClassTranslationContext = null;
 
-
       JsProgram staticInitStatements = new JsProgram(baseUnitId + partIndex++);
       JsBlock staticInitBlock = staticInitStatements.getGlobalBlock();
 
@@ -372,8 +371,9 @@ public abstract class AbstractJsBackend extends AbstractBackend {
           try {
             // Translate the AST to JS.
             JsProgram program = new JsProgram(baseUnitId + partIndex++);
+
             TranslationContext translationContext = TranslationContext.createContext(unit, program,
-                mangler);
+                mangler, node);
 
             // Generate the Javascript AST.
             GenerateJavascriptAST generator =
@@ -395,13 +395,16 @@ public abstract class AbstractJsBackend extends AbstractBackend {
             Tracer.end(nodeEvent);
           }
         } else {
+
           if (nonClassGenerator == null) {
+            // This block generates the AST used to generate for all non-class nodes at once
+            // and is saved for subsequent iterations.
             TraceEvent genInitEvent =
                 Tracer.canTrace() ? Tracer.start(DartEventType.GEN_AST_INIT, "unit",
                     unit.getSourceName()) : null;
             try {
               nonClassTranslationContext = TranslationContext.createContext(unit,
-                  nonClassStatements, mangler);
+                  nonClassStatements, mangler, null);
               nonClassGenerator = new GenerateJavascriptAST(unit, typeProvider, context,
                   optimizationStrategy, generateClosureCompatibleCode());
             } finally {

@@ -25,7 +25,13 @@ if [ -x /usr/libexec/java_home ]; then
   export JAVA_HOME=$(/usr/libexec/java_home -v '1.6+')
 fi
 
-exec java -ea -Dcom.google.dart.runner.d8="$D8_EXEC" \
+# Limit heap in order to detect any memory issues.  
+# On some system, the heap dynamically sizes to > 1GB.
+# Users can specify DART_JVMARGS in the environment to override
+# these settings.
+EXTRA_JVMARGS=-Xmx128M
+
+exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -Dcom.google.dart.runner.d8="$D8_EXEC" \
   -Dcom.google.dart.runner.progname="$DART_SCRIPT_NAME" \
   -classpath "@CLASSPATH@" \
   com.google.dart.runner.DartRunner $@
