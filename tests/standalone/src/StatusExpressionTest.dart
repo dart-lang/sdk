@@ -89,7 +89,7 @@ class StatusExpressionTest {
         new ExpressionParser(new Scanner(tokenizer.tokens));
     SetExpression ast = parser.parseSetExpression();
     Expect.equals(
-        @"((Skip || (Pass if ($arch == dartc))) || ((Fail || Timeout) " +
+        @"((skip || (pass if ($arch == dartc))) || ((fail || timeout) " +
         @"if (($arch == chromium) && ($mode == release))))",
         ast.toString());
 
@@ -99,19 +99,19 @@ class StatusExpressionTest {
     environment["checked"] = true;
     environment["mode"] = "debug";
     Set<String> result = ast.evaluate(environment);
-    Expect.setEquals(["Skip"], result);
+    Expect.setEquals(["skip"], result);
 
     environment["arch"] = "dartc";
     result = ast.evaluate(environment);
-    Expect.setEquals(["Skip", "Pass"], result);
+    Expect.setEquals(["skip", "pass"], result);
 
     environment["arch"] = "chromium";
     result = ast.evaluate(environment);
-    Expect.setEquals(["Skip"], result);
+    Expect.setEquals(["skip"], result);
 
     environment["mode"] = "release";
     result = ast.evaluate(environment);
-    Expect.setEquals(["Skip", "Fail", "Timeout"], result);
+    Expect.setEquals(["skip", "fail", "timeout"], result);
   }
 
   static void test6() {

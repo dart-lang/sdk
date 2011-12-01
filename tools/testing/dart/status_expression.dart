@@ -162,7 +162,7 @@ class SetIf implements SetExpression {
 class SetConstant implements SetExpression {
   String value;
 
-  SetConstant(this.value);
+  SetConstant(String v) : value = v.toLowerCase();
 
   Set<String> evaluate(environment) => new Set<String>.from([value]);
   String toString() => value;
