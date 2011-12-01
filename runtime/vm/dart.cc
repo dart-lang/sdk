@@ -59,7 +59,7 @@ Isolate* Dart::CreateIsolate() {
 }
 
 
-void Dart::InitializeIsolate(const Dart_Snapshot* snapshot_buffer, void* data) {
+void Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);

@@ -197,6 +197,16 @@ PersistentHandle* Api::UnwrapAsPersistentHandle(const ApiState& state,
 }
 
 
+Dart_Isolate Api::CastIsolate(Isolate* isolate) {
+  return reinterpret_cast<Dart_Isolate>(isolate);
+}
+
+
+Dart_Message Api::CastMessage(uint8_t* message) {
+  return reinterpret_cast<Dart_Message>(message);
+}
+
+
 Dart_Handle Api::Success() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -539,7 +549,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 // --- Isolates ---
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
   Isolate* isolate = Dart::CreateIsolate();
@@ -573,7 +583,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
 
 
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
-  return reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  return Api::CastIsolate(Isolate::Current());
 }
 
 
@@ -725,7 +735,7 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
   writer.WriteMessage(len, data);
 
   // Post the message at the given port.
-  return PortMap::PostMessage(port_id, kNoReplyPort, buffer);
+  return PortMap::PostMessage(port_id, kNoReplyPort, Api::CastMessage(buffer));
 }
 
 
@@ -736,7 +746,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   SnapshotWriter writer(false, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
-  return PortMap::PostMessage(port_id, kNoReplyPort, data);
+  return PortMap::PostMessage(port_id, kNoReplyPort, Api::CastMessage(data));
 }
 
 

@@ -93,7 +93,7 @@ typedef unsigned __int64 uint64_t;
  * the lifetime of the current isolate unless they are explicitly
  * deallocated (see Dart_DeletePersistentHandle).
  */
-typedef void* Dart_Handle;
+typedef struct _Dart_Handle* Dart_Handle;
 
 /**
  * Is this an error handle?
@@ -284,19 +284,14 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * isolate in order to function without error. The current isolate is
  * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
  */
-typedef void* Dart_Isolate;
+typedef struct _Dart_Isolate* Dart_Isolate;
 
 /**
- * A buffer containing a snapshot of the Dart VM. A snapshot can be
- * used to restore the VM quickly to a saved state and is useful for
- * fast startup.
- */
-typedef void Dart_Snapshot;
-
-/**
- * Creates a new isolate. If snapshot data is provided, the isolate
- * will be started using that snapshot data. The new isolate becomes
- * the current isolate.
+ * Creates a new isolate. The new isolate becomes the current isolate.
+ *
+ * A snapshot can be used to restore the VM quickly to a saved state
+ * and is useful for fast startup. If snapshot data is provided, the
+ * isolate will be started using that snapshot data.
  *
  * Requires there to be no current isolate.
  *
@@ -306,7 +301,7 @@ typedef void Dart_Snapshot;
  * \return The new isolate is returned. May be NULL if an error
  *   occurs duing isolate initialization.
  */
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error);
 // TODO(turnidge): Document behavior when there is already a current
@@ -353,15 +348,13 @@ DART_EXPORT void Dart_ExitIsolate();
  */
 DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snaphot_buffer,
                                             intptr_t* snapshot_size);
-// TODO(turnidge): Does this include the current script or only libs?
-// is it possible to take a snapshot and load more scripts into it?
 
 // --- Messages and Ports ---
 
 /**
  * Messages are used to communicate between isolates.
  */
-typedef void* Dart_Message;
+typedef struct _Dart_Message* Dart_Message;
 
 /**
  * A port is used to send or receive inter-isolate messages
@@ -1118,7 +1111,7 @@ DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
  * native function by index. It also allows the return value of a
  * native function to be set.
  */
-typedef void* Dart_NativeArguments;
+typedef struct _Dart_NativeArguments* Dart_NativeArguments;
 
 /**
  * Gets the native argument at some index.

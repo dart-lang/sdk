@@ -183,14 +183,14 @@ TEST_CASE(PortMap_PostMessageFailureInCallback) {
 // End-of-test marker.
 static const intptr_t kEOT = 0xFFFF;
 
-void* AllocIntData(intptr_t payload) {
+Dart_Message AllocIntData(intptr_t payload) {
   intptr_t* result = reinterpret_cast<intptr_t*>(malloc(sizeof(payload)));
   *result = payload;
-  return result;
+  return reinterpret_cast<Dart_Message>(result);
 }
 
 
-intptr_t GetIntData(void* data) {
+intptr_t GetIntData(Dart_Message data) {
   return *reinterpret_cast<intptr_t*>(data);
 }
 

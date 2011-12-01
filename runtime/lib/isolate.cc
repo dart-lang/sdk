@@ -7,6 +7,7 @@
 #include "vm/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
+#include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/longjump.h"
@@ -43,7 +44,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-static void* SerializeObject(const Instance& obj) {
+static uint8_t* SerializeObject(const Instance& obj) {
   uint8_t* result = NULL;
   SnapshotWriter writer(false, &result, &allocator);
   writer.WriteObject(obj.raw());
@@ -338,10 +339,10 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
   intptr_t send_id = Smi::CheckedHandle(arguments->At(0)).Value();
   intptr_t reply_id = Smi::CheckedHandle(arguments->At(1)).Value();
   // TODO(iposva): Allow for arbitrary messages to be sent.
-  void* data = SerializeObject(Instance::CheckedHandle(arguments->At(2)));
+  uint8_t* data = SerializeObject(Instance::CheckedHandle(arguments->At(2)));
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(send_id, reply_id, data);
+  PortMap::PostMessage(send_id, reply_id, Api::CastMessage(data));
 }
 
 }  // namespace dart

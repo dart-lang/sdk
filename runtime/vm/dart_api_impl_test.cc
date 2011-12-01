@@ -766,24 +766,23 @@ UNIT_TEST_CASE(Isolates) {
   // This test currently assumes that the Dart_Isolate type is an opaque
   // representation of Isolate*.
   Dart_Isolate iso_1 = TestCase::CreateTestIsolate();
-  EXPECT_EQ(iso_1, Isolate::Current());
+  EXPECT_EQ(iso_1, Api::CastIsolate(Isolate::Current()));
   Dart_Isolate isolate = Dart_CurrentIsolate();
   EXPECT_EQ(iso_1, isolate);
   Dart_ExitIsolate();
-  EXPECT(NULL == Isolate::Current());
   EXPECT(NULL == Dart_CurrentIsolate());
   Dart_Isolate iso_2 = TestCase::CreateTestIsolate();
-  EXPECT_EQ(iso_2, Isolate::Current());
+  EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ExitIsolate();
-  EXPECT(NULL == Isolate::Current());
+  EXPECT(NULL == Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_2);
-  EXPECT_EQ(iso_2, Isolate::Current());
+  EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(NULL == Isolate::Current());
+  EXPECT(NULL == Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_1);
-  EXPECT_EQ(iso_1, Isolate::Current());
+  EXPECT_EQ(iso_1, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(NULL == Isolate::Current());
+  EXPECT(NULL == Dart_CurrentIsolate());
 }
 
 
