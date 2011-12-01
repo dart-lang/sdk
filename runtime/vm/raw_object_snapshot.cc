@@ -140,29 +140,28 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawType* Type::ReadFrom(SnapshotReader* reader,
+RawAbstractType* AbstractType::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         bool classes_serialized) {
-  UNREACHABLE();  // Type is an abstract class.
+  UNREACHABLE();  // AbstractType is an abstract class.
   return NULL;
 }
 
 
-void RawType::WriteTo(SnapshotWriter* writer,
+void RawAbstractType::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       bool serialize_classes) {
-  UNREACHABLE();  // Type is an abstract class.
+  UNREACHABLE();  // AbstractType is an abstract class.
 }
 
 
-RawParameterizedType* ParameterizedType::ReadFrom(SnapshotReader* reader,
+RawType* Type::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   bool classes_serialized) {
   ASSERT(reader != NULL);
 
   // Allocate parameterized type object.
-  ParameterizedType& parameterized_type =
-      ParameterizedType::ZoneHandle(ParameterizedType::New());
+  Type& parameterized_type = Type::ZoneHandle(Type::New());
   reader->AddBackwardReference(object_id, &parameterized_type);
 
   // Set all non object fields.
@@ -180,7 +179,7 @@ RawParameterizedType* ParameterizedType::ReadFrom(SnapshotReader* reader,
 }
 
 
-void RawParameterizedType::WriteTo(SnapshotWriter* writer,
+void RawType::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    bool serialize_classes) {
   ASSERT(writer != NULL);
@@ -190,7 +189,7 @@ void RawParameterizedType::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(kInlined, object_id);
 
   // Write out the class information.
-  writer->WriteObjectHeader(kObjectId, Object::kParameterizedTypeClass);
+  writer->WriteObjectHeader(kObjectId, Object::kTypeClass);
 
   // Write out all the non object pointer fields.
   writer->Write<int8_t>(ptr()->type_state_);
@@ -310,7 +309,7 @@ RawTypeArray* TypeArray::ReadFrom(SnapshotReader* reader,
 
   TypeArray& type_array = TypeArray::Handle(TypeArray::New(len));
   reader->AddBackwardReference(object_id, &type_array);
-  Type& type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type ^= reader->ReadObject();
     type_array.SetTypeAt(i, type);

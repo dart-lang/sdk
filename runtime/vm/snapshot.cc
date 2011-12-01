@@ -286,8 +286,7 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 
   // Check if classes are not being serialized and it is preinitialized type.
   if (!serialize_classes_) {
-    RawParameterizedType* raw_type =
-        reinterpret_cast<RawParameterizedType*>(rawobj);
+    RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
     index = object_store()->GetTypeIndex(raw_type);
     if (index != ObjectStore::kInvalidIndex) {
       WriteObjectHeader(kObjectId, index);

@@ -791,7 +791,7 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
       GenerateAssertAssignable(
           node->id(),
           node->value()->token_index(),
-          Type::ZoneHandle(parsed_function().function().result_type()),
+          AbstractType::ZoneHandle(parsed_function().function().result_type()),
           String::ZoneHandle(String::NewSymbol("function result")));
     }
   }
@@ -1033,7 +1033,7 @@ void CodeGenerator::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
                              node->value()->token_index(),
-                             Type::ZoneHandle(node->field().type()),
+                             AbstractType::ZoneHandle(node->field().type()),
                              String::ZoneHandle(node->field().name()));
   }
   __ popl(EDX);  // Instance.
@@ -1135,7 +1135,7 @@ void CodeGenerator::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
                              node->value()->token_index(),
-                             Type::ZoneHandle(node->field().type()),
+                             AbstractType::ZoneHandle(node->field().type()),
                              String::ZoneHandle(node->field().name()));
   }
   __ LoadObject(EDX, node->field());
@@ -1304,7 +1304,7 @@ void CodeGenerator::VisitIncrOpStaticFieldNode(IncrOpStaticFieldNode* node) {
     if (FLAG_enable_type_checks) {
       GenerateAssertAssignable(node->id(),
                                node->token_index(),
-                               Type::ZoneHandle(node->field().type()),
+                               AbstractType::ZoneHandle(node->field().type()),
                                String::ZoneHandle(node->field().name()));
     }
     __ LoadObject(EDX, node->field());
@@ -1366,7 +1366,7 @@ static const Class* CoreClass(const char* c_name) {
 // - true or false on stack.
 void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
                                        intptr_t token_index,
-                                       const Type& type,
+                                       const AbstractType& type,
                                        bool negate_result) {
   ASSERT(type.IsFinalized());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
@@ -1523,7 +1523,7 @@ void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
 // - object in EAX for successful assignable check (or throws TypeError).
 void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
                                              intptr_t token_index,
-                                             const Type& dst_type,
+                                             const AbstractType& dst_type,
                                              const String& dst_name) {
   ASSERT(FLAG_enable_type_checks);
   ASSERT(token_index >= 0);
@@ -2258,7 +2258,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // The type arguments are compile time constants.
     TypeArguments& type_arguments = TypeArguments::ZoneHandle();
     // TODO(regis): Temporary type should be allocated in new gen heap.
-    Type& type = Type::Handle(
+    AbstractType& type = AbstractType::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
     String& errmsg = String::Handle();
     type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);

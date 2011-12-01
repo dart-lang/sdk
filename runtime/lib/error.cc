@@ -214,7 +214,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
-  const Type& dst_type = Type::CheckedHandle(arguments.At(2));
+  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(2));
   const TypeArguments& dst_type_instantiator =
       TypeArguments::CheckedHandle(arguments.At(3));
   const String& dst_name = String::CheckedHandle(arguments.At(4));
@@ -226,7 +226,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
 
   if (FLAG_trace_type_checks) {
     const Type& src_type = Type::Handle(src_instance.GetType());
-    Type& instantiated_dst_type = Type::Handle(dst_type.raw());
+    AbstractType& instantiated_dst_type = AbstractType::Handle(dst_type.raw());
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before printing.
       instantiated_dst_type =
@@ -243,7 +243,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     String& dst_type_name = String::Handle();
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
-      const Type& instantiated_dst_type = Type::Handle(
+      const AbstractType& instantiated_dst_type = AbstractType::Handle(
           dst_type.InstantiateFrom(dst_type_instantiator, 0));
       dst_type_name = instantiated_dst_type.Name();
     } else {
@@ -290,7 +290,8 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
       kRestArgumentTypeCheckRuntimeEntry.argument_count());
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
   const Array& rest_array = Array::CheckedHandle(arguments.At(1));
-  const Type& element_type = Type::CheckedHandle(arguments.At(2));
+  const AbstractType& element_type =
+      AbstractType::CheckedHandle(arguments.At(2));
   const TypeArguments& element_type_instantiator =
       TypeArguments::CheckedHandle(arguments.At(3));
   const String& rest_name = String::CheckedHandle(arguments.At(4));
@@ -311,7 +312,7 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
       String& dst_type_name = String::Handle();
       if (!element_type.IsInstantiated()) {
         // Instantiate element_type before reporting the error.
-        const Type& instantiated_element_type = Type::Handle(
+        const AbstractType& instantiated_element_type = AbstractType::Handle(
             element_type.InstantiateFrom(element_type_instantiator, 0));
         dst_type_name = instantiated_element_type.Name();
       } else {

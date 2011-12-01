@@ -17,8 +17,8 @@ namespace dart {
 #define CLASS_LIST_NO_OBJECT(V)                                                \
   V(Class)                                                                     \
   V(UnresolvedClass)                                                           \
-  V(Type)                                                                      \
-    V(ParameterizedType)                                                       \
+  V(AbstractType)                                                              \
+    V(Type)                                                       \
     V(TypeParameter)                                                           \
     V(InstantiatedType)                                                        \
   V(TypeArguments)                                                             \
@@ -37,7 +37,7 @@ namespace dart {
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(UnhandledException)                                                        \
-  V(ApiError)                                                                \
+  V(ApiError)                                                                  \
   V(Instance)                                                                  \
     V(Number)                                                                  \
       V(Integer)                                                               \
@@ -222,12 +222,12 @@ class RawClass : public RawObject {
   RawString* name_;
   RawArray* functions_;
   RawArray* fields_;
-  RawArray* interfaces_;  // Array of Type.
+  RawArray* interfaces_;  // Array of AbstractType.
   RawScript* script_;
   RawLibrary* library_;
   RawArray* type_parameters_;  // Array of String.
   RawTypeArray* type_parameter_extends_;  // DynamicType if no extends clause.
-  RawType* super_type_;
+  RawAbstractType* super_type_;
   RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
@@ -269,14 +269,14 @@ class RawUnresolvedClass : public RawObject {
 };
 
 
-class RawType : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
+class RawAbstractType : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
   friend class ObjectStore;
 };
 
 
-class RawParameterizedType : public RawType {
+class RawType : public RawAbstractType {
  private:
   enum TypeState {
     kAllocated,  // Initial state.
@@ -284,7 +284,7 @@ class RawParameterizedType : public RawType {
     kFinalized,  // Type ready for use.
   };
 
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ParameterizedType);
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_class_);
@@ -296,7 +296,7 @@ class RawParameterizedType : public RawType {
 };
 
 
-class RawTypeParameter : public RawType {
+class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
@@ -307,14 +307,14 @@ class RawTypeParameter : public RawType {
 };
 
 
-class RawInstantiatedType : public RawType {
+class RawInstantiatedType : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(InstantiatedType);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->uninstantiated_type_);
   }
-  RawType* uninstantiated_type_;
+  RawAbstractType* uninstantiated_type_;
   RawTypeArguments* instantiator_type_arguments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
@@ -337,7 +337,7 @@ class RawTypeArray : public RawTypeArguments {
   RawSmi* length_;
 
   // Variable length data follows here.
-  RawType* types_[0];
+  RawAbstractType* types_[0];
   RawObject** to(intptr_t length) {
     return reinterpret_cast<RawObject**>(&ptr()->types_[length - 1]);
   }
@@ -381,7 +381,7 @@ class RawFunction : public RawObject {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawClass* owner_;
-  RawType* result_type_;
+  RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawCode* code_;  // Compiled code for the function.
@@ -413,7 +413,7 @@ class RawField : public RawObject {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawClass* owner_;
-  RawType* type_;
+  RawAbstractType* type_;
   RawInstance* value_;  // Offset for instance and value for static fields.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
 
@@ -599,7 +599,7 @@ class RawContextScope : public RawObject {
     RawSmi* token_index;
     RawString* name;
     RawBool* is_final;
-    RawType* type;
+    RawAbstractType* type;
     RawSmi* context_index;
     RawSmi* context_level;
   };

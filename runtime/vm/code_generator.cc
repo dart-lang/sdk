@@ -318,7 +318,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
   ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
   const Instance& instance = Instance::CheckedHandle(arguments.At(0));
-  const Type& type = Type::CheckedHandle(arguments.At(1));
+  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(1));
   const TypeArguments& type_instantiator =
       TypeArguments::CheckedHandle(arguments.At(2));
   ASSERT(type.IsFinalized());
@@ -326,8 +326,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
       instance.IsInstanceOf(type, type_instantiator) ?
       Bool::True() : Bool::False());
   if (FLAG_trace_type_checks) {
-    const ParameterizedType& instance_type =
-        ParameterizedType::Handle(instance.GetType());
+    const Type& instance_type = Type::Handle(instance.GetType());
     ASSERT(instance_type.IsInstantiated());
     if (type.IsInstantiated()) {
       OS::Print("InstanceOf: '%s' %s '%s'\n",
@@ -336,8 +335,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
                 String::Handle(type.Name()).ToCString());
     } else {
       // Instantiate type before printing.
-      const Type& instantiated_type =
-          Type::Handle(type.InstantiateFrom(type_instantiator, 0));
+      const AbstractType& instantiated_type =
+          AbstractType::Handle(type.InstantiateFrom(type_instantiator, 0));
       OS::Print("InstanceOf: '%s' %s '%s' instantiated from '%s'\n",
                 String::Handle(instance_type.Name()).ToCString(),
                 (result.raw() == Bool::True()) ? "is" : "is !",

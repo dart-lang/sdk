@@ -202,16 +202,18 @@ class Parser : ValueObject {
   void ParseLibraryImport();
   void ParseLibraryInclude();
 
-  void TryResolveTypeFromClass(intptr_t type_pos, const Class& cls, Type* type);
+  void TryResolveTypeFromClass(intptr_t type_pos,
+                               const Class& cls,
+                               AbstractType* type);
   enum TypeResolution {
     kDoNotResolve,  // Type resolution is postponed.
     kCanResolve,  // Type resolution is optional.
     kMustResolve  // Type resolution is required.
   };
-  RawType* ParseType(TypeResolution type_resolution);
+  RawAbstractType* ParseType(TypeResolution type_resolution);
   void ParseTypeParameters(const Class& cls);
   RawTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
-  RawType* ParseInterface();
+  RawAbstractType* ParseInterface();
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
@@ -309,10 +311,10 @@ class Parser : ValueObject {
     kIsOptional,  // Type specification is optional.
     kIsMandatory  // Type specification is mandatory.
   };
-  RawType* ParseFinalVarOrType(TypeSpecification type_specification,
+  RawAbstractType* ParseFinalVarOrType(TypeSpecification type_specification,
                                TypeResolution type_resolution);
-  const Type& ParseConstVarOrType(TypeSpecification type_specification);
-  AstNode* ParseVariableDeclaration(const Type& type, bool is_const);
+  const AbstractType& ParseConstVarOrType(TypeSpecification type_specification);
+  AstNode* ParseVariableDeclaration(const AbstractType& type, bool is_const);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
   AstNode* ParseStatement();

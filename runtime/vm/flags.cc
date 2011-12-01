@@ -20,14 +20,14 @@ bool Flags::initialized_ = false;
 
 class Flag {
  public:
-  enum Type {
+  enum FlagType {
     kBoolean,
     kInteger,
     kString,
     kNumFlagTypes
   };
 
-  Flag(const char* name, const char* comment, void* addr, Type type)
+  Flag(const char* name, const char* comment, void* addr, FlagType type)
       : name_(name), comment_(comment), addr_(addr), type_(type) {
   }
 
@@ -73,7 +73,7 @@ class Flag {
     int* int_ptr_;
     charp* charp_ptr_;
   };
-  Type type_;
+  FlagType type_;
 };
 
 

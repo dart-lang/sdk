@@ -18,7 +18,9 @@ class SourceLabel;
 
 class LocalVariable : public ZoneAllocated {
  public:
-  LocalVariable(intptr_t token_index, const String& name, const Type& type)
+  LocalVariable(intptr_t token_index,
+                const String& name,
+                const AbstractType& type)
     : token_index_(token_index),
       name_(name),
       owner_(NULL),
@@ -39,7 +41,7 @@ class LocalVariable : public ZoneAllocated {
     owner_ = owner;
   }
 
-  const Type& type() const { return type_; }
+  const AbstractType& type() const { return type_; }
 
   bool is_final() const { return is_final_; }
   void set_is_final() { is_final_ = true; }
@@ -71,7 +73,7 @@ class LocalVariable : public ZoneAllocated {
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this variable.
 
-  const Type& type_;  // Declaration type of local variable.
+  const AbstractType& type_;  // Declaration type of local variable.
 
   bool is_final_;  // If true, this variable is readonly.
   bool is_captured_;  // If true, this variable lives in the context, otherwise

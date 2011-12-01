@@ -198,18 +198,18 @@ intptr_t RawUnresolvedClass::VisitUnresolvedClassPointers(
 }
 
 
-intptr_t RawType::VisitTypePointers(RawType* raw_obj,
-                                    ObjectPointerVisitor* visitor) {
-  // RawType is an abstract class.
+intptr_t RawAbstractType::VisitAbstractTypePointers(
+    RawAbstractType* raw_obj, ObjectPointerVisitor* visitor) {
+  // RawAbstractType is an abstract class.
   UNREACHABLE();
   return 0;
 }
 
 
-intptr_t RawParameterizedType::VisitParameterizedTypePointers(
-    RawParameterizedType* raw_obj, ObjectPointerVisitor* visitor) {
+intptr_t RawType::VisitTypePointers(
+    RawType* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return ParameterizedType::InstanceSize();
+  return Type::InstanceSize();
 }
 
 

@@ -371,7 +371,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     LocalVariable* variable =
         new LocalVariable(context_scope.TokenIndexAt(i),
                           String::ZoneHandle(context_scope.NameAt(i)),
-                          Type::ZoneHandle(context_scope.TypeAt(i)));
+                          AbstractType::ZoneHandle(context_scope.TypeAt(i)));
     variable->set_is_captured();
     variable->set_index(context_scope.ContextIndexAt(i));
     if (context_scope.IsFinalAt(i)) {
@@ -402,7 +402,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetTokenIndexAt(0, func.token_index());
   context_scope.SetNameAt(0, name);
   context_scope.SetIsFinalAt(0, true);
-  const Type& type = Type::Handle(func.ParameterTypeAt(0));
+  const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));
   context_scope.SetTypeAt(0, type);
   context_scope.SetContextIndexAt(0, 0);
   context_scope.SetContextLevelAt(0, 0);

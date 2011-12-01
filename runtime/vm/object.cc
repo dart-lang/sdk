@@ -50,8 +50,7 @@ RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::parameterized_type_class_ =
-    reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::type_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_parameter_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instantiated_type_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -87,8 +86,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kVoidClass;
   } else if (raw_class == unresolved_class_class()) {
     return kUnresolvedClassClass;
-  } else if (raw_class == parameterized_type_class()) {
-    return kParameterizedTypeClass;
+  } else if (raw_class == type_class()) {
+    return kTypeClass;
   } else if (raw_class == type_parameter_class()) {
     return kTypeParameterClass;
   } else if (raw_class == instantiated_type_class()) {
@@ -137,7 +136,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kDynamicClass: return dynamic_class();
     case kVoidClass: return void_class();
     case kUnresolvedClassClass: return unresolved_class_class();
-    case kParameterizedTypeClass: return parameterized_type_class();
+    case kTypeClass: return type_class();
     case kTypeParameterClass: return type_parameter_class();
     case kInstantiatedTypeClass: return instantiated_type_class();
     case kTypeArgumentsClass: return type_arguments_class();
@@ -171,7 +170,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kDynamicClass: return "Dynamic";
     case kVoidClass: return "void";
     case kUnresolvedClassClass: return "UnresolvedClass";
-    case kParameterizedTypeClass: return "ParameterizedType";
+    case kTypeClass: return "Type";
     case kTypeParameterClass: return "TypeParameter";
     case kInstantiatedTypeClass: return "InstantiatedType";
     case kTypeArgumentsClass: return "TypeArguments";
@@ -275,8 +274,8 @@ void Object::InitOnce() {
   cls.set_is_finalized();
   void_class_ = cls.raw();
 
-  cls = Class::New<ParameterizedType>();
-  parameterized_type_class_ = cls.raw();
+  cls = Class::New<Type>();
+  type_class_ = cls.raw();
 
   cls = Class::New<TypeParameter>();
   type_parameter_class_ = cls.raw();
@@ -362,7 +361,7 @@ void Object::Init(Isolate* isolate) {
   ObjectStore* object_store = isolate->object_store();
 
   Class& cls = Class::Handle();
-  ParameterizedType& type = ParameterizedType::Handle();
+  Type& type = Type::Handle();
   Array& array = Array::Handle();
 
   // All RawArray fields will be initialized to an empty array, therefore
@@ -601,7 +600,7 @@ void Object::Init(Isolate* isolate) {
   // Remove the Object superclass cycle by setting the super type to null (not
   // to the type of null).
   cls = object_store->object_class();
-  cls.set_super_type(Type::Handle());
+  cls.set_super_type(AbstractType::Handle());
 
   ClassFinalizer::VerifyBootstrapClasses();
 }
@@ -725,11 +724,11 @@ RawString* Class::Name() const {
 }
 
 
-RawType* Class::SignatureType() const {
+RawAbstractType* Class::SignatureType() const {
   // Return the first canonical signature type if already computed.
   const Array& signature_types = Array::Handle(canonical_types());
   if (signature_types.Length() > 0) {
-    Type& signature_type = Type::Handle();
+    AbstractType& signature_type = AbstractType::Handle();
     signature_type ^= signature_types.At(0);
     if (!signature_type.IsNull()) {
       return signature_type.raw();
@@ -750,15 +749,15 @@ RawType* Class::SignatureType() const {
     const Array& type_params = Array::Handle(type_parameters());
     signature_type_arguments = TypeArguments::NewTypeArray(num_type_params);
     String& type_param_name = String::Handle();
-    Type& type_param = Type::Handle();
+    AbstractType& type_param = AbstractType::Handle();
     for (int i = 0; i < num_type_params; i++) {
       type_param_name ^= type_params.At(i);
-      type_param = Type::NewTypeParameter(i, type_param_name);
+      type_param = AbstractType::NewTypeParameter(i, type_param_name);
       signature_type_arguments.SetTypeAt(i, type_param);
     }
   }
-  const ParameterizedType& signature_type = ParameterizedType::Handle(
-      ParameterizedType::New(*this, signature_type_arguments));
+  const Type& signature_type = Type::Handle(
+      Type::New(*this, signature_type_arguments));
 
   // Return the still unfinalized signature type.
   ASSERT(!signature_type.IsFinalized());
@@ -902,7 +901,7 @@ bool Class::HasTypeArguments() const {
 
 
 RawClass* Class::SuperClass() const {
-  const Type& sup_type = Type::Handle(super_type());
+  const AbstractType& sup_type = AbstractType::Handle(super_type());
   if (sup_type.IsNull()) {
     return Class::null();
   }
@@ -910,7 +909,7 @@ RawClass* Class::SuperClass() const {
 }
 
 
-void Class::set_super_type(const Type& value) const {
+void Class::set_super_type(const AbstractType& value) const {
   StorePointer(&raw_ptr()->super_type_, value.raw());
 }
 
@@ -1124,7 +1123,8 @@ RawClass* Class::NewSignatureClass(const String& name,
   // Instances of a signature class can only be closures.
   ASSERT(result.instance_size() == Closure::InstanceSize());
   // Cache the signature type as the first canonicalized type in result.
-  const Type& signature_type = Type::Handle(result.SignatureType());
+  const AbstractType& signature_type =
+      AbstractType::Handle(result.SignatureType());
   ASSERT(!signature_type.IsFinalized());
   const Array& new_canonical_types = Array::Handle(Array::New(1, Heap::kOld));
   new_canonical_types.SetAt(0, signature_type);
@@ -1340,7 +1340,7 @@ bool Class::IsMoreSpecificThan(
   // transitivity at the same time.
   if (other.is_interface()) {
     Array& interfaces = Array::Handle(this->interfaces());
-    Type& interface = Type::Handle();
+    AbstractType& interface = AbstractType::Handle();
     Class& interface_class = Class::Handle();
     TypeArguments& interface_args = TypeArguments::Handle();
     for (intptr_t i = 0; i < interfaces.Length(); i++) {
@@ -1677,86 +1677,86 @@ const char* UnresolvedClass::ToCString() const {
 }
 
 
-bool Type::IsResolved() const {
-  // Type is an abstract class.
+bool AbstractType::IsResolved() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-bool Type::HasResolvedTypeClass() const {
-  // Type is an abstract class.
+bool AbstractType::HasResolvedTypeClass() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-RawClass* Type::type_class() const {
-  // Type is an abstract class.
+RawClass* AbstractType::type_class() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return Class::null();
 }
 
 
-RawUnresolvedClass* Type::unresolved_class() const {
-  // Type is an abstract class.
+RawUnresolvedClass* AbstractType::unresolved_class() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return UnresolvedClass::null();
 }
 
 
-RawTypeArguments* Type::arguments() const  {
-  // Type is an abstract class.
+RawTypeArguments* AbstractType::arguments() const  {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 
-bool Type::IsInstantiated() const {
-  // Type is an abstract class.
+bool AbstractType::IsInstantiated() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-bool Type::IsFinalized() const {
-  // Type is an abstract class.
+bool AbstractType::IsFinalized() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-bool Type::IsBeingFinalized() const {
-  // Type is an abstract class.
+bool AbstractType::IsBeingFinalized() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-bool Type::Equals(const Type& other) const {
-  // Type is an abstract class.
+bool AbstractType::Equals(const AbstractType& other) const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-RawType* Type::InstantiateFrom(
+RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
-  // Type is an abstract class.
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 
-RawType* Type::Canonicalize() const {
-  // Type is an abstract class.
+RawAbstractType* AbstractType::Canonicalize() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 
-RawString* Type::Name() const {
+RawString* AbstractType::Name() const {
   // If the type is still being finalized, we may be reporting an error about
   // an illformed type, so proceed with caution.
   const TypeArguments& args = TypeArguments::Handle(arguments());
@@ -1807,10 +1807,10 @@ RawString* Type::Name() const {
     strings.SetAt(s++, class_name);
     strings.SetAt(s++, String::Handle(String::NewSymbol("<")));
     const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
-    Type& type = Type::Handle();
+    AbstractType& type = AbstractType::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       if (first_type_param_index + i >= num_args) {
-        type = DynamicType();
+        type = Type::DynamicType();
       } else {
         type = args.TypeAt(first_type_param_index + i);
       }
@@ -1831,14 +1831,14 @@ RawString* Type::Name() const {
 }
 
 
-intptr_t Type::Index() const {
-  // Type is an abstract class.
+intptr_t AbstractType::Index() const {
+  // AbstractType is an abstract class.
   UNREACHABLE();
   return -1;
 }
 
 
-RawString* Type::ClassName() const {
+RawString* AbstractType::ClassName() const {
   if (HasResolvedTypeClass()) {
     return Class::Handle(type_class()).Name();
   } else {
@@ -1847,52 +1847,52 @@ RawString* Type::ClassName() const {
 }
 
 
-bool Type::IsBoolInterface() const {
+bool AbstractType::IsBoolInterface() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::BoolInterface()).type_class());
 }
 
 
-bool Type::IsIntInterface() const {
+bool AbstractType::IsIntInterface() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::IntInterface()).type_class());
 }
 
 
-bool Type::IsDoubleInterface() const {
+bool AbstractType::IsDoubleInterface() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::DoubleInterface()).type_class());
 }
 
 
-bool Type::IsNumberInterface() const {
+bool AbstractType::IsNumberInterface() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::NumberInterface()).type_class());
 }
 
 
-bool Type::IsStringInterface() const {
+bool AbstractType::IsStringInterface() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::StringInterface()).type_class());
 }
 
 
-bool Type::IsFunctionInterface() const {
+bool AbstractType::IsFunctionInterface() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::FunctionInterface()).type_class());
 }
 
 
-bool Type::IsListInterface() const {
+bool AbstractType::IsListInterface() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::ListInterface()).type_class());
 }
 
 
-bool Type::IsMoreSpecificThan(const Type& other) const {
+bool AbstractType::IsMoreSpecificThan(const AbstractType& other) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  // Type parameters cannot be handled by Class::IsMoreSpecificThan().
+  // AbstractType parameters cannot be handled by Class::IsMoreSpecificThan().
   if (IsTypeParameter() || other.IsTypeParameter()) {
     return IsTypeParameter() && other.IsTypeParameter() &&
         (Index() == other.Index());
@@ -1904,10 +1904,10 @@ bool Type::IsMoreSpecificThan(const Type& other) const {
 }
 
 
-bool Type::Test(TypeTestKind test, const Type& other) const {
+bool AbstractType::Test(TypeTestKind test, const AbstractType& other) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  // Type parameters cannot be handled by Class::TestType().
+  // AbstractType parameters cannot be handled by Class::TestType().
   if (IsTypeParameter() || other.IsTypeParameter()) {
     return IsTypeParameter() && other.IsTypeParameter() &&
         (Index() == other.Index());
@@ -1925,74 +1925,95 @@ bool Type::Test(TypeTestKind test, const Type& other) const {
   }
 }
 
+RawAbstractType* AbstractType::NewTypeParameter(
+    intptr_t index, const String& name) {
+  return TypeParameter::New(index, name);
+}
 
-RawParameterizedType* Type::NullType() {
+
+RawAbstractType* AbstractType::NewInstantiatedType(
+    const AbstractType& uninstantiated_type,
+    const TypeArguments& instantiator_type_arguments) {
+  return InstantiatedType::New(uninstantiated_type,
+                               instantiator_type_arguments);
+}
+
+
+const char* AbstractType::ToCString() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return "AbstractType";
+}
+
+
+RawType* Type::NullType() {
   return Isolate::Current()->object_store()->null_type();
 }
 
 
-RawParameterizedType* Type::DynamicType() {
+RawType* Type::DynamicType() {
   return Isolate::Current()->object_store()->dynamic_type();
 }
 
 
-RawParameterizedType* Type::VoidType() {
+RawType* Type::VoidType() {
   return Isolate::Current()->object_store()->void_type();
 }
 
 
-RawParameterizedType* Type::ObjectType() {
+RawType* Type::ObjectType() {
   return Isolate::Current()->object_store()->object_type();
 }
 
 
-RawParameterizedType* Type::BoolInterface() {
+RawType* Type::BoolInterface() {
   return Isolate::Current()->object_store()->bool_interface();
 }
 
 
-RawParameterizedType* Type::IntInterface() {
+RawType* Type::IntInterface() {
   return Isolate::Current()->object_store()->int_interface();
 }
 
 
-RawParameterizedType* Type::DoubleInterface() {
+RawType* Type::DoubleInterface() {
   return Isolate::Current()->object_store()->double_interface();
 }
 
 
-RawParameterizedType* Type::NumberInterface() {
+RawType* Type::NumberInterface() {
   return Isolate::Current()->object_store()->number_interface();
 }
 
 
-RawParameterizedType* Type::StringInterface() {
+RawType* Type::StringInterface() {
   return Isolate::Current()->object_store()->string_interface();
 }
 
 
-RawParameterizedType* Type::FunctionInterface() {
+RawType* Type::FunctionInterface() {
   return Isolate::Current()->object_store()->function_interface();
 }
 
 
-RawParameterizedType* Type::ListInterface() {
+RawType* Type::ListInterface() {
   return Isolate::Current()->object_store()->list_interface();
 }
 
 
-RawParameterizedType* Type::NewRawType(const Class& type_class) {
+RawType* Type::NewRawType(const Class& type_class) {
   const TypeArguments& type_arguments =
       TypeArguments::Handle(type_class.type_parameter_extends());
   return NewParameterizedType(Object::Handle(type_class.raw()), type_arguments);
 }
 
 
-RawParameterizedType* Type::NewNonParameterizedType(const Class& type_class) {
+RawType* Type::NewNonParameterizedType(
+    const Class& type_class) {
   ASSERT(!type_class.HasTypeArguments());
   const TypeArguments& no_type_arguments = TypeArguments::Handle();
-  ParameterizedType& type = ParameterizedType::Handle();
-  type ^= ParameterizedType::New(
+  Type& type = Type::Handle();
+  type ^= Type::New(
       Object::Handle(type_class.raw()), no_type_arguments);
   type.set_is_finalized();
   type ^= type.Canonicalize();
@@ -2000,45 +2021,25 @@ RawParameterizedType* Type::NewNonParameterizedType(const Class& type_class) {
 }
 
 
-RawParameterizedType* Type::NewParameterizedType(const Object& clazz,
+RawType* Type::NewParameterizedType(const Object& clazz,
                                     const TypeArguments& arguments) {
-  return ParameterizedType::New(clazz, arguments);
+  return Type::New(clazz, arguments);
 }
 
 
-RawType* Type::NewTypeParameter(intptr_t index, const String& name) {
-  return TypeParameter::New(index, name);
-}
-
-
-RawType* Type::NewInstantiatedType(
-    const Type& uninstantiated_type,
-    const TypeArguments& instantiator_type_arguments) {
-  return InstantiatedType::New(uninstantiated_type,
-                               instantiator_type_arguments);
-}
-
-
-const char* Type::ToCString() const {
-  // Type is an abstract class.
-  UNREACHABLE();
-  return "Type";
-}
-
-
-void ParameterizedType::set_is_finalized() const {
+void Type::set_is_finalized() const {
   ASSERT(!IsFinalized());
-  set_type_state(RawParameterizedType::kFinalized);
+  set_type_state(RawType::kFinalized);
 }
 
 
-void ParameterizedType::set_is_being_finalized() const {
+void Type::set_is_being_finalized() const {
   ASSERT(!IsFinalized() && !IsBeingFinalized());
-  set_type_state(RawParameterizedType::kBeingFinalized);
+  set_type_state(RawType::kBeingFinalized);
 }
 
 
-bool ParameterizedType::IsResolved() const {
+bool Type::IsResolved() const {
   if (IsFinalized()) {
     return true;
   }
@@ -2050,13 +2051,13 @@ bool ParameterizedType::IsResolved() const {
 }
 
 
-bool ParameterizedType::HasResolvedTypeClass() const {
+bool Type::HasResolvedTypeClass() const {
   const Object& type_class = Object::Handle(raw_ptr()->type_class_);
   return !type_class.IsNull() && type_class.IsClass();
 }
 
 
-RawClass* ParameterizedType::type_class() const {
+RawClass* Type::type_class() const {
   ASSERT(HasResolvedTypeClass());
   Class& type_class = Class::Handle();
   type_class ^= raw_ptr()->type_class_;
@@ -2064,7 +2065,7 @@ RawClass* ParameterizedType::type_class() const {
 }
 
 
-RawUnresolvedClass* ParameterizedType::unresolved_class() const {
+RawUnresolvedClass* Type::unresolved_class() const {
   ASSERT(!HasResolvedTypeClass());
   UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
   unresolved_class ^= raw_ptr()->type_class_;
@@ -2073,18 +2074,18 @@ RawUnresolvedClass* ParameterizedType::unresolved_class() const {
 }
 
 
-RawTypeArguments* ParameterizedType::arguments() const {
+RawTypeArguments* Type::arguments() const {
   return raw_ptr()->arguments_;
 }
 
 
-bool ParameterizedType::IsInstantiated() const {
+bool Type::IsInstantiated() const {
   const TypeArguments& args = TypeArguments::Handle(arguments());
   return args.IsNull() || args.IsInstantiated();
 }
 
 
-RawType* ParameterizedType::InstantiateFrom(
+RawAbstractType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
   ASSERT(IsFinalized());
@@ -2094,8 +2095,7 @@ RawType* ParameterizedType::InstantiateFrom(
                                                   offset);
   const Class& cls = Class::Handle(type_class());
   ASSERT(cls.is_finalized());
-  ParameterizedType& instantiated_type = ParameterizedType::Handle(
-      ParameterizedType::New(cls, type_arguments));
+  Type& instantiated_type = Type::Handle(Type::New(cls, type_arguments));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
   instantiated_type.set_is_finalized();
@@ -2103,15 +2103,15 @@ RawType* ParameterizedType::InstantiateFrom(
 }
 
 
-bool ParameterizedType::Equals(const Type& other) const {
+bool Type::Equals(const AbstractType& other) const {
   ASSERT(IsFinalized() && other.IsFinalized());
   if (raw() == other.raw()) {
     return true;
   }
-  if (!other.IsParameterizedType()) {
+  if (!other.IsType()) {
     return false;
   }
-  ParameterizedType& other_parameterized_type = ParameterizedType::Handle();
+  Type& other_parameterized_type = Type::Handle();
   other_parameterized_type ^= other.raw();
   if (type_class() != other_parameterized_type.type_class()) {
     return false;
@@ -2121,7 +2121,7 @@ bool ParameterizedType::Equals(const Type& other) const {
 }
 
 
-RawType* ParameterizedType::Canonicalize() const {
+RawAbstractType* Type::Canonicalize() const {
   ASSERT(IsFinalized());
   const Class& cls = Class::Handle(type_class());
   Array& canonical_types = Array::Handle(cls.canonical_types());
@@ -2135,7 +2135,7 @@ RawType* ParameterizedType::Canonicalize() const {
   const intptr_t canonical_types_len = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
-  Type& type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
   intptr_t index = 0;
   while (index < canonical_types_len) {
     type ^= canonical_types.At(index);
@@ -2167,51 +2167,49 @@ RawType* ParameterizedType::Canonicalize() const {
 }
 
 
-void ParameterizedType::set_type_class(const Object& value) const {
+void Type::set_type_class(const Object& value) const {
   ASSERT(!value.IsNull() && (value.IsClass() || value.IsUnresolvedClass()));
   StorePointer(&raw_ptr()->type_class_, value.raw());
 }
 
 
-void ParameterizedType::set_arguments(const TypeArguments& value) const {
+void Type::set_arguments(const TypeArguments& value) const {
   StorePointer(&raw_ptr()->arguments_, value.raw());
 }
 
 
-RawParameterizedType* ParameterizedType::New() {
-  const Class& parameterized_type_class =
-      Class::Handle(Object::parameterized_type_class());
-  RawObject* raw = Object::Allocate(parameterized_type_class,
-                                    ParameterizedType::InstanceSize(),
+RawType* Type::New() {
+  const Class& type_class = Class::Handle(Object::type_class());
+  RawObject* raw = Object::Allocate(type_class,
+                                    Type::InstanceSize(),
                                     Heap::kOld);
-  return reinterpret_cast<RawParameterizedType*>(raw);
+  return reinterpret_cast<RawType*>(raw);
 }
 
 
-RawParameterizedType* ParameterizedType::New(const Object& clazz,
+RawType* Type::New(const Object& clazz,
                                              const TypeArguments& arguments) {
-  const ParameterizedType& result =
-      ParameterizedType::Handle(ParameterizedType::New());
+  const Type& result = Type::Handle(Type::New());
   result.set_type_class(clazz);
   result.set_arguments(arguments);
-  result.raw_ptr()->type_state_ = RawParameterizedType::kAllocated;
+  result.raw_ptr()->type_state_ = RawType::kAllocated;
   return result.raw();
 }
 
 
-void ParameterizedType::set_type_state(int8_t state) const {
-  ASSERT(state == RawParameterizedType::kAllocated ||
-         state == RawParameterizedType::kBeingFinalized ||
-         state == RawParameterizedType::kFinalized);
+void Type::set_type_state(int8_t state) const {
+  ASSERT(state == RawType::kAllocated ||
+         state == RawType::kBeingFinalized ||
+         state == RawType::kFinalized);
   raw_ptr()->type_state_ = state;
 }
 
 
-const char* ParameterizedType::ToCString() const {
+const char* Type::ToCString() const {
   if (IsResolved()) {
     const TypeArguments& type_arguments = TypeArguments::Handle(arguments());
     if (type_arguments.IsNull()) {
-      const char* format = "ParameterizedType: class '%s'";
+      const char* format = "Type: class '%s'";
       const char* class_name =
           String::Handle(Class::Handle(type_class()).Name()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
@@ -2220,7 +2218,7 @@ const char* ParameterizedType::ToCString() const {
       OS::SNPrint(chars, len, format, class_name);
       return chars;
     } else {
-      const char* format = "ParameterizedType: class '%s', args:[%s]";
+      const char* format = "Type: class '%s', args:[%s]";
       const char* class_name =
           String::Handle(Class::Handle(type_class()).Name()).ToCString();
       const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
@@ -2231,12 +2229,12 @@ const char* ParameterizedType::ToCString() const {
       return chars;
     }
   } else {
-    return "Unresolved ParameterizedType";
+    return "Unresolved Type";
   }
 }
 
 
-bool TypeParameter::Equals(const Type& other) const {
+bool TypeParameter::Equals(const AbstractType& other) const {
   if (raw() == other.raw()) {
     return true;
   }
@@ -2261,11 +2259,11 @@ void TypeParameter::set_name(const String& value) const {
 }
 
 
-RawType* TypeParameter::InstantiateFrom(
+RawAbstractType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     intptr_t offset) const {
   if (instantiator_type_arguments.IsNull()) {
-    return DynamicType();
+    return Type::DynamicType();
   }
   return instantiator_type_arguments.TypeAt(Index() + offset);
 }
@@ -2301,18 +2299,20 @@ const char* TypeParameter::ToCString() const {
 
 
 RawClass* InstantiatedType::type_class() const {
-  return Type::Handle(uninstantiated_type()).type_class();
+  return AbstractType::Handle(uninstantiated_type()).type_class();
 }
 
 
 RawTypeArguments* InstantiatedType::arguments() const {
   return TypeArguments::NewInstantiatedTypeArguments(
-      TypeArguments::Handle(Type::Handle(uninstantiated_type()).arguments()),
+      TypeArguments::Handle(AbstractType::Handle(
+          uninstantiated_type()).arguments()),
       TypeArguments::Handle(instantiator_type_arguments()));
 }
 
 
-void InstantiatedType::set_uninstantiated_type(const Type& value) const {
+void InstantiatedType::set_uninstantiated_type(
+    const AbstractType& value) const {
   StorePointer(&raw_ptr()->uninstantiated_type_, value.raw());
 }
 
@@ -2334,7 +2334,7 @@ RawInstantiatedType* InstantiatedType::New() {
 
 
 RawInstantiatedType* InstantiatedType::New(
-    const Type& uninstantiated_type,
+    const AbstractType& uninstantiated_type,
     const TypeArguments& instantiator_type_arguments) {
   const InstantiatedType& result =
       InstantiatedType::Handle(InstantiatedType::New());
@@ -2356,14 +2356,14 @@ intptr_t TypeArguments::Length() const  {
 }
 
 
-RawType* TypeArguments::TypeAt(intptr_t index) const {
+RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
   // TypeArguments is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 
-void TypeArguments::SetTypeAt(intptr_t index, const Type& value) const {
+void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
   // TypeArguments is an abstract class.
   UNREACHABLE();
 }
@@ -2423,7 +2423,7 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
 
 bool TypeArguments::IsDynamicTypes(intptr_t len) const {
   ASSERT(Length() >= len);
-  Type& type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
   Class& type_class = Class::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(i);
@@ -2446,8 +2446,8 @@ bool TypeArguments::IsMoreSpecificThan(const TypeArguments& other,
   ASSERT(Length() >= len);
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= len);
-  Type& type = Type::Handle();
-  Type& other_type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(i);
     ASSERT(!type.IsNull());
@@ -2487,19 +2487,19 @@ intptr_t TypeArray::Length() const {
 }
 
 
-RawType* TypeArray::TypeAt(intptr_t index) const {
+RawAbstractType* TypeArray::TypeAt(intptr_t index) const {
   return *TypeAddr(index);
 }
 
 
-void TypeArray::SetTypeAt(intptr_t index, const Type& value) const {
+void TypeArray::SetTypeAt(intptr_t index, const AbstractType& value) const {
   // TODO(iposva): Add storing NoGCScope.
   *TypeAddr(index) = value.raw();
 }
 
 
 bool TypeArray::IsResolved() const {
-  Type& type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
   intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -2512,7 +2512,7 @@ bool TypeArray::IsResolved() const {
 
 
 bool TypeArray::IsInstantiated() const {
-  Type& type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
   intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -2526,7 +2526,7 @@ bool TypeArray::IsInstantiated() const {
 
 bool TypeArray::IsUninstantiatedIdentity() const {
   ASSERT(!IsInstantiated());
-  Type& type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
   intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -2543,8 +2543,8 @@ bool TypeArray::Equals(const TypeArguments& other) const {
   if (num_types != other.Length()) {
     return false;
   }
-  Type& type = Type::Handle();
-  Type& other_type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     other_type = other.TypeAt(i);
@@ -2568,7 +2568,7 @@ RawTypeArguments* TypeArray::InstantiateFrom(
   }
   const intptr_t num_types = Length();
   TypeArray& instantiated_array = TypeArray::Handle(TypeArray::New(num_types));
-  Type& type = Type::Handle();
+  AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsInstantiated()) {
@@ -2597,14 +2597,14 @@ RawTypeArray* TypeArray::New(intptr_t len) {
     result ^= raw;
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
-      *result.TypeAddr(i) = ParameterizedType::null();
+      *result.TypeAddr(i) = Type::null();
     }
   }
   return result.raw();
 }
 
 
-RawType** TypeArray::TypeAddr(intptr_t index) const {
+RawAbstractType** TypeArray::TypeAddr(intptr_t index) const {
   // TODO(iposva): Determine if we should throw an exception here.
   ASSERT((index >= 0) && (index < Length()));
   return &raw_ptr()->types_[index];
@@ -2625,7 +2625,7 @@ const char* TypeArray::ToCString() const {
   const char* format = "%s [%s]";
   const char* prev_cstr = "TypeArray:";
   for (int i = 0; i < Length(); i++) {
-    const char* type_cstr = Type::Handle(TypeAt(i)).ToCString();
+    const char* type_cstr = AbstractType::Handle(TypeAt(i)).ToCString();
     intptr_t len = OS::SNPrint(NULL, 0, format, prev_cstr, type_cstr) + 1;
     char* chars = reinterpret_cast<char*>(
         Isolate::Current()->current_zone()->Allocate(len));
@@ -2641,8 +2641,8 @@ intptr_t InstantiatedTypeArguments::Length() const {
 }
 
 
-RawType* InstantiatedTypeArguments::TypeAt(intptr_t index) const {
-  const Type& type = Type::Handle(
+RawAbstractType* InstantiatedTypeArguments::TypeAt(intptr_t index) const {
+  const AbstractType& type = AbstractType::Handle(
       TypeArguments::Handle(uninstantiated_type_arguments()).TypeAt(index));
   if (type.IsTypeParameter()) {
     TypeArguments& instantiator =
@@ -2658,7 +2658,7 @@ RawType* InstantiatedTypeArguments::TypeAt(intptr_t index) const {
 
 
 void InstantiatedTypeArguments::SetTypeAt(intptr_t index,
-                                          const Type& value) const {
+                                          const AbstractType& value) const {
   // We only replace individual argument types during resolution at compile
   // time, when no type parameters are instantiated yet.
   UNREACHABLE();
@@ -2779,21 +2779,22 @@ void Function::set_owner(const Class& value) const {
 }
 
 
-void Function::set_result_type(const Type& value) const {
+void Function::set_result_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->result_type_, value.raw());
 }
 
 
-RawType* Function::ParameterTypeAt(intptr_t index) const {
+RawAbstractType* Function::ParameterTypeAt(intptr_t index) const {
   const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types_);
-  Type& parameter_type = Type::Handle();
+  AbstractType& parameter_type = AbstractType::Handle();
   parameter_type ^= parameter_types.At(index);
   return parameter_type.raw();
 }
 
 
-void Function::SetParameterTypeAt(intptr_t index, const Type& value) const {
+void Function::SetParameterTypeAt(
+    intptr_t index, const AbstractType& value) const {
   ASSERT(!value.IsNull());
   const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types_);
   parameter_types.SetAt(index, value);
@@ -3000,15 +3001,16 @@ bool Function::TestParameterType(
     const TypeArguments& type_arguments,
     const Function& other,
     const TypeArguments& other_type_arguments) const {
-  Type& param_type = Type::Handle(ParameterTypeAt(parameter_position));
+  AbstractType& param_type =
+      AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
     param_type = param_type.InstantiateFrom(type_arguments, 0);
   }
   if (param_type.IsDynamicType()) {
     return true;
   }
-  Type& other_param_type =
-      Type::Handle(other.ParameterTypeAt(parameter_position));
+  AbstractType& other_param_type =
+      AbstractType::Handle(other.ParameterTypeAt(parameter_position));
   if (!other_param_type.IsInstantiated()) {
     other_param_type =
         other_param_type.InstantiateFrom(other_type_arguments, 0);
@@ -3033,17 +3035,17 @@ bool Function::TestType(TypeTestKind test,
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
   const intptr_t other_num_opt_params = other.num_optional_parameters();
   if ((num_fixed_params != other_num_fixed_params) ||
-      ((test == Type::kIsSubtypeOf) &&
+      ((test == AbstractType::kIsSubtypeOf) &&
        (num_opt_params < other_num_opt_params))) {
     return false;
   }
   // Check the result type.
-  Type& other_res_type = Type::Handle(other.result_type());
+  AbstractType& other_res_type = AbstractType::Handle(other.result_type());
   if (!other_res_type.IsInstantiated()) {
     other_res_type = other_res_type.InstantiateFrom(other_type_arguments, 0);
   }
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
-    Type& res_type = Type::Handle(result_type());
+    AbstractType& res_type = AbstractType::Handle(result_type());
     if (!res_type.IsInstantiated()) {
       res_type = res_type.InstantiateFrom(type_arguments, 0);
     }
@@ -3064,7 +3066,7 @@ bool Function::TestType(TypeTestKind test,
   if (num_opt_params >= other_num_opt_params) {
     // Check that for each optional named parameter of type T of the other
     // function type, there is a corresponding optional named parameter of this
-    // function at the same position with an identical name and with a Type S
+    // function at the same position with an identical name and with a type S
     // that is a subtype or supertype of T.
     // Note that SetParameterNameAt() guarantees that names are symbols, so we
     // can compare their raw pointers.
@@ -3080,12 +3082,12 @@ bool Function::TestType(TypeTestKind test,
     }
     return true;
   }
-  ASSERT((test == Type::kIsAssignableTo) &&
+  ASSERT((test == AbstractType::kIsAssignableTo) &&
          (num_opt_params < other_num_opt_params));
   // To verify that this function type is assignable to the other function type,
   // check that for each optional named parameter of type T of this function
   // type, there is a corresponding optional named parameter of the other
-  // function at the same position with an identical name and with a Type S that
+  // function at the same position with an identical name and with a type S that
   // is a subtype or supertype of T.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
@@ -3181,7 +3183,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   closure_function.set_context_scope(context_scope);
 
   // Set closure function's result type to this result type.
-  closure_function.set_result_type(Type::Handle(result_type()));
+  closure_function.set_result_type(AbstractType::Handle(result_type()));
 
   // Set closure function's formal parameters to this formal parameters,
   // removing the receiver if this is an instance method.
@@ -3195,7 +3197,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
                                                                 Heap::kOld)));
   closure_function.set_parameter_names(Array::Handle(Array::New(num_params,
                                                                 Heap::kOld)));
-  Type& param_type = Type::Handle();
+  AbstractType& param_type = AbstractType::Handle();
   String& param_name = String::Handle();
   for (int i = 0; i < num_params; i++) {
     param_type = ParameterTypeAt(i + has_receiver);
@@ -3222,7 +3224,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
   } else {
     closure_function.set_signature_class(signature_class);
   }
-  const Type& signature_type = Type::Handle(signature_class.SignatureType());
+  const AbstractType& signature_type =
+      AbstractType::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
     String& errmsg = String::Handle();
     ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
@@ -3269,7 +3272,7 @@ RawString* Function::BuildSignature(bool instantiate,
       pieces.Add(&kLAngleBracket);
       const TypeArray& type_parameter_extends = TypeArray::Handle(
           function_class.type_parameter_extends());
-      Type& parameter_extends = Type::Handle();
+      AbstractType& parameter_extends = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         String& type_parameter = String::ZoneHandle();
         type_parameter ^= type_parameters.At(i);
@@ -3286,7 +3289,7 @@ RawString* Function::BuildSignature(bool instantiate,
       pieces.Add(&kRAngleBracket);
     }
   }
-  Type& param_type = Type::Handle();
+  AbstractType& param_type = AbstractType::Handle();
   const intptr_t num_params = NumberOfParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
@@ -3321,7 +3324,7 @@ RawString* Function::BuildSignature(bool instantiate,
     pieces.Add(&kRBracket);
   }
   pieces.Add(&kRParen);
-  Type& res_type = Type::Handle(result_type());
+  AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator, offset);
   }
@@ -3332,7 +3335,7 @@ RawString* Function::BuildSignature(bool instantiate,
 
 
 bool Function::HasInstantiatedSignature() const {
-  Type& type = Type::Handle(result_type());
+  AbstractType& type = AbstractType::Handle(result_type());
   if (!type.IsInstantiated()) {
     return false;
   }
@@ -3439,7 +3442,7 @@ void Field::set_value(const Instance& value) const {
 }
 
 
-void Field::set_type(const Type& value) const {
+void Field::set_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
@@ -4816,12 +4819,13 @@ void ContextScope::SetIsFinalAt(intptr_t scope_index, bool is_final) const {
 }
 
 
-RawType* ContextScope::TypeAt(intptr_t scope_index) const {
+RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {
   return VariableDescAddr(scope_index)->type;
 }
 
 
-void ContextScope::SetTypeAt(intptr_t scope_index, const Type& type) const {
+void ContextScope::SetTypeAt(
+    intptr_t scope_index, const AbstractType& type) const {
   VariableDescAddr(scope_index)->type = type.raw();
 }
 
@@ -4993,17 +4997,16 @@ RawInstance* Instance::Canonicalize() const {
 }
 
 
-RawParameterizedType* Instance::GetType() const {
+RawType* Instance::GetType() const {
   if (IsNull()) {
-    return ParameterizedType::NullType();
+    return Type::NullType();
   }
   const Class& cls = Class::Handle(clazz());
   TypeArguments& type_arguments = TypeArguments::Handle();
   if (cls.HasTypeArguments()) {
     type_arguments = GetTypeArguments();
   }
-  const ParameterizedType& type = ParameterizedType::Handle(
-      ParameterizedType::New(cls, type_arguments));
+  const Type& type = Type::Handle(Type::New(cls, type_arguments));
   type.set_is_finalized();
   return type.raw();
 }
@@ -5028,20 +5031,20 @@ void Instance::SetTypeArguments(const TypeArguments& value) const {
 
 
 bool Instance::TestType(TypeTestKind test,
-                        const Type& other,
+                        const AbstractType& other,
                         const TypeArguments& other_instantiator) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
   if (IsNull()) {
-    if (test == Type::kIsSubtypeOf) {
+    if (test == AbstractType::kIsSubtypeOf) {
       Class& other_class = Class::Handle();
       if (other.IsTypeParameter()) {
         if (other_instantiator.IsNull()) {
           return true;  // Other type is uninstantiated, i.e. Dynamic.
         }
-        const Type& instantiated_other =
-            Type::Handle(other_instantiator.TypeAt(other.Index()));
+        const AbstractType& instantiated_other =
+            AbstractType::Handle(other_instantiator.TypeAt(other.Index()));
         ASSERT(instantiated_other.IsInstantiated());
         other_class = instantiated_other.type_class();
       } else {
@@ -5049,7 +5052,7 @@ bool Instance::TestType(TypeTestKind test,
       }
       return other_class.IsObjectClass() || other_class.IsDynamicClass();
     } else {
-      ASSERT(test == Type::kIsAssignableTo);
+      ASSERT(test == AbstractType::kIsAssignableTo);
       return true;
     }
   }
@@ -5073,9 +5076,9 @@ bool Instance::TestType(TypeTestKind test,
   TypeArguments& other_type_arguments = TypeArguments::Handle();
   // In case 'other' is not instantiated, we could simply call
   // other.InstantiateFrom(other_instantiator, 0), however, we can save the
-  // allocation of a new Type by inlining the code.
+  // allocation of a new AbstractType by inlining the code.
   if (other.IsTypeParameter()) {
-    Type& instantiated_other = Type::Handle();
+    AbstractType& instantiated_other = AbstractType::Handle();
     if (!other_instantiator.IsNull()) {
       instantiated_other = other_instantiator.TypeAt(other.Index());
       ASSERT(instantiated_other.IsInstantiated());
