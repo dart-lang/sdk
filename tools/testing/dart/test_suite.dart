@@ -224,7 +224,10 @@ class StandardTestSuite implements TestSuite {
 
 
     if (optionsFromFile['isMultitest']) {
-      DoMultitest(filename, createTestCase);
+      DoMultitest(filename,
+                  TestUtils.buildDir(configuration),
+                  directoryPath,
+                  createTestCase);
     } else {
       createTestCase(filename, optionsFromFile['isNegative']);
     }

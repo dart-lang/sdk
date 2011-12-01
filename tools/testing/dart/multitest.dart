@@ -75,7 +75,11 @@ void ExtractTestsFromMultitest(String filename,
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
   Map<String, List<String>> testsAsLines = new Map<String, List<String>>();
-  
+
+  // Matches #import( or #source( followed by " or ' followed by anything
+  // except dart: or /, at the beginning of a line.
+  RegExp relativeImportRegExp =
+      const RegExp('^#(import|source)[(]["\'](?!(dart:|/))');
   for (String line in lines) {
     if (line.contains('///')) {
       var parts = line.split('///')[1].split(':');
@@ -90,15 +94,13 @@ void ExtractTestsFromMultitest(String filename,
         Expect.isTrue(validMultitestOutcomes.contains(rest));
       }
     } else {
-      if ((line.startsWith('#import(') || line.startsWith('#source(')) &&
-          !line.contains("dart:")) {
-        // TODO(whesse): Rewrite relative paths to reflect temporary directory.
-        tests = [];
-        outcomes = [];
-        return;
-      }
       testTemplate.add(line);
       for (var test in testsAsLines.getValues()) test.add(line);
+    }
+    // Warn if any import or source tags have relative paths.
+    if (relativeImportRegExp.hasMatch(line)) {
+      print('Warning: Multitest cannot contain relative imports:');
+      print('    $filename: $line');
     }
   }
   // Add the template, with no multitest lines, as a test with key 'none'.
@@ -114,6 +116,8 @@ void ExtractTestsFromMultitest(String filename,
 
 
 void DoMultitest(String filename,
+                 String buildDir,
+                 String testDir,
                  Function doTest(List<String> args,
                                  bool isNegative,
                                  bool isNegativeIfChecked)) {
@@ -121,22 +125,15 @@ void DoMultitest(String filename,
   Map<String, String> tests = new Map<String, String>();
   Map<String, String> outcomes = new Map<String, String>();
   ExtractTestsFromMultitest(filename, tests, outcomes);
+
+  String directory = CreateMultitestDirectory(buildDir, testDir);
   String pathSeparator = new Platform().pathSeparator();
   int start = filename.lastIndexOf(pathSeparator) + 1;
   int end = filename.indexOf('.dart', start);
   String baseFilename = filename.substring(start, end);
-  Directory dir = new Directory("");
-  dir.errorHandler =
-      (error) { Expect.fail("Error creating temp directory: $error"); };
-
-  dir.createTempHandler = () {
-    String path = dir.path + new Platform().pathSeparator();
-    Iterator currentKey = tests.getKeys().iterator();
-    WriteMultitestToFileAndQueueIt(tests, outcomes, currentKey,
-                                   '$path$baseFilename', doTest);
-  };
-
-  dir.createTemp();
+  Iterator currentKey = tests.getKeys().iterator();
+  WriteMultitestToFileAndQueueIt(tests, outcomes, currentKey,
+      '$directory$pathSeparator$baseFilename', doTest);
 }
 
 
@@ -177,4 +174,23 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
                                    basePath, doTest);
   };
   file.create();
+}
+
+String CreateMultitestDirectory(String buildDir, String testDir) {
+  final String generatedTestDirectory = 'generated_tests/';
+  Directory parent_dir = new Directory(buildDir + generatedTestDirectory);
+  if (!parent_dir.existsSync()) {
+    parent_dir.createSync();
+  }
+  final String prefix = 'tests/';
+  final String suffix = '/src';
+  Expect.isTrue(testDir.startsWith(prefix));
+  Expect.isTrue(testDir.endsWith(suffix));
+  String path = parent_dir.path +
+      testDir.substring(prefix.length, testDir.length - suffix.length);
+  Directory dir = new Directory(path);
+  if (!dir.existsSync()) {
+    dir.createSync();
+  }
+  return path;
 }
