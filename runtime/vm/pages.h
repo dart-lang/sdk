@@ -85,6 +85,9 @@ class PageSpace {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
+  // Collect the garbage in the page space using mark-sweep.
+  void MarkSweep();
+
  private:
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
 
@@ -105,7 +108,13 @@ class PageSpace {
   intptr_t capacity_;
   intptr_t in_use_;
 
+  // Old-gen GC cycle count.
+  int count_;
+
   bool is_executable_;
+
+  // Keep track whether a MarkSweep is currently running.
+  bool sweeping_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

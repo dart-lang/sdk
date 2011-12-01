@@ -103,6 +103,8 @@
     'flags.cc',
     'flags.h',
     'flags_test.cc',
+    'gc_marker.cc',
+    'gc_marker.h',
     'gdbjit_linux.cc',
     'gdbjit_linux.h',
     'globals.h',

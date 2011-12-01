@@ -53,18 +53,23 @@ class Heap {
   bool Contains(uword addr) const;
   bool CodeContains(uword addr) const;
 
-  // Initialize the heap and register it with the isolate.
-  static void Init(Isolate* isolate);
-
-  // Verify that all pointers in the heap point to the heap.
-  bool Verify() const;
-
+  // Visit all pointers in the space.
+  void IterateNewPointers(ObjectPointerVisitor* visitor);
   void IterateOldPointers(ObjectPointerVisitor* visitor);
+
+  void CollectGarbage(Space space);
+  void CollectAllGarbage();
 
   // Accessors for inlined allocation in generated code.
   uword TopAddress();
   uword EndAddress();
   static intptr_t new_space_offset() { return OFFSET_OF(Heap, new_space_); }
+
+  // Initialize the heap and register it with the isolate.
+  static void Init(Isolate* isolate);
+
+  // Verify that all pointers in the heap point to the heap.
+  bool Verify() const;
 
  private:
   Heap();

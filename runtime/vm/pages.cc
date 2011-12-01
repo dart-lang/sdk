@@ -5,6 +5,7 @@
 #include "vm/pages.h"
 
 #include "vm/assert.h"
+#include "vm/gc_marker.h"
 #include "vm/object.h"
 #include "vm/virtual_memory.h"
 
@@ -55,7 +56,9 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
       max_capacity_(max_capacity),
       capacity_(0),
       in_use_(0),
-      is_executable_(is_executable) { }
+      count_(0),
+      is_executable_(is_executable),
+      sweeping_(false) { }
 
 
 PageSpace::~PageSpace() {
@@ -172,6 +175,33 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
     page->VisitObjectPointers(visitor);
     page = page->next();
   }
+}
+
+
+void PageSpace::MarkSweep() {
+  // MarkSweep is not reentrant. Make sure that is the case.
+  ASSERT(!sweeping_);
+  sweeping_ = true;
+  Isolate* isolate = Isolate::Current();
+  NoHandleScope no_handles(isolate);
+
+  Timer timer(FLAG_verbose_gc, "MarkSweep");
+  timer.Start();
+
+  // Mark all reachable old-gen objects.
+  GCMarker marker(heap_);
+  marker.MarkObjects(isolate, this);
+
+  UNIMPLEMENTED();
+  timer.Stop();
+  if (FLAG_verbose_gc) {
+    OS::PrintErr("Mark-Sweep[%d]: %dus\n", count_, timer.TotalElapsedTime());
+  }
+
+  count_++;
+  // Done, reset the marker.
+  ASSERT(sweeping_);
+  sweeping_ = false;
 }
 
 }  // namespace dart
