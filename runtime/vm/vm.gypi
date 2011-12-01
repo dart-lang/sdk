@@ -91,16 +91,6 @@
       ],
     },
     {
-      'target_name': 'libdart_api',
-      'type': 'static_library',
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        '../vm/dart_api_impl.cc',
-      ],
-    },
-    {
       'target_name': 'generate_corelib_cc_file',
       'type': 'none',
       'conditions': [
