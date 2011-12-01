@@ -86,7 +86,7 @@ public class DartScannerParserContext implements ParserContext {
 
   /**
    * Set the source position on a result, if it is a {@link HasSourceInfo}.
-   * 
+   *
    * @param <T> result type
    * @param result
    * @param startPos
@@ -144,7 +144,8 @@ public class DartScannerParserContext implements ParserContext {
 
     // Restore the replaced tokens to their state.
     if (oldState.rollbackTokens != null) {
-      for (State.RollbackToken token : oldState.rollbackTokens) {
+      while (!oldState.rollbackTokens.isEmpty()) {
+        State.RollbackToken token = oldState.rollbackTokens.pop();
         scanner.setAbsolutePeek(token.absoluteOffset, token.replacedToken);
       }
     }

@@ -65,6 +65,8 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
+  FACTORY_CONSTRUCTOR_SIGNATURE_DOES_NOT_MATCH("Factory constructor signature does not match"),
+  FACTORY_CONSTRUCTOR_TYPE_ARGS_DO_NOT_MATCH("Factory constructor type arguments do not match"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
@@ -105,6 +107,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TOO_MANY_QUALIFIERS_FOR_METHOD("Too many qualifiers for method or constructor"),
   TOP_LEVEL_METHOD_ACCESS_SUPER("Cannot use 'super' in a top-level method"),
   TOP_LEVEL_METHOD_ACCESS_THIS("Cannot use 'this' in a top-level method"),
+  TYPE_ARGS_ONLY_ON_CONSTRUCTORS("Type arguments are only allowed on constructor methods"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");

@@ -300,6 +300,7 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testBadFactory() {
+    // Another interface should be in scope to name 'foo' as a constructor
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class Zebra {",
@@ -308,7 +309,103 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR);
   }
 
-  public void testBadGenerativeConstructor() {
+  public void testFactoryTypeArgs1() {
+    // Type arguments match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "interface A<T> factory B {",
+        "  A();",
+        "}",
+        "class B implements A {",
+        "  A<T>() {}",
+        "}"));
+  }
+
+  public void testFactoryTypeArgs2() {
+    // Type arguments match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface A<T> factory B {",
+        "}",
+        "class B {",
+        "  factory A<T>.construct () {}",
+        "}"));
+  }
+
+  public void testFactoryTypeArgs3() {
+    // Type arguments match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface A<T> factory B {",
+        "}",
+        "class B {",
+        "  B<T>() {}",
+        "}"));
+  }
+
+  public void disabledBadFactoryTypeArgs1() {
+    // Type arguments don't match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface A<T> factory B {",
+        "  A<T>();",
+        "}",
+        "class B {",
+        "  A<T>() {}",
+        "}"),
+        ResolverErrorCode.FACTORY_CONSTRUCTOR_TYPE_ARGS_DO_NOT_MATCH);
+  }
+
+  public void disabledBadFactoryTypeArgs2() {
+    // Type arguments match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface A<T> factory B {",
+        "}",
+        "class B {",
+        "  factory A<T>.construct () {}",
+        "}"),
+        ResolverErrorCode.FACTORY_CONSTRUCTOR_TYPE_ARGS_DO_NOT_MATCH);
+  }
+
+  public void disabledBadFactoryTypeArgs3() {
+    // Type arguments match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface A<T> factory B {",
+        "  A<T>();",
+        "}",
+        "class B implements A {",
+        "  B() {}",
+        "}"),
+        ResolverErrorCode.FACTORY_CONSTRUCTOR_TYPE_ARGS_DO_NOT_MATCH);
+  }
+
+  public void disabledBadFactorySignature() {
+    // Number of positional arguments must match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface A factory B {",
+        "  A();",
+        "}",
+        "class B {",
+        "  A(foo) {}",
+        "}"),
+        ResolverErrorCode.FACTORY_CONSTRUCTOR_SIGNATURE_DOES_NOT_MATCH);
+  }
+
+  public void disabledNonConstructorMethodTypeArgs() {
+    // Type arguments match
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  foo<T>() {}",
+        "}"),
+        ResolverErrorCode.TYPE_ARGS_ONLY_ON_CONSTRUCTORS);
+  }
+
+  public void testBadGenerativeConstructor1() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object { }",
         "class B { }",
@@ -317,7 +414,9 @@ public class ResolverTest extends ResolverTestCase {
         "  B.foo() : this.val = 1;",
         "}"),
         ResolverErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
+  }
 
+  public void testBadGenerativeConstructor2() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object { }",
         "class A {",
@@ -325,7 +424,9 @@ public class ResolverTest extends ResolverTestCase {
         "  A.foo.bar() : this.val = 1;",
         "}"),
         ResolverErrorCode.TOO_MANY_QUALIFIERS_FOR_METHOD);
+  }
 
+  public void testBadGenerativeConstructor3() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object { }",
         "interface B { }",
@@ -483,7 +584,7 @@ public class ResolverTest extends ResolverTestCase {
   /**
    * Tests for the 'new' keyword
    */
-  public void testNewExpression() {
+  public void testNewExpression1() {
     // A very ordinary new expression is OK
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -492,7 +593,9 @@ public class ResolverTest extends ResolverTestCase {
         "    return new Foo();",
         "  }",
         "}"));
+  }
 
+  public void testNewExpression2() {
     // A  new expression with generic type argument is OK
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -501,7 +604,9 @@ public class ResolverTest extends ResolverTestCase {
         "    return new Foo<T>();",
         "  }",
         "}"));
+  }
 
+  public void testNewExpression3() {
     // Trying new on a variable name shouldn't work.
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -512,7 +617,9 @@ public class ResolverTest extends ResolverTestCase {
         TypeErrorCode.NOT_A_TYPE,
         ResolverErrorCode.NO_SUCH_TYPE,
         ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+  }
 
+  public void testNewExpression4() {
     // New expression tied to an unbound type variable is not allowed.
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -522,8 +629,9 @@ public class ResolverTest extends ResolverTestCase {
         "  }",
         "}"),
         ResolverErrorCode.NEW_EXPRESSION_CANT_USE_TYPE_VAR);
+  }
 
-
+  public void testNewExpression5() {
     // More cowbell. (Foo<T> isn't a type yet)
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",

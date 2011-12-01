@@ -770,11 +770,11 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    *
    * namedConstructorDeclaration
-   *     : identifier '.' identifier formalParameterList
+   *     : identifier typeArguments? '.' identifier formalParameterList
    *     ;
    *
    * constructorDeclaration
-   *     : identifier formalParameterList
+   *     : identifier typeArguments? formalParameterList
    *     | namedConstructorDeclaration
    *     ;
    *
@@ -886,33 +886,19 @@ public class DartParser extends CompletionHooksParserBase {
         break;
       }
 
-      case VOID:
       case IDENTIFIER: {
-        // Check to see if it's a qualified ctor.
-        {
-          // Skip (PERIOD IDENTIFIER)* sequence.
-          // Actually only one is valid, but it is OK for parser.
-          int k = 1;
-          while (peek(k) == Token.PERIOD && peek(k + 1) == Token.IDENTIFIER) {
-            k += 2;
-          }
-          // If next token is LPAREN, then this is constructor.
-          if (peek(k) == Token.LPAREN) {
-            member = parseMethodOrAccessor(modifiers, null);
-            break;
-          }
-        }
 
-        // Check to see if it's a method.
-        if (peek(1) == Token.LPAREN
-            || peekPseudoKeyword(0, OPERATOR_KEYWORD)
-            || peekPseudoKeyword(0, GETTER_KEYWORD)
-            || peekPseudoKeyword(0, SETTER_KEYWORD)) {
+        // Check to see if it looks like the start of a method definition (sans type).
+        if (looksLikeMethodOrAccessorDefinition()) {
           member = parseMethodOrAccessor(modifiers, null);
           break;
         }
+      }
+      //$FALL-THROUGH$
 
-        // The next token must be a type specification: either a method or field.
+      case VOID: {
+
+        // The next token may be a type specification or parameterized constructor: either a method or field.
         boolean isVoidType = peek(0) == Token.VOID;
         DartTypeNode type = isVoidType ? parseVoidType() : parseTypeAnnotation();
         if (peek(1) == Token.SEMICOLON
@@ -940,6 +926,70 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
     return member;
+  }
+
+  /**
+   * Returns true if the beginning of a method definition follows.
+   *
+   * This test is needed to disambiguate between a method that returns a type
+   * and a plain method.
+   *
+   * Assumes the next token has already been determined to be an identifier.
+   *
+   * The following constructs will match:
+   *
+   *      : get
+   *      | set
+   *      | operator
+   *      | identifier typeArguments? DOT identifier (
+   *      | identifier DOT identifier typeArguments DOT identifier (
+   *      | identifier typeArguments? (
+   *
+   * @return <code>true</code> if the signature of a method has been found.  No tokens are consumed.
+   */
+  private boolean looksLikeMethodOrAccessorDefinition() {
+    assert (peek(0).equals(Token.IDENTIFIER));
+    startLookahead(); // begin() equivalent
+    try {
+      // Simple checks
+      if (peekPseudoKeyword(0, GETTER_KEYWORD)
+          || peekPseudoKeyword(0, SETTER_KEYWORD)
+          || peekPseudoKeyword(0, OPERATOR_KEYWORD)) {
+        return true;
+      }
+
+      consume(Token.IDENTIFIER);
+
+      if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)) {
+        // Case 1 a constructor of the form class.id
+        if (peek(0).equals(Token.LPAREN)) {
+          return true;
+        }
+
+        // Case 2, a constructor of the form library.class.<typearguments?>.id
+        consume(Token.PERIOD);
+        consume(Token.IDENTIFIER);
+        parseTypeArgumentsOpt();
+        if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER) && peek(2).equals(Token.LPAREN)) {
+          return true;
+        }
+      }
+
+      // Case 1 class.id<typearguments>
+      // Case 3, id<typearguments?>
+      parseTypeArgumentsOpt();
+
+      if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)) {
+        // Case 1, a constructor of the form class<typearguments>.id
+        consume(Token.PERIOD);
+        consume(Token.IDENTIFIER);
+      }
+
+      // next token should be LPAREN
+      return (peek(0).equals(Token.LPAREN));
+    } finally {
+      rollback();
+    }
   }
 
   /**
@@ -1039,6 +1089,9 @@ public class DartParser extends CompletionHooksParserBase {
       } else {
         // Normal method or property.
         name = parseIdentifier();
+
+        // TODO(zundel): something constructive with the type arguments
+         parseTypeArgumentsOpt();
       }
 
       // Check for named constructor.
@@ -1155,7 +1208,7 @@ public class DartParser extends CompletionHooksParserBase {
    *            : (THIS '.')? identifier '=' conditionalExpression
    *            | THIS ('.' identifier)? arguments
    *            ;
-   * </pre> 
+   * </pre>
    * @return true if initializer is a redirected constructor, false otherwise.
    */
   private void parseInitializers(List<DartInitializer> initializers) {
@@ -2302,7 +2355,7 @@ public class DartParser extends CompletionHooksParserBase {
       case NEW: {
         beginNewExpression(); // DartNewExpression
         consume(Token.NEW);
-        return done(parseConstructor(false));
+        return done(parseConstructorInvocation(false));
       }
 
       case CONST: {
@@ -2313,7 +2366,7 @@ public class DartParser extends CompletionHooksParserBase {
         if (literal != null) {
           return done(literal);
         }
-        return done(parseConstructor(true));
+        return done(parseConstructorInvocation(true));
       }
 
       case LPAREN: {
@@ -2349,7 +2402,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
-  private DartExpression parseConstructor(boolean isConst) {
+  private DartExpression parseConstructorInvocation(boolean isConst) {
     List<DartTypeNode> parts = new ArrayList<DartTypeNode>();
     beginConstructor();
     do {
