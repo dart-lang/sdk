@@ -128,6 +128,8 @@ class StandardTestSuite implements TestSuite {
   List<String> statusFilePaths;
   Function doTest;
   Function doDone;
+  int activeMultitests = 0;
+  bool listingDone = false;
   String shellPath;
   TestExpectations testExpectations;
 
@@ -148,7 +150,7 @@ class StandardTestSuite implements TestSuite {
 
   void forEachTest(Function onTest, [Function onDone = null]) {
     doTest = onTest;
-    doDone = (ignore) => (onDone != null) ? onDone() : null;
+    doDone = (onDone != null) ? onDone : (() => null);
 
     // Read test expectations from status files.
     testExpectations =
@@ -169,7 +171,7 @@ class StandardTestSuite implements TestSuite {
       throw s;
     };
     dir.fileHandler = processFile;
-    dir.doneHandler = doDone;
+    dir.doneHandler = directoryListingDone;
     dir.list(recursive: listRecursively());
   }
 
@@ -224,12 +226,28 @@ class StandardTestSuite implements TestSuite {
 
 
     if (optionsFromFile['isMultitest']) {
+      ++activeMultitests;
       DoMultitest(filename,
                   TestUtils.buildDir(configuration),
                   directoryPath,
-                  createTestCase);
+                  createTestCase,
+                  multitestDone);
     } else {
       createTestCase(filename, optionsFromFile['isNegative']);
+    }
+  }
+
+  void multitestDone() {
+    --activeMultitests;
+    if (activeMultitests == 0 && listingDone) {
+      doDone();
+    }
+  }
+
+  void directoryListingDone(ignore) {
+    listingDone = true;
+    if (activeMultitests == 0) {
+      doDone();
     }
   }
 

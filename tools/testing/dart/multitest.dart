@@ -118,9 +118,10 @@ void ExtractTestsFromMultitest(String filename,
 void DoMultitest(String filename,
                  String buildDir,
                  String testDir,
-                 Function doTest(List<String> args,
+                 Function doTest(String filename,
                                  bool isNegative,
-                                 bool isNegativeIfChecked)) {
+                                 [bool isNegativeIfChecked]),
+                 Function multitestDone) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
   Map<String, String> outcomes = new Map<String, String>();
@@ -133,7 +134,8 @@ void DoMultitest(String filename,
   String baseFilename = filename.substring(start, end);
   Iterator currentKey = tests.getKeys().iterator();
   WriteMultitestToFileAndQueueIt(tests, outcomes, currentKey,
-      '$directory$pathSeparator$baseFilename', doTest);
+                                 '$directory$pathSeparator$baseFilename',
+                                 doTest, multitestDone);
 }
 
 
@@ -143,8 +145,12 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
                                Map<String, String> outcomes,
                                Iterator currentKey,
                                String basePath,
-                               Function doTest) {
-  if (!currentKey.hasNext()) return;
+                               Function doTest,
+                               Function done) {
+  if (!currentKey.hasNext()) {
+    done();
+    return;
+  }
   final String key = currentKey.next();
   final String filename = '${basePath}_$key.dart';
   final File file = new File(filename);
@@ -171,7 +177,7 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
     // They should be registered in a persistent list, so they can
     // be deleted later even if the test script is interrupted.
     WriteMultitestToFileAndQueueIt(tests, outcomes, currentKey,
-                                   basePath, doTest);
+                                   basePath, doTest, done);
   };
   file.create();
 }
