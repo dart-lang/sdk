@@ -218,8 +218,8 @@ class Isolate {
     library_tag_handler_ = value;
   }
 
-  static void SetInitCallback(Dart_IsolateInitCallback callback);
-  static Dart_IsolateInitCallback InitCallback();
+  static void SetCreateCallback(Dart_IsolateCreateCallback cback);
+  static Dart_IsolateCreateCallback CreateCallback();
 
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
@@ -288,7 +288,7 @@ class Isolate {
   uword stack_limit_on_overflow_exception_;
   intptr_t ast_node_id_;
 
-  static Dart_IsolateInitCallback init_callback_;
+  static Dart_IsolateCreateCallback create_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

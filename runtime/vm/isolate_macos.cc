@@ -29,19 +29,13 @@ void Isolate::SetCurrent(Isolate* current) {
 }
 
 
-// Empty isolate init callback which is registered before VM isolate creation.
-static void* VMIsolateInitCallback(void* data) {
-  return reinterpret_cast<void*>(1);
-}
-
-
 void Isolate::InitOnce() {
   ASSERT(isolate_key == PTHREAD_KEY_UNSET);
   int result = pthread_key_create(&isolate_key, NULL);
   // Make sure creating a key was successful.
   VALIDATE_PTHREAD_RESULT(result);
   ASSERT(isolate_key != PTHREAD_KEY_UNSET);
-  init_callback_ = VMIsolateInitCallback;
+  create_callback_ = NULL;
 }
 
 }  // namespace dart

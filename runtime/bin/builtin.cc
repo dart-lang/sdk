@@ -9,29 +9,44 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 
-// Implementation of native functions which are used for some
-// test/debug functionality in standalone dart mode.
+static void SetupCorelibImports(Dart_Handle builtin_lib) {
+  // Lookup the core libraries and import the builtin library into them.
+  Dart_Handle url = Dart_NewString(DartUtils::kCoreLibURL);
+  Dart_Handle core_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(core_lib);
+  DART_CHECK_VALID(Dart_LibraryImportLibrary(core_lib, builtin_lib));
 
-void PrintString(FILE* out, Dart_Handle str) {
-  const char* cstring = NULL;
-  Dart_Handle result = Dart_StringToCString(str, &cstring);
-  if (Dart_IsError(result)) {
-      cstring = Dart_GetError(result);
+  url = Dart_NewString(DartUtils::kCoreImplLibURL);
+  Dart_Handle coreimpl_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(coreimpl_lib);
+  DART_CHECK_VALID(Dart_LibraryImportLibrary(coreimpl_lib, builtin_lib));
+}
+
+
+Dart_Handle Builtin::Source() {
+  Dart_Handle source = Dart_NewString(Builtin::Builtin_source_);
+  return source;
+}
+
+
+void Builtin::SetupLibrary(Dart_Handle builtin_lib) {
+  // Setup core lib, builtin import structure.
+  SetupCorelibImports(builtin_lib);
+  // Setup the native resolver for built in library functions.
+  DART_CHECK_VALID(Dart_SetNativeResolver(builtin_lib, NativeLookup));
+}
+
+
+void Builtin::ImportLibrary(Dart_Handle library) {
+  Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
+  Dart_Handle builtin_lib = Dart_LookupLibrary(url);
+  if (Dart_IsError(builtin_lib)) {
+    builtin_lib = Dart_LoadLibrary(url, Source());
+    if (!Dart_IsError(builtin_lib)) {
+      SetupLibrary(builtin_lib);
+    }
   }
-  fprintf(out, "%s\n", cstring);
-  fflush(out);
-}
-
-
-void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  PrintString(stdout, Dart_GetNativeArgument(args, 0));
-  Dart_ExitScope();
-}
-
-void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  int64_t status = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  Dart_ExitScope();
-  exit(status);
+  // Import the builtin library into current library.
+  DART_CHECK_VALID(builtin_lib);
+  DART_CHECK_VALID(Dart_LibraryImportLibrary(library, builtin_lib));
 }

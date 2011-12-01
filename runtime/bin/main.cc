@@ -19,6 +19,10 @@
 extern const uint8_t* snapshot_buffer;
 
 
+// Global state that stores a pointer to the application script file.
+static char* canonical_script_name = NULL;
+
+
 // Global state that indicates whether pprof symbol information is
 // to be generated or not.
 static const char* generate_pprof_symbols_filename = NULL;
@@ -187,7 +191,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
   result = DartUtils::LoadSource(NULL, library, url, tag, url_string);
   if (!Dart_IsError(result) && (tag == kImportTag)) {
-    Builtin_ImportLibrary(result);
+    Builtin::ImportLibrary(result);
   }
   return result;
 }
@@ -204,30 +208,40 @@ static Dart_Handle LoadScript(const char* script_name) {
 }
 
 
-static void* MainIsolateInitCallback(void* data) {
-  const char* script_name = reinterpret_cast<const char*>(data);
+static bool CreateIsolateAndSetup(void* data, char** error) {
+  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer, data, error);
+  if (isolate == NULL) {
+    return false;
+  }
+
   Dart_Handle library;
   Dart_EnterScope();
 
-  // Load the specified script.
-  library = LoadScript(script_name);
+  // Load the specified application script into the newly created isolate.
+  library = LoadScript(canonical_script_name);
   if (Dart_IsError(library)) {
-    const char* err_msg = Dart_GetError(library);
-    fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
+    *error = strdup(Dart_GetError(library));
     Dart_ExitScope();
-    exit(255);
+    Dart_ShutdownIsolate();
+    return false;
   }
   if (!Dart_IsLibrary(library)) {
-    fprintf(stderr,
-            "Expected a library when loading script: %s",
-            script_name);
+    char errbuf[256];
+    snprintf(errbuf, sizeof(errbuf),
+             "Expected a library when loading script: %s",
+             canonical_script_name);
+    *error = strdup(errbuf);
     Dart_ExitScope();
-    exit(255);
+    Dart_ShutdownIsolate();
+    return false;
   }
-  Builtin_ImportLibrary(library);  // Import builtin library.
-
+  Builtin::ImportLibrary(library);  // Implicitly import builtin into app.
+  if (snapshot_buffer != NULL) {
+    // Setup the native resolver as the snapshot does not carry it.
+    Builtin::SetNativeResolver();
+  }
   Dart_ExitScope();
-  return data;
+  return true;
 }
 
 
@@ -267,35 +281,35 @@ int main(int argc, char** argv) {
     return 255;
   }
 
-  // Initialize the Dart VM (TODO(asiva) - remove const_cast once
-  // dart API is fixed to take a const char** in Dart_Initialize).
+  // Initialize the Dart VM.
   Dart_Initialize(vm_options.count(),
                   vm_options.arguments(),
-                  MainIsolateInitCallback);
+                  CreateIsolateAndSetup);
 
-  // Create an isolate. As a side effect, MainIsolateInitCallback
-  // gets called, which loads the scripts and libraries.
-  char* canonical_script_name = File::GetCanonicalPath(script_name);
+  canonical_script_name = File::GetCanonicalPath(script_name);
   if (canonical_script_name == NULL) {
     fprintf(stderr, "Unable to find '%s'\n", script_name);
     return 255;  // Indicates we encountered an error.
   }
-  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer,
-                                            canonical_script_name);
-  if (isolate == NULL) {
+
+  // Call CreateIsolateAndSetup which creates an isolate and loads up
+  // the specified application script.
+  char* error = NULL;
+  if (!CreateIsolateAndSetup(NULL, &error)) {
+    fprintf(stderr, "%s\n", error);
     free(canonical_script_name);
-    return 255;
+    free(error);
+    return 255;  // Indicates we encountered an error.
   }
+
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  ASSERT(isolate != NULL);
+  Dart_Handle result;
 
   Dart_EnterScope();
 
-  if (snapshot_buffer != NULL) {
-    // Setup the native resolver as the snapshot does not carry it.
-    Builtin_SetNativeResolver();
-  }
-
   if (HasCompileAll(vm_options)) {
-    Dart_Handle result = Dart_CompileAll();
+    result = Dart_CompileAll();
     if (Dart_IsError(result)) {
       fprintf(stderr, "%s\n", Dart_GetError(result));
       Dart_ExitScope();
@@ -325,11 +339,11 @@ int main(int argc, char** argv) {
     free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
-  Dart_Handle result = Dart_InvokeStatic(library,
-                                         Dart_NewString(""),
-                                         Dart_NewString("main"),
-                                         0,
-                                         NULL);
+  result = Dart_InvokeStatic(library,
+                             Dart_NewString(""),
+                             Dart_NewString("main"),
+                             0,
+                             NULL);
   if (Dart_IsError(result)) {
     fprintf(stderr, "%s\n", Dart_GetError(result));
     Dart_ExitScope();

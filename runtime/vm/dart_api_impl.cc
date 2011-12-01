@@ -522,7 +522,7 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object) {
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
 DART_EXPORT bool Dart_Initialize(int argc,
                                  const char** argv,
-                                 Dart_IsolateInitCallback callback) {
+                                 Dart_IsolateCreateCallback callback) {
   return Dart::InitOnce(argc, argv, callback);
 }
 
@@ -539,24 +539,24 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 
 
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
-                                            void* data) {
+                                            void* callback_data,
+                                            char** error) {
   Isolate* isolate = Dart::CreateIsolate();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    Dart::InitializeIsolate(snapshot, data);
+    Dart::InitializeIsolate(snapshot, callback_data);
     START_TIMER(time_total_runtime);
     isolate->set_long_jump_base(base);
     return reinterpret_cast<Dart_Isolate>(isolate);
   } else {
     {
       DARTSCOPE(isolate);
-      const String& error =
+      const String& errmsg =
           String::Handle(isolate->object_store()->sticky_error());
-      // TODO(asiva): Need to return this as a error.
-      OS::PrintErr(error.ToCString());
+      *error = strdup(errmsg.ToCString());
     }
     Dart::ShutdownIsolate();
   }

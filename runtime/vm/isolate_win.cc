@@ -20,19 +20,13 @@ void Isolate::SetCurrent(Isolate* current) {
 }
 
 
-// Empty isolate init callback which is registered before VM isolate creation.
-static void* VMIsolateInitCallback(void* data) {
-  return reinterpret_cast<void*>(1);
-}
-
-
 void Isolate::InitOnce() {
   ASSERT(isolate_key == TLS_OUT_OF_INDEXES);
   isolate_key = TlsAlloc();
   if (isolate_key == TLS_OUT_OF_INDEXES) {
     FATAL("TlsAlloc failed");
   }
-  init_callback_ = VMIsolateInitCallback;
+  create_callback_ = NULL;
 }
 
 }  // namespace dart

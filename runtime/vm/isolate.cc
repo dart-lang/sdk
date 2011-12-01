@@ -230,16 +230,16 @@ void Isolate::Shutdown() {
 }
 
 
-Dart_IsolateInitCallback Isolate::init_callback_ = NULL;
+Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 
 
-void Isolate::SetInitCallback(Dart_IsolateInitCallback callback) {
-  init_callback_ = callback;
+void Isolate::SetCreateCallback(Dart_IsolateCreateCallback cb) {
+  create_callback_ = cb;
 }
 
 
-Dart_IsolateInitCallback Isolate::InitCallback() {
-  return init_callback_;
+Dart_IsolateCreateCallback Isolate::CreateCallback() {
+  return create_callback_;
 }
 
 

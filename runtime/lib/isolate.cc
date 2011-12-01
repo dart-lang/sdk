@@ -261,21 +261,17 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   ASSERT(!library.IsNull());
   const char* library_url = String::Handle(library.url()).ToCString();
   intptr_t port_id = 0;
-  const char* error_msg = NULL;
   LongJump jump;
   bool init_successful = true;
-
-  Isolate* spawned_isolate = Dart::CreateIsolate();
-  if (spawned_isolate != NULL) {
-    // First initialize the spawned isolate.
-    LongJump* base = spawned_isolate->long_jump_base();
-    spawned_isolate->set_long_jump_base(&jump);
-    if (setjmp(*jump.Set()) == 0) {
-      Dart::InitializeIsolate(NULL, preserved_isolate->init_callback_data());
-    } else {
-      init_successful = false;
-    }
-    spawned_isolate->set_long_jump_base(base);
+  Isolate* spawned_isolate = NULL;
+  void* callback_data = preserved_isolate->init_callback_data();
+  char* error = NULL;
+  Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
+  if (callback == NULL) {
+    error = strdup("Null callback specified for isolate creation\n");
+  } else if (callback(callback_data, &error)) {
+    spawned_isolate = Isolate::Current();
+    ASSERT(spawned_isolate != NULL);
     // Check arguments to see if the specified library and classes are
     // loaded, this check will throw an exception if they are not loaded.
     if (init_successful && CheckArguments(library_url, class_name)) {
@@ -295,29 +291,21 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
       {
         Zone zone(spawned_isolate);
         HandleScope scope(spawned_isolate);
-        const String& error = String::Handle(
+        const String& errmsg = String::Handle(
             spawned_isolate->object_store()->sticky_error());
-        const char* temp_error_msg = error.ToCString();
-        intptr_t err_len = strlen(temp_error_msg) + 1;
-        Zone* preserved_zone = preserved_isolate->current_zone();
-        error_msg = reinterpret_cast<char*>(preserved_zone->Allocate(err_len));
-        OS::SNPrint(
-            const_cast<char*>(error_msg), err_len, "%s", temp_error_msg);
+        error = strdup(errmsg.ToCString());
       }
       Dart::ShutdownIsolate();
       spawned_isolate = NULL;
     }
-  } else {
-    error_msg = "Creation of Isolate failed : ";
   }
 
   // Switch back to the original isolate and return.
   Isolate::SetCurrent(preserved_isolate);
   if (spawned_isolate == NULL) {
     // Unable to spawn isolate correctly, throw exception.
-    ASSERT(error_msg != NULL);
     ThrowErrorException(Exceptions::kIllegalArgument,
-                        error_msg,
+                        error,
                         library_url,
                         class_name);
   }

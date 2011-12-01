@@ -73,7 +73,7 @@
         '..',
       ],
       'sources': [
-        'builtin.cc',
+        'builtin_natives.cc',
         'builtin.h',
         'dartutils.h',
         'dartutils.cc',
@@ -114,8 +114,6 @@
         'socket_macos.cc',
         'socket_win.cc',
         'set.h',
-        # Include generated source files.
-        '<(builtin_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {'sources/' : [
@@ -124,11 +122,28 @@
       ],
     },
     {
+      'target_name': 'libdart_withcore',
+      'type': 'static_library',
+      'dependencies': [
+        'libdart_lib_withcore',
+        'libdart_vm',
+        'libjscre',
+        'libdouble_conversion',
+      ],
+      'include_dirs': [
+        '..',
+      ],
+      'sources': [
+        '../include/dart_api.h',
+        '../vm/dart_api_impl.cc',
+      ],
+    },
+    {
       # Completely statically linked dart binary.
       'target_name': 'dart_no_snapshot',
       'type': 'executable',
       'dependencies': [
-        'libdart',
+        'libdart_withcore',
         'libdart_builtin',
       ],
       'include_dirs': [
@@ -137,6 +152,9 @@
       'sources': [
         'main.cc',
         'snapshot_empty.cc',
+        'builtin.cc',
+        # Include generated source files.
+        '<(builtin_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -150,7 +168,7 @@
       'target_name': 'gen_snapshot',
       'type': 'executable',
       'dependencies': [
-        'libdart',
+        'libdart_withcore',
         'libdart_builtin',
       ],
       'include_dirs': [
@@ -158,6 +176,9 @@
       ],
       'sources': [
         'gen_snapshot.cc',
+        'builtin.cc',
+        # Include generated source files.
+        '<(builtin_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -214,6 +235,7 @@
       ],
       'sources': [
         'main.cc',
+        'builtin_nolib.cc',
         '<(snapshot_cc_file)',
       ],
       'conditions': [
@@ -234,7 +256,7 @@
       'target_name': 'run_vm_tests',
       'type': 'executable',
       'dependencies': [
-        'libdart',
+        'libdart_withcore',
         'generate_snapshot_test_dat_file',
       ],
       'include_dirs': [

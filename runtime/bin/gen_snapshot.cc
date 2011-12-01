@@ -20,6 +20,13 @@
 // if so which file to write the snapshot into.
 static const char* snapshot_filename = NULL;
 
+
+// Global state which contains a pointer to the script name for which
+// a snapshot needs to be created (NULL would result in the creation
+// of a generic snapshot that contains only the corelibs).
+static char* app_script_name = NULL;
+
+
 // Global state that captures the URL mappings specified on the command line.
 static CommandLineOptions* url_mapping = NULL;
 
@@ -172,56 +179,16 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
 
 
 static Dart_Handle LoadGenericSnapshotCreationScript() {
-  Dart_Handle source = Builtin_Source();
+  Dart_Handle source = Builtin::Source();
   if (Dart_IsError(source)) {
     return source;  // source contains the error string.
   }
   Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
   Dart_Handle lib = Dart_LoadScript(url, source, BuiltinLibraryTagHandler);
   if (!Dart_IsError(lib)) {
-    Builtin_SetupLibrary(lib);
+    Builtin::SetupLibrary(lib);
   }
   return lib;
-}
-
-
-static void* SnapshotCreateCallback(void* data) {
-  const char* script_name = reinterpret_cast<const char*>(data);
-  Dart_Handle result;
-  Dart_Handle library;
-  Dart_EnterScope();
-
-  ASSERT(snapshot_filename != NULL);
-
-  // Load up the script before a snapshot is created.
-  if (script_name != NULL) {
-    // Load the specified script.
-    library = LoadSnapshotCreationScript(script_name);
-  } else {
-    // This is a generic dart snapshot which needs builtin library setup.
-    library = LoadGenericSnapshotCreationScript();
-  }
-  if (Dart_IsError(library)) {
-    const char* err_msg = Dart_GetError(library);
-    fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
-    Dart_ExitScope();
-    exit(255);
-  }
-  ASSERT(Dart_IsLibrary(library));
-  uint8_t* buffer = NULL;
-  intptr_t size = 0;
-  // First create the snapshot.
-  result = Dart_CreateSnapshot(&buffer, &size);
-  if (Dart_IsError(result)) {
-    const char* err_msg = Dart_GetError(result);
-    fprintf(stderr, "Error while creating snapshot: %s\n", err_msg);
-    Dart_ExitScope();
-    exit(255);
-  }
-  // Now write the snapshot out to specified file and exit.
-  WriteSnapshotFile(buffer, size);
-  Dart_ExitScope();
-  return data;
 }
 
 
@@ -234,7 +201,6 @@ static void PrintUsage() {
 
 int main(int argc, char** argv) {
   CommandLineOptions vm_options(argc);
-  char* script_name;
 
   // Initialize the URL mapping array.
   CommandLineOptions url_mapping_array(argc);
@@ -244,7 +210,7 @@ int main(int argc, char** argv) {
   if (ParseArguments(argc,
                      argv,
                      &vm_options,
-                     &script_name) < 0) {
+                     &app_script_name) < 0) {
     PrintUsage();
     return 255;
   }
@@ -254,19 +220,54 @@ int main(int argc, char** argv) {
     return 255;
   }
 
-  // Initialize the Dart VM (TODO(asiva) - remove const_cast once
-  // dart API is fixed to take a const char** in Dart_Initialize).
-  Dart_Initialize(vm_options.count(),
-                  vm_options.arguments(),
-                  SnapshotCreateCallback);
+  // Initialize the Dart VM.
+  // Note: We don't expect isolates to be created from dart code during
+  // snapshot generation.
+  Dart_Initialize(vm_options.count(), vm_options.arguments(), NULL);
 
-  // Create an isolate. As a side effect, SnapshotCreateCallback
-  // gets called, which loads the script (if one is specified), its libraries
-  // and writes out a snapshot.
-  Dart_Isolate isolate = Dart_CreateIsolate(NULL, script_name);
+  char* error;
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, &error);
   if (isolate == NULL) {
-    return 255;
+    fprintf(stderr, "%s", error);
+    free(error);
+    exit(255);
   }
+
+  Dart_Handle result;
+  Dart_Handle library;
+  Dart_EnterScope();
+
+  ASSERT(snapshot_filename != NULL);
+  // Load up the script before a snapshot is created.
+  if (app_script_name != NULL) {
+    // Load the specified script.
+    library = LoadSnapshotCreationScript(app_script_name);
+  } else {
+    // This is a generic dart snapshot which needs builtin library setup.
+    library = LoadGenericSnapshotCreationScript();
+  }
+  if (Dart_IsError(library)) {
+    const char* err_msg = Dart_GetError(library);
+    fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(255);
+  }
+  ASSERT(Dart_IsLibrary(library));
+  uint8_t* buffer = NULL;
+  intptr_t size = 0;
+  // First create the snapshot.
+  result = Dart_CreateSnapshot(&buffer, &size);
+  if (Dart_IsError(result)) {
+    const char* err_msg = Dart_GetError(result);
+    fprintf(stderr, "Error while creating snapshot: %s\n", err_msg);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(255);
+  }
+  // Now write the snapshot out to specified file and exit.
+  WriteSnapshotFile(buffer, size);
+  Dart_ExitScope();
 
   // Shutdown the isolate.
   Dart_ShutdownIsolate();

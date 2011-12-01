@@ -24,7 +24,7 @@ Isolate* Dart::vm_isolate_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
 bool Dart::InitOnce(int argc, const char** argv,
-                    Dart_IsolateInitCallback callback) {
+                    Dart_IsolateCreateCallback callback) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL) {
     return false;
@@ -47,13 +47,13 @@ bool Dart::InitOnce(int argc, const char** argv,
     Scanner::InitOnce();
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
-  Isolate::SetInitCallback(callback);
+  Isolate::SetCreateCallback(callback);
   return true;
 }
 
 
 Isolate* Dart::CreateIsolate() {
-  // Create and initialize a new isolate.
+  // Create a new isolate.
   Isolate* isolate = Isolate::Init();
   ASSERT(isolate != NULL);
   return isolate;
@@ -84,11 +84,6 @@ void Dart::InitializeIsolate(const Dart_Snapshot* snapshot_buffer, void* data) {
 
   StubCode::Init(isolate);
   CodeIndexTable::Init(isolate);
-
-  // Give the embedder a shot at setting up this isolate.
-  // Isolates spawned from within this isolate will be given the
-  // callback data returned by the callback.
-  data = Isolate::InitCallback()(data);
   isolate->set_init_callback_data(data);
 }
 

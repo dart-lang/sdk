@@ -332,9 +332,8 @@ UNIT_TEST_CASE(FullSnapshot) {
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
   timer1.Start();
-  Dart_CreateIsolate(NULL, NULL);
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    TestIsolateScope __test_isolate__;
 
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
@@ -347,16 +346,13 @@ UNIT_TEST_CASE(FullSnapshot) {
     HandleScope scope(isolate);
     SnapshotWriter writer(true, &buffer, &allocator);
     writer.WriteFullSnapshot();
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 
   // Now Create another isolate using the snapshot and execute a method
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  Dart_CreateIsolate(buffer, NULL);
+  TestCase::CreateTestIsolateFromSnapshot(buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -369,11 +365,9 @@ UNIT_TEST_CASE(FullSnapshot) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
+    Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-
   free(buffer);
 }
 
@@ -392,9 +386,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
   timer1.Start();
-  Dart_CreateIsolate(NULL, NULL);
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    TestIsolateScope __test_isolate__;
+
     Isolate* isolate = Isolate::Current();
     Zone zone(isolate);
     HandleScope scope(isolate);
@@ -416,16 +410,13 @@ UNIT_TEST_CASE(FullSnapshot1) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 
   // Now Create another isolate using the snapshot and execute a method
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  Dart_CreateIsolate(buffer, NULL);
+  TestCase::CreateTestIsolateFromSnapshot(buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -442,11 +433,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
       fprintf(stderr, "%s\n", Dart_GetError(result));
     }
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
+    Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-
   free(buffer);
 }
 #endif  // TARGET_ARCH_IA32.

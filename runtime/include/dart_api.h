@@ -226,25 +226,24 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
 // --- Initialization and Globals ---
 
 /**
- * An isolate initialization callback function.
+ * An isolate creation and initialization callback function.
  *
- * This callback, provided by the embedder, is called during isolate
- * creation. It is called for all isolates, regardless of whether they
- * are created via Dart_CreateIsolate or directly from Dart code.
+ * This callback, provided by the embedder, is called when an isolate needs
+ * to be created. The callback should create an isolate and load the
+ * required scripts for execution.
  *
- * \param data Embedder-specific data used during isolate initialization.
+ * \param error A structure into which the embedder can place a
+ *   C string containing an error message in the case of failures.
  *
- * \return If the embedder returns NULL, then the isolate being
- *   initialized will be shut down without executing any Dart code.
- *   Otherwise, the embedder should return a pointer to
- *   embedder-specific data created during the initialization of this
- *   isolate. This data will, in turn, be passed by the VM to all
- *   isolates spawned from the isolate currently being initialized.
+ * \return the embedder returns false if the creation and initialization was not
+ *   successful and true if successful. The embedder is responsible for
+ *   maintaining consistency in the case of errors (e.g: isolate is created,
+ *   but loading of scripts fails then the embedder should ensure that
+ *   Dart_ShutdownIsolate is called on the isolate).
+ *   In the case of errors the caller is responsible for freeing the buffer
+ *   returned in error containing an error string.
  */
-typedef void* (*Dart_IsolateInitCallback)(void* embedder_data);
-// TODO(iposva): Pass a specification of the app file being spawned.
-// TODO(turnidge): We don't actually shut down the isolate on NULL yet.
-// TODO(turnidge): Should we separate the two return values?
+typedef bool (*Dart_IsolateCreateCallback)(void* callback_data, char** error);
 
 /**
  * Initializes the VM with the given commmand line flags.
@@ -252,12 +251,12 @@ typedef void* (*Dart_IsolateInitCallback)(void* embedder_data);
  * \param argc The length of the arguments array.
  * \param argv An array of arguments.
  * \param callback A function to be called during isolate creation.
- *   See Dart_IsolateInitCallback.
+ *   See Dart_IsolateCreateCallback.
  *
  * \return True if initialization is successful.
  */
 DART_EXPORT bool Dart_Initialize(int argc, const char** argv,
-                                 Dart_IsolateInitCallback callback);
+                                 Dart_IsolateCreateCallback callback);
 
 /**
  * Returns true if the named VM flag is set.
@@ -296,13 +295,13 @@ typedef void Dart_Snapshot;
  *
  * \param snapshot A buffer containing a VM snapshot or NULL if no
  *   snapshot is provided.
- * \param data Embedder-specific data. See Dart_IsolateInitCallback.
  *
  * \return The new isolate is returned. May be NULL if an error
  *   occurs duing isolate initialization.
  */
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
-                                            void* data);
+                                            void* callback_data,
+                                            char** error);
 // TODO(turnidge): Document behavior when there is already a current
 // isolate.
 
