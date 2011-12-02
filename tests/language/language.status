@@ -312,7 +312,11 @@ TypeVariableBoundsTest/none: Fail # Issue 417
 TypeVariableBoundsTest/00: Fail # Issue 417
 TypeVariableBoundsTest/03: Fail # Issue 417
 TypeVariableBoundsTest/04: Fail # Issue 417
-TypeVariableScopeTest/none: Fail # Issue 417
+TypeVariableScopeTest/00: Fail # These negative tests were passing incorrectly
+TypeVariableScopeTest/02: Fail
+TypeVariableScopeTest/03: Fail
+TypeVariableScopeTest/04: Fail
+TypeVariableScopeTest/06: Fail
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
@@ -336,6 +340,12 @@ StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
 StringInterpolate2Test: Fail
 ToplevelCollision2Test/01: Fail # added in r1934
+TypeVariableBoundsTest/none: Pass # I think the "cancel leg" message is confusing the test harness? Leg is bailing on all these tests after seeing the "extends" factory syntax.
+TypeVariableBoundsTest/00: Pass
+TypeVariableBoundsTest/03: Pass
+TypeVariableBoundsTest/04: Pass
+TypeVariableBoundsTest/02: Fail
+TypeVariableBoundsTest/06: Fail
 
 # Parser errors.
 OverrideFieldTest/01: Skip
