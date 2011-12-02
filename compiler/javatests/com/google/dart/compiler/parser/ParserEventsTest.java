@@ -68,6 +68,7 @@ import static com.google.dart.compiler.parser.ParserEventsTest.Mark.VariableDecl
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.WhileStatement;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 public class ParserEventsTest extends AbstractParserTest {
 
@@ -172,11 +173,23 @@ public class ParserEventsTest extends AbstractParserTest {
   }
 
   private static class ParserEventRecorder extends DartParser {
-    private HashSet<Mark> marks;
+    private LinkedHashSet<Mark> marks;
+
+    @Override
+    protected void rollback() {
+      super.rollback();
+      Mark lastMark = null;
+      for (Mark mark: marks) {
+        lastMark = mark;
+      }
+      if (lastMark != null) {
+        marks.remove(lastMark);
+      }
+    }
 
     public ParserEventRecorder(ParserContext ctx) {
       super(ctx);
-      marks = new HashSet<Mark>();
+      marks = new LinkedHashSet<Mark>();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

@@ -620,7 +620,7 @@ public class DartParser extends CompletionHooksParserBase {
    * @return true if the next tokens should be parsed as a type
    */
   private boolean isFunctionTypeAliasName() {
-    startLookahead();
+    beginFunctionTypeInterface();
     try {
       if (peek(0) == Token.IDENTIFIER && peek(1) == Token.LPAREN) {
         return true;
@@ -950,7 +950,7 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private boolean looksLikeMethodOrAccessorDefinition() {
     assert (peek(0).equals(Token.IDENTIFIER));
-    startLookahead(); // begin() equivalent
+    beginMethodName(); // begin() equivalent
     try {
       // Simple checks
       if (peekPseudoKeyword(0, GETTER_KEYWORD)
@@ -2902,7 +2902,7 @@ public class DartParser extends CompletionHooksParserBase {
    * @return true if the following tokens should be parsed as a function definition
    */
   private boolean looksLikeFunctionDeclarationOrExpression() {
-    startLookahead();
+    beginMethodName();
     try {
       if (peek(0) == Token.IDENTIFIER && peek(1) == Token.LPAREN) {
         // just a name, no return type
