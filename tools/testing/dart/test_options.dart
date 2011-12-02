@@ -85,6 +85,13 @@ class TestOptionsParser {
               ['compact', 'line', 'verbose', 'status', 'buildbot'],
               'compact'),
           new _TestOptionSpecification(
+              'report',
+              'Print a summary report of the number of tests, by expectation.',
+              ['--report'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'tasks',
               'The number of parallel tasks to run',
               ['-j', '--tasks'],

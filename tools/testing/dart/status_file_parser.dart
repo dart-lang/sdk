@@ -14,6 +14,7 @@ final FAIL = "fail";
 final PASS = "pass";
 // An indication to skip the test.  The caller is responsible for skipping it.
 final SKIP = "skip";
+final OK = "ok";
 
 final RegExp StripComment = const RegExp("^[^#]*");
 final RegExp HeaderPattern = const RegExp(@"^\[([^\]]+)\]");

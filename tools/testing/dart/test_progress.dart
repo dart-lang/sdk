@@ -5,6 +5,7 @@
 #library("test_progress");
 
 #import("test_runner.dart");
+#import("test_suite.dart");
 
 class ProgressIndicator {
   ProgressIndicator(this._startTime);
@@ -119,6 +120,7 @@ class CompactProgressIndicator extends ProgressIndicator {
   CompactProgressIndicator(Date startTime) : super(startTime);
 
   void allDone() {
+    SummaryReport.printReport();
     stdout.write('\n'.charCodes());
     stdout.close();
   }
@@ -144,6 +146,7 @@ class LineProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     _printStatus();
+    SummaryReport.printReport();
   }
 
   void _printStartProgress(TestCase test) {
@@ -164,6 +167,7 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     _printStatus();
+    SummaryReport.printReport();
   }
 
   void _printStartProgress(TestCase test) {
@@ -185,6 +189,7 @@ class StatusProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     _printStatus();
+    SummaryReport.printReport();
   }
 
   void _printStartProgress(TestCase test) {

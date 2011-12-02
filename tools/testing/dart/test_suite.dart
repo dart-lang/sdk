@@ -77,6 +77,10 @@ class CCTestSuite implements TestSuite {
 
       var expectations = testExpectations.expectations(testName);
 
+      if (configuration["report"]) {
+          SummaryReport.add(expectations);
+      }
+
       if (expectations.contains(SKIP)) return;
 
       // The cc test runner takes options after the name of the test
@@ -202,7 +206,12 @@ class StandardTestSuite implements TestSuite {
             filename.substring(middle + 1, filename.length - 5);
       }
       Set<String> expectations = testExpectations.expectations(testName);
-
+      if (configuration["report"]) {
+        // Tests with multiple VMOptions are counted more than once.
+        for (var dummy in optionsFromFile["vmOptions"]) {
+          SummaryReport.add(expectations);
+        }
+      }
       if (expectations.contains(SKIP)) return;
 
       isNegative = isNegative ||
@@ -398,5 +407,58 @@ class TestUtils {
       }
     }
     return args;
+  }
+}
+
+class SummaryReport {
+  static int total = 0;
+  static int skipped = 0;
+  static int noCrash = 0;
+  static int pass = 0;
+  static int failOk = 0;
+  static int fail = 0;
+  static int crash = 0;
+  static int timeout = 0;
+
+  static void add(Set<String> expectations) {
+    ++total;
+    if (expectations.contains(SKIP)) {
+      ++skipped;
+    } else {
+      if (expectations.contains(PASS) && expectations.contains(FAIL) &&
+          !expectations.contains(CRASH) && !expectations.contains(OK)) {
+        ++noCrash;
+      }
+      if (expectations.contains(PASS) && expectations.length == 1) {
+        ++pass;
+      }
+      if (expectations.containsAll([FAIL, OK]) && expectations.length == 2) {
+        ++failOk;
+      }
+      if (expectations.contains(FAIL) && expectations.length == 1) {
+        ++fail;
+      }
+      if (expectations.contains(CRASH) && expectations.length == 1) {
+        ++crash;
+      }
+      if (expectations.contains(TIMEOUT)) {
+        ++timeout;
+      }
+    }
+  }
+
+  static void printReport() {
+    if (total == 0) return;
+    String report = """\
+Total: $total tests
+ * $skipped tests will be skipped
+ * $noCrash tests are expected to be flaky but not crash
+ * $pass tests are expected to pass
+ * $failOk tests are expected to fail that we won't fix
+ * $fail tests are expected to fail that we should fix
+ * $crash tests are expected to crash that we should fix
+ * $timeout tests are allowed to timeout\
+""";
+    print(report);
   }
 }
