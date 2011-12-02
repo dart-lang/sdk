@@ -1,5 +1,4 @@
 
-// TODO(jmesserly): generator needs to know to put in @
 class DOMWindow native "@*DOMWindow" {
 
   DOMApplicationCache applicationCache;

@@ -1928,14 +1928,18 @@ class FrogInterfaceGenerator(object):
     else:
       constructor = ''
 
+    # Compiler needs to know window is aliased with global scope.
+    global_marker = '@' if interface_name == 'DOMWindow' else ''
+
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
-        'class $CLASS$BASE native "*$CLASS" {\n'
+        'class $CLASS$BASE native "$SPLAT*$CLASS" {\n'
         '$CONSTRUCTOR$!MEMBERS'
         '$!ADDITIONS'
         '}\n',
         CLASS=self._class_name, BASE=extends,
-        INTERFACE=interface_name, CONSTRUCTOR=constructor)
+        INTERFACE=interface_name, CONSTRUCTOR=constructor,
+        SPLAT=global_marker)
 
     if not base:
       # Emit shared base functionality here as we have no common base type.
