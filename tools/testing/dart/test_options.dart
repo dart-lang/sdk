@@ -82,7 +82,7 @@ class TestOptionsParser {
               'progress',
               'Progress indication mode',
               ['-p', '--progress'],
-              ['compact', 'line', 'verbose', 'status', 'buildbot'],
+              ['compact', 'color', 'line', 'verbose', 'status', 'buildbot'],
               'compact'),
           new _TestOptionSpecification(
               'report',

@@ -14,6 +14,8 @@ class ProgressIndicator {
     switch (name) {
       case 'compact':
         return new CompactProgressIndicator(startTime);
+      case 'color':
+        return new ColorProgressIndicator(startTime);
       case 'line':
         return new LineProgressIndicator(startTime);
       case 'verbose':
@@ -139,6 +141,48 @@ class CompactProgressIndicator extends ProgressIndicator {
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
 }
+
+
+class ColorProgressIndicator extends ProgressIndicator {
+  ColorProgressIndicator(Date startTime) : super(startTime);
+
+  void allDone() {
+    SummaryReport.printReport();
+    stdout.write('\n'.charCodes());
+    stdout.close();
+  }
+
+  static int GREEN = 32;
+  static int RED = 31;
+  static int NONE = 0;
+
+  addColorWrapped(List<int> codes, String string, int color) {
+    codes.add(27);
+    codes.addAll('[${color}m'.charCodes());
+    codes.addAll(string.charCodes());
+    codes.add(27);
+    codes.addAll('[0m'.charCodes());
+  }
+
+  void _printProgress() {
+    var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
+    var percentPadded = _pad(percent, 5);
+    var passedPadded = _pad(_passedTests.toString(), 5);
+    var failedPadded = _pad(_failedTests.toString(), 5);
+    var progressLine = [];
+    progressLine.addAll('\r[${_timeString()} | $percentPadded% | '.charCodes());
+    addColorWrapped(progressLine, '+$passedPadded ', GREEN);
+    progressLine.addAll('| '.charCodes());
+    var failedColor = (_failedTests != 0) ? RED : NONE;
+    addColorWrapped(progressLine, '-$failedPadded', failedColor);
+    progressLine.addAll(']'.charCodes());
+    stdout.write(progressLine);
+  }
+
+  void _printStartProgress(TestCase test) => _printProgress();
+  void _printDoneProgress(TestCase test) => _printProgress();
+}
+
 
 
 class LineProgressIndicator extends ProgressIndicator {
