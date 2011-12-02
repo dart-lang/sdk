@@ -40,8 +40,8 @@ class DecoderException implements Exception {
 class _StringDecoderBase implements _StringDecoder {
   _StringDecoderBase()
       : _bufferList = new _BufferList(),
-      _result = new List<int>(),
-      _lineBreakEnds = new Queue<int>();
+        _result = new List<int>(),
+        _lineBreakEnds = new Queue<int>();
 
   int write(List<int> buffer) {
     _bufferList.add(buffer);
@@ -63,13 +63,19 @@ class _StringDecoderBase implements _StringDecoder {
   String get decoded() {
     if (isEmpty()) return null;
 
-    String result =  new String.fromCharCodes(_result);
-    _charOffset += result.length;
+    String result;
+    if (_resultOffset == 0) {
+      result = new String.fromCharCodes(_result);
+    } else {
+      result =
+          new String.fromCharCodes(
+              _result.getRange(_resultOffset, _result.length - _resultOffset));
+    }
     while (!_lineBreakEnds.isEmpty() && _lineBreakEnds.first() < _charOffset) {
       _lineBreakEnds.removeFirst();
       _lineBreaks--;
     }
-    _result = new List<int>();
+    _resetResult();
     return result;
   }
 
@@ -82,12 +88,13 @@ class _StringDecoderBase implements _StringDecoder {
         _result[lineEnd - _charOffset - 1] == CR) {
       terminationSequenceLength = 2;
     }
-    var lineLength = lineEnd - _charOffset - terminationSequenceLength + 1;
-    String result = new String.fromCharCodes(_result.getRange(0, lineLength));
+    var lineLength =
+        lineEnd - _charOffset - _resultOffset - terminationSequenceLength + 1;
+    String result =
+        new String.fromCharCodes(_result.getRange(_resultOffset, lineLength));
     _lineBreaks--;
-    int removeCount = lineLength + terminationSequenceLength;
-    _result = _result.getRange(removeCount, _result.length - removeCount);
-    _charOffset = lineEnd + 1;
+    _resultOffset += (lineLength + terminationSequenceLength);
+    if (_result.length == _resultOffset) _resetResult();
     return result;
   }
 
@@ -105,13 +112,20 @@ class _StringDecoderBase implements _StringDecoder {
   }
 
   void _recordLineBreakEnd(int charPos) {
-      _lineBreakEnds.add(charPos);
-      _lineBreaks++;
+    _lineBreakEnds.add(charPos);
+    _lineBreaks++;
+  }
+
+  void _resetResult() {
+    _charOffset += _result.length;
+    _result = new List<int>();
+    _resultOffset = 0;
   }
 
   abstract bool _processNext();
 
   _BufferList _bufferList;
+  int _resultOffset = 0;
   List<int> _result;
   int _lineBreaks = 0;  // Number of line breaks in the current list.
   // The positions of the line breaks are tracked in terms of absolute
