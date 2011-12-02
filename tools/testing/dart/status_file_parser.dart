@@ -41,7 +41,7 @@ String getFilename(String path) =>
 
 String getDirname(String path) =>
     new Directory(path).existsSync() ? path : '../$path';
- 
+
 void ReadTestExpectationsInto(TestExpectations expectations,
                               String statusFilePath,
                               environment) {
@@ -67,7 +67,7 @@ void ReadConfigurationInto(path, sections) {
   sections.add(current);
   String prefix = "";
 
-  String line;  
+  String line;
   while ((line = lines.readLine()) != null) {
     Match match = StripComment.firstMatch(line);
     line = (match == null) ? "" : match[0];

@@ -71,7 +71,8 @@ interface StringInputStream factory _StringInputStream {
   /**
    * Reads the next line from the stream. The line ending characters
    * will not be part og the returned string. If a full line is not
-   * available null will be returned.
+   * available null will be returned. The line break character(s) are
+   * discarded.
    */
   String readLine();
 
@@ -87,9 +88,18 @@ interface StringInputStream factory _StringInputStream {
   String get encoding();
 
   /**
-   * Sets the handler that gets called when data is available.
+   * Sets the handler that gets called when data is available. The two
+   * handlers [dataHandler} and [lineHandler] are mutually exclusive
+   * and setting one will remove the other.
    */
   void set dataHandler(void callback());
+
+  /**
+   * Sets the handler that gets called when a line is available. The
+   * two handlers [dataHandler} and [lineHandler] are mutually
+   * exclusive and setting one will remove the other.
+   */
+  void set lineHandler(void callback());
 
   /**
    * Sets the handler that gets called when there will be no more data

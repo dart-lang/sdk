@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Interface for decoders decoding binary data into objects of type T.
-interface _Decoder<T> {
+// Interface for decoders decoding binary data into string data. The
+// decoder keeps track of line breaks during decoding.
+interface _StringDecoder {
   // Add more binary data to be decoded. The ownership of the buffer
   // is transfered to the decoder and the caller most not modify it any more.
   int write(List<int> buffer);
@@ -11,8 +12,19 @@ interface _Decoder<T> {
   // Returns whether any decoded data is available.
   bool isEmpty();
 
-  // Get the data decoded since the last call to decode.
-  T get decoded();
+  // Get the number of line breaks present in the current decoded
+  // data.
+  int lineBreaks();
+
+  // Get the string data decoded since the last call to [decode] or
+  // [decodeLine]. Returns null if no decoded data is available.
+  String get decoded();
+
+  // Get the string data decoded since the last call to [decode] or
+  // [decodeLine] up to the next line break present. Returns null if
+  // no line break is present. The line break character sequence is
+  // discarded.
+  String get decodedLine();
 }
 
 
@@ -25,12 +37,12 @@ class DecoderException implements Exception {
 
 // Utility class for decoding UTF-8 from data delivered as a stream of
 // bytes.
-class _StringDecoderBase implements _Decoder<String> {
+class _StringDecoderBase implements _StringDecoder {
   _StringDecoderBase()
       : _bufferList = new _BufferList(),
-        _result = new List<int>();
+      _result = new List<int>(),
+      _lineBreakEnds = new Queue<int>();
 
-  // Add UTF-8 encoded data.
   int write(List<int> buffer) {
     _bufferList.add(buffer);
     // Decode as many bytes into characters as possible.
@@ -42,26 +54,75 @@ class _StringDecoderBase implements _Decoder<String> {
     return buffer.length;
   }
 
-  // Check if any characters have been decoded since the last call to decode.
   bool isEmpty() {
     return _result.isEmpty();
   }
 
-  // Return the string decoded since the last call to decode.
+  int get lineBreaks() => _lineBreaks;
+
   String get decoded() {
-    if (isEmpty()) {
-      return null;
-    } else {
-      String result =  new String.fromCharCodes(_result);
-      _result = new List<int>();
-      return result;
+    if (isEmpty()) return null;
+
+    String result =  new String.fromCharCodes(_result);
+    _charOffset += result.length;
+    while (!_lineBreakEnds.isEmpty() && _lineBreakEnds.first() < _charOffset) {
+      _lineBreakEnds.removeFirst();
+      _lineBreaks--;
     }
+    _result = new List<int>();
+    return result;
+  }
+
+  String get decodedLine() {
+    if (_lineBreakEnds.isEmpty()) return null;
+    int lineEnd = _lineBreakEnds.removeFirst();
+    int terminationSequenceLength = 1;
+    if (_result[lineEnd - _charOffset] == LF &&
+        lineEnd > _charOffset &&
+        _result[lineEnd - _charOffset - 1] == CR) {
+      terminationSequenceLength = 2;
+    }
+    var lineLength = lineEnd - _charOffset - terminationSequenceLength + 1;
+    String result = new String.fromCharCodes(_result.getRange(0, lineLength));
+    _lineBreaks--;
+    int removeCount = lineLength + terminationSequenceLength;
+    _result = _result.getRange(removeCount, _result.length - removeCount);
+    _charOffset = lineEnd + 1;
+    return result;
+  }
+
+  // Add another decoded character.
+  void addChar(int charCode) {
+    _result.add(charCode);
+    _charCount++;
+    // Check for line ends (\r, \n and \r\n).
+    if (charCode == LF) {
+      _recordLineBreakEnd(_charCount - 1);
+    } else if (_lastCharCode == CR) {
+      _recordLineBreakEnd(_charCount - 2);
+    }
+    _lastCharCode = charCode;
+  }
+
+  void _recordLineBreakEnd(int charPos) {
+      _lineBreakEnds.add(charPos);
+      _lineBreaks++;
   }
 
   abstract bool _processNext();
 
   _BufferList _bufferList;
   List<int> _result;
+  int _lineBreaks = 0;  // Number of line breaks in the current list.
+  // The positions of the line breaks are tracked in terms of absolute
+  // character positions from the begining of the decoded data.
+  Queue<int> _lineBreakEnds;  // Character position of known line breaks.
+  int _charOffset = 0;  // Character number of the first character in the list.
+  int _charCount = 0;  // Total number of characters decodes.
+  int _lastCharCode = -1;
+
+  final int LF = 10;
+  final int CR = 13;
 }
 
 
@@ -75,7 +136,7 @@ class _AsciiDecoder extends _StringDecoderBase {
       if (byte > 127) {
         throw new DecoderException("Illegal ASCII character $byte");
       }
-      _result.add(byte);
+      addChar(byte);
     }
     return true;
   }
@@ -89,7 +150,7 @@ class _Latin1Decoder extends _StringDecoderBase {
   bool _processNext() {
     while (_bufferList.length > 0) {
       int byte = _bufferList.next();
-      _result.add(byte);
+      addChar(byte);
     }
     return true;
   }
@@ -131,7 +192,7 @@ class _UTF8Decoder extends _StringDecoderBase {
       // Remove the value peeked from the buffer list.
       _bufferList.next();
     }
-    _result.add(value);
+    addChar(value);
     return true;
   }
 }
@@ -159,38 +220,40 @@ class _StringInputStream implements StringInputStream {
   String read() {
     // If there is buffered data return that first.
     var decodedString = _decoder.decoded;
-    if (_buffer !== null) {
-      var result = _buffer;
-      _resetBuffer();
-      if (decodedString !== null) result += decodedString;
-      return result;
-    } else {
-      if (decodedString !== null) {
-        return decodedString;
-      } else if (_inputClosed) {
+    if (decodedString !== null) {
+      if (_inputClosed && _decoder.isEmpty()) {
         _streamClosed();
-        return null;
-      } else {
-        _readData();
-        return _decoder.decoded;
       }
+      return decodedString;
+    } else if (_inputClosed) {
+      _streamClosed();
+      return null;
+    } else {
+      _readData();
+      return _decoder.decoded;
     }
   }
 
   String readLine() {
     if (_closed) return null;
-    // Get line from the buffer if possible.
-    if (_buffer !== null) {
-      var result = _readLineFromBuffer();
-      if (result !== null) return result;
+
+    if (_decoder.lineBreaks == 0) {
+      _readData();
     }
-    // Try to fill more data into the buffer and read a line.
-    if (_fillBuffer()) {
-      if (_eof && _buffer === null) {
+    var decodedLine = _decoder.decodedLine;
+    if (decodedLine !== null) {
+      if (_inputClosed && _decoder.isEmpty()) {
         _streamClosed();
-        return null;
       }
-      return _readLineFromBuffer();
+      return decodedLine;
+    }
+    if (_inputClosed) {
+      decodedLine = _decoder.decoded;
+      if (decodedLine[decodedLine.length - 1] == '\r') {
+        decodedLine = decodedLine.substring(0, decodedLine.length - 1);
+      }
+      _streamClosed();
+      return decodedLine;
     }
     return null;
   }
@@ -201,6 +264,12 @@ class _StringInputStream implements StringInputStream {
 
   void set dataHandler(void callback()) {
     _clientDataHandler = callback;
+    _clientLineHandler = null;
+  }
+
+  void set lineHandler(void callback()) {
+    _clientLineHandler = callback;
+    _clientDataHandler = null;
   }
 
   void set closeHandler(void callback()) {
@@ -212,14 +281,17 @@ class _StringInputStream implements StringInputStream {
     if (!_decoder.isEmpty() && _clientDataHandler !== null) {
       _clientDataHandler();
     }
+    if (_decoder.lineBreaks > 0 && _clientLineHandler !== null) {
+      _clientLineHandler();
+    }
   }
 
   void _closeHandler() {
     _inputClosed = true;
-    if (_buffer !== null || !_decoder.isEmpty()) {
-      // If there is still data buffered in either the buffer or the
-      // decoder call the data handler.
+    if (!_decoder.isEmpty()) {
+      // If there is still data buffered call the data handler.
       if (_clientDataHandler !== null) _clientDataHandler();
+      if (_clientLineHandler !== null) _clientLineHandler();
     } else {
       _closed = true;
       if (_clientCloseHandler !== null) _clientCloseHandler();
@@ -231,72 +303,6 @@ class _StringInputStream implements StringInputStream {
     if (data !== null) {
       _decoder.write(data);
     }
-  }
-
-  String _readLineFromBuffer() {
-    // Both \n or \r indicates a new line. If \r is followed by \n the
-    // \n is part of the line breaking character.
-    for (int i = _bufferLineStart; i < _buffer.length; i++) {
-      String char = _buffer[i];
-      if (char == '\r') {
-        if (i == _buffer.length - 1) {
-          if (_eof) {
-            var result = _buffer.substring(_bufferLineStart, i);
-            _resetBuffer();
-            _streamClosed();
-            return result;
-          } else {
-            return null;
-          }
-        }
-        var result = _buffer.substring(_bufferLineStart, i);
-        _bufferLineStart = i + 1;
-        if (_buffer[_bufferLineStart] == '\n') _bufferLineStart++;
-        if (_bufferLineStart == _buffer.length) _resetBuffer();
-        return result;
-      } else if (char == '\n') {
-        var result = _buffer.substring(_bufferLineStart, i);
-        _bufferLineStart = i + 1;
-        if (_bufferLineStart == _buffer.length) _resetBuffer();
-        return result;
-      }
-    }
-    if (_eof) {
-      var result = _buffer;
-      _resetBuffer();
-      _streamClosed();
-      return result;
-    }
-    return null;
-  }
-
-  void _resetBuffer() {
-    _buffer = null;
-    _bufferLineStart = null;
-  }
-
-  // Fill decoded data into the buffer. Returns true if more data was
-  // added or end of file was reached.
-  bool _fillBuffer() {
-    if (_eof) return false;
-    if (!_inputClosed) _readData();
-    var decodedString = _decoder.decoded;
-    if (decodedString === null && _inputClosed) {
-      _eof = true;
-      return true;
-    }
-    if (_buffer === null) {
-      _buffer = decodedString;
-      if (_buffer !== null) {
-        _bufferLineStart = 0;
-        return true;
-      }
-    } else if (decodedString !== null) {
-      _buffer = _buffer.substring(_bufferLineStart) + decodedString;
-      _bufferLineStart = 0;
-      return true;
-    }
-    return false;
   }
 
   void _streamClosed() {
@@ -312,12 +318,11 @@ class _StringInputStream implements StringInputStream {
 
   InputStream _input;
   String _encoding;
-  _Decoder _decoder;
-  String _buffer;  // String can be buffered here if readLine is used.
-  int _bufferLineStart;  // Current offset into _buffer if any.
+  _StringDecoder _decoder;
   bool _inputClosed = false;  // Is the underlying input stream closed?
   bool _closed = false;  // Is this stream closed.
   bool _eof = false;  // Has all data been read from the decoder?
   var _clientDataHandler;
+  var _clientLineHandler;
   var _clientCloseHandler;
 }
