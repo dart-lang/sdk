@@ -344,6 +344,35 @@ public class ResolverTest extends ResolverTestCase {
         "}"));
   }
 
+  public void testFactoryTypeArgsNew() {
+    // Invoke constructor in factory method with type args
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "interface A<T> factory B {",
+        "  A<T>();",
+        "}",
+        "class C<T> implements A<T> {}",
+        "class B {",
+        "  factory A<T>() { return new C<T>();}",
+        "}"));
+  }
+
+  public void testFactoryBadTypeArgsNew() {
+    // Invoke constructor in factory method with (wrong) type args
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "interface A<T> factory B {",
+        "  A<T>();",
+        "}",
+        "class C<T> implements A<T> {}",
+        "class B {",
+        "  factory A<T>() { return new C<K>();}",
+        "}"),
+        ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
   public void disabledBadFactoryTypeArgs1() {
     // Type arguments don't match
     resolveAndTest(Joiner.on("\n").join(

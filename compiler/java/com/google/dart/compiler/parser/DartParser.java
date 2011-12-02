@@ -940,10 +940,11 @@ public class DartParser extends CompletionHooksParserBase {
    *
    *      : get
    *      | set
-   *      | operator
-   *      | identifier typeArguments? DOT identifier (
-   *      | identifier DOT identifier typeArguments DOT identifier (
-   *      | identifier typeArguments? (
+   *
+   *      | identifier typeArguments? (                 // Case 1
+   *      | identifier DOT identifier typearguments? (  // Case 2
+   *      | identifier typeArguments? DOT identifier (  // Case 3
+   *      | identifier DOT identifier typeArguments? DOT identifier (  // Case 4
    *
    * @return <code>true</code> if the signature of a method has been found.  No tokens are consumed.
    */
@@ -961,26 +962,23 @@ public class DartParser extends CompletionHooksParserBase {
       consume(Token.IDENTIFIER);
 
       if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)) {
-        // Case 1 a constructor of the form class.id
-        if (peek(0).equals(Token.LPAREN)) {
-          return true;
-        }
-
-        // Case 2, a constructor of the form library.class.<typearguments?>.id
+        // Case 2 class.id<typearguments?>
+        // Case 4, a constructor of the form library.class<typearguments?>.id
         consume(Token.PERIOD);
         consume(Token.IDENTIFIER);
         parseTypeArgumentsOpt();
-        if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER) && peek(2).equals(Token.LPAREN)) {
+        if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)
+            && peek(2).equals(Token.LPAREN)) {
           return true;
         }
+      } else {
+        // Case 1, id<typearguments?>
+        // Case 3, class.<typearguments?>.id
+        parseTypeArgumentsOpt();
       }
 
-      // Case 1 class.id<typearguments>
-      // Case 3, id<typearguments?>
-      parseTypeArgumentsOpt();
-
       if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)) {
-        // Case 1, a constructor of the form class<typearguments>.id
+        // Case 3, a constructor of the form class<typearguments?>.id
         consume(Token.PERIOD);
         consume(Token.IDENTIFIER);
       }
@@ -1089,9 +1087,8 @@ public class DartParser extends CompletionHooksParserBase {
       } else {
         // Normal method or property.
         name = parseIdentifier();
-
         // TODO(zundel): something constructive with the type arguments
-         parseTypeArgumentsOpt();
+        parseTypeArgumentsOpt();
       }
 
       // Check for named constructor.
