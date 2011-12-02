@@ -337,6 +337,20 @@ StaticTopLevelTest/03: Fail
 StringInterpolate2Test: Fail
 ToplevelCollision2Test/01: Fail # added in r1934
 
+# Parser errors.
+OverrideFieldTest/01: Skip
+OverrideFieldTest/02: Fail
+OverrideFieldTest/03: Fail
+OverrideFieldTest/04: Skip
+OverrideMethodWithFieldTest/none: Fail
+FauxverrideTest/none: Fail
+FauxverrideTest/01: Fail
+FauxverrideTest/03: Skip
+FauxverrideTest/04: Fail
+BlockScopeTest: Fail
+DuplicateConstructorTest/none: Fail
+ExceptionIdentityTest: Fail
+
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 ParameterInitializerTest: Pass
