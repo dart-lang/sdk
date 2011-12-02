@@ -48,7 +48,9 @@
           'inputs': [
             'tools/create_sdk.py',
           ],
-          'outputs': [],
+          'outputs': [
+            'sdk',
+          ],
           'action': [
             'python',
             'tools/create_sdk.py',
