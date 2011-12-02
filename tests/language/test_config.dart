@@ -9,6 +9,7 @@
 class LanguageTestSuite extends StandardTestSuite {
   LanguageTestSuite(Map configuration)
       : super(configuration,
+              "language",
               "tests/language/src",
               ["tests/language/language.status"]);
 }

@@ -30,24 +30,39 @@ main() {
   var queue = new ProcessQueue(firstConf['tasks'],
                                firstConf['progress'],
                                startTime);
+  Map<String, RegExp> selectors = firstConf['selectors'];
   for (var conf in configurations) {
-    queue.addTestSuite(new SamplesTestSuite(conf));
-    queue.addTestSuite(new StandaloneTestSuite(conf));
-    queue.addTestSuite(new CorelibTestSuite(conf));
-    queue.addTestSuite(new Co19TestSuite(conf));
-    queue.addTestSuite(new LanguageTestSuite(conf));
-    queue.addTestSuite(new IsolateTestSuite(conf));
-    queue.addTestSuite(new StubGeneratorTestSuite(conf));
-    if (conf["component"] == "vm") {
+    if (selectors.containsKey('samples')) {
+      queue.addTestSuite(new SamplesTestSuite(conf));
+    }
+    if (selectors.containsKey('standalone')) {
+      queue.addTestSuite(new StandaloneTestSuite(conf));
+    }
+    if (selectors.containsKey('corelib')) {
+      queue.addTestSuite(new CorelibTestSuite(conf));
+    }
+    if (selectors.containsKey('co19')) {
+      queue.addTestSuite(new Co19TestSuite(conf));
+    }
+    if (selectors.containsKey('language')) {
+      queue.addTestSuite(new LanguageTestSuite(conf));
+    }
+    if (selectors.containsKey('isolate')) {
+      queue.addTestSuite(new IsolateTestSuite(conf));
+    }
+    if (selectors.containsKey('stub-generator')) {
+      queue.addTestSuite(new StubGeneratorTestSuite(conf));
+    }
+    if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
     }
-    if (conf["patterns"].some((regexp) => regexp.pattern == 'frog')) {
+    if (selectors.containsKey('frog')) {
       queue.addTestSuite(new FrogTestSuite(conf));
     }
-    if (conf["patterns"].some((regexp) => regexp.pattern == 'leg')) {
+    if (selectors.containsKey('leg')) {
       queue.addTestSuite(new LegTestSuite(conf));
     }
-    if (conf["patterns"].some((regexp) => regexp.pattern == 'leg_only')) {
+    if (selectors.containsKey('leg_only')) {
       queue.addTestSuite(new LegOnlyTestSuite(conf));
     }
   }

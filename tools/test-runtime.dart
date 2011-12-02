@@ -29,14 +29,27 @@ main() {
   var queue = new ProcessQueue(firstConf['tasks'],
                                firstConf['progress'],
                                startTime);
+  Map<String, RegExp> selectors = firstConf['selectors'];
   for (var conf in configurations) {
-    queue.addTestSuite(new StandaloneTestSuite(conf));
-    queue.addTestSuite(new CorelibTestSuite(conf));
-    queue.addTestSuite(new Co19TestSuite(conf));
-    queue.addTestSuite(new LanguageTestSuite(conf));
-    queue.addTestSuite(new IsolateTestSuite(conf));
-    queue.addTestSuite(new StubGeneratorTestSuite(conf));
-    if (conf["component"] == "vm") {
+    if (selectors.containsKey('standalone')) {
+      queue.addTestSuite(new StandaloneTestSuite(conf));
+    }
+    if (selectors.containsKey('corelib')) {
+      queue.addTestSuite(new CorelibTestSuite(conf));
+    }
+    if (selectors.containsKey('co19')) {
+      queue.addTestSuite(new Co19TestSuite(conf));
+    }
+    if (selectors.containsKey('language')) {
+      queue.addTestSuite(new LanguageTestSuite(conf));
+    }
+    if (selectors.containsKey('isolate')) {
+      queue.addTestSuite(new IsolateTestSuite(conf));
+    }
+    if (selectors.containsKey('stub-generator')) {
+      queue.addTestSuite(new StubGeneratorTestSuite(conf));
+    }
+    if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
     }
   }

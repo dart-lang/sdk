@@ -129,9 +129,10 @@ class TestOptionsParser {
           return null;
         }
         var split = arg.lastIndexOf('=');
-        name = arg;
-        value = '';
-        if (split != -1) {
+        if (split == -1) {
+          name = arg;
+          value = '';
+        } else {
           name = arg.substring(0, split);
           value = arg.substring(split + 1, arg.length);
         }
@@ -140,20 +141,23 @@ class TestOptionsParser {
           _printHelp();
           return null;
         }
-        name = arg;
-        if ((i + 1) >= arguments.length) {
-          print('No value supplied for option $name');
-          return null;
+        if (arg.length > 2) {
+          name = arg.substring(0, 2);
+          value = arg.substring(2, arg.length);
+        } else {
+          name = arg;
+          if ((i + 1) >= arguments.length) {
+            print('No value supplied for option $name');
+            return null;
+          }
+          value = arguments[++i];
         }
-        value = arguments[++i];
       } else {
         // The argument does not start with '-' or '--' and is
         // therefore not an option. We use it as a test selection
         // pattern.
-        var patterns = configuration['patterns'];
-        if (patterns == null) {
-          configuration['patterns'] = patterns = new List();
-        }
+        configuration.putIfAbsent('selectors', () => []);
+        var patterns = configuration['selectors'];
         patterns.add(arg);
         continue;
       }
@@ -221,20 +225,34 @@ class TestOptionsParser {
     // expect.
     configuration['unchecked'] = !configuration['checked'];
 
-    // Expand the test selectors into simple regular expressions to be
-    // used on the full path of a test file. If no selectors are
-    // explicitly given use the default suite patterns.
-    List patterns = configuration['patterns'];
-    if (patterns == null) {
-      patterns = new List.from(defaultTestSelectors);
+    // Expand the test selectors into a suite name and a simple
+    // regular expressions to be used on the full path of a test file
+    // in that test suite. If no selectors are explicitly given use
+    // the default suite patterns.
+    var selectors = configuration['selectors'];
+    if (selectors is !Map) {
+      if (selectors == null) {
+        selectors = new List.from(defaultTestSelectors);
+      }
+      Map<String, RegExp> selectorMap = new Map<String, RegExp>();
+      for (var i = 0; i < selectors.length; i++) {
+        var pattern = selectors[i];
+        var suite = pattern;
+        var slashLocation = pattern.indexOf('/');
+        if (slashLocation != -1) {
+          suite = pattern.substring(0, slashLocation);
+          pattern = pattern.substring(slashLocation + 1);
+        }
+        pattern = pattern.replaceAll('*', '.*');
+        pattern = pattern.replaceAll('/', '.*');
+        if (selectorMap.containsKey(suite)) {
+          print("Warning: selector '$suite/$pattern' overrides " +
+                "previous selector for suite '$suite'");
+        }
+        selectorMap[suite] = new RegExp(pattern);
+      }
+      configuration['selectors'] = selectorMap;
     }
-    for (var i = 0; i < patterns.length; i++) {
-      if (patterns[i] is RegExp) continue;
-      patterns[i] = patterns[i].replaceAll('*', '.*');
-      patterns[i] = patterns[i].replaceAll('/', '.*');
-      patterns[i] = new RegExp(patterns[i]);
-    }
-    configuration['patterns'] = patterns;
 
     // Expand the architectures.
     var archs = configuration['architecture'];

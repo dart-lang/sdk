@@ -9,6 +9,7 @@
 class StubGeneratorTestSuite extends StandardTestSuite {
   StubGeneratorTestSuite(Map configuration)
       : super(configuration,
+              "stub-generator",
               "tests/stub-generator/src",
               ["tests/stub-generator/stub-generator.status"]) {
     // TODO(ager): Support the stub generation part of this test on

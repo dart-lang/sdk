@@ -9,6 +9,7 @@
 class CorelibTestSuite extends StandardTestSuite {
   CorelibTestSuite(Map configuration)
       : super(configuration,
+              "corelib",
               "tests/corelib/src",
               ["tests/corelib/corelib.status"]);
 }

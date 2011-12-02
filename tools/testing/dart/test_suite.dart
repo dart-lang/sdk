@@ -69,13 +69,11 @@ class CCTestSuite implements TestSuite {
       receiveTestName.close();
       doDone(true);
     } else {
-      // If patterns are given only list the files that match one of the
-      // patterns. Use the name "suiteName/testName" for cc tests.
-      var patterns = configuration['patterns'];
-      if (!patterns.isEmpty()) {
-        var constructedName = '$suiteName/$testName';
-        if (!patterns.some((re) => re.hasMatch(constructedName))) return;
-      }
+      // Only run the tests that match the pattern. Use the name
+      // "suiteName/testName" for cc tests.
+      RegExp pattern = configuration['selectors'][suiteName];
+      String constructedName = '$suiteName/$testName';
+      if (!pattern.hasMatch(constructedName)) return;
 
       var expectations = testExpectations.expectations(testName);
 
@@ -124,6 +122,7 @@ class CCTestSuite implements TestSuite {
 
 class StandardTestSuite implements TestSuite {
   Map configuration;
+  String suiteName;
   String directoryPath;
   List<String> statusFilePaths;
   Function doTest;
@@ -134,6 +133,7 @@ class StandardTestSuite implements TestSuite {
   TestExpectations testExpectations;
 
   StandardTestSuite(Map this.configuration,
+                    String this.suiteName,
                     String this.directoryPath,
                     List<String> this.statusFilePaths) {
     shellPath = TestUtils.dartShellFileName(configuration) ;
@@ -178,14 +178,9 @@ class StandardTestSuite implements TestSuite {
   void processFile(String filename) {
     if (!isTestFile(filename)) return;
 
-    // If patterns are given only list the files that match one of the
-    // patterns.
-    var patterns = configuration['patterns'];
-    if (!patterns.isEmpty() &&
-        !patterns.some((re) => re.hasMatch(filename))) {
-      return;
-    }
-
+    // Only run the tests that match the pattern.
+    RegExp pattern = configuration['selectors'][suiteName];
+    if (!pattern.hasMatch(filename)) return;
 
     var timeout = configuration['timeout'];
     var optionsFromFile = optionsFromFile(filename);
