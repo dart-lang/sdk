@@ -35,6 +35,28 @@
         'frog/dart-frog.gyp:frogsh',
       ],
     },
+    {
+      'target_name': 'sdk',
+      'type': 'none',
+      'dependencies': [
+        'frog',
+        'runtime',
+      ],
+      'actions': [
+        {
+          'action_name': 'create_sdk',
+          'inputs': [
+            'tools/create_sdk.py',
+          ],
+          'outputs': [],
+          'action': [
+            'python',
+            'tools/create_sdk.py',
+          ],
+          'message': 'Creating SDK.',
+        },
+      ],
+    },
     # TODO(ngeoffray): Fling does not have proper dependencies,
     # so don't build it for now.
     #{
