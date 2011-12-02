@@ -49,11 +49,12 @@
             'tools/create_sdk.py',
           ],
           'outputs': [
-            'sdk',
+            '<(PRODUCT_DIR)/sdk',
           ],
           'action': [
             'python',
             'tools/create_sdk.py',
+            '<(PRODUCT_DIR)/sdk'
           ],
           'message': 'Creating SDK.',
         },

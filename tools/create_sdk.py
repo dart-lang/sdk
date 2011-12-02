@@ -41,7 +41,7 @@ import utils
 from os.path import dirname, join, realpath, exists, isdir
 from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree
 
-def Main():
+def Main(argv):
 # Pull in all of the gpyi files which will be munged into the sdk.
   corelib_sources = \
     (eval(open("corelib/src/corelib_sources.gypi").read()))['sources']
@@ -62,7 +62,7 @@ def Main():
 
   HOME = dirname(dirname(realpath(__file__)))
 
-  SDK = join(HOME, 'sdk')
+  SDK = argv[1]
   if exists(SDK):
     rmtree(SDK)
 
@@ -288,4 +288,4 @@ def Main():
            ignore=ignore_patterns('.svn'))
 
 if __name__ == '__main__':
-  sys.exit(Main())
+  sys.exit(Main(sys.argv))
