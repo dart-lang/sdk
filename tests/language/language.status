@@ -232,7 +232,6 @@ Field3NegativeTest: Fail  # issue with test see #354
 FieldNegativeTest: Fail  # issue with test see #354
 FinalParamNegativeTest: Fail
 For2Test: Fail
-FunctionLiterals2Test: Fail
 FunctionSyntaxTest: Fail
 FunctionTest: Fail
 FunctionTypeAliasNegativeTest: Fail
