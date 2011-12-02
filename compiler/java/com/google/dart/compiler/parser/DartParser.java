@@ -1163,11 +1163,15 @@ public class DartParser extends CompletionHooksParserBase {
     }
     if (optional(Token.SEMICOLON)) {
       return done(new DartNativeBlock());
-    } else {
+    } else if (match(Token.LBRACE) || match(Token.ARROW)) {
       if (!modifiers.isStatic()) {
         reportError(position(), ParserErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
       }
       return done(parseFunctionStatementBody(true));
+    } else {
+      parseString();
+      expect(Token.SEMICOLON);
+      return done(new DartNativeBlock());
     }
   }
 
