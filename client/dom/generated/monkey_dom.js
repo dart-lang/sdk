@@ -7563,7 +7563,6 @@ function DOM$fixClass$WebGLRenderingContext(c) {
     'getShaderInfoLog',
     'getShaderParameter',
     'getShaderSource',
-    'getSupportedExtensions',
     'getTexParameter',
     'getUniform',
     'getUniformLocation',

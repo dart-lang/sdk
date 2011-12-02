@@ -711,39 +711,37 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   int getAttribLocation(WebGLProgram program, String name) native;
 
-  void getBufferParameter() native;
+  Object getBufferParameter(int target, int pname) native;
 
   WebGLContextAttributes getContextAttributes() native;
 
   int getError() native;
 
-  void getExtension(String name) native;
+  Object getExtension(String name) native;
 
-  void getFramebufferAttachmentParameter() native;
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
-  void getParameter() native;
+  Object getParameter(int pname) native;
 
   String getProgramInfoLog(WebGLProgram program) native;
 
-  void getProgramParameter() native;
+  Object getProgramParameter(WebGLProgram program, int pname) native;
 
-  void getRenderbufferParameter() native;
+  Object getRenderbufferParameter(int target, int pname) native;
 
   String getShaderInfoLog(WebGLShader shader) native;
 
-  void getShaderParameter() native;
+  Object getShaderParameter(WebGLShader shader, int pname) native;
 
   String getShaderSource(WebGLShader shader) native;
 
-  void getSupportedExtensions() native;
+  Object getTexParameter(int target, int pname) native;
 
-  void getTexParameter() native;
-
-  void getUniform() native;
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location) native;
 
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native;
 
-  void getVertexAttrib() native;
+  Object getVertexAttrib(int index, int pname) native;
 
   int getVertexAttribOffset(int index, int pname) native;
 

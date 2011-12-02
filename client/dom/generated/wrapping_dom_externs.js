@@ -632,7 +632,6 @@ dom_externs.getStartTime;               // operation SVGAnimationElement.getStar
 dom_externs.getStorageUpdates;          // operation Navigator.getStorageUpdates
 dom_externs.getStringValue;             // operation CSSPrimitiveValue.getStringValue
 dom_externs.getSubStringLength;         // operation SVGTextContentElement.getSubStringLength
-dom_externs.getSupportedExtensions;     // operation WebGLRenderingContext.getSupportedExtensions
 dom_externs.getTexParameter;            // operation WebGLRenderingContext.getTexParameter
 dom_externs.getTotalLength;             // operation SVGPathElement.getTotalLength
 dom_externs.getTransformToElement;      // operation SVGAElement.getTransformToElement, operation SVGCircleElement.getTransformToElement, operation SVGClipPathElement.getTransformToElement, operation SVGDefsElement.getTransformToElement, operation SVGEllipseElement.getTransformToElement, operation SVGForeignObjectElement.getTransformToElement, operation SVGGElement.getTransformToElement, operation SVGImageElement.getTransformToElement, operation SVGLineElement.getTransformToElement, operation SVGLocatable.getTransformToElement, operation SVGPathElement.getTransformToElement, operation SVGPolygonElement.getTransformToElement, operation SVGPolylineElement.getTransformToElement, operation SVGRectElement.getTransformToElement, operation SVGSVGElement.getTransformToElement, operation SVGSwitchElement.getTransformToElement, operation SVGTextElement.getTransformToElement, operation SVGUseElement.getTransformToElement

@@ -29990,9 +29990,9 @@ function native__WebGLRenderingContextWrappingImplementation__getAttribLocation(
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getBufferParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getBufferParameter(_this, target, pname) {
   try {
-    return __dom_wrap(_this.$dom.getBufferParameter());
+    return __dom_wrap(_this.$dom.getBufferParameter(__dom_unwrap(target), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30022,17 +30022,17 @@ function native__WebGLRenderingContextWrappingImplementation__getExtension(_this
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getFramebufferAttachmentParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getFramebufferAttachmentParameter(_this, target, attachment, pname) {
   try {
-    return __dom_wrap(_this.$dom.getFramebufferAttachmentParameter());
+    return __dom_wrap(_this.$dom.getFramebufferAttachmentParameter(__dom_unwrap(target), __dom_unwrap(attachment), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getParameter(_this, pname) {
   try {
-    return __dom_wrap(_this.$dom.getParameter());
+    return __dom_wrap(_this.$dom.getParameter(__dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30046,17 +30046,17 @@ function native__WebGLRenderingContextWrappingImplementation__getProgramInfoLog(
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getProgramParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getProgramParameter(_this, program, pname) {
   try {
-    return __dom_wrap(_this.$dom.getProgramParameter());
+    return __dom_wrap(_this.$dom.getProgramParameter(__dom_unwrap(program), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getRenderbufferParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getRenderbufferParameter(_this, target, pname) {
   try {
-    return __dom_wrap(_this.$dom.getRenderbufferParameter());
+    return __dom_wrap(_this.$dom.getRenderbufferParameter(__dom_unwrap(target), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30070,9 +30070,9 @@ function native__WebGLRenderingContextWrappingImplementation__getShaderInfoLog(_
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getShaderParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getShaderParameter(_this, shader, pname) {
   try {
-    return __dom_wrap(_this.$dom.getShaderParameter());
+    return __dom_wrap(_this.$dom.getShaderParameter(__dom_unwrap(shader), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30086,25 +30086,17 @@ function native__WebGLRenderingContextWrappingImplementation__getShaderSource(_t
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getSupportedExtensions(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getTexParameter(_this, target, pname) {
   try {
-    return __dom_wrap(_this.$dom.getSupportedExtensions());
+    return __dom_wrap(_this.$dom.getTexParameter(__dom_unwrap(target), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getTexParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getUniform(_this, program, location) {
   try {
-    return __dom_wrap(_this.$dom.getTexParameter());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__WebGLRenderingContextWrappingImplementation__getUniform(_this) {
-  try {
-    return __dom_wrap(_this.$dom.getUniform());
+    return __dom_wrap(_this.$dom.getUniform(__dom_unwrap(program), __dom_unwrap(location)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30118,9 +30110,9 @@ function native__WebGLRenderingContextWrappingImplementation__getUniformLocation
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getVertexAttrib(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getVertexAttrib(_this, index, pname) {
   try {
-    return __dom_wrap(_this.$dom.getVertexAttrib());
+    return __dom_wrap(_this.$dom.getVertexAttrib(__dom_unwrap(index), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

@@ -1225,7 +1225,6 @@ dart_externs.prototype.getStartTime$member;
 dart_externs.prototype.getStorageUpdates$member;
 dart_externs.prototype.getStringValue$member;
 dart_externs.prototype.getSubStringLength$member;
-dart_externs.prototype.getSupportedExtensions$member;
 dart_externs.prototype.getTexParameter$member;
 dart_externs.prototype.getTotalLength$member;
 dart_externs.prototype.getTransformToElement$member;
