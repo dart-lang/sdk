@@ -118,6 +118,7 @@ void ExtractTestsFromMultitest(String filename,
 void DoMultitest(String filename,
                  String buildDir,
                  String testDir,
+                 bool supportsFatalTypeErrors,
                  Function doTest(String filename,
                                  bool isNegative,
                                  [bool isNegativeIfChecked]),
@@ -133,9 +134,13 @@ void DoMultitest(String filename,
   int end = filename.indexOf('.dart', start);
   String baseFilename = filename.substring(start, end);
   Iterator currentKey = tests.getKeys().iterator();
-  WriteMultitestToFileAndQueueIt(tests, outcomes, currentKey,
+  WriteMultitestToFileAndQueueIt(tests,
+                                 outcomes,
+                                 supportsFatalTypeErrors,
+                                 currentKey,
                                  '$directory$pathSeparator$baseFilename',
-                                 doTest, multitestDone);
+                                 doTest,
+                                 multitestDone);
 }
 
 
@@ -143,6 +148,7 @@ void DoMultitest(String filename,
 // to serialize the file operations, rather than opening all files at once.
 WriteMultitestToFileAndQueueIt(Map<String, String> tests,
                                Map<String, String> outcomes,
+                               bool supportsFatalTypeErrors,
                                Iterator currentKey,
                                String basePath,
                                Function doTest,
@@ -169,15 +175,23 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
   };
   file.closeHandler = () {
     var outcome = outcomes[key];
-    bool isNegative = outcome.contains('compile-time error') ||
-    outcome.contains('runtime error');
+    bool enableFatalTypeErrors = (supportsFatalTypeErrors &&
+                                  outcome.contains('static type error'));
+    bool isNegative = (outcome.contains('compile-time error') ||
+                       outcome.contains('runtime error') ||
+                       enableFatalTypeErrors);
     bool isNegativeIfChecked = outcome.contains('type error');
-    doTest(filename, isNegative, isNegativeIfChecked);
-    // TODO(whesse): Register files and directories to be deleted.
-    // They should be registered in a persistent list, so they can
-    // be deleted later even if the test script is interrupted.
-    WriteMultitestToFileAndQueueIt(tests, outcomes, currentKey,
-                                   basePath, doTest, done);
+    doTest(filename,
+           isNegative,
+           isNegativeIfChecked,
+           enableFatalTypeErrors);
+    WriteMultitestToFileAndQueueIt(tests,
+                                   outcomes,
+                                   supportsFatalTypeErrors,
+                                   currentKey,
+                                   basePath,
+                                   doTest,
+                                   done);
   };
   file.create();
 }

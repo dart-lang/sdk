@@ -22,15 +22,22 @@
 main() {
   var startTime = new Date.now();
   var optionsParser = new TestOptionsParser();
-  var configurations = optionsParser.parse(new Options().arguments);
+  List<Map> configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
+
   // Extract global options from first configuration.
   var firstConf = configurations[0];
-  var queue = new ProcessQueue(firstConf['tasks'],
-                               firstConf['progress'],
-                               startTime);
   Map<String, RegExp> selectors = firstConf['selectors'];
-  for (var conf in configurations) {
+  var maxProcesses = firstConf['tasks'];
+  var progressIndicator = firstConf['progress'];
+
+  var configurationIterator = configurations.iterator();
+  bool enqueueConfiguration(ProcessQueue queue) {
+    if (!configurationIterator.hasNext()) {
+      return false;
+    }
+
+    var conf = configurationIterator.next();
     if (selectors.containsKey('standalone')) {
       queue.addTestSuite(new StandaloneTestSuite(conf));
     }
@@ -52,5 +59,13 @@ main() {
     if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
     }
+
+    return true;
   }
+
+  // Start process queue.
+  var queue = new ProcessQueue(firstConf['tasks'],
+                               firstConf['progress'],
+                               startTime,
+                               enqueueConfiguration);
 }

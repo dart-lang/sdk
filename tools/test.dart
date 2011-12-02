@@ -23,15 +23,22 @@
 main() {
   var startTime = new Date.now();
   var optionsParser = new TestOptionsParser();
-  var configurations = optionsParser.parse(new Options().arguments);
+  List<Map> configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
+
   // Extract global options from first configuration.
   var firstConf = configurations[0];
-  var queue = new ProcessQueue(firstConf['tasks'],
-                               firstConf['progress'],
-                               startTime);
   Map<String, RegExp> selectors = firstConf['selectors'];
-  for (var conf in configurations) {
+  var maxProcesses = firstConf['tasks'];
+  var progressIndicator = firstConf['progress'];
+
+  var configurationIterator = configurations.iterator();
+  bool enqueueConfiguration(ProcessQueue queue) {
+    if (!configurationIterator.hasNext()) {
+      return false;
+    }
+
+    var conf = configurationIterator.next();
     if (selectors.containsKey('samples')) {
       queue.addTestSuite(new SamplesTestSuite(conf));
     }
@@ -65,5 +72,13 @@ main() {
     if (selectors.containsKey('leg_only')) {
       queue.addTestSuite(new LegOnlyTestSuite(conf));
     }
+
+    return true;
   }
+
+  // Start process queue.
+  var queue = new ProcessQueue(maxProcesses,
+                               progressIndicator,
+                               startTime,
+                               enqueueConfiguration);
 }

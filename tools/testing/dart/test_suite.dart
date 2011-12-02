@@ -191,7 +191,8 @@ class StandardTestSuite implements TestSuite {
 
     Function createTestCase(String filename,
                             bool isNegative,
-                            [bool isNegativeIfChecked = false]) {
+                            [bool isNegativeIfChecked = false,
+                             bool enableFatalTypeErrors = false]) {
       // Look up expectations in status files using a modified file path.
       String pathSeparator = new Platform().pathSeparator();
       String testName;
@@ -216,7 +217,9 @@ class StandardTestSuite implements TestSuite {
 
       isNegative = isNegative ||
           (configuration['checked'] && isNegativeIfChecked);
-      var argumentLists = argumentListsFromFile(filename, optionsFromFile);
+      var argumentLists = argumentListsFromFile(filename,
+                                                optionsFromFile,
+                                                enableFatalTypeErrors);
       for (var args in argumentLists) {
         doTest(new TestCase(testName,
                             shellPath,
@@ -228,12 +231,13 @@ class StandardTestSuite implements TestSuite {
       }
     }
 
-
     if (optionsFromFile['isMultitest']) {
+      bool supportsFatalTypeErrors = (configuration['component'] == 'dartc');
       ++activeMultitests;
       DoMultitest(filename,
                   TestUtils.buildDir(configuration),
                   directoryPath,
+                  supportsFatalTypeErrors,
                   createTestCase,
                   multitestDone);
     } else {
@@ -259,9 +263,11 @@ class StandardTestSuite implements TestSuite {
   }
 
   List<List<String>> argumentListsFromFile(String filename,
-                                           Map optionsFromFile) {
+                                           Map optionsFromFile,
+                                           bool enableFatalTypeErrors) {
     List args = TestUtils.standardOptions(configuration);
     args.addAll(additionalOptions());
+    if (enableFatalTypeErrors) args.add('--fatal-type-errors');
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];

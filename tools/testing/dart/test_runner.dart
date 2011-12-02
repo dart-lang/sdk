@@ -176,8 +176,30 @@ class DartcBatchRunnerProcess {
   bool get active() => _currentTest != null;
 
   void startTest(TestCase testCase) {
-    _startTime = new Date.now();
     _currentTest = testCase;
+    if (testCase.executablePath != _executable) {
+      // Restart this runner with the right executable for this test.
+      _executable = testCase.executablePath;
+      _process.exitHandler = (exitCode) {
+        _process.close();
+        _startProcess();
+        doStartTest(testCase);
+      };
+      _process.kill();
+    } else {
+      doStartTest(testCase);
+    }
+  }
+
+  void terminate() {
+    _process.exitHandler = (exitCode) {
+      _process.close();
+    };
+    _process.kill();
+  }
+
+  void doStartTest(TestCase testCase) {
+    _startTime = new Date.now();
     _testStdout = new List<String>();
     _testStderr = new List<String>();
     _stdoutStream.dataHandler = _readOutput(_stdoutStream, _testStdout);
@@ -186,13 +208,6 @@ class DartcBatchRunnerProcess {
                        testCase.timeout * 1000,
                        false);
     _process.stdin.write(_createArgumentsLine(testCase.arguments).charCodes());
-  }
-
-  void terminate() {
-    _process.exitHandler = (exitCode) {
-      _process.close();
-    };
-    _process.kill();
   }
 
   String _createArgumentsLine(List<String> arguments) {
@@ -281,22 +296,21 @@ class ProcessQueue {
   int _numProcesses = 0;
   int _activeTestListers = 0;
   int _maxProcesses;
+  Function _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
-
-  // For dartc batch processing we keep a list of batch processes for
-  // each of debug and release mode. If dartc tests are run in both
-  // release and debug mode this will spawn many processes but only
-  // half of them will be active at a time.
-  Map<String, List<DartcBatchRunnerProcess>> _batchProcessesMap;
+  // For dartc batch processing we keep a list of batch processes.
+  List<DartcBatchRunnerProcess> _batchProcesses;
 
   ProcessQueue(int this._maxProcesses,
                String progress,
-               Date start_time)
+               Date start_time,
+               Function this._enqueueMoreWork)
       : _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress, start_time),
-        _batchProcessesMap = new Map<String, List<DartcBatchRunnerProcess>>() {
+        _batchProcesses = new List<DartcBatchRunnerProcess>() {
     _maxProcesses = _maxProcesses;
+    if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
   void addTestSuite(TestSuite testSuite) {
@@ -310,7 +324,12 @@ class ProcessQueue {
   }
 
   void _checkDone() {
-    if (_activeTestListers == 0 && _tests.isEmpty() && _numProcesses == 0) {
+    // When there are no more active test listers ask for more work
+    // from process queue users.
+    if (_activeTestListers == 0 &&
+        !_enqueueMoreWork(this) &&
+        _tests.isEmpty() &&
+        _numProcesses == 0) {
       _terminateDartcBatchRunners();
       _progress.allDone();
     }
@@ -323,32 +342,20 @@ class ProcessQueue {
   }
 
   void _terminateDartcBatchRunners() {
-    _batchProcessesMap.forEach((key, value) {
-      for (int i = 0; i < value.length; i++) {
-        value[i].terminate();
-      }
-    });
+    _batchProcesses.forEach((runner) => runner.terminate());
   }
 
-  DartcBatchRunnerProcess _getDartcBatchRunnerProcess(TestCase test) {
-    var batchProcesses = _batchProcessesMap[test.executablePath];
-    if (batchProcesses == null) {
-      // Dartc batch processing is heavy. Scale down the number of
-      // concurrent tasks to be no more than the actual number of
-      // processors even when running dartc benchmarks in both debug
-      // and release mode.
-      var processors = new Platform().numberOfProcessors();
-      if (_maxProcesses >= (processors / 2)) {
-        _maxProcesses = (processors / 2).toInt();
-      }
-      batchProcesses = new List<DartcBatchRunnerProcess>(_maxProcesses);
-      _batchProcessesMap[test.executablePath] = batchProcesses;
+  void _ensureDartcBatchRunnersStarted(String executable) {
+    if (_batchProcesses.length == 0) {
       for (int i = 0; i < _maxProcesses; i++) {
-        batchProcesses[i] = new DartcBatchRunnerProcess(test.executablePath);
+        _batchProcesses.add(new DartcBatchRunnerProcess(executable));
       }
     }
-    for (int i = 0; i < batchProcesses.length; i++) {
-      var runner = batchProcesses[i];
+  }
+
+  DartcBatchRunnerProcess _getDartcBatchRunnerProcess() {
+    for (int i = 0; i < _batchProcesses.length; i++) {
+      var runner = _batchProcesses[i];
       if (!runner.active) return runner;
     }
     throw new Exception('Unable to find inactive batch runner.');
@@ -367,8 +374,9 @@ class ProcessQueue {
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      if (test.executablePath.contains('dartc_test')) {
-        _getDartcBatchRunnerProcess(test).startTest(test);
+      if (test.executablePath.contains('compiler')) {
+        _ensureDartcBatchRunnersStarted(test.executablePath);
+        _getDartcBatchRunnerProcess().startTest(test);
       } else {
         new RunningProcess(test).start();
       }
