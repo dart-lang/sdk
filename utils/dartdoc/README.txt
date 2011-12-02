@@ -4,10 +4,15 @@ To use it, from this directory, run:
 
     $ dartdoc <path to .dart file>
 
-This will create a "docs" directory with the docs for your libraries. To do so,
-dartdoc parses that library and every library it imports. From each library, it
-parses all classes and members, finds the associated doc comments and builds
-crosslinked docs from them.
+This will create a "docs" directory with the docs for your libraries.
+
+
+How docs are generated
+----------------------
+
+To make beautiful docs from your library, dartdoc parses it and every library it
+imports (recursively). From each library, it parses all classes and members,
+finds the associated doc comments and builds crosslinked docs from them.
 
 "Doc comments" can be in one of a few forms:
 

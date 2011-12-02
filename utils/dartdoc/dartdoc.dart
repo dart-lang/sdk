@@ -7,10 +7,11 @@
  *
  *     $ dartdoc <path to .dart file>
  *
- * This will create a "docs" directory with the docs for your libraries. To do
- * so, dartdoc parses that library and every library it imports. From each
- * library, it parses all classes and members, finds the associated doc
- * comments and builds crosslinked docs from them.
+ * This will create a "docs" directory with the docs for your libraries. To
+ * create these beautiful docs, dartdoc parses your library and every library
+ * it imports (recursively). From each library, it parses all classes and
+ * members, finds the associated doc comments and builds crosslinked docs from
+ * them.
  */
 #library('dartdoc');
 
@@ -32,6 +33,9 @@ bool includeSource = true;
 
 /** Special comment position used to store the library-level doc comment. */
 final _libraryDoc = -1;
+
+/** The path to the file currently being written to, relative to [outdir]. */
+String _filePath;
 
 /** The file currently being written to. */
 StringBuffer _file;
@@ -67,6 +71,19 @@ void main() {
   // The entrypoint of the library to generate docs for.
   final libPath = process.argv[2];
 
+  // Parse the dartdoc options.
+  for (int i = 3; i < process.argv.length; i++) {
+    final arg = process.argv[i];
+    switch (arg) {
+      case '--no-code':
+        includeSource = false;
+        break;
+
+      default:
+        print('Unknown option: $arg');
+    }
+  }
+
   files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
 
@@ -82,7 +99,7 @@ void main() {
 
     initializeWorld(files);
 
-    world.processScript(libPath);
+    world.processDartScript(libPath);
     world.resolveAll();
 
     // Clean the output directory.
@@ -127,7 +144,8 @@ num time(callback()) {
   return watch.elapsedInMs();
 }
 
-startFile() {
+startFile(String path) {
+  _filePath = path;
   _file = new StringBuffer();
 }
 
@@ -140,8 +158,12 @@ writeln(String s) {
   write('\n');
 }
 
-endFile(String outfile) {
-  world.files.writeString(outfile, _file.toString());
+endFile() {
+  String outPath = '$outdir/$_filePath';
+  files.createDirectory(dirname(outPath), recursive: true);
+
+  world.files.writeString(outPath, _file.toString());
+  _filePath = null;
   _file = null;
 }
 
@@ -149,7 +171,7 @@ endFile(String outfile) {
 sanitize(String name) => name.replaceAll(':', '_').replaceAll('/', '_');
 
 docIndex(List<Library> libraries) {
-  startFile();
+  startFile('index.html');
   // TODO(rnystrom): Need to figure out what this should look like.
   writeln(
       '''
@@ -168,7 +190,7 @@ docIndex(List<Library> libraries) {
   for (final library in sorted) {
     writeln(
         '''
-        <li><a href="${libraryUrl(library)}">Library ${library.name}</a></li>
+        <li>${a(libraryUrl(library), "Library ${library.name}")}</li>
         ''');
   }
 
@@ -179,97 +201,163 @@ docIndex(List<Library> libraries) {
       </body></html>
       ''');
 
-  endFile('$outdir/index.html');
+  endFile();
+}
+
+/** Returns the number of times [search] occurs in [text]. */
+int countOccurrences(String text, String search) {
+  int start = 0;
+  int count = 0;
+
+  while (true) {
+    start = text.indexOf(search, start);
+    if (start == -1) break;
+    count++;
+    // Offsetting by needle length means overlapping needles are not counted.
+    start += search.length;
+  }
+
+  return count;
+}
+
+/** Repeats [text] [count] times, separated by [separator] if given. */
+String repeat(String text, int count, [String separator]) {
+  // TODO(rnystrom): Should be in corelib.
+  final buffer = new StringBuffer();
+  for (int i = 0; i < count; i++) {
+    buffer.add(text);
+    if ((i < count - 1) && (separator !== null)) buffer.add(separator);
+  }
+
+  return buffer.toString();
+}
+
+/**
+ * Converts [absolute] which is understood to be a full path from the root of
+ * the generated docs to one relative to the current file.
+ */
+String relativePath(String absolute) {
+  // TODO(rnystrom): Walks all the way up to root each time. Shouldn't do this
+  // if the paths overlap.
+  return repeat('../', countOccurrences(_filePath, '/')) + absolute;
+}
+
+/**
+ * Creates a hyperlink. Handles turning the [href] into an appropriate relative
+ * path from the current file.
+ */
+String a(String href, String contents, [String class]) {
+  final css = class == null ? '' : ' class="$class"';
+  return '<a href="${relativePath(href)}"$css>$contents</a>';
+}
+
+writeHeader(String title) {
+  writeln(
+      '''
+      <!DOCTYPE html>
+      <html>
+      <head>
+      <meta charset="utf-8">
+      <title>$title</title>
+      <link rel="stylesheet" type="text/css"
+          href="${relativePath('styles.css')}" />
+      <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+      <script src="${relativePath('interact.js')}"></script>
+      </head>
+      <body>
+      <div class="content">
+      ''');
+}
+
+writeFooter() {
+  writeln(
+      '''
+      </div>
+      </body></html>
+      ''');
 }
 
 docLibrary(Library library) {
   _totalLibraries++;
   _currentLibrary = library;
 
-  startFile();
-  writeln(
-      '''
-      <html>
-      <head>
-      <title>${library.name}</title>
-      <link rel="stylesheet" type="text/css" href="styles.css" />
-      <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
-      <script src="interact.js"></script>
-      </head>
-      <body>
-      <div class="content">
-      <h1>Library <strong>${library.name}</strong></h1>
-      ''');
-
-  bool needsSeparator = false;
+  startFile(libraryUrl(library));
+  writeHeader(library.name);
+  writeln('<h1>Library <strong>${library.name}</strong></h1>');
 
   // Look for a comment for the entire library.
   final comment = findCommentInFile(library.baseSource, _libraryDoc);
   if (comment != null) {
     final html = md.markdownToHtml(comment);
     writeln('<div class="doc">$html</div>');
-    needsSeparator = true;
   }
+
+  // Document the top-level members.
+  docMembers(library.topType);
+
+  // TODO(rnystrom): Link to types.
+  writeln('<h3>Types</h3>');
 
   for (final type in orderValuesByKeys(library.types)) {
-    // Skip private types (for now at least).
-    if ((type.name != null) && type.name.startsWith('_')) continue;
-
-    if (needsSeparator) writeln('<hr/>');
-    if (docType(type)) needsSeparator = true;
+    if (type.isTop) continue;
+    writeln(
+        '''
+        <div class="type">
+        <h4>
+          ${type.isClass ? "class" : "interface"}
+          ${a(typeUrl(type), "<strong>${type.name}</strong>")}
+        </h4>
+        </div>
+        ''');
   }
 
-  writeln(
-      '''
-      </div>
-      </body></html>
-      ''');
+  writeFooter();
+  endFile();
 
-  endFile('$outdir/${sanitize(library.name)}.html');
+  for (final type in library.types.getValues()) {
+    if (!type.isTop) docType(type);
+  }
 }
 
-/**
- * Documents [type]. Handles top-level members if given an unnamed Type.
- * Returns `true` if it wrote anything.
- */
-bool docType(Type type) {
+docType(Type type) {
   _totalTypes++;
   _currentType = type;
 
-  bool wroteSomething = false;
+  startFile(typeUrl(type));
 
-  if (type.name != null) {
-    final name = typeName(type);
+  final typeName = '${type.isClass ? "Class" : "Interface"} ${type.name}';
+  writeHeader('Library ${type.library.name} / $typeName');
+  writeln(
+      '''
+      <h1>${a(libraryUrl(type.library),
+            "Library <strong>${type.library.name}</strong>")}</h1>
+      <h2>${type.isClass ? "Class" : "Interface"}
+          <strong>${type.name}</strong></h2>
+      ''');
 
-    write(
-        '''
-        <h2 id="${typeAnchor(type)}">
-          ${type.isClass ? "Class" : "Interface"} <strong>$name</strong>
-          <a class="anchor-link" href="${typeUrl(type)}"
-              title="Permalink to $name">#</a>
-        </h2>
-        ''');
+  docInheritance(type);
+  docCode(type.span);
+  docConstructors(type);
+  docMembers(type);
 
-    docInheritance(type);
-    docCode(type.span);
-    docConstructors(type);
+  writeFooter();
+  endFile();
+}
 
-    wroteSomething = true;
-  }
-
+void docMembers(Type type) {
   // Collect the different kinds of members.
   final methods = [];
   final fields = [];
 
   for (final member in orderValuesByKeys(type.members)) {
-    if (member.isMethod &&
-        (member.definition != null) &&
-        !member.name.startsWith('_')) {
-      methods.add(member);
-    } else if (member.isProperty) {
+    if (member.name.startsWith('_')) continue;
+
+    if (member.isProperty) {
       if (member.canGet) methods.add(member.getter);
       if (member.canSet) methods.add(member.setter);
-    } else if (member.isField && !member.name.startsWith('_')) {
+    } else if (member.isMethod) {
+      methods.add(member);
+    } else if (member.isField) {
       fields.add(member);
     }
   }
@@ -283,8 +371,6 @@ bool docType(Type type) {
     writeln('<h3>Fields</h3>');
     for (final field in fields) docField(type, field);
   }
-
-  return wroteSomething || methods.length > 0 || fields.length > 0;
 }
 
 /** Document the superclass and superinterfaces of [Type]. */
@@ -434,7 +520,7 @@ docField(Type type, FieldMember field) {
   write(
       '''
       <strong>${field.name}</strong> <a class="anchor-link"
-          href="#${memberUrl(field)}"
+          href="#${memberAnchor(field)}"
           title="Permalink to ${type.name}.${field.name}">#</a>
       </h4>
       ''');
@@ -464,38 +550,31 @@ typeName(Type type) {
 }
 
 /** Gets the URL to the documentation for [library]. */
-libraryUrl(Library library) => '${sanitize(library.name)}.html';
+libraryUrl(Library library) {
+  return '${sanitize(library.name)}.html';
+}
 
 /** Gets the URL for the documentation for [type]. */
-typeUrl(Type type) => '${libraryUrl(type.library)}#${typeAnchor(type)}';
+typeUrl(Type type) {
+  // Always get the generic type to strip off any type parameters or arguments.
+  // If the type isn't generic, genericType returns `this`, so it works for
+  // non-generic types too.
+  return '${sanitize(type.library.name)}/${type.genericType.name}.html';
+}
 
 /** Gets the URL for the documentation for [member]. */
-memberUrl(Member member) => '${typeUrl(member.declaringType)}-${member.name}';
-
-/** Gets the anchor id for the document for [type]. */
-typeAnchor(Type type) {
-  var name = type.name;
-
-  // No name for the special type that contains top-level members.
-  if (type.isTop) return '';
-
-  // Remove any type args or params that have been mangled into the name.
-  var dollar = name.indexOf('\$', 0);
-  if (dollar != -1) name = name.substring(0, dollar);
-
-  return name;
+memberUrl(Member member) {
+  return '${typeUrl(member.declaringType)}#${member.name}';
 }
 
 /** Gets the anchor id for the document for [member]. */
-memberAnchor(Member member) {
-  return '${typeAnchor(member.declaringType)}-${member.name}';
-}
+memberAnchor(Member member) => '${member.name}';
 
 /** Writes a linked cross reference to [type]. */
 typeReference(Type type) {
   // TODO(rnystrom): Do we need to handle ParameterTypes here like
   // annotation() does?
-  return '<a href="${typeUrl(type)}" class="crossref">${typeName(type)}</a>';
+  return a(typeUrl(type), typeName(type), class: 'crossref');
 }
 
 /**
@@ -508,12 +587,11 @@ annotation(Type enclosingType, Type type) {
   // If we're using a type parameter within the body of a generic class then
   // just link back up to the class.
   if (type is ParameterType) {
-    final library = sanitize(enclosingType.library.name);
-    return '<a href="${typeUrl(enclosingType)}">${type.name}</a> ';
+    return '${a(typeUrl(enclosingType), type.name)} ';
   }
 
   // Link to the type.
-  return '<a href="${typeUrl(type)}">${typeName(type)}</a> ';
+  return '${a(typeUrl(type), typeName(type))} ';
 }
 
 /**
@@ -522,20 +600,9 @@ annotation(Type enclosingType, Type type) {
  * style it appropriately.
  */
 md.Node resolveNameReference(String name) {
-  if (_currentMember != null) {
-    // See if it's a parameter of the current method.
-    for (final parameter in _currentMember.parameters) {
-      if (parameter.name == name) {
-        final element = new md.Element.text('span', name);
-        element.attributes['class'] = 'param';
-        return element;
-      }
-    }
-  }
-
   makeLink(String href) {
     final anchor = new md.Element.text('a', name);
-    anchor.attributes['href'] = href;
+    anchor.attributes['href'] = relativePath(href);
     anchor.attributes['class'] = 'crossref';
     return anchor;
   }
@@ -552,6 +619,17 @@ md.Node resolveNameReference(String name) {
     }
 
     return member;
+  }
+
+  // See if it's a parameter of the current method.
+  if (_currentMember != null) {
+    for (final parameter in _currentMember.parameters) {
+      if (parameter.name == name) {
+        final element = new md.Element.text('span', name);
+        element.attributes['class'] = 'param';
+        return element;
+      }
+    }
   }
 
   // See if it's another member of the current type.
