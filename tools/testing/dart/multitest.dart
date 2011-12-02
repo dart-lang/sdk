@@ -180,7 +180,7 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
     bool isNegative = (outcome.contains('compile-time error') ||
                        outcome.contains('runtime error') ||
                        enableFatalTypeErrors);
-    bool isNegativeIfChecked = outcome.contains('type error');
+    bool isNegativeIfChecked = outcome.contains('dynamic type error');
     doTest(filename,
            isNegative,
            isNegativeIfChecked,
