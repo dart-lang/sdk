@@ -366,6 +366,7 @@ class DartGenerator(object):
 
     # Render all interfaces into Dart and save them in files.
     dart_file_paths = []
+    processed_interfaces = []
     for interface in database.GetInterfaces():
 
       super_interface = None
@@ -392,6 +393,10 @@ class DartGenerator(object):
 
       self._ProcessInterface(interface, super_interface,
                              source_filter, common_prefix)
+      processed_interfaces.append(interface)
+
+    self._GenerateBrowserAnalysis(processed_interfaces, output_dir)
+
 
     # Libraries
     if lib_dir:
@@ -981,6 +986,63 @@ class DartGenerator(object):
     members = sorted(set(operations))
     for name in members:
        props.add(name + '$member')
+
+
+  def _GenerateBrowserAnalysis(self, interfaces, output_dir):
+    """Generate a JavaScript file that provides info from the browser.
+    """
+    js_file_name = os.path.join(output_dir, 'browser_analysis.html')
+    code = self._emitters.FileEmitter(js_file_name)
+
+    template = """<head>
+<script>
+function addText(e, text) {
+  var node = document.createElement('text');
+  node.innerHTML = String(text);
+  e.appendChild(node);
+}
+function check() {
+  var supported = [];
+  var missing = [];
+$!CHECKS
+  addText(document.getElementById('agent'), navigator.userAgent);
+
+  function fill(tag, elems) {
+    addText(document.getElementById(tag + '_count'), elems.length);
+    for (var i = 0; i < elems.length; ++i) {
+      var e = document.createElement('div');
+      e.innerHTML = '&nbsp;&nbsp;"' + elems[i] + '",'
+      document.getElementById(tag).appendChild(e);
+    }
+  }
+  fill('supported', supported);
+  fill('missing', missing);
+}
+window.onload = check;
+</script>
+</head>
+<div>
+{ 'userAgent': '<span id='agent'></span>',
+</div>
+<div>
+'supported': [ // (<span id='supported_count'></span>)
+<div id='supported' style='font-size: -2;'></div>
+],</div>
+<div>
+'missing':  [ // (<span id='missing_count'></span>)
+<div id='missing' style='font-size: -2;'></div>
+]}</div>
+
+"""
+    checks = code.Emit(template)
+    names = sorted(interface.id for interface in interfaces)
+    for id in names:
+      checks.Emit(
+          '  if (typeof $ID == "undefined")\n'
+          '    missing.push("$ID");\n'
+          '  else\n'
+          '    supported.push("$ID");\n',
+          ID=id);
 
 
 class OperationInfo(object):
