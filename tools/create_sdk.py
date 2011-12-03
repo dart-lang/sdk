@@ -26,6 +26,9 @@
 # ........html.dart
 # ......htmlimpl/ 
 # ........htmlimpl.dart
+# ......json/
+# ........json_{compiler, frog}.dart
+# ........{compiler, frog}/
 # ......(more will come here - io, etc)
 # ....tools/
 # ......dartdoc/
@@ -59,6 +62,11 @@ def Main(argv):
     (eval(open("frog/lib/frog_coreimpl_sources.gypi").read()))['sources']
   coreimpl_runtime_sources = \
     (eval(open("runtime/lib/lib_impl_sources.gypi").read()))['sources']
+  json_compiler_sources = \
+    (eval(open("compiler/jsonlib_sources.gypi").read())) \
+    ['variables']['jsonlib_resources']
+  json_frog_sources = \
+    (eval(open("frog/lib/frog_json_sources.gypi").read()))['sources']
 
   HOME = dirname(dirname(realpath(__file__)))
 
@@ -156,6 +164,34 @@ def Main(argv):
     copytree(join(html_src_dir, 'generated'), join(target_dir, 'generated'),
              ignore=ignore_patterns('.svn'))
 
+
+  #
+  # Create and populate lib/json.
+  #
+
+  json_frog_dest_dir = join(LIB, 'json', 'frog')
+  json_compiler_dest_dir = join(LIB, 'json', 'compiler')
+  os.makedirs(json_frog_dest_dir)
+  os.makedirs(json_compiler_dest_dir)
+
+  for filename in json_frog_sources:
+    copyfile(join(HOME, 'frog', 'lib', filename), 
+             join(json_frog_dest_dir, filename))
+
+  for filename in json_compiler_sources:
+    copyfile(join(HOME, 'compiler', filename),
+             join(json_compiler_dest_dir, os.path.basename(filename)))
+
+  # Create json_compiler.dart and json_frog.dart from whole cloth.
+  dest_file = open(join(LIB, 'json', 'json_compiler.dart'), 'w')
+  dest_file.write('#library("dart:json");\n')
+  dest_file.write('#import("compiler/json.dart");\n')
+  dest_file.close()
+  dest_file = open(join(LIB, 'json', 'json_frog.dart'), 'w')
+  dest_file.write('#library("dart:json");\n')
+  dest_file.write('#import("frog/json.dart");\n')
+  dest_file.close()
+      
   #
   # Create and populate lib/dom.
   #
