@@ -198,14 +198,6 @@ function native__AudioBufferWrappingImplementation__getChannelData(_this, channe
   }
 }
 
-function native__AudioBufferCallbackWrappingImplementation__handleEvent(_this, audioBuffer) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(audioBuffer)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__AudioBufferSourceNodeWrappingImplementation__get_buffer(_this) {
   try {
     return __dom_wrap(_this.$dom.buffer);
@@ -4926,22 +4918,6 @@ function native__DatabaseWrappingImplementation__transaction_3(_this, callback, 
   }
 }
 
-function native__DatabaseCallbackWrappingImplementation__handleEvent(_this, database) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(database)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DatabaseCallbackWrappingImplementation__handleEvent_2(_this, database) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(database)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__DatabaseSyncWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
@@ -6422,14 +6398,6 @@ function native__EntityWrappingImplementation__get_systemId(_this) {
   }
 }
 
-function native__EntriesCallbackWrappingImplementation__handleEvent(_this, entries) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(entries)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__EntryWrappingImplementation__get_filesystem(_this) {
   try {
     return __dom_wrap(_this.$dom.filesystem);
@@ -6646,14 +6614,6 @@ function native__EntryArraySyncWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__EntryCallbackWrappingImplementation__handleEvent(_this, entry) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(entry)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__EntrySyncWrappingImplementation__get_filesystem(_this) {
   try {
     return __dom_wrap(_this.$dom.filesystem);
@@ -6737,14 +6697,6 @@ function native__EntrySyncWrappingImplementation__remove(_this) {
 function native__EntrySyncWrappingImplementation__toURL(_this) {
   try {
     return __dom_wrap(_this.$dom.toURL());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__ErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -7094,14 +7046,6 @@ function native__FileWrappingImplementation__get_name(_this) {
   }
 }
 
-function native__FileCallbackWrappingImplementation__handleEvent(_this, file) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(file)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__FileEntryWrappingImplementation__createWriter(_this, successCallback) {
   try {
     return __dom_wrap(_this.$dom.createWriter(__dom_unwrap(successCallback)));
@@ -7318,14 +7262,6 @@ function native__FileReaderSyncWrappingImplementation__readAsText_2(_this, blob,
   }
 }
 
-function native__FileSystemCallbackWrappingImplementation__handleEvent(_this, fileSystem) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(fileSystem)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__FileWriterWrappingImplementation__get_error(_this) {
   try {
     return __dom_wrap(_this.$dom.error);
@@ -7385,14 +7321,6 @@ function native__FileWriterWrappingImplementation__truncate(_this, size) {
 function native__FileWriterWrappingImplementation__write(_this, data) {
   try {
     return __dom_wrap(_this.$dom.write(__dom_unwrap(data)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__FileWriterCallbackWrappingImplementation__handleEvent(_this, fileWriter) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(fileWriter)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17294,14 +17222,6 @@ function native__MetadataWrappingImplementation__get_modificationTime(_this) {
   }
 }
 
-function native__MetadataCallbackWrappingImplementation__handleEvent(_this, metadata) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(metadata)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__MouseEventWrappingImplementation__get_altKey(_this) {
   try {
     return __dom_wrap(_this.$dom.altKey);
@@ -17761,14 +17681,6 @@ function native__NavigatorWrappingImplementation__javaEnabled(_this) {
 function native__NavigatorUserMediaErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__NavigatorUserMediaErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -18694,14 +18606,6 @@ function native__PopStateEventWrappingImplementation__initPopStateEvent(_this, t
   }
 }
 
-function native__PositionCallbackWrappingImplementation__handleEvent(_this, position) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(position)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__PositionErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
@@ -18713,14 +18617,6 @@ function native__PositionErrorWrappingImplementation__get_code(_this) {
 function native__PositionErrorWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__PositionErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -19289,46 +19185,6 @@ function native__SQLResultSetRowListWrappingImplementation__get_length(_this) {
 function native__SQLResultSetRowListWrappingImplementation__item(_this, index) {
   try {
     return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLStatementCallbackWrappingImplementation__handleEvent(_this, transaction, resultSet) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction), __dom_unwrap(resultSet)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLStatementErrorCallbackWrappingImplementation__handleEvent(_this, transaction, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction), __dom_unwrap(error)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLTransactionCallbackWrappingImplementation__handleEvent(_this, transaction) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLTransactionErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLTransactionSyncCallbackWrappingImplementation__handleEvent(_this, transaction) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29414,38 +29270,6 @@ function native__StorageInfoWrappingImplementation__requestQuota_3(_this, storag
   }
 }
 
-function native__StorageInfoErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__StorageInfoQuotaCallbackWrappingImplementation__handleEvent(_this, grantedQuotaInBytes) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(grantedQuotaInBytes)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__StorageInfoUsageCallbackWrappingImplementation__handleEvent(_this, currentUsageInBytes, currentQuotaInBytes) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(currentUsageInBytes), __dom_unwrap(currentQuotaInBytes)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__StringCallbackWrappingImplementation__handleEvent(_this, data) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(data)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__StyleMediaWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
@@ -33648,7 +33472,6 @@ var __dom_type_map = {
   "ArrayBufferView": native__ArrayBufferViewWrappingImplementation_create__ArrayBufferViewWrappingImplementation,
   "Attr": native__AttrWrappingImplementation_create__AttrWrappingImplementation,
   "AudioBuffer": native__AudioBufferWrappingImplementation_create__AudioBufferWrappingImplementation,
-  "AudioBufferCallback": native__AudioBufferCallbackWrappingImplementation_create__AudioBufferCallbackWrappingImplementation,
   "AudioBufferSourceNode": native__AudioBufferSourceNodeWrappingImplementation_create__AudioBufferSourceNodeWrappingImplementation,
   "AudioChannelMerger": native__AudioChannelMergerWrappingImplementation_create__AudioChannelMergerWrappingImplementation,
   "AudioChannelSplitter": native__AudioChannelSplitterWrappingImplementation_create__AudioChannelSplitterWrappingImplementation,
@@ -33719,7 +33542,6 @@ var __dom_type_map = {
   "DataTransferItemList": native__DataTransferItemListWrappingImplementation_create__DataTransferItemListWrappingImplementation,
   "DataView": native__DataViewWrappingImplementation_create__DataViewWrappingImplementation,
   "Database": native__DatabaseWrappingImplementation_create__DatabaseWrappingImplementation,
-  "DatabaseCallback": native__DatabaseCallbackWrappingImplementation_create__DatabaseCallbackWrappingImplementation,
   "DatabaseSync": native__DatabaseSyncWrappingImplementation_create__DatabaseSyncWrappingImplementation,
   "DedicatedWorkerContext": native__DedicatedWorkerContextWrappingImplementation_create__DedicatedWorkerContextWrappingImplementation,
   "DelayNode": native__DelayNodeWrappingImplementation_create__DelayNodeWrappingImplementation,
@@ -33738,20 +33560,16 @@ var __dom_type_map = {
   "ElementTraversal": native__ElementTraversalWrappingImplementation_create__ElementTraversalWrappingImplementation,
   "Entity": native__EntityWrappingImplementation_create__EntityWrappingImplementation,
   "EntityReference": native__EntityReferenceWrappingImplementation_create__EntityReferenceWrappingImplementation,
-  "EntriesCallback": native__EntriesCallbackWrappingImplementation_create__EntriesCallbackWrappingImplementation,
   "Entry": native__EntryWrappingImplementation_create__EntryWrappingImplementation,
   "EntryArray": native__EntryArrayWrappingImplementation_create__EntryArrayWrappingImplementation,
   "EntryArraySync": native__EntryArraySyncWrappingImplementation_create__EntryArraySyncWrappingImplementation,
-  "EntryCallback": native__EntryCallbackWrappingImplementation_create__EntryCallbackWrappingImplementation,
   "EntrySync": native__EntrySyncWrappingImplementation_create__EntrySyncWrappingImplementation,
-  "ErrorCallback": native__ErrorCallbackWrappingImplementation_create__ErrorCallbackWrappingImplementation,
   "ErrorEvent": native__ErrorEventWrappingImplementation_create__ErrorEventWrappingImplementation,
   "Event": native__EventWrappingImplementation_create__EventWrappingImplementation,
   "EventException": native__EventExceptionWrappingImplementation_create__EventExceptionWrappingImplementation,
   "EventSource": native__EventSourceWrappingImplementation_create__EventSourceWrappingImplementation,
   "EventTarget": native__EventTargetWrappingImplementation_create__EventTargetWrappingImplementation,
   "File": native__FileWrappingImplementation_create__FileWrappingImplementation,
-  "FileCallback": native__FileCallbackWrappingImplementation_create__FileCallbackWrappingImplementation,
   "FileEntry": native__FileEntryWrappingImplementation_create__FileEntryWrappingImplementation,
   "FileEntrySync": native__FileEntrySyncWrappingImplementation_create__FileEntrySyncWrappingImplementation,
   "FileError": native__FileErrorWrappingImplementation_create__FileErrorWrappingImplementation,
@@ -33759,9 +33577,7 @@ var __dom_type_map = {
   "FileList": native__FileListWrappingImplementation_create__FileListWrappingImplementation,
   "FileReader": native__FileReaderWrappingImplementation_create__FileReaderWrappingImplementation,
   "FileReaderSync": native__FileReaderSyncWrappingImplementation_create__FileReaderSyncWrappingImplementation,
-  "FileSystemCallback": native__FileSystemCallbackWrappingImplementation_create__FileSystemCallbackWrappingImplementation,
   "FileWriter": native__FileWriterWrappingImplementation_create__FileWriterWrappingImplementation,
-  "FileWriterCallback": native__FileWriterCallbackWrappingImplementation_create__FileWriterCallbackWrappingImplementation,
   "FileWriterSync": native__FileWriterSyncWrappingImplementation_create__FileWriterSyncWrappingImplementation,
   "Float32Array": native__Float32ArrayWrappingImplementation_create__Float32ArrayWrappingImplementation,
   "Float64Array": native__Float64ArrayWrappingImplementation_create__Float64ArrayWrappingImplementation,
@@ -33879,7 +33695,6 @@ var __dom_type_map = {
   "MessageEvent": native__MessageEventWrappingImplementation_create__MessageEventWrappingImplementation,
   "MessagePort": native__MessagePortWrappingImplementation_create__MessagePortWrappingImplementation,
   "Metadata": native__MetadataWrappingImplementation_create__MetadataWrappingImplementation,
-  "MetadataCallback": native__MetadataCallbackWrappingImplementation_create__MetadataCallbackWrappingImplementation,
   "MouseEvent": native__MouseEventWrappingImplementation_create__MouseEventWrappingImplementation,
   "MutationCallback": native__MutationCallbackWrappingImplementation_create__MutationCallbackWrappingImplementation,
   "MutationEvent": native__MutationEventWrappingImplementation_create__MutationEventWrappingImplementation,
@@ -33887,7 +33702,6 @@ var __dom_type_map = {
   "NamedNodeMap": native__NamedNodeMapWrappingImplementation_create__NamedNodeMapWrappingImplementation,
   "Navigator": native__NavigatorWrappingImplementation_create__NavigatorWrappingImplementation,
   "NavigatorUserMediaError": native__NavigatorUserMediaErrorWrappingImplementation_create__NavigatorUserMediaErrorWrappingImplementation,
-  "NavigatorUserMediaErrorCallback": native__NavigatorUserMediaErrorCallbackWrappingImplementation_create__NavigatorUserMediaErrorCallbackWrappingImplementation,
   "NavigatorUserMediaSuccessCallback": native__NavigatorUserMediaSuccessCallbackWrappingImplementation_create__NavigatorUserMediaSuccessCallbackWrappingImplementation,
   "Node": native__NodeWrappingImplementation_create__NodeWrappingImplementation,
   "NodeFilter": native__NodeFilterWrappingImplementation_create__NodeFilterWrappingImplementation,
@@ -33908,9 +33722,7 @@ var __dom_type_map = {
   "PerformanceNavigation": native__PerformanceNavigationWrappingImplementation_create__PerformanceNavigationWrappingImplementation,
   "PerformanceTiming": native__PerformanceTimingWrappingImplementation_create__PerformanceTimingWrappingImplementation,
   "PopStateEvent": native__PopStateEventWrappingImplementation_create__PopStateEventWrappingImplementation,
-  "PositionCallback": native__PositionCallbackWrappingImplementation_create__PositionCallbackWrappingImplementation,
   "PositionError": native__PositionErrorWrappingImplementation_create__PositionErrorWrappingImplementation,
-  "PositionErrorCallback": native__PositionErrorCallbackWrappingImplementation_create__PositionErrorCallbackWrappingImplementation,
   "ProcessingInstruction": native__ProcessingInstructionWrappingImplementation_create__ProcessingInstructionWrappingImplementation,
   "ProgressEvent": native__ProgressEventWrappingImplementation_create__ProgressEventWrappingImplementation,
   "RGBColor": native__RGBColorWrappingImplementation_create__RGBColorWrappingImplementation,
@@ -33922,13 +33734,8 @@ var __dom_type_map = {
   "SQLException": native__SQLExceptionWrappingImplementation_create__SQLExceptionWrappingImplementation,
   "SQLResultSet": native__SQLResultSetWrappingImplementation_create__SQLResultSetWrappingImplementation,
   "SQLResultSetRowList": native__SQLResultSetRowListWrappingImplementation_create__SQLResultSetRowListWrappingImplementation,
-  "SQLStatementCallback": native__SQLStatementCallbackWrappingImplementation_create__SQLStatementCallbackWrappingImplementation,
-  "SQLStatementErrorCallback": native__SQLStatementErrorCallbackWrappingImplementation_create__SQLStatementErrorCallbackWrappingImplementation,
   "SQLTransaction": native__SQLTransactionWrappingImplementation_create__SQLTransactionWrappingImplementation,
-  "SQLTransactionCallback": native__SQLTransactionCallbackWrappingImplementation_create__SQLTransactionCallbackWrappingImplementation,
-  "SQLTransactionErrorCallback": native__SQLTransactionErrorCallbackWrappingImplementation_create__SQLTransactionErrorCallbackWrappingImplementation,
   "SQLTransactionSync": native__SQLTransactionSyncWrappingImplementation_create__SQLTransactionSyncWrappingImplementation,
-  "SQLTransactionSyncCallback": native__SQLTransactionSyncCallbackWrappingImplementation_create__SQLTransactionSyncCallbackWrappingImplementation,
   "SVGAElement": native__SVGAElementWrappingImplementation_create__SVGAElementWrappingImplementation,
   "SVGAltGlyphDefElement": native__SVGAltGlyphDefElementWrappingImplementation_create__SVGAltGlyphDefElementWrappingImplementation,
   "SVGAltGlyphElement": native__SVGAltGlyphElementWrappingImplementation_create__SVGAltGlyphElementWrappingImplementation,
@@ -34092,10 +33899,6 @@ var __dom_type_map = {
   "Storage": native__StorageWrappingImplementation_create__StorageWrappingImplementation,
   "StorageEvent": native__StorageEventWrappingImplementation_create__StorageEventWrappingImplementation,
   "StorageInfo": native__StorageInfoWrappingImplementation_create__StorageInfoWrappingImplementation,
-  "StorageInfoErrorCallback": native__StorageInfoErrorCallbackWrappingImplementation_create__StorageInfoErrorCallbackWrappingImplementation,
-  "StorageInfoQuotaCallback": native__StorageInfoQuotaCallbackWrappingImplementation_create__StorageInfoQuotaCallbackWrappingImplementation,
-  "StorageInfoUsageCallback": native__StorageInfoUsageCallbackWrappingImplementation_create__StorageInfoUsageCallbackWrappingImplementation,
-  "StringCallback": native__StringCallbackWrappingImplementation_create__StringCallbackWrappingImplementation,
   "StyleMedia": native__StyleMediaWrappingImplementation_create__StyleMediaWrappingImplementation,
   "StyleSheet": native__StyleSheetWrappingImplementation_create__StyleSheetWrappingImplementation,
   "StyleSheetList": native__StyleSheetListWrappingImplementation_create__StyleSheetListWrappingImplementation,

@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface SQLTransactionCallback {
-
-  bool handleEvent(SQLTransaction transaction);
-}
+typedef bool SQLTransactionCallback(SQLTransaction transaction);

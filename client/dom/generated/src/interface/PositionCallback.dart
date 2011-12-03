@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface PositionCallback {
-
-  bool handleEvent(Geoposition position);
-}
+typedef bool PositionCallback(Geoposition position);

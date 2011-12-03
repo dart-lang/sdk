@@ -693,7 +693,7 @@ dom_externs.green;                      // attribute RGBColor.green
 dom_externs.group;                      // operation Console.group
 dom_externs.groupCollapsed;             // operation Console.groupCollapsed
 dom_externs.groupEnd;                   // operation Console.groupEnd
-dom_externs.handleEvent;                // operation AudioBufferCallback.handleEvent, operation DatabaseCallback.handleEvent, operation EntriesCallback.handleEvent, operation EntryCallback.handleEvent, operation ErrorCallback.handleEvent, operation FileCallback.handleEvent, operation FileSystemCallback.handleEvent, operation FileWriterCallback.handleEvent, operation MetadataCallback.handleEvent, operation NavigatorUserMediaErrorCallback.handleEvent, operation PositionCallback.handleEvent, operation PositionErrorCallback.handleEvent, operation SQLStatementCallback.handleEvent, operation SQLStatementErrorCallback.handleEvent, operation SQLTransactionCallback.handleEvent, operation SQLTransactionErrorCallback.handleEvent, operation SQLTransactionSyncCallback.handleEvent, operation StorageInfoErrorCallback.handleEvent, operation StorageInfoQuotaCallback.handleEvent, operation StorageInfoUsageCallback.handleEvent, operation StringCallback.handleEvent, operation VoidCallback.handleEvent
+dom_externs.handleEvent;                // operation VoidCallback.handleEvent
 dom_externs.hasAttribute;               // operation Element.hasAttribute
 dom_externs.hasAttributeNS;             // operation Element.hasAttributeNS
 dom_externs.hasAttributes;              // operation Node.hasAttributes

@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface NavigatorUserMediaErrorCallback {
-
-  bool handleEvent(NavigatorUserMediaError error);
-}
+typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);

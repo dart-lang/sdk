@@ -358,6 +358,7 @@ class DartGenerator(object):
     self._emitters = multiemitter.MultiEmitter()
     self._database = database
     self._output_dir = output_dir
+    self._dart_callback_file_paths = []
 
     self._StartGenerateInterfaceLibrary()
     self._StartGenerateJavaScriptMonkeyImpl(database, output_dir)
@@ -391,8 +392,15 @@ class DartGenerator(object):
             interface_name, auxiliary_file))
         continue
 
-      self._ProcessInterface(interface, super_interface,
-                             source_filter, common_prefix)
+
+      info = self._RecognizeCallback(interface)
+      if info:
+        self._ProcessCallback(interface, info)
+      else:
+        if 'Callback' in interface.ext_attrs:
+          _logger.info('Malformed callback: %s' % interface.id)
+        self._ProcessInterface(interface, super_interface,
+                               source_filter, common_prefix)
       processed_interfaces.append(interface)
 
     self._GenerateBrowserAnalysis(processed_interfaces, output_dir)
@@ -403,13 +411,15 @@ class DartGenerator(object):
       # New version: Monkey-patching interface library.
       self.GenerateLibFile('template_monkey_dom.darttemplate',
                            os.path.join(lib_dir, 'monkey_dom.dart'),
-                           self._dart_interface_file_paths)
+                           self._dart_interface_file_paths +
+                           self._dart_callback_file_paths)
 
       # New version: Wrapping implementation combined interface and
       # implementation library.
       self.GenerateLibFile('template_wrapping_dom.darttemplate',
                            os.path.join(lib_dir, 'wrapping_dom.dart'),
                            (self._dart_interface_file_paths +
+                            self._dart_callback_file_paths +
                             # FIXME: Move the implementation to a separate
                             # library.
                             self._dart_wrapping_file_paths))
@@ -417,12 +427,39 @@ class DartGenerator(object):
       # New version: Frog
       self.GenerateLibFile('template_frog_dom.darttemplate',
                            os.path.join(lib_dir, 'frog_dom.dart'),
-                           self._dart_frog_file_paths)
+                           self._dart_frog_file_paths +
+                           self._dart_callback_file_paths)
 
 
     # JavaScript externs files
     self._GenerateJavaScriptExternsMonkey(database, output_dir)
     self._GenerateJavaScriptExternsWrapping(database, output_dir)
+
+
+  def _RecognizeCallback(self, interface):
+    """Returns the info for the callback method if the interface smells like a
+    callback.
+    """
+    if 'Callback' not in interface.ext_attrs: return None
+    handlers = [op for op in interface.operations if op.id == 'handleEvent']
+    if not handlers: return None
+    if not (handlers == interface.operations): return None
+    return self._AnalyzeOperation(interface, handlers)
+
+  def _ProcessCallback(self, interface, info):
+    """Generates a typedef for the callback interface."""
+    interface_name = interface.id
+    file_path = self.FilePathForDartInterface(interface_name)
+    self._dart_callback_file_paths.append(file_path)
+    code = self._emitters.FileEmitter(file_path)
+
+    template_file = 'template_callback.darttemplate'
+    code.Emit(''.join(open(template_file).readlines()))
+    code.Emit('typedef $TYPE $NAME($ARGS);\n',
+              NAME=interface.id,
+              TYPE=info.type_name,
+              ARGS=info.arg_implementation_declaration)
+
 
 
   def _ProcessInterface(self, interface, super_interface_name,
@@ -806,7 +843,7 @@ class DartGenerator(object):
     dart_code.Emit(
         ''.join(open('template_frog_impl.darttemplate').readlines()))
     return FrogInterfaceGenerator(interface, super_interface_name,
-                                    dart_code)
+                                  dart_code)
 
 
   def _StartGenerateJavaScriptMonkeyImpl(self, database, output_dir):

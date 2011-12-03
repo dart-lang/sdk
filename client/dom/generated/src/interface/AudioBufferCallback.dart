@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface AudioBufferCallback {
-
-  bool handleEvent(AudioBuffer audioBuffer);
-}
+typedef bool AudioBufferCallback(AudioBuffer audioBuffer);

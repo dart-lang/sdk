@@ -114,12 +114,6 @@ function DOM$fixClass$AudioBuffer(c) {
   DOM$fixMembers(c, ['getChannelData']);
   c.$implements$AudioBuffer$Dart = 1;
 }
-function DOM$fixClass$AudioBufferCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$AudioBufferCallback$Dart = 1;
-}
 function DOM$fixClass$AudioBufferSourceNode(c) {
   if (c.prototype) {
     c.prototype.buffer$getter = function() { return DOM$EnsureDartNull(this.buffer); };
@@ -1085,12 +1079,6 @@ function DOM$fixClass$Database(c) {
     'transaction']);
   c.$implements$Database$Dart = 1;
 }
-function DOM$fixClass$DatabaseCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$DatabaseCallback$Dart = 1;
-}
 function DOM$fixClass$DatabaseSync(c) {
   if (c.prototype) {
     c.prototype.version$getter = function() { return DOM$EnsureDartNull(this.version); };
@@ -1383,12 +1371,6 @@ function DOM$fixClass$EntityReference(c) {
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
 }
-function DOM$fixClass$EntriesCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$EntriesCallback$Dart = 1;
-}
 function DOM$fixClass$Entry(c) {
   if (c.prototype) {
     c.prototype.filesystem$getter = function() { return DOM$EnsureDartNull(this.filesystem); };
@@ -1420,12 +1402,6 @@ function DOM$fixClass$EntryArraySync(c) {
   DOM$fixMembers(c, ['item']);
   c.$implements$EntryArraySync$Dart = 1;
 }
-function DOM$fixClass$EntryCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$EntryCallback$Dart = 1;
-}
 function DOM$fixClass$EntrySync(c) {
   if (c.prototype) {
     c.prototype.filesystem$getter = function() { return DOM$EnsureDartNull(this.filesystem); };
@@ -1442,12 +1418,6 @@ function DOM$fixClass$EntrySync(c) {
     'remove',
     'toURL']);
   c.$implements$EntrySync$Dart = 1;
-}
-function DOM$fixClass$ErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$ErrorCallback$Dart = 1;
 }
 function DOM$fixClass$ErrorEvent(c) {
   if (c.prototype) {
@@ -1524,12 +1494,6 @@ function DOM$fixClass$File(c) {
   c.$implements$File$Dart = 1;
   c.$implements$Blob$Dart = 1;
 }
-function DOM$fixClass$FileCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$FileCallback$Dart = 1;
-}
 function DOM$fixClass$FileEntry(c) {
   if (c.prototype) {
   }
@@ -1594,12 +1558,6 @@ function DOM$fixClass$FileReaderSync(c) {
     'readAsText']);
   c.$implements$FileReaderSync$Dart = 1;
 }
-function DOM$fixClass$FileSystemCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$FileSystemCallback$Dart = 1;
-}
 function DOM$fixClass$FileWriter(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
@@ -1613,12 +1571,6 @@ function DOM$fixClass$FileWriter(c) {
     'truncate',
     'write']);
   c.$implements$FileWriter$Dart = 1;
-}
-function DOM$fixClass$FileWriterCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$FileWriterCallback$Dart = 1;
 }
 function DOM$fixClass$FileWriterSync(c) {
   if (c.prototype) {
@@ -3917,12 +3869,6 @@ function DOM$fixClass$Metadata(c) {
   }
   c.$implements$Metadata$Dart = 1;
 }
-function DOM$fixClass$MetadataCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$MetadataCallback$Dart = 1;
-}
 function DOM$fixClass$MouseEvent(c) {
   if (c.prototype) {
     c.prototype.altKey$getter = function() { return DOM$EnsureDartNull(this.altKey); };
@@ -4022,12 +3968,6 @@ function DOM$fixClass$NavigatorUserMediaError(c) {
     c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
   }
   c.$implements$NavigatorUserMediaError$Dart = 1;
-}
-function DOM$fixClass$NavigatorUserMediaErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$NavigatorUserMediaErrorCallback$Dart = 1;
 }
 function DOM$fixClass$NavigatorUserMediaSuccessCallback(c) {
   if (c.prototype) {
@@ -4294,24 +4234,12 @@ function DOM$fixClass$PopStateEvent(c) {
   c.$implements$PopStateEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
-function DOM$fixClass$PositionCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$PositionCallback$Dart = 1;
-}
 function DOM$fixClass$PositionError(c) {
   if (c.prototype) {
     c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
   }
   c.$implements$PositionError$Dart = 1;
-}
-function DOM$fixClass$PositionErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$PositionErrorCallback$Dart = 1;
 }
 function DOM$fixClass$ProcessingInstruction(c) {
   if (c.prototype) {
@@ -4445,45 +4373,15 @@ function DOM$fixClass$SQLResultSetRowList(c) {
   DOM$fixMembers(c, ['item']);
   c.$implements$SQLResultSetRowList$Dart = 1;
 }
-function DOM$fixClass$SQLStatementCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLStatementCallback$Dart = 1;
-}
-function DOM$fixClass$SQLStatementErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLStatementErrorCallback$Dart = 1;
-}
 function DOM$fixClass$SQLTransaction(c) {
   if (c.prototype) {
   }
   c.$implements$SQLTransaction$Dart = 1;
 }
-function DOM$fixClass$SQLTransactionCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLTransactionCallback$Dart = 1;
-}
-function DOM$fixClass$SQLTransactionErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLTransactionErrorCallback$Dart = 1;
-}
 function DOM$fixClass$SQLTransactionSync(c) {
   if (c.prototype) {
   }
   c.$implements$SQLTransactionSync$Dart = 1;
-}
-function DOM$fixClass$SQLTransactionSyncCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLTransactionSyncCallback$Dart = 1;
 }
 function DOM$fixClass$SVGAElement(c) {
   if (c.prototype) {
@@ -7407,30 +7305,6 @@ function DOM$fixClass$StorageInfo(c) {
     'requestQuota']);
   c.$implements$StorageInfo$Dart = 1;
 }
-function DOM$fixClass$StorageInfoErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StorageInfoErrorCallback$Dart = 1;
-}
-function DOM$fixClass$StorageInfoQuotaCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StorageInfoQuotaCallback$Dart = 1;
-}
-function DOM$fixClass$StorageInfoUsageCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StorageInfoUsageCallback$Dart = 1;
-}
-function DOM$fixClass$StringCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StringCallback$Dart = 1;
-}
 function DOM$fixClass$StyleMedia(c) {
   if (c.prototype) {
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
@@ -8384,10 +8258,6 @@ var _;
     w.AudioBuffer$Dart = _;
     DOM$fixClass$AudioBuffer(_);
   }
-  if ((_ = w.AudioBufferCallback)) {
-    w.AudioBufferCallback$Dart = _;
-    DOM$fixClass$AudioBufferCallback(_);
-  }
   if ((_ = w.AudioBufferSourceNode)) {
     w.AudioBufferSourceNode$Dart = _;
     DOM$fixClass$AudioBufferSourceNode(_);
@@ -8686,10 +8556,6 @@ var _;
     w.Database$Dart = _;
     DOM$fixClass$Database(_);
   }
-  if ((_ = w.DatabaseCallback)) {
-    w.DatabaseCallback$Dart = _;
-    DOM$fixClass$DatabaseCallback(_);
-  }
   if ((_ = w.DatabaseSync)) {
     w.DatabaseSync$Dart = _;
     DOM$fixClass$DatabaseSync(_);
@@ -8768,10 +8634,6 @@ var _;
     w.EntityReference$Dart = _;
     DOM$fixClass$EntityReference(_);
   }
-  if ((_ = w.EntriesCallback)) {
-    w.EntriesCallback$Dart = _;
-    DOM$fixClass$EntriesCallback(_);
-  }
   if ((_ = w.Entry)) {
     w.Entry$Dart = _;
     DOM$fixClass$Entry(_);
@@ -8784,17 +8646,9 @@ var _;
     w.EntryArraySync$Dart = _;
     DOM$fixClass$EntryArraySync(_);
   }
-  if ((_ = w.EntryCallback)) {
-    w.EntryCallback$Dart = _;
-    DOM$fixClass$EntryCallback(_);
-  }
   if ((_ = w.EntrySync)) {
     w.EntrySync$Dart = _;
     DOM$fixClass$EntrySync(_);
-  }
-  if ((_ = w.ErrorCallback)) {
-    w.ErrorCallback$Dart = _;
-    DOM$fixClass$ErrorCallback(_);
   }
   if ((_ = w.ErrorEvent)) {
     w.ErrorEvent$Dart = _;
@@ -8822,10 +8676,6 @@ var _;
   if ((_ = w.File)) {
     w.File$Dart = _;
     DOM$fixClass$File(_);
-  }
-  if ((_ = w.FileCallback)) {
-    w.FileCallback$Dart = _;
-    DOM$fixClass$FileCallback(_);
   }
   if ((_ = w.FileEntry)) {
     w.FileEntry$Dart = _;
@@ -8855,17 +8705,9 @@ var _;
     w.FileReaderSync$Dart = _;
     DOM$fixClass$FileReaderSync(_);
   }
-  if ((_ = w.FileSystemCallback)) {
-    w.FileSystemCallback$Dart = _;
-    DOM$fixClass$FileSystemCallback(_);
-  }
   if ((_ = w.FileWriter)) {
     w.FileWriter$Dart = _;
     DOM$fixClass$FileWriter(_);
-  }
-  if ((_ = w.FileWriterCallback)) {
-    w.FileWriterCallback$Dart = _;
-    DOM$fixClass$FileWriterCallback(_);
   }
   if ((_ = w.FileWriterSync)) {
     w.FileWriterSync$Dart = _;
@@ -9341,10 +9183,6 @@ var _;
     w.Metadata$Dart = _;
     DOM$fixClass$Metadata(_);
   }
-  if ((_ = w.MetadataCallback)) {
-    w.MetadataCallback$Dart = _;
-    DOM$fixClass$MetadataCallback(_);
-  }
   if ((_ = w.MouseEvent)) {
     w.MouseEvent$Dart = _;
     DOM$fixClass$MouseEvent(_);
@@ -9375,10 +9213,6 @@ var _;
   if ((_ = w.NavigatorUserMediaError)) {
     w.NavigatorUserMediaError$Dart = _;
     DOM$fixClass$NavigatorUserMediaError(_);
-  }
-  if ((_ = w.NavigatorUserMediaErrorCallback)) {
-    w.NavigatorUserMediaErrorCallback$Dart = _;
-    DOM$fixClass$NavigatorUserMediaErrorCallback(_);
   }
   if ((_ = w.NavigatorUserMediaSuccessCallback)) {
     w.NavigatorUserMediaSuccessCallback$Dart = _;
@@ -9472,17 +9306,9 @@ var _;
     w.PopStateEvent$Dart = _;
     DOM$fixClass$PopStateEvent(_);
   }
-  if ((_ = w.PositionCallback)) {
-    w.PositionCallback$Dart = _;
-    DOM$fixClass$PositionCallback(_);
-  }
   if ((_ = w.PositionError)) {
     w.PositionError$Dart = _;
     DOM$fixClass$PositionError(_);
-  }
-  if ((_ = w.PositionErrorCallback)) {
-    w.PositionErrorCallback$Dart = _;
-    DOM$fixClass$PositionErrorCallback(_);
   }
   if ((_ = w.ProcessingInstruction)) {
     w.ProcessingInstruction$Dart = _;
@@ -9528,33 +9354,13 @@ var _;
     w.SQLResultSetRowList$Dart = _;
     DOM$fixClass$SQLResultSetRowList(_);
   }
-  if ((_ = w.SQLStatementCallback)) {
-    w.SQLStatementCallback$Dart = _;
-    DOM$fixClass$SQLStatementCallback(_);
-  }
-  if ((_ = w.SQLStatementErrorCallback)) {
-    w.SQLStatementErrorCallback$Dart = _;
-    DOM$fixClass$SQLStatementErrorCallback(_);
-  }
   if ((_ = w.SQLTransaction)) {
     w.SQLTransaction$Dart = _;
     DOM$fixClass$SQLTransaction(_);
   }
-  if ((_ = w.SQLTransactionCallback)) {
-    w.SQLTransactionCallback$Dart = _;
-    DOM$fixClass$SQLTransactionCallback(_);
-  }
-  if ((_ = w.SQLTransactionErrorCallback)) {
-    w.SQLTransactionErrorCallback$Dart = _;
-    DOM$fixClass$SQLTransactionErrorCallback(_);
-  }
   if ((_ = w.SQLTransactionSync)) {
     w.SQLTransactionSync$Dart = _;
     DOM$fixClass$SQLTransactionSync(_);
-  }
-  if ((_ = w.SQLTransactionSyncCallback)) {
-    w.SQLTransactionSyncCallback$Dart = _;
-    DOM$fixClass$SQLTransactionSyncCallback(_);
   }
   if ((_ = w.SVGAElement)) {
     w.SVGAElement$Dart = _;
@@ -10213,22 +10019,6 @@ var _;
   if ((_ = w.StorageInfo)) {
     w.StorageInfo$Dart = _;
     DOM$fixClass$StorageInfo(_);
-  }
-  if ((_ = w.StorageInfoErrorCallback)) {
-    w.StorageInfoErrorCallback$Dart = _;
-    DOM$fixClass$StorageInfoErrorCallback(_);
-  }
-  if ((_ = w.StorageInfoQuotaCallback)) {
-    w.StorageInfoQuotaCallback$Dart = _;
-    DOM$fixClass$StorageInfoQuotaCallback(_);
-  }
-  if ((_ = w.StorageInfoUsageCallback)) {
-    w.StorageInfoUsageCallback$Dart = _;
-    DOM$fixClass$StorageInfoUsageCallback(_);
-  }
-  if ((_ = w.StringCallback)) {
-    w.StringCallback$Dart = _;
-    DOM$fixClass$StringCallback(_);
   }
   if (!w.StyleMedia && (_ = w.styleMedia) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.StyleMedia = _;

@@ -4,4 +4,3 @@
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileWriterCallback(FileWriter fileWriter);
