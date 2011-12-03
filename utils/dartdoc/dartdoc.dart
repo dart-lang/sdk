@@ -305,7 +305,7 @@ docLibrary(Library library) {
         <div class="type">
         <h4>
           ${type.isClass ? "class" : "interface"}
-          ${a(typeUrl(type), "<strong>${type.name}</strong>")}
+          ${a(typeUrl(type), "<strong>${typeName(type)}</strong>")}
         </h4>
         </div>
         ''');
@@ -325,14 +325,14 @@ docType(Type type) {
 
   startFile(typeUrl(type));
 
-  final typeName = '${type.isClass ? "Class" : "Interface"} ${type.name}';
-  writeHeader('Library ${type.library.name} / $typeName');
+  final typeTitle = '${type.isClass ? "Class" : "Interface"} ${typeName(type)}';
+  writeHeader('Library ${type.library.name} / $typeTitle');
   writeln(
       '''
       <h1>${a(libraryUrl(type.library),
             "Library <strong>${type.library.name}</strong>")}</h1>
       <h2>${type.isClass ? "Class" : "Interface"}
-          <strong>${type.name}</strong></h2>
+          <strong>${typeName(type)}</strong></h2>
       ''');
 
   docInheritance(type);
@@ -373,12 +373,21 @@ void docMembers(Type type) {
   }
 }
 
-/** Document the superclass and superinterfaces of [Type]. */
+/** Document the superclass, superinterfaces and factory of [Type]. */
 docInheritance(Type type) {
-  // Show the superclass and superinterface(s).
   final isSubclass = (type.parent != null) && !type.parent.isObject;
 
-  if (isSubclass || (type.interfaces != null && type.interfaces.length > 0)) {
+  Type factory;
+  if (type.definition is TypeDefinition) {
+    TypeDefinition definition = type.definition;
+    if (definition.factoryType != null) {
+      factory = definition.factoryType.type;
+    }
+  }
+
+  if (isSubclass ||
+      (type.interfaces != null && type.interfaces.length > 0) ||
+      (factory != null)) {
     writeln('<p>');
 
     if (isSubclass) {
@@ -392,12 +401,12 @@ docInheritance(Type type) {
           break;
 
         case 1:
-          write('Implements ${typeReference(type.interfaces[0])}.');
+          write('Implements ${typeReference(type.interfaces[0])}. ');
           break;
 
         case 2:
           write('''Implements ${typeReference(type.interfaces[0])} and
-              ${typeReference(type.interfaces[1])}.''');
+              ${typeReference(type.interfaces[1])}. ''');
           break;
 
         default:
@@ -410,9 +419,13 @@ docInheritance(Type type) {
               write(', and ');
             }
           }
-          write('.');
+          write('. ');
           break;
       }
+    }
+
+    if (factory != null) {
+      write('Has factory class ${typeReference(factory)}.');
     }
   }
 }
@@ -487,7 +500,7 @@ docMethod(Type type, MethodMember method, [String constructorName = null]) {
   write(')');
 
   write(''' <a class="anchor-link" href="#${memberAnchor(method)}"
-            title="Permalink to ${type.name}.$name">#</a>''');
+            title="Permalink to ${typeName(type)}.$name">#</a>''');
   writeln('</h4>');
 
   docCode(method.span, showCode: true);
@@ -521,7 +534,7 @@ docField(Type type, FieldMember field) {
       '''
       <strong>${field.name}</strong> <a class="anchor-link"
           href="#${memberAnchor(field)}"
-          title="Permalink to ${type.name}.${field.name}">#</a>
+          title="Permalink to ${typeName(type)}.${field.name}">#</a>
       </h4>
       ''');
 

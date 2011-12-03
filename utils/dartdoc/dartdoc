@@ -15,7 +15,7 @@ pushd `dirname "$0"` >>/dev/null
 # if it's out of date.
 if [ "interact.dart" -nt "static/interact.js" ]
   then
-  ../../frog/frogsh --libdir=../../frog/lib \
+  ../../frog/minfrog --libdir=../../frog/lib \
     --out=static/interact.js --compile-only interact.dart
   echo "Compiled interact.dart."
 fi
@@ -24,6 +24,6 @@ fi
 shift
 
 # Generate the user's docs.
-../../frog/frogsh --libdir=../../frog/lib dartdoc.dart "$entrypoint" $@
+../../frog/minfrog --libdir=../../frog/lib dartdoc.dart "$entrypoint" $@
 
 popd >>/dev/null
