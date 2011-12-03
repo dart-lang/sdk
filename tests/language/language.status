@@ -308,11 +308,11 @@ SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
-TypeVariableBoundsTest/none: Fail # Issue 417
-TypeVariableBoundsTest/00: Fail # Issue 417
-TypeVariableBoundsTest/03: Fail # Issue 417
-TypeVariableBoundsTest/04: Fail # Issue 417
-TypeVariableScopeTest/00: Fail # These negative tests were passing incorrectly
+TypeVariableBoundsTest/01: Fail # these tests would work if the type was constructed
+TypeVariableBoundsTest/02: Fail
+TypeVariableBoundsTest/05: Fail
+TypeVariableBoundsTest/06: Fail
+TypeVariableScopeTest/00: Fail
 TypeVariableScopeTest/02: Fail
 TypeVariableScopeTest/03: Fail
 TypeVariableScopeTest/04: Fail
