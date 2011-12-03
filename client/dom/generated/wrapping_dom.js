@@ -1438,9 +1438,17 @@ function native__CanvasPixelArrayWrappingImplementation__get_length(_this) {
   }
 }
 
-function native__CanvasPixelArrayWrappingImplementation__item(_this, index) {
+function native__CanvasPixelArrayWrappingImplementation__index(_this, index) {
   try {
-    return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasPixelArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -8689,6 +8697,14 @@ function native__HTMLCanvasElementWrappingImplementation__toDataURL(_this, type)
 function native__HTMLCollectionWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLCollectionWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16966,6 +16982,14 @@ function native__MediaListWrappingImplementation__set_mediaText(_this, value) {
   }
 }
 
+function native__MediaListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__MediaListWrappingImplementation__appendMedium(_this, newMedium) {
   try {
     return __dom_wrap(_this.$dom.appendMedium(__dom_unwrap(newMedium)));
@@ -17489,6 +17513,14 @@ function native__MutationRecordWrappingImplementation__get_type(_this) {
 function native__NamedNodeMapWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NamedNodeMapWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -18097,6 +18129,14 @@ function native__NodeIteratorWrappingImplementation__previousNode(_this) {
 function native__NodeListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NodeListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29358,6 +29398,14 @@ function native__StyleSheetListWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__StyleSheetListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__StyleSheetListWrappingImplementation__item(_this, index) {
   try {
     return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
@@ -29809,6 +29857,14 @@ function native__TouchEventWrappingImplementation__initTouchEvent(_this, touches
 function native__TouchListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TouchListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

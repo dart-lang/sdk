@@ -474,7 +474,6 @@ function DOM$fixClass$CanvasPixelArray(c) {
     c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
     c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
-  DOM$fixMembers(c, ['item']);
   c.$implements$CanvasPixelArray$Dart = 1;
 }
 function DOM$fixClassOnDemand$CanvasPixelArray(c) {

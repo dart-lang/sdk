@@ -14,9 +14,8 @@ class _TouchListWrappingImplementation extends DOMWrapperBase implements TouchLi
   int get length() { return _get_length(this); }
   static int _get_length(var _this) native;
 
-  Touch operator[](int index) {
-    return item(index);
-  }
+  Touch operator[](int index) { return _index(this, index); }
+  static Touch _index(var _this, int index) native;
 
   void operator[]=(int index, Touch value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");

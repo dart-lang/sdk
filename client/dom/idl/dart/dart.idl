@@ -111,10 +111,6 @@ module html {
 
 
 module canvas {
-  interface CanvasPixelArray {
-    int item(in int index);
-  };
-
   // TODO(dstockwell): Define these manually.
   [Supplemental]
   interface Float32Array {

@@ -461,7 +461,6 @@ class DartGenerator(object):
               ARGS=info.arg_implementation_declaration)
 
 
-
   def _ProcessInterface(self, interface, super_interface_name,
                         source_filter,
                         common_prefix):
@@ -1462,15 +1461,61 @@ class WrappingInterfaceGenerator(object):
     #
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
+    if ('HasIndexGetter' in self._interface.ext_attrs or
+        'HasNumericIndexGetter' in self._interface.ext_attrs):
+      method_name = '_index'
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) { return $METHOD(this, index); }\n'
+          '  static $TYPE $METHOD(var _this, int index) native;\n',
+          TYPE=element_type, METHOD=method_name)
+      self._js_code.Emit(
+          '\n'
+          'function native_$(CLASS)_$(METHOD)(_this, index) {\n'
+          '  try {\n'
+          '    return __dom_wrap(_this.$dom[index]);\n'
+          '  } catch (e) {\n'
+          '    throw __dom_wrap_exception(e);\n'
+          '  }\n'
+          '}\n',
+          CLASS=self._class_name, METHOD=method_name)
+    else:
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) {\n'
+          '    return item(index);\n'
+          '  }\n',
+          TYPE=element_type)
+
+
+    if 'HasCustomIndexSetter' in self._interface.ext_attrs:
+      method_name = '_set_index'
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    return $METHOD(this, index, value);\n'
+          '  }\n'
+          '  static $METHOD(_this, index, value) native;\n',
+          TYPE=element_type, METHOD=method_name)
+      self._js_code.Emit(
+          '\n'
+          'function native_$(CLASS)_$(METHOD)(_this, index, value) {\n'
+          '  try {\n'
+          '    return _this.$dom[index] = __dom_unwrap(value);\n'
+          '  } catch (e) {\n'
+          '    throw __dom_wrap_exception(e);\n'
+          '  }\n'
+          '}\n',
+          CLASS=self._class_name, METHOD=method_name)
+    else:
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=element_type)
+
     self._members_emitter.Emit(
-        '\n'
-        '  $TYPE operator[](int index) {\n'
-        '    return item(index);\n'
-        '  }\n'
-        '\n'
-        '  void operator[]=(int index, $TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-        '  }\n'
         '\n'
         '  void add($TYPE value) {\n'
         '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
