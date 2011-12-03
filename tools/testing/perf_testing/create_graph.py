@@ -6,8 +6,13 @@
 
 import datetime
 import math
-from matplotlib.font_manager import FontProperties
-import matplotlib.pyplot as plt
+try:
+  from matplotlib.font_manager import FontProperties
+  import matplotlib.pyplot as plt
+except ImportError:
+  print 'Warning: no matplotlib. ' + \
+      'Please ignore if you are running buildbot smoketests.'
+import optparse
 import os
 import platform
 import shutil
@@ -34,20 +39,36 @@ BENCHMARKS = ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody',
     'Tak', 'Takl', 'Towers', 'TreeSort']
 COLORS = ['blue', 'green', 'red', 'cyan', 'magenta', 'black']
 GRAPH_OUT_DIR = 'graphs'
+SLEEP_TIME = 200
+PERFBOT_MODE = False
+VERBOSE = False
 
 """First, some utility methods."""
 
-def RunCmd(string):
+def RunCmd(cmd_list, outfile=None, append=False):
   """Run the specified command and print out any output to stdout.
   Args:
-    string the command to run"""
-  p = subprocess.Popen(string, stdout = subprocess.PIPE, 
-      stderr = subprocess.STDOUT, close_fds=True)
+    cmd_list a list of strings that make up the command to run
+    outfile a string indicating the name of the file that we should write stdout
+       to 
+    append True if we want to append to the file instead of overwriting it"""
+  if VERBOSE:
+    print ' '.join(cmd_list)
+  out = subprocess.PIPE
+  if outfile:
+    mode = 'w'
+    if append:
+      mode = 'a'
+    out = open(outfile, mode)
+  p = subprocess.Popen(cmd_list, stdout = out, 
+      stderr = subprocess.PIPE, close_fds=True)
   output, not_used = p.communicate();
-  print output:
-  return lines
+  if output:
+    print output
+  return output
 
-def TimeCmd(self, cmd):
+def TimeCmd(cmd):
+  """Determine the amount of (real) time it takes to execute a given command."""
   start = time.time()
   RunCmd(cmd)
   return time.time() - start
@@ -57,21 +78,21 @@ def SyncAndBuild(failed_once=False):
   begin and end standing in DART_INSTALL_LOCATION.
   Args:
     failed_once True if we have attempted to build this once before, and we've
-    failed, indicating ."""
+      failed, indicating the build is broken."""
   os.chdir(DART_INSTALL_LOCATION)
   #Revert our newly built frogsh to prevent conflicts when we update
-  RunCmd('svn revert ' + os.path.join(os.getcwd(), 'frog', 'frogsh'))
+  RunCmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'frogsh')])
 
-  RunCmd('gclient sync')
-  lines = RunCmd('%s -m release' % os.path.join('.', 'tools', 'build.py'))
+  RunCmd(['gclient', 'sync'])
+  lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release'])
   os.chdir('frog')
-  lines += RunCmd('%s -m debug,release' % os.path.join('..', 'tools', 
-      'build.py'))
+  lines += RunCmd([os.path.join('..', 'tools', 'build.py'), '-m', 
+      'debug,release'])
   os.chdir('..')
   
   for line in lines:
-    if '** BUILD FAILED **' in lines:
-      if TestRunner.failed_once:
+    if 'BUILD FAILED' in lines:
+      if failed_once:
         # Someone checked in a broken build! Just stop trying to make it work
         # and wait for the next hour to try again.
         print 'Broken Build'
@@ -81,17 +102,18 @@ def SyncAndBuild(failed_once=False):
       out_dir = 'out'
       if platform.system() == 'Darwin':
         out_dir = 'xcodebuild'
-      os.removedirs(os.getcwd() + os.path.join('dart', out_dir, 'Release_ia32'))
-      os.removedirs(os.getcwd() + os.path.join('dart', 'frog', out_dir, 
-          'Release_ia32'))
-      os.removedirs(os.getcwd() + os.path.join('dart', 'frog', out_dir, 
+      shutil.rmtree(os.path.join(os.getcwd(), out_dir, 'Release_ia32'))
+      shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
           'Debug_ia32'))
-      TestRunner.failed_once = True
-      SyncAndBuild()
+      shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
+          'Release_ia32'))
+      SyncAndBuild(True)
 
 def EnsureOutputDirectory(dir_name):
   """Test that the listed directory name exists, and if not, create one for
-  our output to be placed."""
+  our output to be placed.
+  Args:
+    dir_name the directory we will create if it does not exist."""
   dir_path = os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
       'perf_testing', dir_name)
   if not os.path.exists(dir_path):
@@ -101,17 +123,26 @@ def EnsureOutputDirectory(dir_name):
 def HasNewCode():
   """Tests if there are any newer versions of files on the server."""
   os.chdir(DART_INSTALL_LOCATION)    
-  results = RunCmd('svn st -u')
+  results = RunCmd(['svn', 'st', '-u'])
   for line in results:
     if '*' in line:
       return True
   return False
 
 def GetBrowsers():
+  if not PERFBOT_MODE:
+    # Only Firefox (and Chrome, but we have Dump Render Tree) works in Linux
+    return ['ff']
   browsers = ['ff', 'chrome']
   if platform.system() == 'Windows':
     browsers += ['ie']
   return browsers
+
+def GetVersions():
+  if not PERFBOT_MODE:
+    return [FROG]
+  else:
+    return V8_AND_FROG
 
 class TestRunner(object):
   """The base clas to provide shared code for different tests we will run and
@@ -198,12 +229,12 @@ class TestRunner(object):
 
   def AddSvnRevisionToTrace(self, outfile):
     """Add the svn version number to the provided tracefile."""
-    p = subprocess.Popen('svn info ', stdout = subprocess.PIPE, 
+    p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE, 
       stderr = subprocess.STDOUT, close_fds=True)
     output, not_used = p.communicate()
     for line in output.split('\n'):
       if 'Revision' in line:
-        RunCmd('echo "%s" > %s' % (line.strip(), outfile))
+        RunCmd(['echo', line.strip()], outfile)
 
   def WriteHtml(self, delimiter, rev_nums, label_1, dict_1, label_2, dict_2, 
       cleanFile=False):
@@ -254,6 +285,9 @@ class TestRunner(object):
         [math.pow(math.e, geo_mean / len(BENCHMARKS))]
     self.revision_dict[platform][frog_or_v8][mean] += [svn_revision]
 
+  def Cleanup(self):
+      pass
+
   def Run(self):
     """Run the benchmarks/tests from the command line and plot the 
     results."""
@@ -268,16 +302,19 @@ class TestRunner(object):
     # eventually.
     files = os.listdir(self.result_folder_name)
 
-    for afile in files:
-      if not afile.startswith('.'):
-        self.ProcessFile(afile)
-    self.PlotResults('%s.png' % self.result_folder_name)
+    if PERFBOT_MODE:
+      for afile in files:
+        if not afile.startswith('.'):
+          self.ProcessFile(afile)
+
+      self.PlotResults('%s.png' % self.result_folder_name)
+    self.Cleanup();
 
 class PerformanceTestRunner(TestRunner):
   """Super class for all performance testing."""
   def __init__(self, result_folder_name, platform_list, platform_type):
     super(PerformanceTestRunner, self).__init__(result_folder_name, 
-        platform_list, V8_AND_FROG, BENCHMARKS)
+        platform_list, GetVersions(), BENCHMARKS)
     self.platform_list = platform_list
     self.platform_type = platform_type
 
@@ -288,7 +325,7 @@ class PerformanceTestRunner(TestRunner):
       self.StyleAndSavePerfPlot(
           'Performance of %s over time on the %s' % (benchmark,
           self.platform_type), 'Speed (bigger = better)', 16, 14, 'lower left', 
-          benchmark + png_filename, self.platform_list, V8_AND_FROG, 
+          benchmark + png_filename, self.platform_list, GetVersions(), 
           [benchmark])
 
   def PlotAvgPerf(self, png_filename):
@@ -312,6 +349,7 @@ class PerformanceTestRunner(TestRunner):
     self.PlotAllPerf(png_filename)
     self.PlotAvgPerf('2' + png_filename)
 
+  
 class CommandLinePerformanceTestRunner(PerformanceTestRunner):
   """Run performance tests from the command line."""
 
@@ -356,10 +394,10 @@ class CommandLinePerformanceTestRunner(PerformanceTestRunner):
   def RunTests(self):
     """Run a performance test on our updated system."""
     os.chdir('frog')
-    file_path = os.path.join('..', 'tools', 'testing', 'perf_testing',
-        self.result_folder_name, 'result')
-    RunCmd('python %s > %s%s' % (os.path.join('benchmarks', 
-        'perf_tests.py'), file_path, self.cur_time))
+    self.trace_file = os.path.join('..', 'tools', 'testing', 'perf_testing',
+        self.result_folder_name, 'result' + self.cur_time)
+    RunCmd(['python', os.path.join('benchmarks', 'perf_tests.py')],
+        self.trace_file)
     os.chdir('..')
 
 
@@ -373,22 +411,19 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
   def RunTests(self):
     """Run a performance test in the browser."""
     os.chdir('frog')
-    RunCmd('python benchmarks/make_web_benchmarks.py')
+    RunCmd(['python', os.path.join('benchmarks', 'make_web_benchmarks.py')])
     os.chdir('..')
 
     for browser in GetBrowsers():
-      for version in V8_AND_FROG:
-        self.AddSvnRevisionToTrace(os.path.join('tools', 'testing',
-            'perf_testing', self.result_folder_name, 
-            'perf-%s-%s-%s' % (self.cur_time, browser, version)))
-        RunCmd('python %s --out %s --browser %s --timeout 1000 --perf >> %s' % 
-            (os.path.join('tools', 'testing', 'run_selenium.py'),
-            os.path.join(os.getcwd(), 'internal', 'browserBenchmarks',
-            'benchmark_page_%s.html' % version), 
-            browser, 
-            os.path.join('tools', 'testing', 'perf_testing', 
-            self.result_folder_name, 'perf-%s-%s-%s' % (self.cur_time, browser, 
-            version))))
+      for version in GetVersions():
+        self.trace_file = os.path.join('tools', 'testing', 'perf_testing', 
+            self.result_folder_name,
+            'perf-%s-%s-%s' % (self.cur_time, browser, version))
+        self.AddSvnRevisionToTrace(self.trace_file)
+        RunCmd(['python', os.path.join('tools', 'testing', 'run_selenium.py'), 
+            '--out', os.path.join(os.getcwd(), 'internal', 'browserBenchmarks',
+            'benchmark_page_%s.html' % version), '--browser', browser, 
+            '--timeout', '600', '--perf'], self.trace_file, append=True)
 
   def ProcessFile(self, afile):
     """Comb through the html to find the performance results."""
@@ -438,6 +473,12 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       #TODO(efortuna)
       pass
 
+      
+  def Cleanup():
+    # Kill the zombie chromedriver processes.
+    RunCmd(['killall', 'chromedriver'])
+
+
 class BrowserCorrectnessTestRunner(TestRunner):
   def __init__(self, test_type, result_folder_name):
     super(BrowserCorrectnessTestRunner, self).__init__(result_folder_name,
@@ -448,13 +489,13 @@ class BrowserCorrectnessTestRunner(TestRunner):
     """Run a test of the latest svn revision."""
     for browser in GetBrowsers():
       current_file = 'correctness%s-%s' % (self.cur_time, browser)
-      current_file_path = os.path.join('tools', 'testing',
+      self.trace_file = os.path.join('tools', 'testing',
           'perf_testing', self.result_folder_name, current_file)
-      self.AddSvnRevisionToTrace(current_file_path)
-      RunCmd(os.path.join('.', 'tools', 'test.py') +
-          ' --component=webdriver --flag=%s --report --timeout=20 ' % browser +
-          '--progress=color --mode=release -j1 %s >>' % self.test_type + 
-          current_file_path)
+      self.AddSvnRevisionToTrace(self.trace_file)
+      RunCmd([os.path.join('.', 'tools', 'test.py'),
+          '--component=webdriver', '--flag=%s' % browser, '--report', 
+          '--timeout=20', '--progress=color', '--mode=release', '-j1',
+          self.test_type], self.trace_file, append=True)
 
   def ProcessFile(self, afile):
     """Given a trace file, extract all the relevant information out of it to
@@ -496,6 +537,9 @@ class BrowserCorrectnessTestRunner(TestRunner):
           png_filename, [browser], [FROG], [CORRECTNESS], first_time) 
       first_time = False
 
+  def Cleanup():
+    # Kill the zombie chromedriver processes.
+    RunCmd(['killall', 'chromedriver'])
 
 class CompileTimeAndSizeTestRunner(TestRunner):
   """Run tests to determine how long frogsh takes to compile, and the compiled 
@@ -509,53 +553,53 @@ class CompileTimeAndSizeTestRunner(TestRunner):
 
   def RunTests(self):
     os.chdir('frog')
-    current_file_path = os.path.join('..', 'tools', 'testing', 'perf_testing', 
+    self.trace_file = os.path.join('..', 'tools', 'testing', 'perf_testing', 
         self.result_folder_name, self.result_folder_name + self.cur_time)
     
-    self.AddSvnRevisionToTrace(current_file_path)    
+    self.AddSvnRevisionToTrace(self.trace_file)    
 
-    elapsed = TimeCmd(os.path.join('.', 'frog.py') + 
-        ' --vm_flags="--compile_all --enable_type_checks --enable_asserts" --'
-        ' --compile_all --enable_type_checks --out=frogsh frog.dart')
-    RunCmd('echo "%f Compiling on Dart VM in checked mode in' % elapsed +
-        ' seconds" >> %s' % current_file_path)
-    RunCmd('chmod +x frogsh')
-    elapsed = TimeCmd(os.path.join('.', 'frogsh') + ' --out=frogsh '
-        '--enable_type_checks frog.dart --enable_type_checks ' + 
-        os.path.join('tests', 'hello.dart'))
+    elapsed = TimeCmd([os.path.join('.', 'frog.py'),
+        '--vm_flags="--compile_all --enable_type_checks --enable_asserts"', 
+        '--', '--compile_all', '--enable_type_checks', '--out=frogsh', 
+        'frog.dart'])
+    RunCmd(['echo', '%f Compiling on Dart VM in checked mode in seconds' 
+        % elapsed], self.trace_file, append=True)
+    elapsed = TimeCmd([os.path.join('.', 'frogsh'), '--out=frogsh',
+        '--enable_type_checks', 'frog.dart', '--enable_type_checks', 
+        os.path.join('tests', 'hello.dart')])
     if elapsed < self.failure_threshold['Bootstrapping']:
       #frogsh didn't compile correctly. Stop testing now, because subsequent
       #numbers will be meaningless.
       return
     size = os.path.getsize('frogsh')
-    RunCmd('echo "%f Bootstrapping time in seconds in checked mode"' % 
-        elapsed + ' >> %s' % current_file_path)
-    RunCmd('echo "%d Generated checked frogsh size "' % size + 
-        ' >> %s' % current_file_path)
+    RunCmd(['echo', '%f Bootstrapping time in seconds in checked mode' % 
+        elapsed], self.trace_file, append=True)
+    RunCmd(['echo', '%d Generated checked frogsh size' % size],
+        self.trace_file, append=True)
 
-    RunCmd(os.path.join('.', 'frogsh') + ' --out=swarm-result '
-        '--compile-only ' + os.path.join('..', 'client', 'samples', 'swarm',
-        'swarm.dart'))
+    RunCmd([os.path.join('.', 'frogsh'), ' --out=swarm-result ',
+        '--compile-only', os.path.join('..', 'client', 'samples', 'swarm',
+        'swarm.dart')])
     swarm_size = 0
     try:
       swarm_size = os.path.getsize('swarm-result')
     except OSError:
       pass #If compilation failed, continue on running other tests.
 
-    RunCmd(os.path.join('.', 'frogsh') + ' --out=total-result '
-        '--compile-only ' + os.path.join('..', 'client', 'samples', 'total',
-        'src', 'Total.dart'))
+    RunCmd([os.path.join('.', 'frogsh'), '--out=total-result',
+        '--compile-only', os.path.join('..', 'client', 'samples', 'total',
+        'src', 'Total.dart')])
     total_size = 0
     try:
       total_size = os.path.getsize('total-result')
     except OSError:
       pass #If compilation failed, continue on running other tests.
 
-    RunCmd('echo "%d Generated checked swarm size "' % swarm_size +
-        ' >> %s' % current_file_path) 
+    RunCmd(['echo', '%d Generated checked swarm size' % swarm_size], 
+        self.trace_file, append=True) 
     
-    RunCmd('echo "%d Generated checked total size "' % total_size +
-        ' >> %s' % current_file_path) 
+    RunCmd(['echo', '%d Generated checked total size' % total_size], 
+        self.trace_file, append=True) 
     os.chdir('..')
 
   def ProcessFile(self, afile):
@@ -607,15 +651,64 @@ class CompileTimeAndSizeTestRunner(TestRunner):
         'Bootstrapping', self.values_dict[COMMAND_LINE][FROG]['Bootstrapping'],
         'Compiling on Dart VM', 
         self.values_dict[COMMAND_LINE][FROG]['Compiling on Dart VM'])
-  
+
+
+def ParseArgs():
+  parser = optparse.OptionParser()
+  parser.add_option('--command-line', '-c', dest='cl', 
+      help = 'Run the command line tests', 
+      action = 'store_true', default = False) 
+  parser.add_option('--size-time', '-s', dest = 'size', 
+      help = 'Run the code size and timing tests', 
+      action = 'store_true', default = False)
+  parser.add_option('--language', '-l', dest = 'language', 
+      help = 'Run the language correctness tests', 
+      action = 'store_true', default = False)
+  parser.add_option('--browser-perf', '-b', dest = 'perf',
+      help = 'Run the browser performance tests',
+      action = 'store_true', default = False)
+  parser.add_option('--forever', '-f', dest = 'continuous',
+      help = 'Run this script forever, always checking for the next svn '
+      'checkin', action = 'store_true', default = False)
+  parser.add_option('--perfbot', '-p', dest = 'perfbot',
+      help = "Run in perfbot mode. (Generate plots, and remove trace files)", 
+      action = 'store_true', default = False)
+  parser.add_option('--verbose', '-v', dest = 'verbose',
+      help = 'Print extra debug output', action = 'store_true', default = False)
+
+  args, ignored = parser.parse_args()
+  if not (args.cl or args.size or args.language or args.perf):
+    args.cl = args.size = args.language = args.perf = True
+  return (args.cl, args.size, args.language, args.perf, args.continuous,
+      args.perfbot, args.verbose)
+
+def RunTestSequence(cl, size, language, perf):
+  if PERFBOT_MODE:
+    # The buildbot already builds and syncs to a specific revision. Don't fight
+    # with it or replicate work.
+    SyncAndBuild()
+  if cl:
+    CommandLinePerformanceTestRunner('cl-results').Run()
+  if size:
+    CompileTimeAndSizeTestRunner('code-time-size').Run()
+  if language:
+    BrowserCorrectnessTestRunner('language', 'browser-correctness').Run()
+  if perf:
+    BrowserPerformanceTestRunner('browser-perf').Run()
 
 def main():
-  if HasNewCode():
-    SyncAndBuild()
-    CommandLinePerformanceTestRunner('cl-results').Run()
-    CompileTimeAndSizeTestRunner('code-time-size').Run()
-    BrowserCorrectnessTestRunner('language', 'browser-correctness').Run()
-    BrowserPerformanceTestRunner('browser-perf').Run()
+  global PERFBOT_MODE, VERBOSE
+  (cl, size, language, perf, continuous, perfbot, verbose) = ParseArgs()
+  PERFBOT_MODE = perfbot
+  VERBOSE = verbose
+  if continuous:
+    while True:
+      if HasNewCode():
+        RunTestSequence(cl, size, language, perf)
+      else:
+        time.sleep(SLEEP_TIME)
+  else:
+    RunTestSequence(cl, size, language, perf)
 
 if __name__ == '__main__':
   main()
