@@ -10,8 +10,24 @@
 #source('generated/src/interface/ArrayBuffer.dart');
 #source('generated/src/interface/ArrayBufferView.dart');
 #source('generated/src/interface/Attr.dart');
+#source('generated/src/interface/AudioBuffer.dart');
+#source('generated/src/interface/AudioBufferCallback.dart');
+#source('generated/src/interface/AudioBufferSourceNode.dart');
+#source('generated/src/interface/AudioChannelMerger.dart');
+#source('generated/src/interface/AudioChannelSplitter.dart');
+#source('generated/src/interface/AudioContext.dart');
+#source('generated/src/interface/AudioDestinationNode.dart');
+#source('generated/src/interface/AudioGain.dart');
+#source('generated/src/interface/AudioGainNode.dart');
+#source('generated/src/interface/AudioListener.dart');
+#source('generated/src/interface/AudioNode.dart');
+#source('generated/src/interface/AudioPannerNode.dart');
+#source('generated/src/interface/AudioParam.dart');
+#source('generated/src/interface/AudioProcessingEvent.dart');
+#source('generated/src/interface/AudioSourceNode.dart');
 #source('generated/src/interface/BarInfo.dart');
 #source('generated/src/interface/BeforeLoadEvent.dart');
+#source('generated/src/interface/BiquadFilterNode.dart');
 #source('generated/src/interface/Blob.dart');
 #source('generated/src/interface/CDATASection.dart');
 #source('generated/src/interface/CSSCharsetRule.dart');
@@ -41,6 +57,7 @@
 #source('generated/src/interface/Comment.dart');
 #source('generated/src/interface/CompositionEvent.dart');
 #source('generated/src/interface/Console.dart');
+#source('generated/src/interface/ConvolverNode.dart');
 #source('generated/src/interface/Coordinates.dart');
 #source('generated/src/interface/Counter.dart');
 #source('generated/src/interface/Crypto.dart');
@@ -68,6 +85,7 @@
 #source('generated/src/interface/DatabaseCallback.dart');
 #source('generated/src/interface/DatabaseSync.dart');
 #source('generated/src/interface/DedicatedWorkerContext.dart');
+#source('generated/src/interface/DelayNode.dart');
 #source('generated/src/interface/DeviceMotionEvent.dart');
 #source('generated/src/interface/DeviceOrientationEvent.dart');
 #source('generated/src/interface/DirectoryEntry.dart');
@@ -77,6 +95,7 @@
 #source('generated/src/interface/Document.dart');
 #source('generated/src/interface/DocumentFragment.dart');
 #source('generated/src/interface/DocumentType.dart');
+#source('generated/src/interface/DynamicsCompressorNode.dart');
 #source('generated/src/interface/Element.dart');
 #source('generated/src/interface/ElementTimeControl.dart');
 #source('generated/src/interface/ElementTraversal.dart');
@@ -185,6 +204,7 @@
 #source('generated/src/interface/HTMLUnknownElement.dart');
 #source('generated/src/interface/HTMLVideoElement.dart');
 #source('generated/src/interface/HashChangeEvent.dart');
+#source('generated/src/interface/HighPass2FilterNode.dart');
 #source('generated/src/interface/History.dart');
 #source('generated/src/interface/IDBAny.dart');
 #source('generated/src/interface/IDBCursor.dart');
@@ -207,9 +227,12 @@
 #source('generated/src/interface/Int16Array.dart');
 #source('generated/src/interface/Int32Array.dart');
 #source('generated/src/interface/Int8Array.dart');
+#source('generated/src/interface/JavaScriptAudioNode.dart');
 #source('generated/src/interface/JavaScriptCallFrame.dart');
 #source('generated/src/interface/KeyboardEvent.dart');
 #source('generated/src/interface/Location.dart');
+#source('generated/src/interface/LowPass2FilterNode.dart');
+#source('generated/src/interface/MediaElementAudioSourceNode.dart');
 #source('generated/src/interface/MediaError.dart');
 #source('generated/src/interface/MediaList.dart');
 #source('generated/src/interface/MediaQueryList.dart');
@@ -240,6 +263,7 @@
 #source('generated/src/interface/OESStandardDerivatives.dart');
 #source('generated/src/interface/OESTextureFloat.dart');
 #source('generated/src/interface/OESVertexArrayObject.dart');
+#source('generated/src/interface/OfflineAudioCompletionEvent.dart');
 #source('generated/src/interface/OperationNotAllowedException.dart');
 #source('generated/src/interface/OverflowEvent.dart');
 #source('generated/src/interface/PageTransitionEvent.dart');
@@ -255,6 +279,7 @@
 #source('generated/src/interface/RGBColor.dart');
 #source('generated/src/interface/Range.dart');
 #source('generated/src/interface/RangeException.dart');
+#source('generated/src/interface/RealtimeAnalyserNode.dart');
 #source('generated/src/interface/Rect.dart');
 #source('generated/src/interface/SQLError.dart');
 #source('generated/src/interface/SQLException.dart');
@@ -454,6 +479,7 @@
 #source('generated/src/interface/Uint8Array.dart');
 #source('generated/src/interface/ValidityState.dart');
 #source('generated/src/interface/VoidCallback.dart');
+#source('generated/src/interface/WaveShaperNode.dart');
 #source('generated/src/interface/WebGLActiveInfo.dart');
 #source('generated/src/interface/WebGLBuffer.dart');
 #source('generated/src/interface/WebGLContextAttributes.dart');
@@ -503,8 +529,24 @@
 #source('generated/src/wrapping/_ArrayBufferViewWrappingImplementation.dart');
 #source('generated/src/wrapping/_ArrayBufferWrappingImplementation.dart');
 #source('generated/src/wrapping/_AttrWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioBufferCallbackWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioBufferSourceNodeWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioBufferWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioChannelMergerWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioChannelSplitterWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioContextWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioDestinationNodeWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioGainNodeWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioGainWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioListenerWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioNodeWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioPannerNodeWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioParamWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioProcessingEventWrappingImplementation.dart');
+#source('generated/src/wrapping/_AudioSourceNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_BarInfoWrappingImplementation.dart');
 #source('generated/src/wrapping/_BeforeLoadEventWrappingImplementation.dart');
+#source('generated/src/wrapping/_BiquadFilterNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_BlobWrappingImplementation.dart');
 #source('generated/src/wrapping/_CDATASectionWrappingImplementation.dart');
 #source('generated/src/wrapping/_CSSCharsetRuleWrappingImplementation.dart');
@@ -534,6 +576,7 @@
 #source('generated/src/wrapping/_CommentWrappingImplementation.dart');
 #source('generated/src/wrapping/_CompositionEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_ConsoleWrappingImplementation.dart');
+#source('generated/src/wrapping/_ConvolverNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_CoordinatesWrappingImplementation.dart');
 #source('generated/src/wrapping/_CounterWrappingImplementation.dart');
 #source('generated/src/wrapping/_CryptoWrappingImplementation.dart');
@@ -561,6 +604,7 @@
 #source('generated/src/wrapping/_DatabaseSyncWrappingImplementation.dart');
 #source('generated/src/wrapping/_DatabaseWrappingImplementation.dart');
 #source('generated/src/wrapping/_DedicatedWorkerContextWrappingImplementation.dart');
+#source('generated/src/wrapping/_DelayNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_DeviceMotionEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_DeviceOrientationEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_DirectoryEntrySyncWrappingImplementation.dart');
@@ -570,6 +614,7 @@
 #source('generated/src/wrapping/_DocumentFragmentWrappingImplementation.dart');
 #source('generated/src/wrapping/_DocumentTypeWrappingImplementation.dart');
 #source('generated/src/wrapping/_DocumentWrappingImplementation.dart');
+#source('generated/src/wrapping/_DynamicsCompressorNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_ElementTimeControlWrappingImplementation.dart');
 #source('generated/src/wrapping/_ElementTraversalWrappingImplementation.dart');
 #source('generated/src/wrapping/_ElementWrappingImplementation.dart');
@@ -678,6 +723,7 @@
 #source('generated/src/wrapping/_HTMLUnknownElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLVideoElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HashChangeEventWrappingImplementation.dart');
+#source('generated/src/wrapping/_HighPass2FilterNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_HistoryWrappingImplementation.dart');
 #source('generated/src/wrapping/_IDBAnyWrappingImplementation.dart');
 #source('generated/src/wrapping/_IDBCursorWithValueWrappingImplementation.dart');
@@ -700,9 +746,12 @@
 #source('generated/src/wrapping/_Int16ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_Int32ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_Int8ArrayWrappingImplementation.dart');
+#source('generated/src/wrapping/_JavaScriptAudioNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_JavaScriptCallFrameWrappingImplementation.dart');
 #source('generated/src/wrapping/_KeyboardEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_LocationWrappingImplementation.dart');
+#source('generated/src/wrapping/_LowPass2FilterNodeWrappingImplementation.dart');
+#source('generated/src/wrapping/_MediaElementAudioSourceNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_MediaErrorWrappingImplementation.dart');
 #source('generated/src/wrapping/_MediaListWrappingImplementation.dart');
 #source('generated/src/wrapping/_MediaQueryListListenerWrappingImplementation.dart');
@@ -733,6 +782,7 @@
 #source('generated/src/wrapping/_OESStandardDerivativesWrappingImplementation.dart');
 #source('generated/src/wrapping/_OESTextureFloatWrappingImplementation.dart');
 #source('generated/src/wrapping/_OESVertexArrayObjectWrappingImplementation.dart');
+#source('generated/src/wrapping/_OfflineAudioCompletionEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_OperationNotAllowedExceptionWrappingImplementation.dart');
 #source('generated/src/wrapping/_OverflowEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_PageTransitionEventWrappingImplementation.dart');
@@ -748,6 +798,7 @@
 #source('generated/src/wrapping/_RGBColorWrappingImplementation.dart');
 #source('generated/src/wrapping/_RangeExceptionWrappingImplementation.dart');
 #source('generated/src/wrapping/_RangeWrappingImplementation.dart');
+#source('generated/src/wrapping/_RealtimeAnalyserNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_RectWrappingImplementation.dart');
 #source('generated/src/wrapping/_SQLErrorWrappingImplementation.dart');
 #source('generated/src/wrapping/_SQLExceptionWrappingImplementation.dart');
@@ -947,6 +998,7 @@
 #source('generated/src/wrapping/_Uint8ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_ValidityStateWrappingImplementation.dart');
 #source('generated/src/wrapping/_VoidCallbackWrappingImplementation.dart');
+#source('generated/src/wrapping/_WaveShaperNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLActiveInfoWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLBufferWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLContextAttributesWrappingImplementation.dart');

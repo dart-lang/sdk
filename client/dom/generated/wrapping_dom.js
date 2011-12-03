@@ -142,6 +142,758 @@ function native__AttrWrappingImplementation__set_value(_this, value) {
   }
 }
 
+function native__AudioBufferWrappingImplementation__get_duration(_this) {
+  try {
+    return __dom_wrap(_this.$dom.duration);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__set_gain(_this, value) {
+  try {
+    _this.$dom.gain = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_length(_this) {
+  try {
+    return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_numberOfChannels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfChannels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_sampleRate(_this) {
+  try {
+    return __dom_wrap(_this.$dom.sampleRate);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__getChannelData(_this, channelIndex) {
+  try {
+    return __dom_wrap(_this.$dom.getChannelData(__dom_unwrap(channelIndex)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferCallbackWrappingImplementation__handleEvent(_this, audioBuffer) {
+  try {
+    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(audioBuffer)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_buffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.buffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__set_buffer(_this, value) {
+  try {
+    _this.$dom.buffer = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_loop(_this) {
+  try {
+    return __dom_wrap(_this.$dom.loop);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__set_loop(_this, value) {
+  try {
+    _this.$dom.loop = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_looping(_this) {
+  try {
+    return __dom_wrap(_this.$dom.looping);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__set_looping(_this, value) {
+  try {
+    _this.$dom.looping = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_playbackRate(_this) {
+  try {
+    return __dom_wrap(_this.$dom.playbackRate);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__noteGrainOn(_this, when, grainOffset, grainDuration) {
+  try {
+    return __dom_wrap(_this.$dom.noteGrainOn(__dom_unwrap(when), __dom_unwrap(grainOffset), __dom_unwrap(grainDuration)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__noteOff(_this, when) {
+  try {
+    return __dom_wrap(_this.$dom.noteOff(__dom_unwrap(when)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__noteOn(_this, when) {
+  try {
+    return __dom_wrap(_this.$dom.noteOn(__dom_unwrap(when)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_currentTime(_this) {
+  try {
+    return __dom_wrap(_this.$dom.currentTime);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_destination(_this) {
+  try {
+    return __dom_wrap(_this.$dom.destination);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_listener(_this) {
+  try {
+    return __dom_wrap(_this.$dom.listener);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_sampleRate(_this) {
+  try {
+    return __dom_wrap(_this.$dom.sampleRate);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createAnalyser(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createAnalyser());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createBiquadFilter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createBiquadFilter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createBuffer());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createBufferSource(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createBufferSource());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createChannelMerger(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createChannelMerger());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createChannelSplitter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createChannelSplitter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createConvolver(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createConvolver());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createDelayNode(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createDelayNode());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createDynamicsCompressor(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createDynamicsCompressor());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createGainNode(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createGainNode());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createHighPass2Filter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createHighPass2Filter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createJavaScriptNode(_this, bufferSize) {
+  try {
+    return __dom_wrap(_this.$dom.createJavaScriptNode(__dom_unwrap(bufferSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createLowPass2Filter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createLowPass2Filter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createPanner(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createPanner());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createWaveShaper(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createWaveShaper());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__decodeAudioData(_this, audioData, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.decodeAudioData(__dom_unwrap(audioData), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__decodeAudioData_2(_this, audioData, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.decodeAudioData(__dom_unwrap(audioData), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__startRendering(_this) {
+  try {
+    return __dom_wrap(_this.$dom.startRendering());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioDestinationNodeWrappingImplementation__get_numberOfChannels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfChannels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioGainNodeWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__get_dopplerFactor(_this) {
+  try {
+    return __dom_wrap(_this.$dom.dopplerFactor);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__set_dopplerFactor(_this, value) {
+  try {
+    _this.$dom.dopplerFactor = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__get_speedOfSound(_this) {
+  try {
+    return __dom_wrap(_this.$dom.speedOfSound);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__set_speedOfSound(_this, value) {
+  try {
+    _this.$dom.speedOfSound = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__setOrientation(_this, x, y, z, xUp, yUp, zUp) {
+  try {
+    return __dom_wrap(_this.$dom.setOrientation(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z), __dom_unwrap(xUp), __dom_unwrap(yUp), __dom_unwrap(zUp)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__setPosition(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setPosition(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__setVelocity(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setVelocity(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__get_context(_this) {
+  try {
+    return __dom_wrap(_this.$dom.context);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__get_numberOfInputs(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfInputs);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__get_numberOfOutputs(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfOutputs);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__connect(_this, destination) {
+  try {
+    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__connect_2(_this, destination, output) {
+  try {
+    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination), __dom_unwrap(output)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__connect_3(_this, destination, output, input) {
+  try {
+    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination), __dom_unwrap(output), __dom_unwrap(input)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__disconnect(_this) {
+  try {
+    return __dom_wrap(_this.$dom.disconnect());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__disconnect_2(_this, output) {
+  try {
+    return __dom_wrap(_this.$dom.disconnect(__dom_unwrap(output)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneGain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneGain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneInnerAngle(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneInnerAngle);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_coneInnerAngle(_this, value) {
+  try {
+    _this.$dom.coneInnerAngle = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneOuterAngle(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneOuterAngle);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_coneOuterAngle(_this, value) {
+  try {
+    _this.$dom.coneOuterAngle = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneOuterGain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneOuterGain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_coneOuterGain(_this, value) {
+  try {
+    _this.$dom.coneOuterGain = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_distanceGain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.distanceGain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_distanceModel(_this) {
+  try {
+    return __dom_wrap(_this.$dom.distanceModel);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_distanceModel(_this, value) {
+  try {
+    _this.$dom.distanceModel = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_maxDistance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.maxDistance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_maxDistance(_this, value) {
+  try {
+    _this.$dom.maxDistance = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_panningModel(_this) {
+  try {
+    return __dom_wrap(_this.$dom.panningModel);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_panningModel(_this, value) {
+  try {
+    _this.$dom.panningModel = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_refDistance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.refDistance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_refDistance(_this, value) {
+  try {
+    _this.$dom.refDistance = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_rolloffFactor(_this) {
+  try {
+    return __dom_wrap(_this.$dom.rolloffFactor);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_rolloffFactor(_this, value) {
+  try {
+    _this.$dom.rolloffFactor = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__setOrientation(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setOrientation(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__setPosition(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setPosition(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__setVelocity(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setVelocity(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_defaultValue(_this) {
+  try {
+    return __dom_wrap(_this.$dom.defaultValue);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_maxValue(_this) {
+  try {
+    return __dom_wrap(_this.$dom.maxValue);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_minValue(_this) {
+  try {
+    return __dom_wrap(_this.$dom.minValue);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_name(_this) {
+  try {
+    return __dom_wrap(_this.$dom.name);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_units(_this) {
+  try {
+    return __dom_wrap(_this.$dom.units);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_value(_this) {
+  try {
+    return __dom_wrap(_this.$dom.value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__set_value(_this, value) {
+  try {
+    _this.$dom.value = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__cancelScheduledValues(_this, startTime) {
+  try {
+    return __dom_wrap(_this.$dom.cancelScheduledValues(__dom_unwrap(startTime)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__exponentialRampToValueAtTime(_this, value, time) {
+  try {
+    return __dom_wrap(_this.$dom.exponentialRampToValueAtTime(__dom_unwrap(value), __dom_unwrap(time)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__linearRampToValueAtTime(_this, value, time) {
+  try {
+    return __dom_wrap(_this.$dom.linearRampToValueAtTime(__dom_unwrap(value), __dom_unwrap(time)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__setTargetValueAtTime(_this, targetValue, time, timeConstant) {
+  try {
+    return __dom_wrap(_this.$dom.setTargetValueAtTime(__dom_unwrap(targetValue), __dom_unwrap(time), __dom_unwrap(timeConstant)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__setValueAtTime(_this, value, time) {
+  try {
+    return __dom_wrap(_this.$dom.setValueAtTime(__dom_unwrap(value), __dom_unwrap(time)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__setValueCurveAtTime(_this, values, time, duration) {
+  try {
+    return __dom_wrap(_this.$dom.setValueCurveAtTime(__dom_unwrap(values), __dom_unwrap(time), __dom_unwrap(duration)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioProcessingEventWrappingImplementation__get_inputBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.inputBuffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioProcessingEventWrappingImplementation__get_outputBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.outputBuffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__BarInfoWrappingImplementation__get_visible(_this) {
   try {
     return __dom_wrap(_this.$dom.visible);
@@ -161,6 +913,46 @@ function native__BeforeLoadEventWrappingImplementation__get_url(_this) {
 function native__BeforeLoadEventWrappingImplementation__initBeforeLoadEvent(_this, type, canBubble, cancelable, url) {
   try {
     return __dom_wrap(_this.$dom.initBeforeLoadEvent(__dom_unwrap(type), __dom_unwrap(canBubble), __dom_unwrap(cancelable), __dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_Q(_this) {
+  try {
+    return __dom_wrap(_this.$dom.Q);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_frequency(_this) {
+  try {
+    return __dom_wrap(_this.$dom.frequency);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_type(_this) {
+  try {
+    return __dom_wrap(_this.$dom.type);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__set_type(_this, value) {
+  try {
+    _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -1993,6 +2785,22 @@ function native__ConsoleWrappingImplementation__trace(_this, arg) {
 function native__ConsoleWrappingImplementation__warn(_this, arg) {
   try {
     return __dom_wrap(_this.$dom.warn(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConvolverNodeWrappingImplementation__get_buffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.buffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConvolverNodeWrappingImplementation__set_buffer(_this, value) {
+  try {
+    _this.$dom.buffer = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4201,6 +5009,14 @@ function native__DedicatedWorkerContextWrappingImplementation__webkitPostMessage
 function native__DedicatedWorkerContextWrappingImplementation__webkitPostMessage_2(_this, message, transferList) {
   try {
     return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(transferList)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DelayNodeWrappingImplementation__get_delayTime(_this) {
+  try {
+    return __dom_wrap(_this.$dom.delayTime);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -14670,6 +15486,22 @@ function native__HashChangeEventWrappingImplementation__initHashChangeEvent(_thi
   }
 }
 
+function native__HighPass2FilterNodeWrappingImplementation__get_cutoff(_this) {
+  try {
+    return __dom_wrap(_this.$dom.cutoff);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HighPass2FilterNodeWrappingImplementation__get_resonance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.resonance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HistoryWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
@@ -15830,6 +16662,14 @@ function native__Int8ArrayWrappingImplementation__subarray_2(_this, start, end) 
   }
 }
 
+function native__JavaScriptAudioNodeWrappingImplementation__get_bufferSize(_this) {
+  try {
+    return __dom_wrap(_this.$dom.bufferSize);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__JavaScriptCallFrameWrappingImplementation__get_caller(_this) {
   try {
     return __dom_wrap(_this.$dom.caller);
@@ -16137,6 +16977,30 @@ function native__LocationWrappingImplementation__replace(_this, url) {
 function native__LocationWrappingImplementation__toString(_this) {
   try {
     return __dom_wrap(_this.$dom.toStringFunction());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__LowPass2FilterNodeWrappingImplementation__get_cutoff(_this) {
+  try {
+    return __dom_wrap(_this.$dom.cutoff);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__LowPass2FilterNodeWrappingImplementation__get_resonance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.resonance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MediaElementAudioSourceNodeWrappingImplementation__get_mediaElement(_this) {
+  try {
+    return __dom_wrap(_this.$dom.mediaElement);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17518,6 +18382,14 @@ function native__OESVertexArrayObjectWrappingImplementation__isVertexArrayOES(_t
   }
 }
 
+function native__OfflineAudioCompletionEventWrappingImplementation__get_renderedBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.renderedBuffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__OperationNotAllowedExceptionWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
@@ -18217,6 +19089,102 @@ function native__RangeExceptionWrappingImplementation__get_name(_this) {
 function native__RangeExceptionWrappingImplementation__toString(_this) {
   try {
     return __dom_wrap(_this.$dom.toString());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_fftSize(_this) {
+  try {
+    return __dom_wrap(_this.$dom.fftSize);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_fftSize(_this, value) {
+  try {
+    _this.$dom.fftSize = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_frequencyBinCount(_this) {
+  try {
+    return __dom_wrap(_this.$dom.frequencyBinCount);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_maxDecibels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.maxDecibels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_maxDecibels(_this, value) {
+  try {
+    _this.$dom.maxDecibels = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_minDecibels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.minDecibels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_minDecibels(_this, value) {
+  try {
+    _this.$dom.minDecibels = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_smoothingTimeConstant(_this) {
+  try {
+    return __dom_wrap(_this.$dom.smoothingTimeConstant);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_smoothingTimeConstant(_this, value) {
+  try {
+    _this.$dom.smoothingTimeConstant = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__getByteFrequencyData(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.getByteFrequencyData(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__getByteTimeDomainData(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.getByteTimeDomainData(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__getFloatFrequencyData(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.getFloatFrequencyData(__dom_unwrap(array)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29366,6 +30334,22 @@ function native__VoidCallbackWrappingImplementation__handleEvent(_this) {
   }
 }
 
+function native__WaveShaperNodeWrappingImplementation__get_curve(_this) {
+  try {
+    return __dom_wrap(_this.$dom.curve);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WaveShaperNodeWrappingImplementation__set_curve(_this, value) {
+  try {
+    _this.$dom.curve = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__WebGLActiveInfoWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
@@ -32663,8 +33647,24 @@ var __dom_type_map = {
   "ArrayBuffer": native__ArrayBufferWrappingImplementation_create__ArrayBufferWrappingImplementation,
   "ArrayBufferView": native__ArrayBufferViewWrappingImplementation_create__ArrayBufferViewWrappingImplementation,
   "Attr": native__AttrWrappingImplementation_create__AttrWrappingImplementation,
+  "AudioBuffer": native__AudioBufferWrappingImplementation_create__AudioBufferWrappingImplementation,
+  "AudioBufferCallback": native__AudioBufferCallbackWrappingImplementation_create__AudioBufferCallbackWrappingImplementation,
+  "AudioBufferSourceNode": native__AudioBufferSourceNodeWrappingImplementation_create__AudioBufferSourceNodeWrappingImplementation,
+  "AudioChannelMerger": native__AudioChannelMergerWrappingImplementation_create__AudioChannelMergerWrappingImplementation,
+  "AudioChannelSplitter": native__AudioChannelSplitterWrappingImplementation_create__AudioChannelSplitterWrappingImplementation,
+  "AudioContext": native__AudioContextWrappingImplementation_create__AudioContextWrappingImplementation,
+  "AudioDestinationNode": native__AudioDestinationNodeWrappingImplementation_create__AudioDestinationNodeWrappingImplementation,
+  "AudioGain": native__AudioGainWrappingImplementation_create__AudioGainWrappingImplementation,
+  "AudioGainNode": native__AudioGainNodeWrappingImplementation_create__AudioGainNodeWrappingImplementation,
+  "AudioListener": native__AudioListenerWrappingImplementation_create__AudioListenerWrappingImplementation,
+  "AudioNode": native__AudioNodeWrappingImplementation_create__AudioNodeWrappingImplementation,
+  "AudioPannerNode": native__AudioPannerNodeWrappingImplementation_create__AudioPannerNodeWrappingImplementation,
+  "AudioParam": native__AudioParamWrappingImplementation_create__AudioParamWrappingImplementation,
+  "AudioProcessingEvent": native__AudioProcessingEventWrappingImplementation_create__AudioProcessingEventWrappingImplementation,
+  "AudioSourceNode": native__AudioSourceNodeWrappingImplementation_create__AudioSourceNodeWrappingImplementation,
   "BarInfo": native__BarInfoWrappingImplementation_create__BarInfoWrappingImplementation,
   "BeforeLoadEvent": native__BeforeLoadEventWrappingImplementation_create__BeforeLoadEventWrappingImplementation,
+  "BiquadFilterNode": native__BiquadFilterNodeWrappingImplementation_create__BiquadFilterNodeWrappingImplementation,
   "Blob": native__BlobWrappingImplementation_create__BlobWrappingImplementation,
   "CDATASection": native__CDATASectionWrappingImplementation_create__CDATASectionWrappingImplementation,
   "CSSCharsetRule": native__CSSCharsetRuleWrappingImplementation_create__CSSCharsetRuleWrappingImplementation,
@@ -32694,6 +33694,7 @@ var __dom_type_map = {
   "Comment": native__CommentWrappingImplementation_create__CommentWrappingImplementation,
   "CompositionEvent": native__CompositionEventWrappingImplementation_create__CompositionEventWrappingImplementation,
   "Console": native__ConsoleWrappingImplementation_create__ConsoleWrappingImplementation,
+  "ConvolverNode": native__ConvolverNodeWrappingImplementation_create__ConvolverNodeWrappingImplementation,
   "Coordinates": native__CoordinatesWrappingImplementation_create__CoordinatesWrappingImplementation,
   "Counter": native__CounterWrappingImplementation_create__CounterWrappingImplementation,
   "Crypto": native__CryptoWrappingImplementation_create__CryptoWrappingImplementation,
@@ -32721,6 +33722,7 @@ var __dom_type_map = {
   "DatabaseCallback": native__DatabaseCallbackWrappingImplementation_create__DatabaseCallbackWrappingImplementation,
   "DatabaseSync": native__DatabaseSyncWrappingImplementation_create__DatabaseSyncWrappingImplementation,
   "DedicatedWorkerContext": native__DedicatedWorkerContextWrappingImplementation_create__DedicatedWorkerContextWrappingImplementation,
+  "DelayNode": native__DelayNodeWrappingImplementation_create__DelayNodeWrappingImplementation,
   "DeviceMotionEvent": native__DeviceMotionEventWrappingImplementation_create__DeviceMotionEventWrappingImplementation,
   "DeviceOrientationEvent": native__DeviceOrientationEventWrappingImplementation_create__DeviceOrientationEventWrappingImplementation,
   "DirectoryEntry": native__DirectoryEntryWrappingImplementation_create__DirectoryEntryWrappingImplementation,
@@ -32730,6 +33732,7 @@ var __dom_type_map = {
   "Document": native__DocumentWrappingImplementation_create__DocumentWrappingImplementation,
   "DocumentFragment": native__DocumentFragmentWrappingImplementation_create__DocumentFragmentWrappingImplementation,
   "DocumentType": native__DocumentTypeWrappingImplementation_create__DocumentTypeWrappingImplementation,
+  "DynamicsCompressorNode": native__DynamicsCompressorNodeWrappingImplementation_create__DynamicsCompressorNodeWrappingImplementation,
   "Element": native__ElementWrappingImplementation_create__ElementWrappingImplementation,
   "ElementTimeControl": native__ElementTimeControlWrappingImplementation_create__ElementTimeControlWrappingImplementation,
   "ElementTraversal": native__ElementTraversalWrappingImplementation_create__ElementTraversalWrappingImplementation,
@@ -32838,6 +33841,7 @@ var __dom_type_map = {
   "HTMLUnknownElement": native__HTMLUnknownElementWrappingImplementation_create__HTMLUnknownElementWrappingImplementation,
   "HTMLVideoElement": native__HTMLVideoElementWrappingImplementation_create__HTMLVideoElementWrappingImplementation,
   "HashChangeEvent": native__HashChangeEventWrappingImplementation_create__HashChangeEventWrappingImplementation,
+  "HighPass2FilterNode": native__HighPass2FilterNodeWrappingImplementation_create__HighPass2FilterNodeWrappingImplementation,
   "History": native__HistoryWrappingImplementation_create__HistoryWrappingImplementation,
   "IDBAny": native__IDBAnyWrappingImplementation_create__IDBAnyWrappingImplementation,
   "IDBCursor": native__IDBCursorWrappingImplementation_create__IDBCursorWrappingImplementation,
@@ -32860,9 +33864,12 @@ var __dom_type_map = {
   "Int16Array": native__Int16ArrayWrappingImplementation_create__Int16ArrayWrappingImplementation,
   "Int32Array": native__Int32ArrayWrappingImplementation_create__Int32ArrayWrappingImplementation,
   "Int8Array": native__Int8ArrayWrappingImplementation_create__Int8ArrayWrappingImplementation,
+  "JavaScriptAudioNode": native__JavaScriptAudioNodeWrappingImplementation_create__JavaScriptAudioNodeWrappingImplementation,
   "JavaScriptCallFrame": native__JavaScriptCallFrameWrappingImplementation_create__JavaScriptCallFrameWrappingImplementation,
   "KeyboardEvent": native__KeyboardEventWrappingImplementation_create__KeyboardEventWrappingImplementation,
   "Location": native__LocationWrappingImplementation_create__LocationWrappingImplementation,
+  "LowPass2FilterNode": native__LowPass2FilterNodeWrappingImplementation_create__LowPass2FilterNodeWrappingImplementation,
+  "MediaElementAudioSourceNode": native__MediaElementAudioSourceNodeWrappingImplementation_create__MediaElementAudioSourceNodeWrappingImplementation,
   "MediaError": native__MediaErrorWrappingImplementation_create__MediaErrorWrappingImplementation,
   "MediaList": native__MediaListWrappingImplementation_create__MediaListWrappingImplementation,
   "MediaQueryList": native__MediaQueryListWrappingImplementation_create__MediaQueryListWrappingImplementation,
@@ -32893,6 +33900,7 @@ var __dom_type_map = {
   "OESStandardDerivatives": native__OESStandardDerivativesWrappingImplementation_create__OESStandardDerivativesWrappingImplementation,
   "OESTextureFloat": native__OESTextureFloatWrappingImplementation_create__OESTextureFloatWrappingImplementation,
   "OESVertexArrayObject": native__OESVertexArrayObjectWrappingImplementation_create__OESVertexArrayObjectWrappingImplementation,
+  "OfflineAudioCompletionEvent": native__OfflineAudioCompletionEventWrappingImplementation_create__OfflineAudioCompletionEventWrappingImplementation,
   "OperationNotAllowedException": native__OperationNotAllowedExceptionWrappingImplementation_create__OperationNotAllowedExceptionWrappingImplementation,
   "OverflowEvent": native__OverflowEventWrappingImplementation_create__OverflowEventWrappingImplementation,
   "PageTransitionEvent": native__PageTransitionEventWrappingImplementation_create__PageTransitionEventWrappingImplementation,
@@ -32908,6 +33916,7 @@ var __dom_type_map = {
   "RGBColor": native__RGBColorWrappingImplementation_create__RGBColorWrappingImplementation,
   "Range": native__RangeWrappingImplementation_create__RangeWrappingImplementation,
   "RangeException": native__RangeExceptionWrappingImplementation_create__RangeExceptionWrappingImplementation,
+  "RealtimeAnalyserNode": native__RealtimeAnalyserNodeWrappingImplementation_create__RealtimeAnalyserNodeWrappingImplementation,
   "Rect": native__RectWrappingImplementation_create__RectWrappingImplementation,
   "SQLError": native__SQLErrorWrappingImplementation_create__SQLErrorWrappingImplementation,
   "SQLException": native__SQLExceptionWrappingImplementation_create__SQLExceptionWrappingImplementation,
@@ -33107,6 +34116,7 @@ var __dom_type_map = {
   "Uint8Array": native__Uint8ArrayWrappingImplementation_create__Uint8ArrayWrappingImplementation,
   "ValidityState": native__ValidityStateWrappingImplementation_create__ValidityStateWrappingImplementation,
   "VoidCallback": native__VoidCallbackWrappingImplementation_create__VoidCallbackWrappingImplementation,
+  "WaveShaperNode": native__WaveShaperNodeWrappingImplementation_create__WaveShaperNodeWrappingImplementation,
   "WebGLActiveInfo": native__WebGLActiveInfoWrappingImplementation_create__WebGLActiveInfoWrappingImplementation,
   "WebGLBuffer": native__WebGLBufferWrappingImplementation_create__WebGLBufferWrappingImplementation,
   "WebGLContextAttributes": native__WebGLContextAttributesWrappingImplementation_create__WebGLContextAttributesWrappingImplementation,

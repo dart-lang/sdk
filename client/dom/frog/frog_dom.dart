@@ -66,6 +66,231 @@ class Attr extends Node native "*Attr" {
   String value;
 }
 
+class AudioBuffer native "*AudioBuffer" {
+
+  num duration;
+
+  num gain;
+
+  int length;
+
+  int numberOfChannels;
+
+  num sampleRate;
+
+  Float32Array getChannelData(int channelIndex) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioBufferCallback native "*AudioBufferCallback" {
+
+  bool handleEvent(AudioBuffer audioBuffer) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
+
+  AudioBuffer buffer;
+
+  AudioGain gain;
+
+  bool loop;
+
+  bool looping;
+
+  AudioParam playbackRate;
+
+  void noteGrainOn(num when, num grainOffset, num grainDuration) native;
+
+  void noteOff(num when) native;
+
+  void noteOn(num when) native;
+}
+
+class AudioChannelMerger extends AudioNode native "*AudioChannelMerger" {
+}
+
+class AudioChannelSplitter extends AudioNode native "*AudioChannelSplitter" {
+}
+
+class AudioContext native "*AudioContext" {
+
+  num currentTime;
+
+  AudioDestinationNode destination;
+
+  AudioListener listener;
+
+  num sampleRate;
+
+  RealtimeAnalyserNode createAnalyser() native;
+
+  BiquadFilterNode createBiquadFilter() native;
+
+  AudioBuffer createBuffer() native;
+
+  AudioBufferSourceNode createBufferSource() native;
+
+  AudioChannelMerger createChannelMerger() native;
+
+  AudioChannelSplitter createChannelSplitter() native;
+
+  ConvolverNode createConvolver() native;
+
+  DelayNode createDelayNode() native;
+
+  DynamicsCompressorNode createDynamicsCompressor() native;
+
+  AudioGainNode createGainNode() native;
+
+  HighPass2FilterNode createHighPass2Filter() native;
+
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize) native;
+
+  LowPass2FilterNode createLowPass2Filter() native;
+
+  AudioPannerNode createPanner() native;
+
+  WaveShaperNode createWaveShaper() native;
+
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
+
+  void startRendering() native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
+
+  int numberOfChannels;
+}
+
+class AudioGain extends AudioParam native "*AudioGain" {
+}
+
+class AudioGainNode extends AudioNode native "*AudioGainNode" {
+
+  AudioGain gain;
+}
+
+class AudioListener native "*AudioListener" {
+
+  num dopplerFactor;
+
+  num speedOfSound;
+
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
+
+  void setPosition(num x, num y, num z) native;
+
+  void setVelocity(num x, num y, num z) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioNode native "*AudioNode" {
+
+  AudioContext context;
+
+  int numberOfInputs;
+
+  int numberOfOutputs;
+
+  void connect(AudioNode destination, [int output = null, int input = null]) native;
+
+  void disconnect([int output = null]) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioPannerNode extends AudioNode native "*AudioPannerNode" {
+
+  static final int EQUALPOWER = 0;
+
+  static final int HRTF = 1;
+
+  static final int SOUNDFIELD = 2;
+
+  AudioGain coneGain;
+
+  num coneInnerAngle;
+
+  num coneOuterAngle;
+
+  num coneOuterGain;
+
+  AudioGain distanceGain;
+
+  int distanceModel;
+
+  num maxDistance;
+
+  int panningModel;
+
+  num refDistance;
+
+  num rolloffFactor;
+
+  void setOrientation(num x, num y, num z) native;
+
+  void setPosition(num x, num y, num z) native;
+
+  void setVelocity(num x, num y, num z) native;
+}
+
+class AudioParam native "*AudioParam" {
+
+  num defaultValue;
+
+  num maxValue;
+
+  num minValue;
+
+  String name;
+
+  int units;
+
+  num value;
+
+  void cancelScheduledValues(num startTime) native;
+
+  void exponentialRampToValueAtTime(num value, num time) native;
+
+  void linearRampToValueAtTime(num value, num time) native;
+
+  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
+
+  void setValueAtTime(num value, num time) native;
+
+  void setValueCurveAtTime(Float32Array values, num time, num duration) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
+
+  AudioBuffer inputBuffer;
+
+  AudioBuffer outputBuffer;
+}
+
+class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
+}
+
 class BarInfo native "*BarInfo" {
 
   bool visible;
@@ -80,6 +305,33 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
   String url;
 
   void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url) native;
+}
+
+class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
+
+  static final int ALLPASS = 7;
+
+  static final int BANDPASS = 2;
+
+  static final int HIGHPASS = 1;
+
+  static final int HIGHSHELF = 4;
+
+  static final int LOWPASS = 0;
+
+  static final int LOWSHELF = 3;
+
+  static final int NOTCH = 6;
+
+  static final int PEAKING = 5;
+
+  AudioParam Q;
+
+  AudioParam frequency;
+
+  AudioParam gain;
+
+  int type;
 }
 
 class Blob native "*Blob" {
@@ -629,6 +881,11 @@ class Console native "*Console" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class ConvolverNode extends AudioNode native "*ConvolverNode" {
+
+  AudioBuffer buffer;
 }
 
 class Coordinates native "*Coordinates" {
@@ -1286,6 +1543,11 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   void webkitPostMessage(Object message, [List transferList = null]) native;
 }
 
+class DelayNode extends AudioNode native "*DelayNode" {
+
+  AudioParam delayTime;
+}
+
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
   num interval;
@@ -1505,6 +1767,9 @@ class DocumentType extends Node native "*DocumentType" {
   String publicId;
 
   String systemId;
+}
+
+class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
 }
 
 class Element extends Node native "*Element" {
@@ -3615,6 +3880,13 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 
+class HighPass2FilterNode extends AudioNode native "*HighPass2FilterNode" {
+
+  AudioParam cutoff;
+
+  AudioParam resonance;
+}
+
 class History native "*History" {
 
   int length;
@@ -4035,6 +4307,11 @@ class Int8Array extends ArrayBufferView native "*Int8Array" {
   Int8Array subarray(int start, [int end = null]) native;
 }
 
+class JavaScriptAudioNode extends AudioNode native "*JavaScriptAudioNode" {
+
+  int bufferSize;
+}
+
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int CATCH_SCOPE = 4;
@@ -4122,6 +4399,18 @@ class Location native "*Location" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class LowPass2FilterNode extends AudioNode native "*LowPass2FilterNode" {
+
+  AudioParam cutoff;
+
+  AudioParam resonance;
+}
+
+class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
+
+  HTMLMediaElement mediaElement;
 }
 
 class MediaError native "*MediaError" {
@@ -4728,6 +5017,11 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
   String get typeName() native;
 }
 
+class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
+
+  AudioBuffer renderedBuffer;
+}
+
 class OperationNotAllowedException native "*OperationNotAllowedException" {
 
   static final int NOT_ALLOWED_ERR = 1;
@@ -5027,6 +5321,25 @@ class RangeException native "*RangeException" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class RealtimeAnalyserNode extends AudioNode native "*RealtimeAnalyserNode" {
+
+  int fftSize;
+
+  int frequencyBinCount;
+
+  num maxDecibels;
+
+  num minDecibels;
+
+  num smoothingTimeConstant;
+
+  void getByteFrequencyData(Uint8Array array) native;
+
+  void getByteTimeDomainData(Uint8Array array) native;
+
+  void getFloatFrequencyData(Float32Array array) native;
 }
 
 class Rect native "*Rect" {
@@ -9112,6 +9425,11 @@ class VoidCallback native "*VoidCallback" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
+
+  Float32Array curve;
 }
 
 class WebGLActiveInfo native "*WebGLActiveInfo" {

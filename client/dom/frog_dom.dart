@@ -12,8 +12,24 @@
 #source('generated/src/frog/ArrayBuffer.dart');
 #source('generated/src/frog/ArrayBufferView.dart');
 #source('generated/src/frog/Attr.dart');
+#source('generated/src/frog/AudioBuffer.dart');
+#source('generated/src/frog/AudioBufferCallback.dart');
+#source('generated/src/frog/AudioBufferSourceNode.dart');
+#source('generated/src/frog/AudioChannelMerger.dart');
+#source('generated/src/frog/AudioChannelSplitter.dart');
+#source('generated/src/frog/AudioContext.dart');
+#source('generated/src/frog/AudioDestinationNode.dart');
+#source('generated/src/frog/AudioGain.dart');
+#source('generated/src/frog/AudioGainNode.dart');
+#source('generated/src/frog/AudioListener.dart');
+#source('generated/src/frog/AudioNode.dart');
+#source('generated/src/frog/AudioPannerNode.dart');
+#source('generated/src/frog/AudioParam.dart');
+#source('generated/src/frog/AudioProcessingEvent.dart');
+#source('generated/src/frog/AudioSourceNode.dart');
 #source('generated/src/frog/BarInfo.dart');
 #source('generated/src/frog/BeforeLoadEvent.dart');
+#source('generated/src/frog/BiquadFilterNode.dart');
 #source('generated/src/frog/Blob.dart');
 #source('generated/src/frog/CDATASection.dart');
 #source('generated/src/frog/CSSCharsetRule.dart');
@@ -43,6 +59,7 @@
 #source('generated/src/frog/Comment.dart');
 #source('generated/src/frog/CompositionEvent.dart');
 #source('generated/src/frog/Console.dart');
+#source('generated/src/frog/ConvolverNode.dart');
 #source('generated/src/frog/Coordinates.dart');
 #source('generated/src/frog/Counter.dart');
 #source('generated/src/frog/Crypto.dart');
@@ -70,6 +87,7 @@
 #source('generated/src/frog/DatabaseCallback.dart');
 #source('generated/src/frog/DatabaseSync.dart');
 #source('generated/src/frog/DedicatedWorkerContext.dart');
+#source('generated/src/frog/DelayNode.dart');
 #source('generated/src/frog/DeviceMotionEvent.dart');
 #source('generated/src/frog/DeviceOrientationEvent.dart');
 #source('generated/src/frog/DirectoryEntry.dart');
@@ -79,6 +97,7 @@
 #source('generated/src/frog/Document.dart');
 #source('generated/src/frog/DocumentFragment.dart');
 #source('generated/src/frog/DocumentType.dart');
+#source('generated/src/frog/DynamicsCompressorNode.dart');
 #source('generated/src/frog/Element.dart');
 #source('generated/src/frog/ElementTimeControl.dart');
 #source('generated/src/frog/ElementTraversal.dart');
@@ -187,6 +206,7 @@
 #source('generated/src/frog/HTMLUnknownElement.dart');
 #source('generated/src/frog/HTMLVideoElement.dart');
 #source('generated/src/frog/HashChangeEvent.dart');
+#source('generated/src/frog/HighPass2FilterNode.dart');
 #source('generated/src/frog/History.dart');
 #source('generated/src/frog/IDBAny.dart');
 #source('generated/src/frog/IDBCursor.dart');
@@ -209,9 +229,12 @@
 #source('generated/src/frog/Int16Array.dart');
 #source('generated/src/frog/Int32Array.dart');
 #source('generated/src/frog/Int8Array.dart');
+#source('generated/src/frog/JavaScriptAudioNode.dart');
 #source('generated/src/frog/JavaScriptCallFrame.dart');
 #source('generated/src/frog/KeyboardEvent.dart');
 #source('generated/src/frog/Location.dart');
+#source('generated/src/frog/LowPass2FilterNode.dart');
+#source('generated/src/frog/MediaElementAudioSourceNode.dart');
 #source('generated/src/frog/MediaError.dart');
 #source('generated/src/frog/MediaList.dart');
 #source('generated/src/frog/MediaQueryList.dart');
@@ -242,6 +265,7 @@
 #source('generated/src/frog/OESStandardDerivatives.dart');
 #source('generated/src/frog/OESTextureFloat.dart');
 #source('generated/src/frog/OESVertexArrayObject.dart');
+#source('generated/src/frog/OfflineAudioCompletionEvent.dart');
 #source('generated/src/frog/OperationNotAllowedException.dart');
 #source('generated/src/frog/OverflowEvent.dart');
 #source('generated/src/frog/PageTransitionEvent.dart');
@@ -257,6 +281,7 @@
 #source('generated/src/frog/RGBColor.dart');
 #source('generated/src/frog/Range.dart');
 #source('generated/src/frog/RangeException.dart');
+#source('generated/src/frog/RealtimeAnalyserNode.dart');
 #source('generated/src/frog/Rect.dart');
 #source('generated/src/frog/SQLError.dart');
 #source('generated/src/frog/SQLException.dart');
@@ -456,6 +481,7 @@
 #source('generated/src/frog/Uint8Array.dart');
 #source('generated/src/frog/ValidityState.dart');
 #source('generated/src/frog/VoidCallback.dart');
+#source('generated/src/frog/WaveShaperNode.dart');
 #source('generated/src/frog/WebGLActiveInfo.dart');
 #source('generated/src/frog/WebGLBuffer.dart');
 #source('generated/src/frog/WebGLContextAttributes.dart');

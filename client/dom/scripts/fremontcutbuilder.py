@@ -39,8 +39,7 @@ def main():
     'plugins',
     'storage',
     'svg',
-    # TODO(vsm): Fix parser/idl file to re-enable this.
-    #    'webaudio',
+    'webaudio',
     'websockets',
     'workers',
     'xml',

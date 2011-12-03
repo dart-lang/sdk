@@ -102,6 +102,187 @@ function DOM$fixClass$Attr(c) {
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
 }
+function DOM$fixClass$AudioBuffer(c) {
+  if (c.prototype) {
+    c.prototype.duration$getter = function() { return DOM$EnsureDartNull(this.duration); };
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+    c.prototype.gain$setter = function(value) { this.gain = value; };
+    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.numberOfChannels$getter = function() { return DOM$EnsureDartNull(this.numberOfChannels); };
+    c.prototype.sampleRate$getter = function() { return DOM$EnsureDartNull(this.sampleRate); };
+  }
+  DOM$fixMembers(c, ['getChannelData']);
+  c.$implements$AudioBuffer$Dart = 1;
+}
+function DOM$fixClass$AudioBufferCallback(c) {
+  if (c.prototype) {
+  }
+  DOM$fixMembers(c, ['handleEvent']);
+  c.$implements$AudioBufferCallback$Dart = 1;
+}
+function DOM$fixClass$AudioBufferSourceNode(c) {
+  if (c.prototype) {
+    c.prototype.buffer$getter = function() { return DOM$EnsureDartNull(this.buffer); };
+    c.prototype.buffer$setter = function(value) { this.buffer = value; };
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+    c.prototype.loop$getter = function() { return DOM$EnsureDartNull(this.loop); };
+    c.prototype.loop$setter = function(value) { this.loop = value; };
+    c.prototype.looping$getter = function() { return DOM$EnsureDartNull(this.looping); };
+    c.prototype.looping$setter = function(value) { this.looping = value; };
+    c.prototype.playbackRate$getter = function() { return DOM$EnsureDartNull(this.playbackRate); };
+  }
+  DOM$fixMembers(c, [
+    'noteGrainOn',
+    'noteOff',
+    'noteOn']);
+  c.$implements$AudioBufferSourceNode$Dart = 1;
+  c.$implements$AudioSourceNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioChannelMerger(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioChannelMerger$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioChannelSplitter(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioChannelSplitter$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioContext(c) {
+  if (c.prototype) {
+    c.prototype.currentTime$getter = function() { return DOM$EnsureDartNull(this.currentTime); };
+    c.prototype.destination$getter = function() { return DOM$EnsureDartNull(this.destination); };
+    c.prototype.listener$getter = function() { return DOM$EnsureDartNull(this.listener); };
+    c.prototype.sampleRate$getter = function() { return DOM$EnsureDartNull(this.sampleRate); };
+  }
+  DOM$fixMembers(c, [
+    'createAnalyser',
+    'createBiquadFilter',
+    'createBuffer',
+    'createBufferSource',
+    'createChannelMerger',
+    'createChannelSplitter',
+    'createConvolver',
+    'createDelayNode',
+    'createDynamicsCompressor',
+    'createGainNode',
+    'createHighPass2Filter',
+    'createJavaScriptNode',
+    'createLowPass2Filter',
+    'createPanner',
+    'createWaveShaper',
+    'decodeAudioData',
+    'startRendering']);
+  c.$implements$AudioContext$Dart = 1;
+}
+function DOM$fixClass$AudioDestinationNode(c) {
+  if (c.prototype) {
+    c.prototype.numberOfChannels$getter = function() { return DOM$EnsureDartNull(this.numberOfChannels); };
+  }
+  c.$implements$AudioDestinationNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioGain(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioGain$Dart = 1;
+  c.$implements$AudioParam$Dart = 1;
+}
+function DOM$fixClass$AudioGainNode(c) {
+  if (c.prototype) {
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+  }
+  c.$implements$AudioGainNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioListener(c) {
+  if (c.prototype) {
+    c.prototype.dopplerFactor$getter = function() { return DOM$EnsureDartNull(this.dopplerFactor); };
+    c.prototype.dopplerFactor$setter = function(value) { this.dopplerFactor = value; };
+    c.prototype.speedOfSound$getter = function() { return DOM$EnsureDartNull(this.speedOfSound); };
+    c.prototype.speedOfSound$setter = function(value) { this.speedOfSound = value; };
+  }
+  DOM$fixMembers(c, [
+    'setOrientation',
+    'setPosition',
+    'setVelocity']);
+  c.$implements$AudioListener$Dart = 1;
+}
+function DOM$fixClass$AudioNode(c) {
+  if (c.prototype) {
+    c.prototype.context$getter = function() { return DOM$EnsureDartNull(this.context); };
+    c.prototype.numberOfInputs$getter = function() { return DOM$EnsureDartNull(this.numberOfInputs); };
+    c.prototype.numberOfOutputs$getter = function() { return DOM$EnsureDartNull(this.numberOfOutputs); };
+  }
+  DOM$fixMembers(c, [
+    'connect',
+    'disconnect']);
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioPannerNode(c) {
+  if (c.prototype) {
+    c.prototype.coneGain$getter = function() { return DOM$EnsureDartNull(this.coneGain); };
+    c.prototype.coneInnerAngle$getter = function() { return DOM$EnsureDartNull(this.coneInnerAngle); };
+    c.prototype.coneInnerAngle$setter = function(value) { this.coneInnerAngle = value; };
+    c.prototype.coneOuterAngle$getter = function() { return DOM$EnsureDartNull(this.coneOuterAngle); };
+    c.prototype.coneOuterAngle$setter = function(value) { this.coneOuterAngle = value; };
+    c.prototype.coneOuterGain$getter = function() { return DOM$EnsureDartNull(this.coneOuterGain); };
+    c.prototype.coneOuterGain$setter = function(value) { this.coneOuterGain = value; };
+    c.prototype.distanceGain$getter = function() { return DOM$EnsureDartNull(this.distanceGain); };
+    c.prototype.distanceModel$getter = function() { return DOM$EnsureDartNull(this.distanceModel); };
+    c.prototype.distanceModel$setter = function(value) { this.distanceModel = value; };
+    c.prototype.maxDistance$getter = function() { return DOM$EnsureDartNull(this.maxDistance); };
+    c.prototype.maxDistance$setter = function(value) { this.maxDistance = value; };
+    c.prototype.panningModel$getter = function() { return DOM$EnsureDartNull(this.panningModel); };
+    c.prototype.panningModel$setter = function(value) { this.panningModel = value; };
+    c.prototype.refDistance$getter = function() { return DOM$EnsureDartNull(this.refDistance); };
+    c.prototype.refDistance$setter = function(value) { this.refDistance = value; };
+    c.prototype.rolloffFactor$getter = function() { return DOM$EnsureDartNull(this.rolloffFactor); };
+    c.prototype.rolloffFactor$setter = function(value) { this.rolloffFactor = value; };
+  }
+  DOM$fixMembers(c, [
+    'setOrientation',
+    'setPosition',
+    'setVelocity']);
+  c.$implements$AudioPannerNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioParam(c) {
+  if (c.prototype) {
+    c.prototype.defaultValue$getter = function() { return DOM$EnsureDartNull(this.defaultValue); };
+    c.prototype.maxValue$getter = function() { return DOM$EnsureDartNull(this.maxValue); };
+    c.prototype.minValue$getter = function() { return DOM$EnsureDartNull(this.minValue); };
+    c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.units$getter = function() { return DOM$EnsureDartNull(this.units); };
+    c.prototype.value$getter = function() { return DOM$EnsureDartNull(this.value); };
+    c.prototype.value$setter = function(value) { this.value = value; };
+  }
+  DOM$fixMembers(c, [
+    'cancelScheduledValues',
+    'exponentialRampToValueAtTime',
+    'linearRampToValueAtTime',
+    'setTargetValueAtTime',
+    'setValueAtTime',
+    'setValueCurveAtTime']);
+  c.$implements$AudioParam$Dart = 1;
+}
+function DOM$fixClass$AudioProcessingEvent(c) {
+  if (c.prototype) {
+    c.prototype.inputBuffer$getter = function() { return DOM$EnsureDartNull(this.inputBuffer); };
+    c.prototype.outputBuffer$getter = function() { return DOM$EnsureDartNull(this.outputBuffer); };
+  }
+  c.$implements$AudioProcessingEvent$Dart = 1;
+  c.$implements$Event$Dart = 1;
+}
+function DOM$fixClass$AudioSourceNode(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioSourceNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$BarInfo(c) {
   if (c.prototype) {
     c.prototype.visible$getter = function() { return DOM$EnsureDartNull(this.visible); };
@@ -115,6 +296,17 @@ function DOM$fixClass$BeforeLoadEvent(c) {
   DOM$fixMembers(c, ['initBeforeLoadEvent']);
   c.$implements$BeforeLoadEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
+}
+function DOM$fixClass$BiquadFilterNode(c) {
+  if (c.prototype) {
+    c.prototype.Q$getter = function() { return DOM$EnsureDartNull(this.Q); };
+    c.prototype.frequency$getter = function() { return DOM$EnsureDartNull(this.frequency); };
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+    c.prototype.type$setter = function(value) { this.type = value; };
+  }
+  c.$implements$BiquadFilterNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$Blob(c) {
   if (c.prototype) {
@@ -506,6 +698,14 @@ function DOM$fixClass$Console(c) {
     return DOM$EnsureDartNull(this.assertCondition.apply(this, arguments));
   };
   c.$implements$Console$Dart = 1;
+}
+function DOM$fixClass$ConvolverNode(c) {
+  if (c.prototype) {
+    c.prototype.buffer$getter = function() { return DOM$EnsureDartNull(this.buffer); };
+    c.prototype.buffer$setter = function(value) { this.buffer = value; };
+  }
+  c.$implements$ConvolverNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$Coordinates(c) {
   if (c.prototype) {
@@ -910,6 +1110,13 @@ function DOM$fixClass$DedicatedWorkerContext(c) {
   c.$implements$DedicatedWorkerContext$Dart = 1;
   c.$implements$WorkerContext$Dart = 1;
 }
+function DOM$fixClass$DelayNode(c) {
+  if (c.prototype) {
+    c.prototype.delayTime$getter = function() { return DOM$EnsureDartNull(this.delayTime); };
+  }
+  c.$implements$DelayNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$DeviceMotionEvent(c) {
   if (c.prototype) {
     c.prototype.interval$getter = function() { return DOM$EnsureDartNull(this.interval); };
@@ -1073,6 +1280,12 @@ function DOM$fixClass$DocumentType(c) {
   c.$implements$DocumentType$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
+}
+function DOM$fixClass$DynamicsCompressorNode(c) {
+  if (c.prototype) {
+  }
+  c.$implements$DynamicsCompressorNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$Element(c) {
   if (c.prototype) {
@@ -3255,6 +3468,14 @@ function DOM$fixClass$HashChangeEvent(c) {
   c.$implements$HashChangeEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
+function DOM$fixClass$HighPass2FilterNode(c) {
+  if (c.prototype) {
+    c.prototype.cutoff$getter = function() { return DOM$EnsureDartNull(this.cutoff); };
+    c.prototype.resonance$getter = function() { return DOM$EnsureDartNull(this.resonance); };
+  }
+  c.$implements$HighPass2FilterNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$History(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
@@ -3528,6 +3749,13 @@ function DOM$fixClass$Int8Array(c) {
   c.$implements$Int8Array$Dart = 1;
   c.$implements$ArrayBufferView$Dart = 1;
 }
+function DOM$fixClass$JavaScriptAudioNode(c) {
+  if (c.prototype) {
+    c.prototype.bufferSize$getter = function() { return DOM$EnsureDartNull(this.bufferSize); };
+  }
+  c.$implements$JavaScriptAudioNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$JavaScriptCallFrame(c) {
   if (c.prototype) {
     c.prototype.caller$getter = function() { return DOM$EnsureDartNull(this.caller); };
@@ -3587,6 +3815,22 @@ function DOM$fixClass$Location(c) {
     return DOM$EnsureDartNull(this.toStringFunction.apply(this, arguments));
   };
   c.$implements$Location$Dart = 1;
+}
+function DOM$fixClass$LowPass2FilterNode(c) {
+  if (c.prototype) {
+    c.prototype.cutoff$getter = function() { return DOM$EnsureDartNull(this.cutoff); };
+    c.prototype.resonance$getter = function() { return DOM$EnsureDartNull(this.resonance); };
+  }
+  c.$implements$LowPass2FilterNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$MediaElementAudioSourceNode(c) {
+  if (c.prototype) {
+    c.prototype.mediaElement$getter = function() { return DOM$EnsureDartNull(this.mediaElement); };
+  }
+  c.$implements$MediaElementAudioSourceNode$Dart = 1;
+  c.$implements$AudioSourceNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$MediaError(c) {
   if (c.prototype) {
@@ -3967,6 +4211,13 @@ function DOM$fixClass$OESVertexArrayObject(c) {
     'isVertexArrayOES']);
   c.$implements$OESVertexArrayObject$Dart = 1;
 }
+function DOM$fixClass$OfflineAudioCompletionEvent(c) {
+  if (c.prototype) {
+    c.prototype.renderedBuffer$getter = function() { return DOM$EnsureDartNull(this.renderedBuffer); };
+  }
+  c.$implements$OfflineAudioCompletionEvent$Dart = 1;
+  c.$implements$Event$Dart = 1;
+}
 function DOM$fixClass$OperationNotAllowedException(c) {
   if (c.prototype) {
     c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
@@ -4136,6 +4387,25 @@ function DOM$fixClass$RangeException(c) {
   }
   DOM$fixMembers(c, ['toString']);
   c.$implements$RangeException$Dart = 1;
+}
+function DOM$fixClass$RealtimeAnalyserNode(c) {
+  if (c.prototype) {
+    c.prototype.fftSize$getter = function() { return DOM$EnsureDartNull(this.fftSize); };
+    c.prototype.fftSize$setter = function(value) { this.fftSize = value; };
+    c.prototype.frequencyBinCount$getter = function() { return DOM$EnsureDartNull(this.frequencyBinCount); };
+    c.prototype.maxDecibels$getter = function() { return DOM$EnsureDartNull(this.maxDecibels); };
+    c.prototype.maxDecibels$setter = function(value) { this.maxDecibels = value; };
+    c.prototype.minDecibels$getter = function() { return DOM$EnsureDartNull(this.minDecibels); };
+    c.prototype.minDecibels$setter = function(value) { this.minDecibels = value; };
+    c.prototype.smoothingTimeConstant$getter = function() { return DOM$EnsureDartNull(this.smoothingTimeConstant); };
+    c.prototype.smoothingTimeConstant$setter = function(value) { this.smoothingTimeConstant = value; };
+  }
+  DOM$fixMembers(c, [
+    'getByteFrequencyData',
+    'getByteTimeDomainData',
+    'getFloatFrequencyData']);
+  c.$implements$RealtimeAnalyserNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$Rect(c) {
   if (c.prototype) {
@@ -7426,6 +7696,14 @@ function DOM$fixClass$VoidCallback(c) {
   DOM$fixMembers(c, ['handleEvent']);
   c.$implements$VoidCallback$Dart = 1;
 }
+function DOM$fixClass$WaveShaperNode(c) {
+  if (c.prototype) {
+    c.prototype.curve$getter = function() { return DOM$EnsureDartNull(this.curve); };
+    c.prototype.curve$setter = function(value) { this.curve = value; };
+  }
+  c.$implements$WaveShaperNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$WebGLActiveInfo(c) {
   if (c.prototype) {
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
@@ -8102,6 +8380,66 @@ var _;
     w.Attr$Dart = _;
     DOM$fixClass$Attr(_);
   }
+  if ((_ = w.AudioBuffer)) {
+    w.AudioBuffer$Dart = _;
+    DOM$fixClass$AudioBuffer(_);
+  }
+  if ((_ = w.AudioBufferCallback)) {
+    w.AudioBufferCallback$Dart = _;
+    DOM$fixClass$AudioBufferCallback(_);
+  }
+  if ((_ = w.AudioBufferSourceNode)) {
+    w.AudioBufferSourceNode$Dart = _;
+    DOM$fixClass$AudioBufferSourceNode(_);
+  }
+  if ((_ = w.AudioChannelMerger)) {
+    w.AudioChannelMerger$Dart = _;
+    DOM$fixClass$AudioChannelMerger(_);
+  }
+  if ((_ = w.AudioChannelSplitter)) {
+    w.AudioChannelSplitter$Dart = _;
+    DOM$fixClass$AudioChannelSplitter(_);
+  }
+  if ((_ = w.AudioContext)) {
+    w.AudioContext$Dart = _;
+    DOM$fixClass$AudioContext(_);
+  }
+  if ((_ = w.AudioDestinationNode)) {
+    w.AudioDestinationNode$Dart = _;
+    DOM$fixClass$AudioDestinationNode(_);
+  }
+  if ((_ = w.AudioGain)) {
+    w.AudioGain$Dart = _;
+    DOM$fixClass$AudioGain(_);
+  }
+  if ((_ = w.AudioGainNode)) {
+    w.AudioGainNode$Dart = _;
+    DOM$fixClass$AudioGainNode(_);
+  }
+  if ((_ = w.AudioListener)) {
+    w.AudioListener$Dart = _;
+    DOM$fixClass$AudioListener(_);
+  }
+  if ((_ = w.AudioNode)) {
+    w.AudioNode$Dart = _;
+    DOM$fixClass$AudioNode(_);
+  }
+  if ((_ = w.AudioPannerNode)) {
+    w.AudioPannerNode$Dart = _;
+    DOM$fixClass$AudioPannerNode(_);
+  }
+  if ((_ = w.AudioParam)) {
+    w.AudioParam$Dart = _;
+    DOM$fixClass$AudioParam(_);
+  }
+  if ((_ = w.AudioProcessingEvent)) {
+    w.AudioProcessingEvent$Dart = _;
+    DOM$fixClass$AudioProcessingEvent(_);
+  }
+  if ((_ = w.AudioSourceNode)) {
+    w.AudioSourceNode$Dart = _;
+    DOM$fixClass$AudioSourceNode(_);
+  }
   if (!w.BarInfo && (_ = w.toolbar) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.BarInfo = _;
   }
@@ -8112,6 +8450,10 @@ var _;
   if ((_ = w.BeforeLoadEvent)) {
     w.BeforeLoadEvent$Dart = _;
     DOM$fixClass$BeforeLoadEvent(_);
+  }
+  if ((_ = w.BiquadFilterNode)) {
+    w.BiquadFilterNode$Dart = _;
+    DOM$fixClass$BiquadFilterNode(_);
   }
   if ((_ = w.Blob)) {
     w.Blob$Dart = _;
@@ -8231,6 +8573,10 @@ var _;
   if ((_ = w.Console)) {
     w.Console$Dart = _;
     DOM$fixClass$Console(_);
+  }
+  if ((_ = w.ConvolverNode)) {
+    w.ConvolverNode$Dart = _;
+    DOM$fixClass$ConvolverNode(_);
   }
   if ((_ = w.Coordinates)) {
     w.Coordinates$Dart = _;
@@ -8352,6 +8698,10 @@ var _;
     w.DedicatedWorkerContext$Dart = _;
     DOM$fixClass$DedicatedWorkerContext(_);
   }
+  if ((_ = w.DelayNode)) {
+    w.DelayNode$Dart = _;
+    DOM$fixClass$DelayNode(_);
+  }
   if ((_ = w.DeviceMotionEvent)) {
     w.DeviceMotionEvent$Dart = _;
     DOM$fixClass$DeviceMotionEvent(_);
@@ -8390,6 +8740,10 @@ var _;
   if ((_ = w.DocumentType)) {
     w.DocumentType$Dart = _;
     DOM$fixClass$DocumentType(_);
+  }
+  if ((_ = w.DynamicsCompressorNode)) {
+    w.DynamicsCompressorNode$Dart = _;
+    DOM$fixClass$DynamicsCompressorNode(_);
   }
   if (!w.Element && (_ = w.frameElement) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.Element = _;
@@ -8829,6 +9183,10 @@ var _;
     w.HashChangeEvent$Dart = _;
     DOM$fixClass$HashChangeEvent(_);
   }
+  if ((_ = w.HighPass2FilterNode)) {
+    w.HighPass2FilterNode$Dart = _;
+    DOM$fixClass$HighPass2FilterNode(_);
+  }
   if (!w.History && (_ = w.history) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.History = _;
   }
@@ -8920,6 +9278,10 @@ var _;
     w.Int8Array$Dart = _;
     DOM$fixClass$Int8Array(_);
   }
+  if ((_ = w.JavaScriptAudioNode)) {
+    w.JavaScriptAudioNode$Dart = _;
+    DOM$fixClass$JavaScriptAudioNode(_);
+  }
   if ((_ = w.JavaScriptCallFrame)) {
     w.JavaScriptCallFrame$Dart = _;
     DOM$fixClass$JavaScriptCallFrame(_);
@@ -8934,6 +9296,14 @@ var _;
   if ((_ = w.Location)) {
     w.Location$Dart = _;
     DOM$fixClass$Location(_);
+  }
+  if ((_ = w.LowPass2FilterNode)) {
+    w.LowPass2FilterNode$Dart = _;
+    DOM$fixClass$LowPass2FilterNode(_);
+  }
+  if ((_ = w.MediaElementAudioSourceNode)) {
+    w.MediaElementAudioSourceNode$Dart = _;
+    DOM$fixClass$MediaElementAudioSourceNode(_);
   }
   if ((_ = w.MediaError)) {
     w.MediaError$Dart = _;
@@ -9061,6 +9431,10 @@ var _;
     w.OESVertexArrayObject$Dart = _;
     DOM$fixClass$OESVertexArrayObject(_);
   }
+  if ((_ = w.OfflineAudioCompletionEvent)) {
+    w.OfflineAudioCompletionEvent$Dart = _;
+    DOM$fixClass$OfflineAudioCompletionEvent(_);
+  }
   if ((_ = w.OperationNotAllowedException)) {
     w.OperationNotAllowedException$Dart = _;
     DOM$fixClass$OperationNotAllowedException(_);
@@ -9129,6 +9503,10 @@ var _;
   if ((_ = w.RangeException)) {
     w.RangeException$Dart = _;
     DOM$fixClass$RangeException(_);
+  }
+  if ((_ = w.RealtimeAnalyserNode)) {
+    w.RealtimeAnalyserNode$Dart = _;
+    DOM$fixClass$RealtimeAnalyserNode(_);
   }
   if ((_ = w.Rect)) {
     w.Rect$Dart = _;
@@ -9934,6 +10312,10 @@ var _;
   if ((_ = w.VoidCallback)) {
     w.VoidCallback$Dart = _;
     DOM$fixClass$VoidCallback(_);
+  }
+  if ((_ = w.WaveShaperNode)) {
+    w.WaveShaperNode$Dart = _;
+    DOM$fixClass$WaveShaperNode(_);
   }
   if ((_ = w.WebGLActiveInfo)) {
     w.WebGLActiveInfo$Dart = _;
