@@ -5,6 +5,7 @@
 #include "vm/dart.h"
 
 #include "vm/code_index_table.h"
+#include "vm/freelist.h"
 #include "vm/flags.h"
 #include "vm/handles.h"
 #include "vm/heap.h"
@@ -32,6 +33,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback callback) {
   VirtualMemory::InitOnce();
   Isolate::InitOnce();
   PortMap::InitOnce();
+  FreeListElement::InitOnce();
   // Create the VM isolate and finish the VM initialization.
   {
     ASSERT(vm_isolate_ == NULL);

@@ -252,6 +252,7 @@ class RawClass : public RawObject {
 
   friend class Object;
   friend class RawInstance;
+  friend RawClass* AllocateFakeClass();
 };
 
 
