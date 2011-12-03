@@ -45,7 +45,7 @@ from os.path import dirname, join, realpath, exists, isdir
 from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree
 
 def Main(argv):
-# Pull in all of the gpyi files which will be munged into the sdk.
+  # Pull in all of the gpyi files which will be munged into the sdk.
   corelib_sources = \
     (eval(open("corelib/src/corelib_sources.gypi").read()))['sources']
   corelib_frog_sources = \
@@ -71,6 +71,13 @@ def Main(argv):
   HOME = dirname(dirname(realpath(__file__)))
 
   SDK = argv[1]
+
+  # TODO(dgrove) - deal with architectures that are not ia32.
+  if (os.path.basename(os.path.dirname(SDK)) != 
+      utils.GetBuildConf('release', 'ia32')):
+    print "SDK is not built in Debug mode."
+    exit(0)
+
   if exists(SDK):
     rmtree(SDK)
 
@@ -79,7 +86,7 @@ def Main(argv):
   os.makedirs(BIN)
 
   # Copy the Dart VM binary into sdk/bin.
-  # TODO(dgrove) - deal with architectures that are not ia32
+  # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')
   if utils.GuessOS() == 'win32':
     dart_src_binary = join(join(HOME, build_dir), 'dart.exe')
@@ -100,7 +107,7 @@ def Main(argv):
     re.sub("#import\('", "#import('../lib/frog/", frogc_contents))
   frogc_dest.close()
 
-  # TODO(dgrove): copy and fix up frog.dart, minfrogc.dart
+  # TODO(dgrove): copy and fix up frog.dart, minfrogc.dart.
 
   #
   # Create and populate sdk/lib.
@@ -263,10 +270,10 @@ def Main(argv):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
 
-  # TODO(dgrove) - create lib/core/core_compiler.dart
+  # TODO(dgrove) - create lib/core/core_compiler.dart .
 
   #
-  # Create and populate lib/coreimpl
+  # Create and populate lib/coreimpl.
   #
 
   # First, copy corelib/src/implementation to corelib/{compiler, frog, runtime}.
@@ -313,7 +320,7 @@ def Main(argv):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
 
-  # TODO(dgrove) - create lib/coreimpl/coreimpl_compiler.dart
+  # TODO(dgrove) - create lib/coreimpl/coreimpl_compiler.dart .
 
   # Create and copy tools.
 
