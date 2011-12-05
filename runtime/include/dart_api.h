@@ -788,16 +788,64 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
 
 typedef void (*Dart_PeerFinalizer)(void* peer);
 
+/**
+ * Is this object an external String?
+ *
+ * An external String is a String which references a fixed array of
+ * codepoints which is external to the Dart heap.
+ */
+DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
+
+/**
+ * Retrieves the peer pointer associated with an external String.
+ */
+DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
+                                                   void** peer);
+
+
+/**
+ * Returns a String which references an external array of 8-bit codepoints.
+ *
+ * \param value An array of 8-bit codepoints.  This array must not move.
+ * \param length The length of the codepoints array.
+ * \param peer An external pointer to associate with this string.
+ * \param callback A callback to be called when this string is finalized.
+ *
+ * \return The String object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
                                                 intptr_t length,
                                                 void* peer,
                                                 Dart_PeerFinalizer callback);
 
+/**
+ * Returns a String which references an external array of 16-bit codepoints.
+ *
+ * \param value An array of 16-bit codepoints.  This array must not move.
+ * \param length The length of the codepoints array.
+ * \param peer An external pointer to associate with this string.
+ * \param callback A callback to be called when this string is finalized.
+ *
+ * \return The String object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
                                                  intptr_t length,
                                                  void* peer,
                                                  Dart_PeerFinalizer callback);
 
+/**
+ * Returns a String which references an external array of 32-bit codepoints.
+ *
+ * \param value An array of 32-bit codepoints.  This array must not move.
+ * \param length The length of the codepoints array.
+ * \param peer An external pointer to associate with this string.
+ * \param callback A callback to be called when this string is finalized.
+ *
+ * \return The String object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
                                                  intptr_t length,
                                                  void* peer,

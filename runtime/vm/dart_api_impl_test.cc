@@ -364,6 +364,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(str8));
   EXPECT(Dart_IsString8(str8));
   EXPECT(Dart_IsString16(str8));
+  EXPECT(!Dart_IsExternalString(str8));
 
   Dart_Handle ext8 = Dart_NewExternalString8(data8, ARRAY_SIZE(data8),
                                              NULL, NULL);
@@ -371,6 +372,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(ext8));
   EXPECT(Dart_IsString8(ext8));
   EXPECT(Dart_IsString16(ext8));
+  EXPECT(Dart_IsExternalString(ext8));
 
   uint16_t data16[] = { 't', 'w', 'o', 0xFFFF };
 
@@ -379,6 +381,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(str16));
   EXPECT(!Dart_IsString8(str16));
   EXPECT(Dart_IsString16(str16));
+  EXPECT(!Dart_IsExternalString(str16));
 
   Dart_Handle ext16 = Dart_NewExternalString16(data16, ARRAY_SIZE(data16),
                                                NULL, NULL);
@@ -386,6 +389,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(ext16));
   EXPECT(!Dart_IsString8(ext16));
   EXPECT(Dart_IsString16(ext16));
+  EXPECT(Dart_IsExternalString(ext16));
 
   uint32_t data32[] = { 'f', 'o', 'u', 'r', 0x10FFFF };
 
@@ -394,6 +398,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(str32));
   EXPECT(!Dart_IsString8(str32));
   EXPECT(!Dart_IsString16(str32));
+  EXPECT(!Dart_IsExternalString(str32));
 
   Dart_Handle ext32 = Dart_NewExternalString32(data32, ARRAY_SIZE(data32),
                                                NULL, NULL);
@@ -401,6 +406,50 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(ext32));
   EXPECT(!Dart_IsString8(ext32));
   EXPECT(!Dart_IsString16(ext32));
+  EXPECT(Dart_IsExternalString(ext32));
+}
+
+
+UNIT_TEST_CASE(ExternalStringGetPeer) {
+  TestIsolateScope __test_isolate__;
+  Dart_Handle result;
+
+  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
+  int peer_data = 123;
+  void* peer = NULL;
+
+  // Success.
+  Dart_Handle ext8 = Dart_NewExternalString8(data8, ARRAY_SIZE(data8),
+                                             &peer_data, NULL);
+  EXPECT_VALID(ext8);
+
+  result = Dart_ExternalStringGetPeer(ext8, &peer);
+  EXPECT_VALID(result);
+  EXPECT_EQ(&peer_data, peer);
+
+  // NULL peer.
+  result = Dart_ExternalStringGetPeer(ext8, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'peer' to be "
+               "non-NULL.", Dart_GetError(result));
+
+  // String is not external.
+  peer = NULL;
+  Dart_Handle str8 = Dart_NewString8(data8, ARRAY_SIZE(data8));
+  EXPECT_VALID(str8);
+  result = Dart_ExternalStringGetPeer(str8, &peer);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'object' to be "
+               "an external String.", Dart_GetError(result));
+  EXPECT(peer == NULL);
+
+  // Not a String.
+  peer = NULL;
+  result = Dart_ExternalStringGetPeer(Dart_True(), &peer);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'object' to be "
+               "of type String.", Dart_GetError(result));
+  EXPECT(peer == NULL);
 }
 
 

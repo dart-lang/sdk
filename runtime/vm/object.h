@@ -2475,6 +2475,12 @@ class String : public Instance {
 
   bool IsSymbol() const;
 
+  virtual bool IsExternal() const { return false; }
+  virtual void* GetPeer() const {
+    UNREACHABLE();
+    return NULL;
+  }
+
   static RawString* New(const char* str, Heap::Space space = Heap::kNew);
   static RawString* New(const uint8_t* characters,
                         intptr_t len,
@@ -2751,6 +2757,11 @@ class ExternalOneByteString : public String {
     return kOneByteChar;
   }
 
+  virtual bool IsExternal() const { return true; }
+  virtual void* GetPeer() const {
+    return raw_ptr()->external_data_->peer_;
+  }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalOneByteString));
   }
@@ -2788,6 +2799,11 @@ class ExternalTwoByteString : public String {
     return kTwoByteChar;
   }
 
+  virtual bool IsExternal() const { return true; }
+  virtual void* GetPeer() const {
+    return raw_ptr()->external_data_->peer_;
+  }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalTwoByteString));
   }
@@ -2823,6 +2839,11 @@ class ExternalFourByteString : public String {
 
   virtual intptr_t CharSize() const {
     return kFourByteChar;
+  }
+
+  virtual bool IsExternal() const { return true; }
+  virtual void* GetPeer() const {
+    return raw_ptr()->external_data_->peer_;
   }
 
   static intptr_t InstanceSize() {

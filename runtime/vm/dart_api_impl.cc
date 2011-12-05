@@ -1134,6 +1134,36 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
 }
 
 
+DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
+  DARTSCOPE(Isolate::Current());
+  const String& str = Api::UnwrapStringHandle(object);
+  if (str.IsNull()) {
+    return false;
+  }
+  return str.IsExternal();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
+                                                   void** peer) {
+  DARTSCOPE(Isolate::Current());
+  const String& str = Api::UnwrapStringHandle(object);
+  if (str.IsNull()) {
+    RETURN_TYPE_ERROR(object, String);
+  }
+  if (!str.IsExternal()) {
+    return Api::Error("%s expects argument 'object' to be an external String.",
+                      CURRENT_FUNC);
+  }
+  if (peer == NULL) {
+    return Api::Error("%s expects argument 'peer' to be non-NULL.",
+                      CURRENT_FUNC);
+  }
+  *peer = str.GetPeer();
+  return Api::Success();
+}
+
+
 DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
                                                 intptr_t length,
                                                 void* peer,
