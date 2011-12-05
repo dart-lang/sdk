@@ -12,7 +12,6 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.backend.js.analysis.SpecializedJavascriptTreeShaker;
 import com.google.dart.compiler.common.GenerateSourceMap;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
@@ -174,8 +173,7 @@ public class JavascriptBackend extends AbstractJsBackend  {
                          CoreTypeProvider typeProvider)
       throws IOException {
     List<SourceMapSection> appSections = Lists.newArrayList();
-    String completeArtifactName = EXTENSION_APP_JS + ".complete";
-    Writer out = context.getArtifactWriter(app, "", completeArtifactName);
+    Writer out = context.getArtifactWriter(app, "", EXTENSION_APP_JS);
     boolean failed = true;
     try {
       // Emit the concatenated Javascript sources in dependency order.
@@ -186,19 +184,7 @@ public class JavascriptBackend extends AbstractJsBackend  {
     } finally {
       Closeables.close(out, failed);
     }
-    
-    long fileSize = computeCompleteArtifactSize(app, context, completeArtifactName);
-    Reader artifactReader = context.getArtifactReader(app, "", completeArtifactName);
-    Writer artifactWriter = context.getArtifactWriter(app, "", EXTENSION_APP_JS);
-    try {
-      failed = true;
-      SpecializedJavascriptTreeShaker.treeShake(artifactReader, artifactWriter, fileSize);
-      failed = false;
-    } finally {
-      Closeables.close(artifactWriter, failed);
-      Closeables.close(artifactReader, failed);
-    }
-    
+
     Writer srcMapOut = context.getArtifactWriter(app, "", EXTENSION_APP_JS_SRC_MAP);
     failed = true;
     try {
@@ -209,19 +195,6 @@ public class JavascriptBackend extends AbstractJsBackend  {
       failed = false;
     } finally {
       Closeables.close(srcMapOut, failed);
-    }
-  }
-
-  private static long computeCompleteArtifactSize(LibrarySource app, DartCompilerContext context,
-      String completeArtifactName) throws IOException {
-    Reader artifactReader = context.getArtifactReader(app, "", completeArtifactName);
-    boolean failed = true;
-    try {
-      long fileSize = artifactReader.skip(Long.MAX_VALUE);
-      failed = false;
-      return fileSize;
-    } finally {
-      Closeables.close(artifactReader, failed);
     }
   }
 
