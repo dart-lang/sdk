@@ -294,7 +294,6 @@ Prefix14NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
 Prefix15Test: Fail
-Private3Test: Fail
 PrivateMemberTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
