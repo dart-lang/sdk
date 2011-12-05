@@ -134,11 +134,13 @@ intptr_t ActivationFrame::LineNumber() {
 
 RawArray* ActivationFrame::Variables() {
   UNIMPLEMENTED();
+  return NULL;
 }
 
 
 RawInstance* ActivationFrame::Value(const String& variable_name) {
   UNIMPLEMENTED();
+  return NULL;
 }
 
 

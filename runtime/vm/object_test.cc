@@ -2188,11 +2188,11 @@ TEST_CASE(PcDescriptors) {
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
   EXPECT_EQ(kNumEntries, pc_descs.Length());
   EXPECT_EQ(1, pc_descs.TryIndex(0));
-  EXPECT_EQ(10, pc_descs.PC(0));
+  EXPECT_EQ(static_cast<uword>(10), pc_descs.PC(0));
   EXPECT_EQ(1, pc_descs.NodeId(0));
   EXPECT_EQ(20, pc_descs.TokenIndex(0));
   EXPECT_EQ(3, pc_descs.TryIndex(5));
-  EXPECT_EQ(80, pc_descs.PC(5));
+  EXPECT_EQ(static_cast<uword>(80), pc_descs.PC(5));
   EXPECT_EQ(150, pc_descs.TokenIndex(5));
   EXPECT_EQ(PcDescriptors::kOther, pc_descs.DescriptorKind(0));
   EXPECT_EQ(PcDescriptors::kDeopt, pc_descs.DescriptorKind(1));

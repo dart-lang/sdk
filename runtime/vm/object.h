@@ -1731,7 +1731,7 @@ class PcDescriptors : public Object {
 
   intptr_t Length() const;
 
-  intptr_t PC(intptr_t index) const;
+  uword PC(intptr_t index) const;
   PcDescriptors::Kind DescriptorKind(intptr_t index) const;
   const char* KindAsStr(intptr_t index) const;
   intptr_t NodeId(intptr_t index) const;
@@ -1739,7 +1739,7 @@ class PcDescriptors : public Object {
   intptr_t TryIndex(intptr_t index) const;
 
   void AddDescriptor(intptr_t index,
-                     intptr_t pc,
+                     uword pc,
                      PcDescriptors::Kind kind,
                      intptr_t node_id,
                      intptr_t token_index,
@@ -1778,7 +1778,7 @@ class PcDescriptors : public Object {
     kNumberOfEntries
   };
 
-  void SetPC(intptr_t index, intptr_t value) const;
+  void SetPC(intptr_t index, uword value) const;
   void SetKind(intptr_t index, PcDescriptors::Kind kind) const;
   void SetNodeId(intptr_t index, intptr_t value) const;
   void SetTokenIndex(intptr_t index, intptr_t value) const;

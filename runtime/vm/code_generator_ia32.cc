@@ -320,7 +320,7 @@ static void VerifyPcDescriptors(const PcDescriptors& descriptors,
     return;
   }
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    intptr_t pc = descriptors.PC(i);
+    uword pc = descriptors.PC(i);
     PcDescriptors::Kind kind = descriptors.DescriptorKind(i);
     // 'node_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t node_id = AstNode::kNoId;

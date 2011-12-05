@@ -4421,13 +4421,13 @@ void PcDescriptors::SetLength(intptr_t value) const {
 }
 
 
-intptr_t PcDescriptors::PC(intptr_t index) const {
-  return *(EntryAddr(index, kPcEntry));
+uword PcDescriptors::PC(intptr_t index) const {
+  return static_cast<uword>(*(EntryAddr(index, kPcEntry)));
 }
 
 
-void PcDescriptors::SetPC(intptr_t index, intptr_t value) const {
-  *(EntryAddr(index, kPcEntry)) = value;
+void PcDescriptors::SetPC(intptr_t index, uword value) const {
+  *(EntryAddr(index, kPcEntry)) = static_cast<intptr_t>(value);
 }
 
 
@@ -4691,7 +4691,7 @@ intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   intptr_t token_index = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if (static_cast<uword>(descriptors.PC(i)) == pc) {
+    if (descriptors.PC(i) == pc) {
       token_index = descriptors.TokenIndex(i);
       break;
     }
