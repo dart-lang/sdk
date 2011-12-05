@@ -27,6 +27,11 @@
         'include/dart_api.h',
         'vm/dart_api_impl.cc',
       ],
+      'direct_dependent_settings': {
+        'include_dirs': [
+          'include',
+        ],
+      },
     },
   ],
 }
