@@ -1,12 +1,12 @@
 /* Reset */
-body, h1, h2, h3, h4, p, pre, section {
+body, h1, h2, h3, h4, li, ol, p, pre, section, ul {
   margin: 0;
   padding: 0;
 }
 
 body {
   font-family: Georgia, serif;
-  background: #eee;
+  background: #e4e4e4;
   color: #333;
 }
 
@@ -67,6 +67,15 @@ a:visited {
   color: hsl(270, 50%, 40%);
 }
 
+li {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+ol, ul {
+  padding-left: 22px;
+}
+
 hr {
   border: none;
   height: 1px;
@@ -78,13 +87,82 @@ hr + h2 {
   margin-top: 21px; /* To compensate for the thickness of the hr. */
 }
 
-.content {
-  max-width: 704px; /* 32 x 22px */
-  padding: 22px 22px;
+.page {
+  max-width: 960px; /* 43 x 22px */
   background: #fff;
   margin: 0 auto 22px auto;
   border: solid 1px #ccc;
   border-top: none;
+}
+
+.nav {
+  float: left;
+  width: 263px; /* 12 x 22px - 1 for border */
+  padding: 22px 22px;
+  overflow: hidden;
+  background: #f4f4f4;
+  border-right: solid 1px #ccc;
+}
+
+.nav h2 {
+  font: 400 16px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  margin: 22px -21px 0 -21px;
+  padding: 11px 22px;
+
+  /* Using http://www.colorzilla.com/gradient-editor/ */
+  background: -moz-linear-gradient(top, hsla(0,0%,0%,0.05) 0%, hsla(0,0%,0%,0) 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,hsla(0,0%,0%,0.05)), color-stop(100%,hsla(0,0%,0%,0)));
+  background: -webkit-linear-gradient(top, hsla(0,0%,0%,0.05) 0%,hsla(0,0%,0%,0) 100%);
+  background: -o-linear-gradient(top, hsla(0,0%,0%,0.05) 0%,hsla(0,0%,0%,0) 100%);
+  background: -ms-linear-gradient(top, hsla(0,0%,0%,0.05) 0%,hsla(0,0%,0%,0) 100%);
+  background: linear-gradient(top, hsla(0,0%,0%,0.05) 0%,hsla(0,0%,0%,0) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0d000000', endColorstr='#00000000',GradientType=0);
+}
+
+.nav li {
+  font: 600 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  list-style-type: none;
+}
+
+.nav ul {
+  padding: 0;
+}
+
+.icon-class,
+.icon-interface {
+  display: inline-block;
+  width: 12px;
+  height: 13px;
+  margin: 4px 8px 0 2px;
+  vertical-align: top;
+}
+
+.icon-class {
+  background: url('class.png');
+}
+
+.icon-interface {
+  background: url('interface.png');
+}
+
+.icon-library {
+  background: url('library.png');
+  width: 16px;
+  height: 14px;
+  display: inline-block;
+  margin: 4px 4px 0 0;
+  vertical-align: top;
+}
+
+.content {
+  margin-left: 308px; /* 14 x 22px */
+  padding: 22px 22px;
+}
+
+.footer {
+  clear: both;
 }
 
 .method .doc,
@@ -201,7 +279,7 @@ body {
   background-repeat: repeat;
 }
 
-.content {
+.page {
   background: none;
 }
 

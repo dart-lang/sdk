@@ -21,6 +21,8 @@
 #import('../markdown/lib.dart', prefix: 'md');
 
 #source('classify.dart');
+#source('files.dart');
+#source('utils.dart');
 
 /** Path to corePath library. */
 final corePath = 'lib';
@@ -29,16 +31,10 @@ final corePath = 'lib';
 final outdir = 'docs';
 
 /** Set to `true` to include the source code in the generated docs. */
-bool includeSource = true;
+bool includeSource = false;
 
 /** Special comment position used to store the library-level doc comment. */
 final _libraryDoc = -1;
-
-/** The path to the file currently being written to, relative to [outdir]. */
-String _filePath;
-
-/** The file currently being written to. */
-StringBuffer _file;
 
 /** The library that we're currently generating docs for. */
 Library _currentLibrary;
@@ -61,8 +57,6 @@ Map<String, Map<int, String>> _comments;
 int _totalLibraries = 0;
 int _totalTypes = 0;
 int _totalMembers = 0;
-
-FileSystem files;
 
 /**
  * Run this from the `utils/dartdoc` directory.
@@ -102,17 +96,6 @@ void main() {
     world.processDartScript(libPath);
     world.resolveAll();
 
-    // Clean the output directory.
-    if (files.fileExists(outdir)) {
-      files.removeDirectory(outdir, recursive: true);
-    }
-    files.createDirectory(outdir, recursive: true);
-
-    // Copy over the static files.
-    for (final file in ['interact.js', 'styles.css']) {
-      copyStatic(file);
-    }
-
     // Generate the docs.
     for (final library in world.libraries.getValues()) {
       docLibrary(library);
@@ -128,47 +111,6 @@ void main() {
 void initializeDartDoc() {
   _comments = <String, Map<int, String>>{};
 }
-
-/** Copies the static file at 'static/file' to the output directory. */
-copyStatic(String file) {
-  var contents = files.readAll(joinPaths('static', file));
-  files.writeString(joinPaths(outdir, file), contents);
-}
-
-num time(callback()) {
-  // Unlike world.withTiming, returns the elapsed time.
-  final watch = new Stopwatch();
-  watch.start();
-  callback();
-  watch.stop();
-  return watch.elapsedInMs();
-}
-
-startFile(String path) {
-  _filePath = path;
-  _file = new StringBuffer();
-}
-
-write(String s) {
-  _file.add(s);
-}
-
-writeln(String s) {
-  write(s);
-  write('\n');
-}
-
-endFile() {
-  String outPath = '$outdir/$_filePath';
-  files.createDirectory(dirname(outPath), recursive: true);
-
-  world.files.writeString(outPath, _file.toString());
-  _filePath = null;
-  _file = null;
-}
-
-/** Turns a library name into something that's safe to use as a file name. */
-sanitize(String name) => name.replaceAll(':', '_').replaceAll('/', '_');
 
 docIndex(List<Library> libraries) {
   startFile('index.html');
@@ -204,53 +146,6 @@ docIndex(List<Library> libraries) {
   endFile();
 }
 
-/** Returns the number of times [search] occurs in [text]. */
-int countOccurrences(String text, String search) {
-  int start = 0;
-  int count = 0;
-
-  while (true) {
-    start = text.indexOf(search, start);
-    if (start == -1) break;
-    count++;
-    // Offsetting by needle length means overlapping needles are not counted.
-    start += search.length;
-  }
-
-  return count;
-}
-
-/** Repeats [text] [count] times, separated by [separator] if given. */
-String repeat(String text, int count, [String separator]) {
-  // TODO(rnystrom): Should be in corelib.
-  final buffer = new StringBuffer();
-  for (int i = 0; i < count; i++) {
-    buffer.add(text);
-    if ((i < count - 1) && (separator !== null)) buffer.add(separator);
-  }
-
-  return buffer.toString();
-}
-
-/**
- * Converts [absolute] which is understood to be a full path from the root of
- * the generated docs to one relative to the current file.
- */
-String relativePath(String absolute) {
-  // TODO(rnystrom): Walks all the way up to root each time. Shouldn't do this
-  // if the paths overlap.
-  return repeat('../', countOccurrences(_filePath, '/')) + absolute;
-}
-
-/**
- * Creates a hyperlink. Handles turning the [href] into an appropriate relative
- * path from the current file.
- */
-String a(String href, String contents, [String class]) {
-  final css = class == null ? '' : ' class="$class"';
-  return '<a href="${relativePath(href)}"$css>$contents</a>';
-}
-
 writeHeader(String title) {
   writeln(
       '''
@@ -265,21 +160,68 @@ writeHeader(String title) {
       <script src="${relativePath('interact.js')}"></script>
       </head>
       <body>
-      <div class="content">
+      <div class="page">
       ''');
+  docNavigation();
+  writeln('<div class="content">');
 }
 
 writeFooter() {
   writeln(
       '''
       </div>
+      <div class="footer"</div>
       </body></html>
       ''');
+}
+
+docNavigation() {
+  writeln(
+      '''
+      <div class="nav">
+      <h1>Libraries</h1>
+      ''');
+
+  for (final library in orderValuesByKeys(world.libraries)) {
+    write('<h2><div class="icon-library"></div> ');
+
+    if ((_currentLibrary == library) && (_currentType == null)) {
+      write('<strong>${library.name}</strong>');
+    } else {
+      write('${a(libraryUrl(library), library.name)}');
+    }
+    write('</h2>');
+
+    final types = orderValuesByKeys(library.types);
+    if (types.length > 0) {
+      writeln('<ul>');
+      for (final type in types) {
+        if (type.isTop) continue;
+        if (type.name.startsWith('_')) continue;
+
+        var icon = type.isClass ? 'icon-class' : 'icon-interface';
+        write('<li><div class="$icon"></div> ');
+
+        if (_currentType == type) {
+          write('<strong>${type.name}</strong>');
+        } else {
+          write('${a(typeUrl(type), type.name)}');
+        }
+
+        writeln('</li>');
+      }
+
+      writeln('</ul>');
+    }
+  }
+
+  writeln('</div>');
 }
 
 docLibrary(Library library) {
   _totalLibraries++;
   _currentLibrary = library;
+  _currentType = null;
 
   startFile(libraryUrl(library));
   writeHeader(library.name);
@@ -300,6 +242,7 @@ docLibrary(Library library) {
 
   for (final type in orderValuesByKeys(library.types)) {
     if (type.isTop) continue;
+    if (type.name.startsWith('_')) continue;
     writeln(
         '''
         <div class="type">
@@ -469,10 +412,10 @@ docMethod(Type type, MethodMember method, [String constructorName = null]) {
 
   // Translate specially-named methods: getters, setters, operators.
   var name = method.name;
-  if (name.startsWith('get\$')) {
+  if (name.startsWith('get:')) {
     // Getter.
     name = 'get ${name.substring(4)}';
-  } else if (name.startsWith('set\$')) {
+  } else if (name.startsWith('set:')) {
     // Setter.
     name = 'set ${name.substring(4)}';
   } else {
@@ -542,6 +485,15 @@ docField(Type type, FieldMember field) {
   writeln('</div>');
 }
 
+/**
+ * Creates a hyperlink. Handles turning the [href] into an appropriate relative
+ * path from the current file.
+ */
+String a(String href, String contents, [String class]) {
+  final css = class == null ? '' : ' class="$class"';
+  return '<a href="${relativePath(href)}"$css>$contents</a>';
+}
+
 /** Generates a human-friendly string representation for a type. */
 typeName(Type type) {
   // See if it's a generic type.
@@ -561,27 +513,6 @@ typeName(Type type) {
   // Regular type.
   return type.name;
 }
-
-/** Gets the URL to the documentation for [library]. */
-libraryUrl(Library library) {
-  return '${sanitize(library.name)}.html';
-}
-
-/** Gets the URL for the documentation for [type]. */
-typeUrl(Type type) {
-  // Always get the generic type to strip off any type parameters or arguments.
-  // If the type isn't generic, genericType returns `this`, so it works for
-  // non-generic types too.
-  return '${sanitize(type.library.name)}/${type.genericType.name}.html';
-}
-
-/** Gets the URL for the documentation for [member]. */
-memberUrl(Member member) {
-  return '${typeUrl(member.declaringType)}#${member.name}';
-}
-
-/** Gets the anchor id for the document for [member]. */
-memberAnchor(Member member) => '${member.name}';
 
 /** Writes a linked cross reference to [type]. */
 typeReference(Type type) {
@@ -778,17 +709,6 @@ formatCode(SourceSpan span) {
 int getSpanColumn(SourceSpan span) {
   final line = span.file.getLine(span.start);
   return span.file.getColumn(line, span.start);
-}
-
-/** Removes up to [indentation] leading whitespace characters from [text]. */
-unindent(String text, int indentation) {
-  var start;
-  for (start = 0; start < Math.min(indentation, text.length); start++) {
-    // Stop if we hit a non-whitespace character.
-    if (text[start] != ' ') break;
-  }
-
-  return text.substring(start);
 }
 
 /**

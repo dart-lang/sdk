@@ -75,3 +75,10 @@ or parentheses following it) like:
 is understood to be the name of some member or type that's in the scope of the
 member where that comment appears. Dartdoc will automatically figure out what
 the name refers to and generate an approriate link to that member or type.
+
+
+Attribution
+-----------
+
+dartdoc uses the delightful Silk icon set by Mark James.
+http://www.famfamfam.com/lab/icons/silk/
