@@ -46,6 +46,11 @@ class ProgressIndicator {
     _printDoneProgress(test);
   }
 
+  void allTestsKnown() {
+    if (!_allTestsKnown) SummaryReport.printReport();
+    _allTestsKnown = true;
+  }
+
   abstract allDone();
   abstract _printStartProgress();
   abstract _printDoneProgress();
@@ -114,43 +119,51 @@ class ProgressIndicator {
   int _foundTests = 0;
   int _passedTests = 0;
   int _failedTests = 0;
+  bool _allTestsKnown = false;
   Date _startTime;
 }
 
 
-class CompactProgressIndicator extends ProgressIndicator {
-  CompactProgressIndicator(Date startTime) : super(startTime);
+class CompactIndicator extends ProgressIndicator {
+  CompactIndicator(Date startTime) : super(startTime);
 
   void allDone() {
-    SummaryReport.printReport();
     stdout.write('\n'.charCodes());
     stdout.close();
-  }
-
-  void _printProgress() {
-    var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
-    var percentPadded = _pad(percent, 5);
-    var passedPadded = _pad(_passedTests.toString(), 5);
-    var failedPadded = _pad(_failedTests.toString(), 5);
-    var progressLine =
-        '\r[${_timeString()} | $percentPadded% | ' +
-        '+$passedPadded | -$failedPadded]';
-    stdout.write(progressLine.charCodes());
+    exit(_failedTests > 0 ? 1 : 0);
   }
 
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
+
+  String _nextSpinner() {
+    _spinnerIndex = (_spinnerIndex + 1) % 4;
+    return _spinners[_spinnerIndex];
+  }
+
+  static int _spinnerIndex = 0;
+  static List<String> _spinners = const ['- ', '\\ ', '| ', '/ '];
 }
 
 
-class ColorProgressIndicator extends ProgressIndicator {
-  ColorProgressIndicator(Date startTime) : super(startTime);
+class CompactProgressIndicator extends CompactIndicator {
+  CompactProgressIndicator(Date startTime) : super(startTime);
 
-  void allDone() {
-    SummaryReport.printReport();
-    stdout.write('\n'.charCodes());
-    stdout.close();
+  void _printProgress() {
+    var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
+    var progressPadded = _pad(_allTestsKnown ? percent : _nextSpinner(), 5);
+    var passedPadded = _pad(_passedTests.toString(), 5);
+    var failedPadded = _pad(_failedTests.toString(), 5);
+    var progressLine =
+        '\r[${_timeString()} | $progressPadded% | ' +
+        '+$passedPadded | -$failedPadded]';
+    stdout.write(progressLine.charCodes());
   }
+}
+
+
+class ColorProgressIndicator extends CompactIndicator {
+  ColorProgressIndicator(Date startTime) : super(startTime);
 
   static int GREEN = 32;
   static int RED = 31;
@@ -166,11 +179,11 @@ class ColorProgressIndicator extends ProgressIndicator {
 
   void _printProgress() {
     var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
-    var percentPadded = _pad(percent, 5);
+    var progressPadded = _pad(_allTestsKnown ? percent : _nextSpinner(), 5);
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
     var progressLine = [];
-    progressLine.addAll('\r[${_timeString()} | $percentPadded% | '.charCodes());
+    progressLine.addAll('\r[${_timeString()} | $progressPadded% | '.charCodes());
     addColorWrapped(progressLine, '+$passedPadded ', GREEN);
     progressLine.addAll('| '.charCodes());
     var failedColor = (_failedTests != 0) ? RED : NONE;
@@ -178,11 +191,7 @@ class ColorProgressIndicator extends ProgressIndicator {
     progressLine.addAll(']'.charCodes());
     stdout.write(progressLine);
   }
-
-  void _printStartProgress(TestCase test) => _printProgress();
-  void _printDoneProgress(TestCase test) => _printProgress();
 }
-
 
 
 class LineProgressIndicator extends ProgressIndicator {
@@ -190,7 +199,7 @@ class LineProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     _printStatus();
-    SummaryReport.printReport();
+    exit(_failedTests > 0 ? 1 : 0);
   }
 
   void _printStartProgress(TestCase test) {
@@ -211,7 +220,7 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     _printStatus();
-    SummaryReport.printReport();
+    exit(_failedTests > 0 ? 1 : 0);
   }
 
   void _printStartProgress(TestCase test) {
@@ -233,7 +242,7 @@ class StatusProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     _printStatus();
-    SummaryReport.printReport();
+    exit(_failedTests > 0 ? 1 : 0);
   }
 
   void _printStartProgress(TestCase test) {
@@ -249,6 +258,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
 
   void allDone() {
     _printStatus();
+    exit(_failedTests > 0 ? 1 : 0);
   }
 
   void _printStartProgress(TestCase test) {

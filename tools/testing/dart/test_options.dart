@@ -49,8 +49,7 @@ class TestOptionsParser {
               'component',
               'The component to test against',
               ['-c', '--component'],
-              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
-               'chromium', 'dartium', 'frogium', 'webdriver'],
+              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg'],
               'vm'),
           new _TestOptionSpecification(
               'architecture',
@@ -172,13 +171,13 @@ class TestOptionsParser {
       var spec = _getSpecification(name);
       if (spec == null) {
         print('Unknown test option $name');
-        return null;
+        exit(1);
       }
       // Parse the value for the option.
       if (spec.type == 'bool') {
         if (!value.isEmpty()) {
           print('No value expected for bool option $name');
-          return null;
+          exit(1);
         }
         configuration[spec.name] = true;
       } else if (spec.type == 'int') {
@@ -186,14 +185,14 @@ class TestOptionsParser {
           configuration[spec.name] = Math.parseInt(value);
         } catch (var e) {
           print('Integer value expected for int option $name');
-          return null;
+          exit(1);
         }
       } else {
         assert(spec.type == 'string');
         for (var v in value.split(',')) {
           if (spec.values.lastIndexOf(v) == -1) {
             print('Unknown value ($v) for option $name');
-            return null;
+            exit(1);
           }
         }
         configuration[spec.name] = value;

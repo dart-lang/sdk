@@ -326,12 +326,12 @@ class ProcessQueue {
   void _checkDone() {
     // When there are no more active test listers ask for more work
     // from process queue users.
-    if (_activeTestListers == 0 &&
-        !_enqueueMoreWork(this) &&
-        _tests.isEmpty() &&
-        _numProcesses == 0) {
-      _terminateDartcBatchRunners();
-      _progress.allDone();
+    if (_activeTestListers == 0 && !_enqueueMoreWork(this)) {
+      _progress.allTestsKnown();
+      if (_tests.isEmpty() && _numProcesses == 0) {
+        _terminateDartcBatchRunners();
+        _progress.allDone();
+      }
     }
   }
 
