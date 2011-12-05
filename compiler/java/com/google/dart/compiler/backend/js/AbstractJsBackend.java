@@ -460,7 +460,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
     return sb.toString();
   }
 
-  protected int writeEntryPointCall(String entry, Writer out) throws IOException {
+  protected void writeEntryPointCall(String entry, Writer out) throws IOException {
     // Emit entry point call.
     // TODO: Actually validate that this method exists.
     // Small hack: the V8 arguments object is not an instance of Array. [].concat(arguments)
@@ -470,11 +470,9 @@ public abstract class AbstractJsBackend extends AbstractBackend {
     // concatenation works again.
     // TODO: Use a more robust check to test that the argument is
     // array.
-    String entryPointCall = "RunEntry(" + entry + ", this.arguments ?" +
+    out.write("RunEntry(" + entry + ", this.arguments ?" +
               " (this.arguments.slice ? [].concat(this.arguments.slice())" +
-              " : this.arguments) : []);";
-    out.write(entryPointCall);
-    return entryPointCall.length();
+              " : this.arguments) : []);");
   }
 
   protected String getMangledEntryPoint(DartCompilerContext context) {

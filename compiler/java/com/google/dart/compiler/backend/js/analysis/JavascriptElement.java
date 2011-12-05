@@ -16,8 +16,8 @@ import java.util.List;
  */
 class JavascriptElement {
   private final JavascriptElement enclosingElement;
-  private JavascriptElement inheritsElement;
-  private JavascriptElement inheritsInvocation;
+  private JavascriptElement inherits;
+  private AstNode inheritsNode;
   private boolean instantiated;
   private final boolean isVirtual;
   private List<JavascriptElement> members = null;
@@ -51,12 +51,12 @@ class JavascriptElement {
     return enclosingElement;
   }
 
-  public JavascriptElement getInheritsElement() {
-    return inheritsElement;
+  public JavascriptElement getInherits() {
+    return inherits;
   }
 
-  public JavascriptElement getInheritsInvocation() {
-    return inheritsInvocation;
+  public AstNode getInheritsNode() {
+    return inheritsNode;
   }
 
   /**
@@ -113,18 +113,18 @@ class JavascriptElement {
   }
 
   public void setInherits(JavascriptElement inherits) {
-    this.inheritsElement = inherits;
+    this.inherits = inherits;
   }
 
   public void setInheritsNode(AstNode inheritsNode) {
-    this.inheritsInvocation = new JavascriptElement(null,false, "", "", inheritsNode);
+    this.inheritsNode = inheritsNode;
   }
 
   public void setInstantiated(boolean instantiated) {
     this.instantiated = instantiated;
 
-    if (inheritsElement != null) {
-      inheritsElement.setInstantiated(instantiated);
+    if (inherits != null) {
+      inherits.setInstantiated(instantiated);
     }
   }
 }

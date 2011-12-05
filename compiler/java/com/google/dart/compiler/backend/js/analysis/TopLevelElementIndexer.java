@@ -116,8 +116,8 @@ class TopLevelElementIndexer implements NodeVisitor {
         }
 
         System.out.println("Type: " + Token.typeToName(node.getType()));
-        if (javascriptElement.getInheritsElement() != null) {
-          System.out.println("Inherits: " + javascriptElement.getInheritsElement());
+        if (javascriptElement.getInherits() != null) {
+          System.out.println("Inherits: " + javascriptElement.getInherits());
         }
 
         try {
@@ -184,7 +184,7 @@ class TopLevelElementIndexer implements NodeVisitor {
             entryPoints.add(node);
             return;
           } else if ("$inherits".equals(targetName.getIdentifier())) {
-            // This is an inherits call so update the element's inheritance hierarchy.
+            // This is an inheirts call so update the element's inheritance hierarchy.
             List<AstNode> arguments = functionCall.getArguments();
             assert (arguments.size() == 2);
             assert (arguments.get(0).getType() == Token.NAME);

@@ -64,22 +64,16 @@ class DependencyComputer {
 
           /*
            * Whenever we see an instantiation we must check it and any super type for members that
-           * match the virtual names seen to date and we must ensure that the corresponding inherits
-           * get emitted. 
+           * match the virtual names seen to date. 
            */
           while (instantiatedClass != null) {
-            JavascriptElement inheritsInvocation = instantiatedClass.getInheritsInvocation();
-            if (inheritsInvocation != null) {
-              dependencies.add(inheritsInvocation);
-            }
-            
             for (JavascriptElement member : instantiatedClass.getMembers()) {
               if (virtualNames.contains(member.getName())) {
                 dependencies.add(member);
               }
             }
             
-            instantiatedClass = instantiatedClass.getInheritsElement();
+            instantiatedClass = instantiatedClass.getInherits();
           }
         }
       }

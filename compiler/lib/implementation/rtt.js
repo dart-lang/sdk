@@ -208,16 +208,19 @@ RTT.getTypeArgsFor = function(o, classkey) {
 // Base types for runtime type information
 
 /** @type {!RTT} */
-function ImplementsAll(name) {
-  RTT.call(this,name);
-}
-$inherits(ImplementsAll,RTT);
-ImplementsAll.prototype.implementedBy = function(o) {return true};
-ImplementsAll.prototype.implementedByType = function(o) {return true};
+RTT.objectType = new RTT($cls('Object'));
+RTT.objectType.implementedBy = function(o) {return true};
+RTT.objectType.implementedByType = function(o) {return true};
 
-RTT.objectType = new ImplementsAll($cls('Object'));
-RTT.dynamicType = new ImplementsAll($cls('Dynamic')); 
-RTT.placeholderType = new ImplementsAll($cls('::'));
+/** @type {!RTT} */
+RTT.dynamicType = new RTT($cls('Dynamic'));
+RTT.dynamicType.implementedBy = function(o) {return true};
+RTT.dynamicType.implementedByType = function(o) {return true};
+
+/** @type {!RTT} */
+RTT.placeholderType = new RTT($cls('::'));
+RTT.placeholderType.implementedBy = function(o) {return true};
+RTT.placeholderType.implementedByType = function(o) {return true};
 
 /**
  * Checks that a value is assignable to an expected type, and either returns that
