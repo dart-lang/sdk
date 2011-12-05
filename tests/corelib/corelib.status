@@ -50,7 +50,6 @@ ListInsertRangeTest: Fail
 ListRemoveRangeTest: Fail
 ListSetRangeTest: Fail
 ListTest: Fail
-MapFromTest: Fail
 MapsTest: Fail
 MathTest: Fail
 NanInfinityTest: Fail
