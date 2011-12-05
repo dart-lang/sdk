@@ -7,6 +7,9 @@ package com.google.dart.compiler.parser;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartUnit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +80,12 @@ public class CommentTest extends CompilerTestCase {
     compareComments(EXPECTED002);
   }
 
+  public void test003() {
+    DartUnit unit = parseUnit("Comments2.dart");
+    assertDeclComments(unit, "firstMethod", "/** Comments are good. */");
+    assertDeclComments(unit, "secondMethod", null);
+  }
+  
   @Override
   protected ParserContext makeParserContext(Source src, String sourceCode,
       DartCompilerListener listener) {
@@ -100,6 +109,22 @@ public class CommentTest extends CompilerTestCase {
     assertEquals(expected.length, comments.size());
     for (int i = 0; i < expected.length; i++) {
       assertEquals(expected[i], comments.get(i));
+    }
+  }
+
+  private void assertDeclComments(DartUnit unit, String name, String comments) {
+    for (DartNode node : unit.getTopLevelNodes()) {
+      if (node instanceof DartDeclaration && node.getSymbol() != null
+          && name.equals(node.getSymbol().getOriginalSymbolName())) {
+        DartDeclaration<?> decl = (DartDeclaration<?>)node;
+        String nodeComments = null;
+
+        if (decl.getDartDoc() != null) {
+          nodeComments = decl.getDartDoc().toSource();
+        }
+
+        assertEquals(comments, nodeComments);
+      }
     }
   }
 }

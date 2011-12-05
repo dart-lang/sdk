@@ -8,11 +8,16 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartComment;
+import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.util.DartSourceString;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -121,15 +126,104 @@ public class CommentPreservingParser extends DartParser {
   @Override
   public DartUnit parseUnit(DartSource input) {
     DartUnit unit = super.parseUnit(input);
+
     String sourceString = context.source;
     Source source = new DartSourceString(null, sourceString);
+
     for (int[] loc : context.getCommentLocs()) {
       DartComment.Style style = getCommentStyle(sourceString, loc[0]);
       if (!onlyDartDoc || style == DartComment.Style.DART_DOC) {
         unit.addComment(new DartComment(source, loc[0], loc[1] - loc[0], loc[2], loc[3], style));
       }
     }
+
+    List<DartComment> comments = unit.getComments();
+
+    if (comments != null) {
+      assignDartComments(unit, comments);
+    }
+
     return unit;
+  }
+
+  private void assignDartComments(DartUnit unit, List<DartComment> comments) {
+    // Collect the AST nodes in a list.
+    final List<DartNode> astNodes = new ArrayList<DartNode>();
+    unit.accept(new DartNodeTraverser<DartNode>() {
+      @Override
+      public DartNode visitDeclaration(DartDeclaration<?> node) {
+        astNodes.add(node);
+        return super.visitNode(node);
+      }
+    });
+
+    // Collect all the nodes in one list.
+    List<DartNode> nodes = new ArrayList<DartNode>();
+
+    nodes.addAll(comments);
+    nodes.addAll(astNodes);
+
+    // Sort the nodes by their position in the source file.
+    Collections.sort(nodes, new Comparator<DartNode>() {
+      @Override
+      public int compare(DartNode node1, DartNode node2) {
+        return node1.getSourceStart() - node2.getSourceStart();
+      }
+    });
+
+    // Assign dart docs to their associated DartDeclarations.
+    for (int i = 0; i < nodes.size(); i++) {
+      DartNode node = nodes.get(i);
+
+      if (node instanceof DartComment) {
+        DartComment comment = (DartComment)node;
+
+        if (comment.isDartDoc() && (i + 1 < nodes.size())) {
+          DartNode next = nodes.get(i + 1);
+
+          if (next instanceof DartDeclaration) {
+            DartDeclaration<?> decl = (DartDeclaration<?>)next;
+
+            if (!commentContainedBySibling(comment, decl)) {
+              decl.setDartDoc(comment);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private boolean commentContainedBySibling(DartComment comment, DartDeclaration<?> node) {
+    for (DartNode child : getChildren(node.getParent())) {
+      if (child != node && !(child instanceof DartComment)) {
+        if (isContainedBy(comment, child)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private List<DartNode> getChildren(DartNode parent) {
+    final List<DartNode> children = new ArrayList<DartNode>();
+
+    parent.visitChildren(new DartNodeTraverser<DartNode>() {
+      @Override
+      public DartNode visitNode(DartNode node) {
+        children.add(node);
+        return null;
+      }
+    });
+
+    return children;
+  }
+
+  private boolean isContainedBy(DartNode node, DartNode containedByNode) {
+    int nodeEnd = node.getSourceStart() + node.getSourceLength();
+    int containedByEnd = containedByNode.getSourceStart() + containedByNode.getSourceLength();
+
+    return node.getSourceStart() >= containedByNode.getSourceStart() && nodeEnd <= containedByEnd; 
   }
 
   /**
