@@ -9,6 +9,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/exceptions.h"
 #include "vm/ic_data.h"
 #include "vm/object_store.h"
@@ -478,20 +479,28 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
 
 
 // Gets called from debug stub when code reaches a breakpoint.
-DEFINE_RUNTIME_ENTRY(BreakpointHandler, 0) {
-  ASSERT(arguments.Count() == kBreakpointHandlerRuntimeEntry.argument_count());
-  DartFrameIterator iterator;
-  DartFrame* frame = iterator.NextFrame();
-  Function& func = Function::Handle();
-  ASSERT(frame != NULL);
-  OS::Print(">>> Breakpoint at 0x%08x\n", frame->pc());
-  while (frame != NULL) {
-    ASSERT(frame->IsValid());
-    ASSERT(frame->IsDartFrame());
-    func = frame->LookupDartFunction();
-    OS::Print("  func %s\n", String::Handle(func.name()).ToCString());
-    frame = iterator.NextFrame();
+//   Arg0: function object of the static function that was about to be called.
+DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
+  ASSERT(arguments.Count() ==
+      kBreakpointStaticHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->BreakpointCallback();
+  // Make sure the static function that is about to be called is
+  // compiled. The stub will jump to the entry point without any
+  // further tests.
+  const Function& function = Function::CheckedHandle(arguments.At(0));
+  if (!function.HasCode()) {
+    Compiler::CompileFunction(function);
   }
+}
+
+
+// Gets called from debug stub when code reaches a breakpoint.
+DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
+  ASSERT(arguments.Count() ==
+     kBreakpointDynamicHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->BreakpointCallback();
 }
 
 

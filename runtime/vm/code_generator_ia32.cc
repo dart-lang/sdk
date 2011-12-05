@@ -29,6 +29,7 @@ DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_invocation_count);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, debugger);
 
 #define __ assembler_->
 
@@ -282,6 +283,7 @@ void CodeGenerator::GeneratePreEntryCode() {
   const bool may_optimize =
       !FLAG_report_invocation_count &&
       (FLAG_optimization_invocation_threshold >= 0) &&
+      !FLAG_debugger &&
       parsed_function_.function().is_optimizable();
   // Count invocation and check.
   if (FLAG_report_invocation_count || may_optimize) {

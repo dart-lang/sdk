@@ -1551,14 +1551,19 @@ void StubCode::GenerateInlineCacheStub(Assembler* assembler) {
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ EnterFrame(0);
-  __ pushl(ECX);
   __ pushl(EDX);
-  __ CallRuntimeFromStub(kBreakpointHandlerRuntimeEntry);
-  __ popl(EDX);
+  __ pushl(ECX);
+  __ CallRuntimeFromStub(kBreakpointStaticHandlerRuntimeEntry);
   __ popl(ECX);
+  __ popl(EDX);
   __ LeaveFrame();
-  // Now call the static function.
-  __ jmp(&StubCode::CallStaticFunctionLabel());
+
+  // Now call the static function. The breakpoint handler function
+  // ensures that the call target is compiled.
+  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
+  __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(ECX);
 }
 
 
@@ -1569,7 +1574,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushl(ECX);
   __ pushl(EDX);
-  __ CallRuntimeFromStub(kBreakpointHandlerRuntimeEntry);
+  __ CallRuntimeFromStub(kBreakpointDynamicHandlerRuntimeEntry);
   __ popl(EDX);
   __ popl(ECX);
   __ LeaveFrame();
