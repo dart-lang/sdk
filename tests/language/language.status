@@ -35,6 +35,8 @@ ImplicitThisTest/03: Fail # Issue 374
 ImplicitThisTest/04: Fail # Issue 374
 ImplicitThisTest/none: Fail # Issue 374
 
+LibrarySameNameUsedTest: Fail    # Issue 686
+
 # These bugs refer currently ongoing language discussions.
 Constructor5Test: Fail          # (Discussion ongoing)
 Constructor6Test: Fail          # (Discussion ongoing)
