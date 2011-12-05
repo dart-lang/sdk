@@ -5,7 +5,7 @@
 #library("test_options_parser");
 
 List<String> defaultTestSelectors =
-    const ['samples', 'standalone', 'corelib', 'co19', 'language',
+    const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'stub-generator', 'vm'];
 
 /**
@@ -248,9 +248,11 @@ class TestOptionsParser {
         if (slashLocation != -1) {
           suite = pattern.substring(0, slashLocation);
           pattern = pattern.substring(slashLocation + 1);
+          pattern = pattern.replaceAll('*', '.*');
+          pattern = pattern.replaceAll('/', '.*');
+        } else {
+          pattern = ".*";
         }
-        pattern = pattern.replaceAll('*', '.*');
-        pattern = pattern.replaceAll('/', '.*');
         if (selectorMap.containsKey(suite)) {
           print("Warning: selector '$suite/$pattern' overrides " +
                 "previous selector for suite '$suite'");

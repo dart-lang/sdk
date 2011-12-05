@@ -6,38 +6,64 @@
 
 class DirectoryTest {
   static void testListing() {
-    bool listedSomething = false;
-    Directory directory = new Directory(".");
+    bool listedDir = false;
+    bool listedFile = false;
+
+    Directory directory = new Directory("");
+    directory.createTempSync();
+    Directory subDirectory = new Directory("${directory.path}/subdir");
+    Expect.isFalse(subDirectory.existsSync());
+    subDirectory.createSync();
+    File f = new File('${subDirectory.path}/file.txt');
+    Expect.isFalse(f.existsSync());
+    f.createSync();
 
     directory.dirHandler = (dir) {
-      listedSomething = true;
+      print(dir);
+      listedDir = true;
+      Expect.isTrue(dir.contains('subdir'));
     };
 
     directory.fileHandler = (f) {
-      listedSomething = true;
+      print(f);
+      listedFile = true;
+      Expect.isTrue(f.contains('subdir'));
+      Expect.isTrue(f.contains('file.txt'));
     };
 
     directory.doneHandler = (completed) {
       Expect.isTrue(completed, "directory listing did not complete");
-      Expect.isTrue(listedSomething, "empty directory");
+      Expect.isTrue(listedDir, "directory not found");
+      Expect.isTrue(listedFile, "file not found");
+      f.deleteHandler = () {
+        // TODO(ager): use async directory deletion API when available.
+        subDirectory.deleteSync();
+        directory.deleteSync();
+      };
+      f.delete();
     };
 
     directory.errorHandler = (error) {
       Expect.fail("error listing directory: $error");
     };
 
-    directory.list();
+    directory.list(recursive: true);
 
     // Listing is asynchronous, so nothing should be listed at this
     // point.
-    Expect.isFalse(listedSomething);
+    Expect.isFalse(listedDir);
+    Expect.isFalse(listedFile);
   }
 
   static void testExistsCreateDelete() {
-    Directory d = new Directory("____DIRECTORY_TEST_DIRECTORY____");
-    Expect.isFalse(d.existsSync());
-    d.createSync();
+    Directory d = new Directory("/tmp/dart_temp_dir_");
+    d.createTempSync();
     Expect.isTrue(d.existsSync());
+    Directory created = new Directory("${d.path}/subdir");
+    created.createSync();
+    Expect.isTrue(created.existsSync());
+    created.deleteSync();
+    Expect.isFalse(created.existsSync());
     d.deleteSync();
     Expect.isFalse(d.existsSync());
 

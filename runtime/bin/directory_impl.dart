@@ -36,18 +36,18 @@ class _DirectoryCreateTempIsolate extends Isolate {
   void main() {
     port.receive((path, replyTo) {
       // Call function to get file name
-      replyTo.send(_createTemp(path, (Math.random() * 0x8000000).toInt()));
+      replyTo.send(_Directory._createTemp(path, (Math.random() * 0x8000000).toInt()));
       port.close();
     });
   }
-
-  String _createTemp(String template, int num) native "Directory_CreateTemp";
 }
 
 
 class _Directory implements Directory {
 
   _Directory(String this._path);
+
+  static String _createTemp(String template, int num) native "Directory_CreateTemp";
 
   bool existsSync() {
     int exists = _exists(_path);
@@ -78,6 +78,15 @@ class _Directory implements Directory {
         }
       });
     });
+  }
+
+  void createTempSync() {
+    var result = _createTemp(path, (Math.random() * 0x8000000).toInt());
+    if (result != '') {
+      _path = result;
+    } else {
+      throw "createTempSync failed";
+    }
   }
 
   void deleteSync() {

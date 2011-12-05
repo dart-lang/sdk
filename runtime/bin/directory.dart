@@ -35,6 +35,16 @@ interface Directory factory _Directory {
   void createTemp();
 
   /**
+   * Synchronously creates a temporary directory with a name based on the current path.
+   * This name and path is used as a template, and additional characters are
+   * appended to it by the call to make a unique directory name.  If the
+   * path is the empty string, a default system temp directory and name
+   * are used for the template.
+   * The path is modified to be the path of the new directory.
+   */
+  void createTempSync();
+
+  /**
    * Deletes the directory with this name. Throws an exception
    * if the directory is not empty or if deletion failed.
    */

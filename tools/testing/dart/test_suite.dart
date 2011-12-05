@@ -133,22 +133,20 @@ class StandardTestSuite implements TestSuite {
   Function doDone;
   int activeMultitests = 0;
   bool listingDone = false;
-  String shellPath;
   TestExpectations testExpectations;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
-                    List<String> this.statusFilePaths) {
-    shellPath = TestUtils.dartShellFileName(configuration) ;
-  }
-
+                    List<String> this.statusFilePaths);
 
   void isTestFile(String filename) => filename.endsWith("Test.dart");
 
   void listRecursively() => false;
 
   void complexStatusMatching() => false;
+
+  String shellPath() => TestUtils.dartShellFileName(configuration);
 
   List<String> additionalOptions() => [];
 
@@ -199,12 +197,20 @@ class StandardTestSuite implements TestSuite {
       int start = filename.lastIndexOf('src' + pathSeparator);
       if (start != -1) {
         testName = filename.substring(start + 4, filename.length - 5);
-      } else {
-        // Only multitests in a temporary directory should reach here.
+      } else if (optionsFromFile['isMultitest']) {
         start = filename.lastIndexOf(pathSeparator);
         int middle = filename.lastIndexOf('_');
         testName = filename.substring(start + 1, middle) + pathSeparator +
             filename.substring(middle + 1, filename.length - 5);
+      } else {
+        // This case is hit by the dartc client compilation
+        // tests. These tests are pretty broken compared to the
+        // rest. They use the .dart suffix in the status files. They
+        // find tests in weird ways (testing that they contain "#"). 
+        // They need to be redone.
+        start = filename.indexOf(directoryPath);
+        testName = filename.substring(start + directoryPath.length + 1,
+                                      filename.length);
       }
       Set<String> expectations = testExpectations.expectations(testName);
       if (configuration["report"]) {
@@ -222,7 +228,7 @@ class StandardTestSuite implements TestSuite {
                                                 enableFatalTypeErrors);
       for (var args in argumentLists) {
         doTest(new TestCase(testName,
-                            shellPath,
+                            shellPath(),
                             args,
                             timeout,
                             completeHandler,
@@ -304,6 +310,8 @@ class StandardTestSuite implements TestSuite {
   Map optionsFromFile(String filename) {
     RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
+    RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
+    RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
@@ -347,12 +355,68 @@ class StandardTestSuite implements TestSuite {
       isNegative = true;
     }
 
-    bool isMultitest = contents.contains("///");
+    bool isMultitest = multiTestRegExp.hasMatch(contents);
+    bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "isNegative": isNegative,
-             "isMultitest": isMultitest};
+             "isMultitest": isMultitest,
+             "containsLeadingHash" : containsLeadingHash };
+  }
+}
+
+
+class DartcCompilationTestSuite extends StandardTestSuite {
+  List<String> _testDirs;
+  int activityCount = 0;
+
+  DartcCompilationTestSuite(Map configuration,
+                            String suiteName,
+                            String directoryPath,
+                            List<String> this._testDirs,
+                            List<String> expectations)
+      : super(configuration,
+              suiteName,
+              directoryPath,
+              expectations);
+
+  void activityStarted() => ++activityCount;
+
+  void activityCompleted() {
+    if (--activityCount == 0) {
+      directoryListingDone(true);
+    }
+  }
+
+  String shellPath() => TestUtils.dartcCompilationShellPath(configuration);
+
+  List<String> additionalOptions() {
+    // TODO(ager): potentially register cleanup action to delete the temporary
+    // directories?
+    var tempDir = new Directory('');
+    tempDir.createTempSync();
+    return ['-check-only', '-fatal-type-errors', '-Werror', '-out', tempDir.path];
+  }
+
+  void processDirectory() {
+    directoryPath = getDirname(directoryPath);
+    // Enqueueing the directory listers is an activity.
+    activityStarted();
+    for (String testDir in _testDirs) {
+      Directory dir = new Directory("$directoryPath/$testDir");
+      if (dir.existsSync()) {
+        activityStarted();
+        dir.errorHandler = (s) {
+          throw s;
+        };
+        dir.fileHandler = processFile;
+        dir.doneHandler = (ignore) => activityCompleted();
+        dir.list(recursive: listRecursively());
+      }
+    }
+    // Completed the enqueueing of listers.
+    activityCompleted();
   }
 }
 
@@ -376,9 +440,16 @@ class TestUtils {
     }
   }
 
-
   static String dartShellFileName(Map configuration) {
     var name = buildDir(configuration) + executableName(configuration);
+    if (!(new File(name)).existsSync()) {
+      throw "Executable '$name' does not exist";
+    }
+    return name;
+  }
+
+  static String dartcCompilationShellPath(Map configuration) {
+    var name = buildDir(configuration) + 'compiler/bin/dartc';
     if (!(new File(name)).existsSync()) {
       throw "Executable '$name' does not exist";
     }

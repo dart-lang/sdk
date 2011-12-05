@@ -4,6 +4,8 @@
 
 prefix dartc/client
 
+tests/dartc/test_config.dart: Skip      # Not a test case.
+
 dom/scripts/idlparser.dart: Skip        # Bogus dartc error; references dart/utils/peg
 dom/scripts/idlparser_test.dart: Skip   # Bogus dartc error; references dart/utils/peg
 dom/frog_dom.dart: Skip                 # Frog-only
