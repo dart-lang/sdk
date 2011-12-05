@@ -293,7 +293,6 @@ void Debugger::BreakpointCallback() {
   ASSERT(initialized_);
   DartFrameIterator iterator;
   DartFrame* frame = iterator.NextFrame();
-  Function& func = Function::Handle();
   ASSERT(frame != NULL);
   Breakpoint* bpt = GetBreakpoint(frame->pc());
   ASSERT(bpt != NULL);
