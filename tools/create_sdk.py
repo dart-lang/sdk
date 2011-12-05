@@ -13,6 +13,9 @@
 # ......frogc.dart
 # ......frogsh (coming later)
 # ....lib/
+# ......builtin/
+# ........builtin_runtime.dart
+# ........runtime/
 # ......core/
 # ........core_{compiler, frog, runtime}.dart
 # ........{compiler, frog, runtime}/ 
@@ -46,6 +49,8 @@ from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree
 
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
+  builtin_runtime_sources = \
+    (eval(open("runtime/bin/builtin_sources.gypi").read()))['sources']
   corelib_sources = \
     (eval(open("corelib/src/corelib_sources.gypi").read()))['sources']
   corelib_frog_sources = \
@@ -128,6 +133,25 @@ def Main(argv):
   os.makedirs(join(coreimpl_dest_dir, 'frog', 'node'))
   os.makedirs(join(coreimpl_dest_dir, 'runtime'))
 
+
+  #
+  # Create and populate lib/runtime.
+  #
+  builtin_dest_dir = join(LIB, 'builtin')
+  os.makedirs(builtin_dest_dir)
+  os.makedirs(join(builtin_dest_dir, 'runtime'))
+  for filename in builtin_runtime_sources:
+    if filename.endswith('.dart'):
+      copyfile(join(HOME, 'runtime', 'bin', filename), 
+               join(builtin_dest_dir, 'runtime', filename))
+
+  # Construct lib/builtin/builtin_runtime.dart from whole cloth.
+  dest_file = open(join(builtin_dest_dir, 'builtin_runtime.dart'), 'w')
+  dest_file.write('#library("dart:builtin");\n')
+  for filename in builtin_runtime_sources:
+    if filename.endswith('.dart'):
+      dest_file.write('#source("runtime/' + filename + '");\n')
+  dest_file.close()
 
   #
   # Create and populate lib/frog.
