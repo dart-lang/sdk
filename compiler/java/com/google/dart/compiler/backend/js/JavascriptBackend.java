@@ -12,6 +12,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.backend.js.analysis.TreeShaker;
 import com.google.dart.compiler.common.GenerateSourceMap;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
@@ -37,7 +38,8 @@ public class JavascriptBackend extends AbstractJsBackend  {
     private int line = 0;
     private int column = 0;
     private Appendable out;
-
+    private long charCount = 0;
+    
     FilePosition getOffset() {
       return new FilePosition(line, column);
     }
@@ -72,6 +74,7 @@ public class JavascriptBackend extends AbstractJsBackend  {
     }
 
     private void incCount(char c) {
+      ++charCount;
       if (c == '\n') {
         line++;
         column = 0;
@@ -83,11 +86,8 @@ public class JavascriptBackend extends AbstractJsBackend  {
 
   private static class DepsWritingCallback implements DepsCallback {
     private final DartCompilerContext context;
-    private long charsWritten = 0;
-    private long nativeCharsWritten = 0;
     private CountingAppendable out;
     private final List<SourceMapSection> appSections;
-
     DepsWritingCallback(
         DartCompilerContext context,
         CountingAppendable out,
@@ -97,28 +97,12 @@ public class JavascriptBackend extends AbstractJsBackend  {
       this.appSections = appSections;
     }
 
-    /**
-     * @return the charsWritten
-     */
-    public long getCharsWritten() {
-      return charsWritten;
-    }
-
-    /**
-     * @return the nativeCharsWritten
-     */
-    public long getNativeCharsWritten() {
-      return nativeCharsWritten;
-    }
-
     @Override
     public void visitNative(LibraryUnit libUnit, LibraryNode node)
         throws IOException {
       DartSource nativeSrc = libUnit.getSource().getSourceFor(node.getText());
       Reader r = nativeSrc.getSourceReader();
       long charsWrittenForFile = CharStreams.copy(r, out);
-      nativeCharsWritten += charsWrittenForFile;
-      charsWritten += charsWrittenForFile;
     }
 
     @Override
@@ -136,7 +120,6 @@ public class JavascriptBackend extends AbstractJsBackend  {
       boolean failed = true;
       try {
         partSize = CharStreams.copy(r, out);
-        charsWritten += partSize;
         failed = false;
       } finally {
         Closeables.close(r, failed);
@@ -149,21 +132,20 @@ public class JavascriptBackend extends AbstractJsBackend  {
         appSections.add(sourceMapSection);
       }
     }
+
+    public long getCharsWritten() {
+      return out.charCount;
+    }
   }
 
-  private static void packageLibs(Writer w,
+  private static long packageLibs(Writer w,
                                   List<SourceMapSection> appSections,
                                   DartCompilerContext context) throws IOException {
     final CountingAppendable out = new CountingAppendable(w);
 
     DepsWritingCallback callback = new DepsWritingCallback(context, out, appSections);
     DependencyBuilder.build(context.getAppLibraryUnit(), callback);
-
-    CompilerMetrics compilerMetrics = context.getCompilerMetrics();
-    if (compilerMetrics != null) {
-      compilerMetrics.packagedJsApplication(
-          callback.getCharsWritten(), callback.getNativeCharsWritten());
-    }
+    return callback.getCharsWritten();
   }
 
   @Override
@@ -172,17 +154,46 @@ public class JavascriptBackend extends AbstractJsBackend  {
                          DartCompilerContext context,
                          CoreTypeProvider typeProvider)
       throws IOException {
+    
+    LibraryUnit appLibraryUnit = context.getAppLibraryUnit();
+    boolean hasEntryPoint = appLibraryUnit.getElement().getEntryPoint() != null;
+    
     List<SourceMapSection> appSections = Lists.newArrayList();
-    Writer out = context.getArtifactWriter(app, "", EXTENSION_APP_JS);
+    String completeArtifactName = EXTENSION_APP_JS;
+    if (hasEntryPoint) {
+      // Apps with entry points will be reduced so we write into a different file name
+      completeArtifactName += ".complete";
+    }
+    
+    Writer out = context.getArtifactWriter(app, "", completeArtifactName);
+    long outputFileSize = 0;
     boolean failed = true;
     try {
       // Emit the concatenated Javascript sources in dependency order.
-      packageLibs(out, appSections, context);
-
-      writeEntryPointCall(getMangledEntryPoint(context), out);
+      outputFileSize = packageLibs(out, appSections, context);
+      outputFileSize += writeEntryPointCall(getMangledEntryPoint(context), out);
       failed = false;
     } finally {
       Closeables.close(out, failed);
+    }
+    
+    
+    if (hasEntryPoint) {
+      Reader artifactReader = context.getArtifactReader(app, "", completeArtifactName);
+      Writer artifactWriter = context.getArtifactWriter(app, "", EXTENSION_APP_JS);
+      try {
+        failed = true;
+        outputFileSize = TreeShaker.reduce(app, context, completeArtifactName, artifactWriter);
+        failed = false;  
+      } finally {
+        Closeables.close(artifactWriter, failed);
+        Closeables.close(artifactReader, failed);
+      }
+    }
+    
+    CompilerMetrics compilerMetrics = context.getCompilerMetrics();
+    if (compilerMetrics != null) {
+      compilerMetrics.packagedJsApplication(outputFileSize, -1);
     }
 
     Writer srcMapOut = context.getArtifactWriter(app, "", EXTENSION_APP_JS_SRC_MAP);
