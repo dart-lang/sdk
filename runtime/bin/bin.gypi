@@ -150,6 +150,7 @@
       ]
     },
     {
+      # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
@@ -173,6 +174,31 @@
        }]],
     },
     {
+      # dart binary without any snapshot built in.
+      'target_name': 'dart_no_snapshot',
+      'type': 'executable',
+      'dependencies': [
+        'libdart_withcore',
+        'libdart_builtin',
+      ],
+      'include_dirs': [
+        '..',
+      ],
+      'sources': [
+        'main.cc',
+        'builtin.cc',
+        # Include generated source files.
+        '<(builtin_cc_file)',
+        'snapshot_empty.cc',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'link_settings': {
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+          },
+       }]],
+    },
+    {
       'target_name': 'process_test',
       'type': 'executable',
       'sources': [
@@ -184,7 +210,7 @@
       'type': 'executable',
       'dependencies': [
         'libdart_withcore',
-	'libdart_builtin',
+        'libdart_builtin',
         'generate_snapshot_test_dat_file',
       ],
       'include_dirs': [
