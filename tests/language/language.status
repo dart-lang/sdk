@@ -335,10 +335,8 @@ StringConcatTest: Fail
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == leg ]
-FinalVarNegativeTest: Fail
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/03: Fail
-StringInterpolate2Test: Fail
 ToplevelCollision2Test/01: Fail # added in r1934
 TypeVariableBoundsTest/none: Pass # I think the "cancel leg" message is confusing the test harness? Leg is bailing on all these tests after seeing the "extends" factory syntax.
 TypeVariableBoundsTest/00: Pass
