@@ -4,10 +4,10 @@
 
 // IsolateStubs=MintMakerPromiseWithStubsTest.dart:Mint,Purse
 
-#library("MintMakerPromiseWithStubsTest-generatedTest.dart");
+#library("MintMakerPromiseWithStubsTest-generatedTest");
 #import("../../isolate/src/TestFramework.dart");
 
-/* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 9) */
+/* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 10) */
 
 interface Mint$Proxy extends Proxy {
   Purse$Proxy createPurse(int balance);
@@ -60,7 +60,7 @@ class Mint$Dispatcher$Isolate extends Isolate {
   }
 }
 
-/* class = Purse (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 17) */
+/* class = Purse (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 18) */
 
 interface Purse$Proxy extends Proxy {
   Promise<int> queryBalance();

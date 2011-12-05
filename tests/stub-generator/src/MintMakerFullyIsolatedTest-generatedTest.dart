@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
-
 #library("MintMakerFullyIsolatedTest-generatedTest");
 #import("../../isolate/src/TestFramework.dart");
 
