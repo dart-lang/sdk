@@ -2326,9 +2326,20 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     // finalization, so that the list of type parameters in the factory
     // signature can be checked at the same time.
     if (member.has_factory) {
+      String& qualifier = String::Handle();
+      if (CurrentToken() == Token::kPERIOD) {
+        LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
+        lib_prefix = current_class().LookupLibraryPrefix(*member.name);
+        if (!lib_prefix.IsNull()) {
+          // We have a library prefix qualified identifier.
+          ConsumeToken();  // Consume the kPERIOD token.
+          qualifier ^= member.name->raw();
+          member.name = ExpectIdentifier("identifier expected");
+        }
+      }
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
-                                                       String::Handle(),
+                                                       qualifier,
                                                        *(member.name)));
       const Class& signature_class = Class::Handle(
           Class::New(String::Handle(String::NewSymbol(":factory_signature")),
