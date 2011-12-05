@@ -29,7 +29,7 @@ fi
 # On some system, the heap dynamically sizes to > 1GB.
 # Users can specify DART_JVMARGS in the environment to override
 # these settings.
-EXTRA_JVMARGS=-Xmx164M
+EXTRA_JVMARGS=-Xmx196M
 
 exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -Dcom.google.dart.runner.d8="$D8_EXEC" \
   -Dcom.google.dart.runner.progname="$DART_SCRIPT_NAME" \
