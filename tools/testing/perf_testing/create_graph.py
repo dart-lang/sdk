@@ -80,8 +80,8 @@ def SyncAndBuild(failed_once=False):
     failed_once True if we have attempted to build this once before, and we've
       failed, indicating the build is broken."""
   os.chdir(DART_INSTALL_LOCATION)
-  #Revert our newly built frogsh to prevent conflicts when we update
-  RunCmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'frogsh')])
+  #Revert our newly built minfrog to prevent conflicts when we update
+  RunCmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'minfrog')])
 
   RunCmd(['gclient', 'sync'])
   lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release'])
@@ -302,11 +302,11 @@ class TestRunner(object):
     # eventually.
     files = os.listdir(self.result_folder_name)
 
-    if PERFBOT_MODE:
-      for afile in files:
-        if not afile.startswith('.'):
-          self.ProcessFile(afile)
+    for afile in files:
+      if not afile.startswith('.'):
+        self.ProcessFile(afile)
 
+    if PERFBOT_MODE:
       self.PlotResults('%s.png' % self.result_folder_name)
     self.Cleanup();
 
@@ -442,7 +442,11 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       i += 1
 
     if i >= len(lines) or revision_num == 0:
-      # Then this run did not complete. Ignore this tracefile.
+      # Then this run did not complete. Ignore this tracefile. or in the case of
+      # the smoke test, report an error.
+      if not PERFBOT_MODE:
+        print 'FAIL %s %s' % (browser, version)
+        os.remove(os.path.join(self.result_folder_name, afile))
       return
 
     line = lines[i]
@@ -466,7 +470,11 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       self.revision_dict[browser][version][name] += [revision_num]
 
     f.close()
-    self.CalculateGeometricMean(browser, version, revision_num)
+    if not PERFBOT_MODE:
+      print 'PASS'
+      os.remove(os.path.join(self.result_folder_name, afile))
+    else:
+      self.CalculateGeometricMean(browser, version, revision_num)
 
   def WriteHtml(self, delimiter, rev_nums, label_1, dict_1, label_2, dict_2, 
       cleanFile=False):
@@ -474,7 +482,7 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       pass
 
       
-  def Cleanup():
+  def Cleanup(self):
     # Kill the zombie chromedriver processes.
     RunCmd(['killall', 'chromedriver'])
 
@@ -537,19 +545,19 @@ class BrowserCorrectnessTestRunner(TestRunner):
           png_filename, [browser], [FROG], [CORRECTNESS], first_time) 
       first_time = False
 
-  def Cleanup():
+  def Cleanup(self):
     # Kill the zombie chromedriver processes.
     RunCmd(['killall', 'chromedriver'])
 
 class CompileTimeAndSizeTestRunner(TestRunner):
-  """Run tests to determine how long frogsh takes to compile, and the compiled 
+  """Run tests to determine how long minfrog takes to compile, and the compiled 
   file output size of some benchmarking files."""
   def __init__(self, result_folder_name):
     super(CompileTimeAndSizeTestRunner, self).__init__(result_folder_name,
         [COMMAND_LINE], [FROG], ['Compiling on Dart VM', 'Bootstrapping',
-        'frogsh', 'swarm', 'total'])
+        'minfrog', 'swarm', 'total'])
     self.failure_threshold = {'Compiling on Dart VM' : 1, 'Bootstrapping' : .5, 
-        'frogsh' : 100, 'swarm' : 100, 'total' : 100}
+        'minfrog' : 100, 'swarm' : 100, 'total' : 100}
 
   def RunTests(self):
     os.chdir('frog')
@@ -558,26 +566,24 @@ class CompileTimeAndSizeTestRunner(TestRunner):
     
     self.AddSvnRevisionToTrace(self.trace_file)    
 
-    elapsed = TimeCmd([os.path.join('.', 'frog.py'),
-        '--vm_flags="--compile_all --enable_type_checks --enable_asserts"', 
-        '--', '--compile_all', '--enable_type_checks', '--out=frogsh', 
-        'frog.dart'])
-    RunCmd(['echo', '%f Compiling on Dart VM in checked mode in seconds' 
+    elapsed = TimeCmd([os.path.join('.', 'frog.py'), '--',
+        '--out=minfrog', 'minfrog.dart'])
+    RunCmd(['echo', '%f Compiling on Dart VM in production mode in seconds' 
         % elapsed], self.trace_file, append=True)
-    elapsed = TimeCmd([os.path.join('.', 'frogsh'), '--out=frogsh',
-        '--enable_type_checks', 'frog.dart', '--enable_type_checks', 
-        os.path.join('tests', 'hello.dart')])
+    elapsed = TimeCmd([os.path.join('.', 'minfrog'), '--out=minfrog',
+        '--warnings_as_errors', 'minfrog.dart', os.path.join('tests', 
+        'hello.dart')])
     if elapsed < self.failure_threshold['Bootstrapping']:
-      #frogsh didn't compile correctly. Stop testing now, because subsequent
+      #minfrog didn't compile correctly. Stop testing now, because subsequent
       #numbers will be meaningless.
       return
-    size = os.path.getsize('frogsh')
-    RunCmd(['echo', '%f Bootstrapping time in seconds in checked mode' % 
+    size = os.path.getsize('minfrog')
+    RunCmd(['echo', '%f Bootstrapping time in seconds in production mode' % 
         elapsed], self.trace_file, append=True)
-    RunCmd(['echo', '%d Generated checked frogsh size' % size],
+    RunCmd(['echo', '%d Generated checked minfrog size' % size],
         self.trace_file, append=True)
 
-    RunCmd([os.path.join('.', 'frogsh'), ' --out=swarm-result ',
+    RunCmd([os.path.join('.', 'minfrog'), ' --out=swarm-result ',
         '--compile-only', os.path.join('..', 'client', 'samples', 'swarm',
         'swarm.dart')])
     swarm_size = 0
@@ -586,7 +592,7 @@ class CompileTimeAndSizeTestRunner(TestRunner):
     except OSError:
       pass #If compilation failed, continue on running other tests.
 
-    RunCmd([os.path.join('.', 'frogsh'), '--out=total-result',
+    RunCmd([os.path.join('.', 'minfrog'), '--out=total-result',
         '--compile-only', os.path.join('..', 'client', 'samples', 'total',
         'src', 'Total.dart')])
     total_size = 0
@@ -637,11 +643,11 @@ class CompileTimeAndSizeTestRunner(TestRunner):
     f.close()
 
   def PlotResults(self, png_filename):
-    self.StyleAndSavePerfPlot('Compiled frogsh Sizes', 
+    self.StyleAndSavePerfPlot('Compiled minfrog Sizes', 
         'Size (in bytes)', 10, 10, 'center', png_filename, [COMMAND_LINE],
-        [FROG], ['swarm', 'total', 'frogsh'])
-    self.WriteHtml('bar', self.revision_dict[COMMAND_LINE][FROG]['frogsh'], 
-        'frogsh size', self.values_dict[COMMAND_LINE][FROG]['frogsh'], '', [])
+        [FROG], ['swarm', 'total', 'minfrog'])
+    self.WriteHtml('bar', self.revision_dict[COMMAND_LINE][FROG]['minfrog'], 
+        'minfrog size', self.values_dict[COMMAND_LINE][FROG]['minfrog'], '', [])
 
     self.StyleAndSavePerfPlot('Time to compile and bootstrap', 
         'Seconds', 10, 10, 'center', '2' + png_filename, [COMMAND_LINE], [FROG],
