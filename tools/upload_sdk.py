@@ -12,6 +12,7 @@ import sys
 import utils
 
 
+ACL = '~/slave_archive_acl'
 GSUTIL = '/b/build/scripts/slave/gsutil'
 GS_SITE = 'gs://'
 GS_DIR = 'dartium-archive'
@@ -38,6 +39,12 @@ def UploadArchive(source, target):
   if status != 0:
     return status
   print 'Uploaded: ' + output[0]
+
+  # Set ACL.
+  if ACL is not None:
+    cmd = [GSUTIL, 'setacl', ACL, target]
+    (status, output) = ExecuteCommand(cmd)
+  return status
 
 def GetSVNRevision():
   p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
