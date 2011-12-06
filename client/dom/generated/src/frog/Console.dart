@@ -1,5 +1,5 @@
 
-class Console native "*Console" {
+class Console native "=console" {
 
   MemoryInfo memory;
 

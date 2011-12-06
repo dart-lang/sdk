@@ -101,6 +101,14 @@ _custom_getters = set([
     ])
 
 #
+# Custom native specs for the Frog dom.
+#
+_frog_dom_custom_native_specs = {
+    'Console': '=console',      # Decorate the singleton Console object.
+    'DOMWindow': '@*DOMWindow', # DOMWindow aliased with global scope.
+}
+
+#
 # Publically visible types common across all supported browsers.
 #
 _BROWSER_SHARED_TYPES = [
@@ -553,9 +561,9 @@ class DartGenerator(object):
     self._dart_callback_file_paths = []
 
     self._StartGenerateInterfaceLibrary()
-    self._StartGenerateJavaScriptMonkeyImpl(database, output_dir)
+    self._StartGenerateJavaScriptMonkeyImpl(output_dir)
     self._StartGenerateWrappingImpl(output_dir)
-    self._StartGenerateFrogImpl(database, output_dir)
+    self._StartGenerateFrogImpl(output_dir)
 
     # Render all interfaces into Dart and save them in files.
     dart_file_paths = []
@@ -1011,11 +1019,11 @@ class DartGenerator(object):
     return result;
 
 
-  def _StartGenerateFrogImpl(self, database, output_dir):
+  def _StartGenerateFrogImpl(self, output_dir):
     """Prepared for generating frog implementation.
     """
     self._interface_names_with_subtypes = set()
-    for interface in database.GetInterfaces():
+    for interface in self._database.GetInterfaces():
       for parent in interface.parents:
         self._interface_names_with_subtypes.add(parent.type.id)
 
@@ -1038,11 +1046,11 @@ class DartGenerator(object):
                                   dart_code)
 
 
-  def _StartGenerateJavaScriptMonkeyImpl(self, database, output_dir):
+  def _StartGenerateJavaScriptMonkeyImpl(self, output_dir):
     """Generate a JavaScript implementation that is coherent with
     generated Dart APIs.
     """
-    self._ComputeInheritanceClosure(database)
+    self._ComputeInheritanceClosure()
     js_file_name = os.path.join(output_dir, 'monkey_dom.js')
     code = self._emitters.FileEmitter(js_file_name)
 
@@ -1052,7 +1060,7 @@ class DartGenerator(object):
      self._monkey_init_sequence) = code.Emit(template)
 
     self._monkey_init_sequence.Emit('var $TEMP;\n', TEMP='_')
-    self._protomap = self._GenerateProtoMap(database)
+    self._protomap = self._GenerateProtoMap()
 
     _logger.info('Started Generating %s' % js_file_name)
 
@@ -1064,7 +1072,7 @@ class DartGenerator(object):
                                     self._monkey_global_code,
                                     self._monkey_init_sequence)
 
-  def _ComputeInheritanceClosure(self, database):
+  def _ComputeInheritanceClosure(self):
     def Collect(interface, seen, collected):
       name = interface.id
       if '<' in name:
@@ -1076,11 +1084,12 @@ class DartGenerator(object):
         for parent in interface.parents:
           # TODO(sra): Handle parameterized types.
           if not '<' in parent.type.id:
-            if database.HasInterface(parent.type.id):
-              Collect(database.GetInterface(parent.type.id), seen, collected)
+            if self._database.HasInterface(parent.type.id):
+              Collect(self._database.GetInterface(parent.type.id),
+                      seen, collected)
 
     self._inheritance_closure = {}
-    for interface in database.GetInterfaces():
+    for interface in self._database.GetInterfaces():
       seen = set()
       collected = []
       Collect(interface, seen, collected)
@@ -1092,12 +1101,12 @@ class DartGenerator(object):
     """
     return self._inheritance_closure[interface.id]
 
-  def _GenerateProtoMap(self, database):
+  def _GenerateProtoMap(self):
     """Determine which DOM type prototypes can be obtained
     from window properties.
     """
     window = None
-    for interface in database.GetInterfaces():
+    for interface in self._database.GetInterfaces():
       if interface.id == 'DOMWindow':
         window = interface
     prototype_table = {}
@@ -2269,28 +2278,30 @@ class FrogInterfaceGenerator(object):
     else:
       constructor = ''
 
-    # Is the type's constructor accessible from the global scope? If so, we can
-    # directly patch the prototype.  We don't really want to do this yet because
-    # the dynamic patching mechanism is tricky and we want to test it a lot.
-    # But patching is currently broken on FireFox for non-leaf types, so 'hide'
-    # only the leaf types.
-    is_hidden = interface_name not in _BROWSER_SHARED_TYPES
-    if interface_name not in self._interfaces_with_subtypes:
-      is_hidden = True
+    if interface_name in _frog_dom_custom_native_specs:
+      native_spec = _frog_dom_custom_native_specs[interface_name]
+    else:
+      # Is the type's constructor accessible from the global scope? If so, we
+      # can directly patch the prototype.  We don't really want to do this yet
+      # because the dynamic patching mechanism is tricky and we want to test it
+      # a lot.  But patching is currently broken on FireFox for non-leaf types,
+      # so 'hide' only the leaf types.
+      is_hidden = interface_name not in _BROWSER_SHARED_TYPES
+      if interface_name not in self._interfaces_with_subtypes:
+        is_hidden = True
 
-    # Compiler needs to know window is aliased with global scope.
-    global_marker = '@' if interface_name == 'DOMWindow' else ''
+      native_spec = '*' if is_hidden else ''
+      native_spec += interface_name
 
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
-        'class $CLASS$BASE native "$SPLAT$HIDDEN$CLASS" {\n'
+        'class $CLASS$BASE native "$NATIVE" {\n'
         '$CONSTRUCTOR$!MEMBERS'
         '$!ADDITIONS'
         '}\n',
         CLASS=self._class_name, BASE=extends,
         INTERFACE=interface_name, CONSTRUCTOR=constructor,
-        SPLAT=global_marker,
-        HIDDEN='*' if is_hidden else '')
+        NATIVE=native_spec)
 
     if not base:
       # Emit shared base functionality here as we have no common base type.
