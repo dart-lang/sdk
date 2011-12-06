@@ -17,6 +17,8 @@ public enum TypeErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
   EXTRA_ARGUMENT("extra argument"),
+  FACTORY_CONSTRUCTOR_TYPES(
+      "Constructor '%s' in '%s' has parameters types (%s), doesn't match '%s' in '%s' with (%s)"),
   FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
   FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
   INTERFACE_HAS_NO_METHOD_NAMED("%s has no method named \"%s\""),

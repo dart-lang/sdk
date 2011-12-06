@@ -411,19 +411,6 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.FACTORY_CONSTRUCTOR_TYPE_ARGS_DO_NOT_MATCH);
   }
 
-  public void disabledBadFactorySignature() {
-    // Number of positional arguments must match
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface A factory B {",
-        "  A();",
-        "}",
-        "class B {",
-        "  A(foo) {}",
-        "}"),
-        ResolverErrorCode.FACTORY_CONSTRUCTOR_SIGNATURE_DOES_NOT_MATCH);
-  }
-
   public void disabledNonConstructorMethodTypeArgs() {
     // Type arguments match
     resolveAndTest(Joiner.on("\n").join(

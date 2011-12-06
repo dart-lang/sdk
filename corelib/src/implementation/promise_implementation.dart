@@ -45,7 +45,7 @@ class PromiseImpl<T> implements Promise<T> {
         _errorListeners = null,
         _cancelListeners = null {}
 
-  PromiseImpl.fromValue(val)
+  PromiseImpl.fromValue(T val)
       : _state = COMPLETE_NORMAL,
         _value = val,
         _error = null,

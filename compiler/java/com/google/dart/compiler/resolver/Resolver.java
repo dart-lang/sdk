@@ -241,11 +241,65 @@ public class Resolver {
         checkImplicitDefaultDefaultSuperInvocation(cls, classElement);
       }
 
+      // Check that interface constructors have corresponding methods in default class.
+      if (cls.getDefaultClass() != null) {
+        checkInteraceConstructors(classElement);
+      }
+
       context = previousContext;
       currentHolder = previousHolder;
       return classElement;
     }
 
+    /**
+     * Checks that interface constructors have corresponding methods in default class.
+     */
+    private void checkInteraceConstructors(ClassElement interfaceElement) {
+      String interfaceClassName = interfaceElement.getName();
+      String defaultClassName = interfaceElement.getDefaultClass().getElement().getName();
+      for (ConstructorElement interfaceConstructor : interfaceElement.getConstructors()) {
+        ConstructorElement defaultConstructor =
+            resolveInterfaceConstructorInDefaultClass(
+                interfaceConstructor.getNode(),
+                interfaceConstructor);
+        if (defaultConstructor != null) {
+          // Remember for TypeAnalyzer.
+          interfaceConstructor.setDefaultConstructor(defaultConstructor);
+          // Validate number of required parameters.
+          {
+            int numReqInterface = Elements.getNumberOfRequiredParameters(interfaceConstructor);
+            int numReqDefault = Elements.getNumberOfRequiredParameters(defaultConstructor);
+            if (numReqInterface != numReqDefault) {
+              onError(
+                  interfaceConstructor.getNode(),
+                  ResolverErrorCode.FACTORY_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS,
+                  Elements.getRawMethodName(interfaceConstructor),
+                  interfaceClassName,
+                  numReqInterface,
+                  Elements.getRawMethodName(defaultConstructor),
+                  defaultClassName,
+                  numReqDefault);
+            }
+          }
+          // Validate names of named parameters.
+          {
+            List<String> interfaceNames = Elements.getNamedParameters(interfaceConstructor);
+            List<String> defaultNames = Elements.getNamedParameters(defaultConstructor);
+            if (!interfaceNames.equals(defaultNames)) {
+              onError(
+                  interfaceConstructor.getNode(),
+                  ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS,
+                  Elements.getRawMethodName(interfaceConstructor),
+                  interfaceClassName,
+                  interfaceNames,
+                  Elements.getRawMethodName(defaultConstructor),
+                  defaultClassName,
+                  defaultNames);
+            }
+          }
+        }
+      }
+    }
 
     /**
      * Returns <code>true</code> if the {@link ClassElement} has an implicit or a declared
@@ -902,85 +956,13 @@ public class Resolver {
           break;
       }
 
-      // If there is a default implementation, lookup the constructor in the default class.
+      // Will check that element is not null.
       ConstructorElement constructor = checkIsConstructor(x, element);
-      if (constructor != null
-          && constructor.getConstructorType().getDefaultClass() != null) {
-        element = null;
-        // Prepare elements and names for classes.
-        ClassElement originalClass = constructor.getConstructorType();
-        ClassElement defaultClass = originalClass.getDefaultClass().getElement();
-        String originalClassName = originalClass.getName();
-        String defaultClassName = defaultClass.getName();
-        // Prepare "qualifier.name" for original constructor.
-        String rawOriginalMethodName = Elements.getRawMethodName(constructor);
-        int originalDotIndex = rawOriginalMethodName.indexOf('.');
-        String originalQualifier = StringUtils.substringBefore(rawOriginalMethodName, ".");
-        String originalName = StringUtils.substringAfter(rawOriginalMethodName, ".");
-        // Separate checks for cases when factory implements interface and not.
-        boolean factoryImplementsInterface = Elements.implementsType(defaultClass, originalClass);
-        if (factoryImplementsInterface) {
-          for (ConstructorElement defaultConstructor : defaultClass.getConstructors()) {
-            String rawDefaultMethodName = Elements.getRawMethodName(defaultConstructor);
-            // kI == nI and kF == nF
-            if (rawOriginalMethodName.equals(originalClassName)
-                && rawDefaultMethodName.equals(defaultClassName)) {
-              element = defaultConstructor;
-              break;
-            }
-            // kI == nI.name and kF == nF.name
-            if (originalDotIndex != -1) {
-              int defaultDotIndex = rawDefaultMethodName.indexOf('.');
-              if (defaultDotIndex != -1) {
-                String defaultQualifier = StringUtils.substringBefore(rawDefaultMethodName, ".");
-                String defaultName = StringUtils.substringAfter(rawDefaultMethodName, ".");
-                if (defaultQualifier.equals(defaultClassName)
-                    && originalQualifier.equals(originalClassName) &&
-                    defaultName.equals(originalName)) {
-                  element = defaultConstructor;
-                  break;
-                }
-              }
-            }
-          }
-        } else {
-          for (ConstructorElement defaultConstructor : defaultClass.getConstructors()) {
-            String rawDefaultMethodName = Elements.getRawMethodName(defaultConstructor);
-            if (rawDefaultMethodName.equals(rawOriginalMethodName)) {
-              element = defaultConstructor;
-              break;
-            }
-          }
-        }
-        // If constructor not found, try implicit default constructor of the default class.
-        if (element == null
-            && x.getArgs().isEmpty()
-            && Elements.needsImplicitDefaultConstructor(defaultClass)) {
-          element = new SyntheticDefaultConstructorElement(null, defaultClass, typeProvider);
-        }
-        // If factory constructor not resolved, report error with specific message for each case.
-        if (element == null) {
-          String expectedFactoryConstructorName;
-          if (factoryImplementsInterface) {
-            if (originalDotIndex == -1) {
-              expectedFactoryConstructorName = defaultClassName;
-            } else {
-              expectedFactoryConstructorName = defaultClassName + "." + originalName;
-            }
-          } else {
-            expectedFactoryConstructorName = rawOriginalMethodName;
-          }
-          onError(
-              x.getConstructor(),
-              ResolverErrorCode.NEW_EXPRESSION_FACTORY_CONSTRUCTOR,
-              expectedFactoryConstructorName,
-              defaultClassName);
-          return null;
-        }
-        // Will check that element is not null.
-        constructor = checkIsConstructor(x, element);
-      }
 
+      // try to lookup the constructor in the default class.
+      constructor = resolveInterfaceConstructorInDefaultClass(x.getConstructor(), constructor);
+
+      // Check for using "const" to non-const constructor.
       if (constructor != null) {
         if (x.isConst() && !constructor.getModifiers().isConstant()) {
           onError(x, ResolverErrorCode.CONST_AND_NONCONST_CONSTRUCTOR);
@@ -988,6 +970,86 @@ public class Resolver {
       }
 
       return recordElement(x, constructor);
+    }
+
+    /**
+     * If given {@link ConstructorElement} is declared in interface, try to resolve it in
+     * corresponding default class.
+     *
+     * @return the resolved {@link ConstructorElement}, or same as given.
+     */
+    private ConstructorElement resolveInterfaceConstructorInDefaultClass(DartNode errorTargetNode,
+        ConstructorElement constructor) {
+      // If no default class, use existing constructor.
+      if (constructor == null || constructor.getConstructorType().getDefaultClass() == null) {
+        return constructor;
+      }
+      // Prepare elements and names for classes.
+      ClassElement originalClass = constructor.getConstructorType();
+      ClassElement defaultClass = originalClass.getDefaultClass().getElement();
+      String originalClassName = originalClass.getName();
+      String defaultClassName = defaultClass.getName();
+      // Prepare "qualifier.name" for original constructor.
+      String rawOriginalMethodName = Elements.getRawMethodName(constructor);
+      int originalDotIndex = rawOriginalMethodName.indexOf('.');
+      String originalQualifier = StringUtils.substringBefore(rawOriginalMethodName, ".");
+      String originalName = StringUtils.substringAfter(rawOriginalMethodName, ".");
+      // Separate checks for cases when factory implements interface and not.
+      boolean factoryImplementsInterface = Elements.implementsType(defaultClass, originalClass);
+      if (factoryImplementsInterface) {
+        for (ConstructorElement defaultConstructor : defaultClass.getConstructors()) {
+          String rawDefaultMethodName = Elements.getRawMethodName(defaultConstructor);
+          // kI == nI and kF == nF
+          if (rawOriginalMethodName.equals(originalClassName)
+              && rawDefaultMethodName.equals(defaultClassName)) {
+            return defaultConstructor;
+          }
+          // kI == nI.name and kF == nF.name
+          if (originalDotIndex != -1) {
+            int defaultDotIndex = rawDefaultMethodName.indexOf('.');
+            if (defaultDotIndex != -1) {
+              String defaultQualifier = StringUtils.substringBefore(rawDefaultMethodName, ".");
+              String defaultName = StringUtils.substringAfter(rawDefaultMethodName, ".");
+              if (defaultQualifier.equals(defaultClassName)
+                  && originalQualifier.equals(originalClassName)
+                  && defaultName.equals(originalName)) {
+                return defaultConstructor;
+              }
+            }
+          }
+        }
+      } else {
+        for (ConstructorElement defaultConstructor : defaultClass.getConstructors()) {
+          String rawDefaultMethodName = Elements.getRawMethodName(defaultConstructor);
+          if (rawDefaultMethodName.equals(rawOriginalMethodName)) {
+            return defaultConstructor;
+          }
+        }
+      }
+      // If constructor not found, try implicit default constructor of the default class.
+      if (constructor.getParameters().isEmpty()
+          && Elements.needsImplicitDefaultConstructor(defaultClass)) {
+        return new SyntheticDefaultConstructorElement(null, defaultClass, typeProvider);
+      }
+      // Factory constructor not resolved, report error with specific message for each case.
+      {
+        String expectedFactoryConstructorName;
+        if (factoryImplementsInterface) {
+          if (originalDotIndex == -1) {
+            expectedFactoryConstructorName = defaultClassName;
+          } else {
+            expectedFactoryConstructorName = defaultClassName + "." + originalName;
+          }
+        } else {
+          expectedFactoryConstructorName = rawOriginalMethodName;
+        }
+        onError(
+            errorTargetNode,
+            ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED,
+            expectedFactoryConstructorName,
+            defaultClassName);
+        return null;
+      }
     }
 
     @Override
@@ -1357,6 +1419,11 @@ public class Resolver {
         DartPropertyAccess prop = (DartPropertyAccess)parameter.getName();
         prop.setReferencedElement(element);
         prop.getName().setReferencedElement(element);
+
+        // If no type specified, use type of field.
+        if (parameter.getTypeNode() == null && element != null) {
+          Elements.setType(parameter.getSymbol(), element.getType());
+        }
       } else {
         onError(parameter.getName(),
             ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);

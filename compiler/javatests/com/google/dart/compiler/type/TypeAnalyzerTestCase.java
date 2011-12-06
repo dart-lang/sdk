@@ -364,4 +364,11 @@ public class TypeAnalyzerTestCase extends TypeTestCase {
   private Type typeOf(String expression) {
     return analyzeNode(parseExpression(expression));
   }
+
+  /**
+   * This is dummy test method, I have to add it because in other case JUnit (at least in Eclipse)
+   * complains that this test suite has to test methods.
+   */
+  public void testDummy() throws Exception {
+  }
 }

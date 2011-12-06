@@ -7,7 +7,6 @@ import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
@@ -23,6 +22,7 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
   private final DartMethodDefinition method;
   private final ClassElement enclosingClass;
   private final FunctionType functionType;
+  private ConstructorElement defaultConstructor;
 
   public SyntheticDefaultConstructorElement(DartMethodDefinition method,
       ClassElement enclosingClass,
@@ -90,6 +90,16 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
   @Override
   public boolean isConstructor() {
     return true;
+  }
+
+  @Override
+  public ConstructorElement getDefaultConstructor() {
+    return defaultConstructor;
+  }
+
+  @Override
+  public void setDefaultConstructor(ConstructorElement defaultConstructor) {
+    this.defaultConstructor = defaultConstructor;
   }
 
   @Override

@@ -114,7 +114,6 @@ GenericParameterizedExtendsTest: Skip  # Bug 5392297
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
 GetterClosureExecutionOrderTest: Fail # Bug 5481595
 ImplicitThisTest/none: Fail # Issue 375
-InterfaceFactory3NegativeTest: Fail      # Bug 5387405
 IsObjectTest: Skip # Hasn't be tested on DartC yet
 Library4NegativeTest: Fail               # Bug 5406175
 ListLiteral1NegativeTest: Skip # Issue 220

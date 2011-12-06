@@ -662,6 +662,16 @@ public class Normalizer {
       public boolean isConstructor() {
         return true;
       }
+
+      @Override
+      public ConstructorElement getDefaultConstructor() {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public void setDefaultConstructor(ConstructorElement defaultConstructor) {
+        throw new UnsupportedOperationException();
+      }
       
       @Override
       public Type getReturnType() {

@@ -65,8 +65,12 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
-  FACTORY_CONSTRUCTOR_SIGNATURE_DOES_NOT_MATCH("Factory constructor signature does not match"),
   FACTORY_CONSTRUCTOR_TYPE_ARGS_DO_NOT_MATCH("Factory constructor type arguments do not match"),
+  FACTORY_CONSTRUCTOR_UNRESOLVED("Can not resolve constructor with name '%s' in factory '%s'"),
+  FACTORY_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS(
+      "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
+  FACTORY_CONSTRUCTOR_NAMED_PARAMETERS(
+      "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
@@ -82,7 +86,6 @@ public enum ResolverErrorCode implements ErrorCode {
   NAME_CLASHES_EXISTING_MEMBER(
       "name clashes with a previously defined member at %sline %d column %d"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
-  NEW_EXPRESSION_FACTORY_CONSTRUCTOR("Can not resolve constructor with name '%s' in factory '%s'"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),

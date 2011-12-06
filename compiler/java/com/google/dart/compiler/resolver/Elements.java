@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -270,5 +271,46 @@ public class Elements {
       DartPropertyAccess propertyAccess = (DartPropertyAccess) name;
       return getRawName(propertyAccess.getQualifier()) + "." + getRawName(propertyAccess.getName());
     }
+  }
+
+  /**
+   * @return the number of required (not optional/named) parameters in given {@link MethodElement}.
+   */
+  public static int getNumberOfRequiredParameters(MethodElement method) {
+    int num = 0;
+    List<VariableElement> parameters = method.getParameters();
+    for (VariableElement parameter : parameters) {
+      if (!parameter.isNamed()) {
+        num++;
+      }
+    }
+    return num;
+  }
+
+  /**
+   * @return the names for named parameters in given {@link MethodElement}.
+   */
+  public static List<String> getNamedParameters(MethodElement method) {
+    List<String> names = Lists.newArrayList();
+    List<VariableElement> parameters = method.getParameters();
+    for (VariableElement parameter : parameters) {
+      if (parameter.isNamed()) {
+        names.add(parameter.getName());
+      }
+    }
+    return names;
+  }
+
+  /**
+   * @return the names for parameters types in given {@link MethodElement}.
+   */
+  public static List<String> getParameterTypeNames(MethodElement method) {
+    List<String> names = Lists.newArrayList();
+    List<VariableElement> parameters = method.getParameters();
+    for (VariableElement parameter : parameters) {
+      String typeName = parameter.getType().getElement().getName();
+      names.add(typeName);
+    }
+    return names;
   }
 }

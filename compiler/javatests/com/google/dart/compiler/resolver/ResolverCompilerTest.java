@@ -6,10 +6,8 @@ package com.google.dart.compiler.resolver;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartUnit;
 
 import java.util.List;
@@ -19,24 +17,6 @@ import java.util.List;
  * slower, not actually unit test, but easier to use if you need access to DartNode's.
  */
 public class ResolverCompilerTest extends CompilerTestCase {
-  /**
-   * @return the {@link DartInvocation} with given source. This is inaccurate approach, but good
-   *         enough for specific tests.
-   */
-  private static DartNewExpression findNewExpression(DartNode rootNode, final String sampleSource) {
-    final DartNewExpression result[] = new DartNewExpression[1];
-    rootNode.accept(new DartNodeTraverser<Void>() {
-      @Override
-      public Void visitNewExpression(DartNewExpression node) {
-        if (node.toSource().equals(sampleSource)) {
-          result[0] = node;
-        }
-        return super.visitInvocation(node);
-      }
-    });
-    return result[0];
-  }
-
   /**
    * We should be able to resolve implicit default constructor.
    */
@@ -305,8 +285,10 @@ public class ResolverCompilerTest extends CompilerTestCase {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
       assertErrors(
           errors,
-          errEx(ResolverErrorCode.NEW_EXPRESSION_FACTORY_CONSTRUCTOR, 10, 9, 1),
-          errEx(ResolverErrorCode.NEW_EXPRESSION_FACTORY_CONSTRUCTOR, 11, 9, 5));
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 2, 3, 9),
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 3, 3, 13),
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 10, 9, 1),
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 11, 9, 5));
       {
         String message = errors.get(0).getMessage();
         assertTrue(message, message.contains("'F'"));
@@ -416,7 +398,10 @@ public class ResolverCompilerTest extends CompilerTestCase {
     // Check errors.
     {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
-      assertErrors(errors, errEx(ResolverErrorCode.NEW_EXPRESSION_FACTORY_CONSTRUCTOR, 8, 9, 5));
+      assertErrors(
+          errors,
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 2, 3, 13),
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 8, 9, 5));
       {
         String message = errors.get(0).getMessage();
         assertTrue(message, message.contains("'I.foo'"));
@@ -428,6 +413,141 @@ public class ResolverCompilerTest extends CompilerTestCase {
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
       assertEquals(null, newExpression.getSymbol());
+    }
+  }
+
+  /**
+   * From specification 0.05, 11/14/2011.
+   * <p>
+   * It is a compile-time error if kI and kF do not have the same number of required parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=521
+   */
+  public void test_resolveInterfaceConstructor_hasByName_negative_notSameNumberOfRequiredParameters()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            "Test.dart",
+            Joiner.on("\n").join(
+                "interface I factory F {",
+                "  I.foo(int x);",
+                "}",
+                "class F implements I {",
+                "  factory F.foo() {}",
+                "}",
+                "class Test {",
+                "  foo() {",
+                "    new I.foo();",
+                "  }",
+                "}"));
+    assertErrors(libraryResult.getTypeErrors());
+    // Check errors.
+    {
+      List<DartCompilationError> errors = libraryResult.getCompilationErrors();
+      assertErrors(
+          errors,
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS, 2, 3, 13));
+      {
+        String message = errors.get(0).getMessage();
+        assertTrue(message, message.contains("'F.foo'"));
+        assertTrue(message, message.contains("'F'"));
+        assertTrue(message, message.contains("0"));
+        assertTrue(message, message.contains("1"));
+        assertTrue(message, message.contains("'F.foo'"));
+      }
+    }
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    // "new I.foo()" - resolved, but we produce error.
+    {
+      DartNewExpression newExpression = findNewExpression(unit, "new I.foo()");
+      DartNode constructorNode = newExpression.getSymbol().getNode();
+      assertEquals(true, constructorNode.toSource().contains("F.foo()"));
+    }
+  }
+
+  /**
+   * From specification 0.05, 11/14/2011.
+   * <p>
+   * It is a compile-time error if kI and kF do not have identically named optional parameters,
+   * declared in the same order.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=521
+   */
+  public void test_resolveInterfaceConstructor_hasByName_negative_notSameNamedParameters()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            "Test.dart",
+            Joiner.on("\n").join(
+                "interface I factory F {",
+                "  I.foo(int a, [int b, int c]);",
+                "  I.bar(int a, [int b, int c]);",
+                "  I.baz(int a, [int b]);",
+                "}",
+                "class F implements I {",
+                "  factory F.foo(int any, [int b = 1]) {}",
+                "  factory F.bar(int any, [int c = 1, int b = 2]) {}",
+                "  factory F.baz(int any, [int c = 1]) {}",
+                "}",
+                "class Test {",
+                "  foo() {",
+                "    new I.foo(0);",
+                "    new I.bar(0);",
+                "    new I.baz(0);",
+                "  }",
+                "}"));
+    assertErrors(libraryResult.getTypeErrors());
+    // Check errors.
+    {
+      List<DartCompilationError> errors = libraryResult.getCompilationErrors();
+      assertErrors(
+          errors,
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS, 2, 3, 29),
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS, 3, 3, 29),
+          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS, 4, 3, 22));
+      {
+        String message = errors.get(0).getMessage();
+        assertTrue(message, message.contains("'I.foo'"));
+        assertTrue(message, message.contains("'F'"));
+        assertTrue(message, message.contains("[b]"));
+        assertTrue(message, message.contains("[b, c]"));
+        assertTrue(message, message.contains("'F.foo'"));
+      }
+      {
+        String message = errors.get(1).getMessage();
+        assertTrue(message, message.contains("'I.bar'"));
+        assertTrue(message, message.contains("'F'"));
+        assertTrue(message, message.contains("[c, b]"));
+        assertTrue(message, message.contains("[b, c]"));
+        assertTrue(message, message.contains("'F.bar'"));
+      }
+      {
+        String message = errors.get(2).getMessage();
+        assertTrue(message, message.contains("'I.baz'"));
+        assertTrue(message, message.contains("'F'"));
+        assertTrue(message, message.contains("[b]"));
+        assertTrue(message, message.contains("[c]"));
+        assertTrue(message, message.contains("'F.baz'"));
+      }
+    }
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    // "new I.foo()" - resolved, but we produce error.
+    {
+      DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
+      DartNode constructorNode = newExpression.getSymbol().getNode();
+      assertEquals(true, constructorNode.toSource().contains("F.foo("));
+    }
+    // "new I.bar()" - resolved, but we produce error.
+    {
+      DartNewExpression newExpression = findNewExpression(unit, "new I.bar(0)");
+      DartNode constructorNode = newExpression.getSymbol().getNode();
+      assertEquals(true, constructorNode.toSource().contains("F.bar("));
+    }
+    // "new I.baz()" - resolved, but we produce error.
+    {
+      DartNewExpression newExpression = findNewExpression(unit, "new I.baz(0)");
+      DartNode constructorNode = newExpression.getSymbol().getNode();
+      assertEquals(true, constructorNode.toSource().contains("F.baz("));
     }
   }
 }

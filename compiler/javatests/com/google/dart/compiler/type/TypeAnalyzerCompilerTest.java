@@ -7,12 +7,15 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -20,6 +23,7 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.util.List;
 
@@ -166,5 +170,82 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       }
     });
     return invocationRef[0];
+  }
+
+  /**
+   * From specification 0.05, 11/14/2011.
+   * <p>
+   * It is a static type warning if the type of the nth required formal parameter of kI is not
+   * identical to the type of the nth required formal parameter of kF.
+   * <p>
+   * It is a static type warning if the types of named optional parameters with the same name differ
+   * between kI and kF .
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=521
+   */
+  public void test_resolveInterfaceConstructor_hasByName_negative_notSameParametersType()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            "Test.dart",
+            Joiner.on("\n").join(
+                "interface I factory F {",
+                "  I.foo(int a, [int b, int c]);",
+                "}",
+                "class F implements I {",
+                "  factory F.foo(num any, [bool b, Object c]) {}",
+                "}",
+                "class Test {",
+                "  foo() {",
+                "    new I.foo(0);",
+                "  }",
+                "}"));
+    // No compilation errors.
+    assertErrors(libraryResult.getCompilationErrors());
+    // Check type warnings.
+    {
+      List<DartCompilationError> errors = libraryResult.getTypeErrors();
+      assertErrors(errors, errEx(TypeErrorCode.FACTORY_CONSTRUCTOR_TYPES, 2, 3, 29));
+      assertEquals(
+          "Constructor 'I.foo' in 'I' has parameters types (int,int,int), doesn't match 'F.foo' in 'F' with (num,bool,Object)",
+          errors.get(0).getMessage());
+    }
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    // "new I.foo()" - resolved, but we produce error.
+    {
+      DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
+      DartNode constructorNode = newExpression.getSymbol().getNode();
+      assertEquals(true, constructorNode.toSource().contains("F.foo("));
+    }
+  }
+
+  /**
+   * There was problem that <code>this.fieldName</code> constructor parameter had no type, so we
+   * produced incompatible interface/default class warning.
+   */
+  public void test_resolveInterfaceConstructor_sameParametersType_thisFieldParameter()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            "Test.dart",
+            Joiner.on("\n").join(
+                "interface I factory F {",
+                "  I(int a);",
+                "}",
+                "class F implements I {",
+                "  int a;",
+                "  F(this.a) {}",
+                "}"));
+    // Check that parameter has resolved type.
+    {
+      DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+      DartClass classF = (DartClass) unit.getTopLevelNodes().get(1);
+      DartMethodDefinition methodF = (DartMethodDefinition) classF.getMembers().get(1);
+      DartParameter parameter = methodF.getFunction().getParams().get(0);
+      assertEquals("int", parameter.getSymbol().getType().toString());
+    }
+    // No errors or type warnings.
+    assertErrors(libraryResult.getCompilationErrors());
+    assertErrors(libraryResult.getTypeErrors());
   }
 }

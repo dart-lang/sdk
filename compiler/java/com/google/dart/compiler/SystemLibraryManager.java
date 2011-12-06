@@ -110,13 +110,12 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent
-   * to its full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart")
-   *
+   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
+   * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart").
+   * 
    * @param uri the relative URI
-   * @return the expanded URI or the original URI if it could not be expanded
-   * @exception RuntimeException if the short URI is of the form "dart:<libname>"
-   *     but does not correspond to a system library
+   * @return the expanded URI, or the original URI if it could not be expanded, or <code>null</code>
+   *         if original URI can not be resolved.
    */
   public URI expandRelativeDartUri(URI uri) throws AssertionError {
     if (isDartUri(uri)) {

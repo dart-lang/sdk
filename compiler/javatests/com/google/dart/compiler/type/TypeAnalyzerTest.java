@@ -325,13 +325,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testFactory() {
     analyzeClasses(loadSource(
         "interface Foo factory Bar {",
-        "  Foo(argument);",
+        "  Foo(String argument);",
         "}",
         "interface Baz {}",
         "class Bar implements Foo, Baz {",
         "  Bar(String argument) {}",
         "}"));
-
     analyzeFail("Baz x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 

@@ -5,6 +5,7 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.dart.compiler.DartCompilationError;
@@ -727,8 +728,47 @@ public class TypeAnalyzer implements DartCompilationPhase {
         validateTypeNode(node.getDefaultClass(), true);
       }
       visit(node.getMembers());
+      checkInterfaceConstructors(element);
       setCurrentClass(null);
       return type;
+    }
+
+    /**
+     * Checks that interface constructors have corresponding methods in default class.
+     */
+    private void checkInterfaceConstructors(ClassElement interfaceElement) {
+      // If no default class, do nothing.
+      if (interfaceElement.getDefaultClass() == null) {
+        return;
+      }
+      // Analyze all constructors.
+      String interfaceClassName = interfaceElement.getName();
+      String defaultClassName = interfaceElement.getDefaultClass().getElement().getName();
+      for (ConstructorElement interfaceConstructor : interfaceElement.getConstructors()) {
+        ConstructorElement defaultConstructor = interfaceConstructor.getDefaultConstructor();
+        if (defaultConstructor != null) {
+          // TODO(scheglov)
+          // It is a compile-time error if kI and kF do not have identical type parameters
+          // TODO /end
+          // Validate types of required and optional parameters.
+          {
+            List<String> interfaceTypes = Elements.getParameterTypeNames(interfaceConstructor);
+            List<String> defaultTypes = Elements.getParameterTypeNames(defaultConstructor);
+            if (interfaceTypes.size() == defaultTypes.size()
+                && !interfaceTypes.equals(defaultTypes)) {
+              onError(
+                  interfaceConstructor.getNode(),
+                  TypeErrorCode.FACTORY_CONSTRUCTOR_TYPES,
+                  Elements.getRawMethodName(interfaceConstructor),
+                  interfaceClassName,
+                  Joiner.on(",").join(interfaceTypes),
+                  Elements.getRawMethodName(defaultConstructor),
+                  defaultClassName,
+                  Joiner.on(",").join(defaultTypes));
+            }
+          }
+        }
+      }
     }
 
     private List<Element> findUnimplementedMembers(ClassElement element) {

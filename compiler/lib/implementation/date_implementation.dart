@@ -26,7 +26,7 @@ class DateImplementation implements Date {
                                   int minutes,
                                   int seconds,
                                   int milliseconds,
-                                  TimeZoneImplementation timeZone)
+                                  TimeZone timeZone)
       : this.timeZone = timeZone,
         value = _valueFromDecomposed(years, month, day,
                                      hours, minutes, seconds, milliseconds,
@@ -43,7 +43,7 @@ class DateImplementation implements Date {
         value = _valueFromString(formattedString) {
   }
 
-  const DateImplementation.fromEpoch(this.value, this.timeZone);
+  const DateImplementation.fromEpoch(int this.value, TimeZone this.timeZone);
 
   bool operator ==(other) {
     if (!(other is DateImplementation)) return false;
