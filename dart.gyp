@@ -40,7 +40,7 @@
       'type': 'none',
       'dependencies': [
         'frog',
-        'runtime',
+        'runtime/dart-runtime.gyp:dart',
       ],
       'actions': [
         {
