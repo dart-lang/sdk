@@ -25,7 +25,7 @@ interface Duration extends Comparable factory DurationImplementation {
   final int inDays;
 
   /**
-   * Returns this [Duration] in days. Incomplete hours are discarded.
+   * Returns this [Duration] in hours. Incomplete hours are discarded.
    * The returned value can be greater than 23.
    */
   final int inHours;
