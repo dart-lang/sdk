@@ -62,7 +62,6 @@ Isolate::Isolate()
       long_jump_base_(NULL),
       timer_list_(),
       stack_limit_(0),
-      stack_limit_on_overflow_exception_(0),
       ast_node_id_(AstNode::kNoId) {
 }
 
@@ -152,7 +151,6 @@ void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
 
 void Isolate::SetStackLimit(uword limit) {
   stack_limit_ = limit;
-  stack_limit_on_overflow_exception_ = limit - kStackSizeBuffer;
 }
 
 

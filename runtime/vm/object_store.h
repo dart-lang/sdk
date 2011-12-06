@@ -286,6 +286,11 @@ class ObjectStore {
     empty_context_ = value.raw();
   }
 
+  RawInstance* stack_overflow() const { return stack_overflow_; }
+  void set_stack_overflow(const Instance& value) {
+    stack_overflow_ = value.raw();
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -293,6 +298,11 @@ class ObjectStore {
   int GetClassIndex(const RawClass* raw_class);
   RawType* GetType(int index);
   int GetTypeIndex(const RawType* raw_type);
+
+  // Called to initialize objects required by the vm but which invoke
+  // dart code.  If an error occurs then false is returned and error
+  // information is stored in sticky_error().
+  bool PreallocateObjects();
 
   static void Init(Isolate* isolate);
 
@@ -342,7 +352,10 @@ class ObjectStore {
   RawArray* pending_classes_;
   RawString* sticky_error_;
   RawContext* empty_context_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&empty_context_); }
+  RawInstance* stack_overflow_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&stack_overflow_); }
+
+  bool preallocate_objects_called_;
 
   friend class SnapshotReader;
 

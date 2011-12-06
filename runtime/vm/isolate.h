@@ -230,14 +230,6 @@ class Isolate {
 
   void SetStackLimitFromCurrentTOS(uword isolate_stack_top);
 
-  void ResetStackLimitAfterException() {
-    stack_limit_ = stack_limit_on_overflow_exception_ + kStackSizeBuffer;
-  }
-
-  void AdjustStackLimitForException() {
-    stack_limit_ = stack_limit_on_overflow_exception_;
-  }
-
   void StandardRunLoop();
 
   intptr_t ast_node_id() const { return ast_node_id_; }
@@ -285,7 +277,6 @@ class Isolate {
   LongJump* long_jump_base_;
   TimerList timer_list_;
   uword stack_limit_;
-  uword stack_limit_on_overflow_exception_;
   intptr_t ast_node_id_;
 
   static Dart_IsolateCreateCallback create_callback_;

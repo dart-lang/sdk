@@ -4,7 +4,9 @@
 
 #include "vm/object_store.h"
 
+#include "vm/exceptions.h"
 #include "vm/isolate.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -49,7 +51,9 @@ ObjectStore::ObjectStore()
     registered_libraries_(Library::null()),
     pending_classes_(Array::null()),
     sticky_error_(String::null()),
-    empty_context_(Context::null()) {
+    empty_context_(Context::null()),
+    stack_overflow_(Instance::null()),
+    preallocate_objects_called_(false) {
 }
 
 
@@ -67,6 +71,30 @@ void ObjectStore::Init(Isolate* isolate) {
   ASSERT(isolate->object_store() == NULL);
   ObjectStore* store = new ObjectStore();
   isolate->set_object_store(store);
+}
+
+
+bool ObjectStore::PreallocateObjects() {
+  if (preallocate_objects_called_) {
+    return true;
+  }
+
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL && isolate->object_store() == this);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    GrowableArray<const Object*> args;
+    const Instance& exception =
+        Instance::Handle(Exceptions::Create(Exceptions::kStackOverflow, args));
+    set_stack_overflow(exception);
+  } else {
+    return false;
+  }
+  isolate->set_long_jump_base(base);
+  preallocate_objects_called_ = true;
+  return true;
 }
 
 

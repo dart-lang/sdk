@@ -823,13 +823,12 @@ DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.Count() ==
          kStackOverflowRuntimeEntry.argument_count());
-  uword old_stack_limit = isolate->stack_limit();
-  isolate->AdjustStackLimitForException();
-  // Recursive stack overflow check.
-  ASSERT(old_stack_limit != isolate->stack_limit());
-  GrowableArray<const Object*> args;
-  Exceptions::ThrowByType(Exceptions::kStackOverflow, args);
-  isolate->ResetStackLimitAfterException();
+  // Use a preallocated stack overflow exception to avoid calling into
+  // dart code.
+  const Instance& exception =
+      Instance::Handle(isolate->object_store()->stack_overflow());
+  Exceptions::Throw(exception);
+  UNREACHABLE();
 }
 
 

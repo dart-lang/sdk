@@ -56,10 +56,15 @@ const char* CanonicalFunction(const char* func) {
 static const char* CheckIsolateState(
     Isolate* isolate,
     bool generating_snapshot = ClassFinalizer::kNotGeneratingSnapshot) {
-  bool result = (generating_snapshot) ?
+  bool success = (generating_snapshot) ?
       ClassFinalizer::FinalizePendingClassesForSnapshotCreation() :
       ClassFinalizer::FinalizePendingClasses();
-  if (!result) {
+  if (success && !generating_snapshot) {
+    success = isolate->object_store()->PreallocateObjects();
+  }
+  if (success) {
+    return NULL;
+  } else {
     // Make a copy of the error message as the original message string
     // may get deallocated when we return back from the Dart API call.
     const String& err =
@@ -70,7 +75,6 @@ static const char* CheckIsolateState(
     OS::SNPrint(msg, errlen, "%s", errmsg);
     return msg;
   }
-  return NULL;
 }
 
 
