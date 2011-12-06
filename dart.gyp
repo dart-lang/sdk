@@ -36,7 +36,7 @@
       ],
     },
     {
-      'target_name': 'sdk',
+      'target_name': 'create_sdk',
       'type': 'none',
       'dependencies': [
         'frog',
@@ -44,7 +44,7 @@
       ],
       'actions': [
         {
-          'action_name': 'create_sdk',
+          'action_name': 'create_sdk_py',
           'inputs': [
             'tools/create_sdk.py',
           ],
@@ -64,17 +64,17 @@
       'target_name': 'upload_sdk',
       'type': 'none',
       'dependencies': [
-        'sdk',
+        'create_sdk',
       ],
       'actions': [
         {
-          'action_name': 'upload_sdk',
+          'action_name': 'upload_sdk_py',
           'inputs': [
             '<(PRODUCT_DIR)/sdk',
             'tools/upload_sdk.py',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/sdk',
+            '<(PRODUCT_DIR)/upload_sdk',
           ],
           'action': [
             'python',
