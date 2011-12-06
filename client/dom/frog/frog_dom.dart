@@ -829,7 +829,7 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg) native;
 }
 
-class Console native "*Console" {
+class Console native "=console" {
 
   MemoryInfo memory;
 
