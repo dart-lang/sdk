@@ -24,11 +24,11 @@ static uword ZoneAllocator(intptr_t size) {
 
 RawClass* Class::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
-                          bool classes_serialized) {
+                          Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   Class& cls = Class::ZoneHandle();
-  if (classes_serialized) {
+  if (kind == Snapshot::kFull) {
     // Read in the base information.
     ObjectKind kind = reader->Read<ObjectKind>();
 
@@ -65,14 +65,14 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
 
 void RawClass::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
-                       bool serialize_classes) {
+                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteObjectHeader(kInlined, object_id);
 
-  if (serialize_classes) {
+  if (kind == Snapshot::kFull) {
     // Write out the class information.
     writer->WriteObjectHeader(kObjectId, Object::kClassClass);
 
@@ -97,7 +97,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 
 RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
-                                              bool classes_serialized) {
+                                              Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate parameterized type object.
@@ -122,7 +122,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
 
 void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
-                                 bool serialize_classes) {
+                                 Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -142,22 +142,22 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
 
 RawAbstractType* AbstractType::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
-                        bool classes_serialized) {
+                        Snapshot::Kind kind) {
   UNREACHABLE();  // AbstractType is an abstract class.
   return NULL;
 }
 
 
 void RawAbstractType::WriteTo(SnapshotWriter* writer,
-                      intptr_t object_id,
-                      bool serialize_classes) {
+                              intptr_t object_id,
+                              Snapshot::Kind kind) {
   UNREACHABLE();  // AbstractType is an abstract class.
 }
 
 
 RawType* Type::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
-                                                  bool classes_serialized) {
+                                                  Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate parameterized type object.
@@ -180,8 +180,8 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 
 
 void RawType::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   bool serialize_classes) {
+                      intptr_t object_id,
+                      Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -201,7 +201,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
 
 RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
-                                          bool classes_serialized) {
+                                          Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate type parameter object.
@@ -227,7 +227,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
 void RawTypeParameter::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
-                               bool serialize_classes) {
+                               Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -246,7 +246,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
 
 RawInstantiatedType* InstantiatedType::ReadFrom(SnapshotReader* reader,
                                                 intptr_t object_id,
-                                                bool classes_serialized) {
+                                                Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate instantiated type object.
@@ -268,7 +268,7 @@ RawInstantiatedType* InstantiatedType::ReadFrom(SnapshotReader* reader,
 
 void RawInstantiatedType::WriteTo(SnapshotWriter* writer,
                                   intptr_t object_id,
-                                  bool serialize_classes) {
+                                  Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -286,22 +286,22 @@ void RawInstantiatedType::WriteTo(SnapshotWriter* writer,
 RawAbstractTypeArguments* AbstractTypeArguments::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,
-    bool classes_serialized) {
+    Snapshot::Kind kind) {
   UNREACHABLE();  // AbstractTypeArguments is an abstract class.
   return TypeArguments::null();
 }
 
 
 void RawAbstractTypeArguments::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               bool serialize_classes) {
+                                       intptr_t object_id,
+                                       Snapshot::Kind kind) {
   UNREACHABLE();  // AbstractTypeArguments is an abstract class.
 }
 
 
 RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
-                                  intptr_t object_id,
-                                  bool classes_serialized) {
+                                          intptr_t object_id,
+                                          Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
@@ -321,7 +321,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
 void RawTypeArguments::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
-                               bool serialize_classes) {
+                               Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
@@ -344,7 +344,7 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
 RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,
-    bool classes_serialized) {
+    Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate instantiated types object.
@@ -365,8 +365,8 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
 
 
 void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   bool serialize_classes) {
+                                           intptr_t object_id,
+                                           Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -383,7 +383,7 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
 
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
-                                bool classes_serialized) {
+                                Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate function object.
@@ -415,7 +415,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
 
 void RawFunction::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
-                          bool serialize_classes) {
+                          Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -443,7 +443,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
 RawField* Field::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
-                          bool classes_serialized) {
+                          Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate field object.
@@ -470,7 +470,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
 
 void RawField::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
-                       bool serialize_classes) {
+                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -492,7 +492,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
 
 RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
-                                      bool classes_serialized) {
+                                      Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine number of tokens to read.
@@ -517,7 +517,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
 
 void RawTokenStream::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
-                             bool serialize_classes) {
+                             Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
@@ -539,7 +539,7 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
 
 RawScript* Script::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
-                            bool classes_serialized) {
+                            Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate script object.
@@ -560,7 +560,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
 
 void RawScript::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
-                        bool serialize_classes) {
+                        Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(tokens_ != TokenStream::null());
   SnapshotWriterVisitor visitor(writer);
@@ -578,7 +578,7 @@ void RawScript::WriteTo(SnapshotWriter* writer,
 
 RawLibrary* Library::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
-                              bool classes_serialized) {
+                              Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate library object.
@@ -610,7 +610,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
 
 void RawLibrary::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
-                         bool serialize_classes) {
+                         Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -636,7 +636,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
 
 RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
-                                          bool classes_serialized) {
+                                          Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate library prefix object.
@@ -657,7 +657,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
 
 void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
-                               bool serialize_classes) {
+                               Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -674,7 +674,7 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
 
 RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
-                        bool classes_serialized) {
+                        Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Create Code object.
@@ -686,7 +686,7 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
 
 void RawCode::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
-                      bool serialize_classes) {
+                      Snapshot::Kind kind) {
   // Currently we do not serialize any code and hence we write
   // out a null object for it.
   ASSERT(writer != NULL);
@@ -697,7 +697,7 @@ void RawCode::WriteTo(SnapshotWriter* writer,
 
 RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
-                                        bool classes_serialized) {
+                                        Snapshot::Kind kind) {
   UNREACHABLE();
   return Instructions::null();
 }
@@ -705,14 +705,14 @@ RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
 
 void RawInstructions::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
-                              bool serialize_classes) {
+                              Snapshot::Kind kind) {
   UNREACHABLE();
 }
 
 
 RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
-                                          bool classes_serialized) {
+                                          Snapshot::Kind kind) {
   UNREACHABLE();
   return PcDescriptors::null();
 }
@@ -720,14 +720,14 @@ RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
 
 void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
-                               bool serialize_classes) {
+                               Snapshot::Kind kind) {
   UNREACHABLE();
 }
 
 
 RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
-                                                  bool classes_serialized) {
+                                                  Snapshot::Kind kind) {
   UNREACHABLE();
   return ExceptionHandlers::null();
 }
@@ -735,20 +735,21 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
 
 void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
-                                   bool serialize_classes) {
+                                   Snapshot::Kind kind) {
   UNREACHABLE();
 }
 
 
 RawContext* Context::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
-                              bool classes_serialized) {
+                              Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate context object.
   intptr_t num_vars = reader->Read<intptr_t>();
   Context& context = Context::ZoneHandle(
-      Context::New(num_vars, classes_serialized ? Heap::kOld : Heap::kNew));
+      Context::New(num_vars,
+                   (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &context);
 
   // Set the isolate implicitly.
@@ -768,7 +769,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
 
 void RawContext::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
-                         bool serialize_classes) {
+                         Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -790,7 +791,7 @@ void RawContext::WriteTo(SnapshotWriter* writer,
 
 RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
-                                        bool classes_serialized) {
+                                        Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Allocate context scope object.
@@ -812,7 +813,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
 
 void RawContextScope::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
-                              bool serialize_classes) {
+                              Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   SnapshotWriterVisitor visitor(writer);
 
@@ -832,7 +833,7 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
 
 RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
                                                     intptr_t object_id,
-                                                    bool classes_serialized) {
+                                                    Snapshot::Kind kind) {
   UNIMPLEMENTED();
   return UnhandledException::null();
 }
@@ -840,29 +841,29 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
 
 void RawUnhandledException::WriteTo(SnapshotWriter* writer,
                                     intptr_t object_id,
-                                    bool serialize_classes) {
+                                    Snapshot::Kind kind) {
   UNIMPLEMENTED();
 }
 
 
 RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
-                                    bool classes_serialized) {
+                                    Snapshot::Kind kind) {
   UNIMPLEMENTED();
   return ApiError::null();
 }
 
 
 void RawApiError::WriteTo(SnapshotWriter* writer,
-                            intptr_t object_id,
-                            bool serialize_classes) {
+                          intptr_t object_id,
+                          Snapshot::Kind kind) {
   UNIMPLEMENTED();
 }
 
 
 RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
-                                bool classes_serialized) {
+                                Snapshot::Kind kind) {
   UNREACHABLE();
   return Instance::null();
 }
@@ -870,14 +871,14 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
 
 void RawInstance::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
-                          bool serialize_classes) {
+                          Snapshot::Kind kind) {
   UNREACHABLE();
 }
 
 
 RawMint* Mint::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
-                        bool classes_serialized) {
+                        Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Read the 64 bit value for the object.
@@ -885,7 +886,7 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
 
   // Create a Mint object.
   Mint& mint = Mint::ZoneHandle(
-      Mint::New(value, classes_serialized ? Heap::kOld : Heap::kNew));
+      Mint::New(value, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &mint);
   return mint.raw();
 }
@@ -893,7 +894,7 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
 
 void RawMint::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
-                      bool serialize_classes) {
+                      Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
@@ -909,7 +910,7 @@ void RawMint::WriteTo(SnapshotWriter* writer,
 
 RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
-                            bool classes_serialized) {
+                            Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   // Read in the HexCString representation of the bigint.
   intptr_t len = reader->Read<intptr_t>();
@@ -927,7 +928,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
 
 void RawBigint::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
-                        bool serialize_classes) {
+                        Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
@@ -949,13 +950,13 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
 
 RawDouble* Double::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
-                            bool classes_serialized) {
+                            Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   // Read the double value for the object.
   double value = reader->Read<double>();
   // Create a double object.
   Double& dbl = Double::ZoneHandle(
-      Double::New(value, classes_serialized ? Heap::kOld : Heap::kNew));
+      Double::New(value, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &dbl);
   return dbl.raw();
 }
@@ -963,7 +964,7 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
 
 void RawDouble::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
-                        bool serialize_classes) {
+                        Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
@@ -979,7 +980,7 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
 
 RawString* String::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
-                            bool classes_serialized) {
+                            Snapshot::Kind kind) {
   UNREACHABLE();  // String is an abstract class.
   return String::null();
 }
@@ -987,7 +988,7 @@ RawString* String::ReadFrom(SnapshotReader* reader,
 
 void RawString::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
-                        bool serialize_classes) {
+                        Snapshot::Kind kind) {
   UNREACHABLE();  // String is an abstract class.
 }
 
@@ -995,7 +996,7 @@ void RawString::WriteTo(SnapshotWriter* writer,
 template<typename HandleType, typename CharacterType>
 RawString* String::ReadFromImpl(SnapshotReader* reader,
                                 intptr_t object_id,
-                                bool classes_serialized) {
+                                Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   // Read the length so that we can determine instance size to allocate.
   RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
@@ -1003,8 +1004,8 @@ RawString* String::ReadFromImpl(SnapshotReader* reader,
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
   // Set up the string object.
-  HandleType& str_obj = HandleType::ZoneHandle(
-      HandleType::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+  HandleType& str_obj = HandleType::ZoneHandle(HandleType::New(
+      len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   for (intptr_t i = 0; i < len; i++) {
     *str_obj.CharAddr(i) = reader->Read<CharacterType>();
   }
@@ -1016,31 +1017,25 @@ RawString* String::ReadFromImpl(SnapshotReader* reader,
 
 RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
-                                          bool classes_serialized) {
+                                          Snapshot::Kind kind) {
   return static_cast<RawOneByteString*>(
-      ReadFromImpl<OneByteString, uint8_t>(reader,
-                                           object_id,
-                                           classes_serialized));
+      ReadFromImpl<OneByteString, uint8_t>(reader, object_id, kind));
 }
 
 
 RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
-                                          bool classes_serialized) {
+                                          Snapshot::Kind kind) {
   return static_cast<RawTwoByteString*>(
-      ReadFromImpl<TwoByteString, uint16_t>(reader,
-                                            object_id,
-                                            classes_serialized));
+      ReadFromImpl<TwoByteString, uint16_t>(reader, object_id, kind));
 }
 
 
 RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
-                                            bool classes_serialized) {
+                                            Snapshot::Kind kind) {
   return static_cast<RawFourByteString*>(
-      ReadFromImpl<FourByteString, uint32_t>(reader,
-                                             object_id,
-                                             classes_serialized));
+      ReadFromImpl<FourByteString, uint32_t>(reader, object_id, kind));
 }
 
 
@@ -1048,7 +1043,7 @@ template<typename T>
 static void StringWriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           intptr_t class_id,
-                          bool serialize_classes,
+                          Snapshot::Kind kind,
                           RawSmi* length,
                           RawSmi* hash,
                           T* data) {
@@ -1076,11 +1071,11 @@ static void StringWriteTo(SnapshotWriter* writer,
 
 void RawOneByteString::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
-                               bool serialize_classes) {
+                               Snapshot::Kind kind) {
   StringWriteTo(writer,
                 object_id,
                 ObjectStore::kOneByteStringClass,
-                serialize_classes,
+                kind,
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->data_);
@@ -1089,11 +1084,11 @@ void RawOneByteString::WriteTo(SnapshotWriter* writer,
 
 void RawTwoByteString::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
-                               bool serialize_classes) {
+                               Snapshot::Kind kind) {
   StringWriteTo(writer,
                 object_id,
                 ObjectStore::kTwoByteStringClass,
-                serialize_classes,
+                kind,
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->data_);
@@ -1102,11 +1097,11 @@ void RawTwoByteString::WriteTo(SnapshotWriter* writer,
 
 void RawFourByteString::WriteTo(SnapshotWriter* writer,
                                 intptr_t object_id,
-                                bool serialize_classes) {
+                                Snapshot::Kind kind) {
   StringWriteTo(writer,
                 object_id,
                 ObjectStore::kFourByteStringClass,
-                serialize_classes,
+                kind,
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->data_);
@@ -1116,7 +1111,7 @@ void RawFourByteString::WriteTo(SnapshotWriter* writer,
 RawExternalOneByteString* ExternalOneByteString::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,
-    bool classes_serialized) {
+    Snapshot::Kind kind) {
   UNREACHABLE();
   return ExternalOneByteString::null();
 }
@@ -1125,7 +1120,7 @@ RawExternalOneByteString* ExternalOneByteString::ReadFrom(
 RawExternalTwoByteString* ExternalTwoByteString::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,
-    bool classes_serialized) {
+    Snapshot::Kind kind) {
   UNREACHABLE();
   return ExternalTwoByteString::null();
 }
@@ -1134,7 +1129,7 @@ RawExternalTwoByteString* ExternalTwoByteString::ReadFrom(
 RawExternalFourByteString* ExternalFourByteString::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,
-    bool classes_serialized) {
+    Snapshot::Kind kind) {
   UNREACHABLE();
   return ExternalFourByteString::null();
 }
@@ -1142,12 +1137,12 @@ RawExternalFourByteString* ExternalFourByteString::ReadFrom(
 
 void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
                                        intptr_t object_id,
-                                       bool serialize_classes) {
+                                       Snapshot::Kind kind) {
   // Serialize as a non-external one byte string.
   StringWriteTo(writer,
                 object_id,
                 ObjectStore::kOneByteStringClass,
-                serialize_classes,
+                kind,
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->external_data_->data_);
@@ -1156,12 +1151,12 @@ void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
 
 void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
                                        intptr_t object_id,
-                                       bool serialize_classes) {
+                                       Snapshot::Kind kind) {
   // Serialize as a non-external two byte string.
   StringWriteTo(writer,
                 object_id,
                 ObjectStore::kTwoByteStringClass,
-                serialize_classes,
+                kind,
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->external_data_->data_);
@@ -1170,12 +1165,12 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
 
 void RawExternalFourByteString::WriteTo(SnapshotWriter* writer,
                                         intptr_t object_id,
-                                        bool serialize_classes) {
+                                        Snapshot::Kind kind) {
   // Serialize as a non-external four byte string.
   StringWriteTo(writer,
                 object_id,
                 ObjectStore::kFourByteStringClass,
-                serialize_classes,
+                kind,
                 ptr()->length_,
                 ptr()->hash_,
                 ptr()->external_data_->data_);
@@ -1184,7 +1179,7 @@ void RawExternalFourByteString::WriteTo(SnapshotWriter* writer,
 
 RawBool* Bool::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
-                          bool classes_serialized) {
+                          Snapshot::Kind kind) {
   UNREACHABLE();
   return Bool::null();
 }
@@ -1192,7 +1187,7 @@ RawBool* Bool::ReadFrom(SnapshotReader* reader,
 
 void RawBool::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
-                      bool serialize_classes) {
+                      Snapshot::Kind kind) {
   UNREACHABLE();
 }
 
@@ -1200,14 +1195,14 @@ void RawBool::WriteTo(SnapshotWriter* writer,
 template <class T>
 static RawObject* ArrayReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
-                                bool classes_serialized) {
+                                Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
   RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
   intptr_t len = Smi::Value(smi_len);
-  T& result = T::Handle(T::New(len,
-                               classes_serialized ? Heap::kOld : Heap::kNew));
+  T& result = T::Handle(
+      T::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &result);
 
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
@@ -1225,25 +1220,25 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
 
 RawArray* Array::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
-                          bool classes_serialized) {
+                          Snapshot::Kind kind) {
   return reinterpret_cast<RawArray*>(ArrayReadFrom<Array>(reader,
                                                           object_id,
-                                                          classes_serialized));
+                                                          kind));
 }
 
 
 RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
-                                            bool classes_serialized) {
+                                            Snapshot::Kind kind) {
   return reinterpret_cast<RawImmutableArray*>(
-      ArrayReadFrom<ImmutableArray>(reader, object_id, classes_serialized));
+      ArrayReadFrom<ImmutableArray>(reader, object_id, kind));
 }
 
 
 static void ArrayWriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
-                         bool serialize_classes,
-                         intptr_t kind,
+                         Snapshot::Kind kind,
+                         intptr_t array_kind,
                          RawSmi* length,
                          RawAbstractTypeArguments* type_arguments,
                          RawObject* data[]) {
@@ -1254,7 +1249,7 @@ static void ArrayWriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(kInlined, object_id);
 
   // Write out the class information.
-  writer->WriteObjectHeader(kObjectId, kind);
+  writer->WriteObjectHeader(kObjectId, array_kind);
 
   // Write out the length field.
   writer->Write<RawObject*>(length);
@@ -1271,10 +1266,10 @@ static void ArrayWriteTo(SnapshotWriter* writer,
 
 void RawArray::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
-                       bool serialize_classes) {
+                       Snapshot::Kind kind) {
   ArrayWriteTo(writer,
                object_id,
-               serialize_classes,
+               kind,
                ObjectStore::kArrayClass,
                ptr()->length_,
                ptr()->type_arguments_,
@@ -1284,10 +1279,10 @@ void RawArray::WriteTo(SnapshotWriter* writer,
 
 void RawImmutableArray::WriteTo(SnapshotWriter* writer,
                                 intptr_t object_id,
-                                bool serialize_classes) {
+                                Snapshot::Kind kind) {
   ArrayWriteTo(writer,
                object_id,
-               serialize_classes,
+               kind,
                ObjectStore::kImmutableArrayClass,
                ptr()->length_,
                ptr()->type_arguments_,
@@ -1297,7 +1292,7 @@ void RawImmutableArray::WriteTo(SnapshotWriter* writer,
 
 RawByteBuffer* ByteBuffer::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
-                                    bool classes_serialized) {
+                                    Snapshot::Kind kind) {
   UNIMPLEMENTED();
   return ByteBuffer::null();
 }
@@ -1305,14 +1300,14 @@ RawByteBuffer* ByteBuffer::ReadFrom(SnapshotReader* reader,
 
 void RawByteBuffer::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
-                            bool serialize_classes) {
+                            Snapshot::Kind kind) {
   UNIMPLEMENTED();
 }
 
 
 RawClosure* Closure::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
-                              bool classes_serialized) {
+                              Snapshot::Kind kind) {
   UNIMPLEMENTED();
   return Closure::null();
 }
@@ -1320,14 +1315,14 @@ RawClosure* Closure::ReadFrom(SnapshotReader* reader,
 
 void RawClosure::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
-                         bool serialize_classes) {
+                         Snapshot::Kind kind) {
   UNIMPLEMENTED();
 }
 
 
 RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
-                                    bool classes_serialized) {
+                                    Snapshot::Kind kind) {
   UNIMPLEMENTED();
   return Stacktrace::null();
 }
@@ -1335,14 +1330,14 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
 
 void RawStacktrace::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
-                            bool serialize_classes) {
+                            Snapshot::Kind kind) {
   UNIMPLEMENTED();
 }
 
 
 RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
-                                bool classes_serialized) {
+                                Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
@@ -1351,7 +1346,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
   // Allocate JSRegExp object.
   JSRegExp& regex = JSRegExp::ZoneHandle(
-      JSRegExp::New(len, classes_serialized ? Heap::kOld : Heap::kNew));
+      JSRegExp::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &regex);
 
   // Read and Set all the other fields.
@@ -1370,7 +1365,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
 void RawJSRegExp::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
-                            bool serialize_classes) {
+                            Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.

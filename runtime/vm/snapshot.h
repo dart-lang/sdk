@@ -17,10 +17,11 @@ namespace dart {
 
 // Forward declarations.
 class Heap;
+class Library;
+class Object;
 class ObjectStore;
 class RawClass;
 class RawObject;
-class Object;
 
 static const int8_t kSerializedBitsPerByte = 7;
 static const int8_t kMaxSerializedUnsignedValuePerByte = 127;
@@ -55,6 +56,12 @@ class SerializedHeaderData : public BitField<intptr_t, 2, 30> {
 // Structure capturing the raw snapshot.
 class Snapshot {
  public:
+  enum Kind {
+    kFull = 0,  // Full snapshot of the current dart heap.
+    kScript,    // A partial snapshot of only the application script.
+    kMessage,   // A partial snapshot used only for isolate messaging.
+  };
+
   static const int kHeaderSize = 2 * sizeof(int32_t);
   static const int kLengthIndex = 0;
   static const int kSnapshotFlagIndex = 1;
@@ -64,22 +71,24 @@ class Snapshot {
   // Getters.
   const uint8_t* content() const { return content_; }
   int32_t length() const { return length_; }
+  Kind kind() const { return static_cast<Kind>(kind_); }
 
-  bool IsPartialSnapshot() const { return full_snapshot_ == 0; }
-  bool IsFullSnapshot() const { return full_snapshot_ != 0; }
+  bool IsMessageSnapshot() const { return kind_ == kMessage; }
+  bool IsScriptSnapshot() const { return kind_ == kScript; }
+  bool IsFullSnapshot() const { return kind_ == kFull; }
   int32_t Size() const { return length_ + sizeof(Snapshot); }
   uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
 
   static intptr_t length_offset() { return OFFSET_OF(Snapshot, length_); }
-  static intptr_t full_snapshot_offset() {
-    return OFFSET_OF(Snapshot, full_snapshot_);
+  static intptr_t kind_offset() {
+    return OFFSET_OF(Snapshot, kind_);
   }
 
  private:
-  Snapshot() : length_(0), full_snapshot_(0) {}
+  Snapshot() : length_(0), kind_(kFull) {}
 
   int32_t length_;  // Stream length.
-  int32_t full_snapshot_;  // Classes are serialized too.
+  int32_t kind_;  // Kind of snapshot.
   uint8_t content_[];  // Stream content.
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
@@ -270,7 +279,7 @@ class SnapshotReader {
                  Heap* heap,
                  ObjectStore* object_store)
       : stream_(snapshot->content(), snapshot->length()),
-        classes_serialized_(snapshot->IsFullSnapshot()),
+        kind_(snapshot->kind()),
         heap_(heap),
         object_store_(object_store),
         backward_references_() { }
@@ -312,7 +321,7 @@ class SnapshotReader {
   RawClass* LookupInternalClass(intptr_t class_header);
 
   ReadStream stream_;  // input stream.
-  bool classes_serialized_;  // Indicates if classes are serialized.
+  Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Heap* heap_;  // Heap into which the objects are deserialized into.
   ObjectStore* object_store_;  // Object store for common classes.
   GrowableArray<Object*> backward_references_;
@@ -354,7 +363,7 @@ class MessageWriter {
   void FinalizeBuffer() {
     int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
     data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = false;
+    data[Snapshot::kSnapshotFlagIndex] = Snapshot::kMessage;
   }
 
   WriteStream stream_;
@@ -365,9 +374,9 @@ class MessageWriter {
 
 class SnapshotWriter {
  public:
-  SnapshotWriter(bool full_snapshot, uint8_t** buffer, ReAlloc alloc)
+  SnapshotWriter(Snapshot::Kind kind, uint8_t** buffer, ReAlloc alloc)
       : stream_(buffer, alloc),
-        serialize_classes_(full_snapshot),
+        kind_(kind),
         object_store_(Isolate::Current()->object_store()),
         forward_list_() {
     ASSERT(buffer != NULL);
@@ -384,7 +393,7 @@ class SnapshotWriter {
   void FinalizeBuffer() {
     int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
     data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = serialize_classes_;
+    data[Snapshot::kSnapshotFlagIndex] = kind_;
     UnmarkAll();
   }
 
@@ -430,11 +439,28 @@ class SnapshotWriter {
   ObjectStore* object_store() const { return object_store_; }
 
   WriteStream stream_;
-  bool serialize_classes_;
+  Snapshot::Kind kind_;
   ObjectStore* object_store_;  // Object store for common classes.
   GrowableArray<ForwardObjectNode*> forward_list_;
 
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
+};
+
+
+class ScriptSnapshotWriter : public SnapshotWriter {
+ public:
+  ScriptSnapshotWriter(const Library& lib, uint8_t** buffer, ReAlloc alloc)
+      : SnapshotWriter(Snapshot::kScript, buffer, alloc) {
+    ASSERT(buffer != NULL);
+    ASSERT(alloc != NULL);
+  }
+  ~ScriptSnapshotWriter() { }
+
+  // Writes a partial snapshot of the script.
+  void WriteScriptSnapshot();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotWriter);
 };
 
 

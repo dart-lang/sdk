@@ -46,7 +46,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 static uint8_t* SerializeObject(const Instance& obj) {
   uint8_t* result = NULL;
-  SnapshotWriter writer(false, &result, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &result, &allocator);
   writer.WriteObject(obj.raw());
   writer.FinalizeBuffer();
   return result;

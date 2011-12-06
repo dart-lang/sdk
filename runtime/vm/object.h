@@ -98,7 +98,7 @@ class LocalScope;
 
 #define SNAPSHOT_READER_SUPPORT(object)                                        \
   static Raw##object* ReadFrom(                                                \
-      SnapshotReader* reader, intptr_t object_id, bool classes_serialized);    \
+      SnapshotReader* reader, intptr_t object_id, Snapshot::Kind);             \
   friend class SnapshotReader;                                                 \
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
@@ -2579,7 +2579,7 @@ class String : public Instance {
   template<typename HandleType, typename ElementType>
   static RawString* ReadFromImpl(SnapshotReader* reader,
                                  intptr_t object_id,
-                                 bool classes_serialized);
+                                 Snapshot::Kind kind);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 };

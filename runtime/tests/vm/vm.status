@@ -9,3 +9,6 @@ RunLoop_Exception: Fail
 
 # Partially implemented old generation GC.
 OldGC: CRASH
+
+# Application snapshots are not implemented yet.
+ScriptSnapshot: Skip

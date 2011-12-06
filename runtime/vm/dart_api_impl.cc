@@ -609,12 +609,17 @@ static uint8_t* ApiAllocator(uint8_t* ptr,
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
-                                            intptr_t* snapshot_size) {
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
+                                            intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (snapshot_buffer == NULL || snapshot_size == NULL) {
-    return Api::Error("Invalid input parameters to Dart_CreateSnapshot");
+  if (buffer == NULL) {
+    return Api::Error("%s expects argument 'buffer' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  if (size == NULL) {
+    return Api::Error("%s expects argument 'size' to be non-null.",
+                      CURRENT_FUNC);
   }
   const char* msg = CheckIsolateState(isolate,
                                       ClassFinalizer::kGeneratingSnapshot);
@@ -623,9 +628,37 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
   }
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle());
-  SnapshotWriter writer(true, snapshot_buffer, ApiAllocator);
+  SnapshotWriter writer(Snapshot::kFull, buffer, ApiAllocator);
   writer.WriteFullSnapshot();
-  *snapshot_size = writer.Size();
+  *size = writer.Size();
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
+                                                  uint8_t** buffer,
+                                                  intptr_t* size) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (buffer == NULL) {
+    return Api::Error("%s expects argument 'buffer' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  if (size == NULL) {
+    return Api::Error("%s expects argument 'size' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  const Library& root_lib = Api::UnwrapLibraryHandle(library);
+  if (root_lib.IsNull()) {
+    RETURN_TYPE_ERROR(library, Library);
+  }
+  const char* msg = CheckIsolateState(isolate);
+  if (msg != NULL) {
+    return Api::Error(msg);
+  }
+  ScriptSnapshotWriter writer(root_lib, buffer, ApiAllocator);
+  writer.WriteScriptSnapshot();
+  *size = writer.Size();
   return Api::Success();
 }
 
@@ -648,7 +681,7 @@ DART_EXPORT void Dart_SetMessageCallbacks(
 static RawInstance* DeserializeMessage(void* data) {
   // Create a snapshot object using the buffer.
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
-  ASSERT(snapshot->IsPartialSnapshot());
+  ASSERT(snapshot->IsMessageSnapshot());
 
   // Read object back from the snapshot.
   Isolate* isolate = Isolate::Current();
@@ -744,7 +777,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   DARTSCOPE_NOCHECKS(isolate);
   const Object& object = Object::Handle(Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
-  SnapshotWriter writer(false, &data, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
   return PortMap::PostMessage(port_id, kNoReplyPort, Api::CastMessage(data));
@@ -2206,6 +2239,36 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                 RawScript::kScript,
                 &result);
   return result;
+}
+
+
+DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (buffer == NULL) {
+    return Api::Error("%s expects argument 'buffer' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  if (!snapshot->IsScriptSnapshot()) {
+    return Api::Error("%s expects parameter 'buffer' to be a script type"
+                      " snapshot", CURRENT_FUNC);
+  }
+  Library& library = Library::Handle(isolate->object_store()->root_library());
+  if (!library.IsNull()) {
+    const String& library_url = String::Handle(library.url());
+    return Api::Error("%s: A script has already been loaded from '%s'.",
+                      CURRENT_FUNC, library_url.ToCString());
+  }
+  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  const Object& tmp = Object::Handle(reader.ReadObject());
+  if (!tmp.IsLibrary()) {
+    return Api::Error("%s: Unable to deserialize snapshot correctly.",
+                      CURRENT_FUNC);
+  }
+  library ^= tmp.raw();
+  isolate->object_store()->set_root_library(library);
+  return Api::NewLocalHandle(library);
 }
 
 

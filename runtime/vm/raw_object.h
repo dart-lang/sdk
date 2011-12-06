@@ -103,7 +103,7 @@ enum {
 
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(                                                                \
-      SnapshotWriter* writer, intptr_t object_id, bool serialize_classes);     \
+      SnapshotWriter* writer, intptr_t object_id, Snapshot::Kind kind);        \
   friend class SnapshotWriter;                                                 \
 
 #define VISITOR_SUPPORT(object)                                                \

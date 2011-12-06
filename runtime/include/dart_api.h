@@ -344,10 +344,46 @@ DART_EXPORT void Dart_ExitIsolate();
 // "pure" dart isolate. Implement and document.
 
 /**
- * Creates a snapshot of the state of the current isolate.
+ * Creates a full snapshot of the current isolate heap.
+ *
+ * A full snapshot is a compact representation of the dart heap state and
+ * can be used for fast initialization of an isolate. A Snapshot of the heap
+ * can only be created before any dart code has executed.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param buffer Returns a pointer to a buffer containing the
+ *   snapshot. This buffer is scope allocated and is only valid
+ *   until the next call to Dart_ExitScope.
+ * \param size Returns the size of the buffer.
+ *
+ * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snaphot_buffer,
-                                            intptr_t* snapshot_size);
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
+                                            intptr_t* size);
+
+/**
+ * Creates a snapshot of the specified application script.
+ *
+ * A script snapshot can be used for implementing fast startup of applications
+ * (skips the script tokenizing and parsing process). A Snapshot of the script
+ * can only be created before any dart code has executed.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param library An application script for which a snapshot is to be
+ *  created.
+ * \param buffer Returns a pointer to a buffer containing
+ *   the snapshot. This buffer is scope allocated and is only valid
+ *   until the next call to Dart_ExitScope.
+ * \param size Returns the size of the buffer.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
+                                                  uint8_t** buffer,
+                                                  intptr_t* size);
+
 
 // --- Messages and Ports ---
 
@@ -1222,6 +1258,16 @@ typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         Dart_LibraryTagHandler handler);
+
+/**
+ * Loads the root script for current isolate from a snapshot.
+ *
+ * \param buffer A buffer which contains a snapshot of the script.
+ *
+ * \return If no error occurs, the Library object corresponding to the root
+ *   script is returned. Otherwise an error handle is returned.
+ **/
+DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer);
 
 /**
  * Forces all loaded classes and functions to be compiled eagerly in
