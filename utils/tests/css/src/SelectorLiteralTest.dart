@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("../../../css/css.dart");
+#import('../../../../frog/lang.dart', prefix:'lang');
 
 class SelectorLiteralTest {
   static final String ERROR = 'CompilerException: <buffer>:';
 
   static testMain() {
     initCssWorld();
+    lang.options.useColors = false;
 
     testSimpleClassSelectorSuccesses();
     testSimpleClassSelectorFailures();
