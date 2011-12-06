@@ -1,5 +1,5 @@
 
-class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
+class SVGTextPositioningElement extends SVGTextContentElement native "SVGTextPositioningElement" {
 
   SVGAnimatedLengthList dx;
 

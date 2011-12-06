@@ -1,5 +1,5 @@
 
-class CSSRule native "*CSSRule" {
+class CSSRule native "CSSRule" {
 
   static final int CHARSET_RULE = 2;
 

@@ -1,5 +1,5 @@
 
-class StyleSheet native "*StyleSheet" {
+class StyleSheet native "StyleSheet" {
 
   bool disabled;
 

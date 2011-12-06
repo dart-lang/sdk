@@ -101,6 +101,198 @@ _custom_getters = set([
     ])
 
 #
+# Publically visible types common across all supported browsers.
+#
+_BROWSER_SHARED_TYPES = [
+        'Attr',
+        'CDATASection',
+        'CSSFontFaceRule',
+        'CSSImportRule',
+        'CSSMediaRule',
+        'CSSPageRule',
+        'CSSRule',
+        'CSSRuleList',
+        'CSSStyleDeclaration',
+        'CSSStyleRule',
+        'CSSStyleSheet',
+        'CanvasRenderingContext2D',
+        'CharacterData',
+        'ClientRect',
+        'ClientRectList',
+        'Comment',
+        'DOMException',
+        'DOMImplementation',
+        'DOMParser',
+        'Document',
+        'DocumentFragment',
+        'DocumentType',
+        'Element',
+        'Event',
+        'EventException',
+        'HTMLAnchorElement',
+        'HTMLAppletElement',
+        'HTMLAreaElement',
+        'HTMLAudioElement',
+        'HTMLBRElement',
+        'HTMLBaseElement',
+        'HTMLBodyElement',
+        'HTMLButtonElement',
+        'HTMLCanvasElement',
+        'HTMLCollection',
+        'HTMLDListElement',
+        'HTMLDirectoryElement',
+        'HTMLDivElement',
+        'HTMLElement',
+        'HTMLEmbedElement',
+        'HTMLFieldSetElement',
+        'HTMLFontElement',
+        'HTMLFormElement',
+        'HTMLFrameElement',
+        'HTMLFrameSetElement',
+        'HTMLHRElement',
+        'HTMLHeadElement',
+        'HTMLHeadingElement',
+        'HTMLHtmlElement',
+        'HTMLIFrameElement',
+        'HTMLImageElement',
+        'HTMLInputElement',
+        'HTMLLIElement',
+        'HTMLLabelElement',
+        'HTMLLegendElement',
+        'HTMLLinkElement',
+        'HTMLMapElement',
+        'HTMLMediaElement',
+        'HTMLMenuElement',
+        'HTMLMetaElement',
+        'HTMLModElement',
+        'HTMLOListElement',
+        'HTMLObjectElement',
+        'HTMLOptGroupElement',
+        'HTMLOptionElement',
+        'HTMLParagraphElement',
+        'HTMLParamElement',
+        'HTMLPreElement',
+        'HTMLQuoteElement',
+        'HTMLScriptElement',
+        'HTMLSelectElement',
+        'HTMLStyleElement',
+        'HTMLTableCaptionElement',
+        'HTMLTableCellElement',
+        'HTMLTableColElement',
+        'HTMLTableElement',
+        'HTMLTableRowElement',
+        'HTMLTableSectionElement',
+        'HTMLTextAreaElement',
+        'HTMLTitleElement',
+        'HTMLUListElement',
+        'HTMLVideoElement',
+        'KeyboardEvent',
+        'MediaError',
+        'MediaList',
+        'MessageEvent',
+        'MouseEvent',
+        'MutationEvent',
+        'NamedNodeMap',
+        'Node',
+        'NodeFilter',
+        'NodeList',
+        'ProcessingInstruction',
+        'Range',
+        'RangeException',
+        'SVGAElement',
+        'SVGAngle',
+        'SVGAnimatedAngle',
+        'SVGAnimatedBoolean',
+        'SVGAnimatedEnumeration',
+        'SVGAnimatedInteger',
+        'SVGAnimatedLength',
+        'SVGAnimatedLengthList',
+        'SVGAnimatedNumber',
+        'SVGAnimatedNumberList',
+        'SVGAnimatedPreserveAspectRatio',
+        'SVGAnimatedRect',
+        'SVGAnimatedString',
+        'SVGAnimatedTransformList',
+        'SVGCircleElement',
+        'SVGClipPathElement',
+        'SVGDefsElement',
+        'SVGDescElement',
+        'SVGElement',
+        'SVGEllipseElement',
+        'SVGException',
+        'SVGGElement',
+        'SVGGradientElement',
+        'SVGImageElement',
+        'SVGLength',
+        'SVGLengthList',
+        'SVGLineElement',
+        'SVGLinearGradientElement',
+        'SVGMarkerElement',
+        'SVGMaskElement',
+        'SVGMatrix',
+        'SVGMetadataElement',
+        'SVGNumber',
+        'SVGNumberList',
+        'SVGPathElement',
+        'SVGPathSeg',
+        'SVGPathSegArcAbs',
+        'SVGPathSegArcRel',
+        'SVGPathSegClosePath',
+        'SVGPathSegCurvetoCubicAbs',
+        'SVGPathSegCurvetoCubicRel',
+        'SVGPathSegCurvetoCubicSmoothAbs',
+        'SVGPathSegCurvetoCubicSmoothRel',
+        'SVGPathSegCurvetoQuadraticAbs',
+        'SVGPathSegCurvetoQuadraticRel',
+        'SVGPathSegCurvetoQuadraticSmoothAbs',
+        'SVGPathSegCurvetoQuadraticSmoothRel',
+        'SVGPathSegLinetoAbs',
+        'SVGPathSegLinetoHorizontalAbs',
+        'SVGPathSegLinetoHorizontalRel',
+        'SVGPathSegLinetoRel',
+        'SVGPathSegLinetoVerticalAbs',
+        'SVGPathSegLinetoVerticalRel',
+        'SVGPathSegList',
+        'SVGPathSegMovetoAbs',
+        'SVGPathSegMovetoRel',
+        'SVGPatternElement',
+        'SVGPoint',
+        'SVGPointList',
+        'SVGPolygonElement',
+        'SVGPolylineElement',
+        'SVGPreserveAspectRatio',
+        'SVGRadialGradientElement',
+        'SVGRect',
+        'SVGRectElement',
+        'SVGSVGElement',
+        'SVGScriptElement',
+        'SVGStopElement',
+        'SVGStyleElement',
+        'SVGSwitchElement',
+        'SVGSymbolElement',
+        'SVGTSpanElement',
+        'SVGTextContentElement',
+        'SVGTextElement',
+        'SVGTextPathElement',
+        'SVGTextPositioningElement',
+        'SVGTitleElement',
+        'SVGTransform',
+        'SVGTransformList',
+        'SVGUnitTypes',
+        'SVGUseElement',
+        'SVGZoomEvent',
+        'Storage',
+        'StorageEvent',
+        'StyleSheet',
+        'StyleSheetList',
+        'Text',
+        'TextMetrics',
+        'UIEvent',
+        'XMLHttpRequest',
+        'XMLSerializer',
+]
+
+#
 # Simple method substitution when one method had different names on different
 # browsers, but are otherwise identical.  The alternates are tried in order and
 # the first one defined is used.
@@ -363,7 +555,7 @@ class DartGenerator(object):
     self._StartGenerateInterfaceLibrary()
     self._StartGenerateJavaScriptMonkeyImpl(database, output_dir)
     self._StartGenerateWrappingImpl(output_dir)
-    self._StartGenerateFrogImpl(output_dir)
+    self._StartGenerateFrogImpl(database, output_dir)
 
     # Render all interfaces into Dart and save them in files.
     dart_file_paths = []
@@ -819,19 +1011,19 @@ class DartGenerator(object):
     return result;
 
 
-  def _StartGenerateFrogImpl(self, output_dir):
+  def _StartGenerateFrogImpl(self, database, output_dir):
     """Prepared for generating frog implementation.
-
-    - Creates emitter for Dart code.
     """
-    pass
-
+    self._interface_names_with_subtypes = set()
+    for interface in database.GetInterfaces():
+      for parent in interface.parents:
+        self._interface_names_with_subtypes.add(parent.type.id)
 
   def _MakeFrogImplInterfaceGenerator(self,
-                                          interface,
-                                          common_prefix,
-                                          super_interface_name,
-                                          source_filter):
+                                      interface,
+                                      common_prefix,
+                                      super_interface_name,
+                                      source_filter):
     """."""
     interface_name = interface.id
     dart_frog_file_path = self.FilePathForFrogImpl(interface_name)
@@ -842,6 +1034,7 @@ class DartGenerator(object):
     dart_code.Emit(
         ''.join(open('template_frog_impl.darttemplate').readlines()))
     return FrogInterfaceGenerator(interface, super_interface_name,
+                                  self._interface_names_with_subtypes,
                                   dart_code)
 
 
@@ -2012,7 +2205,8 @@ class MonkeyInterfaceGenerator(object):
 class FrogInterfaceGenerator(object):
   """Generates a Frog class for a DOM IDL interface."""
 
-  def __init__(self, interface, super_interface, dart_code):
+  def __init__(self, interface, super_interface, interfaces_with_subtypes,
+               dart_code):
     """Generates Dart code for the given interface.
 
     Args:
@@ -2021,12 +2215,15 @@ class FrogInterfaceGenerator(object):
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
       super_interface: A string or None, the name of the common interface that
-         this interface implements, if any.
+          this interface implements, if any.
+      interfaces_with_subtypes: A set of strings names of interfaces that have
+          at least one subtype.
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
     self._interface = interface
     self._super_interface = super_interface
+    self._interfaces_with_subtypes = interfaces_with_subtypes
     self._dart_code = dart_code
     self._current_secondary_parent = None
 
@@ -2072,18 +2269,28 @@ class FrogInterfaceGenerator(object):
     else:
       constructor = ''
 
+    # Is the type's constructor accessible from the global scope? If so, we can
+    # directly patch the prototype.  We don't really want to do this yet because
+    # the dynamic patching mechanism is tricky and we want to test it a lot.
+    # But patching is currently broken on FireFox for non-leaf types, so 'hide'
+    # only the leaf types.
+    is_hidden = interface_name not in _BROWSER_SHARED_TYPES
+    if interface_name not in self._interfaces_with_subtypes:
+      is_hidden = True
+
     # Compiler needs to know window is aliased with global scope.
     global_marker = '@' if interface_name == 'DOMWindow' else ''
 
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
-        'class $CLASS$BASE native "$SPLAT*$CLASS" {\n'
+        'class $CLASS$BASE native "$SPLAT$HIDDEN$CLASS" {\n'
         '$CONSTRUCTOR$!MEMBERS'
         '$!ADDITIONS'
         '}\n',
         CLASS=self._class_name, BASE=extends,
         INTERFACE=interface_name, CONSTRUCTOR=constructor,
-        SPLAT=global_marker)
+        SPLAT=global_marker,
+        HIDDEN='*' if is_hidden else '')
 
     if not base:
       # Emit shared base functionality here as we have no common base type.

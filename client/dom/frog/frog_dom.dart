@@ -447,7 +447,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
   void setStringValue(int stringType, String stringValue) native;
 }
 
-class CSSRule native "*CSSRule" {
+class CSSRule native "CSSRule" {
 
   static final int CHARSET_RULE = 2;
 
@@ -736,7 +736,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void translate(num tx, num ty) native;
 }
 
-class CharacterData extends Node native "*CharacterData" {
+class CharacterData extends Node native "CharacterData" {
 
   String data;
 
@@ -1584,7 +1584,7 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
   String get typeName() native;
 }
 
-class Document extends Node native "*Document" {
+class Document extends Node native "Document" {
 
   String URL;
 
@@ -1752,7 +1752,7 @@ class DocumentType extends Node native "*DocumentType" {
 class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
 }
 
-class Element extends Node native "*Element" {
+class Element extends Node native "Element" {
 
   int childElementCount;
 
@@ -1984,7 +1984,7 @@ class ErrorEvent extends Event native "*ErrorEvent" {
   void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg) native;
 }
 
-class Event native "*Event" {
+class Event native "Event" {
 
   static final int AT_TARGET = 2;
 
@@ -2575,7 +2575,7 @@ class HTMLCanvasElement extends HTMLElement native "*HTMLCanvasElement" {
   String toDataURL(String type) native;
 }
 
-class HTMLCollection native "*HTMLCollection" {
+class HTMLCollection native "HTMLCollection" {
 
   int length;
 
@@ -2664,7 +2664,7 @@ class HTMLDocument extends Document native "*HTMLDocument" {
   void writeln(String text) native;
 }
 
-class HTMLElement extends Element native "*HTMLElement" {
+class HTMLElement extends Element native "HTMLElement" {
 
   HTMLCollection children;
 
@@ -2925,7 +2925,7 @@ class HTMLImageElement extends HTMLElement native "*HTMLImageElement" {
   int y;
 }
 
-class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
+class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
 
   String accept;
 
@@ -3162,7 +3162,7 @@ class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
   void stop() native;
 }
 
-class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
+class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
   static final int HAVE_CURRENT_DATA = 2;
 
@@ -4644,7 +4644,7 @@ class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallba
   String get typeName() native;
 }
 
-class Node native "*Node" {
+class Node native "Node" {
 
   static final int ATTRIBUTE_NODE = 2;
 
@@ -5873,7 +5873,7 @@ class SVGDocument extends Document native "*SVGDocument" {
   Event createEvent(String eventType) native;
 }
 
-class SVGElement extends Element native "*SVGElement" {
+class SVGElement extends Element native "SVGElement" {
 
   String id;
 
@@ -6893,7 +6893,7 @@ class SVGGlyphRefElement extends SVGElement native "*SVGGlyphRefElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGGradientElement extends SVGElement native "*SVGGradientElement" {
+class SVGGradientElement extends SVGElement native "SVGGradientElement" {
 
   static final int SVG_SPREADMETHOD_PAD = 1;
 
@@ -7478,7 +7478,7 @@ class SVGPathElement extends SVGElement native "*SVGPathElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGPathSeg native "*SVGPathSeg" {
+class SVGPathSeg native "SVGPathSeg" {
 
   static final int PATHSEG_ARC_ABS = 10;
 
@@ -8379,7 +8379,7 @@ class SVGTests native "*SVGTests" {
   String get typeName() native;
 }
 
-class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
+class SVGTextContentElement extends SVGElement native "SVGTextContentElement" {
 
   static final int LENGTHADJUST_SPACING = 1;
 
@@ -8484,7 +8484,7 @@ class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathEleme
   SVGAnimatedString href;
 }
 
-class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
+class SVGTextPositioningElement extends SVGTextContentElement native "SVGTextPositioningElement" {
 
   SVGAnimatedLengthList dx;
 
@@ -8901,7 +8901,7 @@ class StyleMedia native "*StyleMedia" {
   String get typeName() native;
 }
 
-class StyleSheet native "*StyleSheet" {
+class StyleSheet native "StyleSheet" {
 
   bool disabled;
 
@@ -8935,7 +8935,7 @@ class StyleSheetList native "*StyleSheetList" {
   String get typeName() native;
 }
 
-class Text extends CharacterData native "*Text" {
+class Text extends CharacterData native "Text" {
 
   String wholeText;
 
@@ -9152,7 +9152,7 @@ class TreeWalker native "*TreeWalker" {
   String get typeName() native;
 }
 
-class UIEvent extends Event native "*UIEvent" {
+class UIEvent extends Event native "UIEvent" {
 
   int charCode;
 

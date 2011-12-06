@@ -1,5 +1,5 @@
 
-class Document extends Node native "*Document" {
+class Document extends Node native "Document" {
 
   String URL;
 

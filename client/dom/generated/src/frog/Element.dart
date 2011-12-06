@@ -1,5 +1,5 @@
 
-class Element extends Node native "*Element" {
+class Element extends Node native "Element" {
 
   int childElementCount;
 

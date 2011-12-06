@@ -1,5 +1,5 @@
 
-class Event native "*Event" {
+class Event native "Event" {
 
   static final int AT_TARGET = 2;
 

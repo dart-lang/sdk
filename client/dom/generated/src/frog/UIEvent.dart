@@ -1,5 +1,5 @@
 
-class UIEvent extends Event native "*UIEvent" {
+class UIEvent extends Event native "UIEvent" {
 
   int charCode;
 

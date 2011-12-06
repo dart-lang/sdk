@@ -1,5 +1,5 @@
 
-class HTMLElement extends Element native "*HTMLElement" {
+class HTMLElement extends Element native "HTMLElement" {
 
   HTMLCollection children;
 

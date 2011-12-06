@@ -1,5 +1,5 @@
 
-class Text extends CharacterData native "*Text" {
+class Text extends CharacterData native "Text" {
 
   String wholeText;
 
