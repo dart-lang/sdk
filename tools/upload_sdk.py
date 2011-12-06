@@ -12,7 +12,6 @@ import sys
 import utils
 
 
-ACL = '~/slave_archive_acl'
 GSUTIL = '/b/build/scripts/slave/gsutil'
 GS_SITE = 'gs://'
 GS_DIR = 'dartium-archive'
@@ -40,10 +39,8 @@ def UploadArchive(source, target):
     return status
   print 'Uploaded: ' + output[0]
 
-  # Set ACL.
-  if ACL is not None:
-    cmd = [GSUTIL, 'setacl', ACL, target]
-    (status, output) = ExecuteCommand(cmd)
+  cmd = [GSUTIL, 'setacl', 'public-read', target]
+  (status, output) = ExecuteCommand(cmd)
   return status
 
 def GetSVNRevision():
