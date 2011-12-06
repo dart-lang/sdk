@@ -81,6 +81,8 @@ def Main(argv):
   if (os.path.basename(os.path.dirname(SDK)) != 
       utils.GetBuildConf('release', 'ia32')):
     print "SDK is not built in Debug mode."
+    # leave empty dir behind
+    os.makedirs(SDK)
     exit(0)
 
   if exists(SDK):

@@ -52,20 +52,26 @@ def GetSVNRevision():
       return (line.strip().split())[1]
   return None
 
+
+def Usage(progname):
+  sys.stderr.write('Usage: %s path_to_sdk\n' % progname)
+
+
 def main(argv):
-  if (not os.path.exists(argv[1])):
-    sys.stderr.write('Usage: upload_sdk.py path_to_sdk\n')
+  if not os.path.exists(argv[1]):
+    sys.stderr.write('Path not found: %s\n' % argv[1])
+    Usage(argv[0])
     return 1
-  if (not os.path.exists(GSUTIL)):
+  if not os.path.exists(GSUTIL):
     exit(0)
   revision = GetSVNRevision()
-  if revision == None:
+  if revision is None:
     sys.stderr.write('Unable to find SVN revision.\n')
     return 1
   os.chdir(argv[1])
   # TODO(dgrove) - deal with architectures that are not ia32.
   sdk_name = 'dart-' + utils.GuessOS() + '-' + revision + '.zip'
-  sdk_file = '../' + sdk_name 
+  sdk_file = '../' + sdk_name
   ExecuteCommand(['zip', '-yr', sdk_file, '.'])
   UploadArchive(sdk_file, GS_SITE + os.path.join(GS_DIR, SDK, sdk_name))
   latest_name = 'dart-' + utils.GuessOS() + '-latest' + '.zip'
