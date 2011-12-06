@@ -170,6 +170,12 @@ class Architecture(object):
     self.is_web_test = _IsWebTest(source)
     self.temp_dir = None
 
+  def GetVMOption(self, option):
+    for flag in self.vm_options:
+      if flag.startswith('--%s=' % option):
+        return flag.split('=')[1]
+    return None
+
   def HasFatalTypeErrors(self):
     """Returns True if this type of component supports --fatal-type-errors."""
     return False
@@ -272,12 +278,7 @@ class BrowserArchitecture(Architecture):
     fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
     # Find DRT
     # For some reason, DRT needs to be called via an absolute path
-    drt_location = None
-    flags = self.vm_options
-    for flag in flags:
-      if flag.startswith('--browser='):
-        drt_location = flag.split('=')[1]
-        break
+    drt_location = self.GetVMOption('browser')
     if drt_location is not None:
       drt_location = os.path.abspath(drt_location)
     else:
@@ -290,7 +291,7 @@ class BrowserArchitecture(Architecture):
 
     drt_flags = ['--no-timeout']
     dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
-    dart_flags += ' '.join(flags)
+    dart_flags += ' '.join(self.vm_options)
 
     drt_flags.append(dart_flags)
 
@@ -409,11 +410,19 @@ class FrogChromiumArchitecture(ChromiumArchitecture):
   def GetCompileCommand(self, fatal_static_type_errors=False):
     """Returns cmdline as an array to invoke the compiler on this test."""
 
+    # Get a frog executable from the command line.  Default to frogsh.
     # We need an absolute path because the compilation will run
     # in a temporary directory.
-
-    frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
-    frog_libdir = os.path.abspath(os.path.join(self.root_path, 'frog', 'lib'))
+    frog = self.GetVMOption('frog')
+    if frog is not None:
+      frog = os.path.abspath(frog)
+    else:
+      frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
+    frog_libdir = self.GetVMOption('froglib')
+    if frog_libdir is not None:
+      frog_libdir = os.path.abspath(frog_libdir)
+    else:
+      frog_libdir = os.path.abspath(os.path.join(self.root_path, 'frog', 'lib'))
     cmd = [frog,
         '--libdir=%s' % frog_libdir,
         '--compile-only',
