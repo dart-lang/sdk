@@ -124,6 +124,12 @@ class BrowserTestCase(StandardTestCase):
     # the output does.
     if self.run_arch.HasFailed(test_output.output.stdout):
       test_output.output.exit_code = 1
+      # DumpRenderTree is sometimes flaky in xvfb-run, try again in that case.
+      if (self.run_arch.WasFlakyDrt(test_output.output.stderr)):
+        print "\nFlaky Gtw-WARNING error found, trying again..."
+        test_output = self.RunCommand(command)
+        if self.run_arch.HasFailed(test_output.output.stdout):
+          test_output.output.exit_code = 1
 
     return test_output
 

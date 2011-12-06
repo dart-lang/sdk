@@ -119,6 +119,12 @@ DOM_IMPORT_PATTERN = re.compile(r'#import.*(dart:(dom|html)|html\.dart).*\);',
 BROWSER_OUTPUT_PASS_PATTERN = re.compile(r'^Content-Type: text/plain\nPASS$',
                                          re.MULTILINE)
 
+# Pattern for matching flaky errors of browser tests. xvfb-run by default uses
+# DISPLAY=:99, we keep that in the error pattern to avoid matching real
+# errors when DISPLAY is set incorrectly.
+BROWSER_FLAKY_DISPLAY_ERR_PATTERN = re.compile(
+    r'Gtk-WARNING \*\*: cannot open display: :99', re.MULTILINE)
+
 # Pattern for checking if the test is a library in itself.
 LIBRARY_DEFINITION_PATTERN = re.compile(r'^#library\(.*\);',
                                         re.MULTILINE)
@@ -290,6 +296,12 @@ class BrowserArchitecture(Architecture):
   def HasFailed(self, output):
     """Return True if the 'PASS' result string isn't in the output."""
     return not BROWSER_OUTPUT_PASS_PATTERN.search(output)
+
+  def WasFlakyDrt(self, error):
+    """Return whether the error indicates a flaky error from running.
+       DumpRenderTree within xvfb-run.
+    """
+    return BROWSER_FLAKY_DISPLAY_ERR_PATTERN.search(error)
 
   def RunTest(self, verbose):
     """Calls GetRunCommand() and executes the returned commandline.
