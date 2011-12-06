@@ -187,7 +187,7 @@ def main():
   os.chdir(os.path.abspath(os.path.join(scriptdir, os.pardir, os.pardir)))
 
   (name, version, component, mode, platform) = GetBuildInfo()
-  if name == 'dart-editor':
+  if name.startswith('dart-editor'):
     status = ProcessTools(mode, name, version)
   #TODO(sigmund): remove this indirection once we update our bots
   elif name.startswith('frog'):
