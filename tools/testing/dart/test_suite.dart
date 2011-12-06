@@ -131,7 +131,7 @@ class StandardTestSuite implements TestSuite {
   List<String> statusFilePaths;
   Function doTest;
   Function doDone;
-  int activeMultitests = 0;
+  int activeTestGenerators = 0;
   bool listingDone = false;
   TestExpectations testExpectations;
 
@@ -177,20 +177,11 @@ class StandardTestSuite implements TestSuite {
     dir.list(recursive: listRecursively());
   }
 
-  void processFile(String filename) {
-    if (!isTestFile(filename)) return;
-
-    // Only run the tests that match the pattern.
-    RegExp pattern = configuration['selectors'][suiteName];
-    if (!pattern.hasMatch(filename)) return;
-
-    var timeout = configuration['timeout'];
-    var optionsFromFile = optionsFromFile(filename);
-
-    Function createTestCase(String filename,
-                            bool isNegative,
-                            [bool isNegativeIfChecked = false,
-                             bool enableFatalTypeErrors = false]) {
+  Function makeTestCaseCreator(Map optionsFromFile, int timeout) {
+    return (String filename,
+            bool isNegative,
+            [bool isNegativeIfChecked = false,
+             bool enableFatalTypeErrors = false]) {
       // Look up expectations in status files using a modified file path.
       String pathSeparator = new Platform().pathSeparator();
       String testName;
@@ -235,32 +226,48 @@ class StandardTestSuite implements TestSuite {
                             expectations,
                             isNegative));
       }
-    }
+    };
+  }
+
+  void processFile(String filename) {
+    if (!isTestFile(filename)) return;
+
+    // Only run the tests that match the pattern.
+    RegExp pattern = configuration['selectors'][suiteName];
+    if (!pattern.hasMatch(filename)) return;
+
+    var optionsFromFile = optionsFromFile(filename);
+    var timeout = configuration['timeout'];
+    Function createTestCase = makeTestCaseCreator(optionsFromFile, timeout);
 
     if (optionsFromFile['isMultitest']) {
       bool supportsFatalTypeErrors = (configuration['component'] == 'dartc');
-      ++activeMultitests;
+      testGeneratorStarted();
       DoMultitest(filename,
                   TestUtils.buildDir(configuration),
                   directoryPath,
                   supportsFatalTypeErrors,
                   createTestCase,
-                  multitestDone);
+                  testGeneratorDone);
     } else {
       createTestCase(filename, optionsFromFile['isNegative']);
     }
   }
 
-  void multitestDone() {
-    --activeMultitests;
-    if (activeMultitests == 0 && listingDone) {
+  void testGeneratorStarted() {
+    ++activeTestGenerators;
+  }
+
+  void testGeneratorDone() {
+    --activeTestGenerators;
+    if (activeTestGenerators == 0 && listingDone) {
       doDone();
     }
   }
 
   void directoryListingDone(ignore) {
     listingDone = true;
-    if (activeMultitests == 0) {
+    if (activeTestGenerators == 0) {
       doDone();
     }
   }
@@ -312,6 +319,7 @@ class StandardTestSuite implements TestSuite {
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
     RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
+    RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
@@ -357,12 +365,15 @@ class StandardTestSuite implements TestSuite {
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
+    Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
+    String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "isNegative": isNegative,
              "isMultitest": isMultitest,
-             "containsLeadingHash" : containsLeadingHash };
+             "containsLeadingHash" : containsLeadingHash,
+             "isolateStubs" : isolateStubs };
   }
 }
 
