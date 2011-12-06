@@ -270,17 +270,27 @@ class BrowserArchitecture(Architecture):
   def GetRunCommand(self, fatal_static_type_errors=False):
     """Returns a command line to execute for the test."""
     fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
+    # Find DRT
     # For some reason, DRT needs to be called via an absolute path
-    drt_location = os.path.join(self.root_path, 'client', 'tests', 'drt',
-                                'DumpRenderTree')
+    drt_location = None
+    flags = self.vm_options
+    for flag in flags:
+      if flag.startswith('--browser='):
+        drt_location = flag.split('=')[1]
+        break
+    if drt_location is not None:
+      drt_location = os.path.abspath(drt_location)
+    else:
+      drt_location = os.path.join(self.root_path, 'client', 'tests', 'drt',
+                                  'DumpRenderTree')
 
-    # On Mac DumpRenderTree is a .app folder
-    if platform.system() == 'Darwin':
-      drt_location += '.app/Contents/MacOS/DumpRenderTree'
+      # On Mac DumpRenderTree is a .app folder
+      if platform.system() == 'Darwin':
+        drt_location += '.app/Contents/MacOS/DumpRenderTree'
 
     drt_flags = ['--no-timeout']
     dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
-    dart_flags += ' '.join(self.vm_options)
+    dart_flags += ' '.join(flags)
 
     drt_flags.append(dart_flags)
 
