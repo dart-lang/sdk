@@ -4,8 +4,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
-# A script which will be invoked from gyp to create an SDK. The SDK will be
-# used either from the command-line or from the editor. Top structure is
+# A script which will be invoked from gyp to create an SDK. 
+#
+# Usage: create_sdk.py sdk_directory
+#
+# The SDK will be used either from the command-line or from the editor. 
+# Top structure is
 # 
 # ..sdk/
 # ....bin/
@@ -33,7 +37,7 @@
 # ........json_{compiler, frog}.dart
 # ........{compiler, frog}/
 # ......(more will come here - io, etc)
-# ....tools/
+# ....util/
 # ......dartdoc/
 # ......(more will come here)
 
@@ -42,10 +46,11 @@
 import os
 import re
 import sys
+import tempfile
 import utils
 
 from os.path import dirname, join, realpath, exists, isdir
-from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree
+from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree, move
 
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
@@ -75,6 +80,7 @@ def Main(argv):
 
   HOME = dirname(dirname(realpath(__file__)))
 
+  SDK_tmp = tempfile.mkdtemp()
   SDK = argv[1]
 
   # TODO(dgrove) - deal with architectures that are not ia32.
@@ -90,7 +96,7 @@ def Main(argv):
     rmtree(SDK)
 
   # Create and populate sdk/bin.
-  BIN = join(SDK, 'bin')
+  BIN = join(SDK_tmp, 'bin')
   os.makedirs(BIN)
 
   # Copy the Dart VM binary into sdk/bin.
@@ -121,7 +127,7 @@ def Main(argv):
   # Create and populate sdk/lib.
   #
 
-  LIB = join(SDK, 'lib')
+  LIB = join(SDK_tmp, 'lib')
   os.makedirs(LIB)
   corelib_dest_dir = join(LIB, 'core')
   os.makedirs(corelib_dest_dir)
@@ -351,11 +357,14 @@ def Main(argv):
 
   # Create and copy tools.
 
-  UTIL = join(SDK, 'tools')
+  UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
 
   copytree(join(HOME, 'utils', 'dartdoc'), join(UTIL, 'dartdoc'), 
            ignore=ignore_patterns('.svn'))
+
+  copytree(SDK_tmp, SDK)
+  rmtree(SDK_tmp)
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv))

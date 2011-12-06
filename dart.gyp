@@ -54,7 +54,7 @@
           'action': [
             'python',
             'tools/create_sdk.py',
-            '<(PRODUCT_DIR)/sdk'
+            '<(PRODUCT_DIR)/sdk',
           ],
           'message': 'Creating SDK.',
         },
