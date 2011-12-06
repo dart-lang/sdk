@@ -30,6 +30,8 @@ import java.util.List;
  */
 public class JavascriptBackend extends AbstractJsBackend  {
 
+  public static final String EXTENSION_APP_JS_COMPLETE = EXTENSION_APP_JS + ".complete";
+
   /**
    * Wraps an Appendable and keeps track of the current offset as line/columns.
    */
@@ -162,7 +164,7 @@ public class JavascriptBackend extends AbstractJsBackend  {
     String completeArtifactName = EXTENSION_APP_JS;
     if (hasEntryPoint) {
       // Apps with entry points will be reduced so we write into a different file name
-      completeArtifactName = "complete." + EXTENSION_APP_JS;
+      completeArtifactName = EXTENSION_APP_JS_COMPLETE;
     }
     
     Writer out = context.getArtifactWriter(app, "", completeArtifactName);
@@ -179,7 +181,6 @@ public class JavascriptBackend extends AbstractJsBackend  {
     
     
     if (hasEntryPoint) {
-      Reader artifactReader = context.getArtifactReader(app, "", completeArtifactName);
       Writer artifactWriter = context.getArtifactWriter(app, "", EXTENSION_APP_JS);
       try {
         failed = true;
@@ -187,7 +188,6 @@ public class JavascriptBackend extends AbstractJsBackend  {
         failed = false;  
       } finally {
         Closeables.close(artifactWriter, failed);
-        Closeables.close(artifactReader, failed);
       }
     }
     
