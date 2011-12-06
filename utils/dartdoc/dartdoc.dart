@@ -30,8 +30,8 @@ final corePath = 'lib';
 /** Path to generate html files into. */
 final outdir = 'docs';
 
-/** Set to `true` to include the source code in the generated docs. */
-bool includeSource = false;
+/** Set to `false` to not include the source code in the generated docs. */
+bool includeSource = true;
 
 /** Special comment position used to store the library-level doc comment. */
 final _libraryDoc = -1;
@@ -63,7 +63,7 @@ int _totalMembers = 0;
  */
 void main() {
   // The entrypoint of the library to generate docs for.
-  final libPath = process.argv[2];
+  final entrypoint = process.argv[2];
 
   // Parse the dartdoc options.
   for (int i = 3; i < process.argv.length; i++) {
@@ -80,6 +80,7 @@ void main() {
 
   files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
+  options.dietParse = true;
 
   // Patch in support for [:...:]-style code to the markdown parser.
   // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
@@ -93,15 +94,41 @@ void main() {
 
     initializeWorld(files);
 
-    world.processDartScript(libPath);
+    // Handle the built-in entrypoints.
+    switch (entrypoint) {
+      case 'corelib':
+        world.getOrAddLibrary('dart:core');
+        world.getOrAddLibrary('dart:coreimpl');
+        world.process();
+        break;
+
+      case 'dom':
+        world.getOrAddLibrary('dart:core');
+        world.getOrAddLibrary('dart:coreimpl');
+        world.getOrAddLibrary('dart:dom');
+        world.process();
+        break;
+
+      case 'html':
+        world.getOrAddLibrary('dart:core');
+        world.getOrAddLibrary('dart:coreimpl');
+        world.getOrAddLibrary('dart:dom');
+        world.getOrAddLibrary('dart:html');
+        world.process();
+        break;
+
+      default:
+        // Normal entrypoint script.
+        world.processDartScript(entrypoint);
+    }
+
     world.resolveAll();
 
     // Generate the docs.
+    docIndex();
     for (final library in world.libraries.getValues()) {
       docLibrary(library);
     }
-
-    docIndex(world.libraries.getValues());
   });
 
   print('Documented $_totalLibraries libraries, $_totalTypes types, and ' +
@@ -110,40 +137,6 @@ void main() {
 
 void initializeDartDoc() {
   _comments = <String, Map<int, String>>{};
-}
-
-docIndex(List<Library> libraries) {
-  startFile('index.html');
-  // TODO(rnystrom): Need to figure out what this should look like.
-  writeln(
-      '''
-      <html><head>
-      <title>Index</title>
-      <link rel="stylesheet" type="text/css" href="styles.css" />
-      </head>
-      <body>
-      <div class="content">
-      <ul>
-      ''');
-
-  final sorted = new List<Library>.from(libraries);
-  sorted.sort((a, b) => a.name.compareTo(b.name));
-
-  for (final library in sorted) {
-    writeln(
-        '''
-        <li>${a(libraryUrl(library), "Library ${library.name}")}</li>
-        ''');
-  }
-
-  writeln(
-      '''
-      </ul>
-      </div>
-      </body></html>
-      ''');
-
-  endFile();
 }
 
 writeHeader(String title) {
@@ -175,15 +168,34 @@ writeFooter() {
       ''');
 }
 
+docIndex() {
+  startFile('index.html');
+
+  writeHeader('Dart Documentation');
+
+  writeln('<h1>Dart Documentation</h1>');
+  writeln('<h3>Libraries</h3>');
+
+  for (final library in orderByName(world.libraries)) {
+    writeln(
+        '''
+        <h4>${a(libraryUrl(library), "Library ${library.name}")}</h4>
+        ''');
+  }
+
+  writeFooter();
+  endFile();
+}
+
 docNavigation() {
   writeln(
       '''
       <div class="nav">
-      <h1>Libraries</h1>
+      <h1>${a("index.html", "Dart Documentation")}</h1>
       ''');
 
-  for (final library in orderValuesByKeys(world.libraries)) {
-    write('<h2><div class="icon-library"></div> ');
+  for (final library in orderByName(world.libraries)) {
+    write('<h2><div class="icon-library"></div>');
 
     if ((_currentLibrary == library) && (_currentType == null)) {
       write('<strong>${library.name}</strong>');
@@ -192,30 +204,34 @@ docNavigation() {
     }
     write('</h2>');
 
-    final types = orderValuesByKeys(library.types);
-    if (types.length > 0) {
-      writeln('<ul>');
-      for (final type in types) {
-        if (type.isTop) continue;
-        if (type.name.startsWith('_')) continue;
-
-        var icon = type.isClass ? 'icon-class' : 'icon-interface';
-        write('<li><div class="$icon"></div> ');
-
-        if (_currentType == type) {
-          write('<strong>${type.name}</strong>');
-        } else {
-          write('${a(typeUrl(type), type.name)}');
-        }
-
-        writeln('</li>');
-      }
-
-      writeln('</ul>');
-    }
+    // Only expand classes in navigation for current library.
+    if (_currentLibrary == library) docLibraryNavigation(library);
   }
 
   writeln('</div>');
+}
+
+/** Writes the navigation for the types contained by the given library. */
+docLibraryNavigation(Library library) {
+  final types = orderByName(library.types).filter(
+      (type) => !type.isTop && !type.name.startsWith('_'));
+
+  if (types.length == 0) return;
+
+  writeln('<ul>');
+  for (final type in types) {
+    var icon = type.isClass ? 'icon-class' : 'icon-interface';
+    write('<li><div class="$icon"></div>');
+
+    if (_currentType == type) {
+      write('<strong>${typeName(type)}</strong>');
+    } else {
+      write('${a(typeUrl(type), typeName(type))}');
+    }
+
+    writeln('</li>');
+  }
+  writeln('</ul>');
 }
 
 docLibrary(Library library) {
@@ -237,10 +253,9 @@ docLibrary(Library library) {
   // Document the top-level members.
   docMembers(library.topType);
 
-  // TODO(rnystrom): Link to types.
   writeln('<h3>Types</h3>');
 
-  for (final type in orderValuesByKeys(library.types)) {
+  for (final type in orderByName(library.types)) {
     if (type.isTop) continue;
     if (type.name.startsWith('_')) continue;
     writeln(
@@ -292,7 +307,7 @@ void docMembers(Type type) {
   final methods = [];
   final fields = [];
 
-  for (final member in orderValuesByKeys(type.members)) {
+  for (final member in orderByName(type.members)) {
     if (member.name.startsWith('_')) continue;
 
     if (member.isProperty) {

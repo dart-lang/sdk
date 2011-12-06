@@ -54,3 +54,15 @@ String unindent(String text, int indentation) {
 
   return text.substring(start);
 }
+
+/** Sorts the map by the key, doing a case-insensitive comparison. */
+List orderByName(Map<String, Dynamic> map) {
+  // TODO(rnystrom): it'd be nice to have this in corelib.
+  List keys = map.getKeys();
+  keys.sort((x, y) => x.toUpperCase().compareTo(y.toUpperCase()));
+  final values = [];
+  for (var k in keys) {
+    values.add(map[k]);
+  }
+  return values;
+}

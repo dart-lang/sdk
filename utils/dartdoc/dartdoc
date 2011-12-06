@@ -4,9 +4,22 @@
 # .dart file, like:
 #
 # $ dartdoc foo.dart
+#
+# You can also pass in a couple of "special" entrypoints for generating
+# docs for dart's built in libraries. The special entrypoints are:
+#
+# - "corelib": dart:core, dart:coreimpl
+# - "dom": dart:core, dart:coreimpl, dart:dom
+# - "html": dart:core, dart:coreimpl, dart:dom, dart:html
 
 # Get the .dart lib file the user wants to generate docs for.
-entrypoint=$PWD/$1
+# Add the path to it so that we can find it, but only if it's a .dart file and
+# not one of the special fake entrypoints like "corelib".
+entrypoint=$1
+if [[ $1 == *.dart ]]
+then
+  entrypoint=$PWD/$1
+fi
 
 # Run from dartdoc directory to get correct relative paths.
 pushd `dirname "$0"` >>/dev/null

@@ -107,7 +107,7 @@ hr + h2 {
 .nav h2 {
   font: 400 16px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
-  margin: 22px -21px 0 -21px;
+  margin: 0 -21px;
   padding: 11px 22px;
 
   /* Using http://www.colorzilla.com/gradient-editor/ */
@@ -124,9 +124,11 @@ hr + h2 {
   font: 600 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
   list-style-type: none;
+  white-space: nowrap;
 }
 
 .nav ul {
+  margin: 0 0 22px 0;
   padding: 0;
 }
 
@@ -135,7 +137,7 @@ hr + h2 {
   display: inline-block;
   width: 12px;
   height: 13px;
-  margin: 4px 8px 0 2px;
+  margin: 5px 11px 0 3px;
   vertical-align: top;
 }
 
@@ -152,7 +154,7 @@ hr + h2 {
   width: 16px;
   height: 14px;
   display: inline-block;
-  margin: 4px 4px 0 0;
+  margin: 4px 8px 0 0;
   vertical-align: top;
 }
 
