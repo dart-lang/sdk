@@ -358,6 +358,7 @@ FauxverrideTest/04: Fail
 BlockScopeTest: Fail
 DuplicateConstructorTest/none: Fail
 ExceptionIdentityTest: Fail
+NewExpressionTypeArgsFrogTest/none: Fail
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
