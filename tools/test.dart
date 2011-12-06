@@ -20,6 +20,9 @@
 #import("../frog/tests/frog/test_config.dart");
 #import("../frog/tests/leg/test_config.dart");
 #import("../frog/tests/leg_only/test_config.dart");
+#import("../frog/tests/await/test_config.dart");
+#import("../utils/tests/css/test_config.dart");
+#import("../utils/tests/peg/test_config.dart");
 
 main() {
   var startTime = new Date.now();
@@ -75,6 +78,15 @@ main() {
     }
     if (selectors.containsKey('dartc')) {
       queue.addTestSuite(new ClientDartcTestSuite(conf));
+    }
+    if (selectors.containsKey('css')) {
+      queue.addTestSuite(new CssTestSuite(conf));
+    }
+    if (selectors.containsKey('peg')) {
+      queue.addTestSuite(new PegTestSuite(conf));
+    }
+    if (selectors.containsKey('await')) {
+      queue.addTestSuite(new AwaitTestSuite(conf));
     }
 
     return true;
