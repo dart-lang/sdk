@@ -60,6 +60,30 @@
         },
       ],
     },
+    {
+      'target_name': 'upload_sdk',
+      'type': 'none',
+      'dependencies': [
+        'sdk',
+      ],
+      'actions': [
+        {
+          'action_name': 'upload_sdk',
+          'inputs': [
+            '<(PRODUCT_DIR)/sdk',
+            'tools/upload_sdk.py',
+          ],
+          'outputs': [
+            '<(PRODUCT_DIR)/sdk',
+          ],
+          'action': [
+            'python',
+            'tools/upload_sdk.py',
+            '<(PRODUCT_DIR)/sdk'
+          ],
+        },
+      ],
+    }
     # TODO(ngeoffray): Fling does not have proper dependencies,
     # so don't build it for now.
     #{
