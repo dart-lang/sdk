@@ -111,6 +111,28 @@ TEST_CASE(Class) {
 }
 
 
+TEST_CASE(TypeArguments) {
+  const Type& type1 = Type::Handle(Type::DoubleInterface());
+  const Type& type2 = Type::Handle(Type::StringInterface());
+  const TypeArguments& type_arguments1 = TypeArguments::Handle(
+    TypeArguments::New(2));
+  type_arguments1.SetTypeAt(0, type1);
+  type_arguments1.SetTypeAt(1, type2);
+  const TypeArguments& type_arguments2 = TypeArguments::Handle(
+    TypeArguments::New(2));
+  type_arguments2.SetTypeAt(0, type1);
+  type_arguments2.SetTypeAt(1, type2);
+  EXPECT_NE(type_arguments1.raw(), type_arguments2.raw());
+  OS::Print("1: %s\n", type_arguments1.ToCString());
+  OS::Print("2: %s\n", type_arguments2.ToCString());
+  ASSERT(type_arguments1.Equals(type_arguments2));
+  TypeArguments& type_arguments3 = TypeArguments::Handle();
+  type_arguments1.Canonicalize();
+  type_arguments3 ^= type_arguments2.Canonicalize();
+  EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
+}
+
+
 TEST_CASE(TokenStream) {
   String& source = String::Handle(String::New("= ( 9 , ."));
   String& private_key = String::Handle(String::New(""));

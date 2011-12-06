@@ -391,6 +391,10 @@ void Object::Init(Isolate* isolate) {
   array.SetAt(kInitialSymbolTableSize, Smi::Handle(Smi::New(0)));
   object_store->set_symbol_table(array);
 
+  // canonical_type_arguments_ are NULL terminated.
+  array = Array::New(4);
+  object_store->set_canonical_type_arguments(array);
+
   // Pre-allocate the OneByteString class needed by the symbol table.
   cls = Class::New<OneByteString>();
   object_store->set_one_byte_string_class(cls);
@@ -2312,7 +2316,7 @@ RawClass* InstantiatedType::type_class() const {
 
 
 RawAbstractTypeArguments* InstantiatedType::arguments() const {
-  return AbstractTypeArguments::NewInstantiatedTypeArguments(
+  return InstantiatedTypeArguments::New(
       AbstractTypeArguments::Handle(AbstractType::Handle(
           uninstantiated_type()).arguments()),
       AbstractTypeArguments::Handle(instantiator_type_arguments()));
@@ -2400,9 +2404,23 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 
 
 bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
-  // AbstractTypeArguments is an abstract class.
-  UNREACHABLE();
-  return false;
+  if (this->raw() == other.raw()) {
+    return true;
+  }
+  intptr_t num_types = Length();
+  if (num_types != other.Length()) {
+    return false;
+  }
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& other_type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    other_type = other.TypeAt(i);
+    if (!type.Equals(other_type)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -2472,14 +2490,6 @@ bool AbstractTypeArguments::IsMoreSpecificThan(
 }
 
 
-RawAbstractTypeArguments* AbstractTypeArguments::NewInstantiatedTypeArguments(
-    const AbstractTypeArguments& uninstantiated_type_arguments,
-    const AbstractTypeArguments& instantiator_type_arguments) {
-  return InstantiatedTypeArguments::New(uninstantiated_type_arguments,
-                                        instantiator_type_arguments);
-}
-
-
 const char* AbstractTypeArguments::ToCString() const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
@@ -2499,6 +2509,7 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
+  ASSERT(!is_canonical());
   // TODO(iposva): Add storing NoGCScope.
   *TypeAddr(index) = value.raw();
 }
@@ -2522,6 +2533,7 @@ bool TypeArguments::IsInstantiated() const {
   intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
+    ASSERT(!type.IsNull());
     if (!type.IsInstantiated()) {
       return false;
     }
@@ -2537,24 +2549,6 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsTypeParameter() || (type.Index() != i)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool TypeArguments::Equals(const AbstractTypeArguments& other) const {
-  intptr_t num_types = Length();
-  if (num_types != other.Length()) {
-    return false;
-  }
-  AbstractType& type = AbstractType::Handle();
-  AbstractType& other_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
-    other_type = other.TypeAt(i);
-    if (!type.Equals(other_type)) {
       return false;
     }
   }
@@ -2603,6 +2597,8 @@ RawTypeArguments* TypeArguments::New(intptr_t len) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
+    result.set_is_canonical(false);
+    // Length must be set before we start storing into the array.
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
       *result.TypeAddr(i) = Type::null();
@@ -2610,6 +2606,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len) {
   }
   return result.raw();
 }
+
 
 
 RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
@@ -2620,9 +2617,48 @@ RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
 
 
 void TypeArguments::SetLength(intptr_t value) {
+  ASSERT(!is_canonical());
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   raw_ptr()->length_ = Smi::New(value);
+}
+
+
+RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
+  if (IsNull() || is_canonical() || !IsInstantiated()) {
+    return this->raw();
+  }
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  // 'table' must be null terminated.
+  Array& table = Array::Handle(object_store->canonical_type_arguments());
+  ASSERT(table.Length() > 0);
+  intptr_t index = 0;
+  TypeArguments& other = TypeArguments::Handle();
+  other ^= table.At(index);
+  while (!other.IsNull()) {
+    if (this->Equals(other)) {
+      return other.raw();
+    }
+    other ^= table.At(++index);
+  }
+  // Not found. Add 'this' to table.
+  if (index == table.Length() - 1) {
+    table = Array::Grow(table, table.Length() + 4, Heap::kOld);
+    object_store->set_canonical_type_arguments(table);
+  }
+  table.SetAt(index, *this);
+  this->set_is_canonical(true);
+  return this->raw();
+}
+
+
+bool TypeArguments::is_canonical() const {
+  return raw_ptr()->is_canonical_;
+}
+
+
+void TypeArguments::set_is_canonical(bool value) const {
+  raw_ptr()->is_canonical_ = value;
 }
 
 
@@ -2633,7 +2669,8 @@ const char* TypeArguments::ToCString() const {
   const char* format = "%s [%s]";
   const char* prev_cstr = "TypeArguments:";
   for (int i = 0; i < Length(); i++) {
-    const char* type_cstr = AbstractType::Handle(TypeAt(i)).ToCString();
+    const AbstractType& type_at = AbstractType::Handle(TypeAt(i));
+    const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
     intptr_t len = OS::SNPrint(NULL, 0, format, prev_cstr, type_cstr) + 1;
     char* chars = reinterpret_cast<char*>(
         Isolate::Current()->current_zone()->Allocate(len));
@@ -2712,7 +2749,7 @@ const char* InstantiatedTypeArguments::ToCString() const {
   if (IsNull()) {
     return "NULL InstantiatedTypeArguments";
   }
-  const char* format = "InstantiatedTypeArguments: [%s] instantiator: [%s]\n";
+  const char* format = "InstantiatedTypeArguments: [%s] instantiator: [%s]";
   const char* arg_cstr =
       AbstractTypeArguments::Handle(
           uninstantiated_type_arguments()).ToCString();
@@ -5037,7 +5074,7 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
   const Class& cls = Class::Handle(clazz());
   intptr_t field_offset = cls.type_arguments_instance_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
-  *FieldAddrAtOffset(field_offset) = value.raw();
+  *FieldAddrAtOffset(field_offset) = value.Canonicalize();
 }
 
 

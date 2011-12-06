@@ -225,6 +225,13 @@ class ObjectStore {
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
+  RawArray* canonical_type_arguments() const {
+    return canonical_type_arguments_;
+  }
+  void set_canonical_type_arguments(const Array& value) {
+    canonical_type_arguments_ = value.raw();
+  }
+
   RawLibrary* core_library() const { return core_library_; }
   void set_core_library(const Library& value) {
     core_library_ = value.raw();
@@ -326,6 +333,7 @@ class ObjectStore {
   RawBool* false_value_;
   RawArray* empty_array_;
   RawArray* symbol_table_;
+  RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
   RawLibrary* native_wrappers_library_;

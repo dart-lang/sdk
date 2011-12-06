@@ -337,6 +337,7 @@ class RawTypeArguments : public RawAbstractTypeArguments {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->length_);
   }
+  bool is_canonical_;
   RawSmi* length_;
 
   // Variable length data follows here.

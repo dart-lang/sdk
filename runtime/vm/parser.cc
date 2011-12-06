@@ -86,10 +86,13 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 
 static RawTypeArguments* NewTypeArguments(
     const GrowableArray<AbstractType*>& objs) {
-  TypeArguments& a = TypeArguments::Handle(TypeArguments::New(objs.length()));
+  const TypeArguments& a =
+      TypeArguments::Handle(TypeArguments::New(objs.length()));
   for (int i = 0; i < objs.length(); i++) {
     a.SetTypeAt(i, *objs[i]);
   }
+  // Cannot canonicalize TypeArgument yet as its types may not have been
+  // finalized yet.
   return a.raw();
 }
 
@@ -6738,8 +6741,12 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(list);
-    return new ConstructorCallNode(
-        literal_pos, type_arguments, literal_list_factory, factory_param);
+    AbstractTypeArguments& canonical_type_arguments =
+        AbstractTypeArguments::ZoneHandle(type_arguments.Canonicalize());
+    return new ConstructorCallNode(literal_pos,
+                                   canonical_type_arguments,
+                                   literal_list_factory,
+                                   factory_param);
   }
 }
 
@@ -6816,6 +6823,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   }
   ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
+  map_type_arguments ^= map_type_arguments.Canonicalize();
 
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
@@ -6936,8 +6944,10 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(kv_pairs);
-    return new ConstructorCallNode(
-        literal_pos, map_type_arguments, literal_map_factory, factory_param);
+    return new ConstructorCallNode(literal_pos,
+                                   map_type_arguments,
+                                   literal_map_factory,
+                                   factory_param);
   }
 }
 
@@ -7144,6 +7154,7 @@ AstNode* Parser::ParseNewOperator() {
     type_arguments = type.arguments();
   }
 
+  type_arguments ^= type_arguments.Canonicalize();
   // Make the constructor call.
   AstNode* new_object = NULL;
   if (is_const) {

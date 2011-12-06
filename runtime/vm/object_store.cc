@@ -41,6 +41,7 @@ ObjectStore::ObjectStore()
     false_value_(Bool::null()),
     empty_array_(Array::null()),
     symbol_table_(Array::null()),
+    canonical_type_arguments_(Array::null()),
     core_library_(Library::null()),
     core_impl_library_(Library::null()),
     native_wrappers_library_(Library::null()),

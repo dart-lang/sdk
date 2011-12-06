@@ -304,18 +304,22 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
                                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
+  const bool is_canonical = reader->Read<bool>();
   // Read the length so that we can determine instance size to allocate.
   RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
   intptr_t len = Smi::Value(smi_len);
 
-  TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(len));
-  reader->AddBackwardReference(object_id, &type_array);
+  TypeArguments& type_arguments =
+      TypeArguments::Handle(TypeArguments::New(len));
+  reader->AddBackwardReference(object_id, &type_arguments);
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type ^= reader->ReadObject();
-    type_array.SetTypeAt(i, type);
+    type_arguments.SetTypeAt(i, type);
   }
-  return type_array.raw();
+  type_arguments.set_is_canonical(is_canonical);
+
+  return type_arguments.raw();
 }
 
 
@@ -330,6 +334,7 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the class information.
   writer->WriteObjectHeader(kObjectId, Object::kTypeArgumentsClass);
 
+  writer->Write<bool>(ptr()->is_canonical_);
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
 

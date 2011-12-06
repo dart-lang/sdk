@@ -636,7 +636,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const AbstractType& type) {
   // super types of type_class, which may be initialized from the parsed
   // type arguments, followed by the parsed type arguments.
   if (num_type_arguments > 0) {
-    const TypeArguments& full_arguments = TypeArguments::Handle(
+    TypeArguments& full_arguments = TypeArguments::Handle(
         TypeArguments::New(num_type_arguments));
     // Copy the parsed type arguments at the correct offset in the full type
     // argument vector.
@@ -659,6 +659,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const AbstractType& type) {
     } else {
       FinalizeTypeArguments(type_class, full_arguments);
     }
+    // FinalizeTypeArguments can modify 'full_arguments',
+    // canonicalize afterwards.
+    full_arguments ^= full_arguments.Canonicalize();
     parameterized_type.set_arguments(full_arguments);
 
     // Mark the type as finalized before finalizing the upper bounds, because

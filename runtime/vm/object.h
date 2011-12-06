@@ -981,6 +981,9 @@ class AbstractTypeArguments : public Object {
       const AbstractTypeArguments& instantiator_type_arguments,
       intptr_t offset) const;
 
+  // Do not canonicalize InstantiatedTypeArguments or NULL objects
+  virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
+
   // Check if this type argument vector consists solely of DynamicType,
   // considering only a prefix of length 'len'.
   bool IsDynamicTypes(intptr_t len) const;
@@ -990,9 +993,7 @@ class AbstractTypeArguments : public Object {
   bool IsMoreSpecificThan(
       const AbstractTypeArguments& other, intptr_t len) const;
 
-  static RawAbstractTypeArguments* NewInstantiatedTypeArguments(
-      const AbstractTypeArguments& uninstantiated_type_arguments,
-      const AbstractTypeArguments& instantiator_type_arguments);
+  bool Equals(const AbstractTypeArguments& other) const;
 
   // UNREACHABLEs as AbstractTypeArguments is an abstract class.
   virtual intptr_t Length() const;
@@ -1001,7 +1002,6 @@ class AbstractTypeArguments : public Object {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
-  virtual bool Equals(const AbstractTypeArguments& other) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments, Object);
@@ -1018,7 +1018,8 @@ class TypeArguments : public AbstractTypeArguments {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
-  virtual bool Equals(const AbstractTypeArguments& other) const;
+  // Canonicalize only if instantiated, otherwise returns 'this'.
+  virtual RawAbstractTypeArguments* Canonicalize() const;
 
   virtual RawAbstractTypeArguments* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
@@ -1035,13 +1036,16 @@ class TypeArguments : public AbstractTypeArguments {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types_ is not adding to the object length.
-    ASSERT(sizeof(RawTypeArguments) == 2 * kWordSize);
+    ASSERT(sizeof(RawTypeArguments) == 3 * kWordSize);
     return RoundedAllocationSize(sizeof(RawTypeArguments) + (len * kWordSize));
   }
 
   static RawTypeArguments* New(intptr_t len);
 
  private:
+  bool is_canonical() const;
+  void set_is_canonical(bool value) const;
+
   // Make sure that the array size cannot wrap around.
   static const intptr_t kMaxTypes = 512 * 1024 * 1024;
   RawAbstractType** TypeAddr(intptr_t index) const;
@@ -2923,7 +2927,7 @@ class Array : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    raw_ptr()->type_arguments_ = value.raw();
+    raw_ptr()->type_arguments_ = value.Canonicalize();
   }
 
   virtual bool Equals(const Instance& other) const;
@@ -3076,7 +3080,7 @@ class Closure : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    raw_ptr()->type_arguments_ = value.raw();
+    raw_ptr()->type_arguments_ = value.Canonicalize();
   }
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawClosure, type_arguments_);

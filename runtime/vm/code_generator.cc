@@ -137,9 +137,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 3) {
     // virtual call to Length() handles other cases that are harder to inline.
     element_type = instantiator.raw();
   } else {
-    element_type =
-        AbstractTypeArguments::NewInstantiatedTypeArguments(element_type,
-                                                            instantiator);
+    element_type = InstantiatedTypeArguments::New(element_type, instantiator);
   }
   array.SetTypeArguments(element_type);
 }
@@ -187,16 +185,14 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
     ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
            (instantiator.Length() != type_arguments.Length()));
     type_arguments =
-        AbstractTypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                            instantiator);
+        InstantiatedTypeArguments::New(type_arguments, instantiator);
   } else {
     if (type_arguments.IsUninstantiatedIdentity() &&
         (instantiator.Length() == type_arguments.Length())) {
       type_arguments = instantiator.raw();
     } else {
       type_arguments =
-          AbstractTypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                              instantiator);
+          InstantiatedTypeArguments::New(type_arguments, instantiator);
     }
   }
   instance.SetTypeArguments(type_arguments);
@@ -222,9 +218,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
          !instantiator.IsTypeArguments() ||
          (instantiator.Length() != type_arguments.Length()));
-  type_arguments =
-      AbstractTypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                          instantiator);
+  type_arguments = InstantiatedTypeArguments::New(type_arguments, instantiator);
   arguments.SetReturn(type_arguments);
 }
 
