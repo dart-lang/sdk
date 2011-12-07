@@ -30,7 +30,8 @@ class _BufferList {
    */
   List<int> get first() => _buffers.first();
 
-  /* Returns the current index of the next byte. This will always be
+  /**
+   * Returns the current index of the next byte. This will always be
    * an index into the first buffer as when the index is advanced past
    * the end of a buffer it is removed from the list.
    */
@@ -41,7 +42,7 @@ class _BufferList {
    */
   int peek() => _buffers.first()[_index];
 
-  /*
+  /**
    * Returns the next available byte removing it from the buffers.
    */
   int next() {
@@ -52,6 +53,56 @@ class _BufferList {
       _index = 0;
     }
     return value;
+  }
+
+  /**
+   * Read [count] bytes from the buffer list. If the number of bytes
+   * requested is not available null will be returned.
+   */
+  List<int> readBytes(int count) {
+    List<int> result;
+    if (_length == 0 || _length < count) return null;
+    if (_index == 0 && _buffers.first().length == count) {
+      result = _buffers.first();
+      _buffers.removeFirst();
+      _index = 0;
+      _length -= count;
+      return result;
+    } else {
+      int firstRemaining = _buffers.first().length - _index;
+      if (firstRemaining >= count) {
+        result = _buffers.first().getRange(_index, count);
+        _index += count;
+        _length -= count;
+        return result;
+      } else {
+        result = new List<int>(count);
+        int remaining = count;
+        while (remaining > 0) {
+          int bytesInFirst = _buffers.first().length - _index;
+          if (bytesInFirst <= remaining) {
+            result.setRange(count - remaining,
+                            bytesInFirst,
+                            _buffers.first(),
+                            _index);
+            _buffers.removeFirst();
+            _index = 0;
+            _length -= bytesInFirst;
+            remaining -= bytesInFirst;
+          } else {
+            result.setRange(count - remaining,
+                            remaining,
+                            _buffers.first(),
+                            _index);
+            _index = remaining;
+            _length -= remaining;
+            remaining = 0;
+            assert(_index < _buffers.first().length);
+          }
+        }
+        return result;
+      }
+    }
   }
 
   /**

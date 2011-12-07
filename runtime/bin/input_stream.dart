@@ -115,6 +115,57 @@ interface StringInputStream factory _StringInputStream {
 }
 
 
+interface ChunkedInputStream factory _ChunkedInputStream {
+  /**
+   * Adds buffering to an input stream and provide the ability to read
+   * the data in known size chunks.
+   */
+  ChunkedInputStream(InputStream input, [int chunkSize]);
+
+  /**
+   * Reads [chunkSize] bytes from the stream. If [chunkSize] bytes are
+   * not currently available null is returned. When the stream is
+   * closed the last call can return with less than [chunkSize] bytes.
+   */
+  List<int> read();
+
+  /**
+   * Returns whether the stream has been closed. There might still be
+   * more data to read.
+   */
+  bool get closed();
+
+  /**
+   * Returns the chunk size used by this stream.
+   */
+  int get chunkSize();
+
+  /**
+   * Sets the chunk size used by this stream.
+   */
+  void set chunkSize(int chunkSize);
+
+  /**
+   * Sets the handler that gets called when at least [chunkSize] bytes
+   * of data is available or the underlying stream has been closed and
+   * there is still unread data.
+   */
+  void set dataHandler(void callback());
+
+  /**
+   * Sets the handler that gets called when there will be no more data
+   * available in the stream.
+   */
+  void set closeHandler(void callback());
+
+  /**
+   * Sets the handler that gets called when the underlying
+   * communication channel gets into some kind of error situation.
+   */
+  void set errorHandler(void callback());
+}
+
+
 class StreamException implements Exception {
   const StreamException([String this.message = ""]);
   String toString() => "StreamException: $message";

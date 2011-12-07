@@ -11,6 +11,7 @@
     #
     'builtin.dart',
     'buffer_list.dart',
+    'chunked_stream.dart',
     'directory.dart',
     'directory_impl.dart',
     'eventhandler.dart',

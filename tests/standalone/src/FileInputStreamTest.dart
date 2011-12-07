@@ -8,10 +8,10 @@
 String getFilename(String path) =>
     new File(path).existsSync() ? path : '../' + path;
 
-main() {
-  String fName = getFilename("tests/standalone/src/readuntil_test.dat");
+void testStringInputStream() {
+  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!"
-  File file = new File(fName);
+  File file = new File(fileName);
   file.openSync();
   StringInputStream x = new StringInputStream(file.openInputStream());
   String line = x.readLine();
@@ -19,4 +19,28 @@ main() {
   file.closeSync();
   line = x.readLine();
   Expect.equals("wassup!", line);
+}
+
+void testChunkedInputStream() {
+  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  // File contains 19 bytes ("Hello Dart\nwassup!")
+  File file = new File(fileName);
+  file.openSync();
+  ChunkedInputStream x = new ChunkedInputStream(file.openInputStream());
+  x.chunkSize = 9;
+  List<int> chunk = x.read();
+  Expect.equals(9, chunk.length);
+  file.closeSync();
+  x.chunkSize = 5;
+  chunk = x.read();
+  Expect.equals(5, chunk.length);
+  chunk = x.read();
+  Expect.equals(5, chunk.length);
+  chunk = x.read();
+  Expect.equals(null, chunk);
+}
+
+main() {
+  testStringInputStream();
+  testChunkedInputStream();
 }
