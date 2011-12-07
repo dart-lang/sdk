@@ -267,9 +267,10 @@ def Main(argv):
 
   # Next, copy the compiler sources on top of {core,coreimpl}/compiler
   for filename in corelib_compiler_sources:
-    if (filename.endswith(".dart")):
-      filename = re.sub("lib/","", filename)
-      if not filename.startswith("implementation/"):
+    if filename.endswith('.dart'):
+      filename = re.sub('lib/','', filename)
+      if (not filename.startswith('implementation/') and
+          not filename.startswith('corelib')):
         copyfile(join('compiler', 'lib', filename), 
                  join(corelib_dest_dir, 'compiler', filename))
 
@@ -308,7 +309,13 @@ def Main(argv):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
 
-  # TODO(dgrove) - create lib/core/core_compiler.dart .
+  # construct lib/core_compiler.dart from whole cloth.
+  dest_file = open(join(corelib_dest_dir, 'core_compiler.dart'), 'w')
+  dest_file.write('#library("dart:core");\n')
+  dest_file.write('#import("dart:coreimpl");\n')
+  for filename in os.listdir(join(corelib_dest_dir, 'compiler')):
+    dest_file.write('#import("compiler/' + filename + '");\n')
+  dest_file.close()
 
   #
   # Create and populate lib/coreimpl.
@@ -358,7 +365,12 @@ def Main(argv):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
 
-  # TODO(dgrove) - create lib/coreimpl/coreimpl_compiler.dart .
+  # construct lib/coreimpl_compiler.dart from whole cloth.
+  dest_file = open(join(coreimpl_dest_dir, 'coreimpl_compiler.dart'), 'w')
+  dest_file.write('#library("dart:coreimpl");\n')
+  for filename in os.listdir(join(coreimpl_dest_dir, 'compiler')):
+    dest_file.write('#import("compiler/' + filename + '");\n')
+  dest_file.close()
 
   # Create and copy tools.
 
