@@ -49,6 +49,7 @@ TimeoutTest: Skip # Uses Socket
 TestRunnerTest: Skip # Uses Process
 FileInvalidArgumentsTest: Skip # Uses File
 PlatformTest: Skip # Uses Platform
+ChunkedStreamTest: Skip # Uses InputStream
 
 [ $component == dartc || $component == chromium ]
 *: Skip
