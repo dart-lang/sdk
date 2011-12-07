@@ -81,12 +81,15 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     File stubsOutFile = new File("${temp.path}/${interfaceFile}");
     stubsOutFile.createSync();
     String stubsPath = stubsOutFile.fullPathSync();
-    Process dartcProcess = new Process(dartcPath,
-                                       [filename,
-                                        '-noincremental',
-                                        '-out', temp.path,
-                                        '-isolate-stub-out', stubsPath,
-                                        '-generate-isolate-stubs', classes ]);
+    List<String> args = [filename,
+                         '-noincremental',
+                         '-out', temp.path,
+                         '-isolate-stub-out', stubsPath,
+                         '-generate-isolate-stubs', classes ];
+    if (configuration['verbose']) {
+      print("# $dartcPath ${Strings.join(args, ' ')}");
+    }
+    Process dartcProcess = new Process(dartcPath, args);
     dartcProcess.exitHandler = (int exitCode) {
       combineFiles(filename, stubsPath, onGenerated);
     };

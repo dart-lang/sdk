@@ -52,7 +52,7 @@ class TestOptionsParser {
               ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg'],
               'vm'),
           new _TestOptionSpecification(
-              'architecture',
+              'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
               ['all', 'ia32', 'x64', 'simarm'],
@@ -101,6 +101,13 @@ class TestOptionsParser {
               'help',
               'Print list of options',
               ['-h', '--help'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
+              'verbose',
+              'Verbose output',
+              ['-v', '--verbose'],
               [],
               false,
               'bool')];
@@ -152,11 +159,14 @@ class TestOptionsParser {
           value = arg.substring(2, arg.length);
         } else {
           name = arg;
-          if ((i + 1) >= arguments.length) {
-            print('No value supplied for option $name');
-            return null;
+          // Boolean options do not have a value.
+          if (_getSpecification(name).type != 'bool') {
+            if ((i + 1) >= arguments.length) {
+              print('No value supplied for option $name');
+              return null;
+            }
+            value = arguments[++i];
           }
-          value = arguments[++i];
         }
       } else {
         // The argument does not start with '-' or '--' and is
@@ -217,14 +227,19 @@ class TestOptionsParser {
     }
 
     // Expand the pseudo-values such as 'all'.
-    if (configuration['architecture'] == 'all') {
-      configuration['architecture'] = 'ia32,x64,simarm';
+    if (configuration['arch'] == 'all') {
+      configuration['arch'] = 'ia32,x64,simarm';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
     }
     if (configuration['component'] == 'most') {
       configuration['component'] = 'vm,dartc';
+    }
+
+    // Use verbose progress indication for verbose output.
+    if (configuration['verbose']) {
+      configuration['progress'] = 'verbose';
     }
 
     // Create the artificial 'unchecked' option that test status files
@@ -263,12 +278,12 @@ class TestOptionsParser {
     }
 
     // Expand the architectures.
-    var archs = configuration['architecture'];
+    var archs = configuration['arch'];
     if (archs.contains(',')) {
       var result = new List<Map>();
       for (var arch in archs.split(',')) {
         var newConfiguration = new Map.from(configuration);
-        newConfiguration['architecture'] = arch;
+        newConfiguration['arch'] = arch;
         result.addAll(_expandConfigurations(newConfiguration));
       }
       return result;

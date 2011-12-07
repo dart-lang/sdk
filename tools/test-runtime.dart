@@ -30,6 +30,7 @@ main() {
   Map<String, RegExp> selectors = firstConf['selectors'];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
+  var verbose = firstConf['verbose'];
 
   var configurationIterator = configurations.iterator();
   bool enqueueConfiguration(ProcessQueue queue) {
@@ -64,8 +65,9 @@ main() {
   }
 
   // Start process queue.
-  var queue = new ProcessQueue(firstConf['tasks'],
-                               firstConf['progress'],
+  var queue = new ProcessQueue(maxProcesses,
+                               progressIndicator,
+                               verbose,
                                startTime,
                                enqueueConfiguration);
 }

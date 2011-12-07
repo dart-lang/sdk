@@ -476,7 +476,7 @@ class TestUtils {
       buildDir = 'xcodebuild/';
     }
     buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    buildDir += configuration['architecture'] + '/';
+    buildDir += configuration['arch'] + '/';
     return buildDir;
   }
 

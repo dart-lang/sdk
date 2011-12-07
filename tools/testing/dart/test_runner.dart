@@ -211,12 +211,7 @@ class DartcBatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments) {
-    var buffer = new StringBuffer();
-    for (var i = 0; i < arguments.length; i++) {
-      buffer.add("${arguments[i]} ");
-    }
-    buffer.add("\n");
-    return buffer.toString();
+    return Strings.join(arguments, ' ') + '\n';
   }
 
   int _reportResult(String output) {
@@ -296,6 +291,7 @@ class ProcessQueue {
   int _numProcesses = 0;
   int _activeTestListers = 0;
   int _maxProcesses;
+  bool _verbose;
   Function _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
@@ -304,12 +300,12 @@ class ProcessQueue {
 
   ProcessQueue(int this._maxProcesses,
                String progress,
+               bool this._verbose,
                Date start_time,
                Function this._enqueueMoreWork)
       : _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress, start_time),
         _batchProcesses = new List<DartcBatchRunnerProcess>() {
-    _maxProcesses = _maxProcesses;
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
@@ -361,10 +357,17 @@ class ProcessQueue {
     throw new Exception('Unable to find inactive batch runner.');
   }
 
+  void _printTestCase(TestCase testCase) {
+    var path = testCase.executablePath;
+    var args = Strings.join(testCase.arguments, ' ');
+    print('# $path $args');
+  }
+
   void _tryRunTest() {
     _checkDone();
     if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
       TestCase test = _tests.removeFirst();
+      if (_verbose) _printTestCase(test);
       _progress.start(test);
       Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {
