@@ -312,11 +312,6 @@ TypeVariableBoundsTest/01: Fail # these tests would work if the type was constru
 TypeVariableBoundsTest/02: Fail
 TypeVariableBoundsTest/05: Fail
 TypeVariableBoundsTest/06: Fail
-TypeVariableScopeTest/00: Fail
-TypeVariableScopeTest/02: Fail
-TypeVariableScopeTest/03: Fail
-TypeVariableScopeTest/04: Fail
-TypeVariableScopeTest/06: Fail
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
