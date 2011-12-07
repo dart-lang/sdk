@@ -14,7 +14,7 @@ import utils
 
 GSUTIL = '/b/build/scripts/slave/gsutil'
 GS_SITE = 'gs://'
-GS_DIR = 'dartium-archive'
+GS_DIR = 'dart-dump-render-tree'
 LATEST = 'latest'
 SDK = 'sdk'
 
