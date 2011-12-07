@@ -65,7 +65,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
 
   void _closeHandler() {
     _inputClosed = true;
-    if (_bufferList.length == 0 && _clientCloseHandler) {
+    if (_bufferList.length == 0 && _clientCloseHandler !== null) {
       _clientCloseHandler();
       _closed = true;
     } else {
