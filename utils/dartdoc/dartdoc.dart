@@ -179,7 +179,7 @@ docIndex() {
   for (final library in orderByName(world.libraries)) {
     writeln(
         '''
-        <h4>${a(libraryUrl(library), "Library ${library.name}")}</h4>
+        <h4>${a(libraryUrl(library), library.name)}</h4>
         ''');
   }
 
@@ -220,13 +220,18 @@ docLibraryNavigation(Library library) {
 
   writeln('<ul>');
   for (final type in types) {
-    var icon = type.isClass ? 'icon-class' : 'icon-interface';
-    write('<li><div class="$icon"></div>');
+    var icon = 'icon-interface';
+    if (type.name.endsWith('Exception')) {
+      icon = 'icon-exception';
+    } else if (type.isClass) {
+      icon = 'icon-class';
+    }
+    write('<li>');
 
     if (_currentType == type) {
-      write('<strong>${typeName(type)}</strong>');
+      write('<div class="$icon"></div><strong>${typeName(type)}</strong>');
     } else {
-      write('${a(typeUrl(type), typeName(type))}');
+      write(a(typeUrl(type), '<div class="$icon"></div>${typeName(type)}'));
     }
 
     writeln('</li>');
@@ -253,27 +258,50 @@ docLibrary(Library library) {
   // Document the top-level members.
   docMembers(library.topType);
 
-  writeln('<h3>Types</h3>');
+  // Document the types.
+  final classes = <Type>[];
+  final interfaces = <Type>[];
+  final exceptions = <Type>[];
 
   for (final type in orderByName(library.types)) {
     if (type.isTop) continue;
     if (type.name.startsWith('_')) continue;
-    writeln(
-        '''
-        <div class="type">
-        <h4>
-          ${type.isClass ? "class" : "interface"}
-          ${a(typeUrl(type), "<strong>${typeName(type)}</strong>")}
-        </h4>
-        </div>
-        ''');
+
+    if (type.name.endsWith('Exception')) {
+      exceptions.add(type);
+    } else if (type.isClass) {
+      classes.add(type);
+    } else {
+      interfaces.add(type);
+    }
   }
+
+  docTypes(classes, 'Classes');
+  docTypes(interfaces, 'Interfaces');
+  docTypes(exceptions, 'Exceptions');
 
   writeFooter();
   endFile();
 
   for (final type in library.types.getValues()) {
     if (!type.isTop) docType(type);
+  }
+}
+
+docTypes(List<Type> types, String header) {
+  if (types.length == 0) return;
+
+  writeln('<h3>$header</h3>');
+
+  for (final type in types) {
+    writeln(
+        '''
+        <div class="type">
+        <h4>
+          ${a(typeUrl(type), "<strong>${typeName(type)}</strong>")}
+        </h4>
+        </div>
+        ''');
   }
 }
 
@@ -290,7 +318,7 @@ docType(Type type) {
       <h1>${a(libraryUrl(type.library),
             "Library <strong>${type.library.name}</strong>")}</h1>
       <h2>${type.isClass ? "Class" : "Interface"}
-          <strong>${typeName(type)}</strong></h2>
+          <strong>${typeName(type, showBounds: true)}</strong></h2>
       ''');
 
   docInheritance(type);
@@ -390,11 +418,15 @@ docInheritance(Type type) {
 
 /** Document the constructors for [Type], if any. */
 docConstructors(Type type) {
-  if (type.constructors.length > 0) {
+  final names = type.constructors.getKeys().filter(
+    (name) => !name.startsWith('_'));
+
+  if (names.length > 0) {
     writeln('<h3>Constructors</h3>');
-    for (final name in type.constructors.getKeys()) {
-      final constructor = type.constructors[name];
-      docMethod(type, constructor, constructorName: name);
+    names.sort((x, y) => x.toUpperCase().compareTo(y.toUpperCase()));
+
+    for (final name in names) {
+      docMethod(type, type.constructors[name], constructorName: name);
     }
   }
 }
@@ -422,7 +454,7 @@ docMethod(Type type, MethodMember method, [String constructorName = null]) {
   }
 
   if (constructorName == null) {
-    write(annotation(type, method.returnType));
+    annotateType(type, method.returnType);
   }
 
   // Translate specially-named methods: getters, setters, operators.
@@ -451,11 +483,7 @@ docMethod(Type type, MethodMember method, [String constructorName = null]) {
     write(constructorName);
   }
 
-  write('(');
-  final parameters = map(method.parameters,
-      (p) => '${annotation(type, p.type)}${p.name}');
-  write(Strings.join(parameters, ', '));
-  write(')');
+  docParamList(type, method);
 
   write(''' <a class="anchor-link" href="#${memberAnchor(method)}"
             title="Permalink to ${typeName(type)}.$name">#</a>''');
@@ -464,6 +492,39 @@ docMethod(Type type, MethodMember method, [String constructorName = null]) {
   docCode(method.span, showCode: true);
 
   writeln('</div>');
+}
+
+docParamList(Type enclosingType, MethodMember member) {
+  write('(');
+  bool first = true;
+  bool inOptionals = false;
+  for (final parameter in member.parameters) {
+    if (!first) write(', ');
+
+    if (!inOptionals && parameter.isOptional) {
+      write('[');
+      inOptionals = true;
+    }
+
+    annotateType(enclosingType, parameter.type, parameter.name);
+
+    // Show the default value for named optional parameters.
+    if (parameter.isOptional && parameter.hasDefaultValue) {
+      write(' = ');
+      // TODO(rnystrom): Using the definition text here is a bit cheap.
+      // We really should be pretty-printing the AST so that if you have:
+      //   foo([arg = 1 + /* comment */ 2])
+      // the docs should just show:
+      //   foo([arg = 1 + 2])
+      // For now, we'll assume you don't do that.
+      write(parameter.definition.value.span.text);
+    }
+
+    first = false;
+  }
+
+  if (inOptionals) write(']');
+  write(')');
 }
 
 /** Documents the field [field] of type [type]. */
@@ -487,7 +548,7 @@ docField(Type type, FieldMember field) {
     write('var ');
   }
 
-  write(annotation(type, field.type));
+  annotateType(type, field.type);
   write(
       '''
       <strong>${field.name}</strong> <a class="anchor-link"
@@ -510,11 +571,22 @@ String a(String href, String contents, [String class]) {
 }
 
 /** Generates a human-friendly string representation for a type. */
-typeName(Type type) {
+typeName(Type type, [bool showBounds = false]) {
   // See if it's a generic type.
   if (type.isGeneric) {
-    final typeParams = type.genericType.typeParameters;
-    final params = Strings.join(map(typeParams, (p) => p.name), ', ');
+    final typeParams = [];
+    for (final typeParam in type.genericType.typeParameters) {
+      if (showBounds &&
+          (typeParam.extendsType != null) &&
+          !typeParam.extendsType.isObject) {
+        final bound = typeName(typeParam.extendsType, showBounds: true);
+        typeParams.add('${typeParam.name} extends $bound');
+      } else {
+        typeParams.add(typeParam.name);
+      }
+    }
+
+    final params = Strings.join(typeParams, ', ');
     return '${type.name}&lt;$params&gt;';
   }
 
@@ -529,7 +601,43 @@ typeName(Type type) {
   return type.name;
 }
 
-/** Writes a linked cross reference to [type]. */
+/** Writes a link to a human-friendly string representation for a type. */
+linkToType(Type enclosingType, Type type) {
+  if (type is ParameterType) {
+    // If we're using a type parameter within the body of a generic class then
+    // just link back up to the class.
+    write(a(typeUrl(enclosingType), type.name));
+    return;
+  }
+
+  // Link to the type.
+  write(a(typeUrl(type), type.name));
+
+  // See if it's a generic type.
+  if (type.isGeneric) {
+    // TODO(rnystrom): This relies on a weird corner case of frog. Currently,
+    // the only time we get into this case is when we have a "raw" generic
+    // that's been instantiated with Dynamic for all type arguments. It's kind
+    // of strange that frog works that way, but we take advantage of it to
+    // show raw types without any type arguments.
+    return;
+  }
+
+  // See if it's an instantiation of a generic type.
+  final typeArgs = type.typeArgsInOrder;
+  if (typeArgs != null) {
+    write('&lt;');
+    bool first = true;
+    for (final arg in typeArgs) {
+      if (!first) write(', ');
+      first = false;
+      linkToType(enclosingType, arg);
+    }
+    write('&gt;');
+  }
+}
+
+/** Creates a linked cross reference to [type]. */
 typeReference(Type type) {
   // TODO(rnystrom): Do we need to handle ParameterTypes here like
   // annotation() does?
@@ -537,21 +645,33 @@ typeReference(Type type) {
 }
 
 /**
- * Creates a linked string for an optional type annotation. Returns an empty
- * string if the type is Dynamic.
+ * Writes a type annotation for the given type and (optional) parameter name.
  */
-annotation(Type enclosingType, Type type) {
-  if (type.name == 'Dynamic') return '';
-
-  // If we're using a type parameter within the body of a generic class then
-  // just link back up to the class.
-  if (type is ParameterType) {
-    return '${a(typeUrl(enclosingType), type.name)} ';
+annotateType(Type enclosingType, Type type, [String paramName = null]) {
+  // Don't bother explicitly displaying Dynamic.
+  if (type.isVar) {
+    if (paramName !== null) write(paramName);
+    return;
   }
 
-  // Link to the type.
-  return '${a(typeUrl(type), typeName(type))} ';
+  // For parameters, handle non-typedefed function types.
+  if (paramName !== null) {
+    final call = type.getCallMethod();
+    if (call != null) {
+      annotateType(enclosingType, call.returnType);
+      write(paramName);
+
+      docParamList(enclosingType, call);
+      return;
+    }
+  }
+
+  linkToType(enclosingType, type);
+
+  write(' ');
+  if (paramName !== null) write(paramName);
 }
+
 
 /**
  * This will be called whenever a doc comment hits a `[name]` in square

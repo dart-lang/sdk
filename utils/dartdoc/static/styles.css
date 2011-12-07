@@ -133,21 +133,18 @@ hr + h2 {
 }
 
 .icon-class,
+.icon-exception,
 .icon-interface {
   display: inline-block;
-  width: 12px;
-  height: 13px;
-  margin: 5px 11px 0 3px;
+  width: 14px;
+  height: 14px;
+  margin: 5px 10px 0 2px;
   vertical-align: top;
 }
 
-.icon-class {
-  background: url('class.png');
-}
-
-.icon-interface {
-  background: url('interface.png');
-}
+.icon-class     { background: url('class.png');     }
+.icon-exception { background: url('exception.png'); }
+.icon-interface { background: url('interface.png'); }
 
 .icon-library {
   background: url('library.png');
