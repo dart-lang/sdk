@@ -22,7 +22,7 @@ final int NO_TIMEOUT = 0;
 class TestCase {
   String executablePath;
   List<String> arguments;
-  int timeout;
+  Map configuration;
   String commandLine;
   String displayName;
   TestOutput output;
@@ -33,18 +33,48 @@ class TestCase {
   TestCase(this.displayName,
            this.executablePath,
            this.arguments,
-           this.timeout,
+           this.configuration,
            this.completedHandler,
            this.expectedOutcomes,
            [this.isNegative = false]) {
     if (!isNegative) {
       this.isNegative = displayName.contains("NegativeTest");
     }
-    commandLine = executablePath;
-    for (var arg in arguments) {
-      commandLine += " " + arg;
+    commandLine = "$executablePath ${Strings.join(arguments, ' ')}";
+
+    // Special command handling. If a special command is specified
+    // we have to completely rewrite the command that we are using.
+    // We generate a new command-line that is the special command
+    // where we replace '@' with the original command.
+    var specialCommand = configuration['special-command'];
+    if (!specialCommand.isEmpty()) {
+      Expect.isTrue(specialCommand.contains('@'),
+                    "special-command must contain a '@' char");
+      var specialCommandSplit = specialCommand.split('@');
+      var prefix = specialCommandSplit[0];
+      var suffix = specialCommandSplit[1];
+      commandLine = '$prefix $commandLine $suffix';
+      var newArguments = [];
+      if (prefix.length > 0) {
+        var prefixSplit = prefix.split(' ');
+        var newExecutablePath = prefixSplit[0];
+        for (int i = 1; i < prefixSplit.length; i++) {
+          var current = prefixSplit[i];
+          if (!current.isEmpty()) newArguments.add(current);
+        }
+        newArguments.add(executablePath);
+        executablePath = newExecutablePath;
+      }
+      newArguments.addAll(arguments);
+      var suffixSplit = prefix.split(' ');
+      suffixSplit.forEach((e) {
+        if (!e.isEmpty()) newArguments.add(e);
+      });
+      arguments = newArguments;
     }
   }
+
+  int get timeout() => configuration['timeout'];
 
   void completed() { completedHandler(this); }
 }
@@ -357,17 +387,11 @@ class ProcessQueue {
     throw new Exception('Unable to find inactive batch runner.');
   }
 
-  void _printTestCase(TestCase testCase) {
-    var path = testCase.executablePath;
-    var args = Strings.join(testCase.arguments, ' ');
-    print('# $path $args');
-  }
-
   void _tryRunTest() {
     _checkDone();
     if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
       TestCase test = _tests.removeFirst();
-      if (_verbose) _printTestCase(test);
+      if (_verbose) print(test.commandLine);
       _progress.start(test);
       Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {

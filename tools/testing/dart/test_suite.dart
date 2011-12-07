@@ -87,12 +87,11 @@ class CCTestSuite implements TestSuite {
       // to run.
       var args = [testName];
       args.addAll(TestUtils.standardOptions(configuration));
-      var timeout = configuration['timeout'];
 
       doTest(new TestCase(testName,
                           runnerPath,
                           args,
-                          timeout,
+                          configuration,
                           completeHandler,
                           expectations));
 
@@ -177,7 +176,7 @@ class StandardTestSuite implements TestSuite {
     dir.list(recursive: listRecursively());
   }
 
-  Function makeTestCaseCreator(Map optionsFromFile, int timeout) {
+  Function makeTestCaseCreator(Map optionsFromFile, Map configuration) {
     return (String filename,
             bool isNegative,
             [bool isNegativeIfChecked = false,
@@ -221,7 +220,7 @@ class StandardTestSuite implements TestSuite {
         doTest(new TestCase(testName,
                             shellPath(),
                             args,
-                            timeout,
+                            configuration,
                             completeHandler,
                             expectations,
                             isNegative));
@@ -237,8 +236,8 @@ class StandardTestSuite implements TestSuite {
     if (!pattern.hasMatch(filename)) return;
 
     var optionsFromFile = optionsFromFile(filename);
-    var timeout = configuration['timeout'];
-    Function createTestCase = makeTestCaseCreator(optionsFromFile, timeout);
+    Function createTestCase =
+        makeTestCaseCreator(optionsFromFile, configuration);
 
     if (optionsFromFile['isMultitest']) {
       bool supportsFatalTypeErrors = (configuration['component'] == 'dartc');

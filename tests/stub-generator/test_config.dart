@@ -101,8 +101,8 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     RegExp pattern = configuration['selectors'][suiteName];
     if (!pattern.hasMatch(filename)) return;
     var optionsFromFile = optionsFromFile(filename);
-    var timeout = configuration['timeout'];
-    Function createTestCase = makeTestCaseCreator(optionsFromFile, timeout);
+    Function createTestCase =
+        makeTestCaseCreator(optionsFromFile, configuration);
 
     if (filename.endsWith("-generatedTest.dart")) {
       if (dartcPath == null) {
