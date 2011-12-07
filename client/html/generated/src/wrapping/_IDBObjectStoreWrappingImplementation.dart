@@ -11,7 +11,9 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
 
   String get name() { return _ptr.name; }
 
-  IDBRequest add(String value, [IDBKey key = null]) {
+  IDBTransaction get transaction() { return LevelDom.wrapIDBTransaction(_ptr.transaction); }
+
+  IDBRequest add(String value, [IDBKey key]) {
     if (key === null) {
       return LevelDom.wrapIDBRequest(_ptr.add(value));
     } else {
@@ -44,7 +46,7 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
     return LevelDom.wrapIDBIndex(_ptr.index(name));
   }
 
-  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+  IDBRequest openCursor([IDBKeyRange range, int direction]) {
     if (range === null) {
       if (direction === null) {
         return LevelDom.wrapIDBRequest(_ptr.openCursor());
@@ -59,7 +61,7 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
     throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest put(String value, [IDBKey key = null]) {
+  IDBRequest put(String value, [IDBKey key]) {
     if (key === null) {
       return LevelDom.wrapIDBRequest(_ptr.put(value));
     } else {

@@ -6,5 +6,5 @@
 
 interface IDBCursorWithValue extends IDBCursor {
 
-  String get value();
+  IDBAny get value();
 }

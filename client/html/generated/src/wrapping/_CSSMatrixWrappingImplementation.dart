@@ -6,6 +6,14 @@
 
 class CSSMatrixWrappingImplementation extends DOMWrapperBase implements CSSMatrix {
   CSSMatrixWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+  factory CSSMatrixWrappingImplementation([String cssValue = null]) {
+    
+    if (cssValue === null) {
+      return LevelDom.wrapCSSMatrix(new dom.WebKitCSSMatrix());
+    } else {
+      return LevelDom.wrapCSSMatrix(new dom.WebKitCSSMatrix(cssValue));
+    }
+  }
 
   num get a() { return _ptr.a; }
 

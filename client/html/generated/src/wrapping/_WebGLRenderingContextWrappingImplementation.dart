@@ -73,15 +73,15 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
 
   void bufferData(int target, var data_OR_size, int usage) {
     if (data_OR_size is ArrayBuffer) {
-      _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+      _ptr.bufferData(target, LevelDom.unwrapMaybePrimitive(data_OR_size), usage);
       return;
     } else {
       if (data_OR_size is ArrayBufferView) {
-        _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+        _ptr.bufferData(target, LevelDom.unwrapMaybePrimitive(data_OR_size), usage);
         return;
       } else {
         if (data_OR_size is int) {
-          _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+          _ptr.bufferData(target, LevelDom.unwrapMaybePrimitive(data_OR_size), usage);
           return;
         }
       }
@@ -91,11 +91,11 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
 
   void bufferSubData(int target, int offset, var data) {
     if (data is ArrayBuffer) {
-      _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
+      _ptr.bufferSubData(target, offset, LevelDom.unwrapMaybePrimitive(data));
       return;
     } else {
       if (data is ArrayBufferView) {
-        _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
+        _ptr.bufferSubData(target, offset, LevelDom.unwrapMaybePrimitive(data));
         return;
       }
     }
@@ -302,9 +302,8 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return _ptr.getAttribLocation(LevelDom.unwrap(program), name);
   }
 
-  void getBufferParameter() {
-    _ptr.getBufferParameter();
-    return;
+  Object getBufferParameter(int target, int pname) {
+    return LevelDom.wrapObject(_ptr.getBufferParameter(target, pname));
   }
 
   WebGLContextAttributes getContextAttributes() {
@@ -315,70 +314,56 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return _ptr.getError();
   }
 
-  void getExtension(String name) {
-    _ptr.getExtension(name);
-    return;
+  Object getExtension(String name) {
+    return LevelDom.wrapObject(_ptr.getExtension(name));
   }
 
-  void getFramebufferAttachmentParameter() {
-    _ptr.getFramebufferAttachmentParameter();
-    return;
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) {
+    return LevelDom.wrapObject(_ptr.getFramebufferAttachmentParameter(target, attachment, pname));
   }
 
-  void getParameter() {
-    _ptr.getParameter();
-    return;
+  Object getParameter(int pname) {
+    return LevelDom.wrapObject(_ptr.getParameter(pname));
   }
 
   String getProgramInfoLog(WebGLProgram program) {
     return _ptr.getProgramInfoLog(LevelDom.unwrap(program));
   }
 
-  void getProgramParameter() {
-    _ptr.getProgramParameter();
-    return;
+  Object getProgramParameter(WebGLProgram program, int pname) {
+    return LevelDom.wrapObject(_ptr.getProgramParameter(LevelDom.unwrap(program), pname));
   }
 
-  void getRenderbufferParameter() {
-    _ptr.getRenderbufferParameter();
-    return;
+  Object getRenderbufferParameter(int target, int pname) {
+    return LevelDom.wrapObject(_ptr.getRenderbufferParameter(target, pname));
   }
 
   String getShaderInfoLog(WebGLShader shader) {
     return _ptr.getShaderInfoLog(LevelDom.unwrap(shader));
   }
 
-  void getShaderParameter() {
-    _ptr.getShaderParameter();
-    return;
+  Object getShaderParameter(WebGLShader shader, int pname) {
+    return LevelDom.wrapObject(_ptr.getShaderParameter(LevelDom.unwrap(shader), pname));
   }
 
   String getShaderSource(WebGLShader shader) {
     return _ptr.getShaderSource(LevelDom.unwrap(shader));
   }
 
-  void getSupportedExtensions() {
-    _ptr.getSupportedExtensions();
-    return;
+  Object getTexParameter(int target, int pname) {
+    return LevelDom.wrapObject(_ptr.getTexParameter(target, pname));
   }
 
-  void getTexParameter() {
-    _ptr.getTexParameter();
-    return;
-  }
-
-  void getUniform() {
-    _ptr.getUniform();
-    return;
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location) {
+    return LevelDom.wrapObject(_ptr.getUniform(LevelDom.unwrap(program), LevelDom.unwrap(location)));
   }
 
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) {
     return LevelDom.wrapWebGLUniformLocation(_ptr.getUniformLocation(LevelDom.unwrap(program), name));
   }
 
-  void getVertexAttrib() {
-    _ptr.getVertexAttrib();
-    return;
+  Object getVertexAttrib(int index, int pname) {
+    return LevelDom.wrapObject(_ptr.getVertexAttrib(index, pname));
   }
 
   int getVertexAttribOffset(int index, int pname) {
@@ -502,12 +487,12 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format = null, int type = null, ArrayBufferView pixels = null]) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format, int type, ArrayBufferView pixels]) {
     if (border_OR_canvas_OR_image_OR_pixels is ImageData) {
       if (format === null) {
         if (type === null) {
           if (pixels === null) {
-            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels));
             return;
           }
         }
@@ -517,7 +502,7 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
         if (format === null) {
           if (type === null) {
             if (pixels === null) {
-              _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+              _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels));
               return;
             }
           }
@@ -527,14 +512,14 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
           if (format === null) {
             if (type === null) {
               if (pixels === null) {
-                _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+                _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels));
                 return;
               }
             }
           }
         } else {
           if (border_OR_canvas_OR_image_OR_pixels is int) {
-            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
             return;
           }
         }
@@ -553,11 +538,11 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type = null, ArrayBufferView pixels = null]) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type, ArrayBufferView pixels]) {
     if (canvas_OR_format_OR_image_OR_pixels is ImageData) {
       if (type === null) {
         if (pixels === null) {
-          _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+          _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels));
           return;
         }
       }
@@ -565,7 +550,7 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
       if (canvas_OR_format_OR_image_OR_pixels is ImageElement) {
         if (type === null) {
           if (pixels === null) {
-            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels));
             return;
           }
         }
@@ -573,13 +558,13 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
         if (canvas_OR_format_OR_image_OR_pixels is CanvasElement) {
           if (type === null) {
             if (pixels === null) {
-              _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+              _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels));
               return;
             }
           }
         } else {
           if (canvas_OR_format_OR_image_OR_pixels is int) {
-            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
             return;
           }
         }

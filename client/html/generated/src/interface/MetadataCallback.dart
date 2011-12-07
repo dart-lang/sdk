@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface MetadataCallback {
-
-  bool handleEvent(Metadata metadata);
-}
+typedef bool MetadataCallback(Metadata metadata);

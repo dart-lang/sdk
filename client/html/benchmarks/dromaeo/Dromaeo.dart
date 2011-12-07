@@ -69,7 +69,7 @@ class SuiteController {
   }
 
   DivElement _createDiv(String clazz) {
-    final div = document.createElement('div');
+    final div = new Element.tag('div');
     div.attributes['class'] = clazz;
     return div;
   }
@@ -100,7 +100,7 @@ class Dromaeo {
     document.query('#overview').elements.first.innerHTML = 'DOM Core Tests';
     _css(document.query('#tests'), 'display', 'none');
     for (SuiteDescription suite in Suites.SUITE_DESCRIPTIONS) {
-      final iframe = document.createElement('iframe');
+      final iframe = new Element.tag('iframe');
       _css(iframe, 'height', '1px');
       _css(iframe, 'width', '1px');
       iframe.src = 'tests/' + suite.file;

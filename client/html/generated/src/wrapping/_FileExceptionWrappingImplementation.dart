@@ -12,4 +12,8 @@ class FileExceptionWrappingImplementation extends DOMWrapperBase implements File
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }

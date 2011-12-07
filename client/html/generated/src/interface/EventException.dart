@@ -15,4 +15,6 @@ interface EventException {
   String get message();
 
   String get name();
+
+  String toString();
 }

@@ -6,8 +6,4 @@
 
 class NavigatorUserMediaSuccessCallbackWrappingImplementation extends DOMWrapperBase implements NavigatorUserMediaSuccessCallback {
   NavigatorUserMediaSuccessCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(LocalMediaStream stream) {
-    return _ptr.handleEvent(LevelDom.unwrap(stream));
-  }
 }

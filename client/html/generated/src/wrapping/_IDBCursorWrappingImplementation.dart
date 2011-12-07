@@ -15,7 +15,7 @@ class IDBCursorWrappingImplementation extends DOMWrapperBase implements IDBCurso
 
   IDBAny get source() { return LevelDom.wrapIDBAny(_ptr.source); }
 
-  void continueFunction([IDBKey key = null]) {
+  void continueFunction([IDBKey key]) {
     if (key === null) {
       _ptr.continueFunction();
       return;

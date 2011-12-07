@@ -5,6 +5,4 @@
 // WARNING: Do not edit - generated code.
 
 interface NavigatorUserMediaSuccessCallback {
-
-  bool handleEvent(LocalMediaStream stream);
 }

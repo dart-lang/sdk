@@ -454,7 +454,7 @@ class ElementRectWrappingImplementation implements ElementRect {
   // This should be type dom.ClientRect but that fails on dartium. b/5522629
   final _boundingClientRect; 
   // an exception due to a dartium bug.
-  final dom.ClientRectList _clientRects;
+  final _clientRects; // TODO(jacobr): should be dom.ClientRectList
 
   ElementRectWrappingImplementation(dom.HTMLElement element) :
     client = new SimpleClientRect(element.clientLeft,
@@ -518,7 +518,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    final temp = dom.document.createElement(parentTag);
+    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
+    var temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
     if (temp.childElementCount == 1) {

@@ -9,7 +9,7 @@ class Float32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplemen
 
   int get length() { return _ptr.length; }
 
-  Float32Array subarray(int start, [int end = null]) {
+  Float32Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapFloat32Array(_ptr.subarray(start));
     } else {

@@ -10,6 +10,8 @@ interface IDBObjectStore {
 
   String get name();
 
+  IDBTransaction get transaction();
+
   IDBRequest add(String value, [IDBKey key]);
 
   IDBRequest clear();

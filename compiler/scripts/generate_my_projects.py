@@ -43,7 +43,7 @@ def Main():
     return exit_code
 
   exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
-                        "htmllib %(compiler)s/htmllib_sources ../client/html html.dart htmlimpl.dart"
+                        "htmllib %(compiler)s/htmllib_sources ../client/html/release html.dart htmlimpl.dart"
                         % locations)
   if exit_code:
     return exit_code

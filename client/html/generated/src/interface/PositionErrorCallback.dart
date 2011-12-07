@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface PositionErrorCallback {
-
-  bool handleEvent(PositionError error);
-}
+typedef bool PositionErrorCallback(PositionError error);

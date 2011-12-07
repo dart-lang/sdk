@@ -16,5 +16,7 @@ interface DOMTokenList {
 
   void remove(String token);
 
+  String toString();
+
   bool toggle(String token);
 }

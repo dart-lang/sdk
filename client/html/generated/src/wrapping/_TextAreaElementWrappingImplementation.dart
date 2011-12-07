@@ -99,7 +99,7 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
     return;
   }
 
-  void setSelectionRange(int start, int end, [String direction = null]) {
+  void setSelectionRange(int start, int end, [String direction]) {
     if (direction === null) {
       _ptr.setSelectionRange(start, end);
       return;

@@ -7,6 +7,14 @@
 class IDBFactoryWrappingImplementation extends DOMWrapperBase implements IDBFactory {
   IDBFactoryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
+  int cmp(IDBKey first, IDBKey second) {
+    return _ptr.cmp(LevelDom.unwrap(first), LevelDom.unwrap(second));
+  }
+
+  IDBVersionChangeRequest deleteDatabase(String name) {
+    return LevelDom.wrapIDBVersionChangeRequest(_ptr.deleteDatabase(name));
+  }
+
   IDBRequest getDatabaseNames() {
     return LevelDom.wrapIDBRequest(_ptr.getDatabaseNames());
   }

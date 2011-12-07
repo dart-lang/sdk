@@ -7,6 +7,10 @@
 class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingContextWrappingImplementation implements CanvasRenderingContext2D {
   CanvasRenderingContext2DWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
+  Object get fillStyle() { return LevelDom.wrapObject(_ptr.fillStyle); }
+
+  void set fillStyle(Object value) { _ptr.fillStyle = LevelDom.unwrapMaybePrimitive(value); }
+
   String get font() { return _ptr.font; }
 
   void set font(String value) { _ptr.font = value; }
@@ -51,6 +55,10 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
 
   void set shadowOffsetY(num value) { _ptr.shadowOffsetY = value; }
 
+  Object get strokeStyle() { return LevelDom.wrapObject(_ptr.strokeStyle); }
+
+  void set strokeStyle(Object value) { _ptr.strokeStyle = LevelDom.unwrapMaybePrimitive(value); }
+
   String get textAlign() { return _ptr.textAlign; }
 
   void set textAlign(String value) { _ptr.textAlign = value; }
@@ -58,6 +66,14 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   String get textBaseline() { return _ptr.textBaseline; }
 
   void set textBaseline(String value) { _ptr.textBaseline = value; }
+
+  List get webkitLineDash() { return _ptr.webkitLineDash; }
+
+  void set webkitLineDash(List value) { _ptr.webkitLineDash = value; }
+
+  num get webkitLineDashOffset() { return _ptr.webkitLineDashOffset; }
+
+  void set webkitLineDashOffset(num value) { _ptr.webkitLineDashOffset = value; }
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) {
     _ptr.arc(x, y, radius, startAngle, endAngle, anticlockwise);
@@ -102,11 +118,11 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
     if (imagedata_OR_sw is ImageData) {
       if (sh === null) {
-        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw)));
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrapMaybePrimitive(imagedata_OR_sw)));
       }
     } else {
       if (imagedata_OR_sw is num) {
-        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw), sh));
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrapMaybePrimitive(imagedata_OR_sw), sh));
       }
     }
     throw "Incorrect number or type of arguments";
@@ -118,10 +134,10 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
 
   CanvasPattern createPattern(var canvas_OR_image, String repetitionType) {
     if (canvas_OR_image is CanvasElement) {
-      return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+      return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrapMaybePrimitive(canvas_OR_image), repetitionType));
     } else {
       if (canvas_OR_image is ImageElement) {
-        return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+        return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrapMaybePrimitive(canvas_OR_image), repetitionType));
       }
     }
     throw "Incorrect number or type of arguments";
@@ -139,7 +155,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (dy === null) {
               if (dw === null) {
                 if (dh === null) {
-                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                  _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y);
                   return;
                 }
               }
@@ -151,13 +167,13 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (dy === null) {
             if (dw === null) {
               if (dh === null) {
-                _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
                 return;
               }
             }
           }
         } else {
-          _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+          _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
           return;
         }
       }
@@ -169,7 +185,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
               if (dy === null) {
                 if (dw === null) {
                   if (dh === null) {
-                    _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                    _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y);
                     return;
                   }
                 }
@@ -181,13 +197,13 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (dy === null) {
               if (dw === null) {
                 if (dh === null) {
-                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                  _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
                   return;
                 }
               }
             }
           } else {
-            _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+            _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
             return;
           }
         }
@@ -424,7 +440,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
               return;
             }
           }
@@ -433,7 +449,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
               return;
             }
           }
@@ -445,7 +461,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                 return;
               }
             }
@@ -454,37 +470,19 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                 return;
               }
             }
           } else {
             if (a === null) {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
               return;
             } else {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
               return;
             }
           }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void setFillStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-          return;
         }
       }
     }
@@ -529,7 +527,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                 return;
               }
             }
@@ -538,7 +536,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                 return;
               }
             }
@@ -550,7 +548,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (b_OR_y === null) {
               if (a_OR_k === null) {
                 if (a === null) {
-                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                   return;
                 }
               }
@@ -559,16 +557,16 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (b_OR_y === null) {
               if (a_OR_k === null) {
                 if (a === null) {
-                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                   return;
                 }
               }
             } else {
               if (a === null) {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
                 return;
               } else {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
                 return;
               }
             }
@@ -585,7 +583,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
               return;
             }
           }
@@ -594,7 +592,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
               return;
             }
           }
@@ -606,7 +604,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                 return;
               }
             }
@@ -615,37 +613,19 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                 return;
               }
             }
           } else {
             if (a === null) {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
               return;
             } else {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
               return;
             }
           }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void setStrokeStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-          return;
         }
       }
     }

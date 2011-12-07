@@ -34,8 +34,6 @@ interface Range {
 
   int get startOffset();
 
-  String get text();
-
   DocumentFragment cloneContents();
 
   Range cloneRange();
@@ -55,6 +53,10 @@ interface Range {
   void expand(String unit);
 
   DocumentFragment extractContents();
+
+  ClientRect getBoundingClientRect();
+
+  ClientRectList getClientRects();
 
   void insertNode(Node newNode);
 

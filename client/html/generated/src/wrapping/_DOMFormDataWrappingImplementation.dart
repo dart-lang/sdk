@@ -7,8 +7,8 @@
 class DOMFormDataWrappingImplementation extends DOMWrapperBase implements DOMFormData {
   DOMFormDataWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void append(String name, String value) {
-    _ptr.append(name, value);
+  void append(String name, String value, String filename) {
+    _ptr.append(name, value, filename);
     return;
   }
 }

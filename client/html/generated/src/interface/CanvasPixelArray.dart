@@ -7,6 +7,4 @@
 interface CanvasPixelArray extends List<int> {
 
   int get length();
-
-  int item(int index);
 }

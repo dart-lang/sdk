@@ -10,11 +10,11 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
   int get length() { return _ptr.length; }
 
   Touch operator[](int index) {
-    return item(index);
+    return LevelDom.wrapTouch(_ptr[index]);
   }
 
   void operator[]=(int index, Touch value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = LevelDom.unwrap(value);
   }
 
   void add(Touch value) {

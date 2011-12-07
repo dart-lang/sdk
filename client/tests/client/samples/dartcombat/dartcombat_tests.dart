@@ -18,7 +18,7 @@ main() {
   // add relative URL to stylesheet to the correct location. Note: The CSS is
   // needed because the app uses a flexbox layout, which is then used to
   // interpret UI events (mousedown/up/click).
-  var link = document.createElement('link');
+  var link = new Element.tag('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
   link.href = '../../samples/dartcombat/dartcombat.css';

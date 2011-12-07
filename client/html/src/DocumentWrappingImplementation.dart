@@ -21,11 +21,11 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   DocumentWrappingImplementation._wrap(this._documentPtr, ptr) : super._wrap(ptr) {
     // We have to set the back ptr on the document as well as the documentElement
     // so that it is always simple to detect when an existing wrapper exists.
-    _documentPtr.dartObjectLocalStorage = this;
+    _documentPtr.dynamic.dartObjectLocalStorage = this;
   }
 
   /** @domName HTMLDocument.activeElement */
-  Element get activeElement() => LevelDom.wrapElement(_documentPtr.activeElement);
+  Element get activeElement() => LevelDom.wrapElement(_documentPtr.dynamic.activeElement);
 
   Node get parent() => null;
 
@@ -51,7 +51,7 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   Window get window() => LevelDom.wrapWindow(_documentPtr.defaultView);
 
   /** @domName HTMLDocument.designMode */
-  void set designMode(String value) { _documentPtr.designMode = value; }
+  void set designMode(String value) { _documentPtr.dynamic.designMode = value; }
 
   /** @domName Document.domain */
   String get domain() => _documentPtr.domain;
@@ -90,13 +90,8 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
         new Completer<Range>());
   }
 
-  /** @domName Document.createElement */
-  Element createElement([String tagName = null]) {
-    return LevelDom.wrapElement(_documentPtr.createElement(tagName));
-  }
-
   /** @domName Document.createEvent */
-  Event createEvent([String eventType = null]) {
+  Event createEvent(String eventType) {
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 

@@ -24,7 +24,7 @@ class HistoryWrappingImplementation extends DOMWrapperBase implements History {
     return;
   }
 
-  void pushState(Object data, String title, [String url = null]) {
+  void pushState(Object data, String title, [String url]) {
     if (url === null) {
       _ptr.pushState(LevelDom.unwrapMaybePrimitive(data), title);
       return;
@@ -34,7 +34,7 @@ class HistoryWrappingImplementation extends DOMWrapperBase implements History {
     }
   }
 
-  void replaceState(Object data, String title, [String url = null]) {
+  void replaceState(Object data, String title, [String url]) {
     if (url === null) {
       _ptr.replaceState(LevelDom.unwrapMaybePrimitive(data), title);
       return;

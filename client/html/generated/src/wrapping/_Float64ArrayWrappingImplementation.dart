@@ -9,7 +9,7 @@ class Float64ArrayWrappingImplementation extends ArrayBufferViewWrappingImplemen
 
   int get length() { return _ptr.length; }
 
-  Float64Array subarray(int start, [int end = null]) {
+  Float64Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapFloat64Array(_ptr.subarray(start));
     } else {

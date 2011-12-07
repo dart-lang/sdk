@@ -84,8 +84,8 @@ class Adminz {
       return;
 
     // Put up refresh UI.
-    notify = document.createElement('div');
-    status = document.createElement('div');
+    notify = new Element.tag('div');
+    status = new Element.tag('div');
 
     notify.style.cssText = 'position:absolute;left:0;right:0;bottom:0;z-index:10000;background:#000;opacity:0.8;height:0;-webkit-transition:height 300ms ease-in-out;';
     status.style.cssText = 'padding:20px 40px;color:#fff;font-family:Helvetica,Arial;font-size:24pt;';

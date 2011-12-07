@@ -12,14 +12,6 @@ interface IDBRequest {
 
   int get errorCode();
 
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onsuccess();
-
-  void set onsuccess(EventListener value);
-
   int get readyState();
 
   IDBAny get result();

@@ -110,6 +110,10 @@ class AnchorElementWrappingImplementation extends ElementWrappingImplementation 
   String getParameter(String name) {
     return _ptr.getParameter(name);
   }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -245,6 +249,200 @@ class ArrayBufferWrappingImplementation extends DOMWrapperBase implements ArrayB
   ArrayBufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get byteLength() { return _ptr.byteLength; }
+
+  ArrayBuffer slice(int begin, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapArrayBuffer(_ptr.slice(begin));
+    } else {
+      return LevelDom.wrapArrayBuffer(_ptr.slice(begin, end));
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioBufferSourceNodeWrappingImplementation extends AudioSourceNodeWrappingImplementation implements AudioBufferSourceNode {
+  AudioBufferSourceNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioBuffer get buffer() { return LevelDom.wrapAudioBuffer(_ptr.buffer); }
+
+  void set buffer(AudioBuffer value) { _ptr.buffer = LevelDom.unwrap(value); }
+
+  AudioGain get gain() { return LevelDom.wrapAudioGain(_ptr.gain); }
+
+  bool get loop() { return _ptr.loop; }
+
+  void set loop(bool value) { _ptr.loop = value; }
+
+  bool get looping() { return _ptr.looping; }
+
+  void set looping(bool value) { _ptr.looping = value; }
+
+  AudioParam get playbackRate() { return LevelDom.wrapAudioParam(_ptr.playbackRate); }
+
+  void noteGrainOn(num when, num grainOffset, num grainDuration) {
+    _ptr.noteGrainOn(when, grainOffset, grainDuration);
+    return;
+  }
+
+  void noteOff(num when) {
+    _ptr.noteOff(when);
+    return;
+  }
+
+  void noteOn(num when) {
+    _ptr.noteOn(when);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioBufferWrappingImplementation extends DOMWrapperBase implements AudioBuffer {
+  AudioBufferWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get duration() { return _ptr.duration; }
+
+  num get gain() { return _ptr.gain; }
+
+  void set gain(num value) { _ptr.gain = value; }
+
+  int get length() { return _ptr.length; }
+
+  int get numberOfChannels() { return _ptr.numberOfChannels; }
+
+  num get sampleRate() { return _ptr.sampleRate; }
+
+  Float32Array getChannelData(int channelIndex) {
+    return LevelDom.wrapFloat32Array(_ptr.getChannelData(channelIndex));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioChannelMergerWrappingImplementation extends AudioNodeWrappingImplementation implements AudioChannelMerger {
+  AudioChannelMergerWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioChannelSplitterWrappingImplementation extends AudioNodeWrappingImplementation implements AudioChannelSplitter {
+  AudioChannelSplitterWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioContextWrappingImplementation extends DOMWrapperBase implements AudioContext {
+  AudioContextWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get currentTime() { return _ptr.currentTime; }
+
+  AudioDestinationNode get destination() { return LevelDom.wrapAudioDestinationNode(_ptr.destination); }
+
+  AudioListener get listener() { return LevelDom.wrapAudioListener(_ptr.listener); }
+
+  num get sampleRate() { return _ptr.sampleRate; }
+
+  RealtimeAnalyserNode createAnalyser() {
+    return LevelDom.wrapRealtimeAnalyserNode(_ptr.createAnalyser());
+  }
+
+  BiquadFilterNode createBiquadFilter() {
+    return LevelDom.wrapBiquadFilterNode(_ptr.createBiquadFilter());
+  }
+
+  AudioBuffer createBuffer() {
+    return LevelDom.wrapAudioBuffer(_ptr.createBuffer());
+  }
+
+  AudioBufferSourceNode createBufferSource() {
+    return LevelDom.wrapAudioBufferSourceNode(_ptr.createBufferSource());
+  }
+
+  AudioChannelMerger createChannelMerger() {
+    return LevelDom.wrapAudioChannelMerger(_ptr.createChannelMerger());
+  }
+
+  AudioChannelSplitter createChannelSplitter() {
+    return LevelDom.wrapAudioChannelSplitter(_ptr.createChannelSplitter());
+  }
+
+  ConvolverNode createConvolver() {
+    return LevelDom.wrapConvolverNode(_ptr.createConvolver());
+  }
+
+  DelayNode createDelayNode() {
+    return LevelDom.wrapDelayNode(_ptr.createDelayNode());
+  }
+
+  DynamicsCompressorNode createDynamicsCompressor() {
+    return LevelDom.wrapDynamicsCompressorNode(_ptr.createDynamicsCompressor());
+  }
+
+  AudioGainNode createGainNode() {
+    return LevelDom.wrapAudioGainNode(_ptr.createGainNode());
+  }
+
+  HighPass2FilterNode createHighPass2Filter() {
+    return LevelDom.wrapHighPass2FilterNode(_ptr.createHighPass2Filter());
+  }
+
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize) {
+    return LevelDom.wrapJavaScriptAudioNode(_ptr.createJavaScriptNode(bufferSize));
+  }
+
+  LowPass2FilterNode createLowPass2Filter() {
+    return LevelDom.wrapLowPass2FilterNode(_ptr.createLowPass2Filter());
+  }
+
+  AudioPannerNode createPanner() {
+    return LevelDom.wrapAudioPannerNode(_ptr.createPanner());
+  }
+
+  WaveShaperNode createWaveShaper() {
+    return LevelDom.wrapWaveShaperNode(_ptr.createWaveShaper());
+  }
+
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) {
+    if (errorCallback === null) {
+      _ptr.decodeAudioData(LevelDom.unwrap(audioData), successCallback);
+      return;
+    } else {
+      _ptr.decodeAudioData(LevelDom.unwrap(audioData), successCallback, errorCallback);
+      return;
+    }
+  }
+
+  void startRendering() {
+    _ptr.startRendering();
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioDestinationNodeWrappingImplementation extends AudioNodeWrappingImplementation implements AudioDestinationNode {
+  AudioDestinationNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get numberOfChannels() { return _ptr.numberOfChannels; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -254,6 +452,236 @@ class ArrayBufferWrappingImplementation extends DOMWrapperBase implements ArrayB
 
 class AudioElementWrappingImplementation extends MediaElementWrappingImplementation implements AudioElement {
   AudioElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioGainNodeWrappingImplementation extends AudioNodeWrappingImplementation implements AudioGainNode {
+  AudioGainNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioGain get gain() { return LevelDom.wrapAudioGain(_ptr.gain); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioGainWrappingImplementation extends AudioParamWrappingImplementation implements AudioGain {
+  AudioGainWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioListenerWrappingImplementation extends DOMWrapperBase implements AudioListener {
+  AudioListenerWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get dopplerFactor() { return _ptr.dopplerFactor; }
+
+  void set dopplerFactor(num value) { _ptr.dopplerFactor = value; }
+
+  num get speedOfSound() { return _ptr.speedOfSound; }
+
+  void set speedOfSound(num value) { _ptr.speedOfSound = value; }
+
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) {
+    _ptr.setOrientation(x, y, z, xUp, yUp, zUp);
+    return;
+  }
+
+  void setPosition(num x, num y, num z) {
+    _ptr.setPosition(x, y, z);
+    return;
+  }
+
+  void setVelocity(num x, num y, num z) {
+    _ptr.setVelocity(x, y, z);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioNodeWrappingImplementation extends DOMWrapperBase implements AudioNode {
+  AudioNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioContext get context() { return LevelDom.wrapAudioContext(_ptr.context); }
+
+  int get numberOfInputs() { return _ptr.numberOfInputs; }
+
+  int get numberOfOutputs() { return _ptr.numberOfOutputs; }
+
+  void connect(AudioNode destination, [int output, int input]) {
+    if (output === null) {
+      if (input === null) {
+        _ptr.connect(LevelDom.unwrap(destination));
+        return;
+      }
+    } else {
+      if (input === null) {
+        _ptr.connect(LevelDom.unwrap(destination), output);
+        return;
+      } else {
+        _ptr.connect(LevelDom.unwrap(destination), output, input);
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void disconnect([int output]) {
+    if (output === null) {
+      _ptr.disconnect();
+      return;
+    } else {
+      _ptr.disconnect(output);
+      return;
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioPannerNodeWrappingImplementation extends AudioNodeWrappingImplementation implements AudioPannerNode {
+  AudioPannerNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioGain get coneGain() { return LevelDom.wrapAudioGain(_ptr.coneGain); }
+
+  num get coneInnerAngle() { return _ptr.coneInnerAngle; }
+
+  void set coneInnerAngle(num value) { _ptr.coneInnerAngle = value; }
+
+  num get coneOuterAngle() { return _ptr.coneOuterAngle; }
+
+  void set coneOuterAngle(num value) { _ptr.coneOuterAngle = value; }
+
+  num get coneOuterGain() { return _ptr.coneOuterGain; }
+
+  void set coneOuterGain(num value) { _ptr.coneOuterGain = value; }
+
+  AudioGain get distanceGain() { return LevelDom.wrapAudioGain(_ptr.distanceGain); }
+
+  int get distanceModel() { return _ptr.distanceModel; }
+
+  void set distanceModel(int value) { _ptr.distanceModel = value; }
+
+  num get maxDistance() { return _ptr.maxDistance; }
+
+  void set maxDistance(num value) { _ptr.maxDistance = value; }
+
+  int get panningModel() { return _ptr.panningModel; }
+
+  void set panningModel(int value) { _ptr.panningModel = value; }
+
+  num get refDistance() { return _ptr.refDistance; }
+
+  void set refDistance(num value) { _ptr.refDistance = value; }
+
+  num get rolloffFactor() { return _ptr.rolloffFactor; }
+
+  void set rolloffFactor(num value) { _ptr.rolloffFactor = value; }
+
+  void setOrientation(num x, num y, num z) {
+    _ptr.setOrientation(x, y, z);
+    return;
+  }
+
+  void setPosition(num x, num y, num z) {
+    _ptr.setPosition(x, y, z);
+    return;
+  }
+
+  void setVelocity(num x, num y, num z) {
+    _ptr.setVelocity(x, y, z);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioParamWrappingImplementation extends DOMWrapperBase implements AudioParam {
+  AudioParamWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get defaultValue() { return _ptr.defaultValue; }
+
+  num get maxValue() { return _ptr.maxValue; }
+
+  num get minValue() { return _ptr.minValue; }
+
+  String get name() { return _ptr.name; }
+
+  int get units() { return _ptr.units; }
+
+  num get value() { return _ptr.value; }
+
+  void set value(num value) { _ptr.value = value; }
+
+  void cancelScheduledValues(num startTime) {
+    _ptr.cancelScheduledValues(startTime);
+    return;
+  }
+
+  void exponentialRampToValueAtTime(num value, num time) {
+    _ptr.exponentialRampToValueAtTime(value, time);
+    return;
+  }
+
+  void linearRampToValueAtTime(num value, num time) {
+    _ptr.linearRampToValueAtTime(value, time);
+    return;
+  }
+
+  void setTargetValueAtTime(num targetValue, num time, num timeConstant) {
+    _ptr.setTargetValueAtTime(targetValue, time, timeConstant);
+    return;
+  }
+
+  void setValueAtTime(num value, num time) {
+    _ptr.setValueAtTime(value, time);
+    return;
+  }
+
+  void setValueCurveAtTime(Float32Array values, num time, num duration) {
+    _ptr.setValueCurveAtTime(LevelDom.unwrap(values), time, duration);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioProcessingEventWrappingImplementation extends EventWrappingImplementation implements AudioProcessingEvent {
+  AudioProcessingEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioBuffer get inputBuffer() { return LevelDom.wrapAudioBuffer(_ptr.inputBuffer); }
+
+  AudioBuffer get outputBuffer() { return LevelDom.wrapAudioBuffer(_ptr.outputBuffer); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class AudioSourceNodeWrappingImplementation extends AudioNodeWrappingImplementation implements AudioSourceNode {
+  AudioSourceNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -302,22 +730,41 @@ class BaseElementWrappingImplementation extends ElementWrappingImplementation im
 
 // WARNING: Do not edit - generated code.
 
+class BiquadFilterNodeWrappingImplementation extends AudioNodeWrappingImplementation implements BiquadFilterNode {
+  BiquadFilterNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioParam get Q() { return LevelDom.wrapAudioParam(_ptr.Q); }
+
+  AudioParam get frequency() { return LevelDom.wrapAudioParam(_ptr.frequency); }
+
+  AudioParam get gain() { return LevelDom.wrapAudioParam(_ptr.gain); }
+
+  int get type() { return _ptr.type; }
+
+  void set type(int value) { _ptr.type = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class BlobBuilderWrappingImplementation extends DOMWrapperBase implements BlobBuilder {
   BlobBuilderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void append(var blob_OR_value, [String endings = null]) {
+  void append(var blob_OR_value, [String endings]) {
     if (blob_OR_value is Blob) {
       if (endings === null) {
-        _ptr.append(LevelDom.unwrap(blob_OR_value));
+        _ptr.append(LevelDom.unwrapMaybePrimitive(blob_OR_value));
         return;
       }
     } else {
       if (blob_OR_value is String) {
         if (endings === null) {
-          _ptr.append(LevelDom.unwrap(blob_OR_value));
+          _ptr.append(LevelDom.unwrapMaybePrimitive(blob_OR_value));
           return;
         } else {
-          _ptr.append(LevelDom.unwrap(blob_OR_value), endings);
+          _ptr.append(LevelDom.unwrapMaybePrimitive(blob_OR_value), endings);
           return;
         }
       }
@@ -325,7 +772,7 @@ class BlobBuilderWrappingImplementation extends DOMWrapperBase implements BlobBu
     throw "Incorrect number or type of arguments";
   }
 
-  Blob getBlob([String contentType = null]) {
+  Blob getBlob([String contentType]) {
     if (contentType === null) {
       return LevelDom.wrapBlob(_ptr.getBlob());
     } else {
@@ -521,6 +968,14 @@ class CSSKeyframesRuleWrappingImplementation extends CSSRuleWrappingImplementati
 
 class CSSMatrixWrappingImplementation extends DOMWrapperBase implements CSSMatrix {
   CSSMatrixWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+  factory CSSMatrixWrappingImplementation([String cssValue = null]) {
+    
+    if (cssValue === null) {
+      return LevelDom.wrapCSSMatrix(new dom.WebKitCSSMatrix());
+    } else {
+      return LevelDom.wrapCSSMatrix(new dom.WebKitCSSMatrix(cssValue));
+    }
+  }
 
   num get a() { return _ptr.a; }
 
@@ -793,7 +1248,7 @@ class CSSStyleSheetWrappingImplementation extends StyleSheetWrappingImplementati
 
   CSSRuleList get rules() { return LevelDom.wrapCSSRuleList(_ptr.rules); }
 
-  int addRule(String selector, String style, [int index = null]) {
+  int addRule(String selector, String style, [int index]) {
     if (index === null) {
       return _ptr.addRule(selector, style);
     } else {
@@ -929,11 +1384,11 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   int get length() { return _ptr.length; }
 
   int operator[](int index) {
-    return item(index);
+    return _ptr[index];
   }
 
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = value;
   }
 
   void add(int value) {
@@ -961,7 +1416,7 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   }
 
   int lastIndexOf(int element, [int start = null]) {
-    if (start == null) start = length - 1;
+    if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -1016,10 +1471,6 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   Iterator<int> iterator() {
     return new _FixedSizeListIterator<int>(this);
   }
-
-  int item(int index) {
-    return _ptr.item(index);
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1029,6 +1480,10 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
 
 class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingContextWrappingImplementation implements CanvasRenderingContext2D {
   CanvasRenderingContext2DWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  Object get fillStyle() { return LevelDom.wrapObject(_ptr.fillStyle); }
+
+  void set fillStyle(Object value) { _ptr.fillStyle = LevelDom.unwrapMaybePrimitive(value); }
 
   String get font() { return _ptr.font; }
 
@@ -1074,6 +1529,10 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
 
   void set shadowOffsetY(num value) { _ptr.shadowOffsetY = value; }
 
+  Object get strokeStyle() { return LevelDom.wrapObject(_ptr.strokeStyle); }
+
+  void set strokeStyle(Object value) { _ptr.strokeStyle = LevelDom.unwrapMaybePrimitive(value); }
+
   String get textAlign() { return _ptr.textAlign; }
 
   void set textAlign(String value) { _ptr.textAlign = value; }
@@ -1081,6 +1540,14 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   String get textBaseline() { return _ptr.textBaseline; }
 
   void set textBaseline(String value) { _ptr.textBaseline = value; }
+
+  List get webkitLineDash() { return _ptr.webkitLineDash; }
+
+  void set webkitLineDash(List value) { _ptr.webkitLineDash = value; }
+
+  num get webkitLineDashOffset() { return _ptr.webkitLineDashOffset; }
+
+  void set webkitLineDashOffset(num value) { _ptr.webkitLineDashOffset = value; }
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) {
     _ptr.arc(x, y, radius, startAngle, endAngle, anticlockwise);
@@ -1125,11 +1592,11 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
   ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
     if (imagedata_OR_sw is ImageData) {
       if (sh === null) {
-        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw)));
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrapMaybePrimitive(imagedata_OR_sw)));
       }
     } else {
       if (imagedata_OR_sw is num) {
-        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrap(imagedata_OR_sw), sh));
+        return LevelDom.wrapImageData(_ptr.createImageData(LevelDom.unwrapMaybePrimitive(imagedata_OR_sw), sh));
       }
     }
     throw "Incorrect number or type of arguments";
@@ -1141,10 +1608,10 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
 
   CanvasPattern createPattern(var canvas_OR_image, String repetitionType) {
     if (canvas_OR_image is CanvasElement) {
-      return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+      return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrapMaybePrimitive(canvas_OR_image), repetitionType));
     } else {
       if (canvas_OR_image is ImageElement) {
-        return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrap(canvas_OR_image), repetitionType));
+        return LevelDom.wrapCanvasPattern(_ptr.createPattern(LevelDom.unwrapMaybePrimitive(canvas_OR_image), repetitionType));
       }
     }
     throw "Incorrect number or type of arguments";
@@ -1162,7 +1629,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (dy === null) {
               if (dw === null) {
                 if (dh === null) {
-                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                  _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y);
                   return;
                 }
               }
@@ -1174,13 +1641,13 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (dy === null) {
             if (dw === null) {
               if (dh === null) {
-                _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
                 return;
               }
             }
           }
         } else {
-          _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+          _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
           return;
         }
       }
@@ -1192,7 +1659,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
               if (dy === null) {
                 if (dw === null) {
                   if (dh === null) {
-                    _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y);
+                    _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y);
                     return;
                   }
                 }
@@ -1204,13 +1671,13 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (dy === null) {
               if (dw === null) {
                 if (dh === null) {
-                  _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                  _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
                   return;
                 }
               }
             }
           } else {
-            _ptr.drawImage(LevelDom.unwrap(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+            _ptr.drawImage(LevelDom.unwrapMaybePrimitive(canvas_OR_image), sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
             return;
           }
         }
@@ -1447,7 +1914,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
               return;
             }
           }
@@ -1456,7 +1923,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
               return;
             }
           }
@@ -1468,7 +1935,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                 return;
               }
             }
@@ -1477,37 +1944,19 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                 return;
               }
             }
           } else {
             if (a === null) {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
               return;
             } else {
-              _ptr.setFillColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              _ptr.setFillColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
               return;
             }
           }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void setFillStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _ptr.setFillStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-          return;
         }
       }
     }
@@ -1552,7 +2001,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                 return;
               }
             }
@@ -1561,7 +2010,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                 return;
               }
             }
@@ -1573,7 +2022,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (b_OR_y === null) {
               if (a_OR_k === null) {
                 if (a === null) {
-                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                   return;
                 }
               }
@@ -1582,16 +2031,16 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
             if (b_OR_y === null) {
               if (a_OR_k === null) {
                 if (a === null) {
-                  _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                  _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                   return;
                 }
               }
             } else {
               if (a === null) {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
                 return;
               } else {
-                _ptr.setShadow(width, height, blur, LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+                _ptr.setShadow(width, height, blur, LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
                 return;
               }
             }
@@ -1608,7 +2057,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
               return;
             }
           }
@@ -1617,7 +2066,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
         if (b_OR_y === null) {
           if (a_OR_k === null) {
             if (a === null) {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
               return;
             }
           }
@@ -1629,7 +2078,7 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r));
+                _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r));
                 return;
               }
             }
@@ -1638,37 +2087,19 @@ class CanvasRenderingContext2DWrappingImplementation extends CanvasRenderingCont
           if (b_OR_y === null) {
             if (a_OR_k === null) {
               if (a === null) {
-                _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
+                _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m);
                 return;
               }
             }
           } else {
             if (a === null) {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k);
               return;
             } else {
-              _ptr.setStrokeColor(LevelDom.unwrap(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
+              _ptr.setStrokeColor(LevelDom.unwrapMaybePrimitive(c_OR_color_OR_grayLevel_OR_r), alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
               return;
             }
           }
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void setStrokeStyle(var color_OR_gradient_OR_pattern) {
-    if (color_OR_gradient_OR_pattern is String) {
-      _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-      return;
-    } else {
-      if (color_OR_gradient_OR_pattern is CanvasGradient) {
-        _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-        return;
-      } else {
-        if (color_OR_gradient_OR_pattern is CanvasPattern) {
-          _ptr.setStrokeStyle(LevelDom.unwrap(color_OR_gradient_OR_pattern));
-          return;
         }
       }
     }
@@ -1771,6 +2202,21 @@ class CharacterDataWrappingImplementation extends NodeWrappingImplementation imp
 
 // WARNING: Do not edit - generated code.
 
+class ClientRectListWrappingImplementation extends DOMWrapperBase implements ClientRectList {
+  ClientRectListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get length() { return _ptr.length; }
+
+  ClientRect item(int index) {
+    return LevelDom.wrapClientRect(_ptr.item(index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class ClientRectWrappingImplementation extends DOMWrapperBase implements ClientRect {
   ClientRectWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -1805,9 +2251,11 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
 
   FileList get files() { return LevelDom.wrapFileList(_ptr.files); }
 
-  DataTransferItems get items() { return LevelDom.wrapDataTransferItems(_ptr.items); }
+  DataTransferItemList get items() { return LevelDom.wrapDataTransferItemList(_ptr.items); }
 
-  void clearData([String type = null]) {
+  List get types() { return _ptr.types; }
+
+  void clearData([String type]) {
     if (type === null) {
       _ptr.clearData();
       return;
@@ -1935,6 +2383,19 @@ class ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
 
 // WARNING: Do not edit - generated code.
 
+class ConvolverNodeWrappingImplementation extends AudioNodeWrappingImplementation implements ConvolverNode {
+  ConvolverNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioBuffer get buffer() { return LevelDom.wrapAudioBuffer(_ptr.buffer); }
+
+  void set buffer(AudioBuffer value) { _ptr.buffer = LevelDom.unwrap(value); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class CoordinatesWrappingImplementation extends DOMWrapperBase implements Coordinates {
   CoordinatesWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -2008,6 +2469,10 @@ class DOMExceptionWrappingImplementation extends DOMWrapperBase implements DOMEx
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2044,8 +2509,8 @@ class DOMFileSystemWrappingImplementation extends DOMWrapperBase implements DOMF
 class DOMFormDataWrappingImplementation extends DOMWrapperBase implements DOMFormData {
   DOMFormDataWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void append(String name, String value) {
-    _ptr.append(name, value);
+  void append(String name, String value, String filename) {
+    _ptr.append(name, value, filename);
     return;
   }
 }
@@ -2245,6 +2710,10 @@ class DOMSelectionWrappingImplementation extends DOMWrapperBase implements DOMSe
     _ptr.setPosition(LevelDom.unwrap(node), offset);
     return;
   }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2288,6 +2757,10 @@ class DOMTokenListWrappingImplementation extends DOMWrapperBase implements DOMTo
     return;
   }
 
+  String toString() {
+    return _ptr.toString();
+  }
+
   bool toggle(String token) {
     return _ptr.toggle(token);
   }
@@ -2327,30 +2800,8 @@ class DataListElementWrappingImplementation extends ElementWrappingImplementatio
 
 // WARNING: Do not edit - generated code.
 
-class DataTransferItemWrappingImplementation extends DOMWrapperBase implements DataTransferItem {
-  DataTransferItemWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get kind() { return _ptr.kind; }
-
-  String get type() { return _ptr.type; }
-
-  Blob getAsFile() {
-    return LevelDom.wrapBlob(_ptr.getAsFile());
-  }
-
-  void getAsString(StringCallback callback) {
-    _ptr.getAsString(LevelDom.unwrap(callback));
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class DataTransferItemsWrappingImplementation extends DOMWrapperBase implements DataTransferItems {
-  DataTransferItemsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+class DataTransferItemListWrappingImplementation extends DOMWrapperBase implements DataTransferItemList {
+  DataTransferItemListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   int get length() { return _ptr.length; }
 
@@ -2374,10 +2825,32 @@ class DataTransferItemsWrappingImplementation extends DOMWrapperBase implements 
 
 // WARNING: Do not edit - generated code.
 
+class DataTransferItemWrappingImplementation extends DOMWrapperBase implements DataTransferItem {
+  DataTransferItemWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get kind() { return _ptr.kind; }
+
+  String get type() { return _ptr.type; }
+
+  Blob getAsFile() {
+    return LevelDom.wrapBlob(_ptr.getAsFile());
+  }
+
+  void getAsString(StringCallback callback) {
+    _ptr.getAsString(callback);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementation implements DataView {
   DataViewWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  num getFloat32(int byteOffset, [bool littleEndian = null]) {
+  num getFloat32(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getFloat32(byteOffset);
     } else {
@@ -2385,7 +2858,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  num getFloat64(int byteOffset, [bool littleEndian = null]) {
+  num getFloat64(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getFloat64(byteOffset);
     } else {
@@ -2393,7 +2866,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  int getInt16(int byteOffset, [bool littleEndian = null]) {
+  int getInt16(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getInt16(byteOffset);
     } else {
@@ -2401,7 +2874,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  int getInt32(int byteOffset, [bool littleEndian = null]) {
+  int getInt32(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getInt32(byteOffset);
     } else {
@@ -2413,7 +2886,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     return _ptr.getInt8();
   }
 
-  int getUint16(int byteOffset, [bool littleEndian = null]) {
+  int getUint16(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getUint16(byteOffset);
     } else {
@@ -2421,7 +2894,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  int getUint32(int byteOffset, [bool littleEndian = null]) {
+  int getUint32(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getUint32(byteOffset);
     } else {
@@ -2433,7 +2906,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     return _ptr.getUint8();
   }
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) {
+  void setFloat32(int byteOffset, num value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setFloat32(byteOffset, value);
       return;
@@ -2443,7 +2916,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) {
+  void setFloat64(int byteOffset, num value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setFloat64(byteOffset, value);
       return;
@@ -2453,7 +2926,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setInt16(int byteOffset, int value, [bool littleEndian = null]) {
+  void setInt16(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setInt16(byteOffset, value);
       return;
@@ -2463,7 +2936,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setInt32(int byteOffset, int value, [bool littleEndian = null]) {
+  void setInt32(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setInt32(byteOffset, value);
       return;
@@ -2478,7 +2951,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     return;
   }
 
-  void setUint16(int byteOffset, int value, [bool littleEndian = null]) {
+  void setUint16(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setUint16(byteOffset, value);
       return;
@@ -2488,7 +2961,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setUint32(int byteOffset, int value, [bool littleEndian = null]) {
+  void setUint32(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setUint32(byteOffset, value);
       return;
@@ -2502,6 +2975,17 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     _ptr.setUint8();
     return;
   }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class DelayNodeWrappingImplementation extends AudioNodeWrappingImplementation implements DelayNode {
+  DelayNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioParam get delayTime() { return LevelDom.wrapAudioParam(_ptr.delayTime); }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2555,7 +3039,7 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
     return LevelDom.wrapDirectoryReader(_ptr.createReader());
   }
 
-  void getDirectory(String path, [Flags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getDirectory(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (flags === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -2571,10 +3055,10 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
         }
       } else {
         if (errorCallback === null) {
-          _ptr.getDirectory(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback));
+          _ptr.getDirectory(path, LevelDom.unwrap(flags), successCallback);
           return;
         } else {
-          _ptr.getDirectory(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.getDirectory(path, LevelDom.unwrap(flags), successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -2582,7 +3066,7 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
     throw "Incorrect number or type of arguments";
   }
 
-  void getFile(String path, [Flags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getFile(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (flags === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -2598,10 +3082,10 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
         }
       } else {
         if (errorCallback === null) {
-          _ptr.getFile(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback));
+          _ptr.getFile(path, LevelDom.unwrap(flags), successCallback);
           return;
         } else {
-          _ptr.getFile(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.getFile(path, LevelDom.unwrap(flags), successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -2609,7 +3093,7 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
     throw "Incorrect number or type of arguments";
   }
 
-  void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void removeRecursively([VoidCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.removeRecursively();
@@ -2649,12 +3133,12 @@ class DirectoryReaderSyncWrappingImplementation extends DOMWrapperBase implement
 class DirectoryReaderWrappingImplementation extends DOMWrapperBase implements DirectoryReader {
   DirectoryReaderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) {
     if (errorCallback === null) {
-      _ptr.readEntries(LevelDom.unwrap(successCallback));
+      _ptr.readEntries(successCallback);
       return;
     } else {
-      _ptr.readEntries(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      _ptr.readEntries(successCallback, LevelDom.unwrap(errorCallback));
       return;
     }
   }
@@ -2678,6 +3162,44 @@ class DivElementWrappingImplementation extends ElementWrappingImplementation imp
 
 // WARNING: Do not edit - generated code.
 
+class DynamicsCompressorNodeWrappingImplementation extends AudioNodeWrappingImplementation implements DynamicsCompressorNode {
+  DynamicsCompressorNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class ElementTimeControlWrappingImplementation extends DOMWrapperBase implements ElementTimeControl {
+  ElementTimeControlWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  void beginElement() {
+    _ptr.beginElement();
+    return;
+  }
+
+  void beginElementAt(num offset) {
+    _ptr.beginElementAt(offset);
+    return;
+  }
+
+  void endElement() {
+    _ptr.endElement();
+    return;
+  }
+
+  void endElementAt(num offset) {
+    _ptr.endElementAt(offset);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class EmbedElementWrappingImplementation extends ElementWrappingImplementation implements EmbedElement {
   EmbedElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -2685,9 +3207,9 @@ class EmbedElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set align(String value) { _ptr.align = value; }
 
-  int get height() { return _ptr.height; }
+  String get height() { return _ptr.height; }
 
-  void set height(int value) { _ptr.height = value; }
+  void set height(String value) { _ptr.height = value; }
 
   String get name() { return _ptr.name; }
 
@@ -2701,9 +3223,9 @@ class EmbedElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set type(String value) { _ptr.type = value; }
 
-  int get width() { return _ptr.width; }
+  String get width() { return _ptr.width; }
 
-  void set width(int value) { _ptr.width = value; }
+  void set width(String value) { _ptr.width = value; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2735,19 +3257,6 @@ class EntityWrappingImplementation extends NodeWrappingImplementation implements
 
 // WARNING: Do not edit - generated code.
 
-class EntriesCallbackWrappingImplementation extends DOMWrapperBase implements EntriesCallback {
-  EntriesCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(EntryArray entries) {
-    return _ptr.handleEvent(LevelDom.unwrap(entries));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class EntryArraySyncWrappingImplementation extends DOMWrapperBase implements EntryArraySync {
   EntryArraySyncWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -2770,19 +3279,6 @@ class EntryArrayWrappingImplementation extends DOMWrapperBase implements EntryAr
 
   Entry item(int index) {
     return LevelDom.wrapEntry(_ptr.item(index));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class EntryCallbackWrappingImplementation extends DOMWrapperBase implements EntryCallback {
-  EntryCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(Entry entry) {
-    return _ptr.handleEvent(LevelDom.unwrap(entry));
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -2848,7 +3344,7 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
 
   String get name() { return _ptr.name; }
 
-  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (name === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -2864,10 +3360,10 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
         }
       } else {
         if (errorCallback === null) {
-          _ptr.copyTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback));
+          _ptr.copyTo(LevelDom.unwrap(parent), name, successCallback);
           return;
         } else {
-          _ptr.copyTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.copyTo(LevelDom.unwrap(parent), name, successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -2875,7 +3371,7 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
     throw "Incorrect number or type of arguments";
   }
 
-  void getMetadata([MetadataCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getMetadata([MetadataCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.getMetadata();
@@ -2883,17 +3379,17 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
       }
     } else {
       if (errorCallback === null) {
-        _ptr.getMetadata(LevelDom.unwrap(successCallback));
+        _ptr.getMetadata(successCallback);
         return;
       } else {
-        _ptr.getMetadata(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        _ptr.getMetadata(successCallback, LevelDom.unwrap(errorCallback));
         return;
       }
     }
     throw "Incorrect number or type of arguments";
   }
 
-  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.getParent();
@@ -2901,17 +3397,17 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
       }
     } else {
       if (errorCallback === null) {
-        _ptr.getParent(LevelDom.unwrap(successCallback));
+        _ptr.getParent(successCallback);
         return;
       } else {
-        _ptr.getParent(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        _ptr.getParent(successCallback, LevelDom.unwrap(errorCallback));
         return;
       }
     }
     throw "Incorrect number or type of arguments";
   }
 
-  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (name === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -2927,10 +3423,10 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
         }
       } else {
         if (errorCallback === null) {
-          _ptr.moveTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback));
+          _ptr.moveTo(LevelDom.unwrap(parent), name, successCallback);
           return;
         } else {
-          _ptr.moveTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.moveTo(LevelDom.unwrap(parent), name, successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -2938,7 +3434,7 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
     throw "Incorrect number or type of arguments";
   }
 
-  void remove([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void remove([VoidCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.remove();
@@ -2966,19 +3462,6 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
 
 // WARNING: Do not edit - generated code.
 
-class ErrorCallbackWrappingImplementation extends DOMWrapperBase implements ErrorCallback {
-  ErrorCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(FileError error) {
-    return _ptr.handleEvent(LevelDom.unwrap(error));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class EventExceptionWrappingImplementation extends DOMWrapperBase implements EventException {
   EventExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -2987,6 +3470,10 @@ class EventExceptionWrappingImplementation extends DOMWrapperBase implements Eve
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3020,19 +3507,6 @@ class FieldSetElementWrappingImplementation extends ElementWrappingImplementatio
 
 // WARNING: Do not edit - generated code.
 
-class FileCallbackWrappingImplementation extends DOMWrapperBase implements FileCallback {
-  FileCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(File file) {
-    return _ptr.handleEvent(LevelDom.unwrap(file));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class FileEntrySyncWrappingImplementation extends EntrySyncWrappingImplementation implements FileEntrySync {
   FileEntrySyncWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -3053,22 +3527,22 @@ class FileEntrySyncWrappingImplementation extends EntrySyncWrappingImplementatio
 class FileEntryWrappingImplementation extends EntryWrappingImplementation implements FileEntry {
   FileEntryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) {
     if (errorCallback === null) {
-      _ptr.createWriter(LevelDom.unwrap(successCallback));
+      _ptr.createWriter(successCallback);
       return;
     } else {
-      _ptr.createWriter(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      _ptr.createWriter(successCallback, LevelDom.unwrap(errorCallback));
       return;
     }
   }
 
-  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
+  void file(FileCallback successCallback, [ErrorCallback errorCallback]) {
     if (errorCallback === null) {
-      _ptr.file(LevelDom.unwrap(successCallback));
+      _ptr.file(successCallback);
       return;
     } else {
-      _ptr.file(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      _ptr.file(successCallback, LevelDom.unwrap(errorCallback));
       return;
     }
   }
@@ -3098,6 +3572,10 @@ class FileExceptionWrappingImplementation extends DOMWrapperBase implements File
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3135,7 +3613,7 @@ class FileReaderSyncWrappingImplementation extends DOMWrapperBase implements Fil
     return _ptr.readAsDataURL(LevelDom.unwrap(blob));
   }
 
-  String readAsText(Blob blob, [String encoding = null]) {
+  String readAsText(Blob blob, [String encoding]) {
     if (encoding === null) {
       return _ptr.readAsText(LevelDom.unwrap(blob));
     } else {
@@ -3153,30 +3631,6 @@ class FileReaderWrappingImplementation extends DOMWrapperBase implements FileRea
   FileReaderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   FileError get error() { return LevelDom.wrapFileError(_ptr.error); }
-
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onload() { return LevelDom.wrapEventListener(_ptr.onload); }
-
-  void set onload(EventListener value) { _ptr.onload = LevelDom.unwrap(value); }
-
-  EventListener get onloadend() { return LevelDom.wrapEventListener(_ptr.onloadend); }
-
-  void set onloadend(EventListener value) { _ptr.onloadend = LevelDom.unwrap(value); }
-
-  EventListener get onloadstart() { return LevelDom.wrapEventListener(_ptr.onloadstart); }
-
-  void set onloadstart(EventListener value) { _ptr.onloadstart = LevelDom.unwrap(value); }
-
-  EventListener get onprogress() { return LevelDom.wrapEventListener(_ptr.onprogress); }
-
-  void set onprogress(EventListener value) { _ptr.onprogress = LevelDom.unwrap(value); }
 
   int get readyState() { return _ptr.readyState; }
 
@@ -3202,7 +3656,7 @@ class FileReaderWrappingImplementation extends DOMWrapperBase implements FileRea
     return;
   }
 
-  void readAsText(Blob blob, [String encoding = null]) {
+  void readAsText(Blob blob, [String encoding]) {
     if (encoding === null) {
       _ptr.readAsText(LevelDom.unwrap(blob));
       return;
@@ -3210,19 +3664,6 @@ class FileReaderWrappingImplementation extends DOMWrapperBase implements FileRea
       _ptr.readAsText(LevelDom.unwrap(blob), encoding);
       return;
     }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class FileSystemCallbackWrappingImplementation extends DOMWrapperBase implements FileSystemCallback {
-  FileSystemCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(DOMFileSystem fileSystem) {
-    return _ptr.handleEvent(LevelDom.unwrap(fileSystem));
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -3241,19 +3682,6 @@ class FileWrappingImplementation extends BlobWrappingImplementation implements F
   Date get lastModifiedDate() { return _ptr.lastModifiedDate; }
 
   String get name() { return _ptr.name; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class FileWriterCallbackWrappingImplementation extends DOMWrapperBase implements FileWriterCallback {
-  FileWriterCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(FileWriter fileWriter) {
-    return _ptr.handleEvent(LevelDom.unwrap(fileWriter));
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3295,30 +3723,6 @@ class FileWriterWrappingImplementation extends DOMWrapperBase implements FileWri
   FileError get error() { return LevelDom.wrapFileError(_ptr.error); }
 
   int get length() { return _ptr.length; }
-
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onprogress() { return LevelDom.wrapEventListener(_ptr.onprogress); }
-
-  void set onprogress(EventListener value) { _ptr.onprogress = LevelDom.unwrap(value); }
-
-  EventListener get onwrite() { return LevelDom.wrapEventListener(_ptr.onwrite); }
-
-  void set onwrite(EventListener value) { _ptr.onwrite = LevelDom.unwrap(value); }
-
-  EventListener get onwriteend() { return LevelDom.wrapEventListener(_ptr.onwriteend); }
-
-  void set onwriteend(EventListener value) { _ptr.onwriteend = LevelDom.unwrap(value); }
-
-  EventListener get onwritestart() { return LevelDom.wrapEventListener(_ptr.onwritestart); }
-
-  void set onwritestart(EventListener value) { _ptr.onwritestart = LevelDom.unwrap(value); }
 
   int get position() { return _ptr.position; }
 
@@ -3372,7 +3776,7 @@ class Float32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplemen
 
   int get length() { return _ptr.length; }
 
-  Float32Array subarray(int start, [int end = null]) {
+  Float32Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapFloat32Array(_ptr.subarray(start));
     } else {
@@ -3391,7 +3795,7 @@ class Float64ArrayWrappingImplementation extends ArrayBufferViewWrappingImplemen
 
   int get length() { return _ptr.length; }
 
-  Float64Array subarray(int start, [int end = null]) {
+  Float64Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapFloat64Array(_ptr.subarray(start));
     } else {
@@ -3495,21 +3899,21 @@ class GeolocationWrappingImplementation extends DOMWrapperBase implements Geoloc
     return;
   }
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]) {
     if (errorCallback === null) {
-      _ptr.getCurrentPosition(LevelDom.unwrap(successCallback));
+      _ptr.getCurrentPosition(successCallback);
       return;
     } else {
-      _ptr.getCurrentPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      _ptr.getCurrentPosition(successCallback, LevelDom.unwrap(errorCallback));
       return;
     }
   }
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) {
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]) {
     if (errorCallback === null) {
-      return _ptr.watchPosition(LevelDom.unwrap(successCallback));
+      return _ptr.watchPosition(successCallback);
     } else {
-      return _ptr.watchPosition(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+      return _ptr.watchPosition(successCallback, LevelDom.unwrap(errorCallback));
     }
   }
 }
@@ -3606,6 +4010,19 @@ class HeadingElementWrappingImplementation extends ElementWrappingImplementation
 
 // WARNING: Do not edit - generated code.
 
+class HighPass2FilterNodeWrappingImplementation extends AudioNodeWrappingImplementation implements HighPass2FilterNode {
+  HighPass2FilterNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioParam get cutoff() { return LevelDom.wrapAudioParam(_ptr.cutoff); }
+
+  AudioParam get resonance() { return LevelDom.wrapAudioParam(_ptr.resonance); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class HistoryWrappingImplementation extends DOMWrapperBase implements History {
   HistoryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -3626,7 +4043,7 @@ class HistoryWrappingImplementation extends DOMWrapperBase implements History {
     return;
   }
 
-  void pushState(Object data, String title, [String url = null]) {
+  void pushState(Object data, String title, [String url]) {
     if (url === null) {
       _ptr.pushState(LevelDom.unwrapMaybePrimitive(data), title);
       return;
@@ -3636,7 +4053,7 @@ class HistoryWrappingImplementation extends DOMWrapperBase implements History {
     }
   }
 
-  void replaceState(Object data, String title, [String url = null]) {
+  void replaceState(Object data, String title, [String url]) {
     if (url === null) {
       _ptr.replaceState(LevelDom.unwrapMaybePrimitive(data), title);
       return;
@@ -3645,23 +4062,6 @@ class HistoryWrappingImplementation extends DOMWrapperBase implements History {
       return;
     }
   }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class HtmlElementWrappingImplementation extends ElementWrappingImplementation implements HtmlElement {
-  HtmlElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get manifest() { return _ptr.manifest; }
-
-  void set manifest(String value) { _ptr.manifest = value; }
-
-  String get version() { return _ptr.version; }
-
-  void set version(String value) { _ptr.version = value; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3681,7 +4081,7 @@ class IDBAnyWrappingImplementation extends DOMWrapperBase implements IDBAny {
 class IDBCursorWithValueWrappingImplementation extends IDBCursorWrappingImplementation implements IDBCursorWithValue {
   IDBCursorWithValueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  String get value() { return _ptr.value; }
+  IDBAny get value() { return LevelDom.wrapIDBAny(_ptr.value); }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3700,7 +4100,7 @@ class IDBCursorWrappingImplementation extends DOMWrapperBase implements IDBCurso
 
   IDBAny get source() { return LevelDom.wrapIDBAny(_ptr.source); }
 
-  void continueFunction([IDBKey key = null]) {
+  void continueFunction([IDBKey key]) {
     if (key === null) {
       _ptr.continueFunction();
       return;
@@ -3749,6 +4149,10 @@ class IDBDatabaseExceptionWrappingImplementation extends DOMWrapperBase implemen
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3761,21 +4165,9 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
 
   String get name() { return _ptr.name; }
 
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onversionchange() { return LevelDom.wrapEventListener(_ptr.onversionchange); }
-
-  void set onversionchange(EventListener value) { _ptr.onversionchange = LevelDom.unwrap(value); }
-
   String get version() { return _ptr.version; }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void addEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.addEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -3803,7 +4195,7 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.removeEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -3816,6 +4208,10 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
   IDBVersionChangeRequest setVersion(String version) {
     return LevelDom.wrapIDBVersionChangeRequest(_ptr.setVersion(version));
   }
+
+  IDBTransaction transaction(String storeName, int mode) {
+    return LevelDom.wrapIDBTransaction(_ptr.transaction(storeName, mode));
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3825,6 +4221,14 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
 
 class IDBFactoryWrappingImplementation extends DOMWrapperBase implements IDBFactory {
   IDBFactoryWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int cmp(IDBKey first, IDBKey second) {
+    return _ptr.cmp(LevelDom.unwrap(first), LevelDom.unwrap(second));
+  }
+
+  IDBVersionChangeRequest deleteDatabase(String name) {
+    return LevelDom.wrapIDBVersionChangeRequest(_ptr.deleteDatabase(name));
+  }
 
   IDBRequest getDatabaseNames() {
     return LevelDom.wrapIDBRequest(_ptr.getDatabaseNames());
@@ -3859,7 +4263,7 @@ class IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex 
     return LevelDom.wrapIDBRequest(_ptr.getKey(LevelDom.unwrap(key)));
   }
 
-  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+  IDBRequest openCursor([IDBKeyRange range, int direction]) {
     if (range === null) {
       if (direction === null) {
         return LevelDom.wrapIDBRequest(_ptr.openCursor());
@@ -3874,7 +4278,7 @@ class IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex 
     throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest openKeyCursor([IDBKeyRange range = null, int direction = null]) {
+  IDBRequest openKeyCursor([IDBKeyRange range, int direction]) {
     if (range === null) {
       if (direction === null) {
         return LevelDom.wrapIDBRequest(_ptr.openKeyCursor());
@@ -3906,7 +4310,7 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
 
   bool get upperOpen() { return _ptr.upperOpen; }
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen = null, bool upperOpen = null]) {
+  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]) {
     if (lowerOpen === null) {
       if (upperOpen === null) {
         return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper)));
@@ -3921,7 +4325,7 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
     throw "Incorrect number or type of arguments";
   }
 
-  IDBKeyRange lowerBound(IDBKey bound, [bool open = null]) {
+  IDBKeyRange lowerBound(IDBKey bound, [bool open]) {
     if (open === null) {
       return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound)));
     } else {
@@ -3933,7 +4337,7 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
     return LevelDom.wrapIDBKeyRange(_ptr.only(LevelDom.unwrap(value)));
   }
 
-  IDBKeyRange upperBound(IDBKey bound, [bool open = null]) {
+  IDBKeyRange upperBound(IDBKey bound, [bool open]) {
     if (open === null) {
       return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound)));
     } else {
@@ -3963,7 +4367,9 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
 
   String get name() { return _ptr.name; }
 
-  IDBRequest add(String value, [IDBKey key = null]) {
+  IDBTransaction get transaction() { return LevelDom.wrapIDBTransaction(_ptr.transaction); }
+
+  IDBRequest add(String value, [IDBKey key]) {
     if (key === null) {
       return LevelDom.wrapIDBRequest(_ptr.add(value));
     } else {
@@ -3996,7 +4402,7 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
     return LevelDom.wrapIDBIndex(_ptr.index(name));
   }
 
-  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+  IDBRequest openCursor([IDBKeyRange range, int direction]) {
     if (range === null) {
       if (direction === null) {
         return LevelDom.wrapIDBRequest(_ptr.openCursor());
@@ -4011,7 +4417,7 @@ class IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements IDB
     throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest put(String value, [IDBKey key = null]) {
+  IDBRequest put(String value, [IDBKey key]) {
     if (key === null) {
       return LevelDom.wrapIDBRequest(_ptr.put(value));
     } else {
@@ -4030,14 +4436,6 @@ class IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBRequ
 
   int get errorCode() { return _ptr.errorCode; }
 
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onsuccess() { return LevelDom.wrapEventListener(_ptr.onsuccess); }
-
-  void set onsuccess(EventListener value) { _ptr.onsuccess = LevelDom.unwrap(value); }
-
   int get readyState() { return _ptr.readyState; }
 
   IDBAny get result() { return LevelDom.wrapIDBAny(_ptr.result); }
@@ -4048,7 +4446,7 @@ class IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBRequ
 
   String get webkitErrorMessage() { return _ptr.webkitErrorMessage; }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void addEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.addEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -4062,7 +4460,7 @@ class IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBRequ
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.removeEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -4085,24 +4483,12 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
 
   int get mode() { return _ptr.mode; }
 
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get oncomplete() { return LevelDom.wrapEventListener(_ptr.oncomplete); }
-
-  void set oncomplete(EventListener value) { _ptr.oncomplete = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
   void abort() {
     _ptr.abort();
     return;
   }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void addEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.addEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -4120,7 +4506,7 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
     return LevelDom.wrapIDBObjectStore(_ptr.objectStore(name));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.removeEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -4149,10 +4535,6 @@ class IDBVersionChangeEventWrappingImplementation extends EventWrappingImplement
 
 class IDBVersionChangeRequestWrappingImplementation extends IDBRequestWrappingImplementation implements IDBVersionChangeRequest {
   IDBVersionChangeRequestWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  EventListener get onblocked() { return LevelDom.wrapEventListener(_ptr.onblocked); }
-
-  void set onblocked(EventListener value) { _ptr.onblocked = LevelDom.unwrap(value); }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4406,10 +4788,6 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set name(String value) { _ptr.name = value; }
 
-  EventListener get onwebkitspeechchange() { return LevelDom.wrapEventListener(_ptr.onwebkitspeechchange); }
-
-  void set onwebkitspeechchange(EventListener value) { _ptr.onwebkitspeechchange = LevelDom.unwrap(value); }
-
   String get pattern() { return _ptr.pattern; }
 
   void set pattern(String value) { _ptr.pattern = value; }
@@ -4519,11 +4897,6 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
     }
   }
 
-  void setValueForUser(String value) {
-    _ptr.setValueForUser(value);
-    return;
-  }
-
   void stepDown([int n = null]) {
     if (n === null) {
       _ptr.stepDown();
@@ -4555,7 +4928,7 @@ class Int16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Int16Array subarray(int start, [int end = null]) {
+  Int16Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapInt16Array(_ptr.subarray(start));
     } else {
@@ -4574,7 +4947,7 @@ class Int32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Int32Array subarray(int start, [int end = null]) {
+  Int32Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapInt32Array(_ptr.subarray(start));
     } else {
@@ -4593,13 +4966,24 @@ class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementat
 
   int get length() { return _ptr.length; }
 
-  Int8Array subarray(int start, [int end = null]) {
+  Int8Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapInt8Array(_ptr.subarray(start));
     } else {
       return LevelDom.wrapInt8Array(_ptr.subarray(start, end));
     }
   }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class JavaScriptAudioNodeWrappingImplementation extends AudioNodeWrappingImplementation implements JavaScriptAudioNode {
+  JavaScriptAudioNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get bufferSize() { return _ptr.bufferSize; }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4747,6 +5131,10 @@ class LinkElementWrappingImplementation extends ElementWrappingImplementation im
 
   StyleSheet get sheet() { return LevelDom.wrapStyleSheet(_ptr.sheet); }
 
+  DOMSettableTokenList get sizes() { return LevelDom.wrapDOMSettableTokenList(_ptr.sizes); }
+
+  void set sizes(DOMSettableTokenList value) { _ptr.sizes = LevelDom.unwrap(value); }
+
   String get target() { return _ptr.target; }
 
   void set target(String value) { _ptr.target = value; }
@@ -4754,20 +5142,6 @@ class LinkElementWrappingImplementation extends ElementWrappingImplementation im
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class LocalMediaStreamWrappingImplementation extends MediaStreamWrappingImplementation implements LocalMediaStream {
-  LocalMediaStreamWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  void stop() {
-    _ptr.stop();
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4830,6 +5204,10 @@ class LocationWrappingImplementation extends DOMWrapperBase implements Location 
     _ptr.replace(url);
     return;
   }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4849,6 +5227,19 @@ class LoseContextWrappingImplementation extends DOMWrapperBase implements LoseCo
     _ptr.restoreContext();
     return;
   }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class LowPass2FilterNodeWrappingImplementation extends AudioNodeWrappingImplementation implements LowPass2FilterNode {
+  LowPass2FilterNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioParam get cutoff() { return LevelDom.wrapAudioParam(_ptr.cutoff); }
+
+  AudioParam get resonance() { return LevelDom.wrapAudioParam(_ptr.resonance); }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4927,6 +5318,17 @@ class MarqueeElementWrappingImplementation extends ElementWrappingImplementation
     _ptr.stop();
     return;
   }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class MediaElementAudioSourceNodeWrappingImplementation extends AudioSourceNodeWrappingImplementation implements MediaElementAudioSourceNode {
+  MediaElementAudioSourceNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  MediaElement get mediaElement() { return LevelDom.wrapMediaElement(_ptr.mediaElement); }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5067,11 +5469,11 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   void set mediaText(String value) { _ptr.mediaText = value; }
 
   String operator[](int index) {
-    return item(index);
+    return _ptr[index];
   }
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = value;
   }
 
   void add(String value) {
@@ -5212,96 +5614,6 @@ class MediaQueryListWrappingImplementation extends DOMWrapperBase implements Med
 
 // WARNING: Do not edit - generated code.
 
-class MediaStreamListWrappingImplementation extends DOMWrapperBase implements MediaStreamList {
-  MediaStreamListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  MediaStream item(int index) {
-    return LevelDom.wrapMediaStream(_ptr.item(index));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MediaStreamTrackListWrappingImplementation extends DOMWrapperBase implements MediaStreamTrackList {
-  MediaStreamTrackListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  MediaStreamTrack item(int index) {
-    return LevelDom.wrapMediaStreamTrack(_ptr.item(index));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MediaStreamTrackWrappingImplementation extends DOMWrapperBase implements MediaStreamTrack {
-  MediaStreamTrackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool get enabled() { return _ptr.enabled; }
-
-  void set enabled(bool value) { _ptr.enabled = value; }
-
-  String get kind() { return _ptr.kind; }
-
-  String get label() { return _ptr.label; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MediaStreamWrappingImplementation extends DOMWrapperBase implements MediaStream {
-  MediaStreamWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  String get label() { return _ptr.label; }
-
-  EventListener get onended() { return LevelDom.wrapEventListener(_ptr.onended); }
-
-  void set onended(EventListener value) { _ptr.onended = LevelDom.unwrap(value); }
-
-  int get readyState() { return _ptr.readyState; }
-
-  MediaStreamTrackList get tracks() { return LevelDom.wrapMediaStreamTrackList(_ptr.tracks); }
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(type, LevelDom.unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(type, LevelDom.unwrap(listener), useCapture);
-      return;
-    }
-  }
-
-  bool dispatchEvent(Event event) {
-    return _ptr.dispatchEvent(LevelDom.unwrap(event));
-  }
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(type, LevelDom.unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(type, LevelDom.unwrap(listener), useCapture);
-      return;
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class MenuElementWrappingImplementation extends ElementWrappingImplementation implements MenuElement {
   MenuElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -5346,19 +5658,6 @@ class MetaElementWrappingImplementation extends ElementWrappingImplementation im
   String get scheme() { return _ptr.scheme; }
 
   void set scheme(String value) { _ptr.scheme = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class MetadataCallbackWrappingImplementation extends DOMWrapperBase implements MetadataCallback {
-  MetadataCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(Metadata metadata) {
-    return _ptr.handleEvent(LevelDom.unwrap(metadata));
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5431,6 +5730,15 @@ class ModElementWrappingImplementation extends ElementWrappingImplementation imp
 
 // WARNING: Do not edit - generated code.
 
+class MutationCallbackWrappingImplementation extends DOMWrapperBase implements MutationCallback {
+  MutationCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class MutationRecordWrappingImplementation extends DOMWrapperBase implements MutationRecord {
   MutationRecordWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -5458,19 +5766,6 @@ class MutationRecordWrappingImplementation extends DOMWrapperBase implements Mut
 
 // WARNING: Do not edit - generated code.
 
-class NavigatorUserMediaErrorCallbackWrappingImplementation extends DOMWrapperBase implements NavigatorUserMediaErrorCallback {
-  NavigatorUserMediaErrorCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(NavigatorUserMediaError error) {
-    return _ptr.handleEvent(LevelDom.unwrap(error));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class NavigatorUserMediaErrorWrappingImplementation extends DOMWrapperBase implements NavigatorUserMediaError {
   NavigatorUserMediaErrorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -5484,10 +5779,6 @@ class NavigatorUserMediaErrorWrappingImplementation extends DOMWrapperBase imple
 
 class NavigatorUserMediaSuccessCallbackWrappingImplementation extends DOMWrapperBase implements NavigatorUserMediaSuccessCallback {
   NavigatorUserMediaSuccessCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(LocalMediaStream stream) {
-    return _ptr.handleEvent(LevelDom.unwrap(stream));
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5738,6 +6029,17 @@ class ObjectElementWrappingImplementation extends ElementWrappingImplementation 
 
 // WARNING: Do not edit - generated code.
 
+class OfflineAudioCompletionEventWrappingImplementation extends EventWrappingImplementation implements OfflineAudioCompletionEvent {
+  OfflineAudioCompletionEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  AudioBuffer get renderedBuffer() { return LevelDom.wrapAudioBuffer(_ptr.renderedBuffer); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class OperationNotAllowedExceptionWrappingImplementation extends DOMWrapperBase implements OperationNotAllowedException {
   OperationNotAllowedExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -5746,6 +6048,10 @@ class OperationNotAllowedExceptionWrappingImplementation extends DOMWrapperBase 
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5794,6 +6100,8 @@ class OptionElementWrappingImplementation extends ElementWrappingImplementation 
   void set selected(bool value) { _ptr.selected = value; }
 
   String get text() { return _ptr.text; }
+
+  void set text(String value) { _ptr.text = value; }
 
   String get value() { return _ptr.value; }
 
@@ -5891,6 +6199,9 @@ class ParamElementWrappingImplementation extends ElementWrappingImplementation i
 
 class PointWrappingImplementation extends DOMWrapperBase implements Point {
   PointWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+  factory PointWrappingImplementation(num x, num y) {
+    return LevelDom.wrapPoint(new dom.WebKitPoint(x, y));
+  }
 
   num get x() { return _ptr.x; }
 
@@ -5899,32 +6210,6 @@ class PointWrappingImplementation extends DOMWrapperBase implements Point {
   num get y() { return _ptr.y; }
 
   void set y(num value) { _ptr.y = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class PositionCallbackWrappingImplementation extends DOMWrapperBase implements PositionCallback {
-  PositionCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(Geoposition position) {
-    return _ptr.handleEvent(LevelDom.unwrap(position));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class PositionErrorCallbackWrappingImplementation extends DOMWrapperBase implements PositionErrorCallback {
-  PositionErrorCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(PositionError error) {
-    return _ptr.handleEvent(LevelDom.unwrap(error));
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6018,8 +6303,6 @@ class QuoteElementWrappingImplementation extends ElementWrappingImplementation i
 class RGBColorWrappingImplementation extends DOMWrapperBase implements RGBColor {
   RGBColorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  CSSPrimitiveValue get alpha() { return LevelDom.wrapCSSPrimitiveValue(_ptr.alpha); }
-
   CSSPrimitiveValue get blue() { return LevelDom.wrapCSSPrimitiveValue(_ptr.blue); }
 
   CSSPrimitiveValue get green() { return LevelDom.wrapCSSPrimitiveValue(_ptr.green); }
@@ -6040,6 +6323,10 @@ class RangeExceptionWrappingImplementation extends DOMWrapperBase implements Ran
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6061,8 +6348,6 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
   Node get startContainer() { return LevelDom.wrapNode(_ptr.startContainer); }
 
   int get startOffset() { return _ptr.startOffset; }
-
-  String get text() { return _ptr.text; }
 
   DocumentFragment cloneContents() {
     return LevelDom.wrapDocumentFragment(_ptr.cloneContents());
@@ -6106,6 +6391,14 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
 
   DocumentFragment extractContents() {
     return LevelDom.wrapDocumentFragment(_ptr.extractContents());
+  }
+
+  ClientRect getBoundingClientRect() {
+    return LevelDom.wrapClientRect(_ptr.getBoundingClientRect());
+  }
+
+  ClientRectList getClientRects() {
+    return LevelDom.wrapClientRectList(_ptr.getClientRects());
   }
 
   void insertNode(Node newNode) {
@@ -6176,6 +6469,48 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
 
 // WARNING: Do not edit - generated code.
 
+class RealtimeAnalyserNodeWrappingImplementation extends AudioNodeWrappingImplementation implements RealtimeAnalyserNode {
+  RealtimeAnalyserNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get fftSize() { return _ptr.fftSize; }
+
+  void set fftSize(int value) { _ptr.fftSize = value; }
+
+  int get frequencyBinCount() { return _ptr.frequencyBinCount; }
+
+  num get maxDecibels() { return _ptr.maxDecibels; }
+
+  void set maxDecibels(num value) { _ptr.maxDecibels = value; }
+
+  num get minDecibels() { return _ptr.minDecibels; }
+
+  void set minDecibels(num value) { _ptr.minDecibels = value; }
+
+  num get smoothingTimeConstant() { return _ptr.smoothingTimeConstant; }
+
+  void set smoothingTimeConstant(num value) { _ptr.smoothingTimeConstant = value; }
+
+  void getByteFrequencyData(Uint8Array array) {
+    _ptr.getByteFrequencyData(LevelDom.unwrap(array));
+    return;
+  }
+
+  void getByteTimeDomainData(Uint8Array array) {
+    _ptr.getByteTimeDomainData(LevelDom.unwrap(array));
+    return;
+  }
+
+  void getFloatFrequencyData(Float32Array array) {
+    _ptr.getFloatFrequencyData(LevelDom.unwrap(array));
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class RectWrappingImplementation extends DOMWrapperBase implements Rect {
   RectWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -6186,6 +6521,4650 @@ class RectWrappingImplementation extends DOMWrapperBase implements Rect {
   CSSPrimitiveValue get right() { return LevelDom.wrapCSSPrimitiveValue(_ptr.right); }
 
   CSSPrimitiveValue get top() { return LevelDom.wrapCSSPrimitiveValue(_ptr.top); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGAElement {
+  SVGAElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get target() { return LevelDom.wrapSVGAnimatedString(_ptr.target); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAltGlyphDefElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGAltGlyphDefElement {
+  SVGAltGlyphDefElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAltGlyphElementWrappingImplementation extends SVGTextPositioningElementWrappingImplementation implements SVGAltGlyphElement {
+  SVGAltGlyphElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get format() { return _ptr.format; }
+
+  void set format(String value) { _ptr.format = value; }
+
+  String get glyphRef() { return _ptr.glyphRef; }
+
+  void set glyphRef(String value) { _ptr.glyphRef = value; }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAltGlyphItemElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGAltGlyphItemElement {
+  SVGAltGlyphItemElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAngleWrappingImplementation extends DOMWrapperBase implements SVGAngle {
+  SVGAngleWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get unitType() { return _ptr.unitType; }
+
+  num get value() { return _ptr.value; }
+
+  void set value(num value) { _ptr.value = value; }
+
+  String get valueAsString() { return _ptr.valueAsString; }
+
+  void set valueAsString(String value) { _ptr.valueAsString = value; }
+
+  num get valueInSpecifiedUnits() { return _ptr.valueInSpecifiedUnits; }
+
+  void set valueInSpecifiedUnits(num value) { _ptr.valueInSpecifiedUnits = value; }
+
+  void convertToSpecifiedUnits(int unitType) {
+    _ptr.convertToSpecifiedUnits(unitType);
+    return;
+  }
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) {
+    _ptr.newValueSpecifiedUnits(unitType, valueInSpecifiedUnits);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimateColorElementWrappingImplementation extends SVGAnimationElementWrappingImplementation implements SVGAnimateColorElement {
+  SVGAnimateColorElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimateElementWrappingImplementation extends SVGAnimationElementWrappingImplementation implements SVGAnimateElement {
+  SVGAnimateElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimateMotionElementWrappingImplementation extends SVGAnimationElementWrappingImplementation implements SVGAnimateMotionElement {
+  SVGAnimateMotionElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimateTransformElementWrappingImplementation extends SVGAnimationElementWrappingImplementation implements SVGAnimateTransformElement {
+  SVGAnimateTransformElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedAngleWrappingImplementation extends DOMWrapperBase implements SVGAnimatedAngle {
+  SVGAnimatedAngleWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAngle get animVal() { return LevelDom.wrapSVGAngle(_ptr.animVal); }
+
+  SVGAngle get baseVal() { return LevelDom.wrapSVGAngle(_ptr.baseVal); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedBooleanWrappingImplementation extends DOMWrapperBase implements SVGAnimatedBoolean {
+  SVGAnimatedBooleanWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  bool get animVal() { return _ptr.animVal; }
+
+  bool get baseVal() { return _ptr.baseVal; }
+
+  void set baseVal(bool value) { _ptr.baseVal = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedEnumerationWrappingImplementation extends DOMWrapperBase implements SVGAnimatedEnumeration {
+  SVGAnimatedEnumerationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get animVal() { return _ptr.animVal; }
+
+  int get baseVal() { return _ptr.baseVal; }
+
+  void set baseVal(int value) { _ptr.baseVal = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedIntegerWrappingImplementation extends DOMWrapperBase implements SVGAnimatedInteger {
+  SVGAnimatedIntegerWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get animVal() { return _ptr.animVal; }
+
+  int get baseVal() { return _ptr.baseVal; }
+
+  void set baseVal(int value) { _ptr.baseVal = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedLengthListWrappingImplementation extends DOMWrapperBase implements SVGAnimatedLengthList {
+  SVGAnimatedLengthListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGLengthList get animVal() { return LevelDom.wrapSVGLengthList(_ptr.animVal); }
+
+  SVGLengthList get baseVal() { return LevelDom.wrapSVGLengthList(_ptr.baseVal); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedLengthWrappingImplementation extends DOMWrapperBase implements SVGAnimatedLength {
+  SVGAnimatedLengthWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGLength get animVal() { return LevelDom.wrapSVGLength(_ptr.animVal); }
+
+  SVGLength get baseVal() { return LevelDom.wrapSVGLength(_ptr.baseVal); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedNumberListWrappingImplementation extends DOMWrapperBase implements SVGAnimatedNumberList {
+  SVGAnimatedNumberListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGNumberList get animVal() { return LevelDom.wrapSVGNumberList(_ptr.animVal); }
+
+  SVGNumberList get baseVal() { return LevelDom.wrapSVGNumberList(_ptr.baseVal); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedNumberWrappingImplementation extends DOMWrapperBase implements SVGAnimatedNumber {
+  SVGAnimatedNumberWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get animVal() { return _ptr.animVal; }
+
+  num get baseVal() { return _ptr.baseVal; }
+
+  void set baseVal(num value) { _ptr.baseVal = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedPreserveAspectRatioWrappingImplementation extends DOMWrapperBase implements SVGAnimatedPreserveAspectRatio {
+  SVGAnimatedPreserveAspectRatioWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGPreserveAspectRatio get animVal() { return LevelDom.wrapSVGPreserveAspectRatio(_ptr.animVal); }
+
+  SVGPreserveAspectRatio get baseVal() { return LevelDom.wrapSVGPreserveAspectRatio(_ptr.baseVal); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedRectWrappingImplementation extends DOMWrapperBase implements SVGAnimatedRect {
+  SVGAnimatedRectWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGRect get animVal() { return LevelDom.wrapSVGRect(_ptr.animVal); }
+
+  SVGRect get baseVal() { return LevelDom.wrapSVGRect(_ptr.baseVal); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedStringWrappingImplementation extends DOMWrapperBase implements SVGAnimatedString {
+  SVGAnimatedStringWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get animVal() { return _ptr.animVal; }
+
+  String get baseVal() { return _ptr.baseVal; }
+
+  void set baseVal(String value) { _ptr.baseVal = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimatedTransformListWrappingImplementation extends DOMWrapperBase implements SVGAnimatedTransformList {
+  SVGAnimatedTransformListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGTransformList get animVal() { return LevelDom.wrapSVGTransformList(_ptr.animVal); }
+
+  SVGTransformList get baseVal() { return LevelDom.wrapSVGTransformList(_ptr.baseVal); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGAnimationElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGAnimationElement {
+  SVGAnimationElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGElement get targetElement() { return LevelDom.wrapSVGElement(_ptr.targetElement); }
+
+  num getCurrentTime() {
+    return _ptr.getCurrentTime();
+  }
+
+  num getSimpleDuration() {
+    return _ptr.getSimpleDuration();
+  }
+
+  num getStartTime() {
+    return _ptr.getStartTime();
+  }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From ElementTimeControl
+
+  void beginElement() {
+    _ptr.beginElement();
+    return;
+  }
+
+  void beginElementAt(num offset) {
+    _ptr.beginElementAt(offset);
+    return;
+  }
+
+  void endElement() {
+    _ptr.endElement();
+    return;
+  }
+
+  void endElementAt(num offset) {
+    _ptr.endElementAt(offset);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGCircleElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGCircleElement {
+  SVGCircleElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get cx() { return LevelDom.wrapSVGAnimatedLength(_ptr.cx); }
+
+  SVGAnimatedLength get cy() { return LevelDom.wrapSVGAnimatedLength(_ptr.cy); }
+
+  SVGAnimatedLength get r() { return LevelDom.wrapSVGAnimatedLength(_ptr.r); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGClipPathElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGClipPathElement {
+  SVGClipPathElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedEnumeration get clipPathUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.clipPathUnits); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGColorWrappingImplementation extends CSSValueWrappingImplementation implements SVGColor {
+  SVGColorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get colorType() { return _ptr.colorType; }
+
+  RGBColor get rgbColor() { return LevelDom.wrapRGBColor(_ptr.rgbColor); }
+
+  void setColor(int colorType, String rgbColor, String iccColor) {
+    _ptr.setColor(colorType, rgbColor, iccColor);
+    return;
+  }
+
+  void setRGBColor(String rgbColor) {
+    _ptr.setRGBColor(rgbColor);
+    return;
+  }
+
+  void setRGBColorICCColor(String rgbColor, String iccColor) {
+    _ptr.setRGBColorICCColor(rgbColor, iccColor);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGComponentTransferFunctionElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGComponentTransferFunctionElement {
+  SVGComponentTransferFunctionElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get amplitude() { return LevelDom.wrapSVGAnimatedNumber(_ptr.amplitude); }
+
+  SVGAnimatedNumber get exponent() { return LevelDom.wrapSVGAnimatedNumber(_ptr.exponent); }
+
+  SVGAnimatedNumber get intercept() { return LevelDom.wrapSVGAnimatedNumber(_ptr.intercept); }
+
+  SVGAnimatedNumber get offset() { return LevelDom.wrapSVGAnimatedNumber(_ptr.offset); }
+
+  SVGAnimatedNumber get slope() { return LevelDom.wrapSVGAnimatedNumber(_ptr.slope); }
+
+  SVGAnimatedNumberList get tableValues() { return LevelDom.wrapSVGAnimatedNumberList(_ptr.tableValues); }
+
+  SVGAnimatedEnumeration get type() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.type); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGCursorElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGCursorElement {
+  SVGCursorElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGDefsElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGDefsElement {
+  SVGDefsElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGDescElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGDescElement {
+  SVGDescElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGElementInstanceListWrappingImplementation extends DOMWrapperBase implements SVGElementInstanceList {
+  SVGElementInstanceListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get length() { return _ptr.length; }
+
+  SVGElementInstance item(int index) {
+    return LevelDom.wrapSVGElementInstance(_ptr.item(index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGElementWrappingImplementation extends ElementWrappingImplementation implements SVGElement {
+  SVGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get id() { return _ptr.id; }
+
+  void set id(String value) { _ptr.id = value; }
+
+  SVGSVGElement get ownerSVGElement() { return LevelDom.wrapSVGSVGElement(_ptr.ownerSVGElement); }
+
+  SVGElement get viewportElement() { return LevelDom.wrapSVGElement(_ptr.viewportElement); }
+
+  String get xmlbase() { return _ptr.xmlbase; }
+
+  void set xmlbase(String value) { _ptr.xmlbase = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGEllipseElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGEllipseElement {
+  SVGEllipseElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get cx() { return LevelDom.wrapSVGAnimatedLength(_ptr.cx); }
+
+  SVGAnimatedLength get cy() { return LevelDom.wrapSVGAnimatedLength(_ptr.cy); }
+
+  SVGAnimatedLength get rx() { return LevelDom.wrapSVGAnimatedLength(_ptr.rx); }
+
+  SVGAnimatedLength get ry() { return LevelDom.wrapSVGAnimatedLength(_ptr.ry); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGExceptionWrappingImplementation extends DOMWrapperBase implements SVGException {
+  SVGExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get code() { return _ptr.code; }
+
+  String get message() { return _ptr.message; }
+
+  String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGExternalResourcesRequiredWrappingImplementation extends DOMWrapperBase implements SVGExternalResourcesRequired {
+  SVGExternalResourcesRequiredWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEBlendElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEBlendElement {
+  SVGFEBlendElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedString get in2() { return LevelDom.wrapSVGAnimatedString(_ptr.in2); }
+
+  SVGAnimatedEnumeration get mode() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.mode); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEColorMatrixElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEColorMatrixElement {
+  SVGFEColorMatrixElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedEnumeration get type() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.type); }
+
+  SVGAnimatedNumberList get values() { return LevelDom.wrapSVGAnimatedNumberList(_ptr.values); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEComponentTransferElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEComponentTransferElement {
+  SVGFEComponentTransferElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEConvolveMatrixElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEConvolveMatrixElement {
+  SVGFEConvolveMatrixElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get bias() { return LevelDom.wrapSVGAnimatedNumber(_ptr.bias); }
+
+  SVGAnimatedNumber get divisor() { return LevelDom.wrapSVGAnimatedNumber(_ptr.divisor); }
+
+  SVGAnimatedEnumeration get edgeMode() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.edgeMode); }
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedNumberList get kernelMatrix() { return LevelDom.wrapSVGAnimatedNumberList(_ptr.kernelMatrix); }
+
+  SVGAnimatedNumber get kernelUnitLengthX() { return LevelDom.wrapSVGAnimatedNumber(_ptr.kernelUnitLengthX); }
+
+  SVGAnimatedNumber get kernelUnitLengthY() { return LevelDom.wrapSVGAnimatedNumber(_ptr.kernelUnitLengthY); }
+
+  SVGAnimatedInteger get orderX() { return LevelDom.wrapSVGAnimatedInteger(_ptr.orderX); }
+
+  SVGAnimatedInteger get orderY() { return LevelDom.wrapSVGAnimatedInteger(_ptr.orderY); }
+
+  SVGAnimatedBoolean get preserveAlpha() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.preserveAlpha); }
+
+  SVGAnimatedInteger get targetX() { return LevelDom.wrapSVGAnimatedInteger(_ptr.targetX); }
+
+  SVGAnimatedInteger get targetY() { return LevelDom.wrapSVGAnimatedInteger(_ptr.targetY); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEDiffuseLightingElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEDiffuseLightingElement {
+  SVGFEDiffuseLightingElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get diffuseConstant() { return LevelDom.wrapSVGAnimatedNumber(_ptr.diffuseConstant); }
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedNumber get kernelUnitLengthX() { return LevelDom.wrapSVGAnimatedNumber(_ptr.kernelUnitLengthX); }
+
+  SVGAnimatedNumber get kernelUnitLengthY() { return LevelDom.wrapSVGAnimatedNumber(_ptr.kernelUnitLengthY); }
+
+  SVGAnimatedNumber get surfaceScale() { return LevelDom.wrapSVGAnimatedNumber(_ptr.surfaceScale); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEDisplacementMapElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEDisplacementMapElement {
+  SVGFEDisplacementMapElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedString get in2() { return LevelDom.wrapSVGAnimatedString(_ptr.in2); }
+
+  SVGAnimatedNumber get scale() { return LevelDom.wrapSVGAnimatedNumber(_ptr.scale); }
+
+  SVGAnimatedEnumeration get xChannelSelector() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.xChannelSelector); }
+
+  SVGAnimatedEnumeration get yChannelSelector() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.yChannelSelector); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEDistantLightElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEDistantLightElement {
+  SVGFEDistantLightElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get azimuth() { return LevelDom.wrapSVGAnimatedNumber(_ptr.azimuth); }
+
+  SVGAnimatedNumber get elevation() { return LevelDom.wrapSVGAnimatedNumber(_ptr.elevation); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEDropShadowElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEDropShadowElement {
+  SVGFEDropShadowElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get dx() { return LevelDom.wrapSVGAnimatedNumber(_ptr.dx); }
+
+  SVGAnimatedNumber get dy() { return LevelDom.wrapSVGAnimatedNumber(_ptr.dy); }
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedNumber get stdDeviationX() { return LevelDom.wrapSVGAnimatedNumber(_ptr.stdDeviationX); }
+
+  SVGAnimatedNumber get stdDeviationY() { return LevelDom.wrapSVGAnimatedNumber(_ptr.stdDeviationY); }
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) {
+    _ptr.setStdDeviation(stdDeviationX, stdDeviationY);
+    return;
+  }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEFloodElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEFloodElement {
+  SVGFEFloodElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEFuncAElementWrappingImplementation extends SVGComponentTransferFunctionElementWrappingImplementation implements SVGFEFuncAElement {
+  SVGFEFuncAElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEFuncBElementWrappingImplementation extends SVGComponentTransferFunctionElementWrappingImplementation implements SVGFEFuncBElement {
+  SVGFEFuncBElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEFuncGElementWrappingImplementation extends SVGComponentTransferFunctionElementWrappingImplementation implements SVGFEFuncGElement {
+  SVGFEFuncGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEFuncRElementWrappingImplementation extends SVGComponentTransferFunctionElementWrappingImplementation implements SVGFEFuncRElement {
+  SVGFEFuncRElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEGaussianBlurElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEGaussianBlurElement {
+  SVGFEGaussianBlurElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedNumber get stdDeviationX() { return LevelDom.wrapSVGAnimatedNumber(_ptr.stdDeviationX); }
+
+  SVGAnimatedNumber get stdDeviationY() { return LevelDom.wrapSVGAnimatedNumber(_ptr.stdDeviationY); }
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) {
+    _ptr.setStdDeviation(stdDeviationX, stdDeviationY);
+    return;
+  }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEImageElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEImageElement {
+  SVGFEImageElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEMergeElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEMergeElement {
+  SVGFEMergeElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEMergeNodeElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEMergeNodeElement {
+  SVGFEMergeNodeElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEOffsetElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEOffsetElement {
+  SVGFEOffsetElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get dx() { return LevelDom.wrapSVGAnimatedNumber(_ptr.dx); }
+
+  SVGAnimatedNumber get dy() { return LevelDom.wrapSVGAnimatedNumber(_ptr.dy); }
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFEPointLightElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFEPointLightElement {
+  SVGFEPointLightElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get x() { return LevelDom.wrapSVGAnimatedNumber(_ptr.x); }
+
+  SVGAnimatedNumber get y() { return LevelDom.wrapSVGAnimatedNumber(_ptr.y); }
+
+  SVGAnimatedNumber get z() { return LevelDom.wrapSVGAnimatedNumber(_ptr.z); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFESpecularLightingElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFESpecularLightingElement {
+  SVGFESpecularLightingElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  SVGAnimatedNumber get specularConstant() { return LevelDom.wrapSVGAnimatedNumber(_ptr.specularConstant); }
+
+  SVGAnimatedNumber get specularExponent() { return LevelDom.wrapSVGAnimatedNumber(_ptr.specularExponent); }
+
+  SVGAnimatedNumber get surfaceScale() { return LevelDom.wrapSVGAnimatedNumber(_ptr.surfaceScale); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFESpotLightElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFESpotLightElement {
+  SVGFESpotLightElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get limitingConeAngle() { return LevelDom.wrapSVGAnimatedNumber(_ptr.limitingConeAngle); }
+
+  SVGAnimatedNumber get pointsAtX() { return LevelDom.wrapSVGAnimatedNumber(_ptr.pointsAtX); }
+
+  SVGAnimatedNumber get pointsAtY() { return LevelDom.wrapSVGAnimatedNumber(_ptr.pointsAtY); }
+
+  SVGAnimatedNumber get pointsAtZ() { return LevelDom.wrapSVGAnimatedNumber(_ptr.pointsAtZ); }
+
+  SVGAnimatedNumber get specularExponent() { return LevelDom.wrapSVGAnimatedNumber(_ptr.specularExponent); }
+
+  SVGAnimatedNumber get x() { return LevelDom.wrapSVGAnimatedNumber(_ptr.x); }
+
+  SVGAnimatedNumber get y() { return LevelDom.wrapSVGAnimatedNumber(_ptr.y); }
+
+  SVGAnimatedNumber get z() { return LevelDom.wrapSVGAnimatedNumber(_ptr.z); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFETileElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFETileElement {
+  SVGFETileElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get in1() { return LevelDom.wrapSVGAnimatedString(_ptr.in1); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFETurbulenceElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFETurbulenceElement {
+  SVGFETurbulenceElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get baseFrequencyX() { return LevelDom.wrapSVGAnimatedNumber(_ptr.baseFrequencyX); }
+
+  SVGAnimatedNumber get baseFrequencyY() { return LevelDom.wrapSVGAnimatedNumber(_ptr.baseFrequencyY); }
+
+  SVGAnimatedInteger get numOctaves() { return LevelDom.wrapSVGAnimatedInteger(_ptr.numOctaves); }
+
+  SVGAnimatedNumber get seed() { return LevelDom.wrapSVGAnimatedNumber(_ptr.seed); }
+
+  SVGAnimatedEnumeration get stitchTiles() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.stitchTiles); }
+
+  SVGAnimatedEnumeration get type() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.type); }
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFilterElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFilterElement {
+  SVGFilterElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedInteger get filterResX() { return LevelDom.wrapSVGAnimatedInteger(_ptr.filterResX); }
+
+  SVGAnimatedInteger get filterResY() { return LevelDom.wrapSVGAnimatedInteger(_ptr.filterResY); }
+
+  SVGAnimatedEnumeration get filterUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.filterUnits); }
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedEnumeration get primitiveUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.primitiveUnits); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  void setFilterRes(int filterResX, int filterResY) {
+    _ptr.setFilterRes(filterResX, filterResY);
+    return;
+  }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFilterPrimitiveStandardAttributesWrappingImplementation extends SVGStylableWrappingImplementation implements SVGFilterPrimitiveStandardAttributes {
+  SVGFilterPrimitiveStandardAttributesWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedString get result() { return LevelDom.wrapSVGAnimatedString(_ptr.result); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFitToViewBoxWrappingImplementation extends DOMWrapperBase implements SVGFitToViewBox {
+  SVGFitToViewBoxWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedRect get viewBox() { return LevelDom.wrapSVGAnimatedRect(_ptr.viewBox); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFontElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFontElement {
+  SVGFontElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFontFaceElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFontFaceElement {
+  SVGFontFaceElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFontFaceFormatElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFontFaceFormatElement {
+  SVGFontFaceFormatElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFontFaceNameElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFontFaceNameElement {
+  SVGFontFaceNameElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFontFaceSrcElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFontFaceSrcElement {
+  SVGFontFaceSrcElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGFontFaceUriElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGFontFaceUriElement {
+  SVGFontFaceUriElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGForeignObjectElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGForeignObjectElement {
+  SVGForeignObjectElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGGElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGGElement {
+  SVGGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGGlyphElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGGlyphElement {
+  SVGGlyphElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGGlyphRefElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGGlyphRefElement {
+  SVGGlyphRefElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get dx() { return _ptr.dx; }
+
+  void set dx(num value) { _ptr.dx = value; }
+
+  num get dy() { return _ptr.dy; }
+
+  void set dy(num value) { _ptr.dy = value; }
+
+  String get format() { return _ptr.format; }
+
+  void set format(String value) { _ptr.format = value; }
+
+  String get glyphRef() { return _ptr.glyphRef; }
+
+  void set glyphRef(String value) { _ptr.glyphRef = value; }
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGGradientElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGGradientElement {
+  SVGGradientElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedTransformList get gradientTransform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.gradientTransform); }
+
+  SVGAnimatedEnumeration get gradientUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.gradientUnits); }
+
+  SVGAnimatedEnumeration get spreadMethod() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.spreadMethod); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGHKernElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGHKernElement {
+  SVGHKernElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGImageElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGImageElement {
+  SVGImageElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGLangSpaceWrappingImplementation extends DOMWrapperBase implements SVGLangSpace {
+  SVGLangSpaceWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGLengthListWrappingImplementation extends DOMWrapperBase implements SVGLengthList {
+  SVGLengthListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get numberOfItems() { return _ptr.numberOfItems; }
+
+  SVGLength appendItem(SVGLength item) {
+    return LevelDom.wrapSVGLength(_ptr.appendItem(LevelDom.unwrap(item)));
+  }
+
+  void clear() {
+    _ptr.clear();
+    return;
+  }
+
+  SVGLength getItem(int index) {
+    return LevelDom.wrapSVGLength(_ptr.getItem(index));
+  }
+
+  SVGLength initialize(SVGLength item) {
+    return LevelDom.wrapSVGLength(_ptr.initialize(LevelDom.unwrap(item)));
+  }
+
+  SVGLength insertItemBefore(SVGLength item, int index) {
+    return LevelDom.wrapSVGLength(_ptr.insertItemBefore(LevelDom.unwrap(item), index));
+  }
+
+  SVGLength removeItem(int index) {
+    return LevelDom.wrapSVGLength(_ptr.removeItem(index));
+  }
+
+  SVGLength replaceItem(SVGLength item, int index) {
+    return LevelDom.wrapSVGLength(_ptr.replaceItem(LevelDom.unwrap(item), index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGLengthWrappingImplementation extends DOMWrapperBase implements SVGLength {
+  SVGLengthWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get unitType() { return _ptr.unitType; }
+
+  num get value() { return _ptr.value; }
+
+  void set value(num value) { _ptr.value = value; }
+
+  String get valueAsString() { return _ptr.valueAsString; }
+
+  void set valueAsString(String value) { _ptr.valueAsString = value; }
+
+  num get valueInSpecifiedUnits() { return _ptr.valueInSpecifiedUnits; }
+
+  void set valueInSpecifiedUnits(num value) { _ptr.valueInSpecifiedUnits = value; }
+
+  void convertToSpecifiedUnits(int unitType) {
+    _ptr.convertToSpecifiedUnits(unitType);
+    return;
+  }
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) {
+    _ptr.newValueSpecifiedUnits(unitType, valueInSpecifiedUnits);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGLineElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGLineElement {
+  SVGLineElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get x1() { return LevelDom.wrapSVGAnimatedLength(_ptr.x1); }
+
+  SVGAnimatedLength get x2() { return LevelDom.wrapSVGAnimatedLength(_ptr.x2); }
+
+  SVGAnimatedLength get y1() { return LevelDom.wrapSVGAnimatedLength(_ptr.y1); }
+
+  SVGAnimatedLength get y2() { return LevelDom.wrapSVGAnimatedLength(_ptr.y2); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGLinearGradientElementWrappingImplementation extends SVGGradientElementWrappingImplementation implements SVGLinearGradientElement {
+  SVGLinearGradientElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get x1() { return LevelDom.wrapSVGAnimatedLength(_ptr.x1); }
+
+  SVGAnimatedLength get x2() { return LevelDom.wrapSVGAnimatedLength(_ptr.x2); }
+
+  SVGAnimatedLength get y1() { return LevelDom.wrapSVGAnimatedLength(_ptr.y1); }
+
+  SVGAnimatedLength get y2() { return LevelDom.wrapSVGAnimatedLength(_ptr.y2); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGLocatableWrappingImplementation extends DOMWrapperBase implements SVGLocatable {
+  SVGLocatableWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGMPathElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGMPathElement {
+  SVGMPathElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGMarkerElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGMarkerElement {
+  SVGMarkerElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get markerHeight() { return LevelDom.wrapSVGAnimatedLength(_ptr.markerHeight); }
+
+  SVGAnimatedEnumeration get markerUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.markerUnits); }
+
+  SVGAnimatedLength get markerWidth() { return LevelDom.wrapSVGAnimatedLength(_ptr.markerWidth); }
+
+  SVGAnimatedAngle get orientAngle() { return LevelDom.wrapSVGAnimatedAngle(_ptr.orientAngle); }
+
+  SVGAnimatedEnumeration get orientType() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.orientType); }
+
+  SVGAnimatedLength get refX() { return LevelDom.wrapSVGAnimatedLength(_ptr.refX); }
+
+  SVGAnimatedLength get refY() { return LevelDom.wrapSVGAnimatedLength(_ptr.refY); }
+
+  void setOrientToAngle(SVGAngle angle) {
+    _ptr.setOrientToAngle(LevelDom.unwrap(angle));
+    return;
+  }
+
+  void setOrientToAuto() {
+    _ptr.setOrientToAuto();
+    return;
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedRect get viewBox() { return LevelDom.wrapSVGAnimatedRect(_ptr.viewBox); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGMaskElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGMaskElement {
+  SVGMaskElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedEnumeration get maskContentUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.maskContentUnits); }
+
+  SVGAnimatedEnumeration get maskUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.maskUnits); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGMatrixWrappingImplementation extends DOMWrapperBase implements SVGMatrix {
+  SVGMatrixWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get a() { return _ptr.a; }
+
+  void set a(num value) { _ptr.a = value; }
+
+  num get b() { return _ptr.b; }
+
+  void set b(num value) { _ptr.b = value; }
+
+  num get c() { return _ptr.c; }
+
+  void set c(num value) { _ptr.c = value; }
+
+  num get d() { return _ptr.d; }
+
+  void set d(num value) { _ptr.d = value; }
+
+  num get e() { return _ptr.e; }
+
+  void set e(num value) { _ptr.e = value; }
+
+  num get f() { return _ptr.f; }
+
+  void set f(num value) { _ptr.f = value; }
+
+  SVGMatrix flipX() {
+    return LevelDom.wrapSVGMatrix(_ptr.flipX());
+  }
+
+  SVGMatrix flipY() {
+    return LevelDom.wrapSVGMatrix(_ptr.flipY());
+  }
+
+  SVGMatrix inverse() {
+    return LevelDom.wrapSVGMatrix(_ptr.inverse());
+  }
+
+  SVGMatrix multiply(SVGMatrix secondMatrix) {
+    return LevelDom.wrapSVGMatrix(_ptr.multiply(LevelDom.unwrap(secondMatrix)));
+  }
+
+  SVGMatrix rotate(num angle) {
+    return LevelDom.wrapSVGMatrix(_ptr.rotate(angle));
+  }
+
+  SVGMatrix rotateFromVector(num x, num y) {
+    return LevelDom.wrapSVGMatrix(_ptr.rotateFromVector(x, y));
+  }
+
+  SVGMatrix scale(num scaleFactor) {
+    return LevelDom.wrapSVGMatrix(_ptr.scale(scaleFactor));
+  }
+
+  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) {
+    return LevelDom.wrapSVGMatrix(_ptr.scaleNonUniform(scaleFactorX, scaleFactorY));
+  }
+
+  SVGMatrix skewX(num angle) {
+    return LevelDom.wrapSVGMatrix(_ptr.skewX(angle));
+  }
+
+  SVGMatrix skewY(num angle) {
+    return LevelDom.wrapSVGMatrix(_ptr.skewY(angle));
+  }
+
+  SVGMatrix translate(num x, num y) {
+    return LevelDom.wrapSVGMatrix(_ptr.translate(x, y));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGMetadataElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGMetadataElement {
+  SVGMetadataElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGMissingGlyphElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGMissingGlyphElement {
+  SVGMissingGlyphElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGNumberListWrappingImplementation extends DOMWrapperBase implements SVGNumberList {
+  SVGNumberListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get numberOfItems() { return _ptr.numberOfItems; }
+
+  SVGNumber appendItem(SVGNumber item) {
+    return LevelDom.wrapSVGNumber(_ptr.appendItem(LevelDom.unwrap(item)));
+  }
+
+  void clear() {
+    _ptr.clear();
+    return;
+  }
+
+  SVGNumber getItem(int index) {
+    return LevelDom.wrapSVGNumber(_ptr.getItem(index));
+  }
+
+  SVGNumber initialize(SVGNumber item) {
+    return LevelDom.wrapSVGNumber(_ptr.initialize(LevelDom.unwrap(item)));
+  }
+
+  SVGNumber insertItemBefore(SVGNumber item, int index) {
+    return LevelDom.wrapSVGNumber(_ptr.insertItemBefore(LevelDom.unwrap(item), index));
+  }
+
+  SVGNumber removeItem(int index) {
+    return LevelDom.wrapSVGNumber(_ptr.removeItem(index));
+  }
+
+  SVGNumber replaceItem(SVGNumber item, int index) {
+    return LevelDom.wrapSVGNumber(_ptr.replaceItem(LevelDom.unwrap(item), index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGNumberWrappingImplementation extends DOMWrapperBase implements SVGNumber {
+  SVGNumberWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get value() { return _ptr.value; }
+
+  void set value(num value) { _ptr.value = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPaintWrappingImplementation extends SVGColorWrappingImplementation implements SVGPaint {
+  SVGPaintWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get paintType() { return _ptr.paintType; }
+
+  String get uri() { return _ptr.uri; }
+
+  void setPaint(int paintType, String uri, String rgbColor, String iccColor) {
+    _ptr.setPaint(paintType, uri, rgbColor, iccColor);
+    return;
+  }
+
+  void setUri(String uri) {
+    _ptr.setUri(uri);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGPathElement {
+  SVGPathElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGPathSegList get animatedNormalizedPathSegList() { return LevelDom.wrapSVGPathSegList(_ptr.animatedNormalizedPathSegList); }
+
+  SVGPathSegList get animatedPathSegList() { return LevelDom.wrapSVGPathSegList(_ptr.animatedPathSegList); }
+
+  SVGPathSegList get normalizedPathSegList() { return LevelDom.wrapSVGPathSegList(_ptr.normalizedPathSegList); }
+
+  SVGAnimatedNumber get pathLength() { return LevelDom.wrapSVGAnimatedNumber(_ptr.pathLength); }
+
+  SVGPathSegList get pathSegList() { return LevelDom.wrapSVGPathSegList(_ptr.pathSegList); }
+
+  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) {
+    return LevelDom.wrapSVGPathSegArcAbs(_ptr.createSVGPathSegArcAbs(x, y, r1, r2, angle, largeArcFlag, sweepFlag));
+  }
+
+  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) {
+    return LevelDom.wrapSVGPathSegArcRel(_ptr.createSVGPathSegArcRel(x, y, r1, r2, angle, largeArcFlag, sweepFlag));
+  }
+
+  SVGPathSegClosePath createSVGPathSegClosePath() {
+    return LevelDom.wrapSVGPathSegClosePath(_ptr.createSVGPathSegClosePath());
+  }
+
+  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) {
+    return LevelDom.wrapSVGPathSegCurvetoCubicAbs(_ptr.createSVGPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2));
+  }
+
+  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) {
+    return LevelDom.wrapSVGPathSegCurvetoCubicRel(_ptr.createSVGPathSegCurvetoCubicRel(x, y, x1, y1, x2, y2));
+  }
+
+  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) {
+    return LevelDom.wrapSVGPathSegCurvetoCubicSmoothAbs(_ptr.createSVGPathSegCurvetoCubicSmoothAbs(x, y, x2, y2));
+  }
+
+  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) {
+    return LevelDom.wrapSVGPathSegCurvetoCubicSmoothRel(_ptr.createSVGPathSegCurvetoCubicSmoothRel(x, y, x2, y2));
+  }
+
+  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) {
+    return LevelDom.wrapSVGPathSegCurvetoQuadraticAbs(_ptr.createSVGPathSegCurvetoQuadraticAbs(x, y, x1, y1));
+  }
+
+  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) {
+    return LevelDom.wrapSVGPathSegCurvetoQuadraticRel(_ptr.createSVGPathSegCurvetoQuadraticRel(x, y, x1, y1));
+  }
+
+  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) {
+    return LevelDom.wrapSVGPathSegCurvetoQuadraticSmoothAbs(_ptr.createSVGPathSegCurvetoQuadraticSmoothAbs(x, y));
+  }
+
+  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) {
+    return LevelDom.wrapSVGPathSegCurvetoQuadraticSmoothRel(_ptr.createSVGPathSegCurvetoQuadraticSmoothRel(x, y));
+  }
+
+  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y) {
+    return LevelDom.wrapSVGPathSegLinetoAbs(_ptr.createSVGPathSegLinetoAbs(x, y));
+  }
+
+  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x) {
+    return LevelDom.wrapSVGPathSegLinetoHorizontalAbs(_ptr.createSVGPathSegLinetoHorizontalAbs(x));
+  }
+
+  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x) {
+    return LevelDom.wrapSVGPathSegLinetoHorizontalRel(_ptr.createSVGPathSegLinetoHorizontalRel(x));
+  }
+
+  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y) {
+    return LevelDom.wrapSVGPathSegLinetoRel(_ptr.createSVGPathSegLinetoRel(x, y));
+  }
+
+  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y) {
+    return LevelDom.wrapSVGPathSegLinetoVerticalAbs(_ptr.createSVGPathSegLinetoVerticalAbs(y));
+  }
+
+  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y) {
+    return LevelDom.wrapSVGPathSegLinetoVerticalRel(_ptr.createSVGPathSegLinetoVerticalRel(y));
+  }
+
+  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y) {
+    return LevelDom.wrapSVGPathSegMovetoAbs(_ptr.createSVGPathSegMovetoAbs(x, y));
+  }
+
+  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y) {
+    return LevelDom.wrapSVGPathSegMovetoRel(_ptr.createSVGPathSegMovetoRel(x, y));
+  }
+
+  int getPathSegAtLength(num distance) {
+    return _ptr.getPathSegAtLength(distance);
+  }
+
+  SVGPoint getPointAtLength(num distance) {
+    return LevelDom.wrapSVGPoint(_ptr.getPointAtLength(distance));
+  }
+
+  num getTotalLength() {
+    return _ptr.getTotalLength();
+  }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegArcAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegArcAbs {
+  SVGPathSegArcAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get angle() { return _ptr.angle; }
+
+  void set angle(num value) { _ptr.angle = value; }
+
+  bool get largeArcFlag() { return _ptr.largeArcFlag; }
+
+  void set largeArcFlag(bool value) { _ptr.largeArcFlag = value; }
+
+  num get r1() { return _ptr.r1; }
+
+  void set r1(num value) { _ptr.r1 = value; }
+
+  num get r2() { return _ptr.r2; }
+
+  void set r2(num value) { _ptr.r2 = value; }
+
+  bool get sweepFlag() { return _ptr.sweepFlag; }
+
+  void set sweepFlag(bool value) { _ptr.sweepFlag = value; }
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegArcRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegArcRel {
+  SVGPathSegArcRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get angle() { return _ptr.angle; }
+
+  void set angle(num value) { _ptr.angle = value; }
+
+  bool get largeArcFlag() { return _ptr.largeArcFlag; }
+
+  void set largeArcFlag(bool value) { _ptr.largeArcFlag = value; }
+
+  num get r1() { return _ptr.r1; }
+
+  void set r1(num value) { _ptr.r1 = value; }
+
+  num get r2() { return _ptr.r2; }
+
+  void set r2(num value) { _ptr.r2 = value; }
+
+  bool get sweepFlag() { return _ptr.sweepFlag; }
+
+  void set sweepFlag(bool value) { _ptr.sweepFlag = value; }
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegClosePathWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegClosePath {
+  SVGPathSegClosePathWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoCubicAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoCubicAbs {
+  SVGPathSegCurvetoCubicAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get x1() { return _ptr.x1; }
+
+  void set x1(num value) { _ptr.x1 = value; }
+
+  num get x2() { return _ptr.x2; }
+
+  void set x2(num value) { _ptr.x2 = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  num get y1() { return _ptr.y1; }
+
+  void set y1(num value) { _ptr.y1 = value; }
+
+  num get y2() { return _ptr.y2; }
+
+  void set y2(num value) { _ptr.y2 = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoCubicRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoCubicRel {
+  SVGPathSegCurvetoCubicRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get x1() { return _ptr.x1; }
+
+  void set x1(num value) { _ptr.x1 = value; }
+
+  num get x2() { return _ptr.x2; }
+
+  void set x2(num value) { _ptr.x2 = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  num get y1() { return _ptr.y1; }
+
+  void set y1(num value) { _ptr.y1 = value; }
+
+  num get y2() { return _ptr.y2; }
+
+  void set y2(num value) { _ptr.y2 = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoCubicSmoothAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoCubicSmoothAbs {
+  SVGPathSegCurvetoCubicSmoothAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get x2() { return _ptr.x2; }
+
+  void set x2(num value) { _ptr.x2 = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  num get y2() { return _ptr.y2; }
+
+  void set y2(num value) { _ptr.y2 = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoCubicSmoothRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoCubicSmoothRel {
+  SVGPathSegCurvetoCubicSmoothRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get x2() { return _ptr.x2; }
+
+  void set x2(num value) { _ptr.x2 = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  num get y2() { return _ptr.y2; }
+
+  void set y2(num value) { _ptr.y2 = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoQuadraticAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoQuadraticAbs {
+  SVGPathSegCurvetoQuadraticAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get x1() { return _ptr.x1; }
+
+  void set x1(num value) { _ptr.x1 = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  num get y1() { return _ptr.y1; }
+
+  void set y1(num value) { _ptr.y1 = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoQuadraticRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoQuadraticRel {
+  SVGPathSegCurvetoQuadraticRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get x1() { return _ptr.x1; }
+
+  void set x1(num value) { _ptr.x1 = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  num get y1() { return _ptr.y1; }
+
+  void set y1(num value) { _ptr.y1 = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoQuadraticSmoothAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoQuadraticSmoothAbs {
+  SVGPathSegCurvetoQuadraticSmoothAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegCurvetoQuadraticSmoothRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegCurvetoQuadraticSmoothRel {
+  SVGPathSegCurvetoQuadraticSmoothRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegLinetoAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegLinetoAbs {
+  SVGPathSegLinetoAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegLinetoHorizontalAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegLinetoHorizontalAbs {
+  SVGPathSegLinetoHorizontalAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegLinetoHorizontalRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegLinetoHorizontalRel {
+  SVGPathSegLinetoHorizontalRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegLinetoRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegLinetoRel {
+  SVGPathSegLinetoRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegLinetoVerticalAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegLinetoVerticalAbs {
+  SVGPathSegLinetoVerticalAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegLinetoVerticalRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegLinetoVerticalRel {
+  SVGPathSegLinetoVerticalRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegListWrappingImplementation extends DOMWrapperBase implements SVGPathSegList {
+  SVGPathSegListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get numberOfItems() { return _ptr.numberOfItems; }
+
+  SVGPathSeg appendItem(SVGPathSeg newItem) {
+    return LevelDom.wrapSVGPathSeg(_ptr.appendItem(LevelDom.unwrap(newItem)));
+  }
+
+  void clear() {
+    _ptr.clear();
+    return;
+  }
+
+  SVGPathSeg getItem(int index) {
+    return LevelDom.wrapSVGPathSeg(_ptr.getItem(index));
+  }
+
+  SVGPathSeg initialize(SVGPathSeg newItem) {
+    return LevelDom.wrapSVGPathSeg(_ptr.initialize(LevelDom.unwrap(newItem)));
+  }
+
+  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) {
+    return LevelDom.wrapSVGPathSeg(_ptr.insertItemBefore(LevelDom.unwrap(newItem), index));
+  }
+
+  SVGPathSeg removeItem(int index) {
+    return LevelDom.wrapSVGPathSeg(_ptr.removeItem(index));
+  }
+
+  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) {
+    return LevelDom.wrapSVGPathSeg(_ptr.replaceItem(LevelDom.unwrap(newItem), index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegMovetoAbsWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegMovetoAbs {
+  SVGPathSegMovetoAbsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegMovetoRelWrappingImplementation extends SVGPathSegWrappingImplementation implements SVGPathSegMovetoRel {
+  SVGPathSegMovetoRelWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPathSegWrappingImplementation extends DOMWrapperBase implements SVGPathSeg {
+  SVGPathSegWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get pathSegType() { return _ptr.pathSegType; }
+
+  String get pathSegTypeAsLetter() { return _ptr.pathSegTypeAsLetter; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPatternElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGPatternElement {
+  SVGPatternElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedEnumeration get patternContentUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.patternContentUnits); }
+
+  SVGAnimatedTransformList get patternTransform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.patternTransform); }
+
+  SVGAnimatedEnumeration get patternUnits() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.patternUnits); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedRect get viewBox() { return LevelDom.wrapSVGAnimatedRect(_ptr.viewBox); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPointListWrappingImplementation extends DOMWrapperBase implements SVGPointList {
+  SVGPointListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get numberOfItems() { return _ptr.numberOfItems; }
+
+  SVGPoint appendItem(SVGPoint item) {
+    return LevelDom.wrapSVGPoint(_ptr.appendItem(LevelDom.unwrap(item)));
+  }
+
+  void clear() {
+    _ptr.clear();
+    return;
+  }
+
+  SVGPoint getItem(int index) {
+    return LevelDom.wrapSVGPoint(_ptr.getItem(index));
+  }
+
+  SVGPoint initialize(SVGPoint item) {
+    return LevelDom.wrapSVGPoint(_ptr.initialize(LevelDom.unwrap(item)));
+  }
+
+  SVGPoint insertItemBefore(SVGPoint item, int index) {
+    return LevelDom.wrapSVGPoint(_ptr.insertItemBefore(LevelDom.unwrap(item), index));
+  }
+
+  SVGPoint removeItem(int index) {
+    return LevelDom.wrapSVGPoint(_ptr.removeItem(index));
+  }
+
+  SVGPoint replaceItem(SVGPoint item, int index) {
+    return LevelDom.wrapSVGPoint(_ptr.replaceItem(LevelDom.unwrap(item), index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPointWrappingImplementation extends DOMWrapperBase implements SVGPoint {
+  SVGPointWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+
+  SVGPoint matrixTransform(SVGMatrix matrix) {
+    return LevelDom.wrapSVGPoint(_ptr.matrixTransform(LevelDom.unwrap(matrix)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPolygonElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGPolygonElement {
+  SVGPolygonElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGPointList get animatedPoints() { return LevelDom.wrapSVGPointList(_ptr.animatedPoints); }
+
+  SVGPointList get points() { return LevelDom.wrapSVGPointList(_ptr.points); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPolylineElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGPolylineElement {
+  SVGPolylineElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGPointList get animatedPoints() { return LevelDom.wrapSVGPointList(_ptr.animatedPoints); }
+
+  SVGPointList get points() { return LevelDom.wrapSVGPointList(_ptr.points); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGPreserveAspectRatioWrappingImplementation extends DOMWrapperBase implements SVGPreserveAspectRatio {
+  SVGPreserveAspectRatioWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get align() { return _ptr.align; }
+
+  void set align(int value) { _ptr.align = value; }
+
+  int get meetOrSlice() { return _ptr.meetOrSlice; }
+
+  void set meetOrSlice(int value) { _ptr.meetOrSlice = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGRadialGradientElementWrappingImplementation extends SVGGradientElementWrappingImplementation implements SVGRadialGradientElement {
+  SVGRadialGradientElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get cx() { return LevelDom.wrapSVGAnimatedLength(_ptr.cx); }
+
+  SVGAnimatedLength get cy() { return LevelDom.wrapSVGAnimatedLength(_ptr.cy); }
+
+  SVGAnimatedLength get fx() { return LevelDom.wrapSVGAnimatedLength(_ptr.fx); }
+
+  SVGAnimatedLength get fy() { return LevelDom.wrapSVGAnimatedLength(_ptr.fy); }
+
+  SVGAnimatedLength get r() { return LevelDom.wrapSVGAnimatedLength(_ptr.r); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGRectElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGRectElement {
+  SVGRectElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGAnimatedLength get rx() { return LevelDom.wrapSVGAnimatedLength(_ptr.rx); }
+
+  SVGAnimatedLength get ry() { return LevelDom.wrapSVGAnimatedLength(_ptr.ry); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGRectWrappingImplementation extends DOMWrapperBase implements SVGRect {
+  SVGRectWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get height() { return _ptr.height; }
+
+  void set height(num value) { _ptr.height = value; }
+
+  num get width() { return _ptr.width; }
+
+  void set width(num value) { _ptr.width = value; }
+
+  num get x() { return _ptr.x; }
+
+  void set x(num value) { _ptr.x = value; }
+
+  num get y() { return _ptr.y; }
+
+  void set y(num value) { _ptr.y = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGRenderingIntentWrappingImplementation extends DOMWrapperBase implements SVGRenderingIntent {
+  SVGRenderingIntentWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGSVGElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGSVGElement {
+  SVGSVGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get contentScriptType() { return _ptr.contentScriptType; }
+
+  void set contentScriptType(String value) { _ptr.contentScriptType = value; }
+
+  String get contentStyleType() { return _ptr.contentStyleType; }
+
+  void set contentStyleType(String value) { _ptr.contentStyleType = value; }
+
+  num get currentScale() { return _ptr.currentScale; }
+
+  void set currentScale(num value) { _ptr.currentScale = value; }
+
+  SVGPoint get currentTranslate() { return LevelDom.wrapSVGPoint(_ptr.currentTranslate); }
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  num get pixelUnitToMillimeterX() { return _ptr.pixelUnitToMillimeterX; }
+
+  num get pixelUnitToMillimeterY() { return _ptr.pixelUnitToMillimeterY; }
+
+  num get screenPixelToMillimeterX() { return _ptr.screenPixelToMillimeterX; }
+
+  num get screenPixelToMillimeterY() { return _ptr.screenPixelToMillimeterY; }
+
+  bool get useCurrentView() { return _ptr.useCurrentView; }
+
+  void set useCurrentView(bool value) { _ptr.useCurrentView = value; }
+
+  SVGRect get viewport() { return LevelDom.wrapSVGRect(_ptr.viewport); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  bool animationsPaused() {
+    return _ptr.animationsPaused();
+  }
+
+  bool checkEnclosure(SVGElement element, SVGRect rect) {
+    return _ptr.checkEnclosure(LevelDom.unwrap(element), LevelDom.unwrap(rect));
+  }
+
+  bool checkIntersection(SVGElement element, SVGRect rect) {
+    return _ptr.checkIntersection(LevelDom.unwrap(element), LevelDom.unwrap(rect));
+  }
+
+  SVGAngle createSVGAngle() {
+    return LevelDom.wrapSVGAngle(_ptr.createSVGAngle());
+  }
+
+  SVGLength createSVGLength() {
+    return LevelDom.wrapSVGLength(_ptr.createSVGLength());
+  }
+
+  SVGMatrix createSVGMatrix() {
+    return LevelDom.wrapSVGMatrix(_ptr.createSVGMatrix());
+  }
+
+  SVGNumber createSVGNumber() {
+    return LevelDom.wrapSVGNumber(_ptr.createSVGNumber());
+  }
+
+  SVGPoint createSVGPoint() {
+    return LevelDom.wrapSVGPoint(_ptr.createSVGPoint());
+  }
+
+  SVGRect createSVGRect() {
+    return LevelDom.wrapSVGRect(_ptr.createSVGRect());
+  }
+
+  SVGTransform createSVGTransform() {
+    return LevelDom.wrapSVGTransform(_ptr.createSVGTransform());
+  }
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) {
+    return LevelDom.wrapSVGTransform(_ptr.createSVGTransformFromMatrix(LevelDom.unwrap(matrix)));
+  }
+
+  void deselectAll() {
+    _ptr.deselectAll();
+    return;
+  }
+
+  void forceRedraw() {
+    _ptr.forceRedraw();
+    return;
+  }
+
+  num getCurrentTime() {
+    return _ptr.getCurrentTime();
+  }
+
+  Element getElementById(String elementId) {
+    return LevelDom.wrapElement(_ptr.getElementById(elementId));
+  }
+
+  ElementList getEnclosureList(SVGRect rect, SVGElement referenceElement) {
+    return LevelDom.wrapElementList(_ptr.getEnclosureList(LevelDom.unwrap(rect), LevelDom.unwrap(referenceElement)));
+  }
+
+  ElementList getIntersectionList(SVGRect rect, SVGElement referenceElement) {
+    return LevelDom.wrapElementList(_ptr.getIntersectionList(LevelDom.unwrap(rect), LevelDom.unwrap(referenceElement)));
+  }
+
+  void pauseAnimations() {
+    _ptr.pauseAnimations();
+    return;
+  }
+
+  void setCurrentTime(num seconds) {
+    _ptr.setCurrentTime(seconds);
+    return;
+  }
+
+  int suspendRedraw(int maxWaitMilliseconds) {
+    return _ptr.suspendRedraw(maxWaitMilliseconds);
+  }
+
+  void unpauseAnimations() {
+    _ptr.unpauseAnimations();
+    return;
+  }
+
+  void unsuspendRedraw(int suspendHandleId) {
+    _ptr.unsuspendRedraw(suspendHandleId);
+    return;
+  }
+
+  void unsuspendRedrawAll() {
+    _ptr.unsuspendRedrawAll();
+    return;
+  }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedRect get viewBox() { return LevelDom.wrapSVGAnimatedRect(_ptr.viewBox); }
+
+  // From SVGZoomAndPan
+
+  int get zoomAndPan() { return _ptr.zoomAndPan; }
+
+  void set zoomAndPan(int value) { _ptr.zoomAndPan = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGScriptElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGScriptElement {
+  SVGScriptElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get type() { return _ptr.type; }
+
+  void set type(String value) { _ptr.type = value; }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGSetElementWrappingImplementation extends SVGAnimationElementWrappingImplementation implements SVGSetElement {
+  SVGSetElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGStopElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGStopElement {
+  SVGStopElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedNumber get offset() { return LevelDom.wrapSVGAnimatedNumber(_ptr.offset); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGStringListWrappingImplementation extends DOMWrapperBase implements SVGStringList {
+  SVGStringListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get numberOfItems() { return _ptr.numberOfItems; }
+
+  String appendItem(String item) {
+    return _ptr.appendItem(item);
+  }
+
+  void clear() {
+    _ptr.clear();
+    return;
+  }
+
+  String getItem(int index) {
+    return _ptr.getItem(index);
+  }
+
+  String initialize(String item) {
+    return _ptr.initialize(item);
+  }
+
+  String insertItemBefore(String item, int index) {
+    return _ptr.insertItemBefore(item, index);
+  }
+
+  String removeItem(int index) {
+    return _ptr.removeItem(index);
+  }
+
+  String replaceItem(String item, int index) {
+    return _ptr.replaceItem(item, index);
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGStylableWrappingImplementation extends DOMWrapperBase implements SVGStylable {
+  SVGStylableWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGStyleElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGStyleElement {
+  SVGStyleElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get media() { return _ptr.media; }
+
+  void set media(String value) { _ptr.media = value; }
+
+  String get title() { return _ptr.title; }
+
+  void set title(String value) { _ptr.title = value; }
+
+  String get type() { return _ptr.type; }
+
+  void set type(String value) { _ptr.type = value; }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGSwitchElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGSwitchElement {
+  SVGSwitchElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGSymbolElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGSymbolElement {
+  SVGSymbolElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedRect get viewBox() { return LevelDom.wrapSVGAnimatedRect(_ptr.viewBox); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTRefElementWrappingImplementation extends SVGTextPositioningElementWrappingImplementation implements SVGTRefElement {
+  SVGTRefElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTSpanElementWrappingImplementation extends SVGTextPositioningElementWrappingImplementation implements SVGTSpanElement {
+  SVGTSpanElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTestsWrappingImplementation extends DOMWrapperBase implements SVGTests {
+  SVGTestsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTextContentElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGTextContentElement {
+  SVGTextContentElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedEnumeration get lengthAdjust() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.lengthAdjust); }
+
+  SVGAnimatedLength get textLength() { return LevelDom.wrapSVGAnimatedLength(_ptr.textLength); }
+
+  int getCharNumAtPosition(SVGPoint point) {
+    return _ptr.getCharNumAtPosition(LevelDom.unwrap(point));
+  }
+
+  num getComputedTextLength() {
+    return _ptr.getComputedTextLength();
+  }
+
+  SVGPoint getEndPositionOfChar(int offset) {
+    return LevelDom.wrapSVGPoint(_ptr.getEndPositionOfChar(offset));
+  }
+
+  SVGRect getExtentOfChar(int offset) {
+    return LevelDom.wrapSVGRect(_ptr.getExtentOfChar(offset));
+  }
+
+  int getNumberOfChars() {
+    return _ptr.getNumberOfChars();
+  }
+
+  num getRotationOfChar(int offset) {
+    return _ptr.getRotationOfChar(offset);
+  }
+
+  SVGPoint getStartPositionOfChar(int offset) {
+    return LevelDom.wrapSVGPoint(_ptr.getStartPositionOfChar(offset));
+  }
+
+  num getSubStringLength(int offset, int length) {
+    return _ptr.getSubStringLength(offset, length);
+  }
+
+  void selectSubString(int offset, int length) {
+    _ptr.selectSubString(offset, length);
+    return;
+  }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTextElementWrappingImplementation extends SVGTextPositioningElementWrappingImplementation implements SVGTextElement {
+  SVGTextElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTextPathElementWrappingImplementation extends SVGTextContentElementWrappingImplementation implements SVGTextPathElement {
+  SVGTextPathElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedEnumeration get method() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.method); }
+
+  SVGAnimatedEnumeration get spacing() { return LevelDom.wrapSVGAnimatedEnumeration(_ptr.spacing); }
+
+  SVGAnimatedLength get startOffset() { return LevelDom.wrapSVGAnimatedLength(_ptr.startOffset); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTextPositioningElementWrappingImplementation extends SVGTextContentElementWrappingImplementation implements SVGTextPositioningElement {
+  SVGTextPositioningElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedLengthList get dx() { return LevelDom.wrapSVGAnimatedLengthList(_ptr.dx); }
+
+  SVGAnimatedLengthList get dy() { return LevelDom.wrapSVGAnimatedLengthList(_ptr.dy); }
+
+  SVGAnimatedNumberList get rotate() { return LevelDom.wrapSVGAnimatedNumberList(_ptr.rotate); }
+
+  SVGAnimatedLengthList get x() { return LevelDom.wrapSVGAnimatedLengthList(_ptr.x); }
+
+  SVGAnimatedLengthList get y() { return LevelDom.wrapSVGAnimatedLengthList(_ptr.y); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTitleElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGTitleElement {
+  SVGTitleElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTransformListWrappingImplementation extends DOMWrapperBase implements SVGTransformList {
+  SVGTransformListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get numberOfItems() { return _ptr.numberOfItems; }
+
+  SVGTransform appendItem(SVGTransform item) {
+    return LevelDom.wrapSVGTransform(_ptr.appendItem(LevelDom.unwrap(item)));
+  }
+
+  void clear() {
+    _ptr.clear();
+    return;
+  }
+
+  SVGTransform consolidate() {
+    return LevelDom.wrapSVGTransform(_ptr.consolidate());
+  }
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) {
+    return LevelDom.wrapSVGTransform(_ptr.createSVGTransformFromMatrix(LevelDom.unwrap(matrix)));
+  }
+
+  SVGTransform getItem(int index) {
+    return LevelDom.wrapSVGTransform(_ptr.getItem(index));
+  }
+
+  SVGTransform initialize(SVGTransform item) {
+    return LevelDom.wrapSVGTransform(_ptr.initialize(LevelDom.unwrap(item)));
+  }
+
+  SVGTransform insertItemBefore(SVGTransform item, int index) {
+    return LevelDom.wrapSVGTransform(_ptr.insertItemBefore(LevelDom.unwrap(item), index));
+  }
+
+  SVGTransform removeItem(int index) {
+    return LevelDom.wrapSVGTransform(_ptr.removeItem(index));
+  }
+
+  SVGTransform replaceItem(SVGTransform item, int index) {
+    return LevelDom.wrapSVGTransform(_ptr.replaceItem(LevelDom.unwrap(item), index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTransformWrappingImplementation extends DOMWrapperBase implements SVGTransform {
+  SVGTransformWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get angle() { return _ptr.angle; }
+
+  SVGMatrix get matrix() { return LevelDom.wrapSVGMatrix(_ptr.matrix); }
+
+  int get type() { return _ptr.type; }
+
+  void setMatrix(SVGMatrix matrix) {
+    _ptr.setMatrix(LevelDom.unwrap(matrix));
+    return;
+  }
+
+  void setRotate(num angle, num cx, num cy) {
+    _ptr.setRotate(angle, cx, cy);
+    return;
+  }
+
+  void setScale(num sx, num sy) {
+    _ptr.setScale(sx, sy);
+    return;
+  }
+
+  void setSkewX(num angle) {
+    _ptr.setSkewX(angle);
+    return;
+  }
+
+  void setSkewY(num angle) {
+    _ptr.setSkewY(angle);
+    return;
+  }
+
+  void setTranslate(num tx, num ty) {
+    _ptr.setTranslate(tx, ty);
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGTransformableWrappingImplementation extends SVGLocatableWrappingImplementation implements SVGTransformable {
+  SVGTransformableWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGURIReferenceWrappingImplementation extends DOMWrapperBase implements SVGURIReference {
+  SVGURIReferenceWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGUnitTypesWrappingImplementation extends DOMWrapperBase implements SVGUnitTypes {
+  SVGUnitTypesWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGUseElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGUseElement {
+  SVGUseElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGElementInstance get animatedInstanceRoot() { return LevelDom.wrapSVGElementInstance(_ptr.animatedInstanceRoot); }
+
+  SVGAnimatedLength get height() { return LevelDom.wrapSVGAnimatedLength(_ptr.height); }
+
+  SVGElementInstance get instanceRoot() { return LevelDom.wrapSVGElementInstance(_ptr.instanceRoot); }
+
+  SVGAnimatedLength get width() { return LevelDom.wrapSVGAnimatedLength(_ptr.width); }
+
+  SVGAnimatedLength get x() { return LevelDom.wrapSVGAnimatedLength(_ptr.x); }
+
+  SVGAnimatedLength get y() { return LevelDom.wrapSVGAnimatedLength(_ptr.y); }
+
+  // From SVGURIReference
+
+  SVGAnimatedString get href() { return LevelDom.wrapSVGAnimatedString(_ptr.href); }
+
+  // From SVGTests
+
+  SVGStringList get requiredExtensions() { return LevelDom.wrapSVGStringList(_ptr.requiredExtensions); }
+
+  SVGStringList get requiredFeatures() { return LevelDom.wrapSVGStringList(_ptr.requiredFeatures); }
+
+  SVGStringList get systemLanguage() { return LevelDom.wrapSVGStringList(_ptr.systemLanguage); }
+
+  bool hasExtension(String extension) {
+    return _ptr.hasExtension(extension);
+  }
+
+  // From SVGLangSpace
+
+  String get xmllang() { return _ptr.xmllang; }
+
+  void set xmllang(String value) { _ptr.xmllang = value; }
+
+  String get xmlspace() { return _ptr.xmlspace; }
+
+  void set xmlspace(String value) { _ptr.xmlspace = value; }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGStylable
+
+  SVGAnimatedString get className() { return LevelDom.wrapSVGAnimatedString(_ptr.className); }
+
+  CSSStyleDeclaration get style() { return LevelDom.wrapCSSStyleDeclaration(_ptr.style); }
+
+  CSSValue getPresentationAttribute(String name) {
+    return LevelDom.wrapCSSValue(_ptr.getPresentationAttribute(name));
+  }
+
+  // From SVGTransformable
+
+  SVGAnimatedTransformList get transform() { return LevelDom.wrapSVGAnimatedTransformList(_ptr.transform); }
+
+  // From SVGLocatable
+
+  SVGElement get farthestViewportElement() { return LevelDom.wrapSVGElement(_ptr.farthestViewportElement); }
+
+  SVGElement get nearestViewportElement() { return LevelDom.wrapSVGElement(_ptr.nearestViewportElement); }
+
+  SVGRect getBBox() {
+    return LevelDom.wrapSVGRect(_ptr.getBBox());
+  }
+
+  SVGMatrix getCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getCTM());
+  }
+
+  SVGMatrix getScreenCTM() {
+    return LevelDom.wrapSVGMatrix(_ptr.getScreenCTM());
+  }
+
+  SVGMatrix getTransformToElement(SVGElement element) {
+    return LevelDom.wrapSVGMatrix(_ptr.getTransformToElement(LevelDom.unwrap(element)));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGVKernElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGVKernElement {
+  SVGVKernElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGViewElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGViewElement {
+  SVGViewElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGStringList get viewTarget() { return LevelDom.wrapSVGStringList(_ptr.viewTarget); }
+
+  // From SVGExternalResourcesRequired
+
+  SVGAnimatedBoolean get externalResourcesRequired() { return LevelDom.wrapSVGAnimatedBoolean(_ptr.externalResourcesRequired); }
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedRect get viewBox() { return LevelDom.wrapSVGAnimatedRect(_ptr.viewBox); }
+
+  // From SVGZoomAndPan
+
+  int get zoomAndPan() { return _ptr.zoomAndPan; }
+
+  void set zoomAndPan(int value) { _ptr.zoomAndPan = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGViewSpecWrappingImplementation extends SVGZoomAndPanWrappingImplementation implements SVGViewSpec {
+  SVGViewSpecWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get preserveAspectRatioString() { return _ptr.preserveAspectRatioString; }
+
+  SVGTransformList get transform() { return LevelDom.wrapSVGTransformList(_ptr.transform); }
+
+  String get transformString() { return _ptr.transformString; }
+
+  String get viewBoxString() { return _ptr.viewBoxString; }
+
+  SVGElement get viewTarget() { return LevelDom.wrapSVGElement(_ptr.viewTarget); }
+
+  String get viewTargetString() { return _ptr.viewTargetString; }
+
+  // From SVGFitToViewBox
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() { return LevelDom.wrapSVGAnimatedPreserveAspectRatio(_ptr.preserveAspectRatio); }
+
+  SVGAnimatedRect get viewBox() { return LevelDom.wrapSVGAnimatedRect(_ptr.viewBox); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGZoomAndPanWrappingImplementation extends DOMWrapperBase implements SVGZoomAndPan {
+  SVGZoomAndPanWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get zoomAndPan() { return _ptr.zoomAndPan; }
+
+  void set zoomAndPan(int value) { _ptr.zoomAndPan = value; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGZoomEventWrappingImplementation extends UIEventWrappingImplementation implements SVGZoomEvent {
+  SVGZoomEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  num get newScale() { return _ptr.newScale; }
+
+  SVGPoint get newTranslate() { return LevelDom.wrapSVGPoint(_ptr.newTranslate); }
+
+  num get previousScale() { return _ptr.previousScale; }
+
+  SVGPoint get previousTranslate() { return LevelDom.wrapSVGPoint(_ptr.previousTranslate); }
+
+  SVGRect get zoomRectScreen() { return LevelDom.wrapSVGRect(_ptr.zoomRectScreen); }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6409,49 +11388,10 @@ class SpeechInputResultWrappingImplementation extends DOMWrapperBase implements 
 
 // WARNING: Do not edit - generated code.
 
-class StorageInfoErrorCallbackWrappingImplementation extends DOMWrapperBase implements StorageInfoErrorCallback {
-  StorageInfoErrorCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(DOMException error) {
-    return _ptr.handleEvent(LevelDom.unwrap(error));
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class StorageInfoQuotaCallbackWrappingImplementation extends DOMWrapperBase implements StorageInfoQuotaCallback {
-  StorageInfoQuotaCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(int grantedQuotaInBytes) {
-    return _ptr.handleEvent(grantedQuotaInBytes);
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class StorageInfoUsageCallbackWrappingImplementation extends DOMWrapperBase implements StorageInfoUsageCallback {
-  StorageInfoUsageCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes) {
-    return _ptr.handleEvent(currentUsageInBytes, currentQuotaInBytes);
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class StorageInfoWrappingImplementation extends DOMWrapperBase implements StorageInfo {
   StorageInfoWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback = null, StorageInfoErrorCallback errorCallback = null]) {
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) {
     if (usageCallback === null) {
       if (errorCallback === null) {
         _ptr.queryUsageAndQuota(storageType);
@@ -6462,14 +11402,14 @@ class StorageInfoWrappingImplementation extends DOMWrapperBase implements Storag
         _ptr.queryUsageAndQuota(storageType, LevelDom.unwrap(usageCallback));
         return;
       } else {
-        _ptr.queryUsageAndQuota(storageType, LevelDom.unwrap(usageCallback), LevelDom.unwrap(errorCallback));
+        _ptr.queryUsageAndQuota(storageType, LevelDom.unwrap(usageCallback), errorCallback);
         return;
       }
     }
     throw "Incorrect number or type of arguments";
   }
 
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) {
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) {
     if (quotaCallback === null) {
       if (errorCallback === null) {
         _ptr.requestQuota(storageType, newQuotaInBytes);
@@ -6477,10 +11417,10 @@ class StorageInfoWrappingImplementation extends DOMWrapperBase implements Storag
       }
     } else {
       if (errorCallback === null) {
-        _ptr.requestQuota(storageType, newQuotaInBytes, LevelDom.unwrap(quotaCallback));
+        _ptr.requestQuota(storageType, newQuotaInBytes, quotaCallback);
         return;
       } else {
-        _ptr.requestQuota(storageType, newQuotaInBytes, LevelDom.unwrap(quotaCallback), LevelDom.unwrap(errorCallback));
+        _ptr.requestQuota(storageType, newQuotaInBytes, quotaCallback, errorCallback);
         return;
       }
     }
@@ -6519,19 +11459,6 @@ class StorageWrappingImplementation extends DOMWrapperBase implements Storage {
   void setItem(String key, String data) {
     _ptr.setItem(key, data);
     return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class StringCallbackWrappingImplementation extends DOMWrapperBase implements StringCallback {
-  StringCallbackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  bool handleEvent(String data) {
-    return _ptr.handleEvent(data);
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -6584,11 +11511,11 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   int get length() { return _ptr.length; }
 
   StyleSheet operator[](int index) {
-    return item(index);
+    return LevelDom.wrapStyleSheet(_ptr[index]);
   }
 
   void operator[]=(int index, StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = LevelDom.unwrap(value);
   }
 
   void add(StyleSheet value) {
@@ -6616,7 +11543,7 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   }
 
   int lastIndexOf(StyleSheet element, [int start = null]) {
-    if (start == null) start = length - 1;
+    if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -7092,7 +12019,7 @@ class TextAreaElementWrappingImplementation extends ElementWrappingImplementatio
     return;
   }
 
-  void setSelectionRange(int start, int end, [String direction = null]) {
+  void setSelectionRange(int start, int end, [String direction]) {
     if (direction === null) {
       _ptr.setSelectionRange(start, end);
       return;
@@ -7112,6 +12039,99 @@ class TextMetricsWrappingImplementation extends DOMWrapperBase implements TextMe
   TextMetricsWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   num get width() { return _ptr.width; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class TextTrackCueListWrappingImplementation extends DOMWrapperBase implements TextTrackCueList {
+  TextTrackCueListWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get length() { return _ptr.length; }
+
+  TextTrackCue getCueById(String id) {
+    return LevelDom.wrapTextTrackCue(_ptr.getCueById(id));
+  }
+
+  TextTrackCue item(int index) {
+    return LevelDom.wrapTextTrackCue(_ptr.item(index));
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class TextTrackCueWrappingImplementation extends DOMWrapperBase implements TextTrackCue {
+  TextTrackCueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String get alignment() { return _ptr.alignment; }
+
+  String get direction() { return _ptr.direction; }
+
+  num get endTime() { return _ptr.endTime; }
+
+  String get id() { return _ptr.id; }
+
+  int get linePosition() { return _ptr.linePosition; }
+
+  bool get pauseOnExit() { return _ptr.pauseOnExit; }
+
+  int get size() { return _ptr.size; }
+
+  bool get snapToLines() { return _ptr.snapToLines; }
+
+  num get startTime() { return _ptr.startTime; }
+
+  int get textPosition() { return _ptr.textPosition; }
+
+  TextTrack get track() { return LevelDom.wrapTextTrack(_ptr.track); }
+
+  DocumentFragment getCueAsHTML() {
+    return LevelDom.wrapDocumentFragment(_ptr.getCueAsHTML());
+  }
+
+  String getCueAsSource() {
+    return _ptr.getCueAsSource();
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class TextTrackWrappingImplementation extends DOMWrapperBase implements TextTrack {
+  TextTrackWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  TextTrackCueList get activeCues() { return LevelDom.wrapTextTrackCueList(_ptr.activeCues); }
+
+  TextTrackCueList get cues() { return LevelDom.wrapTextTrackCueList(_ptr.cues); }
+
+  String get kind() { return _ptr.kind; }
+
+  String get label() { return _ptr.label; }
+
+  String get language() { return _ptr.language; }
+
+  int get mode() { return _ptr.mode; }
+
+  void set mode(int value) { _ptr.mode = value; }
+
+  int get readyState() { return _ptr.readyState; }
+
+  void addCue(TextTrackCue cue) {
+    _ptr.addCue(LevelDom.unwrap(cue));
+    return;
+  }
+
+  void removeCue(TextTrackCue cue) {
+    _ptr.removeCue(LevelDom.unwrap(cue));
+    return;
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7157,11 +12177,11 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
   int get length() { return _ptr.length; }
 
   Touch operator[](int index) {
-    return item(index);
+    return LevelDom.wrapTouch(_ptr[index]);
   }
 
   void operator[]=(int index, Touch value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = LevelDom.unwrap(value);
   }
 
   void add(Touch value) {
@@ -7310,6 +12330,8 @@ class TrackElementWrappingImplementation extends ElementWrappingImplementation i
   String get srclang() { return _ptr.srclang; }
 
   void set srclang(String value) { _ptr.srclang = value; }
+
+  TextTrack get track() { return LevelDom.wrapTextTrack(_ptr.track); }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7339,7 +12361,7 @@ class Uint16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplement
 
   int get length() { return _ptr.length; }
 
-  Uint16Array subarray(int start, [int end = null]) {
+  Uint16Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapUint16Array(_ptr.subarray(start));
     } else {
@@ -7358,7 +12380,7 @@ class Uint32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplement
 
   int get length() { return _ptr.length; }
 
-  Uint32Array subarray(int start, [int end = null]) {
+  Uint32Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapUint32Array(_ptr.subarray(start));
     } else {
@@ -7377,7 +12399,7 @@ class Uint8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Uint8Array subarray(int start, [int end = null]) {
+  Uint8Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapUint8Array(_ptr.subarray(start));
     } else {
@@ -7494,6 +12516,19 @@ class VoidCallbackWrappingImplementation extends DOMWrapperBase implements VoidC
 
 // WARNING: Do not edit - generated code.
 
+class WaveShaperNodeWrappingImplementation extends AudioNodeWrappingImplementation implements WaveShaperNode {
+  WaveShaperNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  Float32Array get curve() { return LevelDom.wrapFloat32Array(_ptr.curve); }
+
+  void set curve(Float32Array value) { _ptr.curve = LevelDom.unwrap(value); }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class WebGLActiveInfoWrappingImplementation extends DOMWrapperBase implements WebGLActiveInfo {
   WebGLActiveInfoWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -7555,6 +12590,28 @@ class WebGLContextEventWrappingImplementation extends EventWrappingImplementatio
   WebGLContextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   String get statusMessage() { return _ptr.statusMessage; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class WebGLDebugRendererInfoWrappingImplementation extends DOMWrapperBase implements WebGLDebugRendererInfo {
+  WebGLDebugRendererInfoWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class WebGLDebugShadersWrappingImplementation extends DOMWrapperBase implements WebGLDebugShaders {
+  WebGLDebugShadersWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  String getTranslatedShaderSource(WebGLShader shader) {
+    return _ptr.getTranslatedShaderSource(LevelDom.unwrap(shader));
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7658,15 +12715,15 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
 
   void bufferData(int target, var data_OR_size, int usage) {
     if (data_OR_size is ArrayBuffer) {
-      _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+      _ptr.bufferData(target, LevelDom.unwrapMaybePrimitive(data_OR_size), usage);
       return;
     } else {
       if (data_OR_size is ArrayBufferView) {
-        _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+        _ptr.bufferData(target, LevelDom.unwrapMaybePrimitive(data_OR_size), usage);
         return;
       } else {
         if (data_OR_size is int) {
-          _ptr.bufferData(target, LevelDom.unwrap(data_OR_size), usage);
+          _ptr.bufferData(target, LevelDom.unwrapMaybePrimitive(data_OR_size), usage);
           return;
         }
       }
@@ -7676,11 +12733,11 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
 
   void bufferSubData(int target, int offset, var data) {
     if (data is ArrayBuffer) {
-      _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
+      _ptr.bufferSubData(target, offset, LevelDom.unwrapMaybePrimitive(data));
       return;
     } else {
       if (data is ArrayBufferView) {
-        _ptr.bufferSubData(target, offset, LevelDom.unwrap(data));
+        _ptr.bufferSubData(target, offset, LevelDom.unwrapMaybePrimitive(data));
         return;
       }
     }
@@ -7887,9 +12944,8 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return _ptr.getAttribLocation(LevelDom.unwrap(program), name);
   }
 
-  void getBufferParameter() {
-    _ptr.getBufferParameter();
-    return;
+  Object getBufferParameter(int target, int pname) {
+    return LevelDom.wrapObject(_ptr.getBufferParameter(target, pname));
   }
 
   WebGLContextAttributes getContextAttributes() {
@@ -7900,70 +12956,56 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return _ptr.getError();
   }
 
-  void getExtension(String name) {
-    _ptr.getExtension(name);
-    return;
+  Object getExtension(String name) {
+    return LevelDom.wrapObject(_ptr.getExtension(name));
   }
 
-  void getFramebufferAttachmentParameter() {
-    _ptr.getFramebufferAttachmentParameter();
-    return;
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) {
+    return LevelDom.wrapObject(_ptr.getFramebufferAttachmentParameter(target, attachment, pname));
   }
 
-  void getParameter() {
-    _ptr.getParameter();
-    return;
+  Object getParameter(int pname) {
+    return LevelDom.wrapObject(_ptr.getParameter(pname));
   }
 
   String getProgramInfoLog(WebGLProgram program) {
     return _ptr.getProgramInfoLog(LevelDom.unwrap(program));
   }
 
-  void getProgramParameter() {
-    _ptr.getProgramParameter();
-    return;
+  Object getProgramParameter(WebGLProgram program, int pname) {
+    return LevelDom.wrapObject(_ptr.getProgramParameter(LevelDom.unwrap(program), pname));
   }
 
-  void getRenderbufferParameter() {
-    _ptr.getRenderbufferParameter();
-    return;
+  Object getRenderbufferParameter(int target, int pname) {
+    return LevelDom.wrapObject(_ptr.getRenderbufferParameter(target, pname));
   }
 
   String getShaderInfoLog(WebGLShader shader) {
     return _ptr.getShaderInfoLog(LevelDom.unwrap(shader));
   }
 
-  void getShaderParameter() {
-    _ptr.getShaderParameter();
-    return;
+  Object getShaderParameter(WebGLShader shader, int pname) {
+    return LevelDom.wrapObject(_ptr.getShaderParameter(LevelDom.unwrap(shader), pname));
   }
 
   String getShaderSource(WebGLShader shader) {
     return _ptr.getShaderSource(LevelDom.unwrap(shader));
   }
 
-  void getSupportedExtensions() {
-    _ptr.getSupportedExtensions();
-    return;
+  Object getTexParameter(int target, int pname) {
+    return LevelDom.wrapObject(_ptr.getTexParameter(target, pname));
   }
 
-  void getTexParameter() {
-    _ptr.getTexParameter();
-    return;
-  }
-
-  void getUniform() {
-    _ptr.getUniform();
-    return;
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location) {
+    return LevelDom.wrapObject(_ptr.getUniform(LevelDom.unwrap(program), LevelDom.unwrap(location)));
   }
 
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) {
     return LevelDom.wrapWebGLUniformLocation(_ptr.getUniformLocation(LevelDom.unwrap(program), name));
   }
 
-  void getVertexAttrib() {
-    _ptr.getVertexAttrib();
-    return;
+  Object getVertexAttrib(int index, int pname) {
+    return LevelDom.wrapObject(_ptr.getVertexAttrib(index, pname));
   }
 
   int getVertexAttribOffset(int index, int pname) {
@@ -8087,12 +13129,12 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format = null, int type = null, ArrayBufferView pixels = null]) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format, int type, ArrayBufferView pixels]) {
     if (border_OR_canvas_OR_image_OR_pixels is ImageData) {
       if (format === null) {
         if (type === null) {
           if (pixels === null) {
-            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels));
             return;
           }
         }
@@ -8102,7 +13144,7 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
         if (format === null) {
           if (type === null) {
             if (pixels === null) {
-              _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+              _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels));
               return;
             }
           }
@@ -8112,14 +13154,14 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
           if (format === null) {
             if (type === null) {
               if (pixels === null) {
-                _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels));
+                _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels));
                 return;
               }
             }
           }
         } else {
           if (border_OR_canvas_OR_image_OR_pixels is int) {
-            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrap(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
+            _ptr.texImage2D(target, level, internalformat, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(border_OR_canvas_OR_image_OR_pixels), format, type, LevelDom.unwrap(pixels));
             return;
           }
         }
@@ -8138,11 +13180,11 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
     return;
   }
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type = null, ArrayBufferView pixels = null]) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type, ArrayBufferView pixels]) {
     if (canvas_OR_format_OR_image_OR_pixels is ImageData) {
       if (type === null) {
         if (pixels === null) {
-          _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+          _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels));
           return;
         }
       }
@@ -8150,7 +13192,7 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
       if (canvas_OR_format_OR_image_OR_pixels is ImageElement) {
         if (type === null) {
           if (pixels === null) {
-            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels));
             return;
           }
         }
@@ -8158,13 +13200,13 @@ class WebGLRenderingContextWrappingImplementation extends CanvasRenderingContext
         if (canvas_OR_format_OR_image_OR_pixels is CanvasElement) {
           if (type === null) {
             if (pixels === null) {
-              _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels));
+              _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels));
               return;
             }
           }
         } else {
           if (canvas_OR_format_OR_image_OR_pixels is int) {
-            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrap(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
+            _ptr.texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, LevelDom.unwrapMaybePrimitive(canvas_OR_format_OR_image_OR_pixels), type, LevelDom.unwrap(pixels));
             return;
           }
         }
@@ -8370,6 +13412,31 @@ class WebGLVertexArrayObjectOESWrappingImplementation extends DOMWrapperBase imp
 
 // WARNING: Do not edit - generated code.
 
+class WebKitCSSFilterValueWrappingImplementation extends CSSValueListWrappingImplementation implements WebKitCSSFilterValue {
+  WebKitCSSFilterValueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  int get operationType() { return _ptr.operationType; }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class WebKitMutationObserverWrappingImplementation extends DOMWrapperBase implements WebKitMutationObserver {
+  WebKitMutationObserverWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  void disconnect() {
+    _ptr.disconnect();
+    return;
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase implements XMLHttpRequestException {
   XMLHttpRequestExceptionWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -8378,6 +13445,10 @@ class XMLHttpRequestExceptionWrappingImplementation extends DOMWrapperBase imple
   String get message() { return _ptr.message; }
 
   String get name() { return _ptr.name; }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8441,8 +13512,132 @@ class LevelDom {
     }
   }
 
+  static AudioBuffer wrapAudioBuffer(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioBufferWrappingImplementation._wrap(raw);
+  }
+
+  // Skipped AudioBufferCallback
+  static AudioBufferSourceNode wrapAudioBufferSourceNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioBufferSourceNodeWrappingImplementation._wrap(raw);
+  }
+
+  static AudioChannelMerger wrapAudioChannelMerger(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioChannelMergerWrappingImplementation._wrap(raw);
+  }
+
+  static AudioChannelSplitter wrapAudioChannelSplitter(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioChannelSplitterWrappingImplementation._wrap(raw);
+  }
+
+  static AudioContext wrapAudioContext(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioContextWrappingImplementation._wrap(raw);
+  }
+
+  static AudioDestinationNode wrapAudioDestinationNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioDestinationNodeWrappingImplementation._wrap(raw);
+  }
+
   static AudioElement wrapAudioElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioElementWrappingImplementation._wrap(raw);
+  }
+
+  static AudioGain wrapAudioGain(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioGainWrappingImplementation._wrap(raw);
+  }
+
+  static AudioGainNode wrapAudioGainNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioGainNodeWrappingImplementation._wrap(raw);
+  }
+
+  static AudioListener wrapAudioListener(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioListenerWrappingImplementation._wrap(raw);
+  }
+
+  static AudioNode wrapAudioNode(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "AudioBufferSourceNode":
+        return new AudioBufferSourceNodeWrappingImplementation._wrap(raw);
+      case "AudioChannelMerger":
+        return new AudioChannelMergerWrappingImplementation._wrap(raw);
+      case "AudioChannelSplitter":
+        return new AudioChannelSplitterWrappingImplementation._wrap(raw);
+      case "AudioDestinationNode":
+        return new AudioDestinationNodeWrappingImplementation._wrap(raw);
+      case "AudioGainNode":
+        return new AudioGainNodeWrappingImplementation._wrap(raw);
+      case "AudioNode":
+        return new AudioNodeWrappingImplementation._wrap(raw);
+      case "AudioPannerNode":
+        return new AudioPannerNodeWrappingImplementation._wrap(raw);
+      case "AudioSourceNode":
+        return new AudioSourceNodeWrappingImplementation._wrap(raw);
+      case "BiquadFilterNode":
+        return new BiquadFilterNodeWrappingImplementation._wrap(raw);
+      case "ConvolverNode":
+        return new ConvolverNodeWrappingImplementation._wrap(raw);
+      case "DelayNode":
+        return new DelayNodeWrappingImplementation._wrap(raw);
+      case "DynamicsCompressorNode":
+        return new DynamicsCompressorNodeWrappingImplementation._wrap(raw);
+      case "HighPass2FilterNode":
+        return new HighPass2FilterNodeWrappingImplementation._wrap(raw);
+      case "JavaScriptAudioNode":
+        return new JavaScriptAudioNodeWrappingImplementation._wrap(raw);
+      case "LowPass2FilterNode":
+        return new LowPass2FilterNodeWrappingImplementation._wrap(raw);
+      case "MediaElementAudioSourceNode":
+        return new MediaElementAudioSourceNodeWrappingImplementation._wrap(raw);
+      case "RealtimeAnalyserNode":
+        return new RealtimeAnalyserNodeWrappingImplementation._wrap(raw);
+      case "WaveShaperNode":
+        return new WaveShaperNodeWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static AudioPannerNode wrapAudioPannerNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioPannerNodeWrappingImplementation._wrap(raw);
+  }
+
+  static AudioParam wrapAudioParam(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "AudioGain":
+        return new AudioGainWrappingImplementation._wrap(raw);
+      case "AudioParam":
+        return new AudioParamWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static AudioProcessingEvent wrapAudioProcessingEvent(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new AudioProcessingEventWrappingImplementation._wrap(raw);
+  }
+
+  static AudioSourceNode wrapAudioSourceNode(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "AudioBufferSourceNode":
+        return new AudioBufferSourceNodeWrappingImplementation._wrap(raw);
+      case "AudioSourceNode":
+        return new AudioSourceNodeWrappingImplementation._wrap(raw);
+      case "MediaElementAudioSourceNode":
+        return new MediaElementAudioSourceNodeWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
   }
 
   static BRElement wrapBRElement(raw) {
@@ -8459,6 +13654,10 @@ class LevelDom {
 
   static BeforeLoadEvent wrapBeforeLoadEvent(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BeforeLoadEventWrappingImplementation._wrap(raw);
+  }
+
+  static BiquadFilterNode wrapBiquadFilterNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new BiquadFilterNodeWrappingImplementation._wrap(raw);
   }
 
   static Blob wrapBlob(raw) {
@@ -8597,6 +13796,12 @@ class LevelDom {
         return new CSSValueWrappingImplementation._wrap(raw);
       case "CSSValueList":
         return new CSSValueListWrappingImplementation._wrap(raw);
+      case "SVGColor":
+        return new SVGColorWrappingImplementation._wrap(raw);
+      case "SVGPaint":
+        return new SVGPaintWrappingImplementation._wrap(raw);
+      case "WebKitCSSFilterValue":
+        return new WebKitCSSFilterValueWrappingImplementation._wrap(raw);
       default:
         throw new UnsupportedOperationException("Unknown type:" + raw.toString());
     }
@@ -8612,6 +13817,8 @@ class LevelDom {
         return new CSSTransformValueWrappingImplementation._wrap(raw);
       case "CSSValueList":
         return new CSSValueListWrappingImplementation._wrap(raw);
+      case "WebKitCSSFilterValue":
+        return new WebKitCSSFilterValueWrappingImplementation._wrap(raw);
       default:
         throw new UnsupportedOperationException("Unknown type:" + raw.toString());
     }
@@ -8677,6 +13884,10 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ClientRectWrappingImplementation._wrap(raw);
   }
 
+  static ClientRectList wrapClientRectList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ClientRectListWrappingImplementation._wrap(raw);
+  }
+
   static Clipboard wrapClipboard(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ClipboardWrappingImplementation._wrap(raw);
   }
@@ -8695,6 +13906,10 @@ class LevelDom {
 
   static Console wrapConsole(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ConsoleWrappingImplementation._wrap(raw);
+  }
+
+  static ConvolverNode wrapConvolverNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ConvolverNodeWrappingImplementation._wrap(raw);
   }
 
   static Coordinates wrapCoordinates(raw) {
@@ -8792,12 +14007,17 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DataTransferItemWrappingImplementation._wrap(raw);
   }
 
-  static DataTransferItems wrapDataTransferItems(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DataTransferItemsWrappingImplementation._wrap(raw);
+  static DataTransferItemList wrapDataTransferItemList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DataTransferItemListWrappingImplementation._wrap(raw);
   }
 
   static DataView wrapDataView(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DataViewWrappingImplementation._wrap(raw);
+  }
+
+  // Skipped DatabaseCallback
+  static DelayNode wrapDelayNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DelayNodeWrappingImplementation._wrap(raw);
   }
 
   static DetailsElement wrapDetailsElement(raw) {
@@ -8833,11 +14053,26 @@ class LevelDom {
   }
 
   static Document wrapDocument(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DocumentWrappingImplementation._wrap(raw, raw.documentElement);
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "HTMLDocument":
+        return new DocumentWrappingImplementation._wrap(raw, raw.documentElement);
+      case "SVGDocument":
+        return new SVGDocumentWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
   }
 
   static DocumentFragment wrapDocumentFragment(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DocumentFragmentWrappingImplementation._wrap(raw);
+  }
+
+  static DynamicsCompressorNode wrapDynamicsCompressorNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new DynamicsCompressorNodeWrappingImplementation._wrap(raw);
   }
 
   static Element wrapElement(raw) {
@@ -8944,6 +14179,176 @@ class LevelDom {
         return new ProgressElementWrappingImplementation._wrap(raw);
       case "HTMLQuoteElement":
         return new QuoteElementWrappingImplementation._wrap(raw);
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphDefElement":
+        return new SVGAltGlyphDefElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphItemElement":
+        return new SVGAltGlyphItemElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGComponentTransferFunctionElement":
+        return new SVGComponentTransferFunctionElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGDescElement":
+        return new SVGDescElementWrappingImplementation._wrap(raw);
+      case "SVGElement":
+        return new SVGElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGFEBlendElement":
+        return new SVGFEBlendElementWrappingImplementation._wrap(raw);
+      case "SVGFEColorMatrixElement":
+        return new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEComponentTransferElement":
+        return new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFECompositeElement*/
+      case "SVGFEConvolveMatrixElement":
+        return new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEDiffuseLightingElement":
+        return new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFEDisplacementMapElement":
+        return new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+      case "SVGFEDistantLightElement":
+        return new SVGFEDistantLightElementWrappingImplementation._wrap(raw);
+      case "SVGFEDropShadowElement":
+        return new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+      case "SVGFEFloodElement":
+        return new SVGFEFloodElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncAElement":
+        return new SVGFEFuncAElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncBElement":
+        return new SVGFEFuncBElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncGElement":
+        return new SVGFEFuncGElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncRElement":
+        return new SVGFEFuncRElementWrappingImplementation._wrap(raw);
+      case "SVGFEGaussianBlurElement":
+        return new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeElement":
+        return new SVGFEMergeElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeNodeElement":
+        return new SVGFEMergeNodeElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFEMorphologyElement*/
+      case "SVGFEOffsetElement":
+        return new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+      case "SVGFEPointLightElement":
+        return new SVGFEPointLightElementWrappingImplementation._wrap(raw);
+      case "SVGFESpecularLightingElement":
+        return new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFESpotLightElement":
+        return new SVGFESpotLightElementWrappingImplementation._wrap(raw);
+      case "SVGFETileElement":
+        return new SVGFETileElementWrappingImplementation._wrap(raw);
+      case "SVGFETurbulenceElement":
+        return new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGFontElement":
+        return new SVGFontElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceElement":
+        return new SVGFontFaceElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceFormatElement":
+        return new SVGFontFaceFormatElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceNameElement":
+        return new SVGFontFaceNameElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceSrcElement":
+        return new SVGFontFaceSrcElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceUriElement":
+        return new SVGFontFaceUriElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphElement":
+        return new SVGGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphRefElement":
+        return new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGHKernElement":
+        return new SVGHKernElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGMPathElement":
+        return new SVGMPathElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGMetadataElement":
+        return new SVGMetadataElementWrappingImplementation._wrap(raw);
+      case "SVGMissingGlyphElement":
+        return new SVGMissingGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGScriptElement":
+        return new SVGScriptElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      case "SVGStopElement":
+        return new SVGStopElementWrappingImplementation._wrap(raw);
+      case "SVGStyleElement":
+        return new SVGStyleElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGTitleElement":
+        return new SVGTitleElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      case "SVGVKernElement":
+        return new SVGVKernElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
       case "HTMLScriptElement":
         return new ScriptElementWrappingImplementation._wrap(raw);
       case "HTMLSelectElement":
@@ -8987,6 +14392,31 @@ class LevelDom {
     return raw === null ? null : new FrozenElementList._wrap(raw);
   }
 
+  static ElementTimeControl wrapElementTimeControl(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "ElementTimeControl":
+        return new ElementTimeControlWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
   static EmbedElement wrapEmbedElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new EmbedElementWrappingImplementation._wrap(raw);
   }
@@ -8999,10 +14429,7 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new EntityReferenceWrappingImplementation._wrap(raw);
   }
 
-  static EntriesCallback wrapEntriesCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new EntriesCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped EntriesCallback
   static Entry wrapEntry(raw) {
     if (raw === null) { return null; }
     if (raw.dartObjectLocalStorage !== null) {
@@ -9028,10 +14455,7 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new EntryArraySyncWrappingImplementation._wrap(raw);
   }
 
-  static EntryCallback wrapEntryCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new EntryCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped EntryCallback
   static EntrySync wrapEntrySync(raw) {
     if (raw === null) { return null; }
     if (raw.dartObjectLocalStorage !== null) {
@@ -9049,10 +14473,7 @@ class LevelDom {
     }
   }
 
-  static ErrorCallback wrapErrorCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ErrorCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped ErrorCallback
   static ErrorEvent wrapErrorEvent(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ErrorEventWrappingImplementation._wrap(raw);
   }
@@ -9065,6 +14486,8 @@ class LevelDom {
     switch (raw.typeName) {
       case "WebKitAnimationEvent":
         return new AnimationEventWrappingImplementation._wrap(raw);
+      case "AudioProcessingEvent":
+        return new AudioProcessingEventWrappingImplementation._wrap(raw);
       case "BeforeLoadEvent":
         return new BeforeLoadEventWrappingImplementation._wrap(raw);
       case "CloseEvent":
@@ -9093,6 +14516,8 @@ class LevelDom {
         return new MouseEventWrappingImplementation._wrap(raw);
       case "MutationEvent":
         return new MutationEventWrappingImplementation._wrap(raw);
+      case "OfflineAudioCompletionEvent":
+        return new OfflineAudioCompletionEventWrappingImplementation._wrap(raw);
       case "OverflowEvent":
         return new OverflowEventWrappingImplementation._wrap(raw);
       case "PageTransitionEvent":
@@ -9101,6 +14526,8 @@ class LevelDom {
         return new PopStateEventWrappingImplementation._wrap(raw);
       case "ProgressEvent":
         return new ProgressEventWrappingImplementation._wrap(raw);
+      case "SVGZoomEvent":
+        return new SVGZoomEventWrappingImplementation._wrap(raw);
       case "SpeechInputEvent":
         return new SpeechInputEventWrappingImplementation._wrap(raw);
       case "StorageEvent":
@@ -9273,6 +14700,180 @@ class LevelDom {
         return new ProgressElementWrappingImplementation._wrap(raw);
       case "HTMLQuoteElement":
         return new QuoteElementWrappingImplementation._wrap(raw);
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphDefElement":
+        return new SVGAltGlyphDefElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphItemElement":
+        return new SVGAltGlyphItemElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGComponentTransferFunctionElement":
+        return new SVGComponentTransferFunctionElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGDescElement":
+        return new SVGDescElementWrappingImplementation._wrap(raw);
+      case "SVGDocument":
+        return new SVGDocumentWrappingImplementation._wrap(raw);
+      case "SVGElement":
+        return new SVGElementWrappingImplementation._wrap(raw);
+      case "SVGElementInstance":
+        return new SVGElementInstanceWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGFEBlendElement":
+        return new SVGFEBlendElementWrappingImplementation._wrap(raw);
+      case "SVGFEColorMatrixElement":
+        return new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEComponentTransferElement":
+        return new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFECompositeElement*/
+      case "SVGFEConvolveMatrixElement":
+        return new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEDiffuseLightingElement":
+        return new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFEDisplacementMapElement":
+        return new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+      case "SVGFEDistantLightElement":
+        return new SVGFEDistantLightElementWrappingImplementation._wrap(raw);
+      case "SVGFEDropShadowElement":
+        return new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+      case "SVGFEFloodElement":
+        return new SVGFEFloodElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncAElement":
+        return new SVGFEFuncAElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncBElement":
+        return new SVGFEFuncBElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncGElement":
+        return new SVGFEFuncGElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncRElement":
+        return new SVGFEFuncRElementWrappingImplementation._wrap(raw);
+      case "SVGFEGaussianBlurElement":
+        return new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeElement":
+        return new SVGFEMergeElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeNodeElement":
+        return new SVGFEMergeNodeElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFEMorphologyElement*/
+      case "SVGFEOffsetElement":
+        return new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+      case "SVGFEPointLightElement":
+        return new SVGFEPointLightElementWrappingImplementation._wrap(raw);
+      case "SVGFESpecularLightingElement":
+        return new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFESpotLightElement":
+        return new SVGFESpotLightElementWrappingImplementation._wrap(raw);
+      case "SVGFETileElement":
+        return new SVGFETileElementWrappingImplementation._wrap(raw);
+      case "SVGFETurbulenceElement":
+        return new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGFontElement":
+        return new SVGFontElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceElement":
+        return new SVGFontFaceElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceFormatElement":
+        return new SVGFontFaceFormatElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceNameElement":
+        return new SVGFontFaceNameElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceSrcElement":
+        return new SVGFontFaceSrcElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceUriElement":
+        return new SVGFontFaceUriElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphElement":
+        return new SVGGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphRefElement":
+        return new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGHKernElement":
+        return new SVGHKernElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGMPathElement":
+        return new SVGMPathElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGMetadataElement":
+        return new SVGMetadataElementWrappingImplementation._wrap(raw);
+      case "SVGMissingGlyphElement":
+        return new SVGMissingGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGScriptElement":
+        return new SVGScriptElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      case "SVGStopElement":
+        return new SVGStopElementWrappingImplementation._wrap(raw);
+      case "SVGStyleElement":
+        return new SVGStyleElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGTitleElement":
+        return new SVGTitleElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      case "SVGVKernElement":
+        return new SVGVKernElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
       case "HTMLScriptElement":
         return new ScriptElementWrappingImplementation._wrap(raw);
       case "HTMLSelectElement":
@@ -9334,10 +14935,7 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileWrappingImplementation._wrap(raw);
   }
 
-  static FileCallback wrapFileCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped FileCallback
   static FileEntry wrapFileEntry(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileEntryWrappingImplementation._wrap(raw);
   }
@@ -9366,18 +14964,12 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileReaderSyncWrappingImplementation._wrap(raw);
   }
 
-  static FileSystemCallback wrapFileSystemCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileSystemCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped FileSystemCallback
   static FileWriter wrapFileWriter(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileWriterWrappingImplementation._wrap(raw);
   }
 
-  static FileWriterCallback wrapFileWriterCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileWriterCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped FileWriterCallback
   static FileWriterSync wrapFileWriterSync(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new FileWriterSyncWrappingImplementation._wrap(raw);
   }
@@ -9428,6 +15020,10 @@ class LevelDom {
 
   static HeadingElement wrapHeadingElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new HeadingElementWrappingImplementation._wrap(raw);
+  }
+
+  static HighPass2FilterNode wrapHighPass2FilterNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new HighPass2FilterNodeWrappingImplementation._wrap(raw);
   }
 
   static History wrapHistory(raw) {
@@ -9554,6 +15150,10 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new Int8ArrayWrappingImplementation._wrap(raw);
   }
 
+  static JavaScriptAudioNode wrapJavaScriptAudioNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new JavaScriptAudioNodeWrappingImplementation._wrap(raw);
+  }
+
   static KeyboardEvent wrapKeyboardEvent(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new KeyboardEventWrappingImplementation._wrap(raw);
   }
@@ -9578,16 +15178,16 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new LinkElementWrappingImplementation._wrap(raw);
   }
 
-  static LocalMediaStream wrapLocalMediaStream(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new LocalMediaStreamWrappingImplementation._wrap(raw);
-  }
-
   static Location wrapLocation(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new LocationWrappingImplementation._wrap(raw);
   }
 
   static LoseContext wrapLoseContext(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new LoseContextWrappingImplementation._wrap(raw);
+  }
+
+  static LowPass2FilterNode wrapLowPass2FilterNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new LowPass2FilterNodeWrappingImplementation._wrap(raw);
   }
 
   static MapElement wrapMapElement(raw) {
@@ -9615,6 +15215,10 @@ class LevelDom {
     }
   }
 
+  static MediaElementAudioSourceNode wrapMediaElementAudioSourceNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MediaElementAudioSourceNodeWrappingImplementation._wrap(raw);
+  }
+
   static MediaError wrapMediaError(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MediaErrorWrappingImplementation._wrap(raw);
   }
@@ -9629,33 +15233,6 @@ class LevelDom {
 
   static MediaQueryListListener wrapMediaQueryListListener(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MediaQueryListListenerWrappingImplementation._wrap(raw);
-  }
-
-  static MediaStream wrapMediaStream(raw) {
-    if (raw === null) { return null; }
-    if (raw.dartObjectLocalStorage !== null) {
-      return raw.dartObjectLocalStorage;
-    }
-    switch (raw.typeName) {
-      case "LocalMediaStream":
-        return new LocalMediaStreamWrappingImplementation._wrap(raw);
-      case "MediaStream":
-        return new MediaStreamWrappingImplementation._wrap(raw);
-      default:
-        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
-    }
-  }
-
-  static MediaStreamList wrapMediaStreamList(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MediaStreamListWrappingImplementation._wrap(raw);
-  }
-
-  static MediaStreamTrack wrapMediaStreamTrack(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MediaStreamTrackWrappingImplementation._wrap(raw);
-  }
-
-  static MediaStreamTrackList wrapMediaStreamTrackList(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MediaStreamTrackListWrappingImplementation._wrap(raw);
   }
 
   static MenuElement wrapMenuElement(raw) {
@@ -9682,10 +15259,7 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MetadataWrappingImplementation._wrap(raw);
   }
 
-  static MetadataCallback wrapMetadataCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MetadataCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped MetadataCallback
   static MeterElement wrapMeterElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MeterElementWrappingImplementation._wrap(raw);
   }
@@ -9696,6 +15270,10 @@ class LevelDom {
 
   static MouseEvent wrapMouseEvent(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MouseEventWrappingImplementation._wrap(raw);
+  }
+
+  static MutationCallback wrapMutationCallback(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new MutationCallbackWrappingImplementation._wrap(raw);
   }
 
   static MutationEvent wrapMutationEvent(raw) {
@@ -9714,10 +15292,7 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new NavigatorUserMediaErrorWrappingImplementation._wrap(raw);
   }
 
-  static NavigatorUserMediaErrorCallback wrapNavigatorUserMediaErrorCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new NavigatorUserMediaErrorCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped NavigatorUserMediaErrorCallback
   static NavigatorUserMediaSuccessCallback wrapNavigatorUserMediaSuccessCallback(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new NavigatorUserMediaSuccessCallbackWrappingImplementation._wrap(raw);
   }
@@ -9848,6 +15423,178 @@ class LevelDom {
         return new ProgressElementWrappingImplementation._wrap(raw);
       case "HTMLQuoteElement":
         return new QuoteElementWrappingImplementation._wrap(raw);
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphDefElement":
+        return new SVGAltGlyphDefElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphItemElement":
+        return new SVGAltGlyphItemElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGComponentTransferFunctionElement":
+        return new SVGComponentTransferFunctionElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGDescElement":
+        return new SVGDescElementWrappingImplementation._wrap(raw);
+      case "SVGDocument":
+        return new SVGDocumentWrappingImplementation._wrap(raw);
+      case "SVGElement":
+        return new SVGElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGFEBlendElement":
+        return new SVGFEBlendElementWrappingImplementation._wrap(raw);
+      case "SVGFEColorMatrixElement":
+        return new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEComponentTransferElement":
+        return new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFECompositeElement*/
+      case "SVGFEConvolveMatrixElement":
+        return new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEDiffuseLightingElement":
+        return new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFEDisplacementMapElement":
+        return new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+      case "SVGFEDistantLightElement":
+        return new SVGFEDistantLightElementWrappingImplementation._wrap(raw);
+      case "SVGFEDropShadowElement":
+        return new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+      case "SVGFEFloodElement":
+        return new SVGFEFloodElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncAElement":
+        return new SVGFEFuncAElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncBElement":
+        return new SVGFEFuncBElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncGElement":
+        return new SVGFEFuncGElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncRElement":
+        return new SVGFEFuncRElementWrappingImplementation._wrap(raw);
+      case "SVGFEGaussianBlurElement":
+        return new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeElement":
+        return new SVGFEMergeElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeNodeElement":
+        return new SVGFEMergeNodeElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFEMorphologyElement*/
+      case "SVGFEOffsetElement":
+        return new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+      case "SVGFEPointLightElement":
+        return new SVGFEPointLightElementWrappingImplementation._wrap(raw);
+      case "SVGFESpecularLightingElement":
+        return new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFESpotLightElement":
+        return new SVGFESpotLightElementWrappingImplementation._wrap(raw);
+      case "SVGFETileElement":
+        return new SVGFETileElementWrappingImplementation._wrap(raw);
+      case "SVGFETurbulenceElement":
+        return new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGFontElement":
+        return new SVGFontElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceElement":
+        return new SVGFontFaceElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceFormatElement":
+        return new SVGFontFaceFormatElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceNameElement":
+        return new SVGFontFaceNameElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceSrcElement":
+        return new SVGFontFaceSrcElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceUriElement":
+        return new SVGFontFaceUriElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphElement":
+        return new SVGGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphRefElement":
+        return new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGHKernElement":
+        return new SVGHKernElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGMPathElement":
+        return new SVGMPathElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGMetadataElement":
+        return new SVGMetadataElementWrappingImplementation._wrap(raw);
+      case "SVGMissingGlyphElement":
+        return new SVGMissingGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGScriptElement":
+        return new SVGScriptElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      case "SVGStopElement":
+        return new SVGStopElementWrappingImplementation._wrap(raw);
+      case "SVGStyleElement":
+        return new SVGStyleElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGTitleElement":
+        return new SVGTitleElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      case "SVGVKernElement":
+        return new SVGVKernElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
       case "HTMLScriptElement":
         return new ScriptElementWrappingImplementation._wrap(raw);
       case "HTMLSelectElement":
@@ -9921,6 +15668,10 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new ObjectElementWrappingImplementation._wrap(raw);
   }
 
+  static OfflineAudioCompletionEvent wrapOfflineAudioCompletionEvent(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new OfflineAudioCompletionEventWrappingImplementation._wrap(raw);
+  }
+
   static OperationNotAllowedException wrapOperationNotAllowedException(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new OperationNotAllowedExceptionWrappingImplementation._wrap(raw);
   }
@@ -9961,18 +15712,12 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new PopStateEventWrappingImplementation._wrap(raw);
   }
 
-  static PositionCallback wrapPositionCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new PositionCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped PositionCallback
   static PositionError wrapPositionError(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new PositionErrorWrappingImplementation._wrap(raw);
   }
 
-  static PositionErrorCallback wrapPositionErrorCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new PositionErrorCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped PositionErrorCallback
   static PreElement wrapPreElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new PreElementWrappingImplementation._wrap(raw);
   }
@@ -10016,8 +15761,1496 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new RangeExceptionWrappingImplementation._wrap(raw);
   }
 
+  static RealtimeAnalyserNode wrapRealtimeAnalyserNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new RealtimeAnalyserNodeWrappingImplementation._wrap(raw);
+  }
+
   static Rect wrapRect(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new RectWrappingImplementation._wrap(raw);
+  }
+
+  // Skipped RequestAnimationFrameCallback
+  // Skipped SQLStatementCallback
+  // Skipped SQLStatementErrorCallback
+  // Skipped SQLTransactionCallback
+  // Skipped SQLTransactionErrorCallback
+  // Skipped SQLTransactionSyncCallback
+  static SVGAElement wrapSVGAElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAltGlyphDefElement wrapSVGAltGlyphDefElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAltGlyphDefElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAltGlyphElement wrapSVGAltGlyphElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAltGlyphItemElement wrapSVGAltGlyphItemElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAltGlyphItemElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAngle wrapSVGAngle(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAngleWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimateColorElement wrapSVGAnimateColorElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimateElement wrapSVGAnimateElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimateElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimateMotionElement wrapSVGAnimateMotionElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimateTransformElement wrapSVGAnimateTransformElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedAngle wrapSVGAnimatedAngle(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedAngleWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedBoolean wrapSVGAnimatedBoolean(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedBooleanWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedEnumeration wrapSVGAnimatedEnumeration(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedEnumerationWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedInteger wrapSVGAnimatedInteger(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedIntegerWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedLength wrapSVGAnimatedLength(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedLengthWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedLengthList wrapSVGAnimatedLengthList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedLengthListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedNumber wrapSVGAnimatedNumber(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedNumberWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedNumberList wrapSVGAnimatedNumberList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedNumberListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedPreserveAspectRatio wrapSVGAnimatedPreserveAspectRatio(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedPreserveAspectRatioWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedRect wrapSVGAnimatedRect(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedRectWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedString wrapSVGAnimatedString(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedStringWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimatedTransformList wrapSVGAnimatedTransformList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGAnimatedTransformListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGAnimationElement wrapSVGAnimationElement(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGCircleElement wrapSVGCircleElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGCircleElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGClipPathElement wrapSVGClipPathElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGClipPathElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGColor wrapSVGColor(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGColor":
+        return new SVGColorWrappingImplementation._wrap(raw);
+      case "SVGPaint":
+        return new SVGPaintWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGComponentTransferFunctionElement wrapSVGComponentTransferFunctionElement(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGComponentTransferFunctionElement":
+        return new SVGComponentTransferFunctionElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncAElement":
+        return new SVGFEFuncAElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncBElement":
+        return new SVGFEFuncBElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncGElement":
+        return new SVGFEFuncGElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncRElement":
+        return new SVGFEFuncRElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGCursorElement wrapSVGCursorElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGCursorElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGDefsElement wrapSVGDefsElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGDefsElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGDescElement wrapSVGDescElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGDescElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGDocument wrapSVGDocument(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGDocumentWrappingImplementation._wrap(raw);
+  }
+
+  static SVGElement wrapSVGElement(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphDefElement":
+        return new SVGAltGlyphDefElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphItemElement":
+        return new SVGAltGlyphItemElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGComponentTransferFunctionElement":
+        return new SVGComponentTransferFunctionElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGDescElement":
+        return new SVGDescElementWrappingImplementation._wrap(raw);
+      case "SVGElement":
+        return new SVGElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGFEBlendElement":
+        return new SVGFEBlendElementWrappingImplementation._wrap(raw);
+      case "SVGFEColorMatrixElement":
+        return new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEComponentTransferElement":
+        return new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFECompositeElement*/
+      case "SVGFEConvolveMatrixElement":
+        return new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEDiffuseLightingElement":
+        return new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFEDisplacementMapElement":
+        return new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+      case "SVGFEDistantLightElement":
+        return new SVGFEDistantLightElementWrappingImplementation._wrap(raw);
+      case "SVGFEDropShadowElement":
+        return new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+      case "SVGFEFloodElement":
+        return new SVGFEFloodElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncAElement":
+        return new SVGFEFuncAElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncBElement":
+        return new SVGFEFuncBElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncGElement":
+        return new SVGFEFuncGElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncRElement":
+        return new SVGFEFuncRElementWrappingImplementation._wrap(raw);
+      case "SVGFEGaussianBlurElement":
+        return new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeElement":
+        return new SVGFEMergeElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeNodeElement":
+        return new SVGFEMergeNodeElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFEMorphologyElement*/
+      case "SVGFEOffsetElement":
+        return new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+      case "SVGFEPointLightElement":
+        return new SVGFEPointLightElementWrappingImplementation._wrap(raw);
+      case "SVGFESpecularLightingElement":
+        return new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFESpotLightElement":
+        return new SVGFESpotLightElementWrappingImplementation._wrap(raw);
+      case "SVGFETileElement":
+        return new SVGFETileElementWrappingImplementation._wrap(raw);
+      case "SVGFETurbulenceElement":
+        return new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGFontElement":
+        return new SVGFontElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceElement":
+        return new SVGFontFaceElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceFormatElement":
+        return new SVGFontFaceFormatElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceNameElement":
+        return new SVGFontFaceNameElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceSrcElement":
+        return new SVGFontFaceSrcElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceUriElement":
+        return new SVGFontFaceUriElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphElement":
+        return new SVGGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphRefElement":
+        return new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGHKernElement":
+        return new SVGHKernElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGMPathElement":
+        return new SVGMPathElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGMetadataElement":
+        return new SVGMetadataElementWrappingImplementation._wrap(raw);
+      case "SVGMissingGlyphElement":
+        return new SVGMissingGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGScriptElement":
+        return new SVGScriptElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      case "SVGStopElement":
+        return new SVGStopElementWrappingImplementation._wrap(raw);
+      case "SVGStyleElement":
+        return new SVGStyleElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGTitleElement":
+        return new SVGTitleElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      case "SVGVKernElement":
+        return new SVGVKernElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGElementInstance wrapSVGElementInstance(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGElementInstanceWrappingImplementation._wrap(raw);
+  }
+
+  static SVGElementInstanceList wrapSVGElementInstanceList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGElementInstanceListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGEllipseElement wrapSVGEllipseElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGEllipseElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGException wrapSVGException(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGExceptionWrappingImplementation._wrap(raw);
+  }
+
+  static SVGExternalResourcesRequired wrapSVGExternalResourcesRequired(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGExternalResourcesRequired":
+        return new SVGExternalResourcesRequiredWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGMPathElement":
+        return new SVGMPathElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGScriptElement":
+        return new SVGScriptElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGFEBlendElement wrapSVGFEBlendElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEBlendElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEColorMatrixElement wrapSVGFEColorMatrixElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEComponentTransferElement wrapSVGFEComponentTransferElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEConvolveMatrixElement wrapSVGFEConvolveMatrixElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEDiffuseLightingElement wrapSVGFEDiffuseLightingElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEDisplacementMapElement wrapSVGFEDisplacementMapElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEDistantLightElement wrapSVGFEDistantLightElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEDistantLightElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEDropShadowElement wrapSVGFEDropShadowElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEFloodElement wrapSVGFEFloodElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEFloodElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEFuncAElement wrapSVGFEFuncAElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEFuncAElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEFuncBElement wrapSVGFEFuncBElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEFuncBElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEFuncGElement wrapSVGFEFuncGElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEFuncGElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEFuncRElement wrapSVGFEFuncRElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEFuncRElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEGaussianBlurElement wrapSVGFEGaussianBlurElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEImageElement wrapSVGFEImageElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEImageElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEMergeElement wrapSVGFEMergeElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEMergeElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEMergeNodeElement wrapSVGFEMergeNodeElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEMergeNodeElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEOffsetElement wrapSVGFEOffsetElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFEPointLightElement wrapSVGFEPointLightElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFEPointLightElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFESpecularLightingElement wrapSVGFESpecularLightingElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFESpotLightElement wrapSVGFESpotLightElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFESpotLightElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFETileElement wrapSVGFETileElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFETileElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFETurbulenceElement wrapSVGFETurbulenceElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFilterElement wrapSVGFilterElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFilterElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFilterPrimitiveStandardAttributes wrapSVGFilterPrimitiveStandardAttributes(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGFEBlendElement":
+        return new SVGFEBlendElementWrappingImplementation._wrap(raw);
+      case "SVGFEColorMatrixElement":
+        return new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEComponentTransferElement":
+        return new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFECompositeElement*/
+      case "SVGFEConvolveMatrixElement":
+        return new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEDiffuseLightingElement":
+        return new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFEDisplacementMapElement":
+        return new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+      case "SVGFEDropShadowElement":
+        return new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+      case "SVGFEFloodElement":
+        return new SVGFEFloodElementWrappingImplementation._wrap(raw);
+      case "SVGFEGaussianBlurElement":
+        return new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeElement":
+        return new SVGFEMergeElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFEMorphologyElement*/
+      case "SVGFEOffsetElement":
+        return new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+      case "SVGFESpecularLightingElement":
+        return new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFETileElement":
+        return new SVGFETileElementWrappingImplementation._wrap(raw);
+      case "SVGFETurbulenceElement":
+        return new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+      case "SVGFilterPrimitiveStandardAttributes":
+        return new SVGFilterPrimitiveStandardAttributesWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGFitToViewBox wrapSVGFitToViewBox(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGFitToViewBox":
+        return new SVGFitToViewBoxWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
+      case "SVGViewSpec":
+        return new SVGViewSpecWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGFontElement wrapSVGFontElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFontElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFontFaceElement wrapSVGFontFaceElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFontFaceElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFontFaceFormatElement wrapSVGFontFaceFormatElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFontFaceFormatElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFontFaceNameElement wrapSVGFontFaceNameElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFontFaceNameElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFontFaceSrcElement wrapSVGFontFaceSrcElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFontFaceSrcElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGFontFaceUriElement wrapSVGFontFaceUriElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGFontFaceUriElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGForeignObjectElement wrapSVGForeignObjectElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGGElement wrapSVGGElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGGElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGGlyphElement wrapSVGGlyphElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGGlyphElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGGlyphRefElement wrapSVGGlyphRefElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGGradientElement wrapSVGGradientElement(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGHKernElement wrapSVGHKernElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGHKernElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGImageElement wrapSVGImageElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGImageElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGLangSpace wrapSVGLangSpace(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGDescElement":
+        return new SVGDescElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLangSpace":
+        return new SVGLangSpaceWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGStyleElement":
+        return new SVGStyleElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGTitleElement":
+        return new SVGTitleElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGLength wrapSVGLength(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGLengthWrappingImplementation._wrap(raw);
+  }
+
+  static SVGLengthList wrapSVGLengthList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGLengthListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGLineElement wrapSVGLineElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGLineElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGLinearGradientElement wrapSVGLinearGradientElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGLocatable wrapSVGLocatable(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLocatable":
+        return new SVGLocatableWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTransformable":
+        return new SVGTransformableWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGMPathElement wrapSVGMPathElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGMPathElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGMarkerElement wrapSVGMarkerElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGMarkerElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGMaskElement wrapSVGMaskElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGMaskElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGMatrix wrapSVGMatrix(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGMatrixWrappingImplementation._wrap(raw);
+  }
+
+  static SVGMetadataElement wrapSVGMetadataElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGMetadataElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGMissingGlyphElement wrapSVGMissingGlyphElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGMissingGlyphElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGNumber wrapSVGNumber(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGNumberWrappingImplementation._wrap(raw);
+  }
+
+  static SVGNumberList wrapSVGNumberList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGNumberListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPaint wrapSVGPaint(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPaintWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathElement wrapSVGPathElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSeg wrapSVGPathSeg(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGPathSeg":
+        return new SVGPathSegWrappingImplementation._wrap(raw);
+      case "SVGPathSegArcAbs":
+        return new SVGPathSegArcAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegArcRel":
+        return new SVGPathSegArcRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegClosePath":
+        return new SVGPathSegClosePathWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicAbs":
+        return new SVGPathSegCurvetoCubicAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicRel":
+        return new SVGPathSegCurvetoCubicRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicSmoothAbs":
+        return new SVGPathSegCurvetoCubicSmoothAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicSmoothRel":
+        return new SVGPathSegCurvetoCubicSmoothRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticAbs":
+        return new SVGPathSegCurvetoQuadraticAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticRel":
+        return new SVGPathSegCurvetoQuadraticRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticSmoothAbs":
+        return new SVGPathSegCurvetoQuadraticSmoothAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticSmoothRel":
+        return new SVGPathSegCurvetoQuadraticSmoothRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoAbs":
+        return new SVGPathSegLinetoAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoHorizontalAbs":
+        return new SVGPathSegLinetoHorizontalAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoHorizontalRel":
+        return new SVGPathSegLinetoHorizontalRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoRel":
+        return new SVGPathSegLinetoRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoVerticalAbs":
+        return new SVGPathSegLinetoVerticalAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoVerticalRel":
+        return new SVGPathSegLinetoVerticalRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegMovetoAbs":
+        return new SVGPathSegMovetoAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegMovetoRel":
+        return new SVGPathSegMovetoRelWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGPathSegArcAbs wrapSVGPathSegArcAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegArcAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegArcRel wrapSVGPathSegArcRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegArcRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegClosePath wrapSVGPathSegClosePath(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegClosePathWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoCubicAbs wrapSVGPathSegCurvetoCubicAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoCubicAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoCubicRel wrapSVGPathSegCurvetoCubicRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoCubicRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoCubicSmoothAbs wrapSVGPathSegCurvetoCubicSmoothAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoCubicSmoothAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoCubicSmoothRel wrapSVGPathSegCurvetoCubicSmoothRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoCubicSmoothRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoQuadraticAbs wrapSVGPathSegCurvetoQuadraticAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoQuadraticAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoQuadraticRel wrapSVGPathSegCurvetoQuadraticRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoQuadraticRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoQuadraticSmoothAbs wrapSVGPathSegCurvetoQuadraticSmoothAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoQuadraticSmoothAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegCurvetoQuadraticSmoothRel wrapSVGPathSegCurvetoQuadraticSmoothRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegCurvetoQuadraticSmoothRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegLinetoAbs wrapSVGPathSegLinetoAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegLinetoAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegLinetoHorizontalAbs wrapSVGPathSegLinetoHorizontalAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegLinetoHorizontalAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegLinetoHorizontalRel wrapSVGPathSegLinetoHorizontalRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegLinetoHorizontalRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegLinetoRel wrapSVGPathSegLinetoRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegLinetoRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegLinetoVerticalAbs wrapSVGPathSegLinetoVerticalAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegLinetoVerticalAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegLinetoVerticalRel wrapSVGPathSegLinetoVerticalRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegLinetoVerticalRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegList wrapSVGPathSegList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegMovetoAbs wrapSVGPathSegMovetoAbs(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegMovetoAbsWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPathSegMovetoRel wrapSVGPathSegMovetoRel(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPathSegMovetoRelWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPatternElement wrapSVGPatternElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPatternElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPoint wrapSVGPoint(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPointWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPointList wrapSVGPointList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPointListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPolygonElement wrapSVGPolygonElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPolygonElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPolylineElement wrapSVGPolylineElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPolylineElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGPreserveAspectRatio wrapSVGPreserveAspectRatio(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGPreserveAspectRatioWrappingImplementation._wrap(raw);
+  }
+
+  static SVGRadialGradientElement wrapSVGRadialGradientElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGRect wrapSVGRect(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGRectWrappingImplementation._wrap(raw);
+  }
+
+  static SVGRectElement wrapSVGRectElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGRectElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGRenderingIntent wrapSVGRenderingIntent(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGRenderingIntentWrappingImplementation._wrap(raw);
+  }
+
+  static SVGSVGElement wrapSVGSVGElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGSVGElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGScriptElement wrapSVGScriptElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGScriptElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGSetElement wrapSVGSetElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGSetElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGStopElement wrapSVGStopElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGStopElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGStringList wrapSVGStringList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGStringListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGStylable wrapSVGStylable(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGDescElement":
+        return new SVGDescElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGFEBlendElement":
+        return new SVGFEBlendElementWrappingImplementation._wrap(raw);
+      case "SVGFEColorMatrixElement":
+        return new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEComponentTransferElement":
+        return new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFECompositeElement*/
+      case "SVGFEConvolveMatrixElement":
+        return new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEDiffuseLightingElement":
+        return new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFEDisplacementMapElement":
+        return new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+      case "SVGFEDropShadowElement":
+        return new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+      case "SVGFEFloodElement":
+        return new SVGFEFloodElementWrappingImplementation._wrap(raw);
+      case "SVGFEGaussianBlurElement":
+        return new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeElement":
+        return new SVGFEMergeElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFEMorphologyElement*/
+      case "SVGFEOffsetElement":
+        return new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+      case "SVGFESpecularLightingElement":
+        return new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFETileElement":
+        return new SVGFETileElementWrappingImplementation._wrap(raw);
+      case "SVGFETurbulenceElement":
+        return new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGFilterPrimitiveStandardAttributes":
+        return new SVGFilterPrimitiveStandardAttributesWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphRefElement":
+        return new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGStopElement":
+        return new SVGStopElementWrappingImplementation._wrap(raw);
+      case "SVGStylable":
+        return new SVGStylableWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGTitleElement":
+        return new SVGTitleElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGStyleElement wrapSVGStyleElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGStyleElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGSwitchElement wrapSVGSwitchElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGSwitchElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGSymbolElement wrapSVGSymbolElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGSymbolElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTRefElement wrapSVGTRefElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGTRefElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTSpanElement wrapSVGTSpanElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGTSpanElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTests wrapSVGTests(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTests":
+        return new SVGTestsWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGTextContentElement wrapSVGTextContentElement(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGTextElement wrapSVGTextElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGTextElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTextPathElement wrapSVGTextPathElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGTextPathElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTextPositioningElement wrapSVGTextPositioningElement(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGTitleElement wrapSVGTitleElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGTitleElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTransform wrapSVGTransform(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGTransformWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTransformList wrapSVGTransformList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGTransformListWrappingImplementation._wrap(raw);
+  }
+
+  static SVGTransformable wrapSVGTransformable(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTransformable":
+        return new SVGTransformableWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGURIReference wrapSVGURIReference(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphRefElement":
+        return new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGMPathElement":
+        return new SVGMPathElementWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGScriptElement":
+        return new SVGScriptElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGURIReference":
+        return new SVGURIReferenceWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGUnitTypes wrapSVGUnitTypes(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGUnitTypesWrappingImplementation._wrap(raw);
+  }
+
+  static SVGUseElement wrapSVGUseElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGUseElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGVKernElement wrapSVGVKernElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGVKernElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGViewElement wrapSVGViewElement(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGViewElementWrappingImplementation._wrap(raw);
+  }
+
+  static SVGViewSpec wrapSVGViewSpec(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGViewSpecWrappingImplementation._wrap(raw);
+  }
+
+  static SVGZoomAndPan wrapSVGZoomAndPan(raw) {
+    if (raw === null) { return null; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
+      case "SVGViewSpec":
+        return new SVGViewSpecWrappingImplementation._wrap(raw);
+      case "SVGZoomAndPan":
+        return new SVGZoomAndPanWrappingImplementation._wrap(raw);
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
+  static SVGZoomEvent wrapSVGZoomEvent(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new SVGZoomEventWrappingImplementation._wrap(raw);
   }
 
   static Screen wrapScreen(raw) {
@@ -10068,22 +17301,10 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new StorageInfoWrappingImplementation._wrap(raw);
   }
 
-  static StorageInfoErrorCallback wrapStorageInfoErrorCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new StorageInfoErrorCallbackWrappingImplementation._wrap(raw);
-  }
-
-  static StorageInfoQuotaCallback wrapStorageInfoQuotaCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new StorageInfoQuotaCallbackWrappingImplementation._wrap(raw);
-  }
-
-  static StorageInfoUsageCallback wrapStorageInfoUsageCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new StorageInfoUsageCallbackWrappingImplementation._wrap(raw);
-  }
-
-  static StringCallback wrapStringCallback(raw) {
-    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new StringCallbackWrappingImplementation._wrap(raw);
-  }
-
+  // Skipped StorageInfoErrorCallback
+  // Skipped StorageInfoQuotaCallback
+  // Skipped StorageInfoUsageCallback
+  // Skipped StringCallback
   static StyleElement wrapStyleElement(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new StyleElementWrappingImplementation._wrap(raw);
   }
@@ -10162,6 +17383,18 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new TextMetricsWrappingImplementation._wrap(raw);
   }
 
+  static TextTrack wrapTextTrack(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new TextTrackWrappingImplementation._wrap(raw);
+  }
+
+  static TextTrackCue wrapTextTrackCue(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new TextTrackCueWrappingImplementation._wrap(raw);
+  }
+
+  static TextTrackCueList wrapTextTrackCueList(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new TextTrackCueListWrappingImplementation._wrap(raw);
+  }
+
   static TimeRanges wrapTimeRanges(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new TimeRangesWrappingImplementation._wrap(raw);
   }
@@ -10202,6 +17435,8 @@ class LevelDom {
         return new KeyboardEventWrappingImplementation._wrap(raw);
       case "MouseEvent":
         return new MouseEventWrappingImplementation._wrap(raw);
+      case "SVGZoomEvent":
+        return new SVGZoomEventWrappingImplementation._wrap(raw);
       case "TextEvent":
         return new TextEventWrappingImplementation._wrap(raw);
       case "TouchEvent":
@@ -10247,6 +17482,10 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new VoidCallbackWrappingImplementation._wrap(raw);
   }
 
+  static WaveShaperNode wrapWaveShaperNode(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WaveShaperNodeWrappingImplementation._wrap(raw);
+  }
+
   static WebGLActiveInfo wrapWebGLActiveInfo(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebGLActiveInfoWrappingImplementation._wrap(raw);
   }
@@ -10261,6 +17500,14 @@ class LevelDom {
 
   static WebGLContextEvent wrapWebGLContextEvent(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebGLContextEventWrappingImplementation._wrap(raw);
+  }
+
+  static WebGLDebugRendererInfo wrapWebGLDebugRendererInfo(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebGLDebugRendererInfoWrappingImplementation._wrap(raw);
+  }
+
+  static WebGLDebugShaders wrapWebGLDebugShaders(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebGLDebugShadersWrappingImplementation._wrap(raw);
   }
 
   static WebGLFramebuffer wrapWebGLFramebuffer(raw) {
@@ -10295,6 +17542,14 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebGLVertexArrayObjectOESWrappingImplementation._wrap(raw);
   }
 
+  static WebKitCSSFilterValue wrapWebKitCSSFilterValue(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebKitCSSFilterValueWrappingImplementation._wrap(raw);
+  }
+
+  static WebKitMutationObserver wrapWebKitMutationObserver(raw) {
+    return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebKitMutationObserverWrappingImplementation._wrap(raw);
+  }
+
   static WebSocket wrapWebSocket(raw) {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new WebSocketWrappingImplementation._wrap(raw);
   }
@@ -10327,8 +17582,982 @@ class LevelDom {
     return raw === null ? null : raw.dartObjectLocalStorage !== null ? raw.dartObjectLocalStorage : new XMLHttpRequestUploadWrappingImplementation._wrap(raw);
   }
 
+  static Object wrapObject(raw) {
+    if (raw === null || raw is String || raw is num || raw is Date) { return raw; }
+    if (raw.dartObjectLocalStorage !== null) {
+      return raw.dartObjectLocalStorage;
+    }
+    switch (raw.typeName) {
+      /* Skipping AbstractWorker*/
+      case "HTMLAnchorElement":
+        return new AnchorElementWrappingImplementation._wrap(raw);
+      case "WebKitAnimation":
+        return new AnimationWrappingImplementation._wrap(raw);
+      case "WebKitAnimationEvent":
+        return new AnimationEventWrappingImplementation._wrap(raw);
+      case "WebKitAnimationList":
+        return new AnimationListWrappingImplementation._wrap(raw);
+      /* Skipping HTMLAppletElement*/
+      case "HTMLAreaElement":
+        return new AreaElementWrappingImplementation._wrap(raw);
+      case "ArrayBuffer":
+        return new ArrayBufferWrappingImplementation._wrap(raw);
+      case "ArrayBufferView":
+        return new ArrayBufferViewWrappingImplementation._wrap(raw);
+      /* Skipping Attr*/
+      case "AudioBuffer":
+        return new AudioBufferWrappingImplementation._wrap(raw);
+      /* Skipping AudioBufferCallback*/
+      case "AudioBufferSourceNode":
+        return new AudioBufferSourceNodeWrappingImplementation._wrap(raw);
+      case "AudioChannelMerger":
+        return new AudioChannelMergerWrappingImplementation._wrap(raw);
+      case "AudioChannelSplitter":
+        return new AudioChannelSplitterWrappingImplementation._wrap(raw);
+      case "AudioContext":
+        return new AudioContextWrappingImplementation._wrap(raw);
+      case "AudioDestinationNode":
+        return new AudioDestinationNodeWrappingImplementation._wrap(raw);
+      case "HTMLAudioElement":
+        return new AudioElementWrappingImplementation._wrap(raw);
+      case "AudioGain":
+        return new AudioGainWrappingImplementation._wrap(raw);
+      case "AudioGainNode":
+        return new AudioGainNodeWrappingImplementation._wrap(raw);
+      case "AudioListener":
+        return new AudioListenerWrappingImplementation._wrap(raw);
+      case "AudioNode":
+        return new AudioNodeWrappingImplementation._wrap(raw);
+      case "AudioPannerNode":
+        return new AudioPannerNodeWrappingImplementation._wrap(raw);
+      case "AudioParam":
+        return new AudioParamWrappingImplementation._wrap(raw);
+      case "AudioProcessingEvent":
+        return new AudioProcessingEventWrappingImplementation._wrap(raw);
+      case "AudioSourceNode":
+        return new AudioSourceNodeWrappingImplementation._wrap(raw);
+      case "HTMLBRElement":
+        return new BRElementWrappingImplementation._wrap(raw);
+      case "BarInfo":
+        return new BarInfoWrappingImplementation._wrap(raw);
+      case "HTMLBaseElement":
+        return new BaseElementWrappingImplementation._wrap(raw);
+      /* Skipping HTMLBaseFontElement*/
+      case "BeforeLoadEvent":
+        return new BeforeLoadEventWrappingImplementation._wrap(raw);
+      case "BiquadFilterNode":
+        return new BiquadFilterNodeWrappingImplementation._wrap(raw);
+      case "Blob":
+        return new BlobWrappingImplementation._wrap(raw);
+      case "WebKitBlobBuilder":
+        return new BlobBuilderWrappingImplementation._wrap(raw);
+      case "HTMLBodyElement":
+        return new BodyElementWrappingImplementation._wrap(raw);
+      case "HTMLButtonElement":
+        return new ButtonElementWrappingImplementation._wrap(raw);
+      case "CDATASection":
+        return new CDATASectionWrappingImplementation._wrap(raw);
+      case "CSSCharsetRule":
+        return new CSSCharsetRuleWrappingImplementation._wrap(raw);
+      case "CSSFontFaceRule":
+        return new CSSFontFaceRuleWrappingImplementation._wrap(raw);
+      case "CSSImportRule":
+        return new CSSImportRuleWrappingImplementation._wrap(raw);
+      case "WebKitCSSKeyframeRule":
+        return new CSSKeyframeRuleWrappingImplementation._wrap(raw);
+      case "WebKitCSSKeyframesRule":
+        return new CSSKeyframesRuleWrappingImplementation._wrap(raw);
+      case "WebKitCSSMatrix":
+        return new CSSMatrixWrappingImplementation._wrap(raw);
+      case "CSSMediaRule":
+        return new CSSMediaRuleWrappingImplementation._wrap(raw);
+      case "CSSPageRule":
+        return new CSSPageRuleWrappingImplementation._wrap(raw);
+      case "CSSPrimitiveValue":
+        return new CSSPrimitiveValueWrappingImplementation._wrap(raw);
+      case "CSSRule":
+        return new CSSRuleWrappingImplementation._wrap(raw);
+      case "CSSRuleList":
+        return new CSSRuleListWrappingImplementation._wrap(raw);
+      case "CSSStyleDeclaration":
+        return new CSSStyleDeclarationWrappingImplementation._wrap(raw);
+      case "CSSStyleRule":
+        return new CSSStyleRuleWrappingImplementation._wrap(raw);
+      case "CSSStyleSheet":
+        return new CSSStyleSheetWrappingImplementation._wrap(raw);
+      case "WebKitCSSTransformValue":
+        return new CSSTransformValueWrappingImplementation._wrap(raw);
+      case "CSSUnknownRule":
+        return new CSSUnknownRuleWrappingImplementation._wrap(raw);
+      case "CSSValue":
+        return new CSSValueWrappingImplementation._wrap(raw);
+      case "CSSValueList":
+        return new CSSValueListWrappingImplementation._wrap(raw);
+      case "HTMLCanvasElement":
+        return new CanvasElementWrappingImplementation._wrap(raw);
+      case "CanvasGradient":
+        return new CanvasGradientWrappingImplementation._wrap(raw);
+      case "CanvasPattern":
+        return new CanvasPatternWrappingImplementation._wrap(raw);
+      case "CanvasPixelArray":
+        return new CanvasPixelArrayWrappingImplementation._wrap(raw);
+      case "CanvasRenderingContext":
+        return new CanvasRenderingContextWrappingImplementation._wrap(raw);
+      case "CanvasRenderingContext2D":
+        return new CanvasRenderingContext2DWrappingImplementation._wrap(raw);
+      case "CharacterData":
+        return new CharacterDataWrappingImplementation._wrap(raw);
+      case "ClientRect":
+        return new ClientRectWrappingImplementation._wrap(raw);
+      case "ClientRectList":
+        return new ClientRectListWrappingImplementation._wrap(raw);
+      case "Clipboard":
+        return new ClipboardWrappingImplementation._wrap(raw);
+      case "CloseEvent":
+        return new CloseEventWrappingImplementation._wrap(raw);
+      case "Comment":
+        return new CommentWrappingImplementation._wrap(raw);
+      case "CompositionEvent":
+        return new CompositionEventWrappingImplementation._wrap(raw);
+      case "Console":
+        return new ConsoleWrappingImplementation._wrap(raw);
+      case "ConvolverNode":
+        return new ConvolverNodeWrappingImplementation._wrap(raw);
+      case "Coordinates":
+        return new CoordinatesWrappingImplementation._wrap(raw);
+      case "Counter":
+        return new CounterWrappingImplementation._wrap(raw);
+      case "Crypto":
+        return new CryptoWrappingImplementation._wrap(raw);
+      case "CustomEvent":
+        return new CustomEventWrappingImplementation._wrap(raw);
+      case "HTMLDListElement":
+        return new DListElementWrappingImplementation._wrap(raw);
+      case "DOMApplicationCache":
+        return new DOMApplicationCacheWrappingImplementation._wrap(raw);
+      case "DOMException":
+        return new DOMExceptionWrappingImplementation._wrap(raw);
+      case "DOMFileSystem":
+        return new DOMFileSystemWrappingImplementation._wrap(raw);
+      case "DOMFileSystemSync":
+        return new DOMFileSystemSyncWrappingImplementation._wrap(raw);
+      case "DOMFormData":
+        return new DOMFormDataWrappingImplementation._wrap(raw);
+      /* Skipping DOMImplementation*/
+      case "DOMMimeType":
+        return new DOMMimeTypeWrappingImplementation._wrap(raw);
+      case "DOMMimeTypeArray":
+        return new DOMMimeTypeArrayWrappingImplementation._wrap(raw);
+      case "DOMParser":
+        return new DOMParserWrappingImplementation._wrap(raw);
+      case "DOMPlugin":
+        return new DOMPluginWrappingImplementation._wrap(raw);
+      case "DOMPluginArray":
+        return new DOMPluginArrayWrappingImplementation._wrap(raw);
+      case "DOMSelection":
+        return new DOMSelectionWrappingImplementation._wrap(raw);
+      case "DOMSettableTokenList":
+        return new DOMSettableTokenListWrappingImplementation._wrap(raw);
+      case "DOMTokenList":
+        return new DOMTokenListWrappingImplementation._wrap(raw);
+      case "DOMURL":
+        return new DOMURLWrappingImplementation._wrap(raw);
+      case "HTMLDataListElement":
+        return new DataListElementWrappingImplementation._wrap(raw);
+      case "DataTransferItem":
+        return new DataTransferItemWrappingImplementation._wrap(raw);
+      case "DataTransferItemList":
+        return new DataTransferItemListWrappingImplementation._wrap(raw);
+      case "DataView":
+        return new DataViewWrappingImplementation._wrap(raw);
+      /* Skipping Database*/
+      /* Skipping DatabaseCallback*/
+      /* Skipping DatabaseSync*/
+      /* Skipping DedicatedWorkerContext*/
+      case "DelayNode":
+        return new DelayNodeWrappingImplementation._wrap(raw);
+      case "HTMLDetailsElement":
+        return new DetailsElementWrappingImplementation._wrap(raw);
+      case "DeviceMotionEvent":
+        return new DeviceMotionEventWrappingImplementation._wrap(raw);
+      case "DeviceOrientationEvent":
+        return new DeviceOrientationEventWrappingImplementation._wrap(raw);
+      /* Skipping HTMLDirectoryElement*/
+      case "DirectoryEntry":
+        return new DirectoryEntryWrappingImplementation._wrap(raw);
+      case "DirectoryEntrySync":
+        return new DirectoryEntrySyncWrappingImplementation._wrap(raw);
+      case "DirectoryReader":
+        return new DirectoryReaderWrappingImplementation._wrap(raw);
+      case "DirectoryReaderSync":
+        return new DirectoryReaderSyncWrappingImplementation._wrap(raw);
+      case "HTMLDivElement":
+        return new DivElementWrappingImplementation._wrap(raw);
+      case "HTMLDocument":
+        return new DocumentWrappingImplementation._wrap(raw, raw.documentElement);
+      case "DocumentFragment":
+        return new DocumentFragmentWrappingImplementation._wrap(raw);
+      /* Skipping DocumentType*/
+      case "DynamicsCompressorNode":
+        return new DynamicsCompressorNodeWrappingImplementation._wrap(raw);
+      case "HTMLElement":
+        return new ElementWrappingImplementation._wrap(raw);
+      /* Skipping HTMLOptionsCollection*/
+      case "ElementTimeControl":
+        return new ElementTimeControlWrappingImplementation._wrap(raw);
+      /* Skipping ElementTraversal*/
+      case "HTMLEmbedElement":
+        return new EmbedElementWrappingImplementation._wrap(raw);
+      case "Entity":
+        return new EntityWrappingImplementation._wrap(raw);
+      case "EntityReference":
+        return new EntityReferenceWrappingImplementation._wrap(raw);
+      /* Skipping EntriesCallback*/
+      case "Entry":
+        return new EntryWrappingImplementation._wrap(raw);
+      case "EntryArray":
+        return new EntryArrayWrappingImplementation._wrap(raw);
+      case "EntryArraySync":
+        return new EntryArraySyncWrappingImplementation._wrap(raw);
+      /* Skipping EntryCallback*/
+      case "EntrySync":
+        return new EntrySyncWrappingImplementation._wrap(raw);
+      /* Skipping ErrorCallback*/
+      case "ErrorEvent":
+        return new ErrorEventWrappingImplementation._wrap(raw);
+      case "Event":
+        return new EventWrappingImplementation._wrap(raw);
+      case "EventException":
+        return new EventExceptionWrappingImplementation._wrap(raw);
+      /* Skipping EventListener*/
+      case "EventSource":
+        return new EventSourceWrappingImplementation._wrap(raw);
+      case "EventTarget":
+        return new EventTargetWrappingImplementation._wrap(raw);
+      case "HTMLFieldSetElement":
+        return new FieldSetElementWrappingImplementation._wrap(raw);
+      case "File":
+        return new FileWrappingImplementation._wrap(raw);
+      /* Skipping FileCallback*/
+      case "FileEntry":
+        return new FileEntryWrappingImplementation._wrap(raw);
+      case "FileEntrySync":
+        return new FileEntrySyncWrappingImplementation._wrap(raw);
+      case "FileError":
+        return new FileErrorWrappingImplementation._wrap(raw);
+      case "FileException":
+        return new FileExceptionWrappingImplementation._wrap(raw);
+      case "FileList":
+        return new FileListWrappingImplementation._wrap(raw);
+      case "FileReader":
+        return new FileReaderWrappingImplementation._wrap(raw);
+      case "FileReaderSync":
+        return new FileReaderSyncWrappingImplementation._wrap(raw);
+      /* Skipping FileSystemCallback*/
+      case "FileWriter":
+        return new FileWriterWrappingImplementation._wrap(raw);
+      /* Skipping FileWriterCallback*/
+      case "FileWriterSync":
+        return new FileWriterSyncWrappingImplementation._wrap(raw);
+      case "WebKitFlags":
+        return new FlagsWrappingImplementation._wrap(raw);
+      case "Float32Array":
+        return new Float32ArrayWrappingImplementation._wrap(raw);
+      case "Float64Array":
+        return new Float64ArrayWrappingImplementation._wrap(raw);
+      case "HTMLFontElement":
+        return new FontElementWrappingImplementation._wrap(raw);
+      case "HTMLFormElement":
+        return new FormElementWrappingImplementation._wrap(raw);
+      /* Skipping HTMLFrameElement*/
+      /* Skipping HTMLFrameSetElement*/
+      case "Geolocation":
+        return new GeolocationWrappingImplementation._wrap(raw);
+      case "Geoposition":
+        return new GeopositionWrappingImplementation._wrap(raw);
+      case "HTMLHRElement":
+        return new HRElementWrappingImplementation._wrap(raw);
+      case "HTMLAllCollection":
+        return new HTMLAllCollectionWrappingImplementation._wrap(raw);
+      case "HashChangeEvent":
+        return new HashChangeEventWrappingImplementation._wrap(raw);
+      case "HTMLHeadElement":
+        return new HeadElementWrappingImplementation._wrap(raw);
+      case "HTMLHeadingElement":
+        return new HeadingElementWrappingImplementation._wrap(raw);
+      case "HighPass2FilterNode":
+        return new HighPass2FilterNodeWrappingImplementation._wrap(raw);
+      case "History":
+        return new HistoryWrappingImplementation._wrap(raw);
+      case "HTMLHtmlElement":
+        return new DocumentWrappingImplementation._wrap(raw.parentNode, raw);
+      case "IDBAny":
+        return new IDBAnyWrappingImplementation._wrap(raw);
+      case "IDBCursor":
+        return new IDBCursorWrappingImplementation._wrap(raw);
+      case "IDBCursorWithValue":
+        return new IDBCursorWithValueWrappingImplementation._wrap(raw);
+      case "IDBDatabase":
+        return new IDBDatabaseWrappingImplementation._wrap(raw);
+      case "IDBDatabaseError":
+        return new IDBDatabaseErrorWrappingImplementation._wrap(raw);
+      case "IDBDatabaseException":
+        return new IDBDatabaseExceptionWrappingImplementation._wrap(raw);
+      case "IDBFactory":
+        return new IDBFactoryWrappingImplementation._wrap(raw);
+      case "IDBIndex":
+        return new IDBIndexWrappingImplementation._wrap(raw);
+      case "IDBKey":
+        return new IDBKeyWrappingImplementation._wrap(raw);
+      case "IDBKeyRange":
+        return new IDBKeyRangeWrappingImplementation._wrap(raw);
+      case "IDBObjectStore":
+        return new IDBObjectStoreWrappingImplementation._wrap(raw);
+      case "IDBRequest":
+        return new IDBRequestWrappingImplementation._wrap(raw);
+      case "IDBTransaction":
+        return new IDBTransactionWrappingImplementation._wrap(raw);
+      case "IDBVersionChangeEvent":
+        return new IDBVersionChangeEventWrappingImplementation._wrap(raw);
+      case "IDBVersionChangeRequest":
+        return new IDBVersionChangeRequestWrappingImplementation._wrap(raw);
+      case "HTMLIFrameElement":
+        return new IFrameElementWrappingImplementation._wrap(raw);
+      case "ImageData":
+        return new ImageDataWrappingImplementation._wrap(raw);
+      case "HTMLImageElement":
+        return new ImageElementWrappingImplementation._wrap(raw);
+      /* Skipping InjectedScriptHost*/
+      case "HTMLInputElement":
+        return new InputElementWrappingImplementation._wrap(raw);
+      /* Skipping InspectorFrontendHost*/
+      case "Int16Array":
+        return new Int16ArrayWrappingImplementation._wrap(raw);
+      case "Int32Array":
+        return new Int32ArrayWrappingImplementation._wrap(raw);
+      case "Int8Array":
+        return new Int8ArrayWrappingImplementation._wrap(raw);
+      /* Skipping HTMLIsIndexElement*/
+      case "JavaScriptAudioNode":
+        return new JavaScriptAudioNodeWrappingImplementation._wrap(raw);
+      /* Skipping JavaScriptCallFrame*/
+      case "KeyboardEvent":
+        return new KeyboardEventWrappingImplementation._wrap(raw);
+      case "HTMLKeygenElement":
+        return new KeygenElementWrappingImplementation._wrap(raw);
+      case "HTMLLIElement":
+        return new LIElementWrappingImplementation._wrap(raw);
+      case "HTMLLabelElement":
+        return new LabelElementWrappingImplementation._wrap(raw);
+      case "HTMLLegendElement":
+        return new LegendElementWrappingImplementation._wrap(raw);
+      case "HTMLLinkElement":
+        return new LinkElementWrappingImplementation._wrap(raw);
+      case "Location":
+        return new LocationWrappingImplementation._wrap(raw);
+      case "WebKitLoseContext":
+        return new LoseContextWrappingImplementation._wrap(raw);
+      case "LowPass2FilterNode":
+        return new LowPass2FilterNodeWrappingImplementation._wrap(raw);
+      case "HTMLMapElement":
+        return new MapElementWrappingImplementation._wrap(raw);
+      case "HTMLMarqueeElement":
+        return new MarqueeElementWrappingImplementation._wrap(raw);
+      case "HTMLMediaElement":
+        return new MediaElementWrappingImplementation._wrap(raw);
+      case "MediaElementAudioSourceNode":
+        return new MediaElementAudioSourceNodeWrappingImplementation._wrap(raw);
+      case "MediaError":
+        return new MediaErrorWrappingImplementation._wrap(raw);
+      case "MediaList":
+        return new MediaListWrappingImplementation._wrap(raw);
+      case "MediaQueryList":
+        return new MediaQueryListWrappingImplementation._wrap(raw);
+      case "MediaQueryListListener":
+        return new MediaQueryListListenerWrappingImplementation._wrap(raw);
+      /* Skipping MemoryInfo*/
+      case "HTMLMenuElement":
+        return new MenuElementWrappingImplementation._wrap(raw);
+      case "MessageChannel":
+        return new MessageChannelWrappingImplementation._wrap(raw);
+      case "MessageEvent":
+        return new MessageEventWrappingImplementation._wrap(raw);
+      case "MessagePort":
+        return new MessagePortWrappingImplementation._wrap(raw);
+      case "HTMLMetaElement":
+        return new MetaElementWrappingImplementation._wrap(raw);
+      case "Metadata":
+        return new MetadataWrappingImplementation._wrap(raw);
+      /* Skipping MetadataCallback*/
+      case "HTMLMeterElement":
+        return new MeterElementWrappingImplementation._wrap(raw);
+      case "HTMLModElement":
+        return new ModElementWrappingImplementation._wrap(raw);
+      case "MouseEvent":
+        return new MouseEventWrappingImplementation._wrap(raw);
+      case "MutationCallback":
+        return new MutationCallbackWrappingImplementation._wrap(raw);
+      case "MutationEvent":
+        return new MutationEventWrappingImplementation._wrap(raw);
+      case "MutationRecord":
+        return new MutationRecordWrappingImplementation._wrap(raw);
+      /* Skipping NamedNodeMap*/
+      case "Navigator":
+        return new NavigatorWrappingImplementation._wrap(raw);
+      case "NavigatorUserMediaError":
+        return new NavigatorUserMediaErrorWrappingImplementation._wrap(raw);
+      /* Skipping NavigatorUserMediaErrorCallback*/
+      case "NavigatorUserMediaSuccessCallback":
+        return new NavigatorUserMediaSuccessCallbackWrappingImplementation._wrap(raw);
+      case "Node":
+        return new NodeWrappingImplementation._wrap(raw);
+      /* Skipping NodeFilter*/
+      /* Skipping NodeIterator*/
+      /* Skipping NodeSelector*/
+      case "Notation":
+        return new NotationWrappingImplementation._wrap(raw);
+      case "Notification":
+        return new NotificationWrappingImplementation._wrap(raw);
+      case "NotificationCenter":
+        return new NotificationCenterWrappingImplementation._wrap(raw);
+      case "OESStandardDerivatives":
+        return new OESStandardDerivativesWrappingImplementation._wrap(raw);
+      case "OESTextureFloat":
+        return new OESTextureFloatWrappingImplementation._wrap(raw);
+      case "OESVertexArrayObject":
+        return new OESVertexArrayObjectWrappingImplementation._wrap(raw);
+      case "HTMLOListElement":
+        return new OListElementWrappingImplementation._wrap(raw);
+      case "HTMLObjectElement":
+        return new ObjectElementWrappingImplementation._wrap(raw);
+      case "OfflineAudioCompletionEvent":
+        return new OfflineAudioCompletionEventWrappingImplementation._wrap(raw);
+      case "OperationNotAllowedException":
+        return new OperationNotAllowedExceptionWrappingImplementation._wrap(raw);
+      case "HTMLOptGroupElement":
+        return new OptGroupElementWrappingImplementation._wrap(raw);
+      case "HTMLOptionElement":
+        return new OptionElementWrappingImplementation._wrap(raw);
+      case "HTMLOutputElement":
+        return new OutputElementWrappingImplementation._wrap(raw);
+      case "OverflowEvent":
+        return new OverflowEventWrappingImplementation._wrap(raw);
+      case "PageTransitionEvent":
+        return new PageTransitionEventWrappingImplementation._wrap(raw);
+      case "HTMLParagraphElement":
+        return new ParagraphElementWrappingImplementation._wrap(raw);
+      case "HTMLParamElement":
+        return new ParamElementWrappingImplementation._wrap(raw);
+      /* Skipping Performance*/
+      /* Skipping PerformanceNavigation*/
+      /* Skipping PerformanceTiming*/
+      case "WebKitPoint":
+        return new PointWrappingImplementation._wrap(raw);
+      case "PopStateEvent":
+        return new PopStateEventWrappingImplementation._wrap(raw);
+      /* Skipping PositionCallback*/
+      case "PositionError":
+        return new PositionErrorWrappingImplementation._wrap(raw);
+      /* Skipping PositionErrorCallback*/
+      case "HTMLPreElement":
+        return new PreElementWrappingImplementation._wrap(raw);
+      case "ProcessingInstruction":
+        return new ProcessingInstructionWrappingImplementation._wrap(raw);
+      case "HTMLProgressElement":
+        return new ProgressElementWrappingImplementation._wrap(raw);
+      case "ProgressEvent":
+        return new ProgressEventWrappingImplementation._wrap(raw);
+      case "HTMLQuoteElement":
+        return new QuoteElementWrappingImplementation._wrap(raw);
+      case "RGBColor":
+        return new RGBColorWrappingImplementation._wrap(raw);
+      case "Range":
+        return new RangeWrappingImplementation._wrap(raw);
+      case "RangeException":
+        return new RangeExceptionWrappingImplementation._wrap(raw);
+      case "RealtimeAnalyserNode":
+        return new RealtimeAnalyserNodeWrappingImplementation._wrap(raw);
+      case "Rect":
+        return new RectWrappingImplementation._wrap(raw);
+      /* Skipping RequestAnimationFrameCallback*/
+      /* Skipping SQLError*/
+      /* Skipping SQLException*/
+      /* Skipping SQLResultSet*/
+      /* Skipping SQLResultSetRowList*/
+      /* Skipping SQLStatementCallback*/
+      /* Skipping SQLStatementErrorCallback*/
+      /* Skipping SQLTransaction*/
+      /* Skipping SQLTransactionCallback*/
+      /* Skipping SQLTransactionErrorCallback*/
+      /* Skipping SQLTransactionSync*/
+      /* Skipping SQLTransactionSyncCallback*/
+      case "SVGAElement":
+        return new SVGAElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphDefElement":
+        return new SVGAltGlyphDefElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphElement":
+        return new SVGAltGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGAltGlyphItemElement":
+        return new SVGAltGlyphItemElementWrappingImplementation._wrap(raw);
+      case "SVGAngle":
+        return new SVGAngleWrappingImplementation._wrap(raw);
+      case "SVGAnimateColorElement":
+        return new SVGAnimateColorElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateElement":
+        return new SVGAnimateElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateMotionElement":
+        return new SVGAnimateMotionElementWrappingImplementation._wrap(raw);
+      case "SVGAnimateTransformElement":
+        return new SVGAnimateTransformElementWrappingImplementation._wrap(raw);
+      case "SVGAnimatedAngle":
+        return new SVGAnimatedAngleWrappingImplementation._wrap(raw);
+      case "SVGAnimatedBoolean":
+        return new SVGAnimatedBooleanWrappingImplementation._wrap(raw);
+      case "SVGAnimatedEnumeration":
+        return new SVGAnimatedEnumerationWrappingImplementation._wrap(raw);
+      case "SVGAnimatedInteger":
+        return new SVGAnimatedIntegerWrappingImplementation._wrap(raw);
+      case "SVGAnimatedLength":
+        return new SVGAnimatedLengthWrappingImplementation._wrap(raw);
+      case "SVGAnimatedLengthList":
+        return new SVGAnimatedLengthListWrappingImplementation._wrap(raw);
+      case "SVGAnimatedNumber":
+        return new SVGAnimatedNumberWrappingImplementation._wrap(raw);
+      case "SVGAnimatedNumberList":
+        return new SVGAnimatedNumberListWrappingImplementation._wrap(raw);
+      case "SVGAnimatedPreserveAspectRatio":
+        return new SVGAnimatedPreserveAspectRatioWrappingImplementation._wrap(raw);
+      case "SVGAnimatedRect":
+        return new SVGAnimatedRectWrappingImplementation._wrap(raw);
+      case "SVGAnimatedString":
+        return new SVGAnimatedStringWrappingImplementation._wrap(raw);
+      case "SVGAnimatedTransformList":
+        return new SVGAnimatedTransformListWrappingImplementation._wrap(raw);
+      case "SVGAnimationElement":
+        return new SVGAnimationElementWrappingImplementation._wrap(raw);
+      case "SVGCircleElement":
+        return new SVGCircleElementWrappingImplementation._wrap(raw);
+      case "SVGClipPathElement":
+        return new SVGClipPathElementWrappingImplementation._wrap(raw);
+      case "SVGColor":
+        return new SVGColorWrappingImplementation._wrap(raw);
+      case "SVGComponentTransferFunctionElement":
+        return new SVGComponentTransferFunctionElementWrappingImplementation._wrap(raw);
+      case "SVGCursorElement":
+        return new SVGCursorElementWrappingImplementation._wrap(raw);
+      case "SVGDefsElement":
+        return new SVGDefsElementWrappingImplementation._wrap(raw);
+      case "SVGDescElement":
+        return new SVGDescElementWrappingImplementation._wrap(raw);
+      case "SVGDocument":
+        return new SVGDocumentWrappingImplementation._wrap(raw);
+      case "SVGElement":
+        return new SVGElementWrappingImplementation._wrap(raw);
+      case "SVGElementInstance":
+        return new SVGElementInstanceWrappingImplementation._wrap(raw);
+      case "SVGElementInstanceList":
+        return new SVGElementInstanceListWrappingImplementation._wrap(raw);
+      case "SVGEllipseElement":
+        return new SVGEllipseElementWrappingImplementation._wrap(raw);
+      case "SVGException":
+        return new SVGExceptionWrappingImplementation._wrap(raw);
+      case "SVGExternalResourcesRequired":
+        return new SVGExternalResourcesRequiredWrappingImplementation._wrap(raw);
+      case "SVGFEBlendElement":
+        return new SVGFEBlendElementWrappingImplementation._wrap(raw);
+      case "SVGFEColorMatrixElement":
+        return new SVGFEColorMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEComponentTransferElement":
+        return new SVGFEComponentTransferElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFECompositeElement*/
+      case "SVGFEConvolveMatrixElement":
+        return new SVGFEConvolveMatrixElementWrappingImplementation._wrap(raw);
+      case "SVGFEDiffuseLightingElement":
+        return new SVGFEDiffuseLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFEDisplacementMapElement":
+        return new SVGFEDisplacementMapElementWrappingImplementation._wrap(raw);
+      case "SVGFEDistantLightElement":
+        return new SVGFEDistantLightElementWrappingImplementation._wrap(raw);
+      case "SVGFEDropShadowElement":
+        return new SVGFEDropShadowElementWrappingImplementation._wrap(raw);
+      case "SVGFEFloodElement":
+        return new SVGFEFloodElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncAElement":
+        return new SVGFEFuncAElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncBElement":
+        return new SVGFEFuncBElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncGElement":
+        return new SVGFEFuncGElementWrappingImplementation._wrap(raw);
+      case "SVGFEFuncRElement":
+        return new SVGFEFuncRElementWrappingImplementation._wrap(raw);
+      case "SVGFEGaussianBlurElement":
+        return new SVGFEGaussianBlurElementWrappingImplementation._wrap(raw);
+      case "SVGFEImageElement":
+        return new SVGFEImageElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeElement":
+        return new SVGFEMergeElementWrappingImplementation._wrap(raw);
+      case "SVGFEMergeNodeElement":
+        return new SVGFEMergeNodeElementWrappingImplementation._wrap(raw);
+      /* Skipping SVGFEMorphologyElement*/
+      case "SVGFEOffsetElement":
+        return new SVGFEOffsetElementWrappingImplementation._wrap(raw);
+      case "SVGFEPointLightElement":
+        return new SVGFEPointLightElementWrappingImplementation._wrap(raw);
+      case "SVGFESpecularLightingElement":
+        return new SVGFESpecularLightingElementWrappingImplementation._wrap(raw);
+      case "SVGFESpotLightElement":
+        return new SVGFESpotLightElementWrappingImplementation._wrap(raw);
+      case "SVGFETileElement":
+        return new SVGFETileElementWrappingImplementation._wrap(raw);
+      case "SVGFETurbulenceElement":
+        return new SVGFETurbulenceElementWrappingImplementation._wrap(raw);
+      case "SVGFilterElement":
+        return new SVGFilterElementWrappingImplementation._wrap(raw);
+      case "SVGFilterPrimitiveStandardAttributes":
+        return new SVGFilterPrimitiveStandardAttributesWrappingImplementation._wrap(raw);
+      case "SVGFitToViewBox":
+        return new SVGFitToViewBoxWrappingImplementation._wrap(raw);
+      case "SVGFontElement":
+        return new SVGFontElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceElement":
+        return new SVGFontFaceElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceFormatElement":
+        return new SVGFontFaceFormatElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceNameElement":
+        return new SVGFontFaceNameElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceSrcElement":
+        return new SVGFontFaceSrcElementWrappingImplementation._wrap(raw);
+      case "SVGFontFaceUriElement":
+        return new SVGFontFaceUriElementWrappingImplementation._wrap(raw);
+      case "SVGForeignObjectElement":
+        return new SVGForeignObjectElementWrappingImplementation._wrap(raw);
+      case "SVGGElement":
+        return new SVGGElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphElement":
+        return new SVGGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGGlyphRefElement":
+        return new SVGGlyphRefElementWrappingImplementation._wrap(raw);
+      case "SVGGradientElement":
+        return new SVGGradientElementWrappingImplementation._wrap(raw);
+      case "SVGHKernElement":
+        return new SVGHKernElementWrappingImplementation._wrap(raw);
+      case "SVGImageElement":
+        return new SVGImageElementWrappingImplementation._wrap(raw);
+      case "SVGLangSpace":
+        return new SVGLangSpaceWrappingImplementation._wrap(raw);
+      case "SVGLength":
+        return new SVGLengthWrappingImplementation._wrap(raw);
+      case "SVGLengthList":
+        return new SVGLengthListWrappingImplementation._wrap(raw);
+      case "SVGLineElement":
+        return new SVGLineElementWrappingImplementation._wrap(raw);
+      case "SVGLinearGradientElement":
+        return new SVGLinearGradientElementWrappingImplementation._wrap(raw);
+      case "SVGLocatable":
+        return new SVGLocatableWrappingImplementation._wrap(raw);
+      case "SVGMPathElement":
+        return new SVGMPathElementWrappingImplementation._wrap(raw);
+      case "SVGMarkerElement":
+        return new SVGMarkerElementWrappingImplementation._wrap(raw);
+      case "SVGMaskElement":
+        return new SVGMaskElementWrappingImplementation._wrap(raw);
+      case "SVGMatrix":
+        return new SVGMatrixWrappingImplementation._wrap(raw);
+      case "SVGMetadataElement":
+        return new SVGMetadataElementWrappingImplementation._wrap(raw);
+      case "SVGMissingGlyphElement":
+        return new SVGMissingGlyphElementWrappingImplementation._wrap(raw);
+      case "SVGNumber":
+        return new SVGNumberWrappingImplementation._wrap(raw);
+      case "SVGNumberList":
+        return new SVGNumberListWrappingImplementation._wrap(raw);
+      case "SVGPaint":
+        return new SVGPaintWrappingImplementation._wrap(raw);
+      case "SVGPathElement":
+        return new SVGPathElementWrappingImplementation._wrap(raw);
+      case "SVGPathSeg":
+        return new SVGPathSegWrappingImplementation._wrap(raw);
+      case "SVGPathSegArcAbs":
+        return new SVGPathSegArcAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegArcRel":
+        return new SVGPathSegArcRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegClosePath":
+        return new SVGPathSegClosePathWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicAbs":
+        return new SVGPathSegCurvetoCubicAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicRel":
+        return new SVGPathSegCurvetoCubicRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicSmoothAbs":
+        return new SVGPathSegCurvetoCubicSmoothAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoCubicSmoothRel":
+        return new SVGPathSegCurvetoCubicSmoothRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticAbs":
+        return new SVGPathSegCurvetoQuadraticAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticRel":
+        return new SVGPathSegCurvetoQuadraticRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticSmoothAbs":
+        return new SVGPathSegCurvetoQuadraticSmoothAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegCurvetoQuadraticSmoothRel":
+        return new SVGPathSegCurvetoQuadraticSmoothRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoAbs":
+        return new SVGPathSegLinetoAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoHorizontalAbs":
+        return new SVGPathSegLinetoHorizontalAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoHorizontalRel":
+        return new SVGPathSegLinetoHorizontalRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoRel":
+        return new SVGPathSegLinetoRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoVerticalAbs":
+        return new SVGPathSegLinetoVerticalAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegLinetoVerticalRel":
+        return new SVGPathSegLinetoVerticalRelWrappingImplementation._wrap(raw);
+      case "SVGPathSegList":
+        return new SVGPathSegListWrappingImplementation._wrap(raw);
+      case "SVGPathSegMovetoAbs":
+        return new SVGPathSegMovetoAbsWrappingImplementation._wrap(raw);
+      case "SVGPathSegMovetoRel":
+        return new SVGPathSegMovetoRelWrappingImplementation._wrap(raw);
+      case "SVGPatternElement":
+        return new SVGPatternElementWrappingImplementation._wrap(raw);
+      case "SVGPoint":
+        return new SVGPointWrappingImplementation._wrap(raw);
+      case "SVGPointList":
+        return new SVGPointListWrappingImplementation._wrap(raw);
+      case "SVGPolygonElement":
+        return new SVGPolygonElementWrappingImplementation._wrap(raw);
+      case "SVGPolylineElement":
+        return new SVGPolylineElementWrappingImplementation._wrap(raw);
+      case "SVGPreserveAspectRatio":
+        return new SVGPreserveAspectRatioWrappingImplementation._wrap(raw);
+      case "SVGRadialGradientElement":
+        return new SVGRadialGradientElementWrappingImplementation._wrap(raw);
+      case "SVGRect":
+        return new SVGRectWrappingImplementation._wrap(raw);
+      case "SVGRectElement":
+        return new SVGRectElementWrappingImplementation._wrap(raw);
+      case "SVGRenderingIntent":
+        return new SVGRenderingIntentWrappingImplementation._wrap(raw);
+      case "SVGSVGElement":
+        return new SVGSVGElementWrappingImplementation._wrap(raw);
+      case "SVGScriptElement":
+        return new SVGScriptElementWrappingImplementation._wrap(raw);
+      case "SVGSetElement":
+        return new SVGSetElementWrappingImplementation._wrap(raw);
+      case "SVGStopElement":
+        return new SVGStopElementWrappingImplementation._wrap(raw);
+      case "SVGStringList":
+        return new SVGStringListWrappingImplementation._wrap(raw);
+      case "SVGStylable":
+        return new SVGStylableWrappingImplementation._wrap(raw);
+      case "SVGStyleElement":
+        return new SVGStyleElementWrappingImplementation._wrap(raw);
+      case "SVGSwitchElement":
+        return new SVGSwitchElementWrappingImplementation._wrap(raw);
+      case "SVGSymbolElement":
+        return new SVGSymbolElementWrappingImplementation._wrap(raw);
+      case "SVGTRefElement":
+        return new SVGTRefElementWrappingImplementation._wrap(raw);
+      case "SVGTSpanElement":
+        return new SVGTSpanElementWrappingImplementation._wrap(raw);
+      case "SVGTests":
+        return new SVGTestsWrappingImplementation._wrap(raw);
+      case "SVGTextContentElement":
+        return new SVGTextContentElementWrappingImplementation._wrap(raw);
+      case "SVGTextElement":
+        return new SVGTextElementWrappingImplementation._wrap(raw);
+      case "SVGTextPathElement":
+        return new SVGTextPathElementWrappingImplementation._wrap(raw);
+      case "SVGTextPositioningElement":
+        return new SVGTextPositioningElementWrappingImplementation._wrap(raw);
+      case "SVGTitleElement":
+        return new SVGTitleElementWrappingImplementation._wrap(raw);
+      case "SVGTransform":
+        return new SVGTransformWrappingImplementation._wrap(raw);
+      case "SVGTransformList":
+        return new SVGTransformListWrappingImplementation._wrap(raw);
+      case "SVGTransformable":
+        return new SVGTransformableWrappingImplementation._wrap(raw);
+      case "SVGURIReference":
+        return new SVGURIReferenceWrappingImplementation._wrap(raw);
+      case "SVGUnitTypes":
+        return new SVGUnitTypesWrappingImplementation._wrap(raw);
+      case "SVGUseElement":
+        return new SVGUseElementWrappingImplementation._wrap(raw);
+      case "SVGVKernElement":
+        return new SVGVKernElementWrappingImplementation._wrap(raw);
+      case "SVGViewElement":
+        return new SVGViewElementWrappingImplementation._wrap(raw);
+      case "SVGViewSpec":
+        return new SVGViewSpecWrappingImplementation._wrap(raw);
+      case "SVGZoomAndPan":
+        return new SVGZoomAndPanWrappingImplementation._wrap(raw);
+      case "SVGZoomEvent":
+        return new SVGZoomEventWrappingImplementation._wrap(raw);
+      case "Screen":
+        return new ScreenWrappingImplementation._wrap(raw);
+      case "HTMLScriptElement":
+        return new ScriptElementWrappingImplementation._wrap(raw);
+      /* Skipping ScriptProfile*/
+      /* Skipping ScriptProfileNode*/
+      case "HTMLSelectElement":
+        return new SelectElementWrappingImplementation._wrap(raw);
+      case "SharedWorker":
+        return new SharedWorkerWrappingImplementation._wrap(raw);
+      /* Skipping SharedWorkercontext*/
+      case "HTMLSourceElement":
+        return new SourceElementWrappingImplementation._wrap(raw);
+      case "HTMLSpanElement":
+        return new SpanElementWrappingImplementation._wrap(raw);
+      case "SpeechInputEvent":
+        return new SpeechInputEventWrappingImplementation._wrap(raw);
+      case "SpeechInputResult":
+        return new SpeechInputResultWrappingImplementation._wrap(raw);
+      case "SpeechInputResultList":
+        return new SpeechInputResultListWrappingImplementation._wrap(raw);
+      case "Storage":
+        return new StorageWrappingImplementation._wrap(raw);
+      case "StorageEvent":
+        return new StorageEventWrappingImplementation._wrap(raw);
+      case "StorageInfo":
+        return new StorageInfoWrappingImplementation._wrap(raw);
+      /* Skipping StorageInfoErrorCallback*/
+      /* Skipping StorageInfoQuotaCallback*/
+      /* Skipping StorageInfoUsageCallback*/
+      /* Skipping StringCallback*/
+      case "HTMLStyleElement":
+        return new StyleElementWrappingImplementation._wrap(raw);
+      case "StyleMedia":
+        return new StyleMediaWrappingImplementation._wrap(raw);
+      case "StyleSheet":
+        return new StyleSheetWrappingImplementation._wrap(raw);
+      case "StyleSheetList":
+        return new StyleSheetListWrappingImplementation._wrap(raw);
+      case "HTMLTableCaptionElement":
+        return new TableCaptionElementWrappingImplementation._wrap(raw);
+      case "HTMLTableCellElement":
+        return new TableCellElementWrappingImplementation._wrap(raw);
+      case "HTMLTableColElement":
+        return new TableColElementWrappingImplementation._wrap(raw);
+      case "HTMLTableElement":
+        return new TableElementWrappingImplementation._wrap(raw);
+      case "HTMLTableRowElement":
+        return new TableRowElementWrappingImplementation._wrap(raw);
+      case "HTMLTableSectionElement":
+        return new TableSectionElementWrappingImplementation._wrap(raw);
+      case "Text":
+        return new TextWrappingImplementation._wrap(raw);
+      case "HTMLTextAreaElement":
+        return new TextAreaElementWrappingImplementation._wrap(raw);
+      case "TextEvent":
+        return new TextEventWrappingImplementation._wrap(raw);
+      case "TextMetrics":
+        return new TextMetricsWrappingImplementation._wrap(raw);
+      case "TextTrack":
+        return new TextTrackWrappingImplementation._wrap(raw);
+      case "TextTrackCue":
+        return new TextTrackCueWrappingImplementation._wrap(raw);
+      case "TextTrackCueList":
+        return new TextTrackCueListWrappingImplementation._wrap(raw);
+      case "TimeRanges":
+        return new TimeRangesWrappingImplementation._wrap(raw);
+      case "HTMLTitleElement":
+        return new TitleElementWrappingImplementation._wrap(raw);
+      case "Touch":
+        return new TouchWrappingImplementation._wrap(raw);
+      case "TouchEvent":
+        return new TouchEventWrappingImplementation._wrap(raw);
+      case "TouchList":
+        return new TouchListWrappingImplementation._wrap(raw);
+      case "HTMLTrackElement":
+        return new TrackElementWrappingImplementation._wrap(raw);
+      case "WebKitTransitionEvent":
+        return new TransitionEventWrappingImplementation._wrap(raw);
+      /* Skipping TreeWalker*/
+      case "UIEvent":
+        return new UIEventWrappingImplementation._wrap(raw);
+      case "HTMLUListElement":
+        return new UListElementWrappingImplementation._wrap(raw);
+      case "Uint16Array":
+        return new Uint16ArrayWrappingImplementation._wrap(raw);
+      case "Uint32Array":
+        return new Uint32ArrayWrappingImplementation._wrap(raw);
+      case "Uint8Array":
+        return new Uint8ArrayWrappingImplementation._wrap(raw);
+      case "HTMLUnknownElement":
+        return new UnknownElementWrappingImplementation._wrap(raw);
+      case "ValidityState":
+        return new ValidityStateWrappingImplementation._wrap(raw);
+      case "HTMLVideoElement":
+        return new VideoElementWrappingImplementation._wrap(raw);
+      case "VoidCallback":
+        return new VoidCallbackWrappingImplementation._wrap(raw);
+      case "WaveShaperNode":
+        return new WaveShaperNodeWrappingImplementation._wrap(raw);
+      case "WebGLActiveInfo":
+        return new WebGLActiveInfoWrappingImplementation._wrap(raw);
+      case "WebGLBuffer":
+        return new WebGLBufferWrappingImplementation._wrap(raw);
+      case "WebGLContextAttributes":
+        return new WebGLContextAttributesWrappingImplementation._wrap(raw);
+      case "WebGLContextEvent":
+        return new WebGLContextEventWrappingImplementation._wrap(raw);
+      case "WebGLDebugRendererInfo":
+        return new WebGLDebugRendererInfoWrappingImplementation._wrap(raw);
+      case "WebGLDebugShaders":
+        return new WebGLDebugShadersWrappingImplementation._wrap(raw);
+      case "WebGLFramebuffer":
+        return new WebGLFramebufferWrappingImplementation._wrap(raw);
+      case "WebGLProgram":
+        return new WebGLProgramWrappingImplementation._wrap(raw);
+      case "WebGLRenderbuffer":
+        return new WebGLRenderbufferWrappingImplementation._wrap(raw);
+      case "WebGLRenderingContext":
+        return new WebGLRenderingContextWrappingImplementation._wrap(raw);
+      case "WebGLShader":
+        return new WebGLShaderWrappingImplementation._wrap(raw);
+      case "WebGLTexture":
+        return new WebGLTextureWrappingImplementation._wrap(raw);
+      case "WebGLUniformLocation":
+        return new WebGLUniformLocationWrappingImplementation._wrap(raw);
+      case "WebGLVertexArrayObjectOES":
+        return new WebGLVertexArrayObjectOESWrappingImplementation._wrap(raw);
+      case "WebKitCSSFilterValue":
+        return new WebKitCSSFilterValueWrappingImplementation._wrap(raw);
+      case "WebKitMutationObserver":
+        return new WebKitMutationObserverWrappingImplementation._wrap(raw);
+      case "WebSocket":
+        return new WebSocketWrappingImplementation._wrap(raw);
+      case "WheelEvent":
+        return new WheelEventWrappingImplementation._wrap(raw);
+      case "Window":
+        return new WindowWrappingImplementation._wrap(raw);
+      case "Worker":
+        return new WorkerWrappingImplementation._wrap(raw);
+      /* Skipping WorkerContext*/
+      /* Skipping WorkerLocation*/
+      /* Skipping WorkerNavigator*/
+      case "XMLHttpRequest":
+        return new XMLHttpRequestWrappingImplementation._wrap(raw);
+      case "XMLHttpRequestException":
+        return new XMLHttpRequestExceptionWrappingImplementation._wrap(raw);
+      case "XMLHttpRequestProgressEvent":
+        return new XMLHttpRequestProgressEventWrappingImplementation._wrap(raw);
+      case "XMLHttpRequestUpload":
+        return new XMLHttpRequestUploadWrappingImplementation._wrap(raw);
+      /* Skipping XMLSerializer*/
+      /* Skipping XPathEvaluator*/
+      /* Skipping XPathException*/
+      /* Skipping XPathExpression*/
+      /* Skipping XPathNSResolver*/
+      /* Skipping XPathResult*/
+      /* Skipping XSLTProcessor*/
+      default:
+        throw new UnsupportedOperationException("Unknown type:" + raw.toString());
+    }
+  }
+
   static unwrapMaybePrimitive(raw) {
-    return raw is DOMWrapperBase ? raw._ptr : raw;
+    return (raw === null || raw is String || raw is num || raw is bool) ? raw : raw._ptr;
   }
 
   static unwrap(raw) {
@@ -10336,9 +18565,9 @@ class LevelDom {
   }
 
 
-  static void initialize(var rawWindow) {
-    secretWindow = wrapWindow(rawWindow);
-    secretDocument = wrapDocument(rawWindow.document);
+  static void initialize() {
+    secretWindow = wrapWindow(dom.window);
+    secretDocument = wrapDocument(dom.document);
   }
 
 }
@@ -14172,11 +22401,11 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   DocumentWrappingImplementation._wrap(this._documentPtr, ptr) : super._wrap(ptr) {
     // We have to set the back ptr on the document as well as the documentElement
     // so that it is always simple to detect when an existing wrapper exists.
-    _documentPtr.dartObjectLocalStorage = this;
+    _documentPtr.dynamic.dartObjectLocalStorage = this;
   }
 
   /** @domName HTMLDocument.activeElement */
-  Element get activeElement() => LevelDom.wrapElement(_documentPtr.activeElement);
+  Element get activeElement() => LevelDom.wrapElement(_documentPtr.dynamic.activeElement);
 
   Node get parent() => null;
 
@@ -14202,7 +22431,7 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   Window get window() => LevelDom.wrapWindow(_documentPtr.defaultView);
 
   /** @domName HTMLDocument.designMode */
-  void set designMode(String value) { _documentPtr.designMode = value; }
+  void set designMode(String value) { _documentPtr.dynamic.designMode = value; }
 
   /** @domName Document.domain */
   String get domain() => _documentPtr.domain;
@@ -14241,13 +22470,8 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
         new Completer<Range>());
   }
 
-  /** @domName Document.createElement */
-  Element createElement([String tagName = null]) {
-    return LevelDom.wrapElement(_documentPtr.createElement(tagName));
-  }
-
   /** @domName Document.createEvent */
-  Event createEvent([String eventType = null]) {
+  Event createEvent(String eventType) {
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 
@@ -14816,7 +23040,7 @@ class ElementRectWrappingImplementation implements ElementRect {
   // This should be type dom.ClientRect but that fails on dartium. b/5522629
   final _boundingClientRect; 
   // an exception due to a dartium bug.
-  final dom.ClientRectList _clientRects;
+  final _clientRects; // TODO(jacobr): should be dom.ClientRectList
 
   ElementRectWrappingImplementation(dom.HTMLElement element) :
     client = new SimpleClientRect(element.clientLeft,
@@ -14880,7 +23104,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    final temp = dom.document.createElement(parentTag);
+    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
+    var temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
     if (temp.childElementCount == 1) {
@@ -15476,12 +23701,14 @@ void _completeMeasurementFutures() {
   // We must compute all new values before fulfilling the futures as
   // the onComplete callbacks for the futures could modify the DOM making
   // subsequent measurement calculations expensive to compute.
-  for (_MeasurementRequest request in _pendingRequests) {
-    try {
-      request.value = request.computeValue();
-    } catch(var e) {
-      request.value = e;
-      request.exception = true;
+  if (_pendingRequests !== null) {
+    for (_MeasurementRequest request in _pendingRequests) {
+      try {
+        request.value = request.computeValue();
+      } catch(var e) {
+        request.value = e;
+        request.exception = true;
+      }
     }
   }
 
@@ -15489,11 +23716,13 @@ void _completeMeasurementFutures() {
   final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
   _pendingRequests = null;
   _pendingMeasurementFrameCallbacks = null;
-  for (_MeasurementRequest request in completedRequests) {
-    if (request.exception) {
-      request.completer.completeException(request.value);
-    } else {
-      request.completer.complete(request.value);
+  if (completedRequests !== null) {
+    for (_MeasurementRequest request in completedRequests) {
+      if (request.exception) {
+        request.completer.completeException(request.value);
+      } else {
+        request.completer.complete(request.value);
+      }
     }
   }
 
@@ -16001,6 +24230,41 @@ class StorageEventWrappingImplementation extends EventWrappingImplementation imp
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+class SVGDocumentWrappingImplementation extends DocumentWrappingImplementation implements SVGDocument {
+  SVGDocumentWrappingImplementation._wrap(dom.SVGDocument ptr) : super._wrap(ptr, ptr.rootElement);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class SVGElementInstanceWrappingImplementation extends EventTargetWrappingImplementation implements SVGElementInstance {
+  SVGElementInstanceWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  SVGElementInstanceList get childNodes() { return LevelDom.wrapSVGElementInstanceList(_ptr.childNodes); }
+
+  SVGElement get correspondingElement() { return LevelDom.wrapSVGElement(_ptr.correspondingElement); }
+
+  SVGUseElement get correspondingUseElement() { return LevelDom.wrapSVGUseElement(_ptr.correspondingUseElement); }
+
+  SVGElementInstance get firstChild() { return LevelDom.wrapSVGElementInstance(_ptr.firstChild); }
+
+  SVGElementInstance get lastChild() { return LevelDom.wrapSVGElementInstance(_ptr.lastChild); }
+
+  SVGElementInstance get nextSibling() { return LevelDom.wrapSVGElementInstance(_ptr.nextSibling); }
+
+  SVGElementInstance get parentNode() { return LevelDom.wrapSVGElementInstance(_ptr.parentNode); }
+
+  SVGElementInstance get previousSibling() { return LevelDom.wrapSVGElementInstance(_ptr.previousSibling); }
+
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class TextEventWrappingImplementation extends UIEventWrappingImplementation implements TextEvent {
   TextEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
@@ -16051,7 +24315,7 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
 class TouchEventWrappingImplementation extends UIEventWrappingImplementation implements TouchEvent {
   TouchEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
-  factory TouchEvent(TouchList touches, TouchList targetTouches,
+  factory TouchEventWrappingImplementation(TouchList touches, TouchList targetTouches,
       TouchList changedTouches, String type, Window view, int screenX,
       int screenY, int clientX, int clientY, [bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false]) {
@@ -17070,12 +25334,7 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
   }
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element = null]) {
-    if (element === null) {
-      return _ptr.webkitRequestAnimationFrame(callback);
-    } else {
-      return _ptr.webkitRequestAnimationFrame(
-          callback, LevelDom.unwrap(element));
-    }
+    return _ptr.webkitRequestAnimationFrame(callback, LevelDom.unwrap(element));
   }
 
   void requestLayoutFrame(TimeoutHandler callback) {

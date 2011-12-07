@@ -26,4 +26,6 @@ class TrackElementWrappingImplementation extends ElementWrappingImplementation i
   String get srclang() { return _ptr.srclang; }
 
   void set srclang(String value) { _ptr.srclang = value; }
+
+  TextTrack get track() { return LevelDom.wrapTextTrack(_ptr.track); }
 }

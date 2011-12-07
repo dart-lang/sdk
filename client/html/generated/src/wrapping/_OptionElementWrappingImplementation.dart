@@ -29,6 +29,8 @@ class OptionElementWrappingImplementation extends ElementWrappingImplementation 
 
   String get text() { return _ptr.text; }
 
+  void set text(String value) { _ptr.text = value; }
+
   String get value() { return _ptr.value; }
 
   void set value(String value) { _ptr.value = value; }

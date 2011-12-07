@@ -6,24 +6,6 @@
 
 interface MediaElement extends Element {
 
-  static final int HAVE_CURRENT_DATA = 2;
-
-  static final int HAVE_ENOUGH_DATA = 4;
-
-  static final int HAVE_FUTURE_DATA = 3;
-
-  static final int HAVE_METADATA = 1;
-
-  static final int HAVE_NOTHING = 0;
-
-  static final int NETWORK_EMPTY = 0;
-
-  static final int NETWORK_IDLE = 1;
-
-  static final int NETWORK_LOADING = 2;
-
-  static final int NETWORK_NO_SOURCE = 3;
-
   bool get autoplay();
 
   void set autoplay(bool value);

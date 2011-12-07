@@ -15,4 +15,6 @@ interface XMLHttpRequestException {
   String get message();
 
   String get name();
+
+  String toString();
 }

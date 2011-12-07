@@ -37,6 +37,10 @@ class LinkElementWrappingImplementation extends ElementWrappingImplementation im
 
   StyleSheet get sheet() { return LevelDom.wrapStyleSheet(_ptr.sheet); }
 
+  DOMSettableTokenList get sizes() { return LevelDom.wrapDOMSettableTokenList(_ptr.sizes); }
+
+  void set sizes(DOMSettableTokenList value) { _ptr.sizes = LevelDom.unwrap(value); }
+
   String get target() { return _ptr.target; }
 
   void set target(String value) { _ptr.target = value; }

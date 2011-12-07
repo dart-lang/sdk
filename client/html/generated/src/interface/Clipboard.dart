@@ -16,7 +16,9 @@ interface Clipboard {
 
   FileList get files();
 
-  DataTransferItems get items();
+  DataTransferItemList get items();
+
+  List get types();
 
   void clearData([String type]);
 

@@ -16,18 +16,6 @@ interface IDBTransaction {
 
   int get mode();
 
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get oncomplete();
-
-  void set oncomplete(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
   void abort();
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);

@@ -6,6 +6,9 @@
 
 class PointWrappingImplementation extends DOMWrapperBase implements Point {
   PointWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+  factory PointWrappingImplementation(num x, num y) {
+    return LevelDom.wrapPoint(new dom.WebKitPoint(x, y));
+  }
 
   num get x() { return _ptr.x; }
 

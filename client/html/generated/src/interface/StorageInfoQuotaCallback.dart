@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface StorageInfoQuotaCallback {
-
-  bool handleEvent(int grantedQuotaInBytes);
-}
+typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);

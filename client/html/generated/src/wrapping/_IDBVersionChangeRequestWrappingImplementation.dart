@@ -6,8 +6,4 @@
 
 class IDBVersionChangeRequestWrappingImplementation extends IDBRequestWrappingImplementation implements IDBVersionChangeRequest {
   IDBVersionChangeRequestWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  EventListener get onblocked() { return LevelDom.wrapEventListener(_ptr.onblocked); }
-
-  void set onblocked(EventListener value) { _ptr.onblocked = LevelDom.unwrap(value); }
 }

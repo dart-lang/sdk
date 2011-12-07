@@ -20,7 +20,7 @@ class Main {
             return 'class="foo test${num} bar"';
           });
 
-          final div = document.createElement('div');
+          final div = new Element.tag('div');
           div.innerHTML = html;
           document.body.nodes.add(div);
         })

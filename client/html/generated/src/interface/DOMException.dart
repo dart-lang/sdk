@@ -61,4 +61,6 @@ interface DOMException {
   String get message();
 
   String get name();
+
+  String toString();
 }

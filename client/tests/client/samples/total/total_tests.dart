@@ -64,7 +64,7 @@ main() {
 
     Document doc = window.document;
     Element body = doc.body;
-    DivElement div = doc.createElement('div');
+    DivElement div = new Element.tag('div');
     body.nodes.add(div);
 
     HtmlUtils.setIntegerProperty(div, "left", 100, "px");

@@ -7,5 +7,5 @@
 class IDBCursorWithValueWrappingImplementation extends IDBCursorWrappingImplementation implements IDBCursorWithValue {
   IDBCursorWithValueWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  String get value() { return _ptr.value; }
+  IDBAny get value() { return LevelDom.wrapIDBAny(_ptr.value); }
 }

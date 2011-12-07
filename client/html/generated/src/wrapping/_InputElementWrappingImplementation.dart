@@ -103,10 +103,6 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set name(String value) { _ptr.name = value; }
 
-  EventListener get onwebkitspeechchange() { return LevelDom.wrapEventListener(_ptr.onwebkitspeechchange); }
-
-  void set onwebkitspeechchange(EventListener value) { _ptr.onwebkitspeechchange = LevelDom.unwrap(value); }
-
   String get pattern() { return _ptr.pattern; }
 
   void set pattern(String value) { _ptr.pattern = value; }
@@ -214,11 +210,6 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
       _ptr.setSelectionRange(start, end, direction);
       return;
     }
-  }
-
-  void setValueForUser(String value) {
-    _ptr.setValueForUser(value);
-    return;
   }
 
   void stepDown([int n = null]) {

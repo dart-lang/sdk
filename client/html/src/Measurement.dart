@@ -86,12 +86,14 @@ void _completeMeasurementFutures() {
   // We must compute all new values before fulfilling the futures as
   // the onComplete callbacks for the futures could modify the DOM making
   // subsequent measurement calculations expensive to compute.
-  for (_MeasurementRequest request in _pendingRequests) {
-    try {
-      request.value = request.computeValue();
-    } catch(var e) {
-      request.value = e;
-      request.exception = true;
+  if (_pendingRequests !== null) {
+    for (_MeasurementRequest request in _pendingRequests) {
+      try {
+        request.value = request.computeValue();
+      } catch(var e) {
+        request.value = e;
+        request.exception = true;
+      }
     }
   }
 
@@ -99,11 +101,13 @@ void _completeMeasurementFutures() {
   final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
   _pendingRequests = null;
   _pendingMeasurementFrameCallbacks = null;
-  for (_MeasurementRequest request in completedRequests) {
-    if (request.exception) {
-      request.completer.completeException(request.value);
-    } else {
-      request.completer.complete(request.value);
+  if (completedRequests !== null) {
+    for (_MeasurementRequest request in completedRequests) {
+      if (request.exception) {
+        request.completer.completeException(request.value);
+      } else {
+        request.completer.complete(request.value);
+      }
     }
   }
 
