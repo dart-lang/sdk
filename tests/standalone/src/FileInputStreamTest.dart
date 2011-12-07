@@ -8,9 +8,9 @@
 String getFilename(String path) =>
     new File(path).existsSync() ? path : '../' + path;
 
-void testStringInputStream() {
+void testStringInputStreamSync() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
-  // File contains "Hello Dart\nwassup!"
+  // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   file.openSync();
   StringInputStream x = new StringInputStream(file.openInputStream());
@@ -20,6 +20,60 @@ void testStringInputStream() {
   line = x.readLine();
   Expect.equals("wassup!", line);
 }
+
+void testInputStreamAsync() {
+  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  // File contains "Hello Dart\nwassup!\n"
+  var expected = "Hello Dart\nwassup!\n".charCodes();
+  File file = new File(fileName);
+  file.openSync();
+  InputStream x = file.openInputStream();
+  var byteCount = 0;
+  x.dataHandler = () {
+    Expect.equals(expected[byteCount],  x.read(1)[0]);
+    byteCount++;
+  };
+  x.closeHandler = () {
+    Expect.equals(expected.length, byteCount);
+  };
+}
+
+
+void testStringInputStreamAsync1() {
+  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  // File contains "Hello Dart\nwassup!\n"
+  File file = new File(fileName);
+  file.openSync();
+  StringInputStream x = new StringInputStream(file.openInputStream());
+  var result = "";
+  x.dataHandler = () {
+    result += x.read();
+  };
+  x.closeHandler = () {
+    Expect.equals("Hello Dart\nwassup!\n", result);
+  };
+}
+
+
+void testStringInputStreamAsync2() {
+  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  // File contains "Hello Dart\nwassup!\n"
+  File file = new File(fileName);
+  file.openSync();
+  StringInputStream x = new StringInputStream(file.openInputStream());
+  int lineCount = 0;
+  x.lineHandler = () {
+    var line = x.readLine();
+    Expect.isTrue(lineCount == 0 || lineCount == 1);
+    if (lineCount == 0) Expect.equals("Hello Dart", line);
+    if (lineCount == 1) Expect.equals("wassup!", line);
+    lineCount++;
+  };
+  x.closeHandler = () {
+    Expect.equals(2, lineCount);
+  };
+}
+
 
 void testChunkedInputStream() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
@@ -40,7 +94,11 @@ void testChunkedInputStream() {
   Expect.equals(null, chunk);
 }
 
+
 main() {
-  testStringInputStream();
+  testStringInputStreamSync();
+  testInputStreamAsync();
+  testStringInputStreamAsync1();
+  testStringInputStreamAsync2();
   testChunkedInputStream();
 }
