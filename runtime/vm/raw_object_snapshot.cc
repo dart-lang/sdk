@@ -248,6 +248,7 @@ RawInstantiatedType* InstantiatedType::ReadFrom(SnapshotReader* reader,
                                                 intptr_t object_id,
                                                 Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kMessage);
 
   // Allocate instantiated type object.
   InstantiatedType& instantiated_type =
@@ -270,6 +271,7 @@ void RawInstantiatedType::WriteTo(SnapshotWriter* writer,
                                   intptr_t object_id,
                                   Snapshot::Kind kind) {
   ASSERT(writer != NULL);
+  ASSERT(kind == Snapshot::kMessage);
   SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
@@ -351,6 +353,7 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
     intptr_t object_id,
     Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kMessage);
 
   // Allocate instantiated types object.
   InstantiatedTypeArguments& instantiated_type_arguments =
@@ -373,6 +376,7 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
                                            intptr_t object_id,
                                            Snapshot::Kind kind) {
   ASSERT(writer != NULL);
+  ASSERT(kind == Snapshot::kMessage);
   SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
@@ -798,6 +802,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kMessage);
 
   // Allocate context scope object.
   intptr_t num_vars = reader->Read<intptr_t>();
@@ -820,6 +825,7 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind) {
   ASSERT(writer != NULL);
+  ASSERT(kind == Snapshot::kMessage);
   SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
@@ -1344,6 +1350,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kMessage);
 
   // Read the length so that we can determine instance size to allocate.
   RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
@@ -1372,6 +1379,7 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind) {
   ASSERT(writer != NULL);
+  ASSERT(kind == Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
   writer->WriteObjectHeader(kInlined, object_id);
