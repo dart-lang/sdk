@@ -63,7 +63,7 @@ public class DartCompilationError {
    */
   public DartCompilationError(Source source, ErrorCode errorCode, Object... arguments) {
     this.source = source;
-    this.errorCode = DartCompilerErrorCode.IO;
+    this.errorCode = errorCode;
     this.message = String.format(errorCode.getMessage(), arguments);
   }
 

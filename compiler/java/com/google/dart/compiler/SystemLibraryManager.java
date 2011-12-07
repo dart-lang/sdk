@@ -114,8 +114,9 @@ public class SystemLibraryManager {
    * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart").
    * 
    * @param uri the relative URI
-   * @return the expanded URI, or the original URI if it could not be expanded, or <code>null</code>
-   *         if original URI can not be resolved.
+   * @return the expanded URI 
+   *  or the original URI if it could not be expanded 
+   *  or null if the uri is of the form "dart:<libname>" but does not correspond to a system library
    */
   public URI expandRelativeDartUri(URI uri) throws AssertionError {
     if (isDartUri(uri)) {
