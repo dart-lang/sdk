@@ -66,3 +66,14 @@ List orderByName(Map<String, Dynamic> map) {
   }
   return values;
 }
+
+/**
+ * Joins [items] into a single, comma-separated string using [conjunction].
+ * E.g. `['A', 'B', 'C']` becomes `"A, B, and C"`.
+ */
+String joinWithCommas(List<String> items, [String conjunction = 'and']) {
+  if (items.length == 1) return items[0];
+  if (items.length == 2) return "${items[0]} $conjunction ${items[1]}";
+  return Strings.join(items.getRange(0, items.length - 1), ', ') +
+    ', $conjunction ' + items[items.length - 1];
+}

@@ -23,9 +23,4 @@ class MessageEventWrappingImplementation extends EventWrappingImplementation imp
   String get origin() => _ptr.origin;
 
   Window get source() => LevelDom.wrapWindow(_ptr.source);
-
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort) {
-    _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
-    return;
-  }
 }

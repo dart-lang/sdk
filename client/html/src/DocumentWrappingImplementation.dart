@@ -14,6 +14,7 @@ class DocumentEventsImplementation extends ElementEventsImplementation
   EventListenerList get contentLoaded() => _get('DOMContentLoaded');
 }
 
+/** @domName Document, HTMLDocument */
 class DocumentWrappingImplementation extends ElementWrappingImplementation implements Document {
 
   final _documentPtr;
@@ -24,122 +25,124 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
     _documentPtr.dynamic.dartObjectLocalStorage = this;
   }
 
-  /** @domName HTMLDocument.activeElement */
+  /** @domName activeElement */
   Element get activeElement() => LevelDom.wrapElement(_documentPtr.dynamic.activeElement);
 
   Node get parent() => null;
 
-  /** @domName Document.body */
+  /** @domName body */
   Element get body() => LevelDom.wrapElement(_documentPtr.body);
 
-  /** @domName Document.body */
+  /** @domName body */
   void set body(Element value) { _documentPtr.body = LevelDom.unwrap(value); }
 
-  /** @domName Document.charset */
+  /** @domName charset */
   String get charset() => _documentPtr.charset;
 
-  /** @domName Document.charset */
+  /** @domName charset */
   void set charset(String value) { _documentPtr.charset = value; }
 
-  /** @domName Document.cookie */
+  /** @domName cookie */
   String get cookie() => _documentPtr.cookie;
 
-  /** @domName Document.cookie */
+  /** @domName cookie */
   void set cookie(String value) { _documentPtr.cookie = value; }
 
-  /** @domName Document.defaultView */
+  /** @domName defaultView */
   Window get window() => LevelDom.wrapWindow(_documentPtr.defaultView);
 
-  /** @domName HTMLDocument.designMode */
+  /** @domName designMode */
   void set designMode(String value) { _documentPtr.dynamic.designMode = value; }
 
-  /** @domName Document.domain */
+  /** @domName domain */
   String get domain() => _documentPtr.domain;
 
-  /** @domName Document.head */
+  /** @domName head */
   HeadElement get head() => LevelDom.wrapHeadElement(_documentPtr.head);
 
-  /** @domName Document.lastModified */
+  /** @domName lastModified */
   String get lastModified() => _documentPtr.lastModified;
 
-  /** @domName Document.readyState */
+  /** @domName readyState */
   String get readyState() => _documentPtr.readyState;
 
-  /** @domName Document.referrer */
+  /** @domName referrer */
   String get referrer() => _documentPtr.referrer;
 
-  /** @domName Document.styleSheets */
+  /** @domName styleSheets */
   StyleSheetList get styleSheets() => LevelDom.wrapStyleSheetList(_documentPtr.styleSheets);
 
-  /** @domName Document.title */
+  /** @domName title */
   String get title() => _documentPtr.title;
 
-  /** @domName Document.title */
+  /** @domName title */
   void set title(String value) { _documentPtr.title = value; }
 
-  /** @domName Document.webkitHidden */
+  /** @domName webkitHidden */
   bool get webkitHidden() => _documentPtr.webkitHidden;
 
-  /** @domName Document.webkitVisibilityState */
+  /** @domName webkitVisibilityState */
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
-  /** @domName Document.caretRangeFromPoint */
+  /** @domName caretRangeFromPoint */
   Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
     return _createMeasurementFuture(
         () => LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y)),
         new Completer<Range>());
   }
 
-  /** @domName Document.createEvent */
+  /** @domName createEvent */
   Event createEvent(String eventType) {
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 
-  /** @domName Document.elementFromPoint */
+  /** @domName elementFromPoint */
   Future<Element> elementFromPoint([int x = null, int y = null]) {
     return _createMeasurementFuture(
         () => LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y)),
         new Completer<Element>());
   }
 
-  /** @domName Document.execCommand */
+  /** @domName execCommand */
   bool execCommand([String command = null, bool userInterface = null, String value = null]) {
     return _documentPtr.execCommand(command, userInterface, value);
   }
 
-  /** @domName Document.getCSSCanvasContext */
+  /** @domName getCSSCanvasContext */
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name,
                                              int width, int height) {
     return LevelDom.wrapCanvasRenderingContext(_documentPtr.getCSSCanvasContext(contextId, name, width, height));
   }
 
-  /** @domName Document.queryCommandEnabled */
+  /** @domName queryCommandEnabled */
   bool queryCommandEnabled([String command = null]) {
     return _documentPtr.queryCommandEnabled(command);
   }
 
-  /** @domName Document.queryCommandIndeterm */
+  /** @domName queryCommandIndeterm */
   bool queryCommandIndeterm([String command = null]) {
     return _documentPtr.queryCommandIndeterm(command);
   }
 
-  /** @domName Document.queryCommandState */
+  /** @domName queryCommandState */
   bool queryCommandState([String command = null]) {
     return _documentPtr.queryCommandState(command);
   }
 
-  /** @domName Document.queryCommandSupported */
+  /** @domName queryCommandSupported */
   bool queryCommandSupported([String command = null]) {
     return _documentPtr.queryCommandSupported(command);
   }
 
-  /** @domName Document.queryCommandValue */
+  /** @domName queryCommandValue */
   String queryCommandValue([String command = null]) {
     return _documentPtr.queryCommandValue(command);
   }
 
+  /** @domName HTMLHtmlElement.manifest */
   String get manifest() => _ptr.manifest;
 
+  /** @domName HTMLHtmlElement.manifest */
   void set manifest(String value) { _ptr.manifest = value; }
 
   DocumentEvents get on() {

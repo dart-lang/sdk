@@ -10,8 +10,6 @@ String _filePath;
 /** The file currently being written to. */
 StringBuffer _file;
 
-FileSystem files;
-
 startFile(String path) {
   _filePath = path;
   _file = new StringBuffer();
@@ -28,7 +26,7 @@ writeln(String s) {
 
 endFile() {
   String outPath = '$outdir/$_filePath';
-  files.createDirectory(dirname(outPath), recursive: true);
+  world.files.createDirectory(dirname(outPath), recursive: true);
 
   world.files.writeString(outPath, _file.toString());
   _filePath = null;

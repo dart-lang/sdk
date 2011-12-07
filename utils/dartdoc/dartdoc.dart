@@ -54,6 +54,24 @@ Member _currentMember;
  */
 Map<String, Map<int, String>> _comments;
 
+/** A callback that returns additional Markdown documentation for a type. */
+typedef String TypeDocumenter(Type type);
+
+/** A list of callbacks registered for documenting types. */
+List<TypeDocumenter> _typeDocumenters;
+
+/** A callback that returns additional Markdown documentation for a method. */
+typedef String MethodDocumenter(MethodMember method);
+
+/** A list of callbacks registered for documenting methods. */
+List<MethodDocumenter> _methodDocumenters;
+
+/** A callback that returns additional Markdown documentation for a field. */
+typedef String FieldDocumenter(FieldMember field);
+
+/** A list of callbacks registered for documenting fields. */
+List<FieldDocumenter> _fieldDocumenters;
+
 int _totalLibraries = 0;
 int _totalTypes = 0;
 int _totalMembers = 0;
@@ -80,7 +98,21 @@ void main() {
 
   files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
-  options.dietParse = true;
+  initializeWorld(files);
+
+  final elapsed = time(() {
+    initializeDartDoc();
+    document(entrypoint);
+  });
+
+  printStats();
+}
+
+void initializeDartDoc() {
+  _comments = <Map<int, String>>{};
+  _typeDocumenters = <TypeDocumenter>[];
+  _methodDocumenters = <MethodDocumenter>[];
+  _fieldDocumenters = <FieldDocumenter>[];
 
   // Patch in support for [:...:]-style code to the markdown parser.
   // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
@@ -88,11 +120,12 @@ void main() {
       new md.CodeSyntax(@'\[\:((?:.|\n)*?)\:\]'));
 
   md.setImplicitLinkResolver(resolveNameReference);
+}
 
-  final elapsed = time(() {
-    initializeDartDoc();
-
-    initializeWorld(files);
+document(String entrypoint) {
+  try {
+    var oldDietParse = options.dietParse;
+    options.dietParse = true;
 
     // Handle the built-in entrypoints.
     switch (entrypoint) {
@@ -129,14 +162,14 @@ void main() {
     for (final library in world.libraries.getValues()) {
       docLibrary(library);
     }
-  });
-
-  print('Documented $_totalLibraries libraries, $_totalTypes types, and ' +
-        '$_totalMembers members in ${elapsed}msec.');
+  } finally {
+    options.dietParse = oldDietParse;
+  }
 }
 
-void initializeDartDoc() {
-  _comments = <String, Map<int, String>>{};
+printStats() {
+  print('Documented $_totalLibraries libraries, $_totalTypes types, and ' +
+      '$_totalMembers members in ${elapsed}msec.');
 }
 
 writeHeader(String title) {
@@ -239,6 +272,9 @@ docLibraryNavigation(Library library) {
   writeln('</ul>');
 }
 
+String _runDocumenters(var item, List<Function> documenters) =>
+  Strings.join(map(documenters, (doc) => doc(item)), '\n\n');
+
 docLibrary(Library library) {
   _totalLibraries++;
   _currentLibrary = library;
@@ -322,7 +358,7 @@ docType(Type type) {
       ''');
 
   docInheritance(type);
-  docCode(type.span);
+  docCode(type.span, _runDocumenters(type, _typeDocumenters));
   docConstructors(type);
   docMembers(type);
 
@@ -380,34 +416,9 @@ docInheritance(Type type) {
       write('Extends ${typeReference(type.parent)}. ');
     }
 
-    if (type.interfaces != null) {
-      switch (type.interfaces.length) {
-        case 0:
-          // Do nothing.
-          break;
-
-        case 1:
-          write('Implements ${typeReference(type.interfaces[0])}. ');
-          break;
-
-        case 2:
-          write('''Implements ${typeReference(type.interfaces[0])} and
-              ${typeReference(type.interfaces[1])}. ''');
-          break;
-
-        default:
-          write('Implements ');
-          for (final i = 0; i < type.interfaces.length; i++) {
-            write('${typeReference(type.interfaces[i])}');
-            if (i < type.interfaces.length - 2) {
-              write(', ');
-            } else if (i < type.interfaces.length - 1) {
-              write(', and ');
-            }
-          }
-          write('. ');
-          break;
-      }
+    if (type.interfaces != null && type.interfaces.length > 0) {
+      var interfaceStr = joinWithCommas(map(type.interfaces, typeReference));
+      write('Implements ${interfaceStr}. ');
     }
 
     if (factory != null) {
@@ -489,7 +500,8 @@ docMethod(Type type, MethodMember method, [String constructorName = null]) {
             title="Permalink to ${typeName(type)}.$name">#</a>''');
   writeln('</h4>');
 
-  docCode(method.span, showCode: true);
+  docCode(method.span, _runDocumenters(method, _methodDocumenters),
+      showCode: true);
 
   writeln('</div>');
 }
@@ -557,7 +569,8 @@ docField(Type type, FieldMember field) {
       </h4>
       ''');
 
-  docCode(field.span, showCode: true);
+  docCode(field.span, _runDocumenters(field, _fieldDocumenters),
+      showCode: true);
   writeln('</div>');
 }
 
@@ -745,13 +758,15 @@ md.Node resolveNameReference(String name) {
  * Dartdoc associated with that span if found, and will include the syntax
  * highlighted code itself if desired.
  */
-docCode(SourceSpan span, [bool showCode = false]) {
+docCode(SourceSpan span, String extraMarkdown, [bool showCode = false]) {
   if (span == null) return;
 
   writeln('<div class="doc">');
   final comment = findComment(span);
   if (comment != null) {
-    writeln(md.markdownToHtml(comment));
+    writeln(md.markdownToHtml('${comment}\n\n${extraMarkdown}'));
+  } else {
+    writeln(md.markdownToHtml(extraMarkdown));
   }
 
   if (includeSource && showCode) {
@@ -776,7 +791,7 @@ findCommentInFile(SourceFile file, int position) {
 }
 
 parseDocComments(SourceFile file) {
-  final comments = <int, String>{};
+  final comments = new Map<int, String>();
 
   final tokenizer = new Tokenizer(file, false);
   var lastComment = null;
@@ -870,3 +885,12 @@ stripComment(comment) {
 
   return buf.toString();
 }
+
+/** Register a callback to add additional documentation to a type. */
+addTypeDocumenter(TypeDocumenter fn) => _typeDocumenters.add(fn);
+
+/** Register a callback to add additional documentation to a method. */
+addMethodDocumenter(MethodDocumenter fn) => _methodDocumenters.add(fn);
+
+/** Register a callback to add additional documentation to a field. */
+addFieldDocumenter(FieldDocumenter fn) => _fieldDocumenters.add(fn);

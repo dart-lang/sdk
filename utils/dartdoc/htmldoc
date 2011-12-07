@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# To generate docs for the HTML library, including annotations on the
+# mapping to and from the DOM library, run this script like:
+#
+# $ htmldoc
+
+# Run from dartdoc directory to get correct relative paths.
+pushd `dirname "$0"` >>/dev/null
+
+# Generate the client-side .js file from interact.dart if we haven't already or
+# if it's out of date.
+if [ "interact.dart" -nt "static/interact.js" ]
+  then
+  ../../frog/minfrog --libdir=../../frog/lib \
+    --out=static/interact.js --compile-only interact.dart
+  echo "Compiled interact.dart."
+fi
+
+# Clean the output directory.
+if [ -d "docs" ]; then
+    rm -r docs
+fi
+mkdir docs
+
+# Copy the static files over.
+cp static/* docs
+
+# Generate the user's docs.
+../../frog/minfrog --libdir=../../frog/lib \
+    ../../client/html/scripts/html_doc.dart
+
+popd >>/dev/null

@@ -22394,6 +22394,7 @@ class DocumentEventsImplementation extends ElementEventsImplementation
   EventListenerList get contentLoaded() => _get('DOMContentLoaded');
 }
 
+/** @domName Document, HTMLDocument */
 class DocumentWrappingImplementation extends ElementWrappingImplementation implements Document {
 
   final _documentPtr;
@@ -22404,122 +22405,124 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
     _documentPtr.dynamic.dartObjectLocalStorage = this;
   }
 
-  /** @domName HTMLDocument.activeElement */
+  /** @domName activeElement */
   Element get activeElement() => LevelDom.wrapElement(_documentPtr.dynamic.activeElement);
 
   Node get parent() => null;
 
-  /** @domName Document.body */
+  /** @domName body */
   Element get body() => LevelDom.wrapElement(_documentPtr.body);
 
-  /** @domName Document.body */
+  /** @domName body */
   void set body(Element value) { _documentPtr.body = LevelDom.unwrap(value); }
 
-  /** @domName Document.charset */
+  /** @domName charset */
   String get charset() => _documentPtr.charset;
 
-  /** @domName Document.charset */
+  /** @domName charset */
   void set charset(String value) { _documentPtr.charset = value; }
 
-  /** @domName Document.cookie */
+  /** @domName cookie */
   String get cookie() => _documentPtr.cookie;
 
-  /** @domName Document.cookie */
+  /** @domName cookie */
   void set cookie(String value) { _documentPtr.cookie = value; }
 
-  /** @domName Document.defaultView */
+  /** @domName defaultView */
   Window get window() => LevelDom.wrapWindow(_documentPtr.defaultView);
 
-  /** @domName HTMLDocument.designMode */
+  /** @domName designMode */
   void set designMode(String value) { _documentPtr.dynamic.designMode = value; }
 
-  /** @domName Document.domain */
+  /** @domName domain */
   String get domain() => _documentPtr.domain;
 
-  /** @domName Document.head */
+  /** @domName head */
   HeadElement get head() => LevelDom.wrapHeadElement(_documentPtr.head);
 
-  /** @domName Document.lastModified */
+  /** @domName lastModified */
   String get lastModified() => _documentPtr.lastModified;
 
-  /** @domName Document.readyState */
+  /** @domName readyState */
   String get readyState() => _documentPtr.readyState;
 
-  /** @domName Document.referrer */
+  /** @domName referrer */
   String get referrer() => _documentPtr.referrer;
 
-  /** @domName Document.styleSheets */
+  /** @domName styleSheets */
   StyleSheetList get styleSheets() => LevelDom.wrapStyleSheetList(_documentPtr.styleSheets);
 
-  /** @domName Document.title */
+  /** @domName title */
   String get title() => _documentPtr.title;
 
-  /** @domName Document.title */
+  /** @domName title */
   void set title(String value) { _documentPtr.title = value; }
 
-  /** @domName Document.webkitHidden */
+  /** @domName webkitHidden */
   bool get webkitHidden() => _documentPtr.webkitHidden;
 
-  /** @domName Document.webkitVisibilityState */
+  /** @domName webkitVisibilityState */
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
-  /** @domName Document.caretRangeFromPoint */
+  /** @domName caretRangeFromPoint */
   Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
     return _createMeasurementFuture(
         () => LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y)),
         new Completer<Range>());
   }
 
-  /** @domName Document.createEvent */
+  /** @domName createEvent */
   Event createEvent(String eventType) {
     return LevelDom.wrapEvent(_documentPtr.createEvent(eventType));
   }
 
-  /** @domName Document.elementFromPoint */
+  /** @domName elementFromPoint */
   Future<Element> elementFromPoint([int x = null, int y = null]) {
     return _createMeasurementFuture(
         () => LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y)),
         new Completer<Element>());
   }
 
-  /** @domName Document.execCommand */
+  /** @domName execCommand */
   bool execCommand([String command = null, bool userInterface = null, String value = null]) {
     return _documentPtr.execCommand(command, userInterface, value);
   }
 
-  /** @domName Document.getCSSCanvasContext */
+  /** @domName getCSSCanvasContext */
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name,
                                              int width, int height) {
     return LevelDom.wrapCanvasRenderingContext(_documentPtr.getCSSCanvasContext(contextId, name, width, height));
   }
 
-  /** @domName Document.queryCommandEnabled */
+  /** @domName queryCommandEnabled */
   bool queryCommandEnabled([String command = null]) {
     return _documentPtr.queryCommandEnabled(command);
   }
 
-  /** @domName Document.queryCommandIndeterm */
+  /** @domName queryCommandIndeterm */
   bool queryCommandIndeterm([String command = null]) {
     return _documentPtr.queryCommandIndeterm(command);
   }
 
-  /** @domName Document.queryCommandState */
+  /** @domName queryCommandState */
   bool queryCommandState([String command = null]) {
     return _documentPtr.queryCommandState(command);
   }
 
-  /** @domName Document.queryCommandSupported */
+  /** @domName queryCommandSupported */
   bool queryCommandSupported([String command = null]) {
     return _documentPtr.queryCommandSupported(command);
   }
 
-  /** @domName Document.queryCommandValue */
+  /** @domName queryCommandValue */
   String queryCommandValue([String command = null]) {
     return _documentPtr.queryCommandValue(command);
   }
 
+  /** @domName HTMLHtmlElement.manifest */
   String get manifest() => _ptr.manifest;
 
+  /** @domName HTMLHtmlElement.manifest */
   void set manifest(String value) { _ptr.manifest = value; }
 
   DocumentEvents get on() {
@@ -22878,17 +22881,14 @@ class ElementAttributeMap implements Map<String, String> {
     return false;
   }
 
-  /** @domName Element.hasAttribute */
   bool containsKey(String key) {
     return _element.hasAttribute(key);
   }
 
-  /** @domName Element.getAttribute */
   String operator [](String key) {
     return _element.getAttribute(key);
   }
 
-  /** @domName Element.setAttribute */
   void operator []=(String key, String value) {
     _element.setAttribute(key, value);
   }
@@ -22899,7 +22899,6 @@ class ElementAttributeMap implements Map<String, String> {
     }
   }
 
-  /** @domName Element.removeAttribute */
   String remove(String key) {
     _element.removeAttribute(key);
   }
@@ -23070,6 +23069,7 @@ class ElementRectWrappingImplementation implements ElementRect {
   }
 }
 
+/** @domName Element, HTMLElement */
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
   
     static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
@@ -23088,7 +23088,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
       'track' : 'audio',
     };
 
-   factory ElementWrappingImplementation.html(String html) {
+  /** @domName Document.createElement */
+  factory ElementWrappingImplementation.html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
     //    creating them every call.
@@ -23120,6 +23121,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
   }
 
+  /** @domName Document.createElement */
   factory ElementWrappingImplementation.tag(String tag) {
     return LevelDom.wrapElement(dom.document.createElement(tag));
   }
@@ -23131,6 +23133,10 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   _CssClassSet _cssClassSet;
   _DataAttributeMap _dataAttributes;
 
+  /**
+   * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
+   *   Element.removeAttribute
+   */
   Map<String, String> get attributes() {
     if (_elementAttributeMap === null) {
       _elementAttributeMap = new ElementAttributeMap._wrap(_ptr);
@@ -23154,6 +23160,10 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     elements.addAll(copy);
   }
 
+  /**
+   * @domName childElementCount, firstElementChild, lastElementChild,
+   *   children, appendChild
+   */
   ElementList get elements() {
     if (_elements == null) {
       _elements = new _ChildrenElementList._wrap(_ptr);
@@ -23161,6 +23171,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     return _elements;
   }
 
+  /** @domName className, classList */
   Set<String> get classes() {
     if (_cssClassSet === null) {
       _cssClassSet = new _CssClassSet(_ptr);
@@ -23263,26 +23274,28 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _ptr.focus();
   }
 
-  /** @domName HTMLElement.insertAdjacentElement */
   Element insertAdjacentElement([String where = null, Element element = null]) {
     return LevelDom.wrapElement(_ptr.insertAdjacentElement(where, LevelDom.unwrap(element)));
   }
 
-  /** @domName HTMLElement.insertAdjacentHTML */
   void insertAdjacentHTML([String position_OR_where = null, String text = null]) {
     _ptr.insertAdjacentHTML(position_OR_where, text);
   }
 
-  /** @domName HTMLElement.insertAdjacentText */
   void insertAdjacentText([String where = null, String text = null]) {
     _ptr.insertAdjacentText(where, text);
   }
 
+  /** @domName querySelector, Document.getElementById */
   Element query(String selectors) {
     // TODO(jacobr): scope fix.
     return LevelDom.wrapElement(_ptr.querySelector(selectors));
   }
 
+  /**
+   * @domName querySelectorAll, getElementsByClassName, getElementsByTagName,
+   *   getElementsByTagNameNS
+   */
   ElementList queryAll(String selectors) {
     // TODO(jacobr): scope fix.
     return new FrozenElementList._wrap(_ptr.querySelectorAll(selectors));
@@ -23296,6 +23309,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _ptr.scrollByPages(pages);
   }
 
+  /** @domName scrollIntoView, scrollIntoViewIfNeeded */
   void scrollIntoView([bool centerIfNeeded = null]) {
     _ptr.scrollIntoViewIfNeeded(centerIfNeeded);
   }
@@ -23308,13 +23322,18 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
  
   void set scrollTop(int value) { _ptr.scrollTop = value; }
 
-  /** @domName getClientRects */
+  /**
+   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
+   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
+   * scrollHeight, scrollWidth, scrollTop, scrollLeft
+   */
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(
         () => new ElementRectWrappingImplementation(_ptr),
         new Completer<ElementRect>());
   }
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle() {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
@@ -23760,11 +23779,6 @@ class MessageEventWrappingImplementation extends EventWrappingImplementation imp
   String get origin() => _ptr.origin;
 
   Window get source() => LevelDom.wrapWindow(_ptr.source);
-
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String dataArg, String originArg, String lastEventIdArg, Window sourceArg, MessagePort messagePort) {
-    _ptr.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, LevelDom.unwrap(sourceArg), LevelDom.unwrap(messagePort));
-    return;
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
