@@ -23397,9 +23397,9 @@ class EventsImplementation implements Events {
   Map<String, EventListenerList> _listenerMap;
 
   EventsImplementation._wrap(this._ptr) {
-    // TODO(sigmund): uncomment type annotation (bug 221), currently dartc and
-    // frog interpret it differently.
-    _listenerMap = /*<EventListenerList>*/{};
+    // TODO(sigmund): the key type (String) yields a warning in frog and the vm,
+    // but it is currently necessary to compile with dartc.
+    _listenerMap = <String, EventListenerList>{};
   }
 
   EventListenerList operator [](String type) {
