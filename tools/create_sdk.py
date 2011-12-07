@@ -103,13 +103,18 @@ def Main(argv):
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')
   if utils.GuessOS() == 'win32':
-    dart_src_binary = join(join(HOME, build_dir), 'dart.exe')
+    # TODO(dgrove) - deal with frogc.bat
+    dart_src_binary = join(HOME, build_dir, 'dart.exe')
     dart_dest_binary = join(BIN, 'dart.exe')
   else:
-    dart_src_binary = join(join(HOME, build_dir), 'dart')
+    frogc_src_binary = join(HOME, 'frog', 'frogc')
+    dart_src_binary = join(HOME, build_dir, 'dart')
     dart_dest_binary = join(BIN, 'dart')
+    frogc_dest_binary = join(BIN, 'frogc')
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
+  copyfile(frogc_src_binary, frogc_dest_binary)
+  copymode(frogc_src_binary, frogc_dest_binary)
 
   # Create sdk/bin/frogc.dart, and hack as needed.
   frog_src_dir = join(HOME, 'frog')
