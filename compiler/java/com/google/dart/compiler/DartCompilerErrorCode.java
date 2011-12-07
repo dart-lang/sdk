@@ -8,6 +8,7 @@ package com.google.dart.compiler;
  * Valid error codes for the errors produced by the Dart compiler.
  */
 public enum DartCompilerErrorCode implements ErrorCode {
+  COULD_NOT_PARSE_IMPORT("Could not parse import: %s"),
   ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS("Main entry point method cannot have parameters"),
   ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER("Entry point \"%s\" may not be a getter"),
   ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER("Entry point \"%s\" may not be a setter"),
@@ -35,14 +36,17 @@ public enum DartCompilerErrorCode implements ErrorCode {
     this.message = message;
   }
 
+  @Override
   public String getMessage() {
     return message;
   }
 
+  @Override
   public ErrorSeverity getErrorSeverity() {
     return severity;
   }
 
+  @Override
   public SubSystem getSubSystem() {
     return SubSystem.COMPILER;
   }

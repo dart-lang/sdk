@@ -356,7 +356,12 @@ public class DartCompiler {
           if (SystemLibraryManager.isDartSpec(libSpec)) {
             dep = context.getSystemLibraryFor(libSpec);
           } else {
-            dep = libSrc.getImportFor(libSpec);
+            try {
+              dep = libSrc.getImportFor(libSpec);
+            } catch (IllegalArgumentException ex) {
+              reportImportError(context, libSrc, libNode);
+              continue;
+            }
           }
           if (dep == null) {
             reportMissingSource(context, libSrc, libNode);
@@ -674,7 +679,7 @@ public class DartCompiler {
       try {
         // Set entry point
         setEntryPoint();
-        
+
         // Dump the compiler parse tree if dump format is set in arguments
         BaseASTWriter astWriter = ASTWriterFactory.create(config);
 
@@ -684,11 +689,11 @@ public class DartCompiler {
 
           // Compile all the units in this library.
           for (DartUnit unit : lib.getUnits()) {
-          
+
             if(astWriter != null) {
               astWriter.process(unit);
             }
-            
+
             // Don't compile api-only units.
             if (unit.isDiet()) {
               continue;
@@ -850,6 +855,14 @@ public class DartCompiler {
       context.onError(event);
     }
 
+    private void reportImportError(DartCompilerContext context,
+                                   LibrarySource libSrc,
+                                   LibraryNode libNode) {
+      DartCompilationError event = new DartCompilationError(libNode,
+          DartCompilerErrorCode.COULD_NOT_PARSE_IMPORT, libNode.getText());
+      event.setSource(libSrc);
+      context.onError(event);
+    }
     CoreTypeProvider getTypeProvider() {
       typeProvider.getClass(); // Quick null check.
       return typeProvider;
