@@ -29,13 +29,17 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
       CoreTypeProvider typeProvider) {
     this.method = method;
     this.enclosingClass = enclosingClass;
-    this.functionType =
-        Types.makeFunctionType(
-            null,
-            typeProvider.getFunctionType().getElement(),
-            getParameters(),
-            typeProvider.getDynamicType(),
-            Collections.<TypeVariable>emptyList());
+    if (typeProvider != null) {
+      this.functionType =
+          Types.makeFunctionType(
+              null,
+              typeProvider.getFunctionType().getElement(),
+              getParameters(),
+              typeProvider.getDynamicType(),
+              Collections.<TypeVariable>emptyList());
+    } else {
+      functionType = null;
+    }
   }
 
   @Override

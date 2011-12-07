@@ -147,6 +147,11 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   }
 
   @Override
+  public boolean isAbstract() {
+    return false;
+  }
+
+  @Override
   public Element lookupLocalElement(String name) {
     return this;
   }

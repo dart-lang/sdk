@@ -111,6 +111,7 @@ public class DartParser extends CompletionHooksParserBase {
   private Set<String> prefixes;
   private boolean isDietParse;
   private boolean isParsingInterface;
+  private boolean isParsingAbstract;
 
   /**
    * Determines the maximum number of errors before terminating the parser. See
@@ -253,6 +254,12 @@ public class DartParser extends CompletionHooksParserBase {
         DartNode node = null;
         beginTopLevelElement();
         isParsingInterface = false;
+        // Check for ABSTRACT_KEYWORD.
+        isParsingAbstract = false;
+        if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
+          isParsingAbstract = true;
+        }
+        // Parse top level element.
         if (optionalPseudoKeyword(CLASS_KEYWORD)) {
           node = done(parseClass());
         } else if (optionalPseudoKeyword(INTERFACE_KEYWORD)) {
@@ -546,6 +553,12 @@ public class DartParser extends CompletionHooksParserBase {
   private DartDeclaration<?> parseClass() {
     beginClassBody();
 
+    // Parse modifiers.
+    Modifiers modifiers = Modifiers.NONE;
+    if (isParsingAbstract) {
+      modifiers = modifiers.makeAbstract();
+    }
+
     DartIdentifier name = parseIdentifier();
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
 
@@ -599,7 +612,13 @@ public class DartParser extends CompletionHooksParserBase {
     if (isParsingInterface) {
       return done(new DartClass(name, superType, interfaces, members, typeParameters, factory));
     } else {
-      return done(new DartClass(name, nativeName, superType, interfaces, members, typeParameters));
+      return done(new DartClass(name,
+          nativeName,
+          superType,
+          interfaces,
+          members,
+          typeParameters,
+          modifiers));
     }
   }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class DOMWrapperBase implements DOMType {
+abstract class DOMWrapperBase implements DOMType {
   // DOMWrapperBase has a hidden field on the native side which points to the
   // wrapped DOM object.  The wrapped DOM object is not directly accessible from
   // Dart code.

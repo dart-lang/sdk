@@ -6,6 +6,7 @@ package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.dart.compiler.DartCompilationError;
@@ -165,7 +166,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private Type expected;
     private InterfaceType currentClass;
     private final ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements;
-    private final Set<ClassElement> diagnosedAbstractClasses;
     private final InterfaceType boolType;
     private final InterfaceType numType;
     private final InterfaceType intType;
@@ -185,7 +185,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
              Set<ClassElement> diagnosedAbstractClasses) {
       this.context = context;
       this.unimplementedElements = unimplementedElements;
-      this.diagnosedAbstractClasses = diagnosedAbstractClasses;
       this.types = Types.getInstance(typeProvider);
       this.dynamicType = typeProvider.getDynamicType();
       this.stringType = typeProvider.getStringType();
@@ -729,6 +728,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       visit(node.getMembers());
       checkInterfaceConstructors(element);
+      // Report unimplemented members.
+      if (!node.isAbstract()) {
+        ClassElement cls = node.getSymbol();
+        List<Element> unimplementedMembers = findUnimplementedMembers(cls);
+        if (unimplementedMembers.size() > 0) {
+          StringBuilder sb = getUnimplementedMembersMessage(cls, unimplementedMembers);
+          typeError(
+              node.getName(),
+              TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
+              cls.getName(),
+              sb);
+        }
+      }
+      // Finish current class. 
       setCurrentClass(null);
       return type;
     }
@@ -1027,58 +1040,39 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitNewExpression(DartNewExpression node) {
-      ConstructorElement element = node.getSymbol();
-      node.setReferencedElement(element);
+      ConstructorElement constructorElement = node.getSymbol();
+      node.setReferencedElement(constructorElement);
       DartTypeNode typeNode = Types.constructorTypeNode(node);
       DartNode typeName = typeNode.getIdentifier();
       Type type = validateTypeNode(typeNode, true);
-      if (element == null) {
+      if (constructorElement == null) {
         visit(node.getArgs());
       } else {
-        ClassElement cls = (ClassElement) element.getEnclosingElement();
-
-        List<Element> unimplementedMembers = findUnimplementedMembers(cls);
-        if (unimplementedMembers.size() > 0) {
-          if (diagnosedAbstractClasses.add(cls)) {
-            StringBuilder sb = new StringBuilder();
-            for (Element member : unimplementedMembers) {
-              sb.append("\n    # From ");
-              ClassElement enclosingElement = (ClassElement) member.getEnclosingElement();
-              InterfaceType instance = types.asInstanceOf(cls.getType(), enclosingElement);
-              Type memberType = member.getType().subst(instance.getArguments(),
-                                                       enclosingElement.getTypeParameters());
-              sb.append(enclosingElement.getName());
-              sb.append(":\n    ");
-              if (memberType.getKind().equals(TypeKind.FUNCTION)) {
-                FunctionType ftype = (FunctionType) memberType;
-                sb.append(ftype.getReturnType());
-                sb.append(" ");
-                sb.append(member.getName());
-                String string = ftype.toString();
-                sb.append(string, 0, string.lastIndexOf(" -> "));
-              } else {
-                sb.append(memberType);
-                sb.append(" ");
-                sb.append(member.getName());
-              }
-            }
-            DartNode clsNode = cls.getNode();
-            if (clsNode != null) {
-              typeError(typeName, TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS, cls.getName());
-              typeError(clsNode, TypeErrorCode.ABSTRACT_CLASS, cls.getName(), sb);
-            } else {
-              typeError(typeName, TypeErrorCode.ABSTRACT_CLASS, cls.getName(), sb);
-            }
-          } else {
-            typeError(typeName, TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS, cls.getName());
+        ClassElement cls = (ClassElement) constructorElement.getEnclosingElement();
+        // Add warning for instantiating abstract class.
+        if (cls.isAbstract()) {
+          ErrorCode errorCode =
+              constructorElement.getModifiers().isFactory()
+                  ? TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS_USING_FACTORY
+                  : TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS;
+          typeError(typeName, errorCode, cls.getName());
+        } else {
+          List<Element> unimplementedMembers = findUnimplementedMembers(cls);
+          if (unimplementedMembers.size() > 0) {
+            StringBuilder sb = getUnimplementedMembersMessage(cls, unimplementedMembers);
+            typeError(
+                typeName,
+                TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
+                cls.getName(),
+                sb);
           }
         }
-        FunctionType ftype = (FunctionType) element.getType();
-        if (TypeKind.of(type).equals(TypeKind.INTERFACE)) {
-          InterfaceType ifaceType = (InterfaceType)type;
+        // Check type arguments.
+        FunctionType ftype = (FunctionType) constructorElement.getType();
+        if (ftype != null && TypeKind.of(type).equals(TypeKind.INTERFACE)) {
+          InterfaceType ifaceType = (InterfaceType) type;
           List<? extends Type> arguments = ifaceType.getArguments();
-          ftype = (FunctionType) ftype.subst(arguments,
-                                             ifaceType.getElement().getTypeParameters());
+          ftype = (FunctionType) ftype.subst(arguments, ifaceType.getElement().getTypeParameters());
           List<TypeVariable> typeVariables = ftype.getTypeVariables();
           if (arguments.size() == typeVariables.size()) {
             ftype = (FunctionType) ftype.subst(arguments, typeVariables);
@@ -1087,6 +1081,51 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
       return type;
+    }
+
+    /**
+     * @param cls the {@link ClassElement}  which has unimplemented members.
+     * @param unimplementedMembers the unimplemented members {@link Element}s.
+     * @return the {@link StringBuilder} with message about unimplemented members.
+     */
+    private StringBuilder getUnimplementedMembersMessage(ClassElement cls,
+        List<Element> unimplementedMembers) {
+      // Prepare groups of unimplemented members for each type.
+      Multimap<String, String> membersByTypes = ArrayListMultimap.create();
+      for (Element member : unimplementedMembers) {
+        ClassElement enclosingElement = (ClassElement) member.getEnclosingElement();
+        InterfaceType instance = types.asInstanceOf(cls.getType(), enclosingElement);
+        Type memberType = member.getType().subst(instance.getArguments(),
+                                                 enclosingElement.getTypeParameters());
+        if (memberType.getKind().equals(TypeKind.FUNCTION)) {
+          FunctionType ftype = (FunctionType) memberType;
+          StringBuilder sb = new StringBuilder();
+          sb.append(ftype.getReturnType());
+          sb.append(" ");
+          sb.append(member.getName());
+          String string = ftype.toString();
+          sb.append(string, 0, string.lastIndexOf(" -> "));
+          membersByTypes.put(enclosingElement.getName(), sb.toString());
+        } else {
+          StringBuilder sb = new StringBuilder();
+          sb.append(memberType);
+          sb.append(" ");
+          sb.append(member.getName());
+          membersByTypes.put(enclosingElement.getName(), sb.toString());
+        }
+      }
+      // Output unimplemented members with grouping by class.
+      StringBuilder sb = new StringBuilder();
+      for (String typeName : membersByTypes.keySet()) {
+        sb.append("\n    # From ");
+        sb.append(typeName);
+        sb.append(":");
+        for (String memberString : membersByTypes.get(typeName)) {
+          sb.append("\n        ");
+          sb.append(memberString);
+        }
+      }
+      return sb;
     }
 
     @Override
@@ -1555,7 +1594,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         while (supertype != null) {
           ClassElement superclass = supertype.getElement();
           for (Element member : superclass.getMembers()) {
-            superMembers.removeAll(member.getName());
+            if (!member.getModifiers().isAbstract()) {
+              superMembers.removeAll(member.getName());
+            }
           }
           supertype = supertype.getElement().getSupertype();
         }

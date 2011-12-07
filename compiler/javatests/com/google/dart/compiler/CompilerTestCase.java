@@ -103,12 +103,16 @@ public abstract class CompilerTestCase extends TestCase {
       }
     }
 
+    public List<DartCompilationError> getTypeErrors() {
+      return typeErrors;
+    }
+
     public List<DartCompilationError> getCompilationErrors() {
       return compilationErrors;
     }
 
-    public List<DartCompilationError> getTypeErrors() {
-      return typeErrors;
+    public List<DartCompilationError> getCompilationWarnings() {
+      return compilationWarnings;
     }
 
     /**

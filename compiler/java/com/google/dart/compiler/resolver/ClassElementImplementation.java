@@ -7,6 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
@@ -29,6 +30,7 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   private Set<InterfaceType> immediateSubtypes = new HashSet<InterfaceType>();
   private final boolean isInterface;
   private final String nativeName;
+  private final Modifiers modifiers;
   private final AtomicReference<List<InterfaceType>> allSupertypes =
       new AtomicReference<List<InterfaceType>>();
 
@@ -57,8 +59,10 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
     interfaces = new ArrayList<InterfaceType>();
     if (node != null) {
       isInterface = node.isInterface();
+      modifiers = node.getModifiers();
     } else {
       isInterface = false;
+      modifiers = Modifiers.NONE;
     }
   }
 
@@ -173,6 +177,11 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   @Override
   public boolean isInterface() {
     return isInterface;
+  }
+
+  @Override
+  public Modifiers getModifiers() {
+    return modifiers;
   }
 
   @Override
@@ -294,6 +303,19 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   @Override
   public boolean isObjectChild() {
     return supertype != null && supertype.getElement().isObject();
+  }
+
+  @Override
+  public boolean isAbstract() {
+    if (modifiers.isAbstract()) {
+      return true;
+    }
+    for (Element element : getMembers()) {
+      if (element.getModifiers().isAbstract()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

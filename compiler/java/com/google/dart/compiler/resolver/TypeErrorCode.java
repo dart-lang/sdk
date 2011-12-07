@@ -11,9 +11,9 @@ import com.google.dart.compiler.SubSystem;
  * {@link ErrorCode}s for type resolver.
  */
 public enum TypeErrorCode implements ErrorCode {
-  ABSTRACT_CLASS("%s is an abstract class because it does not implement the following members:%s"),
+  ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER(
+      "%s is an abstract class because it does not implement the inherited abstract members: %s"),
   CANNOT_BE_RESOLVED("cannot resolve %s"),
-  CANNOT_INSTATIATE_ABSTRACT_CLASS("cannot instantiate abstract class %s"),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
   EXTRA_ARGUMENT("extra argument"),
@@ -21,6 +21,11 @@ public enum TypeErrorCode implements ErrorCode {
       "Constructor '%s' in '%s' has parameters types (%s), doesn't match '%s' in '%s' with (%s)"),
   FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
   FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
+  INSTANTIATION_OF_ABSTRACT_CLASS("instantiation of an abstract class '%s'"),
+  INSTANTIATION_OF_ABSTRACT_CLASS_USING_FACTORY(
+      "instantiation of an abstract class '%s' using factory"),
+  INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS(
+      "instantiation of class %s with the inherited abstract members: %s"),
   INTERFACE_HAS_NO_METHOD_NAMED("%s has no method named \"%s\""),
   INTERNAL_ERROR("internal error: %s"),
   IS_STATIC_FIELD_IN("\"%s\" is a static field in \"%s\""),

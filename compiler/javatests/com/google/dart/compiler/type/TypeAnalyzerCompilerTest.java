@@ -248,4 +248,193 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getCompilationErrors());
     assertErrors(libraryResult.getTypeErrors());
   }
+
+  /**
+   * In contrast, if A is intended to be concrete, the checker should warn about all unimplemented
+   * methods, but allow clients to instantiate it freely.
+   */
+  public void test_warnAbstract_onConcreteClassDeclaration_whenHasUnimplementedMethods()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "interface Foo {",
+                "  int fooA;",
+                "  void fooB();",
+                "}",
+                "interface Bar {",
+                "  void barA();",
+                "}",
+                "class A implements Foo, Bar {",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 8, 7, 1),
+        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 12, 16, 1));
+    {
+      DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
+      String message = typeError.getMessage();
+      assertTrue(message.contains("# From Foo:"));
+      assertTrue(message.contains("int fooA"));
+      assertTrue(message.contains("void fooB()"));
+      assertTrue(message.contains("# From Bar:"));
+      assertTrue(message.contains("void barA()"));
+    }
+  }
+
+  /**
+   * From specification 0.05, 11/14/2011.
+   * <p>
+   * In contrast, if A is intended to be concrete, the checker should warn about all unimplemented
+   * methods, but allow clients to instantiate it freely.
+   */
+  public void test_warnAbstract_onConcreteClassDeclaration_whenHasInheritedUnimplementedMethod()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class A {",
+                "  abstract void foo();",
+                "}",
+                "class B extends A {",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new B();",
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 4, 7, 1),
+        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 16, 1));
+    {
+      DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
+      String message = typeError.getMessage();
+      assertTrue(message.contains("# From A:"));
+      assertTrue(message.contains("void foo()"));
+    }
+  }
+
+  /**
+   * From specification 0.05, 11/14/2011.
+   * <p>
+   * If A is intended to be abstract, we want the static checker to warn about any attempt to
+   * instantiate A, and we do not want the checker to complain about unimplemented methods in A.
+   * <p>
+   * Here:
+   * <ul>
+   * <li>"A" has unimplemented methods, but we don't show warnings, because it is explicitly marked
+   * as abstract.</li>
+   * <li>When we try to create instance of "A", we show warning that it is abstract.</li>
+   * </ul>
+   */
+  public void test_warnAbstract_onAbstractClass_whenInstantiate_normalConstructor()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "interface Foo {",
+                "  int fooA;",
+                "  void fooB();",
+                "}",
+                "abstract class A implements Foo {",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 16, 1));
+  }
+
+  /**
+   * Variant of {@link #test_warnAbstract_onAbstractClass_whenInstantiate_normalConstructor()}.
+   * <p>
+   * An abstract class is either a class that is explicitly declared with the abstract modifier, or
+   * a class that declares at least one abstract method (7.1.1).
+   */
+  public void test_warnAbstract_onClassWithAbstractMethod_whenInstantiate_normalConstructor()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "interface Foo {",
+                "  void foo();",
+                "}",
+                "class A implements Foo {",
+                "  abstract void bar();",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 16, 1));
+  }
+
+  /**
+   * Variant of {@link #test_warnAbstract_onAbstractClass_whenInstantiate_normalConstructor()}.
+   * <p>
+   * An abstract class is either a class that is explicitly declared with the abstract modifier, or
+   * a class that declares at least one abstract method (7.1.1).
+   */
+  public void test_warnAbstract_onClassWithAbstractGetter_whenInstantiate_normalConstructor()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "interface Foo {",
+                "  void foo();",
+                "}",
+                "class A implements Foo {",
+                "  abstract get x();",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 16, 1));
+  }
+
+  /**
+   * Factory constructor can instantiate any class and return it non-abstract class instance, but
+   * spec requires warnings, so we provide it, but using different constant.
+   */
+  public void test_warnAbstract_onAbstractClass_whenInstantiate_factoryConstructor()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "abstract class A {",
+                "  factory A() {",
+                "    return null;",
+                "  }",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS_USING_FACTORY, 8, 16, 1));
+  }
 }

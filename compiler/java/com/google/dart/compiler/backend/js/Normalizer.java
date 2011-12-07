@@ -61,10 +61,9 @@ import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LabelElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.SyntheticDefaultConstructorElement;
 import com.google.dart.compiler.resolver.VariableElement;
-import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
-import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 
 import java.util.ArrayList;
@@ -591,122 +590,13 @@ public class Normalizer {
     @Override
     public DartNode visitClass(DartClass node) {
       final ClassElement classElement = node.getSymbol();
+      // Ensure implicit default constructor with method.
       if (Elements.needsImplicitDefaultConstructor(classElement)) {
         DartMethodDefinition method = createImplicitDefaultConstructor(classElement);
-        
         // TODO - We should really normalize the class itself.
         node.getMembers().add(method);
       }
       return super.visitClass(node);
-    }
-    
-    static class SyntheticDefaultConstructorElement implements ConstructorElement {
-      private final DartMethodDefinition method;
-      private final ClassElement enclosingClass;
-
-      SyntheticDefaultConstructorElement(DartMethodDefinition method, ClassElement enclosingClass) {
-        this.method = method;
-        this.enclosingClass = enclosingClass;
-      }
-      
-      @Override
-      public String getOriginalSymbolName() {
-        return getName();
-      }
-      
-      @Override
-      public DartNode getNode() {
-        return method;
-      }
-      
-      @Override
-      public void setNode(DartLabel node) {
-      }
-      
-      @Override
-      public boolean isDynamic() {
-        return false;
-      }
-      
-      @Override
-      public Type getType() {
-        return null;
-      }
-      
-      @Override
-      public String getName() {
-        return "";
-      }
-      
-      @Override
-      public Modifiers getModifiers() {
-        return Modifiers.NONE;
-      }
-      
-      @Override
-      public ElementKind getKind() {
-        return ElementKind.CONSTRUCTOR;
-      }
-      
-      @Override
-      public EnclosingElement getEnclosingElement() {
-        return enclosingClass;
-      }
-      
-      @Override
-      public boolean isStatic() {
-        return false;
-      }
-      
-      @Override
-      public boolean isConstructor() {
-        return true;
-      }
-
-      @Override
-      public ConstructorElement getDefaultConstructor() {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public void setDefaultConstructor(ConstructorElement defaultConstructor) {
-        throw new UnsupportedOperationException();
-      }
-      
-      @Override
-      public Type getReturnType() {
-        return null;
-      }
-      
-      @Override
-      public List<VariableElement> getParameters() {
-        return Collections.emptyList();
-      }
-      
-      @Override
-      public FunctionType getFunctionType() {
-        return null;
-      }
-      
-      @Override
-      public ClassElement getConstructorType() {
-        return enclosingClass;
-      }
-
-      @Override
-      public boolean isInterface() {
-        return false;
-      }
-
-      @Override
-      public Iterable<Element> getMembers() {
-        return Collections.emptyList();
-      }
-
-      @Override
-      public Element lookupLocalElement(String name) {
-        return null;
-      }
     }
 
     private DartMethodDefinition createImplicitDefaultConstructor(final ClassElement classElement) {
@@ -715,7 +605,7 @@ public class Normalizer {
           new DartBlock(Collections.<DartStatement>emptyList()), null);
       final DartMethodDefinition method =
           DartMethodDefinition.create(new DartIdentifier(""), function, Modifiers.NONE, null, null);
-      method.setSymbol(new SyntheticDefaultConstructorElement(method, classElement));
+      method.setSymbol(new SyntheticDefaultConstructorElement(method, classElement, null));
       return method;
     }
 
@@ -848,7 +738,7 @@ public class Normalizer {
             DartSuperConstructorInvocation superInvocation = new DartSuperConstructorInvocation(
                 new DartIdentifier(""), Collections.<DartExpression>emptyList());
             superInvocation.setSymbol(new SyntheticDefaultConstructorElement(null, 
-                classElement.getSupertype().getElement()));
+                classElement.getSupertype().getElement(), null));
             nInit.add(new DartInitializer(null, superInvocation));
           }    
         }
