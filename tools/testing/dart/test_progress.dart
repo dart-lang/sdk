@@ -8,22 +8,24 @@
 #import("test_suite.dart");
 
 class ProgressIndicator {
-  ProgressIndicator(this._startTime);
+  ProgressIndicator(this._startTime, this._printTiming) : _tests = [];
 
-  factory ProgressIndicator.fromName(String name, Date startTime) {
+  factory ProgressIndicator.fromName(String name,
+                                     Date startTime,
+                                     bool printTiming) {
     switch (name) {
       case 'compact':
-        return new CompactProgressIndicator(startTime);
+        return new CompactProgressIndicator(startTime, printTiming);
       case 'color':
-        return new ColorProgressIndicator(startTime);
+        return new ColorProgressIndicator(startTime, printTiming);
       case 'line':
-        return new LineProgressIndicator(startTime);
+        return new LineProgressIndicator(startTime, printTiming);
       case 'verbose':
-        return new VerboseProgressIndicator(startTime);
+        return new VerboseProgressIndicator(startTime, printTiming);
       case 'status':
-        return new StatusProgressIndicator(startTime);
+        return new StatusProgressIndicator(startTime, printTiming);
       case 'buildbot':
-        return new BuildbotProgressIndicator(startTime);
+        return new BuildbotProgressIndicator(startTime, printTiming);
       default:
         assert(false);
         break;
@@ -44,6 +46,9 @@ class ProgressIndicator {
       _passedTests++;
     }
     _printDoneProgress(test);
+    // If we need to print timing information we hold on to all completed
+    // tests.
+    if (_printTiming) _tests.add(test);
   }
 
   void allTestsKnown() {
@@ -51,7 +56,29 @@ class ProgressIndicator {
     _allTestsKnown = true;
   }
 
-  abstract allDone();
+  void _printTimingInformation() {
+    if (_printTiming) {
+      Duration d = (new Date.now()).difference(_startTime);
+      print('\n--- Total time: ${_timeString(d)} ---');
+      _tests.sort((a, b) {
+        Duration aDuration = a.output.time;
+        Duration bDuration = b.output.time;
+        return bDuration.inMilliseconds - aDuration.inMilliseconds;
+      });
+      for (int i = 0; i < 20 && i < _tests.length; i++) {
+        var name = _tests[i].displayName;
+        var duration = _tests[i].output.time;
+        print('${duration} - $name');
+      }
+    }
+  }
+
+  void allDone() {
+    _printStatus();
+    _printTimingInformation();
+    exit(_failedTests > 0 ? 1 : 0);
+  }
+
   abstract _printStartProgress();
   abstract _printDoneProgress();
 
@@ -74,8 +101,7 @@ class ProgressIndicator {
     }
   }
 
-  String _timeString() {
-    Duration d = (new Date.now()).difference(_startTime);
+  String _timeString(Duration d) {
     var min = d.inMinutes;
     var sec = d.inSeconds % 60;
     return '${_padTime(min)}:${_padTime(sec)}';
@@ -121,14 +147,18 @@ class ProgressIndicator {
   int _failedTests = 0;
   bool _allTestsKnown = false;
   Date _startTime;
+  bool _printTiming;
+  List<TestCase> _tests;
 }
 
 
 class CompactIndicator extends ProgressIndicator {
-  CompactIndicator(Date startTime) : super(startTime);
+  CompactIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
 
   void allDone() {
     stdout.write('\n'.charCodes());
+    _printTimingInformation();
     stdout.close();
     exit(_failedTests > 0 ? 1 : 0);
   }
@@ -147,15 +177,17 @@ class CompactIndicator extends ProgressIndicator {
 
 
 class CompactProgressIndicator extends CompactIndicator {
-  CompactProgressIndicator(Date startTime) : super(startTime);
+  CompactProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
 
   void _printProgress() {
     var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
     var progressPadded = _pad(_allTestsKnown ? percent : _nextSpinner(), 5);
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
+    Duration d = (new Date.now()).difference(_startTime);
     var progressLine =
-        '\r[${_timeString()} | $progressPadded% | ' +
+        '\r[${_timeString(d)} | $progressPadded% | ' +
         '+$passedPadded | -$failedPadded]';
     stdout.write(progressLine.charCodes());
   }
@@ -163,7 +195,8 @@ class CompactProgressIndicator extends CompactIndicator {
 
 
 class ColorProgressIndicator extends CompactIndicator {
-  ColorProgressIndicator(Date startTime) : super(startTime);
+  ColorProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
 
   static int GREEN = 32;
   static int RED = 31;
@@ -182,8 +215,9 @@ class ColorProgressIndicator extends CompactIndicator {
     var progressPadded = _pad(_allTestsKnown ? percent : _nextSpinner(), 5);
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
+    Duration d = (new Date.now()).difference(_startTime);
     var progressLine = [];
-    progressLine.addAll('\r[${_timeString()} | $progressPadded% | '.charCodes());
+    progressLine.addAll('\r[${_timeString(d)} | $progressPadded% | '.charCodes());
     addColorWrapped(progressLine, '+$passedPadded ', GREEN);
     progressLine.addAll('| '.charCodes());
     var failedColor = (_failedTests != 0) ? RED : NONE;
@@ -195,12 +229,8 @@ class ColorProgressIndicator extends CompactIndicator {
 
 
 class LineProgressIndicator extends ProgressIndicator {
-  LineProgressIndicator(Date startTime) : super(startTime);
-
-  void allDone() {
-    _printStatus();
-    exit(_failedTests > 0 ? 1 : 0);
-  }
+  LineProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
 
   void _printStartProgress(TestCase test) {
   }
@@ -216,12 +246,8 @@ class LineProgressIndicator extends ProgressIndicator {
 
 
 class VerboseProgressIndicator extends ProgressIndicator {
-  VerboseProgressIndicator(Date startTime) : super(startTime);
-
-  void allDone() {
-    _printStatus();
-    exit(_failedTests > 0 ? 1 : 0);
-  }
+  VerboseProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, bool printTiming);
 
   void _printStartProgress(TestCase test) {
     print('Starting ${test.displayName}...');
@@ -238,12 +264,8 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
 
 class StatusProgressIndicator extends ProgressIndicator {
-  StatusProgressIndicator(Date startTime) : super(startTime);
-
-  void allDone() {
-    _printStatus();
-    exit(_failedTests > 0 ? 1 : 0);
-  }
+  StatusProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
 
   void _printStartProgress(TestCase test) {
   }
@@ -254,12 +276,8 @@ class StatusProgressIndicator extends ProgressIndicator {
 
 
 class BuildbotProgressIndicator extends ProgressIndicator {
-  BuildbotProgressIndicator(Date startTime) : super(startTime);
-
-  void allDone() {
-    _printStatus();
-    exit(_failedTests > 0 ? 1 : 0);
-  }
+  BuildbotProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
 
   void _printStartProgress(TestCase test) {
   }

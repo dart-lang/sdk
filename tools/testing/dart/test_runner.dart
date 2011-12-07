@@ -331,10 +331,13 @@ class ProcessQueue {
   ProcessQueue(int this._maxProcesses,
                String progress,
                bool this._verbose,
-               Date start_time,
+               Date startTime,
+               bool printTiming,
                Function this._enqueueMoreWork)
       : _tests = new Queue<TestCase>(),
-        _progress = new ProgressIndicator.fromName(progress, start_time),
+        _progress = new ProgressIndicator.fromName(progress,
+                                                   startTime,
+                                                   printTiming),
         _batchProcesses = new List<DartcBatchRunnerProcess>() {
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }

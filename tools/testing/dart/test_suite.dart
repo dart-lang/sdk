@@ -78,7 +78,7 @@ class CCTestSuite implements TestSuite {
       var expectations = testExpectations.expectations(testName);
 
       if (configuration["report"]) {
-          SummaryReport.add(expectations);
+        SummaryReport.add(expectations);
       }
 
       if (expectations.contains(SKIP)) return;

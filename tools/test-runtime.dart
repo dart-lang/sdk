@@ -31,6 +31,7 @@ main() {
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
   var verbose = firstConf['verbose'];
+  var printTiming = firstConf['time'];
 
   var configurationIterator = configurations.iterator();
   bool enqueueConfiguration(ProcessQueue queue) {
@@ -69,5 +70,6 @@ main() {
                                progressIndicator,
                                verbose,
                                startTime,
+                               printTiming,
                                enqueueConfiguration);
 }

@@ -135,7 +135,14 @@ is 'dart file.dart' and you specify special command
               specialCommandHelp,
               ['--special-command'],
               [],
-              '')];
+              ''),
+          new _TestOptionSpecification(
+              'time',
+              'Print timing information after running tests',
+              ['--time'],
+              [],
+              false,
+              'bool')];
   }
 
 
